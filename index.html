@@ -1,34 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Who is the Spy? | Final Edition</title>
+    <title>Who is the Spy? | Fix Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
         body { 
             background-color: #020617; 
             color: #f8fafc;
-            font-family: 'Inter', 'Noto Sans Arabic', sans-serif;
+            font-family: 'Noto Sans Arabic', sans-serif;
             margin: 0;
-            overflow-x: hidden;
         }
-        .glass {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .glass-card {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 1.5rem;
         }
-        .loading-spinner {
-            width: 30px; height: 30px;
-            border: 3px solid rgba(59, 130, 246, 0.2);
-            border-top: 3px solid #3b82f6;
+        .loader {
+            width: 40px; height: 40px;
+            border: 4px solid rgba(59, 130, 246, 0.1);
+            border-top: 4px solid #3b82f6;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -36,12 +35,13 @@
 <body>
     <div id="root"></div>
 
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect } = React;
 
         const firebaseConfig = {
             apiKey: "AIzaSyApAJaNfF0YHupunLRlK3jRYvttxczWShY",
@@ -52,270 +52,246 @@
             appId: "1:607075438373:web:a03e9fb8b243cd993e14cc"
         };
 
+        // Initialize Firebase
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'spy_v4_final';
-        const apiKey = ""; // API Key for Gemini
-
-        const TRANSLATIONS = {
-            en: {
-                title: "Who is the Spy?",
-                create: "Create New Room",
-                join: "Join Room",
-                placeholderName: "Your Name",
-                placeholderCode: "Room Code",
-                participants: "Players",
-                start: "Start Game",
-                waiting: "Waiting for host...",
-                spy: "YOU ARE THE SPY",
-                spyTask: "Don't get caught! Guess the location.",
-                citizen: "YOU ARE A CITIZEN",
-                location: "Location:",
-                consensus: "Voted by group:",
-                newRound: "New Round",
-                loading: "Connecting...",
-                generating: "AI Generating Scenario...",
-                error: "Room not found or error"
-            },
-            ar: {
-                title: "من هو الجاسوس؟",
-                create: "إنشاء غرفة جديدة",
-                join: "انضمام للغرفة",
-                placeholderName: "اسمك",
-                placeholderCode: "كود الغرفة",
-                participants: "اللاعبين",
-                start: "ابدأ اللعبة",
-                waiting: "بانتظار المضيف...",
-                spy: "أنت الجاسوس",
-                spyTask: "لا تجعلهم يكتشفوك! خمن المكان.",
-                citizen: "أنت مواطن",
-                location: "المكان:",
-                consensus: "تصويت المجموعة:",
-                newRound: "جولة جديدة",
-                loading: "جاري الاتصال...",
-                generating: "الذكاء الاصطناعي يجهز الجولة...",
-                error: "الغرفة غير موجودة أو حدث خطأ"
-            }
-        };
-
-        async function getAIScenario() {
-            const prompt = "Create a unique secret location and 4 associated words for 'Who is the Spy' game. Output JSON: {location_en, location_ar, words_en: [], words_ar: [], secret_word_en, secret_word_ar}";
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: { responseMimeType: "application/json" }
-                    })
-                });
-                const data = await res.json();
-                return JSON.parse(data.candidates[0].content.parts[0].text);
-            } catch (e) {
-                return { 
-                    location_en: "Submarine", location_ar: "غواصة", 
-                    words_en: ["Torpedo", "Sonar", "Ocean", "Steel"], words_ar: ["طوربيد", "سونار", "محيط", "فولاذ"],
-                    secret_word_en: "Sonar", secret_word_ar: "سونار"
-                };
-            }
-        }
+        const appId = 'spy_game_stable_v1';
 
         function App() {
-            const [lang, setLang] = useState('en');
             const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
             const [room, setRoom] = useState(null);
             const [roomId, setRoomId] = useState('');
+            const [name, setName] = useState(localStorage.getItem('spy_user_name') || '');
             const [inputCode, setInputCode] = useState('');
-            const [name, setName] = useState(localStorage.getItem('spy_name') || '');
-            const [isJoining, setIsJoining] = useState(false);
-            const [error, setError] = useState(null);
+            const [statusMsg, setStatusMsg] = useState('');
 
-            const t = TRANSLATIONS[lang];
-
+            // 1. Authentication Handlers (Fixing the Loading Issue)
             useEffect(() => {
-                auth.onAuthStateChanged(async (u) => {
-                    if (!u) await auth.signInAnonymously();
-                    else setUser(u);
+                const initAuth = async () => {
+                    try {
+                        // Use anonymous login if no session exists
+                        if (!auth.currentUser) {
+                            await auth.signInAnonymously();
+                        }
+                    } catch (e) {
+                        console.error("Auth Error:", e);
+                        setStatusMsg("خطأ في الاتصال بالسيرفر");
+                    }
+                };
+
+                const unsubscribe = auth.onAuthStateChanged((u) => {
+                    setUser(u);
+                    setLoading(false);
                 });
+
+                initAuth();
+                return () => unsubscribe();
             }, []);
 
+            // 2. Room Listener
             useEffect(() => {
                 if (!user || !roomId) return;
-                // Path following Rule 1 strictly
-                const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
-                    .onSnapshot(doc => {
-                        if (doc.exists) setRoom(doc.data());
-                        else { setRoom(null); setRoomId(''); }
-                    }, (err) => setError(err.message));
-                return unsub;
+
+                const roomRef = db.collection('artifacts').doc(appId)
+                                 .collection('public').doc('data')
+                                 .collection('rooms').doc(roomId);
+
+                const unsub = roomRef.onSnapshot((doc) => {
+                    if (doc.exists) {
+                        setRoom(doc.data());
+                    } else {
+                        setRoom(null);
+                        setRoomId('');
+                    }
+                }, (err) => {
+                    console.error("Firestore Error:", err);
+                    setStatusMsg("حدث خطأ أثناء جلب بيانات الغرفة");
+                });
+
+                return () => unsub();
             }, [user, roomId]);
 
-            const handleCreate = async () => {
-                if (!name.trim()) return;
-                setIsJoining(true);
-                localStorage.setItem('spy_name', name);
-                const id = Math.random().toString(36).substring(2, 7).toUpperCase();
+            const createRoom = async () => {
+                if (!name.trim()) return setStatusMsg("يرجى إدخال اسمك أولاً");
+                setLoading(true);
+                localStorage.setItem('spy_user_name', name);
+                
+                const newId = Math.random().toString(36).substring(2, 7).toUpperCase();
                 const roomData = {
-                    id, admin: user.uid, status: 'waiting',
-                    players: [{ uid: user.uid, name, vote: null }],
-                    scenario: null, spyId: null
+                    id: newId,
+                    admin: user.uid,
+                    status: 'waiting',
+                    players: [{ uid: user.uid, name, role: null }],
+                    location: null,
+                    spyId: null
                 };
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set(roomData);
-                setRoomId(id);
-                setIsJoining(false);
-            };
 
-            const handleJoin = async () => {
-                if (!name.trim() || !inputCode.trim()) return;
-                setIsJoining(true);
-                localStorage.setItem('spy_name', name);
-                const code = inputCode.toUpperCase();
-                const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(code);
-                const snap = await ref.get();
-                if (snap.exists) {
-                    const data = snap.data();
-                    if (!data.players.find(p => p.uid === user.uid)) {
-                        await ref.update({
-                            players: firebase.firestore.FieldValue.arrayUnion({ uid: user.uid, name, vote: null })
-                        });
-                    }
-                    setRoomId(code);
-                } else {
-                    setError("Room not found");
+                try {
+                    await db.collection('artifacts').doc(appId)
+                            .collection('public').doc('data')
+                            .collection('rooms').doc(newId).set(roomData);
+                    setRoomId(newId);
+                } catch (e) {
+                    setStatusMsg("فشل إنشاء الغرفة");
                 }
-                setIsJoining(false);
+                setLoading(false);
             };
 
-            const startRound = async () => {
-                if (room.players.length < 3) return;
-                setIsJoining(true);
-                const scenario = await getAIScenario();
+            const joinRoom = async () => {
+                if (!name.trim() || !inputCode.trim()) return setStatusMsg("أكمل البيانات");
+                setLoading(true);
+                localStorage.setItem('spy_user_name', name);
+                
+                const code = inputCode.toUpperCase();
+                const roomRef = db.collection('artifacts').doc(appId)
+                                  .collection('public').doc('data')
+                                  .collection('rooms').doc(code);
+                
+                try {
+                    const snap = await roomRef.get();
+                    if (snap.exists) {
+                        const data = snap.data();
+                        if (!data.players.find(p => p.uid === user.uid)) {
+                            await roomRef.update({
+                                players: firebase.firestore.FieldValue.arrayUnion({ uid: user.uid, name, role: null })
+                            });
+                        }
+                        setRoomId(code);
+                    } else {
+                        setStatusMsg("الغرفة غير موجودة");
+                    }
+                } catch (e) {
+                    setStatusMsg("خطأ في الانضمام");
+                }
+                setLoading(false);
+            };
+
+            const startGame = async () => {
+                if (room.players.length < 3) return setStatusMsg("تحتاج لـ 3 لاعبين على الأقل");
+                
+                const locations = [
+                    { ar: "مستشفى", en: "Hospital" },
+                    { ar: "مدرسة", en: "School" },
+                    { ar: "مركز شرطة", en: "Police Station" },
+                    { ar: "طائرة", en: "Airplane" },
+                    { ar: "غواصة", en: "Submarine" }
+                ];
+                const selected = locations[Math.floor(Math.random() * locations.length)];
                 const spy = room.players[Math.floor(Math.random() * room.players.length)];
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+
+                await db.collection('artifacts').doc(appId)
+                        .collection('public').doc('data')
+                        .collection('rooms').doc(roomId).update({
                     status: 'playing',
-                    scenario,
-                    spyId: spy.uid,
-                    players: room.players.map(p => ({ ...p, vote: null }))
-                });
-                setIsJoining(false);
-            };
-
-            const vote = async (word) => {
-                const newPlayers = room.players.map(p => p.uid === user.uid ? { ...p, vote: word } : p);
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    players: newPlayers
+                    location: selected.ar,
+                    spyId: spy.uid
                 });
             };
 
-            const groupVote = useMemo(() => {
-                if (!room?.players) return null;
-                const votes = room.players.map(p => p.vote).filter(v => v);
-                if (!votes.length) return null;
-                const counts = votes.reduce((a, c) => { a[c] = (a[c] || 0) + 1; return a; }, {});
-                return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
-            }, [room]);
-
-            if (!user) return <div className="h-screen flex items-center justify-center"><div className="loading-spinner"></div></div>;
+            if (loading) {
+                return (
+                    <div className="h-screen flex flex-col items-center justify-center gap-4">
+                        <div className="loader"></div>
+                        <p className="font-bold animate-pulse text-blue-400">جاري الاتصال بالسيرفر...</p>
+                    </div>
+                );
+            }
 
             return (
-                <div className="min-h-screen p-6 flex flex-col items-center justify-center" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                <div className="min-h-screen p-6 flex flex-col items-center justify-center">
                     <div className="w-full max-w-md">
-                        <div className="flex justify-between mb-8 items-center">
-                            <h1 className="text-2xl font-black italic text-blue-500 tracking-tighter uppercase">{t.title}</h1>
-                            <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="glass px-4 py-2 text-xs font-bold uppercase">{lang === 'en' ? 'العربية' : 'English'}</button>
-                        </div>
+                        <h1 className="text-4xl font-black text-center mb-8 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">من هو الجاسوس؟</h1>
 
                         {!room ? (
-                            <div className="glass p-8 space-y-6 shadow-2xl">
-                                <input 
-                                    className="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl font-bold outline-none focus:border-blue-500 transition-colors"
-                                    placeholder={t.placeholderName} value={name} onChange={e => setName(e.target.value)}
-                                />
-                                <button onClick={handleCreate} disabled={isJoining} className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-black transition-all active:scale-95">
-                                    {isJoining ? "..." : t.create}
+                            <div className="glass-card p-8 space-y-6">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-2 mr-1">اسم اللاعب</label>
+                                    <input 
+                                        className="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 transition-all text-center font-bold"
+                                        placeholder="ادخل اسمك هنا"
+                                        value={name} onChange={e => setName(e.target.value)}
+                                    />
+                                </div>
+
+                                <button onClick={createRoom} className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-black shadow-lg shadow-blue-900/20 active:scale-95 transition-all">
+                                    إنشاء غرفة جديدة
                                 </button>
-                                <div className="relative py-2"><div className="border-t border-slate-800 w-full"></div><div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#020617] px-2 text-[10px] text-slate-500 font-bold">OR</div></div>
+
+                                <div className="flex items-center gap-4 text-slate-600">
+                                    <div className="h-[1px] bg-slate-800 flex-1"></div>
+                                    <span className="text-xs font-bold">أو انضم لكود</span>
+                                    <div className="h-[1px] bg-slate-800 flex-1"></div>
+                                </div>
+
                                 <div className="flex gap-2">
                                     <input 
-                                        className="flex-1 bg-slate-900 border border-slate-700 p-4 rounded-xl font-black text-center uppercase tracking-widest outline-none focus:border-blue-500"
-                                        placeholder={t.placeholderCode} value={inputCode} onChange={e => setInputCode(e.target.value)}
+                                        className="flex-1 bg-slate-900 border border-slate-700 p-4 rounded-xl text-center font-black tracking-widest outline-none focus:border-blue-500 uppercase"
+                                        placeholder="الكود"
+                                        value={inputCode} onChange={e => setInputCode(e.target.value)}
                                     />
-                                    <button onClick={handleJoin} disabled={isJoining} className="bg-slate-800 hover:bg-slate-700 px-6 rounded-xl font-black">
-                                        {t.join}
+                                    <button onClick={joinRoom} className="bg-slate-800 hover:bg-slate-700 px-6 rounded-xl font-bold">
+                                        انضمام
                                     </button>
                                 </div>
-                                {error && <p className="text-red-400 text-xs text-center font-bold">{error}</p>}
+                                {statusMsg && <p className="text-red-400 text-xs text-center font-bold">{statusMsg}</p>}
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                <div className="glass p-4 flex justify-between items-center">
+                                <div className="glass-card p-4 flex justify-between items-center border-blue-500/30">
                                     <div>
-                                        <span className="text-[10px] text-slate-500 block font-bold">{t.placeholderCode}</span>
-                                        <span className="text-2xl font-black text-blue-400 font-mono tracking-tighter">{room.id}</span>
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase">كود الغرفة</p>
+                                        <p className="text-2xl font-black text-blue-400 font-mono tracking-tighter">{room.id}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <span className="text-[10px] text-slate-500 block font-bold">{t.participants}</span>
-                                        <span className="text-2xl font-black">{room.players.length}</span>
+                                    <div className="text-left">
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase">اللاعبين</p>
+                                        <p className="text-2xl font-black">{room.players.length}</p>
                                     </div>
                                 </div>
 
                                 {room.status === 'waiting' ? (
-                                    <div className="glass p-6 space-y-4">
-                                        <div className="grid gap-2">
+                                    <div className="glass-card p-6 space-y-4">
+                                        <div className="space-y-2">
                                             {room.players.map((p, i) => (
-                                                <div key={i} className="bg-slate-800/50 p-3 rounded-xl flex justify-between items-center border border-white/5">
-                                                    <span className="font-bold">{p.name} {p.uid === user.uid && "(You)"}</span>
-                                                    {p.uid === room.admin && <span className="text-xs font-black text-blue-400">HOST</span>}
+                                                <div key={i} className="flex justify-between bg-slate-800/50 p-3 rounded-xl border border-white/5">
+                                                    <span className="font-bold">{p.name} {p.uid === user.uid && "(أنت)"}</span>
+                                                    {p.uid === room.admin && <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-black">HOST</span>}
                                                 </div>
                                             ))}
                                         </div>
+                                        
                                         {room.admin === user.uid ? (
-                                            <button onClick={startRound} disabled={isJoining} className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-xl font-black text-lg shadow-lg">
-                                                {isJoining ? t.generating : t.start}
+                                            <button onClick={startGame} className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-xl font-black text-lg transition-all">
+                                                ابدأ الجولة الآن
                                             </button>
                                         ) : (
-                                            <p className="text-center text-slate-500 font-bold py-4 animate-pulse">{t.waiting}</p>
+                                            <div className="text-center p-4 border-2 border-dashed border-slate-800 rounded-xl">
+                                                <p className="text-slate-500 font-bold animate-pulse">بانتظار المضيف لبدء اللعبة...</p>
+                                            </div>
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                        <div className={`p-10 rounded-3xl text-center border-2 shadow-2xl ${room.spyId === user.uid ? 'bg-gradient-to-br from-red-600 to-red-900 border-red-500' : 'bg-gradient-to-br from-blue-600 to-blue-900 border-blue-500'}`}>
+                                    <div className="space-y-4 animate-in fade-in zoom-in duration-300">
+                                        <div className={`p-10 rounded-3xl text-center border-4 ${room.spyId === user.uid ? 'bg-red-900/50 border-red-500' : 'bg-blue-900/50 border-blue-500'}`}>
                                             {room.spyId === user.uid ? (
                                                 <div className="space-y-4">
-                                                    <div className="text-6xl">🕵️‍♂️</div>
-                                                    <h2 className="text-3xl font-black">{t.spy}</h2>
-                                                    <p className="text-sm font-bold text-red-100/60">{t.spyTask}</p>
+                                                    <span className="text-6xl">🕵️‍♂️</span>
+                                                    <h2 className="text-4xl font-black text-red-400">أنت الجاسوس!</h2>
+                                                    <p className="text-sm text-red-200/60 font-bold">حاول معرفة المكان من خلال أسئلة الآخرين دون أن يكتشفوك</p>
                                                 </div>
                                             ) : (
-                                                <div className="space-y-6">
-                                                    <h2 className="text-xs font-black text-blue-100 uppercase tracking-widest">{t.citizen}</h2>
-                                                    <div>
-                                                        <p className="text-[10px] text-white/50 font-bold uppercase">{t.location}</p>
-                                                        <p className="text-4xl font-black">{lang === 'ar' ? room.scenario.location_ar : room.scenario.location_en}</p>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-2 mt-6">
-                                                        {(lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en).map((w, i) => (
-                                                            <button 
-                                                                key={i} onClick={() => vote(w)}
-                                                                className={`p-3 rounded-xl border font-bold text-sm transition-all ${room.players.find(p => p.uid === user.uid)?.vote === w ? 'bg-white text-blue-900 border-white scale-105' : 'bg-black/20 border-white/10 hover:bg-black/40'}`}
-                                                            >
-                                                                {w}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                    {groupVote && (
-                                                        <div className="mt-4 p-3 bg-white/10 rounded-xl">
-                                                            <span className="text-[10px] block font-bold uppercase opacity-50">{t.consensus}</span>
-                                                            <span className="font-black text-yellow-400">{groupVote}</span>
-                                                        </div>
-                                                    )}
+                                                <div className="space-y-4">
+                                                    <span className="text-6xl">👨‍👩‍👧‍👦</span>
+                                                    <h2 className="text-xl font-bold text-blue-200">أنت مواطن، المكان هو:</h2>
+                                                    <p className="text-5xl font-black text-white bg-blue-500 py-4 rounded-2xl shadow-xl">{room.location}</p>
+                                                    <p className="text-sm text-blue-200/60 font-bold mt-4">اطرح أسئلة ذكية لكشف الجاسوس!</p>
                                                 </div>
                                             )}
                                         </div>
                                         {room.admin === user.uid && (
-                                            <button onClick={startRound} className="w-full bg-slate-800 py-3 rounded-xl font-black hover:bg-slate-700 transition-colors uppercase text-xs tracking-widest">
-                                                {t.newRound} 🔄
+                                            <button onClick={startGame} className="w-full bg-slate-800 py-4 rounded-xl font-black hover:bg-slate-700 transition-all">
+                                                جولة جديدة 🔄
                                             </button>
                                         )}
                                     </div>
