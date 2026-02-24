@@ -36,7 +36,7 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* --- الأنميشن الجديد للاسم والأيقونة --- */
+        /* Animations */
         @keyframes float-rotate {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             50% { transform: translateY(-8px) rotate(10deg); }
@@ -57,7 +57,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        /* ------------------------------------- */
 
         .spy-gradient {
             background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.15), transparent 40%),
@@ -69,7 +68,7 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
-<body className="font-game">
+<body class="font-game">
     <div id="root"></div>
 
     <!-- Firebase SDKs -->
@@ -78,9 +77,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect } = React;
 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyApAJaNfF0YHupunLRlK3jRYvttxczWShY",
             authDomain: "who-is-the-spy-919b9.firebaseapp.com",
@@ -97,7 +95,7 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const appId = 'who_is_spy_v1';
-        const GEMINI_API_KEY = ""; // Key handled by environment
+        const GEMINI_API_KEY = ""; // Managed by environment
 
         const TRANSLATIONS = {
             en: {
@@ -164,22 +162,19 @@
                 const data = await response.json();
                 return JSON.parse(data.candidates[0].content.parts[0].text);
             } catch (error) {
-                const backups = [
-                    {ar: "محطة فضاء", en: "Space Station"},
-                    {ar: "متحف اللوفر", en: "Louvre Museum"},
-                    {ar: "غواصة نووية", en: "Nuclear Submarine"}
-                ];
+                const backups = [{ar: "محطة فضاء", en: "Space Station"}, {ar: "متحف اللوفر", en: "Louvre Museum"}];
                 return backups[Math.floor(Math.random() * backups.length)];
             }
         }
 
         function App() {
-            const [lang, setLang] = useState('en'); // اللغة الافتراضية إنجليزي
+            const [lang, setLang] = useState('en');
             const [user, setUser] = useState(null);
+            const [authLoading, setAuthLoading] = useState(true);
             const [nickname, setNickname] = useState(localStorage.getItem('spy_nick') || '');
             const [gameData, setGameData] = useState(null);
             const [roomCodeInput, setRoomCodeInput] = useState('');
-            const [loading, setLoading] = useState(false);
+            const [actionLoading, setActionLoading] = useState(false);
             const [copyFeedback, setCopyFeedback] = useState(false);
 
             const t = TRANSLATIONS[lang];
@@ -188,6 +183,7 @@
                 const unsub = auth.onAuthStateChanged(async (u) => {
                     if (u) {
                         setUser(u);
+                        setAuthLoading(false);
                     } else {
                         await auth.signInAnonymously();
                     }
@@ -205,8 +201,8 @@
             }, [gameData?.id]);
 
             const createRoom = async () => {
-                if (!nickname.trim()) return;
-                setLoading(true);
+                if (!nickname.trim() || !user) return;
+                setActionLoading(true);
                 const code = Math.random().toString(36).substring(2, 8).toUpperCase();
                 const newGame = {
                     id: code,
@@ -219,13 +215,13 @@
                 };
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(code).set(newGame);
                 setGameData(newGame);
-                setLoading(false);
+                setActionLoading(false);
             };
 
             const joinRoom = async () => {
                 const code = roomCodeInput.trim().toUpperCase();
-                if (!nickname.trim() || !code) return;
-                setLoading(true);
+                if (!nickname.trim() || !code || !user) return;
+                setActionLoading(true);
                 const roomRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(code);
                 const doc = await roomRef.get();
                 if (doc.exists) {
@@ -236,12 +232,12 @@
                     }
                     setGameData(doc.data());
                 }
-                setLoading(false);
+                setActionLoading(false);
             };
 
             const startGame = async () => {
                 if (gameData.players.length < 3) return;
-                setLoading(true);
+                setActionLoading(true);
                 const location = await getNewLocation();
                 const spyIndex = Math.floor(Math.random() * gameData.players.length);
                 const spyId = gameData.players[spyIndex].uid;
@@ -250,7 +246,7 @@
                     spyId: spyId,
                     location: location
                 });
-                setLoading(false);
+                setActionLoading(false);
             };
 
             const resetGame = async () => {
@@ -272,11 +268,17 @@
                 setTimeout(() => setCopyFeedback(false), 2000);
             };
 
+            if (authLoading) return (
+                <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                    <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            );
+
             return (
                 <div className={`min-h-screen spy-gradient p-4 md:p-8 flex flex-col items-center ${lang === 'ar' ? 'font-game-ar' : 'font-game'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                     
                     <div className="w-full max-w-md">
-                        {/* Header with Animation */}
+                        {/* Header */}
                         <div className="flex justify-between items-center mb-10">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/20 animated-logo-icon">
@@ -313,10 +315,10 @@
                                     <div className="grid grid-cols-1 gap-3 pt-2">
                                         <button 
                                             onClick={createRoom}
-                                            disabled={loading || !nickname}
+                                            disabled={actionLoading || !nickname}
                                             className="w-full bg-sky-600 hover:bg-sky-500 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-sky-600/20 active:scale-95 text-sm"
                                         >
-                                            {loading ? '...' : t.createBtn}
+                                            {actionLoading ? '...' : t.createBtn}
                                         </button>
                                         
                                         <div className="relative flex items-center py-2">
@@ -335,7 +337,7 @@
                                             />
                                             <button 
                                                 onClick={joinRoom}
-                                                disabled={loading || !nickname || !roomCodeInput}
+                                                disabled={actionLoading || !nickname || !roomCodeInput}
                                                 className="bg-slate-800 hover:bg-slate-700 px-6 py-4 rounded-2xl font-bold text-sm transition-all"
                                             >
                                                 {t.joinBtn}
@@ -346,7 +348,6 @@
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                {/* Room Info Bar */}
                                 <div className="glass-panel rounded-2xl p-4 flex justify-between items-center">
                                     <div className="flex flex-col">
                                         <span className="text-[10px] text-slate-500 font-bold uppercase">{t.roomCode}</span>
@@ -379,10 +380,10 @@
                                         {gameData.admin === user.uid ? (
                                             <button 
                                                 onClick={startGame}
-                                                disabled={gameData.players.length < 3 || loading}
+                                                disabled={gameData.players.length < 3 || actionLoading}
                                                 className={`w-full py-4 rounded-2xl font-bold transition-all text-sm ${gameData.players.length < 3 ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-white text-black hover:bg-sky-400'}`}
                                             >
-                                                {loading ? '...' : t.startBtn}
+                                                {actionLoading ? '...' : t.startBtn}
                                             </button>
                                         ) : (
                                             <div className="text-center py-4 text-xs font-bold text-slate-500 italic animate-pulse">
@@ -392,7 +393,6 @@
                                     </div>
                                 ) : (
                                     <div className="space-y-6">
-                                        {/* Game Card */}
                                         <div className={`glass-panel rounded-3xl p-8 border-t-4 text-center ${gameData.spyId === user.uid ? 'border-red-500' : 'border-sky-500'}`}>
                                             <div className="mb-6 inline-block p-4 rounded-full bg-slate-900 shadow-inner">
                                                 {gameData.spyId === user.uid ? (
@@ -424,7 +424,6 @@
                                             )}
                                         </div>
 
-                                        {/* Briefing */}
                                         <div className="glass-panel rounded-3xl p-6 text-[11px] text-slate-500 leading-loose space-y-1">
                                             <p className="font-black text-sky-500 mb-2 uppercase tracking-widest">{t.instructions}</p>
                                             <p>{t.instr1}</p>
