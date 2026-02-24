@@ -95,11 +95,12 @@
                 missionLabel: "Mission: Stay Mysterious",
                 citizenTitle: "You are a Citizen",
                 locationIs: "Location is:",
-                secretWord: "Secret Word:",
+                secretWord: "Potential Words:",
+                pickWord: "Select the actual word:",
                 instructions: "Round Instructions:",
-                instr1: "• Talk about the location/word without naming it directly.",
-                instr2: "• Citizens must vote to reveal the spy.",
-                instr3: "• Spy wins by correctly guessing the location.",
+                instr1: "• Citizens see 4 words; only one is true for the location.",
+                instr2: "• Citizens must identify the spy through questioning.",
+                instr3: "• Spy wins if they guess the location.",
                 newRound: "New Round",
                 errorName: "Please enter your name first",
                 errorJoin: "Room not found!",
@@ -124,10 +125,11 @@
                 missionLabel: "المهمة: ابقَ غامضاً",
                 citizenTitle: "أنت مواطن",
                 locationIs: "المكان هو:",
-                secretWord: "الكلمة السرية:",
+                secretWord: "الكلمات المحتملة:",
+                pickWord: "اختر الكلمة الصحيحة:",
                 instructions: "تعليمات الجولة:",
-                instr1: "• يتحدث الجميع عن المكان دون ذكر الاسم الصريح.",
-                instr2: "• على المواطنين كشف الجاسوس بالتصويت.",
+                instr1: "• يرى المواطنون 4 كلمات؛ واحدة منها فقط هي الصحيحة للمكان.",
+                instr2: "• على المواطنين كشف الجاسوس بالأسئلة والتصويت.",
                 instr3: "• على الجاسوس كشف المكان ليفوز.",
                 newRound: "جولة جديدة",
                 errorName: "يرجى إدخال اسمك أولاً",
@@ -139,12 +141,12 @@
         };
 
         const LOCATIONS = [
-            { en: "Hospital", ar: "المستشفى", words: { en: ["Doctor", "Nurse"], ar: ["طبيب", "ممرضة"] } },
-            { en: "School", ar: "المدرسة", words: { en: ["Teacher", "Student"], ar: ["معلم", "طالب"] } },
-            { en: "Restaurant", ar: "المطعم", words: { en: ["Chef", "Waiter"], ar: ["طباخ", "نادل"] } },
-            { en: "Airport", ar: "المطار", words: { en: ["Pilot", "Passport"], ar: ["طيار", "جواز سفر"] } },
-            { en: "Forest", ar: "الغابة", words: { en: ["Trees", "Camping"], ar: ["شجر", "تخييم"] } },
-            { en: "Cinema", ar: "السينما", words: { en: ["Movie", "Popcorn"], ar: ["فيلم", "فشار"] } }
+            { en: "Hospital", ar: "المستشفى", words: { en: ["Doctor", "Nurse", "Surgery", "Patient"], ar: ["طبيب", "ممرضة", "جراحة", "مريض"] } },
+            { en: "School", ar: "المدرسة", words: { en: ["Teacher", "Student", "Library", "Exam"], ar: ["معلم", "طالب", "مكتبة", "امتحان"] } },
+            { en: "Restaurant", ar: "المطعم", words: { en: ["Chef", "Waiter", "Menu", "Dinner"], ar: ["طباخ", "نادل", "قائمة طعام", "عشاء"] } },
+            { en: "Airport", ar: "المطار", words: { en: ["Pilot", "Passport", "Runway", "Ticket"], ar: ["طيار", "جواز سفر", "مدرج", "تذكرة"] } },
+            { en: "Forest", ar: "الغابة", words: { en: ["Trees", "Camping", "Hunter", "Wolves"], ar: ["شجر", "تخييم", "صياد", "ذئاب"] } },
+            { en: "Cinema", ar: "السينما", words: { en: ["Movie", "Popcorn", "Screen", "Actors"], ar: ["فيلم", "فشار", "شاشة", "ممثلين"] } }
         ];
 
         function App() {
@@ -155,6 +157,7 @@
             const [loading, setLoading] = useState(true);
             const [error, setError] = useState(null);
             const [playerName, setPlayerName] = useState(localStorage.getItem('spy_name') || '');
+            const [selectedWord, setSelectedWord] = useState(null);
 
             const t = TRANSLATIONS[lang];
 
@@ -197,6 +200,7 @@
                         spyId: null,
                         location: null,
                         word: null,
+                        wordOptions: null,
                         createdAt: Date.now()
                     });
                     setRoomId(newId);
@@ -229,21 +233,38 @@
             const startGame = async () => {
                 if (gameData.players.length < 3) { setError(t.errorStart); return; }
                 const loc = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
+                
+                // Shuffle words for options
+                const enOptions = [...loc.words.en].sort(() => 0.5 - Math.random());
+                const arOptions = [...loc.words.ar].sort(() => 0.5 - Math.random());
+                
+                // Pick one as the actual word
                 const wordIdx = Math.floor(Math.random() * loc.words.en.length);
+                const actualWordEn = loc.words.en[wordIdx];
+                const actualWordAr = loc.words.ar[wordIdx];
+
                 const spy = gameData.players[Math.floor(Math.random() * gameData.players.length)];
 
                 const roomRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId);
                 await roomRef.update({
                     status: 'playing',
                     location: { en: loc.en, ar: loc.ar },
-                    word: { en: loc.words.en[wordIdx], ar: loc.words.ar[wordIdx] },
+                    word: { en: actualWordEn, ar: actualWordAr },
+                    wordOptions: { en: enOptions, ar: arOptions },
                     spyId: spy.uid
                 });
+                setSelectedWord(null);
             };
 
             const resetGame = async () => {
                 const roomRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId);
-                await roomRef.update({ status: 'waiting', spyId: null, location: null, word: null });
+                await roomRef.update({ 
+                    status: 'waiting', 
+                    spyId: null, 
+                    location: null, 
+                    word: null, 
+                    wordOptions: null 
+                });
             };
 
             if (loading) return (
@@ -382,9 +403,24 @@
                                                         <div className="text-5xl font-black text-white">{gameData.location[lang]}</div>
                                                     </div>
                                                     <div className="h-[1px] bg-white/20 my-4"></div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-[10px] text-blue-200 uppercase font-bold tracking-tighter">{t.secretWord}</p>
-                                                        <p className="text-3xl font-black text-yellow-300 drop-shadow-md">{gameData.word[lang]}</p>
+                                                    <div className="space-y-3">
+                                                        <p className="text-[10px] text-blue-200 uppercase font-bold tracking-tighter">{t.pickWord}</p>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            {gameData.wordOptions[lang].map((word, i) => (
+                                                                <button 
+                                                                    key={i}
+                                                                    onClick={() => setSelectedWord(word)}
+                                                                    className={`p-3 rounded-xl border-2 transition-all font-bold text-sm ${selectedWord === word ? 'bg-yellow-400 text-black border-white scale-105' : 'bg-black/20 border-white/10 text-blue-100 hover:bg-black/40'}`}
+                                                                >
+                                                                    {word}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        {selectedWord && (
+                                                            <div className="mt-2 text-[10px] font-bold py-1 px-3 bg-white/10 rounded-full inline-block">
+                                                                {selectedWord === gameData.word[lang] ? "✅ Correct" : "❌ Incorrect"}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
