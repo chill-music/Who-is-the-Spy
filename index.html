@@ -1,408 +1,248 @@
-import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { 
-  getFirestore, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  onSnapshot, 
-  updateDoc, 
-  arrayUnion 
-} from 'firebase/firestore';
-import { 
-  getAuth, 
-  signInAnonymously, 
-  onAuthStateChanged, 
-  signInWithCustomToken 
-} from 'firebase/auth';
-import { Users, ShieldAlert, Play, RefreshCw, LogIn, Crown, HelpCircle, Languages } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who is the Spy? - من هو الجاسوس</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans Arabic', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950">
+    <div id="root"></div>
 
-// --- Firebase Configuration (Your Server Data) ---
-const firebaseConfig = {
-  apiKey: "AIzaSyApAJaNfF0YHupunLRlK3jRYvttxczWShY",
-  authDomain: "who-is-the-spy-919b9.firebaseapp.com",
-  projectId: "who-is-the-spy-919b9",
-  storageBucket: "who-is-the-spy-919b9.firebasestorage.app",
-  messagingSenderId: "607075438373",
-  appId: "1:607075438373:web:a03e9fb8b243cd993e14cc",
-  measurementId: "G-6FVJR2VXN3"
-};
+    <script type="module" typeof="babel">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'spy-game-919b9';
+        const { useState, useEffect } = React;
 
-// --- Translations ---
-const translations = {
-  en: {
-    title: "Who is the Spy?",
-    subtitle: "A game of wits and deception",
-    joinRoom: "Join an existing room",
-    roomCodePlaceholder: "Room Code",
-    or: "OR",
-    createRoom: "Create New Room",
-    roomCode: "Room Code",
-    players: "Players",
-    playerList: "Player List",
-    waiting: "Waiting for more players (min. 3)...",
-    waitingAdmin: "Waiting for admin to start...",
-    startBtn: "Start Game Now",
-    spyTitle: "You are the Spy!",
-    spyDesc: "Try to guess the word without being caught.",
-    spyMission: "Mission: Stay mysterious",
-    citizenTitle: "You are a Citizen",
-    locationIs: "The location is:",
-    secretWord: "Secret word:",
-    instructions: "Instructions:",
-    instr1: "Talk about the location without naming it.",
-    instr2: "The spy tries to blend in.",
-    instr3: "Citizens win by identifying the spy.",
-    newRound: "New Round",
-    playerId: "Player ID",
-    errorJoin: "Room not found",
-    errorStart: "Need at least 3 players to start",
-    loading: "Loading Firebase...",
-  },
-  ar: {
-    title: "من هو الجاسوس؟",
-    subtitle: "لعبة الذكاء والتمويه الجماعية",
-    joinRoom: "انضم لغرفة موجودة",
-    roomCodePlaceholder: "رمز الغرفة",
-    or: "أو",
-    createRoom: "إنشاء غرفة جديدة",
-    roomCode: "رمز الغرفة",
-    players: "اللاعبين",
-    playerList: "قائمة الحضور",
-    waiting: "بانتظار اكتمال اللاعبين (3 كحد أدنى)...",
-    waitingAdmin: "بانتظار المسؤول لبدء اللعبة...",
-    startBtn: "ابدأ اللعبة الآن",
-    spyTitle: "أنت الجاسوس!",
-    spyDesc: "حاول معرفة الكلمة دون أن ينتبه أحد.",
-    spyMission: "المهمة: ابقَ غامضاً",
-    citizenTitle: "أنت مواطن",
-    locationIs: "الموقع هو:",
-    secretWord: "الكلمة السرية:",
-    instructions: "التعليمات:",
-    instr1: "تحدثوا عن الموقع دون ذكر اسمه مباشرة.",
-    instr2: "الجاسوس يحاول التمويه والاندماج.",
-    instr3: "المواطنون يفوزون بكشف الجاسوس.",
-    newRound: "جولة جديدة",
-    playerId: "معرف اللاعب",
-    errorJoin: "الغرفة غير موجودة",
-    errorStart: "تحتاج إلى 3 لاعبين على الأقل للبدء",
-    loading: "جاري الاتصال بالسيرفر...",
-  }
-};
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyApAJaNfF0YHupunLRlK3jRYvttxczWShY",
+            authDomain: "who-is-the-spy-919b9.firebaseapp.com",
+            projectId: "who-is-the-spy-919b9",
+            storageBucket: "who-is-the-spy-919b9.firebasestorage.app",
+            messagingSenderId: "607075438373",
+            appId: "1:607075438373:web:a03e9fb8b243cd993e14cc",
+            measurementId: "G-6FVJR2VXN3"
+        };
 
-// --- Game Data ---
-const LOCATIONS = [
-  { en: "Hospital", ar: "المستشفى", words: { en: ["Doctor", "Nurse"], ar: ["طبيب", "ممرضة"] } },
-  { en: "School", ar: "المدرسة", words: { en: ["Teacher", "Student"], ar: ["معلم", "طالب"] } },
-  { en: "Restaurant", ar: "المطعم", words: { en: ["Waiter", "Chef"], ar: ["نادل", "طباخ"] } },
-  { en: "Airport", ar: "المطار", words: { en: ["Pilot", "Passport"], ar: ["طيار", "جواز سفر"] } },
-  { en: "Forest", ar: "الغابة", words: { en: ["Trees", "Camping"], ar: ["شجر", "تخييم"] } },
-  { en: "Cinema", ar: "السينما", words: { en: ["Popcorn", "Movie"], ar: ["فشار", "فيلم"] } },
-  { en: "Gym", ar: "النادي الرياضي", words: { en: ["Coach", "Weight"], ar: ["مدرب", "وزن"] } },
-];
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = 'spy-game-919b9';
 
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [lang, setLang] = useState('en');
-  const [roomId, setRoomId] = useState('');
-  const [gameData, setGameData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+        const translations = {
+            en: {
+                title: "Who is the Spy?", subtitle: "A game of wits and deception", joinRoom: "Join an existing room",
+                roomCodePlaceholder: "Room Code", or: "OR", createRoom: "Create New Room", roomCode: "Room Code",
+                players: "Players", playerList: "Player List", waiting: "Waiting for more players...",
+                waitingAdmin: "Waiting for admin to start...", startBtn: "Start Game Now", spyTitle: "You are the Spy!",
+                spyDesc: "Try to guess the word without being caught.", spyMission: "Mission: Stay mysterious",
+                citizenTitle: "You are a Citizen", locationIs: "The location is:", secretWord: "Secret word:",
+                instructions: "Instructions:", instr1: "Talk about the location without naming it.",
+                instr2: "The spy tries to blend in.", instr3: "Citizens win by identifying the spy.",
+                newRound: "New Round", playerId: "Player ID", errorJoin: "Room not found",
+                errorStart: "Need at least 3 players to start", loading: "Connecting to Server...",
+            },
+            ar: {
+                title: "من هو الجاسوس؟", subtitle: "لعبة الذكاء والتمويه الجماعية", joinRoom: "انضم لغرفة موجودة",
+                roomCodePlaceholder: "رمز الغرفة", or: "أو", createRoom: "إنشاء غرفة جديدة", roomCode: "رمز الغرفة",
+                players: "اللاعبين", playerList: "قائمة الحضور", waiting: "بانتظار اكتمال اللاعبين...",
+                waitingAdmin: "بانتظار المسؤول لبدء اللعبة...", startBtn: "ابدأ اللعبة الآن", spyTitle: "أنت الجاسوس!",
+                spyDesc: "حاول معرفة الكلمة دون أن ينتبه أحد.", spyMission: "المهمة: ابقَ غامضاً",
+                citizenTitle: "أنت مواطن", locationIs: "الموقع هو:", secretWord: "الكلمة السرية:",
+                instructions: "التعليمات:", instr1: "تحدثوا عن الموقع دون ذكر اسمه مباشرة.",
+                instr2: "الجاسوس يحاول التمويه والاندماج.", instr3: "المواطنون يفوزون بكشف الجاسوس.",
+                newRound: "جولة جديدة", playerId: "معرف اللاعب", errorJoin: "الغرفة غير موجودة",
+                errorStart: "تحتاج إلى 3 لاعبين على الأقل للبدء", loading: "جاري الاتصال بالسيرفر...",
+            }
+        };
 
-  const t = translations[lang];
+        const LOCATIONS = [
+            { en: "Hospital", ar: "المستشفى", words: { en: ["Doctor", "Nurse"], ar: ["طبيب", "ممرضة"] } },
+            { en: "School", ar: "المدرسة", words: { en: ["Teacher", "Student"], ar: ["معلم", "طالب"] } },
+            { en: "Restaurant", ar: "المطعم", words: { en: ["Waiter", "Chef"], ar: ["نادل", "طباخ"] } },
+            { en: "Airport", ar: "المطار", words: { en: ["Pilot", "Passport"], ar: ["طيار", "جواز سفر"] } },
+            { en: "Forest", ar: "الغابة", words: { en: ["Trees", "Camping"], ar: ["شجر", "تخييم"] } },
+            { en: "Cinema", ar: "السينما", words: { en: ["Popcorn", "Movie"], ar: ["فشار", "فيلم"] } },
+            { en: "Gym", ar: "النادي الرياضي", words: { en: ["Coach", "Weight"], ar: ["مدرب", "وزن"] } },
+        ];
 
-  // 1. Auth Logic (Sequential as per Rule 3)
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (err) { 
-        console.error("Auth Error:", err); 
-      }
-    };
-    initAuth();
-    const unsubscribe = onAuthStateChanged(auth, setUser);
-    return () => unsubscribe();
-  }, []);
+        function App() {
+            const [user, setUser] = useState(null);
+            const [lang, setLang] = useState('en');
+            const [roomId, setRoomId] = useState('');
+            const [gameData, setGameData] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
 
-  // 2. Data Fetching (Guarded by User as per Rule 3)
-  useEffect(() => {
-    if (!user || !roomId || roomId.length < 3) return;
+            const t = translations[lang];
 
-    // Path following Rule 1: /artifacts/{appId}/public/data/{collectionName}
-    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId.toUpperCase());
-    
-    const unsubscribe = onSnapshot(roomRef, 
-      (docSnap) => {
-        if (docSnap.exists()) {
-          setGameData(docSnap.data());
-        } else {
-          setGameData(null);
-        }
-      },
-      (err) => {
-        console.error("Firestore Listen Error:", err);
-      }
-    );
+            useEffect(() => {
+                signInAnonymously(auth).catch(err => console.error("Auth Error:", err));
+                const unsubscribe = onAuthStateChanged(auth, setUser);
+                return () => unsubscribe();
+            }, []);
 
-    return () => unsubscribe();
-  }, [user, roomId]);
+            useEffect(() => {
+                if (!user || !roomId || roomId.length < 3) return;
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId.toUpperCase());
+                const unsubscribe = onSnapshot(roomRef, (docSnap) => {
+                    if (docSnap.exists()) setGameData(docSnap.data());
+                    else setGameData(null);
+                }, (err) => console.error("Firestore Error:", err));
+                return () => unsubscribe();
+            }, [user, roomId]);
 
-  const toggleLang = () => setLang(prev => prev === 'en' ? 'ar' : 'en');
+            const createRoom = async () => {
+                if (!user) return;
+                setLoading(true);
+                const newId = Math.random().toString(36).substring(2, 7).toUpperCase();
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', newId);
+                await setDoc(roomRef, {
+                    id: newId, admin: user.uid, players: [{ uid: user.uid, name: `Player ${user.uid.substring(0, 4)}` }],
+                    status: 'waiting', spyId: null, location: null, word: null, createdAt: Date.now()
+                });
+                setRoomId(newId);
+                setLoading(false);
+            };
 
-  const createRoom = async () => {
-    if (!user) return;
-    setLoading(true);
-    const newId = Math.random().toString(36).substring(2, 7).toUpperCase();
-    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', newId);
-    
-    const initialData = {
-      id: newId,
-      admin: user.uid,
-      players: [{ uid: user.uid, name: `Player ${user.uid.substring(0, 4)}` }],
-      status: 'waiting', 
-      spyId: null,
-      location: null,
-      word: null,
-      createdAt: Date.now()
-    };
+            const joinRoom = async (id) => {
+                if (!user || !id) return;
+                setLoading(true);
+                const normalizedId = id.toUpperCase();
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', normalizedId);
+                const snap = await getDoc(roomRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (!data.players.find(p => p.uid === user.uid)) {
+                        await updateDoc(roomRef, { players: arrayUnion({ uid: user.uid, name: `Player ${user.uid.substring(0, 4)}` }) });
+                    }
+                    setRoomId(normalizedId);
+                } else setError(t.errorJoin);
+                setLoading(false);
+            };
 
-    try {
-      await setDoc(roomRef, initialData);
-      setRoomId(newId);
-    } catch (e) {
-      setError("Failed to create room in Firestore");
-    }
-    setLoading(false);
-  };
+            const startGame = async () => {
+                if (!gameData || gameData.players.length < 3) { setError(t.errorStart); return; }
+                const loc = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
+                const wordIdx = Math.floor(Math.random() * loc.words.en.length);
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+                await updateDoc(roomRef, {
+                    status: 'playing', location: { en: loc.en, ar: loc.ar },
+                    word: { en: loc.words.en[wordIdx], ar: loc.words.ar[wordIdx] },
+                    spyId: gameData.players[Math.floor(Math.random() * gameData.players.length)].uid
+                });
+            };
 
-  const joinRoom = async (id) => {
-    if (!user || !id) return;
-    setLoading(true);
-    const normalizedId = id.toUpperCase();
-    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', normalizedId);
-    
-    try {
-      const snap = await getDoc(roomRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        if (!data.players.find(p => p.uid === user.uid)) {
-          await updateDoc(roomRef, {
-            players: arrayUnion({ uid: user.uid, name: `Player ${user.uid.substring(0, 4)}` })
-          });
-        }
-        setRoomId(normalizedId);
-      } else {
-        setError(t.errorJoin);
-      }
-    } catch (e) {
-      setError("Error connecting to room");
-    }
-    setLoading(false);
-  };
+            const resetGame = async () => {
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+                await updateDoc(roomRef, { status: 'waiting', spyId: null, location: null, word: null });
+            };
 
-  const startGame = async () => {
-    if (!gameData || gameData.players.length < 3) {
-      setError(t.errorStart);
-      return;
-    }
-    const loc = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
-    const wordIdx = Math.floor(Math.random() * loc.words.en.length);
-    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
-    
-    await updateDoc(roomRef, {
-      status: 'playing',
-      location: { en: loc.en, ar: loc.ar },
-      word: { en: loc.words.en[wordIdx], ar: loc.words.ar[wordIdx] },
-      spyId: gameData.players[Math.floor(Math.random() * gameData.players.length)].uid
-    });
-  };
+            if (!user) return <div className="flex items-center justify-center h-screen bg-slate-900 text-white font-bold">{t.loading}</div>;
 
-  const resetGame = async () => {
-    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
-    await updateDoc(roomRef, { 
-      status: 'waiting', 
-      spyId: null, 
-      location: null, 
-      word: null 
-    });
-  };
+            return (
+                <div className={`min-h-screen bg-slate-950 text-slate-100 p-4 transition-all ${lang === 'ar' ? 'text-right' : 'text-left'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                    <div className="max-w-md mx-auto">
+                        <div className="flex justify-between items-center mb-6 pt-4">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                <span className="text-[10px] text-slate-500 uppercase">Live Server</span>
+                            </div>
+                            <button onClick={() => setLang(l => l === 'en' ? 'ar' : 'en')} className="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 text-sm">
+                                {lang === 'en' ? 'العربية' : 'English'}
+                            </button>
+                        </div>
 
-  if (!user) return <div className="flex items-center justify-center h-screen bg-slate-900 text-white text-xl font-bold">{t.loading}</div>;
+                        <header className="text-center mb-8">
+                            <h1 className="text-4xl font-bold text-red-500 mb-2">🕵️ {t.title}</h1>
+                            <p className="text-slate-400">{t.subtitle}</p>
+                        </header>
 
-  return (
-    <div className={`min-h-screen bg-slate-950 text-slate-100 p-4 transition-all ${lang === 'ar' ? 'font-sans text-right' : 'font-sans text-left'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      <div className="max-w-md mx-auto">
-        {/* Header with Lang Toggle */}
-        <div className="flex justify-between items-center mb-6 pt-4">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-[10px] text-slate-500 uppercase tracking-widest">Live Server</span>
-          </div>
-          <button 
-            onClick={toggleLang}
-            className="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-full border border-slate-700 hover:bg-slate-700 transition-colors text-sm"
-          >
-            <Languages size={16} /> {lang === 'en' ? 'العربية' : 'English'}
-          </button>
-        </div>
+                        {error && <div className="bg-red-900/50 border border-red-500 p-3 rounded-lg mb-4 text-sm flex justify-between">{error}<button onClick={() => setError(null)}>X</button></div>}
 
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-red-500 mb-2 flex items-center justify-center gap-2">
-            <ShieldAlert size={40} /> {t.title}
-          </h1>
-          <p className="text-slate-400">{t.subtitle}</p>
-        </header>
+                        {!gameData ? (
+                            <div className="space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                                <div className="space-y-2">
+                                    <label className="text-sm text-slate-400">{t.joinRoom}</label>
+                                    <div className="flex gap-2">
+                                        <input type="text" placeholder={t.roomCodePlaceholder} className="bg-slate-800 border border-slate-700 p-3 rounded-xl flex-1 uppercase outline-none" value={roomId} onChange={(e) => setRoomId(e.target.value)} />
+                                        <button onClick={() => joinRoom(roomId)} className="bg-blue-600 px-4 rounded-xl">Join</button>
+                                    </div>
+                                </div>
+                                <div className="relative py-2 text-center text-slate-500 text-sm">--- {t.or} ---</div>
+                                <button onClick={createRoom} className="w-full bg-red-600 font-bold py-4 rounded-xl shadow-lg">{t.createRoom}</button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between">
+                                    <div><p className="text-xs text-slate-500">{t.roomCode}</p><p className="text-2xl font-bold text-blue-400">{gameData.id}</p></div>
+                                    <div className="text-center"><p className="text-xs text-slate-500">{t.players}</p><p className="text-xl font-bold">{gameData.players.length}</p></div>
+                                </div>
 
-        {error && (
-          <div className="bg-red-900/50 border border-red-500 text-red-200 p-3 rounded-lg mb-4 text-sm flex justify-between items-center animate-bounce">
-            <span>{error}</span>
-            <button onClick={() => setError(null)} className="font-bold px-2">X</button>
-          </div>
-        )}
+                                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                    <h3 className="text-sm text-slate-400 mb-3">{t.playerList}</h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {gameData.players.map((p) => (
+                                            <div key={p.uid} className={`p-2 rounded-lg text-sm truncate border ${p.uid === user.uid ? 'border-blue-500 bg-blue-500/10' : 'border-slate-800 bg-slate-800/50'}`}>
+                                                {p.name} {p.uid === gameData.admin && '👑'}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
 
-        {!gameData ? (
-          <div className="space-y-6 bg-slate-900 p-6 rounded-2xl shadow-xl border border-slate-800">
-            <div className="space-y-2">
-              <label className="text-sm text-slate-400 block">{t.joinRoom}</label>
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  placeholder={t.roomCodePlaceholder}
-                  className="bg-slate-800 border border-slate-700 text-white p-3 rounded-xl flex-1 uppercase tracking-widest outline-none focus:border-blue-500 transition-colors"
-                  value={roomId}
-                  onChange={(e) => setRoomId(e.target.value)}
-                />
-                <button 
-                  onClick={() => joinRoom(roomId)} 
-                  disabled={loading}
-                  className="bg-blue-600 px-4 rounded-xl hover:bg-blue-500 disabled:opacity-50"
-                >
-                  <LogIn />
-                </button>
-              </div>
-            </div>
-            <div className="relative py-4 text-center">
-              <span className="bg-slate-900 px-4 text-slate-500 text-sm relative z-10">{t.or}</span>
-              <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-slate-800"></div>
-            </div>
-            <button 
-              onClick={createRoom} 
-              disabled={loading}
-              className="w-full bg-red-600 hover:bg-red-500 font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 disabled:opacity-50"
-            >
-              {t.createRoom}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Room Info */}
-            <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center shadow-lg">
-              <div>
-                <p className="text-xs text-slate-500 uppercase">{t.roomCode}</p>
-                <p className="text-2xl font-mono font-bold text-blue-400">{gameData.id}</p>
-              </div>
-              <div className={lang === 'ar' ? 'text-right' : 'text-left'}>
-                <p className="text-xs text-slate-500">{t.players}</p>
-                <p className="text-xl font-bold flex items-center gap-1">{gameData.players.length} <Users size={18} /></p>
-              </div>
-            </div>
-
-            {/* Player List */}
-            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
-              <h3 className="text-sm text-slate-400 mb-3 flex items-center gap-2">
-                <Users size={14} /> {t.playerList}
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {gameData.players.map((p) => (
-                  <div key={p.uid} className={`p-2 rounded-lg flex items-center gap-2 border transition-colors ${p.uid === user.uid ? 'border-blue-500 bg-blue-500/10' : 'border-slate-800 bg-slate-800/50'}`}>
-                    <span className="text-sm truncate">{p.name}</span>
-                    {p.uid === gameData.admin && <Crown size={12} className="text-yellow-500" />}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {gameData.status === 'waiting' ? (
-              <div className="text-center py-8">
-                {gameData.admin === user.uid ? (
-                  <button onClick={startGame} className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-xl font-bold shadow-lg transform transition hover:scale-105">
-                    {t.startBtn}
-                  </button>
-                ) : (
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-400 italic">{t.waitingAdmin}</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Role Card */}
-                <div className={`p-6 rounded-2xl border-2 text-center relative overflow-hidden shadow-2xl ${gameData.spyId === user.uid ? 'bg-red-950/20 border-red-500/50' : 'bg-blue-950/20 border-blue-500/50'}`}>
-                  {gameData.spyId === user.uid ? (
-                    <div className="animate-in zoom-in duration-300">
-                      <h2 className="text-3xl font-black text-red-500 mb-2 uppercase tracking-tighter">{t.spyTitle}</h2>
-                      <p className="text-slate-300 mb-4">{t.spyDesc}</p>
-                      <div className="py-3 px-6 bg-red-600 text-white rounded-full inline-block font-bold shadow-lg shadow-red-900/40">
-                        {t.spyMission}
-                      </div>
+                                {gameData.status === 'waiting' ? (
+                                    <div className="text-center py-8">
+                                        {gameData.admin === user.uid ? 
+                                            <button onClick={startGame} className="w-full bg-green-600 py-4 rounded-xl font-bold shadow-lg">{t.startBtn}</button> : 
+                                            <p className="text-slate-400 italic animate-pulse">{t.waitingAdmin}</p>
+                                        }
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className={`p-6 rounded-2xl border-2 text-center ${gameData.spyId === user.uid ? 'border-red-500 bg-red-950/20' : 'border-blue-500 bg-blue-950/20'}`}>
+                                            {gameData.spyId === user.uid ? (
+                                                <>
+                                                    <h2 className="text-3xl font-black text-red-500 mb-2">{t.spyTitle}</h2>
+                                                    <p className="text-slate-300">{t.spyDesc}</p>
+                                                    <div className="mt-4 px-6 py-2 bg-red-600 rounded-full inline-block font-bold">{t.spyMission}</div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <h2 className="text-3xl font-black text-blue-500 mb-2">{t.citizenTitle}</h2>
+                                                    <p className="text-slate-400">{t.locationIs}</p>
+                                                    <div className="text-4xl font-bold text-white my-4">{gameData.location[lang]}</div>
+                                                    <p className="text-slate-300">{t.secretWord} <span className="text-yellow-400 font-bold">{gameData.word[lang]}</span></p>
+                                                </>
+                                            )}
+                                        </div>
+                                        {gameData.admin === user.uid && <button onClick={resetGame} className="w-full bg-slate-800 py-3 rounded-xl text-slate-300 border border-slate-700">{t.newRound}</button>}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <footer className="mt-12 text-center text-slate-700 text-[10px]"><p>ID: {user.uid}</p></footer>
                     </div>
-                  ) : (
-                    <div className="animate-in zoom-in duration-300">
-                      <h2 className="text-3xl font-black text-blue-500 mb-2 uppercase tracking-tighter">{t.citizenTitle}</h2>
-                      <p className="text-slate-400 mb-1">{t.locationIs}</p>
-                      <div className="text-4xl font-bold text-white my-6 bg-slate-900/80 py-4 rounded-xl border border-blue-900/50">
-                        {gameData.location[lang]}
-                      </div>
-                      <div className="flex items-center justify-center gap-2 text-slate-300">
-                        <span>{t.secretWord}</span>
-                        <span className="text-yellow-400 font-bold text-xl">{gameData.word[lang]}</span>
-                      </div>
-                    </div>
-                  )}
                 </div>
+            );
+        }
 
-                {/* Rules Footer */}
-                <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-                   <h4 className="text-xs font-bold text-slate-500 mb-2 uppercase flex items-center gap-1">
-                     <HelpCircle size={14} /> {t.instructions}
-                   </h4>
-                   <ul className="text-xs text-slate-400 space-y-1 opacity-80">
-                     <li className="flex gap-2"><span>•</span> {t.instr1}</li>
-                     <li className="flex gap-2"><span>•</span> {t.instr2}</li>
-                     <li className="flex gap-2"><span>•</span> {t.instr3}</li>
-                   </ul>
-                </div>
-
-                {gameData.admin === user.uid && (
-                  <button 
-                    onClick={resetGame} 
-                    className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-slate-300 border border-slate-700"
-                  >
-                    <RefreshCw size={18} /> {t.newRound}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        <footer className="mt-12 mb-8 text-center text-slate-700 text-[10px] uppercase tracking-widest border-t border-slate-900 pt-6">
-          <p>{t.playerId}</p>
-          <p className="font-mono mt-1">{user.uid}</p>
-        </footer>
-      </div>
-    </div>
-  );
-}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
