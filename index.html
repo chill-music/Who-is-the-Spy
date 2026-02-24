@@ -81,7 +81,8 @@
                 newRound: "Next Round",
                 loading: "Establishing Connection...",
                 errorPlayers: "Need 3+ agents",
-                aiThinking: "AI Generating Scenario..."
+                aiThinking: "AI Generating Scenario...",
+                copied: "Copied!"
             },
             ar: {
                 title: "من هو الجاسوس؟",
@@ -101,7 +102,8 @@
                 newRound: "جولة جديدة",
                 loading: "جاري الاتصال...",
                 errorPlayers: "تحتاج لـ 3 لاعبين على الأقل",
-                aiThinking: "الذكاء الاصطناعي يجهز الخطة..."
+                aiThinking: "الذكاء الاصطناعي يجهز الخطة...",
+                copied: "تم النسخ!"
             }
         };
 
@@ -137,6 +139,7 @@
             const [playerName, setPlayerName] = useState(localStorage.getItem('spy_nick') || '');
             const [isBusy, setIsBusy] = useState(false);
             const [error, setError] = useState('');
+            const [copyBtnText, setCopyBtnText] = useState(null);
 
             const t = TRANSLATIONS[lang];
 
@@ -149,7 +152,7 @@
                 return unsub;
             }, []);
 
-            // 2. Real-time Sync (Crucial Fix)
+            // 2. Real-time Sync
             useEffect(() => {
                 if (!user || !roomId) return;
                 const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId);
@@ -190,18 +193,31 @@
                 const code = inputRoomId.toUpperCase();
                 const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(code);
                 
-                const snap = await ref.get();
-                if (snap.exists) {
-                    const currentPlayers = snap.data().players || [];
-                    // Check if player already exists to prevent duplication
-                    if (!currentPlayers.find(p => p.uid === user.uid)) {
-                        await ref.update({
-                            players: firebase.firestore.FieldValue.arrayUnion({ uid: user.uid, name: playerName, vote: null })
-                        });
+                try {
+                    const snap = await ref.get();
+                    if (snap.exists) {
+                        const data = snap.data();
+                        const playersList = data.players || [];
+                        
+                        // Check if player already exists
+                        const alreadyIn = playersList.some(p => p.uid === user.uid);
+                        
+                        if (!alreadyIn) {
+                            // Atomic update for cleaner multi-player joining
+                            await ref.update({
+                                players: firebase.firestore.FieldValue.arrayUnion({ 
+                                    uid: user.uid, 
+                                    name: playerName, 
+                                    vote: null 
+                                })
+                            });
+                        }
+                        setRoomId(code);
+                    } else {
+                        alert("Room not found!");
                     }
-                    setRoomId(code);
-                } else {
-                    alert("Room not found!");
+                } catch (e) {
+                    console.error("Join error", e);
                 }
                 setIsBusy(false);
             };
@@ -228,6 +244,17 @@
                 });
             };
 
+            const copyToClipboard = () => {
+                const el = document.createElement('textarea');
+                el.value = roomId;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                setCopyBtnText(t.copied);
+                setTimeout(() => setCopyBtnText(null), 2000);
+            };
+
             const consensus = useMemo(() => {
                 if (!room?.players) return null;
                 const votes = room.players.map(p => p.vote).filter(v => v);
@@ -243,7 +270,7 @@
                     <div className="w-full max-w-md">
                         {/* Lang Switcher */}
                         <div className="flex justify-between items-center mb-8">
-                            <h2 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em]">SpyNetwork v5.0</h2>
+                            <h2 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em]">SpyNetwork v5.1</h2>
                             <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="glass px-4 py-2 text-xs font-bold uppercase hover:bg-white/10">
                                 {lang === 'en' ? 'العربية' : 'English'}
                             </button>
@@ -259,7 +286,7 @@
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-slate-500 uppercase px-2">{t.name}</label>
                                         <input 
-                                            className="w-full bg-slate-900/50 border border-slate-800 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                                            className="w-full bg-slate-900/50 border border-slate-800 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-center"
                                             value={playerName} onChange={e => setPlayerName(e.target.value)} placeholder="..."
                                         />
                                     </div>
@@ -286,10 +313,18 @@
                         ) : (
                             <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
                                 {/* Room Status Header */}
-                                <div className="glass p-5 flex justify-between items-center border-blue-500/20">
-                                    <div>
+                                <div className="glass p-5 flex justify-between items-center border-blue-500/20 relative">
+                                    <div className="flex-1">
                                         <span className="text-[10px] text-slate-500 font-black uppercase">{t.code}</span>
-                                        <div className="text-3xl font-black text-blue-400 font-mono">{room.id}</div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-3xl font-black text-blue-400 font-mono">{room.id}</div>
+                                            <button 
+                                                onClick={copyToClipboard}
+                                                className="bg-slate-800 hover:bg-slate-700 p-2 rounded-lg text-[10px] font-bold transition-all text-white border border-white/5"
+                                            >
+                                                {copyBtnText || (lang === 'ar' ? 'نسخ' : 'Copy')}
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="text-center">
                                         <span className="text-[10px] text-slate-500 font-black uppercase">{t.players}</span>
@@ -299,10 +334,10 @@
 
                                 {room.status === 'waiting' ? (
                                     <div className="glass p-6 space-y-4">
-                                        <div className="space-y-2">
+                                        <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                                             {room.players.map((p, i) => (
-                                                <div key={i} className={`p-4 rounded-2xl border transition-all flex justify-between items-center ${p.uid === user.uid ? 'bg-blue-500/10 border-blue-500/40' : 'bg-slate-800/40 border-slate-800'}`}>
-                                                    <span className="font-bold">{p.name} {p.uid === user.uid && <small className="opacity-50">(You)</small>}</span>
+                                                <div key={i} className={`p-4 rounded-2xl border transition-all flex justify-between items-center ${p.uid === user.uid ? 'bg-blue-500/10 border-blue-500/40 shadow-inner shadow-blue-500/5' : 'bg-slate-800/40 border-slate-800'}`}>
+                                                    <span className="font-bold">{p.name} {p.uid === user.uid && <small className="opacity-50 mx-1">({lang === 'ar' ? 'أنت' : 'You'})</small>}</span>
                                                     {p.uid === room.admin && <span className="text-xl">👑</span>}
                                                 </div>
                                             ))}
