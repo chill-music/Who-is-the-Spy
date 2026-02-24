@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PRO SPY | Majority Vote System</title>
+    <title>PRO SPY | Majority & Random Fallback</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -37,22 +37,6 @@
             z-index: -1;
         }
 
-        .glow-sphere {
-            position: fixed;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(112, 0, 255, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
-            filter: blur(60px);
-            z-index: -1;
-            animation: drift 20s infinite alternate linear;
-        }
-
-        @keyframes drift {
-            from { transform: translate(-10%, -10%); }
-            to { transform: translate(20%, 20%); }
-        }
-
         .glass {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
@@ -67,14 +51,6 @@
         }
         .animate-reveal { animation: reveal 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
-        .logo-anim {
-            animation: logo-float 3s ease-in-out infinite;
-        }
-        @keyframes logo-float {
-            0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 10px var(--primary)); }
-            50% { transform: translateY(-5px); filter: drop-shadow(0 0 20px var(--accent)); }
-        }
-
         .btn-primary {
             background: linear-gradient(135deg, var(--primary), var(--accent));
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -83,15 +59,6 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 30px -10px var(--accent);
             filter: brightness(1.1);
-        }
-
-        .selected-word-pulse {
-            animation: border-pulse 2s infinite;
-        }
-        @keyframes border-pulse {
-            0% { border-color: rgba(0, 242, 255, 0.3); }
-            50% { border-color: rgba(0, 242, 255, 1); }
-            100% { border-color: rgba(0, 242, 255, 0.3); }
         }
     </style>
 </head>
@@ -129,12 +96,11 @@
                 spyDesc: "Objective data corrupted. Blend in and neutralize the investigation.",
                 citizenTitle: "IDENTITY: CITIZEN", citizenDesc: "Target objective identified. Detect the anomaly.",
                 objective: "MISSION OBJECTIVE", voting: "IDENTIFY TARGET",
-                votingDesc: "Choose the intel that matches the objective.",
                 timer: "LOCKDOWN:", sec: "S", copied: "COPIED", copy: "COPY",
                 waiting: "Awaiting Command...", loading: "INITIALIZING...",
                 encrypted: "ENCRYPTED DATA", spyHint: "Analyze transmissions to reverse-engineer the objective.",
-                newRound: "RE-INITIALIZE", minPlayers: "Minimum 3 agents required", langBtn: "العربية",
-                yourChoice: "PENDING SELECTION:", confirmedChoice: "FINAL SELECTION (MAJORITY):",
+                newRound: "RE-INITIALIZE", langBtn: "العربية",
+                yourChoice: "PENDING SELECTION:", confirmedChoice: "FINAL SELECTION:",
                 noChoice: "NO SELECTION MADE", lockIn: "LOCK IN CHOICE", locked: "CHOICE LOCKED"
             },
             ar: {
@@ -144,12 +110,11 @@
                 spyDesc: "بيانات الهدف تالفة. اندمج وحيد التحقيق.",
                 citizenTitle: "الهوية: مواطن", citizenDesc: "تم تحديد الهدف. اكشف الدخيل.",
                 objective: "هدف المهمة", voting: "تحديد الهدف",
-                votingDesc: "اختر المعلومة التي تطابق هدف المهمة.",
                 timer: "الإغلاق:", sec: "ث", copied: "تم النسخ", copy: "نسخ",
                 waiting: "بانتظار الأوامر...", loading: "جاري التحميل...",
                 encrypted: "بيانات مشفرة", spyHint: "حلل الإشارات لاستنتاج هدف المهمة الحقيقي.",
-                newRound: "إعادة تهيئة", minPlayers: "مطلوب 3 عملاء على الأقل", langBtn: "English",
-                yourChoice: "الاختيار الحالي:", confirmedChoice: "الكلمة النهائية (الأغلبية):",
+                newRound: "إعادة تهيئة", langBtn: "English",
+                yourChoice: "الاختيار الحالي:", confirmedChoice: "الكلمة النهائية:",
                 noChoice: "لم يتم الاختيار بعد", lockIn: "تأكيد الاختيار", locked: "تم التأكيد"
             }
         };
@@ -204,26 +169,45 @@
                 if (room?.status === 'playing' && room?.timerStart) {
                     timer = setInterval(() => {
                         const elapsed = Math.floor((Date.now() - room.timerStart) / 1000);
-                        setTimeLeft(Math.max(0, 20 - elapsed)); // تم تقليل الوقت لـ 20 ثانية
+                        setTimeLeft(Math.max(0, 20 - elapsed)); 
                     }, 1000);
                 }
                 return () => clearInterval(timer);
             }, [room?.status, room?.timerStart]);
 
-            // حساب الكلمة الفائزة بالأغلبية
+            // منطق حساب الأغلبية مع اختيار عشوائي كبديل (Fallback)
             const majorityWord = useMemo(() => {
-                if (!room?.players) return null;
+                if (!room?.players || !room?.scenario) return null;
+                const wordsList = lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en;
+                
                 const counts = {};
+                let totalVotes = 0;
                 room.players.forEach(p => {
-                    if (p.vote) counts[p.vote] = (counts[p.vote] || 0) + 1;
+                    if (p.vote) {
+                        counts[p.vote] = (counts[p.vote] || 0) + 1;
+                        totalVotes++;
+                    }
                 });
-                let max = 0;
-                let winner = null;
-                for (const word in counts) {
-                    if (counts[word] > max) { max = counts[word]; winner = word; }
+
+                // إذا لم يصوت أحد، نختار كلمة عشوائية من القائمة المتاحة
+                if (totalVotes === 0) {
+                    const randomIdx = Math.floor(Math.abs(room.timerStart % wordsList.length));
+                    return wordsList[randomIdx];
                 }
-                return winner;
-            }, [room?.players]);
+
+                let max = 0;
+                let winners = [];
+                for (const word in counts) {
+                    if (counts[word] > max) {
+                        max = counts[word];
+                        winners = [word];
+                    } else if (counts[word] === max) {
+                        winners.push(word);
+                    }
+                }
+                // في حال التساوي، نختار أول فائز (أو عشوائي من المتساويين)
+                return winners[0];
+            }, [room?.players, room?.scenario, lang]);
 
             const handleCreate = async () => {
                 if (!nickname.trim()) return;
@@ -283,15 +267,13 @@
 
             if (!user) return <div className="h-screen flex items-center justify-center font-black text-cyan-400">LOADING...</div>;
 
-            const isSpy = room?.spyId === user.uid;
-
             return (
                 <div className="min-h-screen p-4 md:p-12 flex flex-col items-center" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                     <div className="w-full max-w-xl space-y-8">
                         
                         <header className="flex justify-between items-center animate-reveal">
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 glass flex items-center justify-center border-cyan-500/30 logo-anim">
+                                <div className="w-12 h-12 glass flex items-center justify-center border-cyan-500/30">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-cyan-400">
                                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/>
                                     </svg>
@@ -331,30 +313,31 @@
                                     </div>
                                 ) : (
                                     <div className="space-y-6">
-                                        <div className={`p-10 rounded-[2.5rem] border-b-[12px] text-center ${isSpy ? 'bg-red-950/40 border-red-800' : 'bg-cyan-950/40 border-blue-800'}`}>
-                                            <h2 className="text-4xl font-black italic">{isSpy ? t.spyTitle : t.citizenTitle}</h2>
+                                        <div className={`p-10 rounded-[2.5rem] border-b-[12px] text-center ${room.spyId === user.uid ? 'bg-red-950/40 border-red-800' : 'bg-cyan-950/40 border-blue-800'}`}>
+                                            <h2 className="text-4xl font-black italic">{room.spyId === user.uid ? t.spyTitle : t.citizenTitle}</h2>
                                             <div className="h-[1px] bg-white/10 w-32 mx-auto my-6"></div>
-                                            {!isSpy ? <div><span className="text-[9px] font-black text-cyan-400">{t.objective}</span><div className="text-6xl font-black">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div></div> : <div className="bg-black/40 p-4 rounded-3xl text-sm italic">{t.spyHint}</div>}
+                                            {room.spyId !== user.uid ? <div><span className="text-[9px] font-black text-cyan-400">{t.objective}</span><div className="text-6xl font-black">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div></div> : <div className="bg-black/40 p-4 rounded-3xl text-sm italic">{t.spyHint}</div>}
                                         </div>
 
                                         <div className="glass p-8 space-y-6">
                                             <div className="flex justify-between items-center"><h3 className="font-black text-2xl">{t.voting}</h3><div className="text-2xl font-black text-cyan-400">{timeLeft}{t.sec}</div></div>
 
                                             <div className="grid grid-cols-2 gap-4">
-                                                {(!isSpy ? (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en) : Array(4).fill("..."))?.map((word, idx) => (
-                                                    <button key={idx} onClick={() => !isSpy && !isLocked && setTempVote(word)} disabled={timeLeft <= 0 || isSpy || isLocked} 
+                                                {(room.spyId !== user.uid ? (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en) : Array(4).fill("..."))?.map((word, idx) => (
+                                                    <button key={idx} onClick={() => room.spyId !== user.uid && !isLocked && setTempVote(word)} disabled={timeLeft <= 0 || room.spyId === user.uid || isLocked} 
                                                         className={`p-6 rounded-3xl border-2 font-black transition-all ${tempVote === word ? 'bg-cyan-500 text-black border-cyan-400' : 'bg-white/5 border-white/5 opacity-80'}`}>
                                                         {word}
                                                     </button>
                                                 ))}
                                             </div>
 
-                                            {/* SELECTION UI */}
-                                            {!isSpy && (
+                                            {room.spyId !== user.uid && (
                                                 <div className="space-y-4">
                                                     <div className={`p-6 rounded-3xl border-2 ${timeLeft > 0 ? 'bg-cyan-500/10 border-cyan-400/30' : 'bg-white/10 border-white/20'}`}>
                                                         <span className="text-[10px] font-black opacity-40 uppercase">{timeLeft > 0 ? t.yourChoice : t.confirmedChoice}</span>
-                                                        <div className="text-2xl font-black text-cyan-400">{timeLeft > 0 ? (tempVote || t.noChoice) : (majorityWord || t.noChoice)}</div>
+                                                        <div className="text-2xl font-black text-cyan-400">
+                                                            {timeLeft > 0 ? (tempVote || t.noChoice) : majorityWord}
+                                                        </div>
                                                     </div>
 
                                                     {timeLeft > 0 && !isLocked && (
@@ -374,7 +357,7 @@
                                 )}
                             </div>
                         )}
-                        <footer className="text-center opacity-10 font-mono text-[10px] tracking-[0.8em] py-12">MAJORITY_PROTOCOL_ACTIVE</footer>
+                        <footer className="text-center opacity-10 font-mono text-[10px] tracking-[0.8em] py-12">SECURE_PROTOCOL_V2</footer>
                     </div>
                 </div>
             );
@@ -385,4 +368,3 @@
     </script>
 </body>
 </html>
-
