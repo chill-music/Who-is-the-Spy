@@ -145,10 +145,21 @@
             const t = TRANSLATIONS[lang];
 
             useEffect(() => {
-                const unsub = auth.onAuthStateChanged(async (u) => {
-                    if (!u) await auth.signInAnonymously();
-                    else setUser(u);
-                });
+                const initAuth = async () => {
+                    const u = auth.currentUser;
+                    if (!u) {
+                        try {
+                            const cred = await auth.signInAnonymously();
+                            setUser(cred.user);
+                        } catch (err) {
+                            console.error("Auth error", err);
+                        }
+                    } else {
+                        setUser(u);
+                    }
+                };
+                initAuth();
+                const unsub = auth.onAuthStateChanged(u => setUser(u));
                 return unsub;
             }, []);
 
@@ -156,8 +167,14 @@
                 if (!user || !roomId) return;
                 const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
                     .onSnapshot(doc => {
-                        if (doc.exists) setRoom(doc.data());
-                        else { setRoom(null); setRoomId(''); }
+                        if (doc.exists) {
+                            setRoom(doc.data());
+                        } else {
+                            setRoom(null);
+                            setRoomId('');
+                        }
+                    }, err => {
+                        console.error("Firestore error", err);
                     });
                 return unsub;
             }, [user, roomId]);
@@ -181,7 +198,7 @@
             }, [room?.status, room?.timerActive, room?.timerStart]);
 
             const handleCreate = async () => {
-                if (!playerName.trim()) return;
+                if (!playerName.trim() || !user) return;
                 setIsBusy(true);
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
                 const initialData = {
@@ -189,28 +206,37 @@
                     players: [{ uid: user.uid, name: playerName, vote: null }],
                     scenario: null, spyId: null, timerActive: false
                 };
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set(initialData);
-                setRoomId(id);
+                try {
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set(initialData);
+                    setRoomId(id);
+                } catch (e) {
+                    console.error("Create room error", e);
+                }
                 setIsBusy(false);
             };
 
             const handleJoin = async () => {
-                if (!playerName.trim() || !inputRoomId.trim()) return;
+                if (!playerName.trim() || !inputRoomId.trim() || !user) return;
                 setIsBusy(true);
                 const code = inputRoomId.toUpperCase();
                 const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(code);
-                const snap = await ref.get();
-                if (snap.exists) {
-                    const players = snap.data().players || [];
-                    if (!players.some(p => p.uid === user.uid)) {
-                        await ref.update({ players: [...players, { uid: user.uid, name: playerName, vote: null }] });
+                try {
+                    const snap = await ref.get();
+                    if (snap.exists) {
+                        const players = snap.data().players || [];
+                        if (!players.some(p => p.uid === user.uid)) {
+                            await ref.update({ players: [...players, { uid: user.uid, name: playerName, vote: null }] });
+                        }
+                        setRoomId(code);
                     }
-                    setRoomId(code);
+                } catch (e) {
+                    console.error("Join room error", e);
                 }
                 setIsBusy(false);
             };
 
             const startGame = async () => {
+                if (!user || room?.admin !== user.uid) return;
                 setIsBusy(true);
                 const scenario = await fetchScenario();
                 const spy = room.players[Math.floor(Math.random() * room.players.length)];
@@ -226,7 +252,7 @@
             };
 
             const submitVote = async (word) => {
-                if (timeLeft <= 0) return;
+                if (timeLeft <= 0 || !user) return;
                 const updated = room.players.map(p => p.uid === user.uid ? { ...p, vote: word } : p);
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                     players: updated
@@ -252,7 +278,7 @@
                 return Object.keys(freq).reduce((a, b) => freq[a] > freq[b] ? a : b);
             }, [room]);
 
-            if (!user) return <div className="h-screen flex items-center justify-center font-black animate-pulse">{t.loading}</div>;
+            if (!user) return <div className="h-screen flex items-center justify-center font-black animate-pulse text-blue-500">{t.loading}</div>;
 
             return (
                 <div className="min-h-screen p-4 flex flex-col items-center justify-center" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -290,7 +316,7 @@
                                             className="flex-1 bg-slate-900 border border-slate-800 p-4 rounded-2xl text-center font-black tracking-widest outline-none"
                                             value={inputRoomId} onChange={e => setInputRoomId(e.target.value)} placeholder="CODE"
                                         />
-                                        <button onClick={handleJoin} className="bg-slate-800 hover:bg-slate-700 px-6 rounded-2xl font-black transition-all">
+                                        <button onClick={handleJoin} disabled={isBusy} className="bg-slate-800 hover:bg-slate-700 px-6 rounded-2xl py-4 font-black transition-all">
                                             {t.join}
                                         </button>
                                     </div>
@@ -325,7 +351,7 @@
                                                 ))}
                                             </div>
                                             {room.admin === user.uid && (
-                                                <button onClick={startGame} className="w-full bg-green-600 p-4 rounded-2xl font-black text-xl hover:bg-green-500 transition-all shadow-lg shadow-green-900/20">
+                                                <button onClick={startGame} disabled={isBusy} className="w-full bg-green-600 p-4 rounded-2xl font-black text-xl hover:bg-green-500 transition-all shadow-lg shadow-green-900/20">
                                                     {t.start}
                                                 </button>
                                             )}
@@ -363,7 +389,7 @@
                                                 <div className="space-y-4">
                                                     <p className="text-[10px] font-black uppercase opacity-60 italic">{t.voteMsg}</p>
                                                     <div className="grid grid-cols-2 gap-3">
-                                                        {(lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en).map((w, i) => {
+                                                        {(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((w, i) => {
                                                             const voters = room.players.filter(p => p.vote === w);
                                                             return (
                                                                 <div key={i} className="flex flex-col gap-1">
@@ -394,7 +420,7 @@
                                             </motion.div>
 
                                             {room.admin === user.uid && (
-                                                <button onClick={startGame} className="w-full glass p-4 rounded-2xl font-black text-sm hover:bg-white/5 transition-all">
+                                                <button onClick={startGame} disabled={isBusy} className="w-full glass p-4 rounded-2xl font-black text-sm hover:bg-white/5 transition-all">
                                                     {t.newRound} 🔄
                                                 </button>
                                             )}
