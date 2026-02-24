@@ -2,66 +2,107 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Who is the Spy? | Secure Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PRO SPY | The Ultimate Infiltration Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
         
         :root {
-            --primary: #3b82f6;
-            --spy-red: #ef4444;
-            --bg-dark: #020617;
+            --primary: #00f2ff;
+            --accent: #7000ff;
+            --bg: #050505;
         }
 
         body { 
-            background-color: var(--bg-dark); 
-            color: #f8fafc;
-            font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif;
+            background-color: var(--bg); 
+            color: #ffffff;
+            font-family: 'Space Grotesk', 'Noto Sans Arabic', sans-serif;
             margin: 0;
             overflow-x: hidden;
-            background-image: radial-gradient(circle at top right, #1e1b4b 0%, #020617 60%);
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1.5rem;
+        /* Cyberpunk Background Effect */
+        .bg-grid {
+            background-image: 
+                linear-gradient(to right, rgba(112, 0, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(112, 0, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+        }
+
+        .glow-sphere {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(112, 0, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: -1;
+            animation: drift 20s infinite alternate linear;
+        }
+
+        @keyframes drift {
+            from { transform: translate(-10%, -10%); }
+            to { transform: translate(20%, 20%); }
+        }
+
+        /* Premium Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+        }
+
+        /* Animations */
+        @keyframes reveal {
+            0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-reveal { animation: reveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+        .logo-anim {
+            animation: logo-float 3s ease-in-out infinite;
+        }
+        @keyframes logo-float {
+            0%, 100% { transform: translateY(0) rotate(0deg); filter: drop-shadow(0 0 10px var(--primary)); }
+            50% { transform: translateY(-10px) rotate(2deg); filter: drop-shadow(0 0 25px var(--accent)); }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
-
-        /* Enhanced Animations */
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(30px); filter: blur(10px); } 
-            to { opacity: 1; transform: translateY(0); filter: blur(0); } 
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px var(--accent);
+            filter: brightness(1.1);
         }
-        .animate-slide-up { animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .btn-primary:active { transform: scale(0.96); }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade { animation: fadeIn 0.5s ease-out forwards; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
 
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
-            50% { box-shadow: 0 0-30px rgba(59, 130, 246, 0.5); }
-        }
-        .active-glow { animation: pulse-glow 2s infinite; }
-
-        .spy-gradient { background: linear-gradient(135deg, #450a0a 0%, #ef4444 100%); }
-        .citizen-gradient { background: linear-gradient(135deg, #172554 0%, #3b82f6 100%); }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-
-        .hover-scale { transition: transform 0.2s ease; }
-        .hover-scale:hover { transform: scale(1.02); }
-        .hover-scale:active { transform: scale(0.98); }
+        [dir="rtl"] { font-family: 'Noto Sans Arabic', sans-serif; }
     </style>
 </head>
 <body>
+    <div class="bg-grid"></div>
+    <div class="glow-sphere" style="top: -10%; right: -10%;"></div>
+    <div class="glow-sphere" style="bottom: -10%; left: -10%; background: radial-gradient(circle, rgba(0, 242, 255, 0.1) 0%, transparent 70%);"></div>
+    
     <div id="root"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -83,69 +124,71 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'spy_pro_ultra_secure';
-        const GEMINI_KEY = "AIzaSyCXlSHuuwmLXcykV93V5hGsflpYn9yyNAg"; 
+        const appId = 'pro_spy_v2_core';
+        const GEMINI_KEY = ""; 
 
         const TRANSLATIONS = {
             en: {
-                title: "WHO IS THE SPY?",
-                subtitle: "SECURE NETWORK v2.0",
-                nickname: "Operator Name",
-                create: "Establish HQ",
-                join: "Infiltrate",
-                roomCode: "Access Key",
-                players: "Active Agents",
-                start: "Start Mission",
-                spy: "STRIKE TEAM: SPY",
-                spyDesc: "Mission parameters hidden. Infiltrate and survive.",
-                citizen: "STRIKE TEAM: CITIZEN",
-                citizenDesc: "Identify the anomaly in the group.",
-                location: "Mission Objective",
-                vote: "Identify Anomaly",
-                voteDesc: "Select the data point that fits the objective.",
-                timer: "Lockdown in:",
-                sec: "s",
-                results: "Consensus Data",
-                newRound: "Re-deploy",
-                copied: "Copied!",
-                copy: "Copy",
-                waiting: "Waiting for Lead Agent...",
-                loading: "Booting System...",
-                spyBlock: "ENCRYPTED DATA",
-                spyHelp: "Observe transmissions from other agents to deduce objective."
+                appName: "PRO SPY",
+                tagline: "TRUST NO ONE",
+                nickname: "Operator Alias",
+                create: "CREATE HEADQUARTERS",
+                join: "JOIN OPERATION",
+                codePlaceholder: "ACCESS CODE",
+                players: "ACTIVE AGENTS",
+                start: "LAUNCH MISSION",
+                spyTitle: "IDENTITY: SPY",
+                spyDesc: "Objective data corrupted. Blend in and neutralize the investigation.",
+                citizenTitle: "IDENTITY: CITIZEN",
+                citizenDesc: "Target objective identified. Detect the anomaly.",
+                objective: "MISSION OBJECTIVE",
+                voting: "IDENTIFY TARGET",
+                votingDesc: "Choose the intel that matches the objective.",
+                timer: "LOCKDOWN:",
+                sec: "S",
+                copied: "COPIED",
+                copy: "COPY",
+                waiting: "Awaiting Command...",
+                loading: "INITIALIZING...",
+                encrypted: "ENCRYPTED DATA",
+                spyHint: "Analyze transmissions to reverse-engineer the objective.",
+                newRound: "RE-INITIALIZE",
+                minPlayers: "Minimum 3 agents required",
+                langBtn: "العربية"
             },
             ar: {
-                title: "من هو الجاسوس؟",
-                subtitle: "الشبكة المؤمنة v2.0",
+                appName: "برو جاسوس",
+                tagline: "لا تثق بأحد",
                 nickname: "اسم العميل",
                 create: "إنشاء المقر",
-                join: "اختراق الغرفة",
-                roomCode: "مفتاح الدخول",
-                players: "العملاء المتصلون",
-                start: "بدء العملية",
-                spy: "فريق الهجوم: جاسوس",
-                spyDesc: "إحداثيات المهمة محجوبة. اندمج ولا تنكشف.",
-                citizen: "فريق الهجوم: مواطن",
-                citizenDesc: "حدد العنصر الدخيل في المجموعة.",
-                location: "هدف المهمة",
-                vote: "تحديد الدخيل",
-                voteDesc: "اختر الكلمة التي تناسب إحداثيات المهمة.",
-                timer: "الإغلاق خلال:",
-                sec: "ثانية",
-                results: "البيانات المتفق عليها",
-                newRound: "إعادة انتشار",
-                copied: "تم النسخ!",
+                join: "انضمام للعملية",
+                codePlaceholder: "رمز الدخول",
+                players: "العملاء النشطون",
+                start: "بدء المهمة",
+                spyTitle: "الهوية: جاسوس",
+                spyDesc: "بيانات الهدف تالفة. اندمج وحيد التحقيق.",
+                citizenTitle: "الهوية: مواطن",
+                citizenDesc: "تم تحديد الهدف. اكشف الدخيل.",
+                objective: "هدف المهمة",
+                voting: "تحديد الهدف",
+                votingDesc: "اختر المعلومة التي تطابق هدف المهمة.",
+                timer: "الإغلاق:",
+                sec: "ث",
+                copied: "تم النسخ",
                 copy: "نسخ",
-                waiting: "بانتظار قائد العملية...",
-                loading: "جاري تشغيل النظام...",
-                spyBlock: "بيانات مشفرة",
-                spyHelp: "راقب إشارات العملاء الآخرين لاستنتاج الهدف."
+                waiting: "بانتظار الأوامر...",
+                loading: "جاري التحميل...",
+                encrypted: "بيانات مشفرة",
+                spyHint: "حلل الإشارات لاستنتاج هدف المهمة الحقيقي.",
+                newRound: "إعادة تهيئة",
+                minPlayers: "مطلوب 3 عملاء على الأقل",
+                langBtn: "English"
             }
         };
 
         async function fetchScenario() {
             try {
-                const prompt = "Generate a location and 4 related words. One word is the target, others are hints. Return JSON: {loc_ar, words_ar:[4], loc_en, words_en:[4]}";
+                const prompt = "Generate a location and 4 related words. One is target. Return JSON: {loc_ar, words_ar:[4], loc_en, words_en:[4]}";
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_KEY}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -158,19 +201,19 @@
                 return JSON.parse(data.candidates[0].content.parts[0].text);
             } catch (e) {
                 return { 
-                    loc_ar: "المستشفى", words_ar: ["طبيب", "دواء", "مريض", "جراحة"], 
-                    loc_en: "Hospital", words_en: ["Doctor", "Medicine", "Patient", "Surgery"] 
+                    loc_ar: "المطار", words_ar: ["طائرة", "جواز", "سفر", "حقيبة"], 
+                    loc_en: "Airport", words_en: ["Plane", "Passport", "Travel", "Luggage"] 
                 };
             }
         }
 
         function App() {
-            const [lang, setLang] = useState('ar');
+            const [lang, setLang] = useState('en');
             const [user, setUser] = useState(null);
             const [room, setRoom] = useState(null);
             const [roomId, setRoomId] = useState('');
             const [inputCode, setInputCode] = useState('');
-            const [nickname, setNickname] = useState(localStorage.getItem('spy_nick') || '');
+            const [nickname, setNickname] = useState(localStorage.getItem('pro_spy_nick') || '');
             const [loading, setLoading] = useState(false);
             const [timeLeft, setTimeLeft] = useState(0);
             const [copyStatus, setCopyStatus] = useState(false);
@@ -187,24 +230,18 @@
 
             useEffect(() => {
                 if (!user || !roomId) return;
-                const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId);
-                const unsub = ref.onSnapshot(doc => {
-                    if (doc.exists) setRoom(doc.data());
-                    else setRoom(null);
-                }, (error) => console.error(error));
+                const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
+                    .onSnapshot(doc => setRoom(doc.exists ? doc.data() : null));
                 return unsub;
             }, [user, roomId]);
 
             useEffect(() => {
                 let timer;
                 if (room?.status === 'playing' && room?.timerStart) {
-                    const update = () => {
+                    timer = setInterval(() => {
                         const elapsed = Math.floor((Date.now() - room.timerStart) / 1000);
-                        const remaining = Math.max(0, 30 - elapsed);
-                        setTimeLeft(remaining);
-                    };
-                    update();
-                    timer = setInterval(update, 1000);
+                        setTimeLeft(Math.max(0, 45 - elapsed));
+                    }, 1000);
                 }
                 return () => clearInterval(timer);
             }, [room?.status, room?.timerStart]);
@@ -213,20 +250,19 @@
                 if (!nickname.trim()) return;
                 setLoading(true);
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
-                const roomData = {
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set({
                     id, admin: user.uid, status: 'waiting',
                     players: [{ uid: user.uid, name: nickname, vote: null }],
                     scenario: null, spyId: null, timerStart: null
-                };
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set(roomData);
+                });
                 setRoomId(id);
                 setLoading(false);
             };
 
             const handleJoin = async () => {
-                if (!nickname.trim() || !inputCode.trim()) return;
-                setLoading(true);
                 const code = inputCode.toUpperCase();
+                if (!nickname.trim() || !code) return;
+                setLoading(true);
                 const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(code);
                 const snap = await ref.get();
                 if (snap.exists) {
@@ -245,17 +281,14 @@
                 const scenario = await fetchScenario();
                 const spy = room.players[Math.floor(Math.random() * room.players.length)];
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    status: 'playing',
-                    scenario,
-                    spyId: spy.uid,
-                    timerStart: Date.now(),
+                    status: 'playing', scenario, spyId: spy.uid, timerStart: Date.now(),
                     players: room.players.map(p => ({ ...p, vote: null }))
                 });
                 setLoading(false);
             };
 
             const castVote = async (word) => {
-                if (timeLeft <= 0 || room.spyId === user.uid) return; 
+                if (timeLeft <= 0 || room.spyId === user.uid) return;
                 const updated = room.players.map(p => p.uid === user.uid ? { ...p, vote: word } : p);
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ players: updated });
             };
@@ -271,223 +304,221 @@
                 setTimeout(() => setCopyStatus(false), 2000);
             };
 
-            const consensus = useMemo(() => {
-                if (!room?.players) return null;
-                const votes = room.players.map(p => p.vote).filter(v => v);
-                if (!votes.length) return null;
-                const counts = votes.reduce((a, v) => { a[v] = (a[v] || 0) + 1; return a; }, {});
-                return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
-            }, [room]);
-
-            if (!user) return <div className="h-screen flex items-center justify-center font-black animate-pulse text-blue-500 tracking-tighter uppercase">{t.loading}</div>;
+            if (!user) return (
+                <div className="h-screen flex items-center justify-center font-black tracking-widest text-cyan-400">
+                    <span className="animate-pulse">INITIALIZING SECURE LINK...</span>
+                </div>
+            );
 
             const isSpy = room?.spyId === user.uid;
 
             return (
-                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-                    <div className="w-full max-w-lg space-y-6">
+                <div className={`min-h-screen p-4 md:p-12 flex flex-col items-center select-none`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                    <div className="w-full max-w-xl space-y-8">
                         
-                        {/* Header Section */}
-                        <div className="flex justify-between items-center animate-fade">
-                            <div className="animate-slide-up">
-                                <h1 className="text-3xl font-[900] tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 leading-none">
-                                    {t.title}
-                                </h1>
-                                <p className="text-[10px] uppercase tracking-widest opacity-40 font-bold mt-1">{t.subtitle}</p>
+                        {/* HEADER */}
+                        <header className="flex justify-between items-center animate-reveal">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 glass flex items-center justify-center border-cyan-500/30 logo-anim">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-cyan-400">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                        <path d="M12 8v4M12 16h.01"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h1 className="text-4xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-white/40 leading-none">
+                                        {t.appName}
+                                    </h1>
+                                    <p className="text-[10px] font-bold tracking-[0.4em] opacity-40 text-cyan-300">{t.tagline}</p>
+                                </div>
                             </div>
                             <button 
                                 onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
-                                className="glass-panel px-4 py-2 text-[10px] font-black hover:bg-white/10 active:scale-95 transition-all"
+                                className="glass px-5 py-2 text-xs font-bold hover:bg-white/10 active:scale-95 transition-all uppercase"
                             >
-                                {lang === 'en' ? 'AR' : 'EN'}
+                                {t.langBtn}
                             </button>
-                        </div>
+                        </header>
 
                         {!room ? (
-                            <div className="glass-panel p-8 space-y-8 shadow-2xl animate-slide-up" style={{animationDelay: '0.1s'}}>
-                                <div className="space-y-3">
-                                    <label className="text-[10px] uppercase font-black opacity-30 px-1">{t.nickname}</label>
+                            <main className="glass p-8 md:p-12 space-y-10 animate-reveal" style={{animationDelay: '0.1s'}}>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black opacity-30 tracking-[0.2em] uppercase px-1">{t.nickname}</label>
                                     <input 
-                                        className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all focus:ring-4 focus:ring-blue-500/10"
+                                        className="w-full bg-black/40 border border-white/10 p-5 rounded-2xl font-bold focus:border-cyan-500 outline-none transition-all focus:ring-4 focus:ring-cyan-500/10 text-lg"
                                         placeholder="..."
                                         value={nickname}
-                                        onChange={e => { setNickname(e.target.value); localStorage.setItem('spy_nick', e.target.value); }}
+                                        onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }}
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-4">
+                                <div className="grid grid-cols-1 gap-6">
                                     <button 
                                         onClick={handleCreate}
                                         disabled={loading || !nickname}
-                                        className="w-full bg-blue-600 hover:bg-blue-500 py-5 rounded-2xl font-black text-lg transition-all hover-scale shadow-lg shadow-blue-900/40 disabled:opacity-50"
+                                        className="btn-primary w-full py-5 rounded-2xl font-black text-lg tracking-widest disabled:opacity-50"
                                     >
                                         {t.create}
                                     </button>
                                     
-                                    <div className="relative py-2 flex items-center">
-                                        <div className="flex-grow border-t border-white/5"></div>
-                                        <span className="flex-shrink mx-4 text-[10px] font-black opacity-20">OR</span>
-                                        <div className="flex-grow border-t border-white/5"></div>
+                                    <div className="relative flex items-center justify-center">
+                                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
+                                        <span className="relative bg-[#080808] px-4 text-[10px] font-black opacity-20 tracking-widest">SECURE INTERCEPT</span>
                                     </div>
 
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-3">
                                         <input 
-                                            className="flex-1 bg-white/5 border border-white/10 p-4 rounded-2xl font-mono text-center font-black tracking-widest focus:border-indigo-500 outline-none transition-all uppercase"
-                                            placeholder="CODE"
+                                            className="flex-1 bg-black/40 border border-white/10 p-5 rounded-2xl font-mono text-center font-black tracking-[0.5em] focus:border-purple-500 outline-none transition-all uppercase"
+                                            placeholder={t.codePlaceholder}
                                             value={inputCode}
                                             onChange={e => setInputCode(e.target.value.toUpperCase())}
                                         />
                                         <button 
                                             onClick={handleJoin}
                                             disabled={loading || !nickname || !inputCode}
-                                            className="bg-white/5 border border-white/10 hover:bg-white/10 px-8 rounded-2xl font-black transition-all hover-scale disabled:opacity-50"
+                                            className="glass px-10 py-5 font-black hover:bg-white/10 active:scale-95 transition-all disabled:opacity-50 uppercase tracking-widest"
                                         >
                                             {t.join}
                                         </button>
                                     </div>
                                 </div>
-                            </div>
+                            </main>
                         ) : (
-                            <div className="space-y-6">
-                                {/* Room Info Bar */}
-                                <div className="glass-panel p-4 flex justify-between items-center animate-slide-up">
-                                    <div className="flex gap-3 items-center">
+                            <div className="space-y-6 animate-reveal">
+                                {/* INFO BAR */}
+                                <div className="glass p-4 flex justify-between items-center">
+                                    <div className="flex gap-4 items-center">
                                         <div className="flex flex-col">
-                                            <span className="text-[9px] uppercase font-black opacity-30 leading-none mb-1">{t.roomCode}</span>
+                                            <span className="text-[9px] font-black opacity-30 tracking-widest uppercase mb-1">DATA_KEY</span>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-xl font-black text-blue-400 font-mono tracking-tighter">{room.id}</span>
+                                                <span className="text-xl font-black text-cyan-400 font-mono tracking-tighter">{room.id}</span>
                                                 <button 
                                                     onClick={copyCode}
-                                                    className={`p-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${copyStatus ? 'bg-green-500 text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                                                    className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${copyStatus ? 'bg-cyan-500 text-black' : 'bg-white/5 border border-white/10 hover:bg-white/10'}`}
                                                 >
                                                     {copyStatus ? t.copied : t.copy}
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-[9px] uppercase font-black opacity-30 leading-none mb-1">{t.players}</span>
-                                        <span className="text-xl font-black">{room.players.length}</span>
+                                    <div className="text-right">
+                                        <span className="text-[9px] font-black opacity-30 tracking-widest uppercase mb-1">{t.players}</span>
+                                        <div className="text-xl font-black">{room.players.length}<span className="text-xs opacity-30 ml-1">/ 12</span></div>
                                     </div>
                                 </div>
 
                                 {room.status === 'waiting' ? (
-                                    <div className="glass-panel p-6 space-y-6 animate-slide-up" style={{animationDelay: '0.15s'}}>
-                                        <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto custom-scrollbar pr-2">
+                                    <div className="glass p-6 space-y-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
                                             {room.players.map((p, i) => (
-                                                <div key={i} className={`p-4 rounded-2xl border flex items-center gap-3 animate-fade ${p.uid === user.uid ? 'bg-blue-500/10 border-blue-500/30 active-glow' : 'bg-white/5 border-transparent'}`}>
-                                                    <div className={`w-2 h-2 rounded-full ${p.uid === user.uid ? 'bg-blue-400' : 'bg-white/20'}`}></div>
-                                                    <span className="font-black text-xs truncate">{p.name}</span>
-                                                    {p.uid === room.admin && <span className="text-[10px] ml-auto">👑</span>}
+                                                <div key={i} className={`p-4 rounded-2xl border transition-all animate-reveal ${p.uid === user.uid ? 'bg-cyan-500/10 border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.1)]' : 'bg-white/5 border-transparent'}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-2 h-2 rounded-full ${p.uid === user.uid ? 'bg-cyan-400' : 'bg-white/20'}`}></div>
+                                                        <span className="font-bold text-sm truncate uppercase tracking-tight">{p.name}</span>
+                                                        {p.uid === room.admin && <span className="text-[10px] ml-auto opacity-50">CMD</span>}
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
                                         
                                         {room.admin === user.uid ? (
-                                            <button 
-                                                onClick={startMission}
-                                                disabled={loading || room.players.length < 3}
-                                                className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-2xl font-black text-lg transition-all hover-scale shadow-lg shadow-green-900/20 disabled:opacity-50"
-                                            >
-                                                {t.start}
-                                            </button>
+                                            <div className="space-y-4">
+                                                <button 
+                                                    onClick={startMission}
+                                                    disabled={loading || room.players.length < 3}
+                                                    className="btn-primary w-full py-5 rounded-2xl font-black text-xl tracking-widest disabled:opacity-30"
+                                                >
+                                                    {t.start}
+                                                </button>
+                                                {room.players.length < 3 && <p className="text-center text-[10px] font-bold text-red-400 tracking-widest uppercase">{t.minPlayers}</p>}
+                                            </div>
                                         ) : (
-                                            <div className="text-center py-4 text-[10px] font-black opacity-30 animate-pulse tracking-widest uppercase">
-                                                {t.waiting}
+                                            <div className="text-center py-6 border-2 border-dashed border-white/5 rounded-3xl">
+                                                <p className="text-[11px] font-black opacity-40 animate-pulse tracking-[0.3em] uppercase">{t.waiting}</p>
                                             </div>
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="space-y-6 animate-fade">
-                                        {/* Identity Reveal Card */}
-                                        <div className={`p-10 rounded-[2.5rem] border-b-[10px] shadow-2xl text-center relative overflow-hidden animate-slide-up ${isSpy ? 'spy-gradient border-red-900' : 'citizen-gradient border-blue-900'}`}>
+                                    <div className="space-y-6">
+                                        {/* IDENTITY REVEAL */}
+                                        <div className={`p-10 rounded-[2.5rem] border-b-[12px] shadow-2xl text-center relative overflow-hidden transition-all duration-700 ${isSpy ? 'bg-gradient-to-br from-red-950/80 to-red-900/40 border-red-800' : 'bg-gradient-to-br from-cyan-950/80 to-blue-900/40 border-blue-800'}`}>
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-white/10 animate-pulse"></div>
                                             <div className="relative z-10 space-y-4">
-                                                <div className="text-6xl drop-shadow-lg">{isSpy ? '🕵️' : '🏙️'}</div>
+                                                <div className="text-6xl mb-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">{isSpy ? '🕶️' : '📡'}</div>
                                                 <div>
-                                                    <h2 className="text-3xl font-[900] tracking-tighter mb-1 uppercase">
-                                                        {isSpy ? t.spy : t.citizen}
+                                                    <h2 className="text-4xl font-black tracking-tighter mb-1 uppercase italic">
+                                                        {isSpy ? t.spyTitle : t.citizenTitle}
                                                     </h2>
-                                                    <p className="text-[10px] font-bold opacity-70 uppercase tracking-[0.2em]">{isSpy ? t.spyDesc : t.citizenDesc}</p>
+                                                    <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.3em]">{isSpy ? t.spyDesc : t.citizenDesc}</p>
                                                 </div>
                                                 
-                                                <div className="h-[2px] bg-white/10 w-24 mx-auto my-6"></div>
+                                                <div className="h-[1px] bg-white/10 w-32 mx-auto my-8"></div>
 
                                                 {!isSpy ? (
-                                                    <div className="space-y-2">
-                                                        <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-50">{t.location}</span>
-                                                        <div className="text-5xl font-black tracking-tighter animate-slide-up bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
+                                                    <div className="space-y-2 group">
+                                                        <span className="text-[9px] font-black uppercase tracking-[0.4em] text-cyan-400 group-hover:scale-110 transition-transform block">{t.objective}</span>
+                                                        <div className="text-6xl font-black tracking-tighter text-white drop-shadow-2xl">
                                                             {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="space-y-3 bg-black/20 p-6 rounded-3xl border border-white/5 animate-pulse">
-                                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">{t.spyBlock}</span>
-                                                        <p className="text-xs italic font-medium opacity-80 leading-relaxed px-4">{t.spyHelp}</p>
+                                                    <div className="space-y-4 bg-black/40 p-8 rounded-3xl border border-red-500/20 shadow-inner">
+                                                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-400 block mb-2">{t.encrypted}</span>
+                                                        <p className="text-sm font-medium opacity-80 leading-relaxed italic">{t.spyHint}</p>
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
 
-                                        {/* Voting Section - HARD SECURED */}
-                                        <div className="glass-panel p-8 space-y-6 animate-slide-up" style={{animationDelay: '0.1s'}}>
-                                            <div className="flex justify-between items-end">
+                                        {/* INTEL GRID */}
+                                        <div className="glass p-8 space-y-6">
+                                            <div className="flex justify-between items-center">
                                                 <div>
-                                                    <h3 className="font-black text-xl tracking-tight">{t.vote}</h3>
-                                                    <p className="text-[10px] opacity-30 font-bold uppercase tracking-widest">{t.voteDesc}</p>
+                                                    <h3 className="font-black text-2xl tracking-tighter italic">{t.voting}</h3>
+                                                    <p className="text-[10px] opacity-30 font-bold uppercase tracking-widest">{t.votingDesc}</p>
                                                 </div>
-                                                {timeLeft > 0 && (
-                                                    <div className="text-right">
-                                                        <span className="text-3xl font-black font-mono tracking-tighter text-blue-500">{timeLeft}{t.sec}</span>
-                                                    </div>
-                                                )}
+                                                <div className="text-right glass bg-black/40 px-4 py-2 border-cyan-500/20">
+                                                    <span className="text-2xl font-black font-mono tracking-tighter text-cyan-400">{timeLeft}{t.sec}</span>
+                                                </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-4">
-                                                {/* Logic Check: If Spy, DO NOT map words, show a single placeholder instead */}
                                                 {!isSpy ? (
                                                     (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, idx) => {
                                                         const myVote = room.players.find(p => p.uid === user.uid)?.vote === word;
                                                         const votesForThis = room.players.filter(p => p.vote === word);
-
                                                         return (
                                                             <button 
                                                                 key={idx}
                                                                 onClick={() => castVote(word)}
                                                                 disabled={timeLeft <= 0}
-                                                                className={`p-5 rounded-2xl border-2 text-sm font-black transition-all relative overflow-hidden hover-scale ${myVote ? 'bg-white text-black border-white active-glow' : 'bg-white/5 border-white/5 hover:border-white/20'}`}
+                                                                className={`p-6 rounded-3xl border-2 text-base font-black transition-all relative overflow-hidden active:scale-95 ${myVote ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'bg-white/5 border-white/5 hover:border-white/20'}`}
                                                             >
                                                                 {word}
-                                                                <div className="absolute bottom-2 right-2 flex gap-1">
+                                                                <div className="absolute bottom-3 right-3 flex -space-x-1">
                                                                     {votesForThis.map((v, vi) => (
-                                                                        <div key={vi} className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-fade"></div>
+                                                                        <div key={vi} className="w-2 h-2 rounded-full bg-cyan-500 border border-black animate-reveal"></div>
                                                                     ))}
                                                                 </div>
                                                             </button>
                                                         );
                                                     })
                                                 ) : (
-                                                    // Spy View: Completely redacted grid
                                                     Array(4).fill(0).map((_, idx) => (
-                                                        <div key={idx} className="p-8 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center opacity-40">
-                                                            <div className="h-2 w-16 bg-white/20 rounded-full"></div>
+                                                        <div key={idx} className="p-10 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-center relative overflow-hidden">
+                                                            <div className="h-1 w-2/3 bg-white/10 rounded-full animate-pulse"></div>
+                                                            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-red-500/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
                                                         </div>
                                                     ))
                                                 )}
                                             </div>
 
-                                            {timeLeft <= 0 && consensus && !isSpy && (
-                                                <div className="mt-4 p-5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-center animate-slide-up">
-                                                    <span className="text-[10px] font-black uppercase text-blue-400 block mb-1">{t.results}</span>
-                                                    <div className="text-3xl font-black text-blue-300 tracking-tighter">{consensus}</div>
-                                                </div>
-                                            )}
-
                                             {room.admin === user.uid && timeLeft <= 0 && (
                                                 <button 
                                                     onClick={startMission}
-                                                    className="w-full bg-white/5 hover:bg-white/10 py-4 rounded-2xl font-black text-xs transition-all uppercase tracking-[0.3em] animate-fade border border-white/5 mt-4"
+                                                    className="w-full bg-white/5 hover:bg-white/10 py-5 rounded-2xl font-black text-xs transition-all uppercase tracking-[0.4em] border border-white/10 mt-6"
                                                 >
-                                                    🔄 {t.newRound}
+                                                    ⚡ {t.newRound}
                                                 </button>
                                             )}
                                         </div>
@@ -496,9 +527,9 @@
                             </div>
                         )}
 
-                        <div className="text-center opacity-10 font-mono text-[9px] uppercase tracking-[1em] py-8">
-                            STRIKE.NET.SECURED.READY
-                        </div>
+                        <footer className="text-center opacity-10 font-mono text-[10px] uppercase tracking-[0.8em] py-12">
+                            PROTOCOL_ENCRYPTED_BY_PROSPY_V2
+                        </footer>
                     </div>
                 </div>
             );
@@ -507,5 +538,10 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+    <style>
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+    </style>
 </body>
 </html>
