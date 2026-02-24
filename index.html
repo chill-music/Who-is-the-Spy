@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PRO SPY | The Ultimate Infiltration Game</title>
+    <title>PRO SPY | Majority Vote System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -23,7 +23,6 @@
             font-family: 'Space Grotesk', 'Noto Sans Arabic', sans-serif;
             margin: 0;
             overflow-x: hidden;
-            /* تم السماح بتحديد النص بناءً على طلبك */
             user-select: text;
             -webkit-user-select: text;
         }
@@ -80,14 +79,11 @@
             background: linear-gradient(135deg, var(--primary), var(--accent));
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px -10px var(--accent);
             filter: brightness(1.1);
         }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
 
         .selected-word-pulse {
             animation: border-pulse 2s infinite;
@@ -101,7 +97,6 @@
 </head>
 <body>
     <div class="bg-grid"></div>
-    <div class="glow-sphere" style="top: -10%; right: -10%;"></div>
     <div id="root"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -109,7 +104,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
         const firebaseConfig = {
             apiKey: "AIzaSyApAJaNfF0YHupunLRlK3jRYvttxczWShY",
@@ -128,64 +123,34 @@
 
         const TRANSLATIONS = {
             en: {
-                appName: "PRO SPY",
-                tagline: "TRUST NO ONE",
-                nickname: "Operator Alias",
-                create: "CREATE HEADQUARTERS",
-                join: "JOIN OPERATION",
-                codePlaceholder: "ACCESS CODE",
-                players: "ACTIVE AGENTS",
-                start: "LAUNCH MISSION",
-                spyTitle: "IDENTITY: SPY",
+                appName: "PRO SPY", tagline: "TRUST NO ONE", nickname: "Operator Alias",
+                create: "CREATE HEADQUARTERS", join: "JOIN OPERATION", codePlaceholder: "ACCESS CODE",
+                players: "ACTIVE AGENTS", start: "LAUNCH MISSION", spyTitle: "IDENTITY: SPY",
                 spyDesc: "Objective data corrupted. Blend in and neutralize the investigation.",
-                citizenTitle: "IDENTITY: CITIZEN",
-                citizenDesc: "Target objective identified. Detect the anomaly.",
-                objective: "MISSION OBJECTIVE",
-                voting: "IDENTIFY TARGET",
+                citizenTitle: "IDENTITY: CITIZEN", citizenDesc: "Target objective identified. Detect the anomaly.",
+                objective: "MISSION OBJECTIVE", voting: "IDENTIFY TARGET",
                 votingDesc: "Choose the intel that matches the objective.",
-                timer: "LOCKDOWN:",
-                sec: "S",
-                copied: "COPIED",
-                copy: "COPY",
-                waiting: "Awaiting Command...",
-                loading: "INITIALIZING...",
-                encrypted: "ENCRYPTED DATA",
-                spyHint: "Analyze transmissions to reverse-engineer the objective.",
-                newRound: "RE-INITIALIZE",
-                minPlayers: "Minimum 3 agents required",
-                langBtn: "العربية",
-                yourChoice: "SELECTED INTEL:",
-                noChoice: "NO SELECTION MADE"
+                timer: "LOCKDOWN:", sec: "S", copied: "COPIED", copy: "COPY",
+                waiting: "Awaiting Command...", loading: "INITIALIZING...",
+                encrypted: "ENCRYPTED DATA", spyHint: "Analyze transmissions to reverse-engineer the objective.",
+                newRound: "RE-INITIALIZE", minPlayers: "Minimum 3 agents required", langBtn: "العربية",
+                yourChoice: "PENDING SELECTION:", confirmedChoice: "FINAL SELECTION (MAJORITY):",
+                noChoice: "NO SELECTION MADE", lockIn: "LOCK IN CHOICE", locked: "CHOICE LOCKED"
             },
             ar: {
-                appName: "برو جاسوس",
-                tagline: "لا تثق بأحد",
-                nickname: "اسم العميل",
-                create: "إنشاء المقر",
-                join: "انضمام للعملية",
-                codePlaceholder: "رمز الدخول",
-                players: "العملاء النشطون",
-                start: "بدء المهمة",
-                spyTitle: "الهوية: جاسوس",
+                appName: "برو جاسوس", tagline: "لا تثق بأحد", nickname: "اسم العميل",
+                create: "إنشاء المقر", join: "انضمام للعملية", codePlaceholder: "رمز الدخول",
+                players: "العملاء النشطون", start: "بدء المهمة", spyTitle: "الهوية: جاسوس",
                 spyDesc: "بيانات الهدف تالفة. اندمج وحيد التحقيق.",
-                citizenTitle: "الهوية: مواطن",
-                citizenDesc: "تم تحديد الهدف. اكشف الدخيل.",
-                objective: "هدف المهمة",
-                voting: "تحديد الهدف",
+                citizenTitle: "الهوية: مواطن", citizenDesc: "تم تحديد الهدف. اكشف الدخيل.",
+                objective: "هدف المهمة", voting: "تحديد الهدف",
                 votingDesc: "اختر المعلومة التي تطابق هدف المهمة.",
-                timer: "الإغلاق:",
-                sec: "ث",
-                copied: "تم النسخ",
-                copy: "نسخ",
-                waiting: "بانتظار الأوامر...",
-                loading: "جاري التحميل...",
-                encrypted: "بيانات مشفرة",
-                spyHint: "حلل الإشارات لاستنتاج هدف المهمة الحقيقي.",
-                newRound: "إعادة تهيئة",
-                minPlayers: "مطلوب 3 عملاء على الأقل",
-                langBtn: "English",
-                yourChoice: "المعلومة المختارة:",
-                noChoice: "لم يتم الاختيار بعد"
+                timer: "الإغلاق:", sec: "ث", copied: "تم النسخ", copy: "نسخ",
+                waiting: "بانتظار الأوامر...", loading: "جاري التحميل...",
+                encrypted: "بيانات مشفرة", spyHint: "حلل الإشارات لاستنتاج هدف المهمة الحقيقي.",
+                newRound: "إعادة تهيئة", minPlayers: "مطلوب 3 عملاء على الأقل", langBtn: "English",
+                yourChoice: "الاختيار الحالي:", confirmedChoice: "الكلمة النهائية (الأغلبية):",
+                noChoice: "لم يتم الاختيار بعد", lockIn: "تأكيد الاختيار", locked: "تم التأكيد"
             }
         };
 
@@ -193,20 +158,13 @@
             try {
                 const prompt = "Generate a location and 4 related words. Return JSON: {loc_ar, words_ar:[4], loc_en, words_en:[4]}";
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_KEY}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: { responseMimeType: "application/json" }
-                    })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } })
                 });
                 const data = await response.json();
                 return JSON.parse(data.candidates[0].content.parts[0].text);
             } catch (e) {
-                return { 
-                    loc_ar: "المستشفى", words_ar: ["طبيب", "إبرة", "مريض", "دواء"], 
-                    loc_en: "Hospital", words_en: ["Doctor", "Needle", "Patient", "Medicine"] 
-                };
+                return { loc_ar: "المستشفى", words_ar: ["طبيب", "إبرة", "مريض", "دواء"], loc_en: "Hospital", words_en: ["Doctor", "Needle", "Patient", "Medicine"] };
             }
         }
 
@@ -220,21 +178,24 @@
             const [loading, setLoading] = useState(false);
             const [timeLeft, setTimeLeft] = useState(0);
             const [copyStatus, setCopyStatus] = useState(false);
+            const [isLocked, setIsLocked] = useState(false);
+            const [tempVote, setTempVote] = useState(null);
 
             const t = TRANSLATIONS[lang];
 
             useEffect(() => {
-                const unsub = auth.onAuthStateChanged(async (u) => {
-                    if (u) setUser(u);
-                    else await auth.signInAnonymously();
-                });
+                const unsub = auth.onAuthStateChanged(async (u) => { if (u) setUser(u); else await auth.signInAnonymously(); });
                 return unsub;
             }, []);
 
             useEffect(() => {
                 if (!user || !roomId) return;
                 const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
-                    .onSnapshot(doc => setRoom(doc.exists ? doc.data() : null));
+                    .onSnapshot(doc => {
+                        const data = doc.exists ? doc.data() : null;
+                        setRoom(data);
+                        if (data?.status === 'waiting') { setIsLocked(false); setTempVote(null); }
+                    });
                 return unsub;
             }, [user, roomId]);
 
@@ -243,11 +204,26 @@
                 if (room?.status === 'playing' && room?.timerStart) {
                     timer = setInterval(() => {
                         const elapsed = Math.floor((Date.now() - room.timerStart) / 1000);
-                        setTimeLeft(Math.max(0, 45 - elapsed));
+                        setTimeLeft(Math.max(0, 20 - elapsed)); // تم تقليل الوقت لـ 20 ثانية
                     }, 1000);
                 }
                 return () => clearInterval(timer);
             }, [room?.status, room?.timerStart]);
+
+            // حساب الكلمة الفائزة بالأغلبية
+            const majorityWord = useMemo(() => {
+                if (!room?.players) return null;
+                const counts = {};
+                room.players.forEach(p => {
+                    if (p.vote) counts[p.vote] = (counts[p.vote] || 0) + 1;
+                });
+                let max = 0;
+                let winner = null;
+                for (const word in counts) {
+                    if (counts[word] > max) { max = counts[word]; winner = word; }
+                }
+                return winner;
+            }, [room?.players]);
 
             const handleCreate = async () => {
                 if (!nickname.trim()) return;
@@ -290,30 +266,22 @@
                 setLoading(false);
             };
 
-            const castVote = async (word) => {
-                if (timeLeft <= 0 || room.spyId === user.uid) return;
-                const updated = room.players.map(p => p.uid === user.uid ? { ...p, vote: word } : p);
+            const confirmVote = async () => {
+                if (!tempVote || isLocked || timeLeft <= 0) return;
+                setIsLocked(true);
+                const updated = room.players.map(p => p.uid === user.uid ? { ...p, vote: tempVote } : p);
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ players: updated });
             };
 
             const copyCode = () => {
                 const el = document.createElement('textarea');
-                el.value = roomId;
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand('copy');
+                el.value = roomId; document.body.appendChild(el);
+                el.select(); document.execCommand('copy');
                 document.body.removeChild(el);
-                setCopyStatus(true);
-                setTimeout(() => setCopyStatus(false), 2000);
+                setCopyStatus(true); setTimeout(() => setCopyStatus(false), 2000);
             };
 
-            const myCurrentVote = room?.players.find(p => p.uid === user.uid)?.vote;
-
-            if (!user) return (
-                <div className="h-screen flex items-center justify-center font-black tracking-widest text-cyan-400">
-                    <span className="animate-pulse">INITIALIZING SECURE LINK...</span>
-                </div>
-            );
+            if (!user) return <div className="h-screen flex items-center justify-center font-black text-cyan-400">LOADING...</div>;
 
             const isSpy = room?.spyId === user.uid;
 
@@ -321,13 +289,11 @@
                 <div className="min-h-screen p-4 md:p-12 flex flex-col items-center" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                     <div className="w-full max-w-xl space-y-8">
                         
-                        {/* HEADER */}
                         <header className="flex justify-between items-center animate-reveal">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 glass flex items-center justify-center border-cyan-500/30 logo-anim">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-cyan-400">
-                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                        <path d="M12 8v4M12 16h.01"/>
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/>
                                     </svg>
                                 </div>
                                 <div>
@@ -335,152 +301,80 @@
                                     <p className="text-[10px] font-bold tracking-[0.4em] opacity-40 text-cyan-300">{t.tagline}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="glass px-5 py-2 text-xs font-bold hover:bg-white/10 active:scale-95 transition-all">
-                                {t.langBtn}
-                            </button>
+                            <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="glass px-5 py-2 text-xs font-bold">{t.langBtn}</button>
                         </header>
 
                         {!room ? (
                             <main className="glass p-8 md:p-12 space-y-10 animate-reveal">
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black opacity-30 tracking-[0.2em] uppercase">{t.nickname}</label>
-                                    <input 
-                                        className="w-full bg-black/40 border border-white/10 p-5 rounded-2xl font-bold focus:border-cyan-500 outline-none transition-all text-lg"
-                                        placeholder="..."
-                                        value={nickname}
-                                        onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-1 gap-6">
-                                    <button onClick={handleCreate} disabled={loading || !nickname} className="btn-primary w-full py-5 rounded-2xl font-black text-lg tracking-widest disabled:opacity-50">
-                                        {t.create}
-                                    </button>
-                                    <div className="flex flex-col sm:flex-row gap-3">
-                                        <input 
-                                            className="flex-1 bg-black/40 border border-white/10 p-5 rounded-2xl font-mono text-center font-black tracking-[0.5em] uppercase outline-none"
-                                            placeholder={t.codePlaceholder}
-                                            value={inputCode}
-                                            onChange={e => setInputCode(e.target.value.toUpperCase())}
-                                        />
-                                        <button onClick={handleJoin} disabled={loading || !nickname || !inputCode} className="glass px-10 py-5 font-black hover:bg-white/10 active:scale-95 disabled:opacity-50">
-                                            {t.join}
-                                        </button>
+                                <input className="w-full bg-black/40 border border-white/10 p-5 rounded-2xl font-bold" placeholder={t.nickname} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} />
+                                <div className="space-y-6">
+                                    <button onClick={handleCreate} disabled={loading || !nickname} className="btn-primary w-full py-5 rounded-2xl font-black">{t.create}</button>
+                                    <div className="flex gap-3">
+                                        <input className="flex-1 bg-black/40 border border-white/10 p-5 rounded-2xl font-mono text-center font-black uppercase" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} />
+                                        <button onClick={handleJoin} disabled={loading || !nickname || !inputCode} className="glass px-10 py-5 font-black">{t.join}</button>
                                     </div>
                                 </div>
                             </main>
                         ) : (
                             <div className="space-y-6 animate-reveal">
                                 <div className="glass p-4 flex justify-between items-center">
-                                    <div>
-                                        <span className="text-[9px] font-black opacity-30 tracking-widest uppercase">DATA_KEY</span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xl font-black text-cyan-400 font-mono">{room.id}</span>
-                                            <button onClick={copyCode} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${copyStatus ? 'bg-cyan-500 text-black' : 'bg-white/5 border border-white/10'}`}>
-                                                {copyStatus ? t.copied : t.copy}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-[9px] font-black opacity-30 tracking-widest uppercase">{t.players}</span>
-                                        <div className="text-xl font-black">{room.players.length}<span className="text-xs opacity-30 ml-1">/ 12</span></div>
-                                    </div>
+                                    <div><span className="text-[9px] font-black opacity-30 uppercase">ID</span><div className="flex items-center gap-2"><span className="text-xl font-black text-cyan-400">{room.id}</span><button onClick={copyCode} className="px-3 py-1 rounded-full text-[9px] bg-white/5">{copyStatus ? t.copied : t.copy}</button></div></div>
+                                    <div className="text-right"><span className="text-[9px] font-black opacity-30 uppercase">{t.players}</span><div className="text-xl font-black">{room.players.length}</div></div>
                                 </div>
 
                                 {room.status === 'waiting' ? (
-                                    <div className="glass p-6 space-y-6">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[40vh] overflow-y-auto pr-2">
-                                            {room.players.map((p, i) => (
-                                                <div key={i} className={`p-4 rounded-2xl border ${p.uid === user.uid ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-white/5 border-transparent'}`}>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-2 h-2 rounded-full ${p.uid === user.uid ? 'bg-cyan-400' : 'bg-white/20'}`}></div>
-                                                        <span className="font-bold text-sm truncate uppercase">{p.name}</span>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                    <div className="glass p-6 space-y-6 text-center">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {room.players.map((p, i) => <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/10 font-bold text-xs uppercase">{p.name}</div>)}
                                         </div>
-                                        {room.admin === user.uid ? (
-                                            <button onClick={startMission} disabled={loading || room.players.length < 3} className="btn-primary w-full py-5 rounded-2xl font-black text-xl tracking-widest disabled:opacity-30">
-                                                {t.start}
-                                            </button>
-                                        ) : (
-                                            <div className="text-center py-6 border-2 border-dashed border-white/5 rounded-3xl opacity-40 font-black text-[11px] animate-pulse tracking-widest">{t.waiting}</div>
-                                        )}
+                                        {room.admin === user.uid ? <button onClick={startMission} className="btn-primary w-full py-5 rounded-2xl font-black">{t.start}</button> : <div className="opacity-40 animate-pulse">{t.waiting}</div>}
                                     </div>
                                 ) : (
                                     <div className="space-y-6">
-                                        <div className={`p-10 rounded-[2.5rem] border-b-[12px] text-center relative overflow-hidden transition-all duration-700 ${isSpy ? 'bg-gradient-to-br from-red-950/80 to-red-900/40 border-red-800' : 'bg-gradient-to-br from-cyan-950/80 to-blue-900/40 border-blue-800'}`}>
-                                            <div className="relative z-10 space-y-4">
-                                                <div className="text-6xl mb-2">{isSpy ? '🕶️' : '📡'}</div>
-                                                <h2 className="text-4xl font-black tracking-tighter uppercase italic">{isSpy ? t.spyTitle : t.citizenTitle}</h2>
-                                                <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.3em]">{isSpy ? t.spyDesc : t.citizenDesc}</p>
-                                                <div className="h-[1px] bg-white/10 w-32 mx-auto my-6"></div>
-                                                {!isSpy ? (
-                                                    <div className="space-y-1">
-                                                        <span className="text-[9px] font-black uppercase tracking-[0.4em] text-cyan-400">{t.objective}</span>
-                                                        <div className="text-6xl font-black text-white">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="bg-black/40 p-6 rounded-3xl border border-red-500/20">
-                                                        <span className="text-[10px] font-black uppercase text-red-400 block mb-2">{t.encrypted}</span>
-                                                        <p className="text-sm font-medium opacity-80 italic">{t.spyHint}</p>
-                                                    </div>
-                                                )}
-                                            </div>
+                                        <div className={`p-10 rounded-[2.5rem] border-b-[12px] text-center ${isSpy ? 'bg-red-950/40 border-red-800' : 'bg-cyan-950/40 border-blue-800'}`}>
+                                            <h2 className="text-4xl font-black italic">{isSpy ? t.spyTitle : t.citizenTitle}</h2>
+                                            <div className="h-[1px] bg-white/10 w-32 mx-auto my-6"></div>
+                                            {!isSpy ? <div><span className="text-[9px] font-black text-cyan-400">{t.objective}</span><div className="text-6xl font-black">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div></div> : <div className="bg-black/40 p-4 rounded-3xl text-sm italic">{t.spyHint}</div>}
                                         </div>
 
                                         <div className="glass p-8 space-y-6">
-                                            <div className="flex justify-between items-center">
-                                                <h3 className="font-black text-2xl italic">{t.voting}</h3>
-                                                <div className="text-2xl font-black font-mono text-cyan-400">{timeLeft}{t.sec}</div>
-                                            </div>
+                                            <div className="flex justify-between items-center"><h3 className="font-black text-2xl">{t.voting}</h3><div className="text-2xl font-black text-cyan-400">{timeLeft}{t.sec}</div></div>
 
                                             <div className="grid grid-cols-2 gap-4">
-                                                {(!isSpy ? (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en) : Array(4).fill("..."))?.map((word, idx) => {
-                                                    const isVoted = myCurrentVote === word;
-                                                    const voters = room.players.filter(p => p.vote === word);
-                                                    return (
-                                                        <button 
-                                                            key={idx}
-                                                            onClick={() => !isSpy && castVote(word)}
-                                                            disabled={timeLeft <= 0 || isSpy}
-                                                            className={`p-6 rounded-3xl border-2 text-base font-black transition-all relative ${isVoted ? 'bg-white text-black border-white scale-105 z-10' : 'bg-white/5 border-white/5 hover:border-white/20'}`}
-                                                        >
-                                                            {word}
-                                                            <div className="absolute bottom-2 right-2 flex -space-x-1">
-                                                                {voters.map((_, vidx) => <div key={vidx} className="w-2 h-2 rounded-full bg-cyan-500 border border-black"></div>)}
-                                                            </div>
-                                                        </button>
-                                                    );
-                                                })}
+                                                {(!isSpy ? (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en) : Array(4).fill("..."))?.map((word, idx) => (
+                                                    <button key={idx} onClick={() => !isSpy && !isLocked && setTempVote(word)} disabled={timeLeft <= 0 || isSpy || isLocked} 
+                                                        className={`p-6 rounded-3xl border-2 font-black transition-all ${tempVote === word ? 'bg-cyan-500 text-black border-cyan-400' : 'bg-white/5 border-white/5 opacity-80'}`}>
+                                                        {word}
+                                                    </button>
+                                                ))}
                                             </div>
 
-                                            {/* SELECTION BOX - عرض الكلمة المختارة بشكل واضح بناء على طلبك */}
+                                            {/* SELECTION UI */}
                                             {!isSpy && (
-                                                <div className={`mt-8 p-6 rounded-3xl border-2 transition-all animate-reveal flex items-center justify-between ${myCurrentVote ? 'bg-cyan-500/10 border-cyan-400/50 selected-word-pulse' : 'bg-white/5 border-white/5'}`}>
-                                                    <div className="space-y-1">
-                                                        <span className="text-[10px] font-black opacity-40 uppercase tracking-[0.2em]">{t.yourChoice}</span>
-                                                        <div className={`text-2xl font-black tracking-tight ${myCurrentVote ? 'text-cyan-400' : 'text-white/20 italic'}`}>
-                                                            {myCurrentVote || t.noChoice}
-                                                        </div>
+                                                <div className="space-y-4">
+                                                    <div className={`p-6 rounded-3xl border-2 ${timeLeft > 0 ? 'bg-cyan-500/10 border-cyan-400/30' : 'bg-white/10 border-white/20'}`}>
+                                                        <span className="text-[10px] font-black opacity-40 uppercase">{timeLeft > 0 ? t.yourChoice : t.confirmedChoice}</span>
+                                                        <div className="text-2xl font-black text-cyan-400">{timeLeft > 0 ? (tempVote || t.noChoice) : (majorityWord || t.noChoice)}</div>
                                                     </div>
-                                                    {myCurrentVote && <div className="text-3xl animate-bounce">🎯</div>}
+
+                                                    {timeLeft > 0 && !isLocked && (
+                                                        <button onClick={confirmVote} disabled={!tempVote} className="btn-primary w-full py-4 rounded-2xl font-black tracking-widest disabled:opacity-30">
+                                                            {t.lockIn}
+                                                        </button>
+                                                    )}
+                                                    {isLocked && timeLeft > 0 && (
+                                                        <div className="text-center text-cyan-400 font-black animate-pulse uppercase tracking-widest">{t.locked} 🔐</div>
+                                                    )}
                                                 </div>
                                             )}
 
-                                            {room.admin === user.uid && timeLeft <= 0 && (
-                                                <button onClick={startMission} className="w-full bg-white/5 hover:bg-white/10 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.4em] border border-white/10 mt-6 transition-all">
-                                                    ⚡ {t.newRound}
-                                                </button>
-                                            )}
+                                            {room.admin === user.uid && timeLeft <= 0 && <button onClick={startMission} className="w-full bg-white/5 py-5 rounded-2xl font-black border border-white/10">{t.newRound}</button>}
                                         </div>
                                     </div>
                                 )}
                             </div>
                         )}
-
-                        <footer className="text-center opacity-10 font-mono text-[10px] uppercase tracking-[0.8em] py-12">
-                            PROTOCOL_V2_SELECTION_ACTIVE
-                        </footer>
+                        <footer className="text-center opacity-10 font-mono text-[10px] tracking-[0.8em] py-12">MAJORITY_PROTOCOL_ACTIVE</footer>
                     </div>
                 </div>
             );
