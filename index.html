@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Who is the Spy? - من هو الجاسوس</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -15,13 +13,22 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans Arabic', sans-serif; }
+        body { font-family: 'Noto Sans Arabic', sans-serif; background-color: #020617; }
+        /* ضمان عدم ظهور الكود قبل التحميل */
+        [script-type="text/babel"] { display: none; }
     </style>
 </head>
-<body class="bg-slate-950">
-    <div id="root"></div>
+<body class="bg-slate-950 text-slate-100">
+    <div id="root">
+        <!-- رسالة تحميل بسيطة تظهر حتى يشتغل ريأكت -->
+        <div class="flex items-center justify-center h-screen">
+            <div class="text-xl font-bold animate-pulse text-blue-500">جاري تحميل اللعبة...</div>
+        </div>
+    </div>
 
-    <script type="module" typeof="babel">
+    <!-- استخدام text/babel لضمان قيام مكتبة Babel بتحويل الكود -->
+    <script type="text/babel">
+        // استيراد Firebase من خلال CDN متوافق مع المتصفحات
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -83,7 +90,7 @@
 
         function App() {
             const [user, setUser] = useState(null);
-            const [lang, setLang] = useState('en');
+            const [lang, setLang] = useState('ar');
             const [roomId, setRoomId] = useState('');
             const [gameData, setGameData] = useState(null);
             const [loading, setLoading] = useState(false);
@@ -101,8 +108,11 @@
                 if (!user || !roomId || roomId.length < 3) return;
                 const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId.toUpperCase());
                 const unsubscribe = onSnapshot(roomRef, (docSnap) => {
-                    if (docSnap.exists()) setGameData(docSnap.data());
-                    else setGameData(null);
+                    if (docSnap.exists()) {
+                        setGameData(docSnap.data());
+                    } else {
+                        setGameData(null);
+                    }
                 }, (err) => console.error("Firestore Error:", err));
                 return () => unsubscribe();
             }, [user, roomId]);
@@ -112,11 +122,15 @@
                 setLoading(true);
                 const newId = Math.random().toString(36).substring(2, 7).toUpperCase();
                 const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', newId);
-                await setDoc(roomRef, {
-                    id: newId, admin: user.uid, players: [{ uid: user.uid, name: `Player ${user.uid.substring(0, 4)}` }],
-                    status: 'waiting', spyId: null, location: null, word: null, createdAt: Date.now()
-                });
-                setRoomId(newId);
+                try {
+                    await setDoc(roomRef, {
+                        id: newId, admin: user.uid, players: [{ uid: user.uid, name: `Player ${user.uid.substring(0, 4)}` }],
+                        status: 'waiting', spyId: null, location: null, word: null, createdAt: Date.now()
+                    });
+                    setRoomId(newId);
+                } catch (e) {
+                    setError("Error creating room");
+                }
                 setLoading(false);
             };
 
@@ -125,14 +139,18 @@
                 setLoading(true);
                 const normalizedId = id.toUpperCase();
                 const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', normalizedId);
-                const snap = await getDoc(roomRef);
-                if (snap.exists()) {
-                    const data = snap.data();
-                    if (!data.players.find(p => p.uid === user.uid)) {
-                        await updateDoc(roomRef, { players: arrayUnion({ uid: user.uid, name: `Player ${user.uid.substring(0, 4)}` }) });
-                    }
-                    setRoomId(normalizedId);
-                } else setError(t.errorJoin);
+                try {
+                    const snap = await getDoc(roomRef);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (!data.players.find(p => p.uid === user.uid)) {
+                            await updateDoc(roomRef, { players: arrayUnion({ uid: user.uid, name: `Player ${user.uid.substring(0, 4)}` }) });
+                        }
+                        setRoomId(normalizedId);
+                    } else setError(t.errorJoin);
+                } catch (e) {
+                    setError("Room joining failed");
+                }
                 setLoading(false);
             };
 
@@ -241,8 +259,18 @@
             );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // انتظر حتى يتم تحميل Babel بالكامل
+        const renderApp = () => {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+        };
+        
+        // التحقق من وجود Babel قبل الرندر
+        if (window.Babel) {
+            renderApp();
+        } else {
+            window.addEventListener('load', renderApp);
+        }
     </script>
 </body>
 </html>
