@@ -3,76 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PRO SPY | Ultimate Edition</title>
+    <title>PRO SPY | Covert Operations</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
-        
         :root {
-            --primary: #00f2ff;
-            --accent: #7000ff;
-            --bg: #050505;
+            --bg: #0a0a0b;
+            --bg-card: #131316;
+            --fg: #e8e8ec;
+            --muted: #6b6b76;
+            --accent: #ff6b35;
+            --accent-glow: rgba(255, 107, 53, 0.4);
+            --border: #2a2a2e;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #eab308;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body { 
-            background-color: var(--bg); 
-            color: #ffffff;
-            font-family: 'Space Grotesk', 'Noto Sans Arabic', sans-serif;
-            margin: 0;
+            background: var(--bg); 
+            color: var(--fg);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
             overflow-x: hidden;
-            user-select: none;
         }
 
-        .bg-grid {
-            background-image: 
-                linear-gradient(to right, rgba(112, 0, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(112, 0, 255, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
+        /* Atmospheric Background */
+        .bg-atmosphere {
             position: fixed;
             inset: 0;
             z-index: -1;
+            background: 
+                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255, 107, 53, 0.1), transparent 70%),
+                radial-gradient(ellipse 50% 50% at 100% 100%, rgba(255, 107, 53, 0.05), transparent);
         }
 
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
+        .bg-atmosphere::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.04;
+            pointer-events: none;
         }
 
-        @keyframes revealUp {
-            0% { opacity: 0; transform: translateY(20px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
+        /* Scan Lines Overlay */
+        .scan-lines {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0px,
+                transparent 2px,
+                rgba(0, 0, 0, 0.08) 2px,
+                rgba(0, 0, 0, 0.08) 4px
+            );
+            opacity: 0.5;
         }
-        .animate-reveal { animation: revealUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+        /* Fonts */
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Card Styles */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card-interactive:hover {
+            border-color: rgba(255, 107, 53, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Buttons */
+        .btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+        }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--accent);
+            color: #000;
         }
+
         .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px -10px var(--accent);
             filter: brightness(1.1);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: translateY(-1px);
         }
 
-        .user-badge {
-            animation: pulse-border 2s infinite;
+        .btn-primary:active:not(:disabled) { transform: translateY(1px); }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--fg);
         }
 
-        @keyframes pulse-border {
-            0% { border-color: rgba(0, 242, 255, 0.2); box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.2); }
-            50% { border-color: rgba(0, 242, 255, 0.8); box-shadow: 0 0 15px 0 rgba(0, 242, 255, 0.4); }
-            100% { border-color: rgba(0, 242, 255, 0.2); box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.2); }
+        .btn-ghost:hover:not(:disabled) {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(255, 107, 53, 0.05);
+        }
+
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+        .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+        /* Inputs */
+        .input-field {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            color: var(--fg);
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 107, 53, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .animate-fade-in { animation: fadeInUp 0.6s ease-out forwards; }
+        .animate-slide-in { animation: slideInRight 0.5s ease-out forwards; }
+        .animate-pulse-glow { animation: pulse-glow 2s infinite; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+
+        /* Staggering */
+        .delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .delay-2 { animation-delay: 0.2s; opacity: 0; }
+        .delay-3 { animation-delay: 0.3s; opacity: 0; }
+
+        /* Player Card Highlight */
+        .player-active {
+            background: linear-gradient(90deg, rgba(255, 107, 53, 0.1), transparent);
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Identity Cards */
+        .identity-spy { border-top: 4px solid var(--danger); }
+        .identity-agent { border-top: 4px solid var(--success); }
+
+        /* Timer Circle */
+        .timer-track { stroke: var(--border); }
+        .timer-progress { 
+            stroke: var(--accent); 
+            transition: stroke-dashoffset 1s linear;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Word Selection */
+        .word-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .word-card:hover:not(.disabled) {
+            background: rgba(255, 107, 53, 0.1);
+            border-color: rgba(255, 107, 53, 0.3);
+        }
+
+        .word-card.selected {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            transform: scale(1.02);
+        }
+
+        .word-card.locked { opacity: 0.6; pointer-events: none; }
+
+        /* Utility */
+        .text-gradient {
+            background: linear-gradient(135deg, #fff 0%, #ccc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="bg-grid"></div>
+    <div class="bg-atmosphere"></div>
+    <div class="scan-lines"></div>
     <div id="root"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -82,6 +242,7 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
+        // Firebase Setup
         const firebaseConfig = {
             apiKey: "AIzaSyApAJaNfF0YHupunLRlK3jRYvttxczWShY",
             authDomain: "who-is-the-spy-919b9.firebaseapp.com",
@@ -94,202 +255,186 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v2_ultimate';
-        const GEMINI_KEY = ""; 
+        const appId = 'pro_spy_v3_tactical';
 
+        // Translations
         const TRANSLATIONS = {
             en: {
-                appName: "PRO SPY", tagline: "TRUST NO ONE", nickname: "Operator Alias",
-                create: "CREATE HQ", join: "JOIN OPS", codePlaceholder: "ACCESS CODE",
-                players: "AGENTS", start: "LAUNCH", spyTitle: "IDENTITY: SPY",
-                spyDesc: "Objective corrupted. Infiltrate.", citizenTitle: "IDENTITY: AGENT",
-                objective: "MISSION OBJECTIVE", voting: "TARGET LOCK",
-                timer: "LOCKDOWN:", sec: "S", copied: "COPIED", copy: "COPY",
-                waiting: "Awaiting Command...", loading: "LOADING...",
-                you: "YOU", newRound: "NEW MISSION", langBtn: "العربية",
-                yourChoice: "PENDING:", confirmedChoice: "LOCKED:",
-                noChoice: "NO SELECTION", lockIn: "CONFIRM", locked: "LOCKED"
+                appName: "PRO SPY", tagline: "COVERT OPS", nickname: "CALLSIGN",
+                create: "ESTABLISH HQ", join: "INFILTRATE", codePlaceholder: "ENTER CODE",
+                players: "OPERATIVES", start: "COMMENCE", spyTitle: "IDENTITY: SPY",
+                spyDesc: "Blend in. Don't get caught.", citizenTitle: "IDENTITY: AGENT",
+                objective: "LOCATION", voting: "INTEL LOCK",
+                timer: "TIME", sec: "s", copied: "COPIED", copy: "COPY",
+                waiting: "Awaiting team...", loading: "PROCESSING...",
+                you: "YOU", newRound: "NEW OP", langBtn: "العربية",
+                yourChoice: "SELECTED:", confirmedChoice: "LOCKED:",
+                noChoice: "NO DATA", lockIn: "CONFIRM", locked: "SECURED",
+                instruction: "Analyze the intel"
             },
             ar: {
-                appName: "برو جاسوس", tagline: "لا تثق بأحد", nickname: "اسم العميل",
-                create: "إنشاء المقر", join: "انضمام", codePlaceholder: "رمز الدخول",
+                appName: "برو جاسوس", tagline: "عمليات سرية", nickname: "الاسم الرمزي",
+                create: "إنشاء المقر", join: "التسلل", codePlaceholder: "أدخل الكود",
                 players: "العملاء", start: "بدء المهمة", spyTitle: "الهوية: جاسوس",
-                spyDesc: "بيانات تالفة. تسلل.", citizenTitle: "الهوية: عميل",
-                objective: "هدف المهمة", voting: "تحديد الهدف",
-                timer: "الإغلاق:", sec: "ث", copied: "تم النسخ", copy: "نسخ",
-                waiting: "بانتظار الأوامر...", loading: "جاري التحميل...",
+                spyDesc: "اندس بينهم. لا تنكشف.", citizenTitle: "الهوية: عميل",
+                objective: "الموقع", voting: "تحديد المعلومة",
+                timer: "وقت", sec: "ث", copied: "تم النسخ", copy: "نسخ",
+                waiting: "بانتظار الفريق...", loading: "جاري المعالجة...",
                 you: "أنت", newRound: "مهمة جديدة", langBtn: "English",
                 yourChoice: "المختار:", confirmedChoice: "المؤكد:",
-                noChoice: "لم يتم الاختيار", lockIn: "تأكيد", locked: "تم الحجز"
+                noChoice: "لا بيانات", lockIn: "تأكيد", locked: "تم التأمين",
+                instruction: "حلل المعلومة"
             }
         };
 
-        // قاعدة بيانات كبيرة من الأسئلة المحلية لمنع التكرار
-        const LOCAL_SCENARIOS = [
-            { loc_ar: "محطة الفضاء الدولية", words_ar: ["أكسجين", "جاذبية", "مدار", "روبوت"], loc_en: "International Space Station", words_en: ["Oxygen", "Gravity", "Orbit", "Robot"] },
-            { loc_ar: "غواصة نووية", words_ar: ["عمق", "ضغط", "طوربيد", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Pressure", "Torpedo", "Sonar"] },
-            { loc_ar: "كازينو سري", words_ar: ["رهان", "بطاقات", "رقائق", "حراس"], loc_en: "Secret Casino", words_en: ["Bet", "Cards", "Chips", "Guards"] },
-            { loc_ar: "مختبر أبحاث", words_ar: ["تجربة", "عينة", "مجهر", "مختبر"], loc_en: "Research Lab", words_en: ["Experiment", "Sample", "Microscope", "Lab"] },
-            { loc_ar: "قاعدة عسكرية", words_ar: ["جنود", "طائرات", "رادار", "خندق"], loc_en: "Military Base", words_en: ["Soldiers", "Aircraft", "Radar", "Trench"] },
-            { loc_ar: "مطار دولي", words_ar: ["جواز", "طائرة", "باسبورت", "بوابة"], loc_en: "International Airport", words_en: ["Passport", "Plane", "Boarding", "Gate"] },
-            { loc_ar: "سفينة قراصنة", words_ar: ["كنز", "سيف", "شراع", "بحار"], loc_en: "Pirate Ship", words_en: ["Treasure", "Sword", "Sail", "Sailor"] },
-            { loc_ar: "مستشفى", words_ar: ["طبيب", "ممرض", "عملية", "دواء"], loc_en: "Hospital", words_en: ["Doctor", "Nurse", "Surgery", "Medicine"] },
-            { loc_ar: "مطعم فاخر", words_ar: ["نادل", "قائمة", "منديل", "حلوى"], loc_en: "Fancy Restaurant", words_en: ["Waiter", "Menu", "Napkin", "Dessert"] },
-            { loc_ar: "بنك مركزي", words_ar: ["خزنة", "مال", "حراس", "قروض"], loc_en: "Central Bank", words_en: ["Vault", "Money", "Guards", "Loans"] },
-            { loc_ar: "مصنع سيارات", words_ar: ["تجميع", "محرك", "إطارات", "روبوت"], loc_en: "Car Factory", words_en: ["Assembly", "Engine", "Tires", "Robot"] },
-            { loc_ar: "مدرسة", words_ar: ["معلم", "طلاب", "سبورة", "امتحان"], loc_en: "School", words_en: ["Teacher", "Students", "Board", "Exam"] },
-            { loc_ar: "مسرح", words_ar: ["ممثل", "ستائر", "مقاعد", "إضاءة"], loc_en: "Theater", words_en: ["Actor", "Curtains", "Seats", "Lighting"] },
-            { loc_ar: "فندق 5 نجوم", words_ar: ["استقبال", "جناح", "مفتاح", "خدمة"], loc_en: "5 Star Hotel", words_en: ["Reception", "Suite", "Key", "Service"] },
-            { loc_ar: "سجن شديد الحراسة", words_ar: ["زنزانة", "حراس", "قضبان", "هروب"], loc_en: "High Security Prison", words_en: ["Cell", "Guards", "Bars", "Escape"] },
-            { loc_ar: "محطة قطارات", words_ar: ["تذاكر", "رصيف", "قطار", "مواعيد"], loc_en: "Train Station", words_en: ["Tickets", "Platform", "Train", "Schedule"] },
-            { loc_ar: "ملعب كرة قدم", words_ar: ["حكم", "هدف", "جمهور", "فريق"], loc_en: "Football Stadium", words_en: ["Referee", "Goal", "Crowd", "Team"] },
-            { loc_ar: "مركز تسوق", words_ar: ["محلات", "عربات", "خصومات", "طوابق"], loc_en: "Shopping Mall", words_en: ["Stores", "Carts", "Discounts", "Floors"] },
-            { loc_ar: "شاطئ استوائي", words_ar: ["رمال", "أمواج", "شمس", "قوارب"], loc_en: "Tropical Beach", words_en: ["Sand", "Waves", "Sun", "Boats"] },
-            { loc_ar: "مكتبة عامة", words_ar: ["كتب", "صمت", "رفوف", "استعارة"], loc_en: "Public Library", words_en: ["Books", "Silence", "Shelves", "Borrowing"] },
-            { loc_ar: "صالة رياضية", words_ar: ["أثقال", "تمارين", "مدرب", "معدات"], loc_en: "Gym", words_en: ["Weights", "Exercises", "Trainer", "Equipment"] },
-            { loc_ar: "حديقة حيوان", words_ar: ["أقفاص", "حيوانات", "زوار", "طعام"], loc_en: "Zoo", words_en: ["Cages", "Animals", "Visitors", "Food"] },
-            { loc_ar: "مسبح أولمبي", words_ar: ["سباق", "غوص", "حوارات", "مدرب"], loc_en: "Olympic Pool", words_en: ["Race", "Diving", "Lanes", "Coach"] },
-            { loc_ar: "مزرعة", words_ar: ["حيوانات", "حصاد", "تراكتور", "بئر"], loc_en: "Farm", words_en: ["Animals", "Harvest", "Tractor", "Well"] },
-            { loc_ar: "مخيم صيفي", words_ar: ["خيام", "نار", "أنشطة", "طبيعة"], loc_en: "Summer Camp", words_en: ["Tents", "Fire", "Activities", "Nature"] },
-            { loc_ar: "دار أيتام", words_ar: ["أطفال", "رعاة", "غرف", "ألعاب"], loc_en: "Orphanage", words_en: ["Children", "Caregivers", "Rooms", "Toys"] },
-            { loc_ar: "مركز شرطة", words_ar: ["ضباط", "زنزانة", "تحقيق", "قضية"], loc_en: "Police Station", words_en: ["Officers", "Cell", "Investigation", "Case"] },
-            { loc_ar: "محطة إطفاء", words_ar: ["شاحنة", "خرطوم", "إنذار", "طوارئ"], loc_en: "Fire Station", words_en: ["Truck", "Hose", "Alarm", "Emergency"] },
-            { loc_ar: "مكتب محاماة", words_ar: ["قضايا", "ملفات", "محكمة", "عقود"], loc_en: "Law Firm", words_en: ["Cases", "Files", "Court", "Contracts"] },
-            { loc_ar: "وكالة سفر", words_ar: ["حجز", "طيران", "فنادق", "تأشيرات"], loc_en: "Travel Agency", words_en: ["Booking", "Flights", "Hotels", "Visas"] },
-            { loc_ar: "مصحة نفسية", words_ar: ["مرضى", "أطباء", "جلسات", "علاج"], loc_en: "Psychiatric Ward", words_en: ["Patients", "Doctors", "Sessions", "Treatment"] },
-            { loc_ar: "منصة نفط", words_ar: ["حفر", "أنابيب", "عمال", "معدات"], loc_en: "Oil Rig", words_en: ["Drilling", "Pipes", "Workers", "Equipment"] },
-            { loc_ar: "محطة تلفزيون", words_ar: ["تصوير", "برامج", "مخرج", "إضاءة"], loc_en: "TV Station", words_en: ["Filming", "Shows", "Director", "Lighting"] },
-            { loc_ar: "متحف", words_ar: ["معروضات", "حراس", "تذاكر", "جولات"], loc_en: "Museum", words_en: ["Exhibits", "Guards", "Tickets", "Tours"] },
-            { loc_ar: "ملاهي ليلية", words_ar: ["أضواء", "موسيقى", "رقص", "مشروبات"], loc_en: "Nightclub", words_en: ["Lights", "Music", "Dancing", "Drinks"] },
-            { loc_ar: "قصر ملكي", words_ar: ["حراس", "عرش", "خدم", "كنوز"], loc_en: "Royal Palace", words_en: ["Guards", "Throne", "Servants", "Treasures"] },
-            { loc_ar: "مأوى مشردون", words_ar: ["طعام", "أسرّة", "ملابس", "تبرعات"], loc_en: "Homeless Shelter", words_en: ["Food", "Beds", "Clothes", "Donations"] },
-            { loc_ar: "خيمة سيرك", words_ar: ["بهلوان", "حيوانات", "موسيقى", "جمهور"], loc_en: "Circus Tent", words_en: ["Acrobat", "Animals", "Music", "Audience"] },
-            { loc_ar: "منارة قديمة", words_ar: ["ضوء", "سلم", "بحر", "سفن"], loc_en: "Old Lighthouse", words_en: ["Light", "Stairs", "Sea", "Ships"] },
-            { loc_ar: "محطة مترو", words_ar: ["تذاكر", "قطارات", "رصيف", "جمهور"], loc_en: "Subway Station", words_en: ["Tickets", "Trains", "Platform", "Crowd"] },
-            { loc_ar: "مقهى أدبي", words_ar: ["كتب", "قهوة", "نقاشات", "شعراء"], loc_en: "Literary Cafe", words_en: ["Books", "Coffee", "Discussions", "Poets"] },
-            { loc_ar: "محكمة", words_ar: ["قاضي", "محامي", "شهود", "قضية"], loc_en: "Courtroom", words_en: ["Judge", "Lawyer", "Witnesses", "Case"] },
-            { loc_ar: "صيدلية", words_ar: ["أدوية", "وصفات", "صيدلي", "رفوف"], loc_en: "Pharmacy", words_en: ["Medicines", "Prescriptions", "Pharmacist", "Shelves"] },
-            { loc_ar: "ورشة ميكانيكا", words_ar: ["سيارات", "أدوات", "زيت", "إصلاح"], loc_en: "Mechanic Workshop", words_en: ["Cars", "Tools", "Oil", "Repair"] },
-            { loc_ar: "خباز تقليدي", words_ar: ["عجين", "فرن", "خبز", "دقيق"], loc_en: "Traditional Bakery", words_en: ["Dough", "Oven", "Bread", "Flour"] },
-            { loc_ar: "ستوديو تصوير", words_ar: ["كاميرات", "إضاءة", "موديل", "خلفيات"], loc_en: "Photo Studio", words_en: ["Cameras", "Lighting", "Model", "Backgrounds"] },
-            { loc_ar: "مركز اتصالات", words_ar: ["هواتف", "أجهزة", "إشارات", "كابلات"], loc_en: "Communication Center", words_en: ["Phones", "Devices", "Signals", "Cables"] },
-            { loc_ar: "معرض سيارات", words_ar: ["سيارات", "بائع", "زوار", "عروض"], loc_en: "Car Showroom", words_en: ["Cars", "Salesman", "Visitors", "Deals"] },
-            { loc_ar: "مصنع شوكولاتة", words_ar: ["كاكاو", "قوالب", "تغليف", "حلوى"], loc_en: "Chocolate Factory", words_en: ["Cocoa", "Molds", "Packaging", "Sweets"] }
+        // Large Non-Repeating Scenarios Database
+        const SCENARIOS_DB = [
+            { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", " zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
+            { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "شباك"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Net"] },
+            { loc_ar: "كازينو Underground", words_ar: ["بطاقة", "مال", "رقاقة", "حظ"], loc_en: "Underground Casino", words_en: ["Card", "Money", "Chip", "Luck"] },
+            { loc_ar: "قاعدة قطبية", words_ar: ["ثلج", "برودة", "بحث", "بياض"], loc_en: "Arctic Base", words_en: ["Ice", "Cold", "Search", "White"] },
+            { loc_ar: "مصنع روبوتات", words_ar: ["ترسانة", "كهرباء", "ترميم", "حديد"], loc_en: "Robot Factory", words_en: ["Arsenal", "Electricity", "Repair", "Iron"] },
+            { loc_ar: "قطار سريع", words_ar: ["سكة", "سرعة", "مقعد", "نفق"], loc_en: "Bullet Train", words_en: ["Rail", "Speed", "Seat", "Tunnel"] },
+            { loc_ar: "برج مراقبة", words_ar: ["منظار", "سماء", "طائرة", "ارتفاع"], loc_en: "Control Tower", words_en: ["Binoculars", "Sky", "Plane", "Height"] },
+            { loc_ar: "جزيرة مهجورة", words_ar: ["رمل", "جوز", "محيط", "حطام"], loc_en: "Deserted Island", words_en: ["Sand", "Coconut", "Ocean", "Wreck"] },
+            { loc_ar: "بنك سويسري", words_ar: ["ذهب", "خزانة", "سرية", "مفتاح"], loc_en: "Swiss Bank", words_en: ["Gold", "Vault", "Secret", "Key"] },
+            { loc_ar: "سوق عتيق", words_ar: ["بضاعة", "تاجر", "سجادة", "بهارات"], loc_en: "Old Souq", words_en: ["Goods", "Merchant", "Carpet", "Spices"] },
+            { loc_ar: "مصحة نفسية", words_ar: ["علاج", "جلسة", "طبيب", "هدوء"], loc_en: "Sanatorium", words_en: ["Therapy", "Session", "Doctor", "Calm"] },
+            { loc_ar: "دار أوبرا", words_ar: ["موسيقى", "مسرح", "ستار", "أوركسترا"], loc_en: "Opera House", words_en: ["Music", "Stage", "Curtain", "Orchestra"] },
+            { loc_ar: "سجن قديم", words_ar: ["قضبان", "هروب", "زنزانة", "مفتاح"], loc_en: "Old Prison", words_en: ["Bars", "Escape", "Cell", "Key"] },
+            { loc_ar: "فندق شبح", words_ar: ["ممر", "غبار", "ظلام", "صوت"], loc_en: "Ghost Hotel", words_en: ["Hallway", "Dust", "Darkness", "Sound"] },
+            { loc_ar: "مركبة فضائية", words_ar: ["نجوم", "سفر", "أزرار", "شاشة"], loc_en: "Spaceship", words_en: ["Stars", "Travel", "Buttons", "Screen"] },
+            { loc_ar: "متحف الآثار", words_ar: ["تمثال", "تاريخ", "حراس", "جوهرة"], loc_en: "Museum", words_en: ["Statue", "History", "Guards", "Gem"] },
+            { loc_ar: "حديقة حيوان", words_ar: ["قفص", "أسد", "زائر", "طعام"], loc_en: "Zoo", words_en: ["Cage", "Lion", "Visitor", "Food"] },
+            { loc_ar: "مختبر كيميائي", words_ar: ["أنبوب", "سائل", "تفاعل", "غاز"], loc_en: "Chem Lab", words_en: ["Tube", "Liquid", "Reaction", "Gas"] },
+            { loc_ar: "ملعب كرة", words_ar: ["جمهور", "هدف", "حكم", "عشب"], loc_en: "Stadium", words_en: ["Crowd", "Goal", "Referee", "Grass"] },
+            { loc_ar: "مستشفى ميداني", words_ar: ["جراح", "جريح", "خيمة", "اسعاف"], loc_en: "Field Hospital", words_en: ["Surgeon", "Wounded", "Tent", "Aid"] },
+            // Added more for variety
+            { loc_ar: "منصة إطلاق", words_ar: ["وقود", "عد تنازلي", "دخان", "مهندس"], loc_en: "Launch Pad", words_en: ["Fuel", "Countdown", "Smoke", "Engineer"] },
+            { loc_ar: "محطة توليد", words_ar: ["طاقة", "كهرباء", "مولد", "أسلاك"], loc_en: "Power Plant", words_en: ["Power", "Electric", "Generator", "Wires"] },
+            { loc_ar: "سفارة أجنبية", words_ar: ["جواز", "دبلوماسي", "تأشيرة", "علم"], loc_en: "Embassy", words_en: ["Passport", "Diplomat", "Visa", "Flag"] },
+            { loc_ar: "محل تحف", words_ar: ["مجسم", "خشب", "نادر", "زجاج"], loc_en: "Antique Shop", words_en: ["Model", "Wood", "Rare", "Glass"] },
+            { loc_ar: "ورشة سرية", words_ar: ["أدوات", "تصليح", "شحوم", "صوت"], loc_en: "Secret Workshop", words_en: ["Tools", "Fix", "Grease", "Noise"] }
         ];
 
-        // دالة للحصول على سيناريو جديد غير مكرر
-        async function fetchScenario(usedLocations = []) {
-            // فلترة السيناريوهات المستخدمة
-            const availableScenarios = LOCAL_SCENARIOS.filter(s => 
-                !usedLocations.includes(s.loc_ar) && !usedLocations.includes(s.loc_en)
-            );
-            
-            // إذا نفدت السيناريوهات، أعد تعيين القائمة
-            if (availableScenarios.length === 0) {
-                return LOCAL_SCENARIOS[Math.floor(Math.random() * LOCAL_SCENARIOS.length)];
-            }
-            
-            // اختيار سيناريو عشوائي من المتاحة
-            return availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
-        }
-
         function App() {
-            const [lang, setLang] = useState('en');
+            const [lang, setLang] = useState('ar');
             const [user, setUser] = useState(null);
             const [room, setRoom] = useState(null);
             const [roomId, setRoomId] = useState('');
             const [inputCode, setInputCode] = useState('');
-            const [nickname, setNickname] = useState(localStorage.getItem('pro_spy_nick') || '');
+            const [nickname, setNickname] = useState(() => localStorage.getItem('pro_spy_nick') || '');
             const [loading, setLoading] = useState(false);
             const [timeLeft, setTimeLeft] = useState(0);
             const [copyStatus, setCopyStatus] = useState(false);
             const [isLocked, setIsLocked] = useState(false);
             const [tempVote, setTempVote] = useState(null);
-            const lastAutoVoteRef = useRef(false);
+            const hasAutoVotedRef = useRef(false); // Prevent multiple auto-votes
 
             const t = TRANSLATIONS[lang];
 
+            // Auth Effect
             useEffect(() => {
-                const unsub = auth.onAuthStateChanged(async (u) => { if (u) setUser(u); else await auth.signInAnonymously(); });
+                const unsub = auth.onAuthStateChanged(async (u) => {
+                    if (u) setUser(u);
+                    else await auth.signInAnonymously();
+                });
                 return unsub;
             }, []);
 
+            // Firestore Listener
             useEffect(() => {
                 if (!user || !roomId) return;
                 const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
                     .onSnapshot(doc => {
-                        const data = doc.exists ? doc.data() : null;
-                        setRoom(data);
-                        if (data?.status === 'waiting') { 
-                            setIsLocked(false); 
-                            setTempVote(null);
-                            lastAutoVoteRef.current = false;
+                        if (doc.exists) {
+                            const data = doc.data();
+                            setRoom(data);
+                            if (data.status === 'waiting') {
+                                setIsLocked(false);
+                                setTempVote(null);
+                                hasAutoVotedRef.current = false; // Reset for next round
+                            }
+                        } else {
+                            setRoom(null);
                         }
                     });
                 return unsub;
             }, [user, roomId]);
 
-            // Timer logic
+            // Timer Effect
             useEffect(() => {
-                let timer;
+                let interval;
                 if (room?.status === 'playing' && room?.timerStart) {
-                    timer = setInterval(() => {
+                    interval = setInterval(() => {
                         const elapsed = Math.floor((Date.now() - room.timerStart) / 1000);
                         const remaining = Math.max(0, 20 - elapsed);
                         setTimeLeft(remaining);
                     }, 1000);
                 }
-                return () => clearInterval(timer);
+                return () => clearInterval(interval);
             }, [room?.status, room?.timerStart]);
 
-            // Auto-vote for players who didn't vote when time runs out
+            // Auto-Vote Logic (When time hits 0)
             useEffect(() => {
-                if (room?.status === 'playing' && timeLeft === 0 && !lastAutoVoteRef.current && room?.scenario && user?.uid) {
-                    lastAutoVoteRef.current = true;
-                    
-                    const currentPlayer = room.players.find(p => p.uid === user.uid);
+                if (timeLeft === 0 && room?.status === 'playing' && !hasAutoVotedRef.current) {
                     const isSpy = room.spyId === user.uid;
+                    const me = room.players.find(p => p.uid === user.uid);
                     
-                    // فقط للاعبين غير الجاسوس الذين لم يختاروا
-                    if (!isSpy && currentPlayer && !currentPlayer.vote) {
+                    // If not spy and hasn't voted yet
+                    if (!isSpy && me && !me.vote && room.scenario) {
+                        hasAutoVotedRef.current = true;
                         const words = lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en;
                         const randomWord = words[Math.floor(Math.random() * words.length)];
                         
-                        // تحديث التصويت تلقائياً
-                        const updated = room.players.map(p => 
+                        // Update Firestore
+                        const updatedPlayers = room.players.map(p => 
                             p.uid === user.uid ? { ...p, vote: randomWord } : p
                         );
                         
                         db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
-                            .update({ players: updated });
+                            .update({ players: updatedPlayers });
                     }
                 }
-            }, [timeLeft, room?.status, room?.players, room?.scenario, user?.uid, room?.spyId, lang, roomId]);
+            }, [timeLeft, room, user, lang, roomId]);
 
+            // Majority Word Calculation
             const majorityWord = useMemo(() => {
                 if (!room?.players || !room?.scenario) return null;
                 const wordsList = lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en;
                 const counts = {};
-                let totalVotes = 0;
-                room.players.forEach(p => { if (p.vote) { counts[p.vote] = (counts[p.vote] || 0) + 1; totalVotes++; } });
-                if (totalVotes === 0) return wordsList[Math.floor(Math.abs(room.timerStart % wordsList.length))];
-                let max = 0, winners = [];
+                room.players.forEach(p => {
+                    if (p.vote) counts[p.vote] = (counts[p.vote] || 0) + 1;
+                });
+                
+                if (Object.keys(counts).length === 0) return wordsList[0]; // Default if no votes somehow
+                
+                let maxCount = 0;
+                let winner = Object.keys(counts)[0];
+                
                 for (const word in counts) {
-                    if (counts[word] > max) { max = counts[word]; winners = [word]; }
-                    else if (counts[word] === max) winners.push(word);
+                    if (counts[word] > maxCount) {
+                        maxCount = counts[word];
+                        winner = word;
+                    }
                 }
-                return winners[0];
+                return winner;
             }, [room?.players, room?.scenario, lang]);
 
+            // Handlers
             const handleCreate = async () => {
                 if (!nickname.trim()) return;
                 setLoading(true);
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set({
-                    id, admin: user.uid, status: 'waiting',
+                    id, 
+                    admin: user.uid, 
+                    status: 'waiting',
                     players: [{ uid: user.uid, name: nickname, vote: null }],
-                    scenario: null, spyId: null, timerStart: null,
-                    usedLocations: [] // قائمة المواقع المستخدمة
+                    scenario: null, 
+                    spyId: null, 
+                    timerStart: null,
+                    usedLocations: [] // Initialize used locations array
                 });
                 setRoomId(id);
                 setLoading(false);
@@ -314,16 +459,16 @@
             const startMission = async () => {
                 if (room.admin !== user.uid) return;
                 setLoading(true);
+
+                // Logic to prevent repetition
+                const used = room.usedLocations || [];
+                const available = SCENARIOS_DB.filter(s => !used.includes(s.loc_en));
                 
-                // الحصول على المواقع المستخدمة سابقاً
-                const usedLocations = room.usedLocations || [];
+                // Reset if all used
+                const pool = available.length > 0 ? available : SCENARIOS_DB;
+                const scenario = pool[Math.floor(Math.random() * pool.length)];
                 
-                // جلب سيناريو جديد غير مكرر
-                const scenario = await fetchScenario(usedLocations);
                 const spy = room.players[Math.floor(Math.random() * room.players.length)];
-                
-                // إضافة الموقع الجديد للقائمة المستخدمة
-                const newUsedLocations = [...usedLocations, scenario.loc_ar, scenario.loc_en];
                 
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                     status: 'playing', 
@@ -331,108 +476,254 @@
                     spyId: spy.uid, 
                     timerStart: Date.now(),
                     players: room.players.map(p => ({ ...p, vote: null })),
-                    usedLocations: newUsedLocations
+                    // Add current location to used list
+                    usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en)
                 });
                 
-                lastAutoVoteRef.current = false;
                 setLoading(false);
             };
 
             const confirmVote = async () => {
-                if (!tempVote || isLocked || timeLeft <= 0) return;
+                if (!tempVote || isLocked) return;
                 setIsLocked(true);
                 const updated = room.players.map(p => p.uid === user.uid ? { ...p, vote: tempVote } : p);
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ players: updated });
             };
 
+            const copyCode = () => {
+                navigator.clipboard.writeText(room.id);
+                setCopyStatus(true);
+                setTimeout(() => setCopyStatus(false), 2000);
+            };
+
+            // UI Calculations
+            const timerProgress = (timeLeft / 20) * 100;
+            const circumference = 2 * Math.PI * 45;
+            const strokeDashoffset = circumference - (timerProgress / 100) * circumference;
+            const isSpy = room?.spyId === user?.uid;
+            const currentWords = isSpy ? ["?", "?", "?", "?"] : (lang === 'ar' ? room?.scenario?.words_ar : room?.scenario?.words_en);
+
             return (
-                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-                    <div className="w-full max-w-lg space-y-6">
+                <div className="min-h-screen p-4 md:p-6 flex flex-col items-center" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                    <div className="w-full max-w-md space-y-6">
                         
-                        <header className="flex justify-between items-center animate-reveal">
+                        {/* Header */}
+                        <header className="flex justify-between items-center animate-fade-in">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 glass flex items-center justify-center border-cyan-500/40">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-cyan-400">
-                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent)] to-orange-600 flex items-center justify-center shadow-lg animate-float">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                                     </svg>
                                 </div>
-                                <h1 className="text-3xl font-black tracking-tighter">{t.appName}</h1>
+                                <div>
+                                    <h1 className="text-xl font-black tracking-tight">{t.appName}</h1>
+                                    <p className="text-[10px] font-mono text-[var(--muted)] tracking-widest">{t.tagline}</p>
+                                </div>
                             </div>
-                            <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="glass px-4 py-2 text-[10px] font-bold uppercase tracking-wider">{t.langBtn}</button>
+                            <button 
+                                onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
+                                className="btn btn-ghost px-3 py-2 rounded-lg text-xs font-mono"
+                            >
+                                {t.langBtn}
+                            </button>
                         </header>
 
                         {!room ? (
-                            <main className="glass p-8 space-y-8 animate-reveal">
+                            /* Login / Create Screen */
+                            <main className="card p-6 space-y-6 animate-fade-in delay-1">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black opacity-40 uppercase mr-2">{t.nickname}</label>
-                                    <input className="w-full bg-black/40 border border-white/10 p-4 rounded-xl font-bold focus:border-cyan-500 outline-none transition-all" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} />
+                                    <label className="text-xs font-mono text-[var(--muted)] uppercase tracking-wider">{t.nickname}</label>
+                                    <input 
+                                        className="input-field w-full p-4 rounded-xl font-medium text-sm"
+                                        value={nickname} 
+                                        onChange={e => {
+                                            setNickname(e.target.value);
+                                            localStorage.setItem('pro_spy_nick', e.target.value);
+                                        }}
+                                    />
                                 </div>
-                                <div className="space-y-4">
-                                    <button onClick={handleCreate} disabled={loading || !nickname} className="btn-primary w-full py-4 rounded-xl font-black text-sm uppercase">{t.create}</button>
+                                <div className="space-y-3 pt-2">
+                                    <button 
+                                        onClick={handleCreate} 
+                                        disabled={loading || !nickname}
+                                        className="btn btn-primary w-full py-4 rounded-xl text-sm uppercase tracking-wider"
+                                    >
+                                        {loading ? t.loading : t.create}
+                                    </button>
                                     <div className="flex gap-2">
-                                        <input className="flex-1 bg-black/40 border border-white/10 p-4 rounded-xl font-mono text-center font-black uppercase text-sm" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} />
-                                        <button onClick={handleJoin} disabled={loading || !nickname || !inputCode} className="glass px-6 font-black text-xs">{t.join}</button>
+                                        <input 
+                                            className="input-field flex-1 p-4 rounded-xl font-mono uppercase text-center tracking-widest"
+                                            placeholder={t.codePlaceholder}
+                                            value={inputCode}
+                                            onChange={e => setInputCode(e.target.value.toUpperCase())}
+                                        />
+                                        <button 
+                                            onClick={handleJoin} 
+                                            disabled={loading || !nickname || !inputCode}
+                                            className="btn btn-ghost px-6 rounded-xl text-xs font-bold"
+                                        >
+                                            {t.join}
+                                        </button>
                                     </div>
                                 </div>
                             </main>
                         ) : (
-                            <div className="space-y-4 animate-reveal">
-                                <div className="glass p-4 flex justify-between items-center">
+                            /* Game Room */
+                            <div className="space-y-4 animate-fade-in">
+                                
+                                {/* Room Header */}
+                                <div className="card p-4 flex justify-between items-center">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-sm font-black text-cyan-400">{room.id}</span>
-                                        <button onClick={() => { navigator.clipboard.writeText(room.id); setCopyStatus(true); setTimeout(()=>setCopyStatus(false),2000); }} className="text-[8px] bg-white/5 p-1 rounded uppercase">{copyStatus ? 'OK' : 'Copy'}</button>
+                                        <span className="font-mono text-sm font-bold text-[var(--accent)]">{room.id}</span>
+                                        <button onClick={copyCode} className="text-[9px] bg-white/5 hover:bg-white/10 px-2 py-1 rounded transition-colors">
+                                            {copyStatus ? t.copied : t.copy}
+                                        </button>
                                     </div>
-                                    <div className="text-[10px] font-black opacity-40 uppercase">{t.players}: {room.players.length}</div>
+                                    <div className="flex items-center gap-2 text-[10px] font-mono text-[var(--muted)]">
+                                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                        {t.players}: {room.players.length}
+                                    </div>
                                 </div>
 
                                 {room.status === 'waiting' ? (
-                                    <div className="glass p-6 space-y-6">
+                                    /* Waiting Room */
+                                    <div className="card p-6 space-y-5 animate-fade-in delay-1">
                                         <div className="grid grid-cols-2 gap-2">
                                             {room.players.map((p, i) => (
-                                                <div key={i} className={`p-3 rounded-xl border flex items-center justify-between text-[11px] font-black transition-all ${p.uid === user.uid ? 'bg-cyan-500/10 border-cyan-500/50 user-badge' : 'bg-white/5 border-white/5 opacity-60'}`}>
+                                                <div 
+                                                    key={i} 
+                                                    className={`p-3 rounded-xl text-xs font-bold flex justify-between items-center border transition-all
+                                                        ${p.uid === user.uid 
+                                                            ? 'player-active border-l-[var(--accent)] bg-[var(--accent)]/5' 
+                                                            : 'bg-white/5 border-transparent opacity-70'}`}
+                                                >
                                                     <span className="truncate">{p.name}</span>
-                                                    {p.uid === user.uid && <span className="text-[8px] bg-cyan-500 text-black px-1 rounded animate-pulse ml-1">{t.you}</span>}
+                                                    {p.uid === user.uid && (
+                                                        <span className="text-[8px] bg-[var(--accent)] text-black px-1.5 py-0.5 rounded">{t.you}</span>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
-                                        {room.admin === user.uid ? <button onClick={startMission} className="btn-primary w-full py-4 rounded-xl font-black uppercase">{t.start}</button> : <div className="text-center text-[10px] opacity-30 animate-pulse font-black uppercase tracking-[0.2em]">{t.waiting}</div>}
+                                        
+                                        {room.admin === user.uid ? (
+                                            <button onClick={startMission} disabled={loading} className="btn btn-primary w-full py-4 rounded-xl text-sm uppercase tracking-wider animate-pulse-glow">
+                                                {t.start}
+                                            </button>
+                                        ) : (
+                                            <div className="text-center py-4">
+                                                <p className="text-xs text-[var(--muted)] animate-pulse">{t.waiting}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
+                                    /* Playing Room */
                                     <div className="space-y-4">
-                                        <div className={`p-8 rounded-[2rem] border-b-8 text-center transition-all animate-reveal ${room.spyId === user.uid ? 'bg-red-950/40 border-red-700' : 'bg-cyan-950/40 border-cyan-700'}`}>
-                                            <h2 className="text-2xl font-black italic mb-4 uppercase">{room.spyId === user.uid ? t.spyTitle : t.citizenTitle}</h2>
-                                            {room.spyId !== user.uid ? <div className="text-5xl font-black tracking-tight">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div> : <div className="bg-black/40 p-3 rounded-2xl text-[11px] italic opacity-70">{t.spyDesc}</div>}
+                                        
+                                        {/* Identity Card */}
+                                        <div className={`card p-6 text-center animate-fade-in delay-1 ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
+                                            <div className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase mb-3 ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
+                                                {isSpy ? t.spyTitle : t.citizenTitle}
+                                            </div>
+                                            
+                                            {isSpy ? (
+                                                <div className="space-y-3">
+                                                    <div className="text-4xl font-black tracking-wider">?</div>
+                                                    <p className="text-xs text-[var(--muted)] italic">{t.spyDesc}</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    <p className="text-[10px] font-mono text-[var(--muted)] uppercase">{t.objective}</p>
+                                                    <div className="text-2xl font-black tracking-tight">
+                                                        {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        <div className="glass p-6 space-y-6">
-                                            <div className="flex justify-between items-center"><h3 className="font-black text-sm uppercase tracking-widest">{t.voting}</h3><div className="text-xl font-black text-cyan-400">{timeLeft}{t.sec}</div></div>
+                                        {/* Voting Area */}
+                                        <div className="card p-6 space-y-5 animate-fade-in delay-2">
+                                            
+                                            <div className="flex justify-between items-center">
+                                                <h3 className="text-xs font-mono uppercase text-[var(--muted)]">{t.voting}</h3>
+                                                
+                                                {/* Timer Circle */}
+                                                <div className="relative w-14 h-14">
+                                                    <svg className="w-full h-full" viewBox="0 0 100 100">
+                                                        <circle className="timer-track" cx="50" cy="50" r="45" fill="none" strokeWidth="6" />
+                                                        <circle 
+                                                            className="timer-progress" 
+                                                            cx="50" cy="50" r="45" 
+                                                            fill="none" 
+                                                            strokeWidth="6"
+                                                            strokeLinecap="round"
+                                                            strokeDasharray={circumference}
+                                                            strokeDashoffset={strokeDashoffset}
+                                                            style={{ stroke: timeLeft <= 5 ? 'var(--danger)' : 'var(--accent)' }}
+                                                        />
+                                                    </svg>
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <span className={`font-mono font-bold text-sm ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : ''}`}>
+                                                            {timeLeft}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
 
+                                            {/* Word Grid */}
                                             <div className="grid grid-cols-2 gap-2">
-                                                {(room.spyId !== user.uid ? (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en) : ["?","?","?","?"])?.map((word, idx) => (
-                                                    <button key={idx} onClick={() => !isLocked && room.spyId !== user.uid && setTempVote(word)} disabled={timeLeft <= 0 || room.spyId === user.uid || isLocked} 
-                                                        className={`p-4 rounded-xl border-2 font-black transition-all text-xs ${tempVote === word ? 'bg-cyan-500 text-black border-cyan-400' : 'bg-white/5 border-white/5 opacity-70'}`}>
+                                                {currentWords?.map((word, idx) => (
+                                                    <div 
+                                                        key={idx} 
+                                                        onClick={() => !isLocked && !isSpy && setTempVote(word)}
+                                                        className={`card word-card p-4 text-center text-sm font-bold
+                                                            ${tempVote === word ? 'selected' : ''}
+                                                            ${isLocked || timeLeft === 0 ? 'locked' : ''}
+                                                        `}
+                                                    >
                                                         {word}
-                                                    </button>
+                                                    </div>
                                                 ))}
                                             </div>
 
-                                            {room.spyId !== user.uid && (
-                                                <div className="space-y-3">
-                                                    <div className="bg-black/40 p-4 rounded-xl border border-white/5">
-                                                        <span className="text-[9px] font-black opacity-30 uppercase">{timeLeft > 0 ? t.yourChoice : t.confirmedChoice}</span>
-                                                        <div className="text-lg font-black text-cyan-400">{timeLeft > 0 ? (tempVote || "...") : majorityWord}</div>
+                                            {/* Status */}
+                                            {!isSpy && (
+                                                <div className="space-y-3 pt-2">
+                                                    <div className="bg-black/20 p-4 rounded-xl border border-white/5 flex justify-between items-center">
+                                                        <span className="text-[10px] font-mono text-[var(--muted)] uppercase">
+                                                            {timeLeft > 0 ? t.yourChoice : t.confirmedChoice}
+                                                        </span>
+                                                        <span className="font-bold text-sm text-[var(--accent)]">
+                                                            {isLocked ? tempVote : (timeLeft > 0 ? (tempVote || '...') : majorityWord)}
+                                                        </span>
                                                     </div>
-                                                    {timeLeft > 0 && !isLocked && <button onClick={confirmVote} disabled={!tempVote} className="btn-primary w-full py-3 rounded-xl font-black text-xs">{t.lockIn}</button>}
+
+                                                    {timeLeft > 0 && !isLocked && (
+                                                        <button 
+                                                            onClick={confirmVote}
+                                                            disabled={!tempVote}
+                                                            className="btn btn-primary w-full py-3 rounded-xl text-xs uppercase tracking-wider font-bold"
+                                                        >
+                                                            {t.lockIn}
+                                                        </button>
+                                                    )}
                                                 </div>
                                             )}
 
-                                            {room.admin === user.uid && timeLeft <= 0 && <button onClick={startMission} className="w-full bg-white/5 py-4 rounded-xl font-black border border-white/10 text-xs uppercase">{t.newRound}</button>}
+                                            {/* Admin Controls */}
+                                            {room.admin === user.uid && timeLeft <= 0 && (
+                                                <button onClick={startMission} className="btn btn-ghost w-full py-3 rounded-xl text-xs uppercase tracking-wider mt-2">
+                                                    {t.newRound}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 )}
                             </div>
                         )}
-                        <footer className="text-center opacity-10 font-mono text-[8px] tracking-[0.5em] py-8 uppercase">V2.2.0 // NO_REPEAT_SCENARIOS</footer>
+
+                        <footer className="text-center py-6">
+                            <p className="font-mono text-[9px] text-[var(--muted)] opacity-30 tracking-[0.3em]">V3.0.1 // TACTICAL</p>
+                        </footer>
                     </div>
                 </div>
             );
