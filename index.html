@@ -286,10 +286,16 @@
 
         // --- Sound System (Synthesized) ---
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioCtx();
+        let audioCtx = null; 
+
+        const initAudio = () => {
+            if (!audioCtx) audioCtx = new AudioCtx();
+        };
         
         const playSound = (type) => {
+            if (!audioCtx) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
+            
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             osc.connect(gainNode);
@@ -319,89 +325,6 @@
                 osc.stop(audioCtx.currentTime + 0.4);
             }
         };
-
-        // --- Background Animation Logic ---
-        useEffect(() => {
-            const canvas = document.getElementById('bg-canvas');
-            const ctx = canvas.getContext('2d');
-            let width, height, particles;
-            let mouse = { x: null, y: null };
-            const particleCount = 60;
-
-            const resize = () => {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
-            };
-            window.addEventListener('resize', resize);
-            resize();
-
-            class Particle {
-                constructor() {
-                    this.x = Math.random() * width;
-                    this.y = Math.random() * height;
-                    this.vx = (Math.random() - 0.5) * 0.5;
-                    this.vy = (Math.random() - 0.5) * 0.5;
-                    this.size = Math.random() * 2;
-                }
-                update() {
-                    this.x += this.vx;
-                    this.y += this.vy;
-                    if (this.x < 0 || this.x > width) this.vx *= -1;
-                    if (this.y < 0 || this.y > height) this.vy *= -1;
-                    
-                    // Mouse interaction
-                    if (mouse.x != null) {
-                        let dx = mouse.x - this.x;
-                        let dy = mouse.y - this.y;
-                        let dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist < 150) {
-                            const force = (150 - dist) / 150;
-                            this.x -= dx * force * 0.02;
-                            this.y -= dy * force * 0.02;
-                        }
-                    }
-                }
-                draw() {
-                    ctx.fillStyle = 'rgba(0, 242, 255, 0.5)';
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-
-            particles = Array.from({ length: particleCount }, () => new Particle());
-
-            const animate = () => {
-                ctx.clearRect(0, 0, width, height);
-                ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)';
-                ctx.lineWidth = 1;
-                
-                for (let i = 0; i < particles.length; i++) {
-                    particles[i].update();
-                    particles[i].draw();
-                    
-                    // Connect particles
-                    for (let j = i; j < particles.length; j++) {
-                        let dx = particles[i].x - particles[j].x;
-                        let dy = particles[i].y - particles[j].y;
-                        let dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist < 120) {
-                            ctx.beginPath();
-                            ctx.moveTo(particles[i].x, particles[i].y);
-                            ctx.lineTo(particles[j].x, particles[j].y);
-                            ctx.stroke();
-                        }
-                    }
-                }
-                requestAnimationFrame(animate);
-            };
-            animate();
-
-            window.addEventListener('mousemove', (e) => {
-                mouse.x = e.clientX;
-                mouse.y = e.clientY;
-            });
-        }, []); // Run once
 
         // --- Translations ---
         const TRANSLATIONS = {
@@ -471,7 +394,98 @@
             
             const t = TRANSLATIONS[lang];
 
-            // Auth Effect
+            // --- 1. Background Animation Logic (Fixed Placement) ---
+            useEffect(() => {
+                const canvas = document.getElementById('bg-canvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                let width, height, particles;
+                let mouse = { x: null, y: null };
+                const particleCount = 60;
+
+                const resize = () => {
+                    width = canvas.width = window.innerWidth;
+                    height = canvas.height = window.innerHeight;
+                };
+                
+                const handleMouseMove = (e) => {
+                    mouse.x = e.clientX;
+                    mouse.y = e.clientY;
+                };
+
+                window.addEventListener('resize', resize);
+                window.addEventListener('mousemove', handleMouseMove);
+                resize();
+
+                class Particle {
+                    constructor() {
+                        this.x = Math.random() * width;
+                        this.y = Math.random() * height;
+                        this.vx = (Math.random() - 0.5) * 0.5;
+                        this.vy = (Math.random() - 0.5) * 0.5;
+                        this.size = Math.random() * 2;
+                    }
+                    update() {
+                        this.x += this.vx;
+                        this.y += this.vy;
+                        if (this.x < 0 || this.x > width) this.vx *= -1;
+                        if (this.y < 0 || this.y > height) this.vy *= -1;
+                        
+                        if (mouse.x != null) {
+                            let dx = mouse.x - this.x;
+                            let dy = mouse.y - this.y;
+                            let dist = Math.sqrt(dx*dx + dy*dy);
+                            if (dist < 150) {
+                                const force = (150 - dist) / 150;
+                                this.x -= dx * force * 0.02;
+                                this.y -= dy * force * 0.02;
+                            }
+                        }
+                    }
+                    draw() {
+                        ctx.fillStyle = 'rgba(0, 242, 255, 0.5)';
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                particles = Array.from({ length: particleCount }, () => new Particle());
+                let animId;
+                const animate = () => {
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)';
+                    ctx.lineWidth = 1;
+                    
+                    for (let i = 0; i < particles.length; i++) {
+                        particles[i].update();
+                        particles[i].draw();
+                        
+                        for (let j = i; j < particles.length; j++) {
+                            let dx = particles[i].x - particles[j].x;
+                            let dy = particles[i].y - particles[j].y;
+                            let dist = Math.sqrt(dx*dx + dy*dy);
+                            if (dist < 120) {
+                                ctx.beginPath();
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                    animId = requestAnimationFrame(animate);
+                };
+                animate();
+
+                // Cleanup function
+                return () => {
+                    cancelAnimationFrame(animId);
+                    window.removeEventListener('resize', resize);
+                    window.removeEventListener('mousemove', handleMouseMove);
+                };
+            }, []); // Run once
+
+            // --- 2. Auth Effect ---
             useEffect(() => {
                 const unsub = auth.onAuthStateChanged(async (u) => {
                     if (u) setUser(u);
@@ -480,7 +494,7 @@
                 return unsub;
             }, []);
 
-            // Room Listener
+            // --- 3. Room Listener ---
             useEffect(() => {
                 if (!user || !roomId) return;
                 const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
@@ -491,7 +505,7 @@
                 return unsub;
             }, [user, roomId]);
 
-            // Turn Timer Logic
+            // --- 4. Turn Timer Logic ---
             useEffect(() => {
                 if (room?.status === 'discussing' && room?.turnEndTime) {
                     const interval = setInterval(() => {
@@ -508,7 +522,7 @@
                 }
             }, [room?.status, room?.turnEndTime]);
 
-            // Voting Timer Logic (Fixed)
+            // --- 5. Voting Timer Logic (Fixed) ---
             useEffect(() => {
                 if (room?.status === 'voting' && room?.votingEndTime) {
                     const interval = setInterval(() => {
@@ -526,7 +540,7 @@
                 }
             }, [room?.status, room?.votingEndTime]);
 
-            // Memoized Words Logic
+            // --- Memoized Words Logic ---
             const currentWords = useMemo(() => {
                 if (!room?.scenario || !user) return [];
                 const isSpy = room.spyId === user.uid;
@@ -538,7 +552,7 @@
 
             const handleCreate = async () => {
                 if (!nickname.trim() || !user) return;
-                playSound('click');
+                if (soundEnabled) playSound('click');
                 setLoading(true);
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set({
@@ -554,7 +568,7 @@
 
             const handleJoin = async () => {
                 if (!nickname.trim() || !inputCode || !user) return;
-                playSound('click');
+                if (soundEnabled) playSound('click');
                 setLoading(true);
                 const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(inputCode.toUpperCase());
                 const snap = await ref.get();
@@ -571,7 +585,7 @@
 
             const startGame = async () => {
                 if (room.admin !== user.uid) return;
-                playSound('success');
+                if (soundEnabled) playSound('success');
                 
                 const used = room.usedLocations || [];
                 const avail = SCENARIOS.filter(s => !used.includes(s.loc_en));
@@ -620,7 +634,7 @@
 
             const sendMessage = async (text) => {
                 if (!text.trim() || !user) return;
-                playSound('click');
+                if (soundEnabled) playSound('click');
                 const msg = { sender: user.uid, name: nickname, text: text, time: Date.now() };
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                     messages: firebase.firestore.FieldValue.arrayUnion(msg)
@@ -630,7 +644,7 @@
 
             const submitVote = async (targetUID) => {
                 if (!targetUID || !user || (room.votes && room.votes[user.uid])) return;
-                playSound('click');
+                if (soundEnabled) playSound('click');
                 const voteUpdate = {};
                 voteUpdate[`votes.${user.uid}`] = targetUID;
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update(voteUpdate);
@@ -674,8 +688,8 @@
                     const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.uid !== freshData.spyId);
                     let newStatus = freshData.status;
 
-                    if (isSpy) { newStatus = 'finished_spy_caught'; playSound('success'); } 
-                    else if (remainingAgents.length <= 1) { newStatus = 'finished_spy_wins'; playSound('fail'); } 
+                    if (isSpy) { newStatus = 'finished_spy_caught'; if(soundEnabled) playSound('success'); } 
+                    else if (remainingAgents.length <= 1) { newStatus = 'finished_spy_wins'; if(soundEnabled) playSound('fail'); } 
                     else { newStatus = 'discussing'; }
 
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
@@ -688,7 +702,7 @@
             };
 
             const resetGame = async () => {
-                playSound('click');
+                if (soundEnabled) playSound('click');
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                     status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0,
                     votes: {}, messages: [], votingEndTime: null, turnEndTime: null,
@@ -743,7 +757,7 @@
                             </div>
                         </div>
                         <div className="flex gap-2 items-center">
-                            <button onClick={() => setSoundEnabled(!soundEnabled)} className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700">
+                            <button onClick={() => { initAudio(); setSoundEnabled(!soundEnabled); }} className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700">
                                 {soundEnabled ? t.soundOn : t.soundOff}
                             </button>
                             <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">
