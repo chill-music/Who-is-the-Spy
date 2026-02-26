@@ -17,7 +17,7 @@
     <style>
         :root {
             --bg-dark: #05050a;
-            --bg-card: rgba(20, 20, 30, 0.7);
+            --bg-card: rgba(20, 20, 30, 0.85);
             --primary: #00f2ff;
             --secondary: #7000ff;
             --accent: #ff0055;
@@ -34,13 +34,18 @@
             font-family: 'Outfit', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
         }
 
-        .bg-gradient-main {
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(0, 242, 255, 0.1) 0%, transparent 40%),
-                var(--bg-dark);
+        /* Interactive Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
         }
 
         .glass-panel {
@@ -48,7 +53,7 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
 
         .font-tech { font-family: 'Rajdhani', sans-serif; }
@@ -118,7 +123,7 @@
         
         .btn-neon:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--primary);
+            box-shadow: 0 0 20px var(--primary);
         }
         
         .btn-neon:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -131,7 +136,7 @@
         .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
 
         .input-dark {
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             border: 1px solid var(--border);
             color: white;
             transition: 0.2s;
@@ -139,17 +144,17 @@
         .input-dark:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
         }
 
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
 
-        .player-card { transition: all 0.3s; }
+        .player-card { transition: all 0.3s; position: relative; }
         .player-card.active {
             border: 1px solid var(--primary);
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
             background: rgba(0, 242, 255, 0.1);
         }
 
@@ -197,6 +202,7 @@
             max-width: 80%;
             align-self: flex-end;
             word-wrap: break-word;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         .chat-bubble-other {
             background: rgba(255, 255, 255, 0.1);
@@ -227,17 +233,33 @@
         .identity-spy {
             border: 2px solid var(--accent);
             background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%);
-            box-shadow: 0 0 30px rgba(255, 0, 85, 0.2);
+            box-shadow: 0 0 40px rgba(255, 0, 85, 0.3);
         }
         
         .identity-agent {
             border: 2px solid #10b981;
             background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%);
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.1);
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Emoji Picker */
+        .emoji-btn {
+            font-size: 18px;
+            padding: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            filter: grayscale(100%);
+            opacity: 0.7;
+        }
+        .emoji-btn:hover {
+            transform: scale(1.4);
+            filter: grayscale(0%);
+            opacity: 1;
         }
     </style>
 </head>
-<body class="bg-gradient-main">
+<body>
+    <canvas id="bg-canvas"></canvas>
     <div id="root"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -260,7 +282,126 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v6_final';
+        const appId = 'pro_spy_v7_final_pro';
+
+        // --- Sound System (Synthesized) ---
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioCtx();
+        
+        const playSound = (type) => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.frequency.value = 800;
+                osc.type = 'sine';
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'success') {
+                osc.frequency.value = 600;
+                osc.type = 'sine';
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'fail') {
+                osc.frequency.value = 200;
+                osc.type = 'sawtooth';
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            }
+        };
+
+        // --- Background Animation Logic ---
+        useEffect(() => {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height, particles;
+            let mouse = { x: null, y: null };
+            const particleCount = 60;
+
+            const resize = () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            };
+            window.addEventListener('resize', resize);
+            resize();
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.5;
+                    this.vy = (Math.random() - 0.5) * 0.5;
+                    this.size = Math.random() * 2;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    if (this.x < 0 || this.x > width) this.vx *= -1;
+                    if (this.y < 0 || this.y > height) this.vy *= -1;
+                    
+                    // Mouse interaction
+                    if (mouse.x != null) {
+                        let dx = mouse.x - this.x;
+                        let dy = mouse.y - this.y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 150) {
+                            const force = (150 - dist) / 150;
+                            this.x -= dx * force * 0.02;
+                            this.y -= dy * force * 0.02;
+                        }
+                    }
+                }
+                draw() {
+                    ctx.fillStyle = 'rgba(0, 242, 255, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            particles = Array.from({ length: particleCount }, () => new Particle());
+
+            const animate = () => {
+                ctx.clearRect(0, 0, width, height);
+                ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)';
+                ctx.lineWidth = 1;
+                
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                    
+                    // Connect particles
+                    for (let j = i; j < particles.length; j++) {
+                        let dx = particles[i].x - particles[j].x;
+                        let dy = particles[i].y - particles[j].y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(animate);
+            };
+            animate();
+
+            window.addEventListener('mousemove', (e) => {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+        }, []); // Run once
 
         // --- Translations ---
         const TRANSLATIONS = {
@@ -278,7 +419,7 @@
                 noChoice: "NO VOTE", confirm: "CONFIRM VOTE", gameOver: "GAME OVER",
                 spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!",
                 playAgain: "PLAY AGAIN", connecting: "Establishing Secure Connection...",
-                voteWait: "Waiting for votes...", voteDone: "VOTE LOCKED"
+                voteWait: "Waiting for votes...", voteDone: "VOTE LOCKED", soundOn: "SOUND ON", soundOff: "SOUND OFF"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -294,7 +435,7 @@
                 noChoice: "لم يصوت", confirm: "تأكيد التصويت", gameOver: "انتهت اللعبة",
                 spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!",
                 playAgain: "لعب مجدداً", connecting: "جاري تأمين الاتصال...",
-                voteWait: "بانتظار الأصوات...", voteDone: "تم تثبيت التصويت"
+                voteWait: "بانتظار الأصوات...", voteDone: "تم تثبيت التصويت", soundOn: "تشغيل الصوت", soundOff: "إيقاف الصوت"
             }
         };
 
@@ -312,6 +453,8 @@
             { loc_ar: "جامعة سحر", words_ar: ["كتب", "عصا", "عفاريت", "تراكيب"], loc_en: "Magic Uni", words_en: ["Books", "Wand", "Ghosts", "Potions"] }
         ];
 
+        const EMOJIS = ['🕵️', '🔍', '🚨', '🤐', '👀', '🔪', '🛡️', '💀', '🤫', '✅'];
+
         function App() {
             const [lang, setLang] = useState('en');
             const [user, setUser] = useState(null);
@@ -324,11 +467,9 @@
             const [voteTarget, setVoteTarget] = useState(null); 
             const [turnTimer, setTurnTimer] = useState(30);
             const [votingTimer, setVotingTimer] = useState(30);
+            const [soundEnabled, setSoundEnabled] = useState(true);
             
             const t = TRANSLATIONS[lang];
-            const turnIntervalRef = useRef(null);
-
-            // --- Hooks defined at the top level ---
 
             // Auth Effect
             useEffect(() => {
@@ -356,38 +497,34 @@
                     const interval = setInterval(() => {
                         const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000));
                         setTurnTimer(remaining);
+                        if (remaining <= 0) {
+                            handleSkipTurn(true); 
+                            clearInterval(interval);
+                        }
                     }, 1000);
                     return () => clearInterval(interval);
                 } else {
                     setTurnTimer(30);
                 }
-            }, [room?.status, room?.turnEndTime]); // Fixed: Optional chaining
+            }, [room?.status, room?.turnEndTime]);
 
-            // Voting Timer Logic
+            // Voting Timer Logic (Fixed)
             useEffect(() => {
-                if (room?.status === 'voting' && room?.votingEndTime) { // Fixed: Optional chaining
+                if (room?.status === 'voting' && room?.votingEndTime) {
                     const interval = setInterval(() => {
                         const remaining = Math.max(0, Math.floor((room.votingEndTime - Date.now()) / 1000));
                         setVotingTimer(remaining);
+                        
+                        if (remaining <= 0) {
+                            resolveVotes(true); // Force resolve
+                            clearInterval(interval);
+                        }
                     }, 1000);
                     return () => clearInterval(interval);
                 } else {
                     setVotingTimer(30);
                 }
-            }, [room?.status, room?.votingEndTime]); // Fixed: Optional chaining
-
-            // Automatic Vote Resolution & Skip Logic
-            useEffect(() => {
-                // Auto Skip Turn
-                if (room?.status === 'discussing' && room?.turnEndTime && Date.now() >= room.turnEndTime) {
-                    handleSkipTurn(true); 
-                }
-                
-                // Auto Resolve Votes
-                if (room?.status === 'voting' && room?.votingEndTime && Date.now() >= room.votingEndTime) {
-                    resolveVotes(true); 
-                }
-            }, [turnTimer, votingTimer, room?.status]); 
+            }, [room?.status, room?.votingEndTime]);
 
             // Memoized Words Logic
             const currentWords = useMemo(() => {
@@ -401,6 +538,7 @@
 
             const handleCreate = async () => {
                 if (!nickname.trim() || !user) return;
+                playSound('click');
                 setLoading(true);
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set({
@@ -416,9 +554,9 @@
 
             const handleJoin = async () => {
                 if (!nickname.trim() || !inputCode || !user) return;
-                const code = inputCode.toUpperCase();
+                playSound('click');
                 setLoading(true);
-                const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(code);
+                const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(inputCode.toUpperCase());
                 const snap = await ref.get();
                 if (snap.exists) {
                     const data = snap.data();
@@ -426,48 +564,38 @@
                     if (!exists) {
                         await ref.update({ players: [...data.players, { uid: user.uid, name: nickname, status: 'active' }] });
                     }
-                    setRoomId(code);
+                    setRoomId(inputCode.toUpperCase());
                 }
                 setLoading(false);
             };
 
             const startGame = async () => {
                 if (room.admin !== user.uid) return;
+                playSound('success');
                 
                 const used = room.usedLocations || [];
                 const avail = SCENARIOS.filter(s => !used.includes(s.loc_en));
                 const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))];
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 
-                if (activePlayers.length < 3) {
-                     alert("Need at least 3 players!"); 
-                     setLoading(false);
-                     return;
-                }
+                if (activePlayers.length < 3) { alert("Need at least 3 players!"); return; }
 
                 const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)];
                 const firstPlayer = activePlayers[0];
 
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    status: 'discussing',
-                    scenario,
-                    spyId: spy.uid,
-                    currentTurnUID: firstPlayer.uid,
-                    turnEndTime: Date.now() + 30000,
-                    currentRound: 1,
-                    players: room.players.map(p => ({ ...p, vote: null })),
+                    status: 'discussing', scenario, spyId: spy.uid,
+                    currentTurnUID: firstPlayer.uid, turnEndTime: Date.now() + 30000,
+                    currentRound: 1, players: room.players.map(p => ({ ...p, vote: null })),
                     usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en),
-                    messages: [],
-                    votes: {}
+                    messages: [], votes: {}
                 });
             };
 
             const handleSkipTurn = async (forced = false) => {
                 if (!room) return;
-                // Check if still my turn or if forced by timer
                 if (!forced && room.currentTurnUID !== user.uid) return;
                 if (forced && room.status !== 'discussing') return;
-                
                 nextTurn();
             };
 
@@ -478,11 +606,8 @@
                 const nextIndex = (currentIndex + 1) % activePlayers.length;
 
                 if (nextIndex === 0) {
-                    // Full circle, go to voting
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                        status: 'voting',
-                        currentTurnUID: null,
-                        turnEndTime: null,
+                        status: 'voting', currentTurnUID: null, turnEndTime: null,
                         votingEndTime: Date.now() + 30000 
                     });
                 } else {
@@ -493,10 +618,10 @@
                 }
             };
 
-            const sendMessage = async (e) => {
-                e.preventDefault();
-                if (!chatMsg.trim() || !user) return;
-                const msg = { sender: user.uid, name: nickname, text: chatMsg, time: Date.now() };
+            const sendMessage = async (text) => {
+                if (!text.trim() || !user) return;
+                playSound('click');
+                const msg = { sender: user.uid, name: nickname, text: text, time: Date.now() };
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                     messages: firebase.firestore.FieldValue.arrayUnion(msg)
                 });
@@ -505,10 +630,9 @@
 
             const submitVote = async (targetUID) => {
                 if (!targetUID || !user || (room.votes && room.votes[user.uid])) return;
-                
+                playSound('click');
                 const voteUpdate = {};
                 voteUpdate[`votes.${user.uid}`] = targetUID;
-                
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update(voteUpdate);
             };
 
@@ -525,30 +649,19 @@
                 const voteCounts = {};
                 Object.values(votes).forEach(v => voteCounts[v] = (voteCounts[v] || 0) + 1);
                 
-                let maxVotes = 0;
-                let ejectedUID = null;
-                let isTie = false;
-
+                let maxVotes = 0; let ejectedUID = null; let isTie = false;
                 for (const uid in voteCounts) {
-                    if (voteCounts[uid] > maxVotes) {
-                        maxVotes = voteCounts[uid];
-                        ejectedUID = uid;
-                        isTie = false;
-                    } else if (voteCounts[uid] === maxVotes) {
-                        isTie = true;
-                    }
+                    if (voteCounts[uid] > maxVotes) { maxVotes = voteCounts[uid]; ejectedUID = uid; isTie = false; }
+                    else if (voteCounts[uid] === maxVotes) { isTie = true; }
                 }
 
                 const majorityNeeded = Math.floor(activePlayers.length / 2) + 1;
                 
                 if (isTie || maxVotes < majorityNeeded) {
                     const firstPlayer = activePlayers[0];
-                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                        status: 'discussing',
-                        votes: {},
-                        currentTurnUID: firstPlayer.uid,
-                        turnEndTime: Date.now() + 30000,
-                        votingEndTime: null,
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                        status: 'discussing', votes: {}, currentTurnUID: firstPlayer.uid,
+                        turnEndTime: Date.now() + 30000, votingEndTime: null,
                         currentRound: firebase.firestore.FieldValue.increment(1)
                     });
                 } else {
@@ -561,37 +674,24 @@
                     const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.uid !== freshData.spyId);
                     let newStatus = freshData.status;
 
-                    if (isSpy) {
-                        newStatus = 'finished_spy_caught';
-                    } else if (remainingAgents.length <= 1) {
-                        newStatus = 'finished_spy_wins';
-                    } else {
-                        newStatus = 'discussing';
-                    }
+                    if (isSpy) { newStatus = 'finished_spy_caught'; playSound('success'); } 
+                    else if (remainingAgents.length <= 1) { newStatus = 'finished_spy_wins'; playSound('fail'); } 
+                    else { newStatus = 'discussing'; }
 
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                        players: newPlayers,
-                        status: newStatus,
-                        votes: {},
+                        players: newPlayers, status: newStatus, votes: {},
                         currentTurnUID: isSpy ? null : newPlayers.find(p => p.status === 'active')?.uid,
-                        turnEndTime: isSpy ? null : (Date.now() + 30000),
-                        votingEndTime: null,
+                        turnEndTime: isSpy ? null : (Date.now() + 30000), votingEndTime: null,
                         currentRound: firebase.firestore.FieldValue.increment(1)
                     });
                 }
             };
 
             const resetGame = async () => {
+                playSound('click');
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    status: 'waiting',
-                    scenario: null,
-                    spyId: null,
-                    currentTurnUID: null,
-                    currentRound: 0,
-                    votes: {},
-                    messages: [],
-                    votingEndTime: null,
-                    turnEndTime: null,
+                    status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0,
+                    votes: {}, messages: [], votingEndTime: null, turnEndTime: null,
                     players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active' }))
                 });
             };
@@ -599,9 +699,9 @@
             // --- Render Guard ---
             if (!user) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center bg-gradient-main">
+                    <div className="min-h-screen flex items-center justify-center">
                         <div className="text-center space-y-4 animate-fade-in">
-                            <div className="logo-container mx-auto">
+                            <div className="logo-container mx-auto animate-float">
                                 <div className="logo-border"></div>
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
                                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
@@ -623,7 +723,6 @@
             const timerProgress = (turnTimer / 30) * 100;
             const circumference = 2 * Math.PI * 18;
             const strokeDashoffset = circumference - (timerProgress / 100) * circumference;
-            
             const smallCircumference = 2 * Math.PI * 10;
             const smallStrokeDashoffset = smallCircumference - ((turnTimer / 30) * 100 / 100) * smallCircumference;
 
@@ -643,9 +742,14 @@
                                 <p className="text-[10px] text-gray-500 tracking-widest font-tech">{t.tagline}</p>
                             </div>
                         </div>
-                        <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">
-                            {t.langBtn}
-                        </button>
+                        <div className="flex gap-2 items-center">
+                            <button onClick={() => setSoundEnabled(!soundEnabled)} className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700">
+                                {soundEnabled ? t.soundOn : t.soundOff}
+                            </button>
+                            <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">
+                                {t.langBtn}
+                            </button>
+                        </div>
                     </header>
 
                     <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -671,7 +775,6 @@
                                                 <div className="player-timer-text">{turnTimer}</div>
                                             </>
                                         )}
-                                        
                                         <div className="flex items-center gap-2 pl-5">
                                             <div className={`w-2 h-2 rounded-full ${p.status === 'spectator' ? 'bg-red-500' : 'bg-green-500'}`}></div>
                                             <span className="font-bold text-sm truncate">{p.name}</span>
@@ -778,8 +881,8 @@
                                             </div>
 
                                             {/* Chat Area */}
-                                            <div className="glass-panel rounded-2xl p-4 flex flex-col overflow-hidden">
-                                                <div className="chat-container space-y-2 mb-3 px-2">
+                                            <div className="glass-panel rounded-2xl p-4 flex flex-col overflow-hidden relative">
+                                                <div className="chat-container space-y-2 mb-3 px-2 h-48 overflow-y-auto">
                                                     {room.messages?.slice(-20).map((m, i) => (
                                                         <div key={i} className={`flex w-full ${m.sender === user.uid ? 'justify-end' : 'justify-start'}`}>
                                                             <div className={m.sender === user.uid ? 'chat-bubble-me' : 'chat-bubble-other'}>
@@ -791,16 +894,23 @@
                                                 </div>
                                                 
                                                 {!isSpectator && isMyTurn ? (
-                                                    <form onSubmit={sendMessage} className="flex gap-2 mt-auto border-t border-white/10 pt-3">
-                                                        <input 
-                                                            className="input-dark flex-1 p-3 rounded-xl text-sm" 
-                                                            placeholder={t.chatPlaceholder} 
-                                                            value={chatMsg} 
-                                                            onChange={e => setChatMsg(e.target.value)} 
-                                                        />
-                                                        <button type="submit" className="btn-neon px-5 rounded-xl text-xs">{t.send}</button>
-                                                        <button type="button" onClick={() => handleSkipTurn(false)} className="btn-ghost px-4 rounded-xl text-xs border-orange-500 text-orange-400">{t.skip}</button>
-                                                    </form>
+                                                    <div className="flex flex-col gap-2 mt-auto border-t border-white/10 pt-3 relative z-10">
+                                                        <div className="flex gap-1 mb-1">
+                                                            {EMOJIS.map(emoji => (
+                                                                <span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>
+                                                            ))}
+                                                        </div>
+                                                        <form onSubmit={(e) => { e.preventDefault(); sendMessage(chatMsg); }} className="flex gap-2">
+                                                            <input 
+                                                                className="input-dark flex-1 p-3 rounded-xl text-sm" 
+                                                                placeholder={t.chatPlaceholder} 
+                                                                value={chatMsg} 
+                                                                onChange={e => setChatMsg(e.target.value)} 
+                                                            />
+                                                            <button type="submit" className="btn-neon px-5 rounded-xl text-xs">{t.send}</button>
+                                                            <button type="button" onClick={() => handleSkipTurn(false)} className="btn-ghost px-4 rounded-xl text-xs border-orange-500 text-orange-400">{t.skip}</button>
+                                                        </form>
+                                                    </div>
                                                 ) : (
                                                     <div className="text-center text-xs text-gray-600 py-3 border-t border-white/10 mt-2">
                                                         {isSpectator ? t.spectator : "Waiting for turn..."}
