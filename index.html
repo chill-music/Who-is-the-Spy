@@ -251,7 +251,9 @@
             const t = TRANSLATIONS[lang];
             const turnIntervalRef = useRef(null);
 
-            // Auth
+            // --- Hooks defined at the top level ---
+
+            // Auth Effect
             useEffect(() => {
                 const unsub = auth.onAuthStateChanged(async (u) => {
                     if (u) setUser(u);
@@ -284,6 +286,14 @@
                     setTurnTimer(30);
                 }
             }, [room?.status, room?.currentTurnUID, room?.turnEndTime]);
+
+            // Memoized Words Logic
+            const currentWords = useMemo(() => {
+                if (!room?.scenario || !user) return []; // Safety check
+                const isSpy = room.spyId === user.uid;
+                if (isSpy) return ["?", "?", "?", "?"];
+                return lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en;
+            }, [room, user, lang]);
 
             // --- Actions ---
 
@@ -328,7 +338,7 @@
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 
                 if (activePlayers.length < 3) {
-                     alert("Need at least 3 players!"); // Simple alert for now
+                     alert("Need at least 3 players!"); 
                      setLoading(false);
                      return;
                 }
@@ -475,13 +485,6 @@
             }
 
             // --- Render Helpers ---
-            const currentWords = useMemo(() => {
-                if (!room?.scenario) return [];
-                const isSpy = room.spyId === user.uid;
-                if (isSpy) return ["?", "?", "?", "?"];
-                return lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en;
-            }, [room, user, lang]);
-
             const isMyTurn = room?.currentTurnUID === user.uid;
             const isSpy = room?.spyId === user.uid;
             const me = room?.players?.find(p => p.uid === user.uid);
