@@ -352,7 +352,7 @@
 
             // Turn Timer Logic
             useEffect(() => {
-                if (room?.status === 'discussing' && room.turnEndTime) {
+                if (room?.status === 'discussing' && room?.turnEndTime) {
                     const interval = setInterval(() => {
                         const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000));
                         setTurnTimer(remaining);
@@ -361,11 +361,11 @@
                 } else {
                     setTurnTimer(30);
                 }
-            }, [room?.status, room?.turnEndTime]);
+            }, [room?.status, room?.turnEndTime]); // Fixed: Optional chaining
 
             // Voting Timer Logic
             useEffect(() => {
-                if (room?.status === 'voting' && room.votingEndTime) {
+                if (room?.status === 'voting' && room?.votingEndTime) { // Fixed: Optional chaining
                     const interval = setInterval(() => {
                         const remaining = Math.max(0, Math.floor((room.votingEndTime - Date.now()) / 1000));
                         setVotingTimer(remaining);
@@ -374,20 +374,20 @@
                 } else {
                     setVotingTimer(30);
                 }
-            }, [room?.status, room.votingEndTime]);
+            }, [room?.status, room?.votingEndTime]); // Fixed: Optional chaining
 
             // Automatic Vote Resolution & Skip Logic
             useEffect(() => {
                 // Auto Skip Turn
-                if (room?.status === 'discussing' && room.turnEndTime && Date.now() >= room.turnEndTime) {
-                    handleSkipTurn(true); // Force skip
+                if (room?.status === 'discussing' && room?.turnEndTime && Date.now() >= room.turnEndTime) {
+                    handleSkipTurn(true); 
                 }
                 
                 // Auto Resolve Votes
-                if (room?.status === 'voting' && room.votingEndTime && Date.now() >= room.votingEndTime) {
-                    resolveVotes(true); // Force resolve
+                if (room?.status === 'voting' && room?.votingEndTime && Date.now() >= room.votingEndTime) {
+                    resolveVotes(true); 
                 }
-            }, [turnTimer, votingTimer, room?.status]); // Dependencies trigger checks
+            }, [turnTimer, votingTimer, room?.status]); 
 
             // Memoized Words Logic
             const currentWords = useMemo(() => {
@@ -463,6 +463,7 @@
             };
 
             const handleSkipTurn = async (forced = false) => {
+                if (!room) return;
                 // Check if still my turn or if forced by timer
                 if (!forced && room.currentTurnUID !== user.uid) return;
                 if (forced && room.status !== 'discussing') return;
@@ -471,6 +472,7 @@
             };
 
             const nextTurn = async () => {
+                if (!room) return;
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 const currentIndex = activePlayers.findIndex(p => p.uid === room.currentTurnUID);
                 const nextIndex = (currentIndex + 1) % activePlayers.length;
@@ -481,7 +483,7 @@
                         status: 'voting',
                         currentTurnUID: null,
                         turnEndTime: null,
-                        votingEndTime: Date.now() + 30000 // 30s for voting
+                        votingEndTime: Date.now() + 30000 
                     });
                 } else {
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
@@ -511,9 +513,8 @@
             };
 
             const resolveVotes = async (forced = false) => {
-                if (room.status !== 'voting') return;
+                if (!room || room.status !== 'voting') return;
                 
-                // Check if already resolved by another client
                 const freshSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).get();
                 const freshData = freshSnap.data();
                 if (freshData.status !== 'voting') return;
@@ -521,7 +522,6 @@
                 const activePlayers = freshData.players.filter(p => p.status === 'active');
                 const votes = freshData.votes || {};
                 
-                // Count votes
                 const voteCounts = {};
                 Object.values(votes).forEach(v => voteCounts[v] = (voteCounts[v] || 0) + 1);
                 
@@ -542,7 +542,6 @@
                 const majorityNeeded = Math.floor(activePlayers.length / 2) + 1;
                 
                 if (isTie || maxVotes < majorityNeeded) {
-                    // Continue to next round
                     const firstPlayer = activePlayers[0];
                      await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                         status: 'discussing',
@@ -553,7 +552,6 @@
                         currentRound: firebase.firestore.FieldValue.increment(1)
                     });
                 } else {
-                    // Eject player
                     const newPlayers = freshData.players.map(p => {
                         if (p.uid === ejectedUID) return { ...p, status: 'spectator' };
                         return p;
@@ -626,7 +624,6 @@
             const circumference = 2 * Math.PI * 18;
             const strokeDashoffset = circumference - (timerProgress / 100) * circumference;
             
-            // Small timer logic
             const smallCircumference = 2 * Math.PI * 10;
             const smallStrokeDashoffset = smallCircumference - ((turnTimer / 30) * 100 / 100) * smallCircumference;
 
@@ -663,7 +660,6 @@
                                         ${p.uid === room.currentTurnUID ? 'active' : 'border border-transparent'}
                                         ${p.status === 'spectator' ? 'eliminated' : ''}`}
                                     >
-                                        {/* Show Timer only for current player in discussion */}
                                         {p.uid === room.currentTurnUID && room.status === 'discussing' && (
                                             <>
                                                 <svg className="player-timer-svg" viewBox="0 0 24 24">
@@ -676,7 +672,7 @@
                                             </>
                                         )}
                                         
-                                        <div className="flex items-center gap-2 pl-5"> {/* Added padding for timer */}
+                                        <div className="flex items-center gap-2 pl-5">
                                             <div className={`w-2 h-2 rounded-full ${p.status === 'spectator' ? 'bg-red-500' : 'bg-green-500'}`}></div>
                                             <span className="font-bold text-sm truncate">{p.name}</span>
                                             {p.uid === user.uid && <span className="text-[9px] bg-blue-500 px-1 rounded">{t.you}</span>}
