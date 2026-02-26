@@ -3,249 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PRO SPY | Covert Operations</title>
+    <title>PRO SPY | Covert Arena</title>
+    <!-- Fallback Icon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕵️</text></svg>">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg: #050506;
-            --bg-card: #0f0f12;
-            --fg: #e8e8ec;
-            --muted: #5a5a65;
-            --accent: #ff6b35;
-            --accent-glow: rgba(255, 107, 53, 0.35);
-            --border: #222228;
-            --success: #10b981;
-            --danger: #f43f5e;
-            --warning: #f59e0b;
+            --bg-dark: #05050a;
+            --bg-card: rgba(20, 20, 30, 0.7);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #7000ff; /* Purple */
+            --accent: #ff0055; /* Pink/Red for Spy alerts */
+            --text-main: #ffffff;
+            --text-muted: #8b8b9e;
+            --border: rgba(255, 255, 255, 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body { 
-            background: var(--bg); 
-            color: var(--fg);
+            background-color: var(--bg-dark); 
+            color: var(--text-main);
             font-family: 'Outfit', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        /* Atmospheric Background */
-        .bg-atmosphere {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
+        /* Background Effects */
+        .bg-gradient-main {
             background: 
-                radial-gradient(circle at 50% 0%, rgba(255, 107, 53, 0.08), transparent 60%),
-                radial-gradient(circle at 80% 100%, rgba(255, 107, 53, 0.05), transparent 50%);
+                radial-gradient(circle at 10% 20%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 242, 255, 0.1) 0%, transparent 40%),
+                var(--bg-dark);
         }
 
-        .bg-atmosphere::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            opacity: 0.05;
-            pointer-events: none;
+        /* Glass Morphism */
+        .glass-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* Global Animations */
-        @keyframes fadeInUp {
+        /* Typography */
+        .font-tech { font-family: 'Rajdhani', sans-serif; }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); }
+            50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); }
+            100% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); }
+        }
+
+        @keyframes rotate-border {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fade-in-up {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes glitch {
-            0% { transform: translate(0) }
-            20% { transform: translate(-2px, 2px) }
-            40% { transform: translate(-2px, -2px) }
-            60% { transform: translate(2px, 2px) }
-            80% { transform: translate(2px, -2px) }
-            100% { transform: translate(0) }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
 
-        @keyframes pulse-border {
-            0% { border-color: var(--danger); box-shadow: 0 0 10px var(--danger); }
-            50% { border-color: transparent; box-shadow: 0 0 20px var(--danger); }
-            100% { border-color: var(--danger); box-shadow: 0 0 10px var(--danger); }
-        }
-
-        @keyframes scan-line {
-            0% { top: -100%; }
-            100% { top: 100%; }
-        }
-
-        @keyframes text-reveal {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-
-        .animate-fade-in { animation: fadeInUp 0.6s ease-out forwards; }
-        .delay-1 { animation-delay: 0.1s; opacity: 0; }
-        .delay-2 { animation-delay: 0.2s; opacity: 0; }
-        .delay-3 { animation-delay: 0.3s; opacity: 0; }
-
-        /* Title Animation */
-        .site-title {
-            background: linear-gradient(90deg, #fff, #ccc, #fff);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: text-reveal 3s linear infinite;
-        }
-
-        /* Card Styles */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 24px;
+        .animate-fade-in { animation: fade-in-up 0.6s ease-out forwards; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        
+        /* Logo Animation */
+        .logo-container {
             position: relative;
-            overflow: hidden;
-        }
-
-        /* Identity Card Special Styling */
-        .identity-card {
-            border-radius: 24px;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease;
-            transform-style: preserve-3d;
-        }
-
-        .identity-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 200%;
-            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.05), transparent);
-            animation: scan-line 3s linear infinite;
-            pointer-events: none;
-        }
-
-        .identity-spy {
-            border: 2px solid var(--danger);
-            box-shadow: 0 0 30px rgba(244, 63, 94, 0.2);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .identity-agent {
-            border: 2px solid var(--success);
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+        .logo-border {
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            border-top-color: var(--primary);
+            border-right-color: var(--secondary);
+            animation: rotate-border 3s linear infinite;
         }
 
-        /* Input & Buttons */
-        .input-field {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid var(--border);
-            color: var(--fg);
-            transition: all 0.2s ease;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-glow);
-        }
-
-        .btn {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.2s ease;
-            font-family: 'Outfit', sans-serif;
+        /* Title Style */
+        .game-title {
+            font-family: 'Rajdhani', sans-serif;
             font-weight: 700;
-            outline: none;
-            cursor: pointer;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulse-glow 3s infinite alternate;
         }
 
-        .btn-primary {
-            background: var(--accent);
-            color: #000;
+        /* Buttons */
+        .btn-neon {
+            position: relative;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            color: white;
+            font-weight: 700;
+            transition: all 0.3s;
+            overflow: hidden;
         }
-
-        .btn-primary:hover:not(:disabled) {
-            filter: brightness(1.1);
-            box-shadow: 0 0 25px var(--accent-glow);
+        
+        .btn-neon:hover {
             transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--primary);
         }
 
         .btn-ghost {
             background: transparent;
             border: 1px solid var(--border);
-            color: var(--fg);
+            transition: 0.3s;
         }
+        .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
 
-        .btn-ghost:hover:not(:disabled) {
-            border-color: var(--accent);
-            color: var(--accent);
-            background: rgba(255, 107, 53, 0.05);
-        }
-
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
-
-        /* Word Cards */
-        .word-card {
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: rgba(255, 255, 255, 0.03);
+        /* Input */
+        .input-dark {
+            background: rgba(0, 0, 0, 0.5);
             border: 1px solid var(--border);
+            color: white;
+            transition: 0.2s;
+        }
+        .input-dark:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
         }
 
-        .word-card:hover:not(.disabled) {
-            background: rgba(255, 107, 53, 0.1);
-            border-color: rgba(255, 107, 53, 0.5);
-            transform: translateY(-3px);
-        }
-
-        .word-card.selected {
-            background: var(--accent);
-            color: #000;
-            border-color: var(--accent);
-            transform: scale(1.05);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .word-card.locked { opacity: 0.5; transform: none !important; cursor: default; }
-
-        /* Timer */
-        .timer-progress { 
-            stroke: var(--accent); 
-            transition: stroke-dashoffset 1s linear;
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-        }
-        
         /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
 
-        /* Reduced Motion */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
+        /* Specific Components */
+        .player-card {
+            transition: all 0.3s;
+        }
+        .player-card.active {
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+            background: rgba(0, 242, 255, 0.1);
+        }
+
+        .player-card.eliminated {
+            opacity: 0.4;
+            border-color: var(--accent);
+            filter: grayscale(100%);
+        }
+
+        /* Timer Circle */
+        .timer-svg {
+            transform: rotate(-90deg);
+        }
+        .timer-circle-bg {
+            fill: none;
+            stroke: rgba(255,255,255,0.1);
+        }
+        .timer-circle-progress {
+            fill: none;
+            stroke: var(--primary);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        /* Chat */
+        .chat-container {
+            height: 200px;
+            overflow-y: auto;
         }
     </style>
 </head>
-<body>
-    <div class="bg-atmosphere"></div>
+<body class="bg-gradient-main">
     <div id="root"></div>
 
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
 
-        // Firebase Setup
+        // --- Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyApAJaNfF0YHupunLRlK3jRYvttxczWShY",
             authDomain: "who-is-the-spy-919b9.firebaseapp.com",
@@ -258,133 +215,72 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v3_tactical';
+        const appId = 'pro_spy_v4_arena';
 
-        // Translations (English Default)
+        // --- Translations ---
         const TRANSLATIONS = {
             en: {
-                appName: "PRO SPY",
-                tagline: "COVERT OPS",
-                nickname: "CALLSIGN",
-                create: "ESTABLISH HQ",
-                join: "INFILTRATE",
-                codePlaceholder: "ENTER CODE",
-                players: "OPERATIVES",
-                start: "COMMENCE",
-                spyTitle: "IDENTITY: SPY",
-                spyDesc: "Blend in. Identify the location. Don't get caught.",
-                citizenTitle: "IDENTITY: AGENT",
-                objective: "LOCATION",
-                voting: "INTEL LOCK",
-                timer: "TIME",
-                sec: "s",
-                copied: "COPIED",
-                copy: "COPY",
-                waiting: "Awaiting team assembly...",
-                loading: "PROCESSING...",
-                you: "YOU",
-                newRound: "NEW OPERATION",
-                langBtn: "العربية",
-                yourChoice: "SELECTED:",
-                confirmedChoice: "LOCKED:",
-                noChoice: "NO DATA",
-                lockIn: "CONFIRM INTEL",
-                locked: "SECURED",
-                instruction: "Analyze the intel",
-                roundStart: "ROUND START",
-                statusSpy: "SUSPICIOUS",
-                statusAgent: "CLEARED",
-                locationLabel: "MISSION LOCATION"
+                appName: "PRO SPY", tagline: "COVERT ARENA",
+                nickname: "OPERATOR NAME", create: "CREATE LOBBY", join: "JOIN OPS",
+                codePlaceholder: "ENTER CODE", players: "OPERATIVES", start: "LAUNCH MISSION",
+                langBtn: "العربية", loading: "PROCESSING...", you: "YOU",
+                statusSpy: "SPY", statusAgent: "AGENT",
+                round: "ROUND", discussionTime: "DISCUSSION TIME",
+                skip: "SKIP TURN", vote: "VOTE TO EJECT",
+                chatPlaceholder: "Type message...", send: "SEND",
+                waiting: "Awaiting host...", location: "LOCATION",
+                spectator: "SPECTATOR", ejected: "EJECTED",
+                noChoice: "NO VOTE", confirm: "CONFIRM", gameOver: "GAME OVER",
+                spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!",
+                playAgain: "PLAY AGAIN"
             },
             ar: {
-                appName: "برو جاسوس",
-                tagline: "عمليات سرية",
-                nickname: "الاسم الرمزي",
-                create: "إنشاء المقر",
-                join: "التسلل",
-                codePlaceholder: "أدخل الكود",
-                players: "العملاء",
-                start: "بدء المهمة",
-                spyTitle: "الهوية: جاسوس",
-                spyDesc: "اندس بينهم. اكتشف المكان. لا تنكشف.",
-                citizenTitle: "الهوية: عميل",
-                objective: "الموقع",
-                voting: "تحديد المعلومة",
-                timer: "وقت",
-                sec: "ث",
-                copied: "تم النسخ",
-                copy: "نسخ",
-                waiting: "بانتظار الفريق...",
-                loading: "جاري المعالجة...",
-                you: "أنت",
-                newRound: "عملية جديدة",
-                langBtn: "English",
-                yourChoice: "المختار:",
-                confirmedChoice: "المؤكد:",
-                noChoice: "لا بيانات",
-                lockIn: "تأكيد المعلومة",
-                locked: "تم التأمين",
-                instruction: "حلل المعلومة",
-                roundStart: "بدء الجولة",
-                statusSpy: "مشبوه",
-                statusAgent: "موثوق",
-                locationLabel: "موقع المهمة"
+                appName: "برو جاسوس", tagline: "ساحة العمليات",
+                nickname: "اسم العميل", create: "إنشاء المقر", join: "انضمام",
+                codePlaceholder: "أدخل الكود", players: "العملاء", start: "بدء المهمة",
+                langBtn: "English", loading: "جاري التحميل...", you: "أنت",
+                statusSpy: "جاسوس", statusAgent: "عميل",
+                round: "الجولة", discussionTime: "وقت النقاش",
+                skip: "تخطي الدور", vote: "تصويت للطرد",
+                chatPlaceholder: "اكتب رسالة...", send: "إرسال",
+                waiting: "بانتظار المضيف...", location: "الموقع",
+                spectator: "مشاهد", ejected: "مطرود",
+                noChoice: "لم يصوت", confirm: "تأكيد", gameOver: "انتهت اللعبة",
+                spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!",
+                playAgain: "لعب مجدداً"
             }
         };
 
-        // Extended Scenarios Database
-        const SCENARIOS_DB = [
-            { loc_ar: "محطة فضاء دولية", words_ar: ["فضاء", "صاروخ", "انعدام", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
+        // --- Scenarios DB (Expanded) ---
+        const SCENARIOS = [
+            { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
             { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Sonar"] },
-            { loc_ar: "كازينو Underground", words_ar: ["بطاقة", "مال", "رقاقة", "حظ"], loc_en: "Underground Casino", words_en: ["Card", "Money", "Chip", "Luck"] },
-            { loc_ar: "قاعدة قطبية", words_ar: ["ثلج", "برودة", "بحث", "بياض"], loc_en: "Arctic Base", words_en: ["Ice", "Cold", "Search", "White"] },
-            { loc_ar: "مصنع روبوتات", words_ar: ["ترسانة", "كهرباء", "ترميم", "حديد"], loc_en: "Robot Factory", words_en: ["Arsenal", "Electricity", "Repair", "Iron"] },
-            { loc_ar: "قطار سريع", words_ar: ["سكة", "سرعة", "مقعد", "نفق"], loc_en: "Bullet Train", words_en: ["Rail", "Speed", "Seat", "Tunnel"] },
-            { loc_ar: "برج مراقبة", words_ar: ["منظار", "سماء", "طائرة", "ارتفاع"], loc_en: "Control Tower", words_en: ["Binoculars", "Sky", "Plane", "Height"] },
-            { loc_ar: "جزيرة مهجورة", words_ar: ["رمل", "جوز", "محيط", "حطام"], loc_en: "Deserted Island", words_en: ["Sand", "Coconut", "Ocean", "Wreck"] },
-            { loc_ar: "بنك سويسري", words_ar: ["ذهب", "خزانة", "سرية", "مفتاح"], loc_en: "Swiss Bank", words_en: ["Gold", "Vault", "Secret", "Key"] },
-            { loc_ar: "سوق عتيق", words_ar: ["بضاعة", "تاجر", "سجادة", "بهارات"], loc_en: "Old Souq", words_en: ["Goods", "Merchant", "Carpet", "Spices"] },
-            { loc_ar: "مصحة نفسية", words_ar: ["علاج", "جلسة", "طبيب", "هدوء"], loc_en: "Sanatorium", words_en: ["Therapy", "Session", "Doctor", "Calm"] },
-            { loc_ar: "دار أوبرا", words_ar: ["موسيقى", "مسرح", "ستار", "أوركسترا"], loc_en: "Opera House", words_en: ["Music", "Stage", "Curtain", "Orchestra"] },
-            { loc_ar: "سجن قديم", words_ar: ["قضبان", "هروب", "زنزانة", "مفتاح"], loc_en: "Old Prison", words_en: ["Bars", "Escape", "Cell", "Key"] },
-            { loc_ar: "فندق شبح", words_ar: ["ممر", "غبار", "ظلام", "صوت"], loc_en: "Ghost Hotel", words_en: ["Hallway", "Dust", "Darkness", "Sound"] },
-            { loc_ar: "متحف الآثار", words_ar: ["تمثال", "تاريخ", "حراس", "جوهرة"], loc_en: "Museum", words_en: ["Statue", "History", "Guards", "Gem"] },
-            { loc_ar: "حديقة حيوان", words_ar: ["قفص", "أسد", "زائر", "طعام"], loc_en: "Zoo", words_en: ["Cage", "Lion", "Visitor", "Food"] },
-            { loc_ar: "مختبر كيميائي", words_ar: ["أنبوب", "سائل", "تفاعل", "غاز"], loc_en: "Chem Lab", words_en: ["Tube", "Liquid", "Reaction", "Gas"] },
-            { loc_ar: "ملعب كرة", words_ar: ["جمهور", "هدف", "حكم", "عشب"], loc_en: "Stadium", words_en: ["Crowd", "Goal", "Referee", "Grass"] },
-            { loc_ar: "مستشفى ميداني", words_ar: ["جراح", "جريح", "خيمة", "اسعاف"], loc_en: "Field Hospital", words_en: ["Surgeon", "Wounded", "Tent", "Aid"] },
-            { loc_ar: "منصة إطلاق", words_ar: ["وقود", "عد تنازلي", "دخان", "مهندس"], loc_en: "Launch Pad", words_en: ["Fuel", "Countdown", "Smoke", "Engineer"] },
-            { loc_ar: "محطة توليد", words_ar: ["طاقة", "كهرباء", "مولد", "أسلاك"], loc_en: "Power Plant", words_en: ["Power", "Electric", "Generator", "Wires"] },
-            { loc_ar: "سفارة أجنبية", words_ar: ["جواز", "دبلوماسي", "تأشيرة", "علم"], loc_en: "Embassy", words_en: ["Passport", "Diplomat", "Visa", "Flag"] },
-            { loc_ar: "محل تحف", words_ar: ["مجسم", "خشب", "نادر", "زجاج"], loc_en: "Antique Shop", words_en: ["Model", "Wood", "Rare", "Glass"] },
-            { loc_ar: "ورشة سرية", words_ar: ["أدوات", "تصليح", "شحوم", "صوت"], loc_en: "Secret Workshop", words_en: ["Tools", "Fix", "Grease", "Noise"] },
-            { loc_ar: "مركز تسوق", words_ar: ["متاجر", "نافورة", "طعام", "أكياس"], loc_en: "Mall", words_en: ["Stores", "Fountain", "Food", "Bags"] },
-            { loc_ar: "مقهى أدبي", words_ar: ["كتب", "قهوة", "نقاش", "كراسي"], loc_en: "Literary Cafe", words_en: ["Books", "Coffee", "Discussion", "Chairs"] },
-            { loc_ar: "مسبح أولمبي", words_ar: ["سباق", "غوص", "ماء", "خطوط"], loc_en: "Olympic Pool", words_en: ["Race", "Diving", "Water", "Lanes"] },
-            { loc_ar: "مزرعة تربية", words_ar: ["حيوانات", "حظيرة", "تبن", "حليب"], loc_en: "Farm", words_en: ["Animals", "Barn", "Hay", "Milk"] },
-            { loc_ar: "محطة اتصالات", words_ar: ["إشارة", "هوائي", "بث", "تردد"], loc_en: "Comm Station", words_en: ["Signal", "Antenna", "Broadcast", "Frequency"] },
-            { loc_ar: "مطعم عائم", words_ar: ["مركب", "سمك", "أمواج", "عشاء"], loc_en: "Floating Restaurant", words_en: ["Boat", "Fish", "Waves", "Dinner"] },
-            { loc_ar: "مكتبة عامة", words_ar: ["رفوف", "صمت", "استعارة", "قارئ"], loc_en: "Library", words_en: ["Shelves", "Silence", "Borrow", "Reader"] },
-            { loc_ar: "شاطئ استوائي", words_ar: ["نخيل", "شمس", "رمال", "سباحة"], loc_en: "Tropical Beach", words_en: ["Palms", "Sun", "Sand", "Swim"] }
+            { loc_ar: "قصر ملكي", words_ar: ["تاج", "حراس", "عروش", "خدم"], loc_en: "Royal Palace", words_en: ["Crown", "Guards", "Throne", "Servants"] },
+            { loc_ar: "بنك مركزي", words_ar: ["خزنة", "مال", "رصاص", "مفتاح"], loc_en: "Central Bank", words_en: ["Vault", "Money", "Lead", "Key"] },
+            { loc_ar: "مستشفى مهجور", words_ar: ["أشباح", "أطباء", "ظلام", "حقن"], loc_en: "Abandoned Hospital", words_en: ["Ghosts", "Doctors", "Dark", "Syringe"] },
+            { loc_ar: "قطار ليلي", words_ar: ["درجات", "تذاكر", "نوم", "ممر"], loc_en: "Night Train", words_en: ["Bunks", "Tickets", "Sleep", "Aisle"] },
+            { loc_ar: "جزيرة كنز", words_ar: ["خريطة", "حفر", "ذهب", "قراصنة"], loc_en: "Treasure Island", words_en: ["Map", "Dig", "Gold", "Pirates"] },
+            { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] },
+            { loc_ar: "مطار دولي", words_ar: ["جوازات", "طائرات", "حقائب", "إقلاع"], loc_en: "Airport", words_en: ["Passports", "Planes", "Bags", "Takeoff"] },
+            { loc_ar: "جامعة سحر", words_ar: ["كتب", "عصا", "عفاريت", "تراكيب"], loc_en: "Magic Uni", words_en: ["Books", "Wand", "Ghosts", "Potions"] }
         ];
 
         function App() {
-            const [lang, setLang] = useState('en'); // Default English
+            const [lang, setLang] = useState('en');
             const [user, setUser] = useState(null);
             const [room, setRoom] = useState(null);
             const [roomId, setRoomId] = useState('');
             const [inputCode, setInputCode] = useState('');
             const [nickname, setNickname] = useState(() => localStorage.getItem('pro_spy_nick') || '');
             const [loading, setLoading] = useState(false);
-            const [timeLeft, setTimeLeft] = useState(0);
-            const [copyStatus, setCopyStatus] = useState(false);
-            const [isLocked, setIsLocked] = useState(false);
-            const [tempVote, setTempVote] = useState(null);
-            const hasAutoVotedRef = useRef(false);
-
+            const [chatMsg, setChatMsg] = useState('');
+            const [voteTarget, setVoteTarget] = useState(null); // UID of voted player
+            const [turnTimer, setTurnTimer] = useState(30);
+            
             const t = TRANSLATIONS[lang];
+            const turnIntervalRef = useRef(null);
 
-            // Auth Effect
+            // Auth
             useEffect(() => {
                 const unsub = auth.onAuthStateChanged(async (u) => {
                     if (u) setUser(u);
@@ -393,95 +289,43 @@
                 return unsub;
             }, []);
 
-            // Firestore Listener
+            // Room Listener
             useEffect(() => {
                 if (!user || !roomId) return;
                 const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
                     .onSnapshot(doc => {
-                        if (doc.exists) {
-                            const data = doc.data();
-                            setRoom(data);
-                            if (data.status === 'waiting') {
-                                setIsLocked(false);
-                                setTempVote(null);
-                                hasAutoVotedRef.current = false;
-                            }
-                        } else {
-                            setRoom(null);
-                        }
+                        if (doc.exists) setRoom(doc.data());
+                        else setRoom(null);
                     });
                 return unsub;
             }, [user, roomId]);
 
-            // Timer Effect
+            // Turn Timer Logic (Client side simulation for smoothness, synced with server timestamp)
             useEffect(() => {
-                let interval;
-                if (room?.status === 'playing' && room?.timerStart) {
-                    interval = setInterval(() => {
-                        const elapsed = Math.floor((Date.now() - room.timerStart) / 1000);
-                        const remaining = Math.max(0, 20 - elapsed);
-                        setTimeLeft(remaining);
+                if (room?.status === 'discussing' && room.currentTurnUID === user.uid && room.turnEndTime) {
+                    const interval = setInterval(() => {
+                        const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000));
+                        setTurnTimer(remaining);
+                        if (remaining <= 0) handleSkipTurn(); // Auto skip
                     }, 1000);
+                    return () => clearInterval(interval);
+                } else {
+                    setTurnTimer(30); // Reset visual
                 }
-                return () => clearInterval(interval);
-            }, [room?.status, room?.timerStart]);
+            }, [room?.status, room?.currentTurnUID, room?.turnEndTime]);
 
-            // Auto-Vote Logic
-            useEffect(() => {
-                if (timeLeft === 0 && room?.status === 'playing' && !hasAutoVotedRef.current) {
-                    const isSpy = room.spyId === user.uid;
-                    const me = room.players.find(p => p.uid === user.uid);
-                    
-                    if (!isSpy && me && !me.vote && room.scenario) {
-                        hasAutoVotedRef.current = true;
-                        const words = lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en;
-                        const randomWord = words[Math.floor(Math.random() * words.length)];
-                        
-                        const updatedPlayers = room.players.map(p => 
-                            p.uid === user.uid ? { ...p, vote: randomWord } : p
-                        );
-                        
-                        db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
-                            .update({ players: updatedPlayers });
-                    }
-                }
-            }, [timeLeft, room, user, lang, roomId]);
-
-            const majorityWord = useMemo(() => {
-                if (!room?.players || !room?.scenario) return null;
-                const wordsList = lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en;
-                const counts = {};
-                room.players.forEach(p => {
-                    if (p.vote) counts[p.vote] = (counts[p.vote] || 0) + 1;
-                });
-                
-                if (Object.keys(counts).length === 0) return wordsList[0];
-                
-                let maxCount = 0;
-                let winner = Object.keys(counts)[0];
-                
-                for (const word in counts) {
-                    if (counts[word] > maxCount) {
-                        maxCount = counts[word];
-                        winner = word;
-                    }
-                }
-                return winner;
-            }, [room?.players, room?.scenario, lang]);
+            // --- Actions ---
 
             const handleCreate = async () => {
                 if (!nickname.trim()) return;
                 setLoading(true);
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set({
-                    id, 
-                    admin: user.uid, 
-                    status: 'waiting',
-                    players: [{ uid: user.uid, name: nickname, vote: null }],
-                    scenario: null, 
-                    spyId: null, 
-                    timerStart: null,
-                    usedLocations: []
+                    id, admin: user.uid, status: 'waiting',
+                    players: [{ uid: user.uid, name: nickname, status: 'active' }], // status: active, spectator
+                    scenario: null, spyId: null, 
+                    currentTurnUID: null, turnEndTime: null, currentRound: 0,
+                    messages: [], votes: {}, usedLocations: []
                 });
                 setRoomId(id);
                 setLoading(false);
@@ -495,292 +339,380 @@
                 const snap = await ref.get();
                 if (snap.exists) {
                     const data = snap.data();
-                    if (!data.players.find(p => p.uid === user.uid)) {
-                        await ref.update({ players: [...data.players, { uid: user.uid, name: nickname, vote: null }] });
+                    const exists = data.players.find(p => p.uid === user.uid);
+                    if (!exists) {
+                        await ref.update({ players: [...data.players, { uid: user.uid, name: nickname, status: 'active' }] });
                     }
                     setRoomId(code);
                 }
                 setLoading(false);
             };
 
-            const startMission = async () => {
+            const startGame = async () => {
                 if (room.admin !== user.uid) return;
-                setLoading(true);
-
+                
+                // Logic: Pick Scenario & Spy
                 const used = room.usedLocations || [];
-                const available = SCENARIOS_DB.filter(s => !used.includes(s.loc_en));
-                const pool = available.length > 0 ? available : SCENARIOS_DB;
-                const scenario = pool[Math.floor(Math.random() * pool.length)];
-                
-                const spy = room.players[Math.floor(Math.random() * room.players.length)];
-                
+                const avail = SCENARIOS.filter(s => !used.includes(s.loc_en));
+                const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))];
+                const activePlayers = room.players.filter(p => p.status === 'active');
+                const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+                const firstPlayer = activePlayers[0];
+
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    status: 'playing', 
-                    scenario, 
-                    spyId: spy.uid, 
-                    timerStart: Date.now(),
-                    players: room.players.map(p => ({ ...p, vote: null })),
-                    usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en)
+                    status: 'discussing',
+                    scenario,
+                    spyId: spy.uid,
+                    currentTurnUID: firstPlayer.uid,
+                    turnEndTime: Date.now() + 30000, // 30 secs
+                    currentRound: 1,
+                    players: room.players.map(p => ({ ...p, vote: null })), // Reset votes on start
+                    usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en),
+                    messages: [] // Clear chat
                 });
-                
-                setLoading(false);
+            };
+
+            const handleSkipTurn = async () => {
+                if (room.currentTurnUID !== user.uid) return;
+                nextTurn();
+            };
+
+            const nextTurn = async () => {
+                const activePlayers = room.players.filter(p => p.status === 'active');
+                const currentIndex = activePlayers.findIndex(p => p.uid === room.currentTurnUID);
+                const nextIndex = (currentIndex + 1) % activePlayers.length;
+
+                // If full circle, move to voting
+                if (nextIndex === 0) {
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                        status: 'voting',
+                        currentTurnUID: null,
+                        turnEndTime: null
+                    });
+                } else {
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                        currentTurnUID: activePlayers[nextIndex].uid,
+                        turnEndTime: Date.now() + 30000
+                    });
+                }
+            };
+
+            const sendMessage = async (e) => {
+                e.preventDefault();
+                if (!chatMsg.trim()) return;
+                const msg = { sender: user.uid, name: nickname, text: chatMsg, time: Date.now() };
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                    messages: firebase.firestore.FieldValue.arrayUnion(msg)
+                });
+                setChatMsg('');
+            };
+
+            const handleVote = async (targetUID) => {
+                // Store vote locally first
+                setVoteTarget(targetUID);
             };
 
             const confirmVote = async () => {
-                if (!tempVote || isLocked) return;
-                setIsLocked(true);
-                const updated = room.players.map(p => p.uid === user.uid ? { ...p, vote: tempVote } : p);
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ players: updated });
+                if (!voteTarget) return;
+                // We use a map in Firestore: { voterUID: targetUID }
+                const voteUpdate = {};
+                voteUpdate[`votes.${user.uid}`] = voteTarget;
+                
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update(voteUpdate);
+                
+                // Check if all active players voted (Admin job)
+                if (room.admin === user.uid) {
+                    checkVoteResult();
+                }
             };
 
-            const copyCode = () => {
-                navigator.clipboard.writeText(room.id);
-                setCopyStatus(true);
-                setTimeout(() => setCopyStatus(false), 2000);
+            const checkVoteResult = async () => {
+                // Simple majority logic
+                const activePlayers = room.players.filter(p => p.status === 'active');
+                const votes = room.votes || {};
+                const voteCounts = {};
+                
+                Object.values(votes).forEach(v => voteCounts[v] = (voteCounts[v] || 0) + 1);
+                
+                let maxVotes = 0;
+                let ejectedUID = null;
+                for (const uid in voteCounts) {
+                    if (voteCounts[uid] > maxVotes) {
+                        maxVotes = voteCounts[uid];
+                        ejectedUID = uid;
+                    }
+                }
+
+                // Check majority
+                if (maxVotes >= Math.ceil(activePlayers.length / 2)) {
+                    // Eject player
+                    const newPlayers = room.players.map(p => {
+                        if (p.uid === ejectedUID) return { ...p, status: 'spectator' };
+                        return p;
+                    });
+
+                    const isSpy = ejectedUID === room.spyId;
+                    const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.uid !== room.spyId);
+
+                    // If Spy ejected -> Game Over (Agents Win)
+                    // If only Spy remains -> Game Over (Spy Wins)
+                    let newStatus = room.status;
+                    if (isSpy) {
+                        newStatus = 'finished_spy_caught';
+                    } else if (remainingAgents.length <= 1) {
+                        newStatus = 'finished_spy_wins';
+                    } else {
+                        // Continue game with one less agent
+                        newStatus = 'discussing';
+                        // Reset for next round
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                            players: newPlayers,
+                            status: 'discussing',
+                            votes: {}, // Clear votes
+                            currentTurnUID: room.players.find(p => p.status === 'active')?.uid,
+                            turnEndTime: Date.now() + 30000
+                        });
+                        return;
+                    }
+
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                        players: newPlayers,
+                        status: newStatus
+                    });
+                }
             };
 
-            const timerProgress = (timeLeft / 20) * 100;
-            const circumference = 2 * Math.PI * 45;
+            const resetGame = async () => {
+                // Keep same players, reset state
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                    status: 'waiting',
+                    scenario: null,
+                    spyId: null,
+                    currentTurnUID: null,
+                    currentRound: 0,
+                    votes: {},
+                    messages: [],
+                    players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active' })) // Reactivate all
+                });
+            };
+
+            // --- Render Helpers ---
+            const currentWords = useMemo(() => {
+                if (!room?.scenario) return [];
+                const isSpy = room.spyId === user.uid;
+                if (isSpy) return ["?", "?", "?", "?"];
+                return lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en;
+            }, [room, user, lang]);
+
+            const isMyTurn = room?.currentTurnUID === user.uid;
+            const isSpy = room?.spyId === user.uid;
+            const me = room?.players.find(p => p.uid === user.uid);
+            const isSpectator = me?.status === 'spectator';
+
+            // Timer visual calculation
+            const timerProgress = (turnTimer / 30) * 100;
+            const circumference = 2 * Math.PI * 18;
             const strokeDashoffset = circumference - (timerProgress / 100) * circumference;
-            const isSpy = room?.spyId === user?.uid;
-            const currentWords = isSpy ? ["?", "?", "?", "?"] : (lang === 'ar' ? room?.scenario?.words_ar : room?.scenario?.words_en);
 
             return (
-                <div className="min-h-screen p-4 md:p-6 flex flex-col items-center" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-                    <div className="w-full max-w-md space-y-6">
-                        
-                        {/* Header */}
-                        <header className="flex justify-between items-center animate-fade-in py-2">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--accent)] to-orange-600 flex items-center justify-center shadow-lg">
-                                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round">
-                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h1 className="text-2xl font-black tracking-tight site-title">{t.appName}</h1>
-                                    <p className="text-[10px] font-mono text-[var(--muted)] tracking-widest">{t.tagline}</p>
-                                </div>
+                <div className="min-h-screen flex flex-col items-center p-4 md:p-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                    {/* Header */}
+                    <header className="w-full max-w-4xl flex justify-between items-center mb-6 animate-fade-in">
+                        <div className="flex items-center gap-3">
+                            <div className="logo-container animate-float">
+                                <div className="logo-border"></div>
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                                </svg>
                             </div>
-                            <button 
-                                onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
-                                className="btn btn-ghost px-3 py-2 rounded-lg text-xs font-mono"
-                            >
-                                {t.langBtn}
-                            </button>
-                        </header>
+                            <div>
+                                <h1 className="game-title text-2xl">{t.appName}</h1>
+                                <p className="text-[10px] text-gray-500 tracking-widest font-tech">{t.tagline}</p>
+                            </div>
+                        </div>
+                        <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">
+                            {t.langBtn}
+                        </button>
+                    </header>
 
-                        {!room ? (
-                            /* Login Screen */
-                            <main className="card p-6 space-y-6 animate-fade-in delay-1">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-mono text-[var(--muted)] uppercase tracking-wider">{t.nickname}</label>
-                                    <input 
-                                        className="input-field w-full p-4 rounded-xl font-medium text-sm"
-                                        value={nickname} 
-                                        onChange={e => {
-                                            setNickname(e.target.value);
-                                            localStorage.setItem('pro_spy_nick', e.target.value);
-                                        }}
-                                    />
-                                </div>
-                                <div className="space-y-3 pt-2">
-                                    <button 
-                                        onClick={handleCreate} 
-                                        disabled={loading || !nickname}
-                                        className="btn btn-primary w-full py-4 rounded-xl text-sm uppercase tracking-wider"
+                    <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
+                        
+                        {/* Left Column: Players List */}
+                        <div className="glass-panel rounded-2xl p-4 space-y-2 animate-fade-in delay-1">
+                            <h3 className="text-xs font-bold text-gray-400 mb-2 border-b border-gray-800 pb-2 uppercase tracking-wider">{t.players}</h3>
+                            <div className="space-y-2">
+                                {room?.players.map((p, i) => (
+                                    <div key={i} 
+                                        className={`player-card p-2 rounded-lg flex items-center justify-between 
+                                        ${p.uid === room.currentTurnUID ? 'active' : 'border border-transparent'}
+                                        ${p.status === 'spectator' ? 'eliminated' : ''}`}
                                     >
-                                        {loading ? t.loading : t.create}
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full ${p.status === 'spectator' ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                                            <span className="font-bold text-sm truncate">{p.name}</span>
+                                            {p.uid === user.uid && <span className="text-[9px] bg-blue-500 px-1 rounded">{t.you}</span>}
+                                        </div>
+                                        <div>
+                                            {p.status === 'spectator' && <span className="text-[9px] text-red-400">{t.spectator}</span>}
+                                            {p.uid === room.currentTurnUID && room.status === 'discussing' && (
+                                                <span className="text-[9px] text-cyan-400 animate-pulse">Speaking...</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Middle Column: Main Game Area */}
+                        <div className="md:col-span-2 space-y-4">
+                            
+                            {/* Waiting / Setup Screen */}
+                            {!room && (
+                                <div className="glass-panel rounded-2xl p-8 text-center space-y-6 animate-fade-in">
+                                    <div className="space-y-2">
+                                        <label className="text-xs text-gray-400 uppercase">{t.nickname}</label>
+                                        <input className="input-dark w-full p-3 rounded-lg text-center font-bold" value={nickname} 
+                                            onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} 
+                                        />
+                                    </div>
+                                    <button onClick={handleCreate} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">
+                                        {t.create}
                                     </button>
                                     <div className="flex gap-2">
-                                        <input 
-                                            className="input-field flex-1 p-4 rounded-xl font-mono uppercase text-center tracking-widest"
-                                            placeholder={t.codePlaceholder}
-                                            value={inputCode}
-                                            onChange={e => setInputCode(e.target.value.toUpperCase())}
-                                        />
-                                        <button 
-                                            onClick={handleJoin} 
-                                            disabled={loading || !nickname || !inputCode}
-                                            className="btn btn-ghost px-6 rounded-xl text-xs font-bold"
-                                        >
+                                        <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value)} />
+                                        <button onClick={handleJoin} disabled={loading || !nickname || !inputCode} className="btn-ghost px-6 rounded-lg font-bold">
                                             {t.join}
                                         </button>
                                     </div>
                                 </div>
-                            </main>
-                        ) : (
-                            /* Game Room */
-                            <div className="space-y-4 animate-fade-in">
-                                
-                                {/* Room Header */}
-                                <div className="card p-4 flex justify-between items-center animate-fade-in delay-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-mono text-sm font-bold text-[var(--accent)]">{room.id}</span>
-                                        <button onClick={copyCode} className="text-[9px] bg-white/5 hover:bg-white/10 px-2 py-1 rounded transition-colors">
-                                            {copyStatus ? t.copied : t.copy}
-                                        </button>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-[10px] font-mono text-[var(--muted)]">
-                                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                                        {t.players}: {room.players.length}
-                                    </div>
-                                </div>
+                            )}
 
-                                {room.status === 'waiting' ? (
-                                    /* Waiting Room */
-                                    <div className="card p-6 space-y-5 animate-fade-in delay-2">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {room.players.map((p, i) => (
-                                                <div 
-                                                    key={i} 
-                                                    className={`p-3 rounded-xl text-xs font-bold flex justify-between items-center border transition-all
-                                                        ${p.uid === user.uid 
-                                                            ? 'bg-[var(--accent)]/10 border-[var(--accent)]' 
-                                                            : 'bg-white/5 border-transparent opacity-70'}`}
-                                                >
-                                                    <span className="truncate">{p.name}</span>
-                                                    {p.uid === user.uid && (
-                                                        <span className="text-[8px] bg-[var(--accent)] text-black px-1.5 py-0.5 rounded">{t.you}</span>
-                                                    )}
-                                                </div>
-                                            ))}
+                            {room && (
+                                <>
+                                    {/* Room Info Bar */}
+                                    <div className="glass-panel rounded-xl p-3 flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-mono font-bold text-lg tracking-widest text-cyan-400">{room.id}</span>
+                                            <button onClick={() => navigator.clipboard.writeText(room.id)} className="text-[10px] bg-white/10 px-2 py-1 rounded">Copy</button>
                                         </div>
-                                        
-                                        {room.admin === user.uid ? (
-                                            <button onClick={startMission} disabled={loading} className="btn btn-primary w-full py-4 rounded-xl text-sm uppercase tracking-wider">
-                                                {t.start}
-                                            </button>
-                                        ) : (
-                                            <div className="text-center py-4">
-                                                <p className="text-xs text-[var(--muted)] animate-pulse">{t.waiting}</p>
-                                            </div>
-                                        )}
+                                        <span className="text-xs text-gray-400">{t.round}: {room.currentRound || 0}</span>
                                     </div>
-                                ) : (
-                                    /* Playing Room */
-                                    <div className="space-y-4">
-                                        
-                                        {/* Improved Identity Card */}
-                                        <div className={`identity-card p-6 text-center animate-fade-in delay-1 ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
-                                            <div className="relative z-10">
-                                                {/* Status Badge */}
-                                                <div className={`inline-block px-4 py-1 rounded-full text-[10px] font-bold uppercase mb-4 border ${
-                                                    isSpy 
-                                                        ? 'bg-red-500/10 text-red-400 border-red-500/30' 
-                                                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                                                }`}>
-                                                    {isSpy ? t.statusSpy : t.statusAgent}
-                                                </div>
 
-                                                {/* Main Identity Text */}
-                                                <h2 className="text-xl font-black uppercase tracking-widest mb-4">
-                                                    {isSpy ? t.spyTitle : t.citizenTitle}
-                                                </h2>
+                                    {/* Waiting for players */}
+                                    {room.status === 'waiting' && (
+                                        <div className="glass-panel rounded-2xl p-6 text-center animate-fade-in">
+                                            <div className="animate-pulse text-gray-400 text-sm mb-4">{t.waiting}</div>
+                                            {room.admin === user.uid && (
+                                                <button onClick={startGame} className="btn-neon w-full py-3 rounded-lg font-bold">
+                                                    {t.start}
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
 
-                                                {isSpy ? (
-                                                    <div className="space-y-3">
-                                                        <div className="text-6xl font-mono font-bold text-red-400">?</div>
-                                                        <p className="text-xs text-[var(--muted)] max-w-xs mx-auto leading-relaxed">{t.spyDesc}</p>
+                                    {/* Game Finished */}
+                                    {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins') && (
+                                        <div className="glass-panel rounded-2xl p-8 text-center animate-fade-in border border-purple-500">
+                                            <h2 className="text-3xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+                                                {room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}
+                                            </h2>
+                                            <p className="text-gray-400 mb-6">
+                                                The Spy was: <span className="text-white font-bold">{room.players.find(p => p.uid === room.spyId)?.name}</span>
+                                            </p>
+                                            {room.admin === user.uid && (
+                                                <button onClick={resetGame} className="btn-ghost border-white/20 text-white w-full py-3 rounded-lg">
+                                                    {t.playAgain}
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Discussion Phase */}
+                                    {room.status === 'discussing' && (
+                                        <div className="space-y-4 animate-fade-in">
+                                            {/* Identity Card */}
+                                            <div className={`glass-panel rounded-2xl p-5 border-l-4 ${isSpy ? 'border-red-500' : 'border-green-500'}`}>
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <span className={`text-[10px] font-bold uppercase ${isSpy ? 'text-red-400' : 'text-green-400'}`}>
+                                                            {isSpy ? t.statusSpy : t.statusAgent}
+                                                        </span>
+                                                        <h3 className="text-xl font-black mt-1">
+                                                            {isSpy ? "???" : (lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en)}
+                                                        </h3>
+                                                        <p className="text-xs text-gray-500">{t.location}</p>
                                                     </div>
-                                                ) : (
-                                                    <div className="space-y-4">
-                                                        <div className="bg-black/20 rounded-xl p-4 border border-white/5">
-                                                            <p className="text-[10px] font-mono text-[var(--muted)] uppercase mb-2">{t.locationLabel}</p>
-                                                            <div className="text-2xl font-black tracking-tight text-white">
-                                                                {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}
+                                                    
+                                                    {/* Turn Timer */}
+                                                    {isMyTurn && (
+                                                        <div className="relative w-12 h-12">
+                                                            <svg className="timer-svg w-full h-full" viewBox="0 0 40 40">
+                                                                <circle className="timer-circle-bg" cx="20" cy="20" r="18" strokeWidth="3"/>
+                                                                <circle className="timer-circle-progress" cx="20" cy="20" r="18" strokeWidth="3"
+                                                                    strokeDasharray={circumference} strokeDashoffset={strokeDashoffset}
+                                                                />
+                                                            </svg>
+                                                            <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-cyan-400">
+                                                                {turnTimer}
                                                             </div>
                                                         </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Chat Area */}
+                                            <div className="glass-panel rounded-2xl p-4 flex flex-col">
+                                                <div className="chat-container space-y-2 mb-3 pr-2">
+                                                    {room.messages?.slice(-20).map((m, i) => (
+                                                        <div key={i} className={`text-sm ${m.sender === user.uid ? 'text-cyan-400 text-right' : 'text-gray-300'}`}>
+                                                            <span className="font-bold mr-1">{m.name}:</span> {m.text}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                
+                                                {!isSpectator && isMyTurn ? (
+                                                    <form onSubmit={sendMessage} className="flex gap-2">
+                                                        <input 
+                                                            className="input-dark flex-1 p-2 rounded-lg text-sm" 
+                                                            placeholder={t.chatPlaceholder} 
+                                                            value={chatMsg} 
+                                                            onChange={e => setChatMsg(e.target.value)} 
+                                                        />
+                                                        <button type="submit" className="btn-neon px-4 rounded-lg text-xs">{t.send}</button>
+                                                        <button type="button" onClick={handleSkipTurn} className="btn-ghost px-4 rounded-lg text-xs border-orange-500 text-orange-400">{t.skip}</button>
+                                                    </form>
+                                                ) : (
+                                                    <div className="text-center text-xs text-gray-600 py-2">
+                                                        {isSpectator ? t.spectator : (isMyTurn ? "Your turn to speak" : "Waiting for turn...")}
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
+                                    )}
 
-                                        {/* Voting Area */}
-                                        <div className="card p-6 space-y-5 animate-fade-in delay-2">
-                                            
-                                            <div className="flex justify-between items-center">
-                                                <h3 className="text-xs font-mono uppercase text-[var(--muted)]">{t.voting}</h3>
-                                                
-                                                {/* Timer Circle */}
-                                                <div className="relative w-14 h-14">
-                                                    <svg className="w-full h-full" viewBox="0 0 100 100">
-                                                        <circle className="timer-track" cx="50" cy="50" r="45" fill="none" strokeWidth="6" stroke="var(--border)" />
-                                                        <circle 
-                                                            className="timer-progress" 
-                                                            cx="50" cy="50" r="45" 
-                                                            fill="none" 
-                                                            strokeWidth="6"
-                                                            strokeLinecap="round"
-                                                            strokeDasharray={circumference}
-                                                            strokeDashoffset={strokeDashoffset}
-                                                            style={{ stroke: timeLeft <= 5 ? 'var(--danger)' : 'var(--accent)' }}
-                                                        />
-                                                    </svg>
-                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                        <span className={`font-mono font-bold text-sm ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : ''}`}>
-                                                            {timeLeft}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Word Grid */}
+                                    {/* Voting Phase */}
+                                    {room.status === 'voting' && (
+                                        <div className="glass-panel rounded-2xl p-6 animate-fade-in space-y-4">
+                                            <h3 className="text-lg font-bold text-center text-yellow-400">{t.vote}</h3>
                                             <div className="grid grid-cols-2 gap-3">
-                                                {currentWords?.map((word, idx) => (
-                                                    <div 
-                                                        key={idx} 
-                                                        onClick={() => !isLocked && !isSpy && setTempVote(word)}
-                                                        className={`card word-card p-4 text-center text-sm font-bold
-                                                            ${tempVote === word ? 'selected' : ''}
-                                                            ${isLocked || timeLeft === 0 ? 'locked' : ''}
-                                                        `}
+                                                {room.players.filter(p => p.status === 'active').map(p => (
+                                                    <button key={p.uid} onClick={() => setVoteTarget(p.uid)}
+                                                        className={`p-3 rounded-xl border text-sm font-bold transition-all
+                                                        ${voteTarget === p.uid ? 'bg-pink-600 border-pink-400' : 'bg-white/5 border-white/10 hover:border-white/30'}`}
                                                     >
-                                                        {word}
-                                                    </div>
+                                                        {p.name}
+                                                    </button>
                                                 ))}
                                             </div>
-
-                                            {/* Status */}
-                                            {!isSpy && (
-                                                <div className="space-y-3 pt-2">
-                                                    <div className="bg-black/20 p-4 rounded-xl border border-white/5 flex justify-between items-center">
-                                                        <span className="text-[10px] font-mono text-[var(--muted)] uppercase">
-                                                            {timeLeft > 0 ? t.yourChoice : t.confirmedChoice}
-                                                        </span>
-                                                        <span className="font-bold text-sm text-[var(--accent)]">
-                                                            {isLocked ? tempVote : (timeLeft > 0 ? (tempVote || '...') : majorityWord)}
-                                                        </span>
-                                                    </div>
-
-                                                    {timeLeft > 0 && !isLocked && (
-                                                        <button 
-                                                            onClick={confirmVote}
-                                                            disabled={!tempVote}
-                                                            className="btn btn-primary w-full py-3 rounded-xl text-xs uppercase tracking-wider font-bold"
-                                                        >
-                                                            {t.lockIn}
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {/* Admin Controls */}
-                                            {room.admin === user.uid && timeLeft <= 0 && (
-                                                <button onClick={startMission} className="btn btn-ghost w-full py-3 rounded-xl text-xs uppercase tracking-wider mt-2 border-[var(--accent)] text-[var(--accent)]">
-                                                    {t.newRound}
-                                                </button>
-                                            )}
+                                            <button onClick={confirmVote} disabled={!voteTarget} className="btn-neon w-full py-3 rounded-lg font-bold mt-4">
+                                                {t.confirm}
+                                            </button>
                                         </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        <footer className="text-center py-6">
-                            <p className="font-mono text-[9px] text-[var(--muted)] opacity-30 tracking-[0.3em]">V3.1.0 // TACTICAL ESPIONAGE</p>
-                        </footer>
-                    </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </main>
                 </div>
             );
         }
@@ -790,7 +722,3 @@
     </script>
 </body>
 </html>
-
-
-
-
