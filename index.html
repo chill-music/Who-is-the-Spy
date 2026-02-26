@@ -53,6 +53,7 @@
 
         .font-tech { font-family: 'Rajdhani', sans-serif; }
 
+        /* Animations */
         @keyframes pulse-glow {
             0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); }
             50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); }
@@ -67,6 +68,12 @@
         @keyframes fade-in-up {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes border-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 0, 85, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0); }
         }
 
         @keyframes float {
@@ -115,10 +122,12 @@
             overflow: hidden;
         }
         
-        .btn-neon:hover {
+        .btn-neon:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 0 15px var(--primary);
         }
+        
+        .btn-neon:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         .btn-ghost {
             background: transparent;
@@ -161,6 +170,40 @@
         .timer-circle-progress { fill: none; stroke: var(--primary); stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
 
         .chat-container { height: 200px; overflow-y: auto; }
+
+        /* Identity Card Square Style */
+        .identity-square {
+            width: 100%;
+            max-width: 280px;
+            aspect-ratio: 1 / 1; /* Square */
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+        
+        .identity-spy {
+            border: 2px solid var(--accent);
+            background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.2);
+        }
+        
+        .identity-agent {
+            border: 2px solid var(--success);
+            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.1);
+        }
+        
+        .identity-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body class="bg-gradient-main">
@@ -186,7 +229,7 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v4_arena';
+        const appId = 'pro_spy_v5_final';
 
         // --- Translations ---
         const TRANSLATIONS = {
@@ -201,9 +244,10 @@
                 chatPlaceholder: "Type message...", send: "SEND",
                 waiting: "Awaiting host...", location: "LOCATION",
                 spectator: "SPECTATOR", ejected: "EJECTED",
-                noChoice: "NO VOTE", confirm: "CONFIRM", gameOver: "GAME OVER",
+                noChoice: "NO VOTE", confirm: "CONFIRM VOTE", gameOver: "GAME OVER",
                 spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!",
-                playAgain: "PLAY AGAIN", connecting: "Establishing Secure Connection..."
+                playAgain: "PLAY AGAIN", connecting: "Establishing Secure Connection...",
+                voteWait: "Waiting for votes...", voteDone: "VOTE LOCKED"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -216,9 +260,10 @@
                 chatPlaceholder: "اكتب رسالة...", send: "إرسال",
                 waiting: "بانتظار المضيف...", location: "الموقع",
                 spectator: "مشاهد", ejected: "مطرود",
-                noChoice: "لم يصوت", confirm: "تأكيد", gameOver: "انتهت اللعبة",
+                noChoice: "لم يصوت", confirm: "تأكيد التصويت", gameOver: "انتهت اللعبة",
                 spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!",
-                playAgain: "لعب مجدداً", connecting: "جاري تأمين الاتصال..."
+                playAgain: "لعب مجدداً", connecting: "جاري تأمين الاتصال...",
+                voteWait: "بانتظار الأصوات...", voteDone: "تم تثبيت التصويت"
             }
         };
 
@@ -287,9 +332,23 @@
                 }
             }, [room?.status, room?.currentTurnUID, room?.turnEndTime]);
 
+            // Automatic Vote Resolution Logic
+            useEffect(() => {
+                if (!room || room.status !== 'voting') return;
+                
+                const activePlayers = room.players.filter(p => p.status === 'active');
+                const votes = room.votes || {};
+                const voteCount = Object.keys(votes).length;
+
+                // If everyone has voted
+                if (voteCount === activePlayers.length) {
+                    resolveVotes();
+                }
+            }, [room?.votes, room?.status]);
+
             // Memoized Words Logic
             const currentWords = useMemo(() => {
-                if (!room?.scenario || !user) return []; // Safety check
+                if (!room?.scenario || !user) return [];
                 const isSpy = room.spyId === user.uid;
                 if (isSpy) return ["?", "?", "?", "?"];
                 return lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en;
@@ -355,12 +414,14 @@
                     currentRound: 1,
                     players: room.players.map(p => ({ ...p, vote: null })),
                     usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en),
-                    messages: []
+                    messages: [],
+                    votes: {} // Reset votes
                 });
             };
 
             const handleSkipTurn = async () => {
-                if (room.currentTurnUID !== user.uid) return;
+                // Prevent auto-skip if status changed or turn changed
+                if (room.currentTurnUID !== user.uid || room.status !== 'discussing') return;
                 nextTurn();
             };
 
@@ -370,6 +431,7 @@
                 const nextIndex = (currentIndex + 1) % activePlayers.length;
 
                 if (nextIndex === 0) {
+                    // Full circle, go to voting
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                         status: 'voting',
                         currentTurnUID: null,
@@ -393,62 +455,82 @@
                 setChatMsg('');
             };
 
-            const confirmVote = async () => {
-                if (!voteTarget || !user) return;
+            const submitVote = async (targetUID) => {
+                if (!targetUID || !user || (room.votes && room.votes[user.uid])) return; // Already voted
+                
                 const voteUpdate = {};
-                voteUpdate[`votes.${user.uid}`] = voteTarget;
+                voteUpdate[`votes.${user.uid}`] = targetUID;
                 
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update(voteUpdate);
-                
-                if (room.admin === user.uid) {
-                    checkVoteResult();
-                }
             };
 
-            const checkVoteResult = async () => {
-                const activePlayers = room.players.filter(p => p.status === 'active');
-                const votes = room.votes || {};
-                const voteCounts = {};
+            const resolveVotes = async () => {
+                // Double check inside function to prevent race conditions
+                const freshSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).get();
+                const freshData = freshSnap.data();
                 
+                const activePlayers = freshData.players.filter(p => p.status === 'active');
+                const votes = freshData.votes || {};
+                
+                // Count votes
+                const voteCounts = {};
                 Object.values(votes).forEach(v => voteCounts[v] = (voteCounts[v] || 0) + 1);
                 
                 let maxVotes = 0;
                 let ejectedUID = null;
+                let isTie = false;
+
                 for (const uid in voteCounts) {
                     if (voteCounts[uid] > maxVotes) {
                         maxVotes = voteCounts[uid];
                         ejectedUID = uid;
+                        isTie = false;
+                    } else if (voteCounts[uid] === maxVotes) {
+                        isTie = true; // Found another with same count
                     }
                 }
 
-                if (maxVotes >= Math.ceil(activePlayers.length / 2)) {
-                    const newPlayers = room.players.map(p => {
+                // Check Majority (more than 50%)
+                const majorityNeeded = Math.floor(activePlayers.length / 2) + 1; // Simple majority > 50%
+                
+                if (isTie || maxVotes < majorityNeeded) {
+                    // No one ejected due to tie or lack of majority
+                    // Continue to next round
+                    const firstPlayer = activePlayers[0];
+                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                        status: 'discussing',
+                        votes: {},
+                        currentTurnUID: firstPlayer.uid,
+                        turnEndTime: Date.now() + 30000,
+                        currentRound: firebase.firestore.FieldValue.increment(1)
+                    });
+                } else {
+                    // Eject player
+                    const newPlayers = freshData.players.map(p => {
                         if (p.uid === ejectedUID) return { ...p, status: 'spectator' };
                         return p;
                     });
 
-                    const isSpy = ejectedUID === room.spyId;
-                    const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.uid !== room.spyId);
-                    let newStatus = room.status;
+                    const isSpy = ejectedUID === freshData.spyId;
+                    const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.uid !== freshData.spyId);
+                    let newStatus = freshData.status;
 
                     if (isSpy) {
                         newStatus = 'finished_spy_caught';
                     } else if (remainingAgents.length <= 1) {
                         newStatus = 'finished_spy_wins';
                     } else {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                            players: newPlayers,
-                            status: 'discussing',
-                            votes: {},
-                            currentTurnUID: room.players.find(p => p.status === 'active')?.uid,
-                            turnEndTime: Date.now() + 30000
-                        });
-                        return;
+                        // Continue game
+                        newStatus = 'discussing';
                     }
 
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                         players: newPlayers,
-                        status: newStatus
+                        status: newStatus,
+                        votes: {},
+                        currentTurnUID: isSpy ? null : newPlayers.find(p => p.status === 'active')?.uid,
+                        turnEndTime: isSpy ? null : (Date.now() + 30000),
+                        currentRound: firebase.firestore.FieldValue.increment(1)
                     });
                 }
             };
@@ -466,8 +548,7 @@
                 });
             };
 
-            // --- Render Guards ---
-            // 1. If connecting to auth
+            // --- Render Guard ---
             if (!user) {
                 return (
                     <div className="min-h-screen flex items-center justify-center bg-gradient-main">
@@ -489,6 +570,7 @@
             const isSpy = room?.spyId === user.uid;
             const me = room?.players?.find(p => p.uid === user.uid);
             const isSpectator = me?.status === 'spectator';
+            const hasVoted = room?.votes?.[user.uid];
 
             const timerProgress = (turnTimer / 30) * 100;
             const circumference = 2 * Math.PI * 18;
@@ -610,32 +692,27 @@
                                     {/* Discussion Phase */}
                                     {room.status === 'discussing' && (
                                         <div className="space-y-4 animate-fade-in">
-                                            {/* Identity Card */}
-                                            <div className={`glass-panel rounded-2xl p-5 border-l-4 ${isSpy ? 'border-red-500' : 'border-green-500'}`}>
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <span className={`text-[10px] font-bold uppercase ${isSpy ? 'text-red-400' : 'text-green-400'}`}>
-                                                            {isSpy ? t.statusSpy : t.statusAgent}
-                                                        </span>
-                                                        <h3 className="text-xl font-black mt-1">
-                                                            {isSpy ? "???" : (lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en)}
-                                                        </h3>
-                                                        <p className="text-xs text-gray-500">{t.location}</p>
-                                                    </div>
+                                            
+                                            {/* Improved Identity Card (Square) */}
+                                            <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
+                                                <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
+                                                    <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
+                                                        {isSpy ? t.statusSpy : t.statusAgent}
+                                                    </span>
                                                     
-                                                    {/* Turn Timer */}
-                                                    {isMyTurn && (
-                                                        <div className="relative w-12 h-12">
-                                                            <svg className="timer-svg w-full h-full" viewBox="0 0 40 40">
-                                                                <circle className="timer-circle-bg" cx="20" cy="20" r="18" strokeWidth="3"/>
-                                                                <circle className="timer-circle-progress" cx="20" cy="20" r="18" strokeWidth="3"
-                                                                    strokeDasharray={circumference} strokeDashoffset={strokeDashoffset}
-                                                                />
-                                                            </svg>
-                                                            <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-cyan-400">
-                                                                {turnTimer}
+                                                    {isSpy ? (
+                                                        <>
+                                                            <div className="text-5xl mb-2">🕵️</div>
+                                                            <h3 className="text-3xl font-black tracking-wider text-red-500">???</h3>
+                                                            <p className="text-xs text-gray-500 mt-2 text-center">{lang === 'ar' ? 'اكتشف المكان دون أن تنكشف' : 'Find the location without getting caught'}</p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="text-4xl font-black mt-2 text-center px-2">
+                                                                {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}
                                                             </div>
-                                                        </div>
+                                                            <p className="text-xs text-gray-400 mt-2">{t.location}</p>
+                                                        </>
                                                     )}
                                                 </div>
                                             </div>
@@ -674,19 +751,29 @@
                                     {room.status === 'voting' && (
                                         <div className="glass-panel rounded-2xl p-6 animate-fade-in space-y-4">
                                             <h3 className="text-lg font-bold text-center text-yellow-400">{t.vote}</h3>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {room.players.filter(p => p.status === 'active').map(p => (
-                                                    <button key={p.uid} onClick={() => setVoteTarget(p.uid)}
-                                                        className={`p-3 rounded-xl border text-sm font-bold transition-all
-                                                        ${voteTarget === p.uid ? 'bg-pink-600 border-pink-400' : 'bg-white/5 border-white/10 hover:border-white/30'}`}
-                                                    >
-                                                        {p.name}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <button onClick={confirmVote} disabled={!voteTarget} className="btn-neon w-full py-3 rounded-lg font-bold mt-4">
-                                                {t.confirm}
-                                            </button>
+                                            
+                                            {!hasVoted ? (
+                                                <>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        {room.players.filter(p => p.status === 'active').map(p => (
+                                                            <button key={p.uid} onClick={() => submitVote(p.uid)}
+                                                                className={`p-4 rounded-xl border text-sm font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10`}
+                                                            >
+                                                                {p.name}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="text-center space-y-4">
+                                                    <div className="text-green-400 font-bold animate-pulse">{t.voteWait}</div>
+                                                    <div className="text-xs text-gray-500">{t.voteDone}</div>
+                                                    <div className="flex justify-center gap-2 mt-4">
+                                                        {Object.values(room.votes).map((v, i) => <div key={i} className="w-2 h-2 rounded-full bg-cyan-400"></div>)}
+                                                        <div className="w-2 h-2 rounded-full bg-gray-600"></div> {/* Dummy for progress */}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </>
