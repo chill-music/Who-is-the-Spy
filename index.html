@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PRO SPY | Covert Arena</title>
-    <!-- Fallback Icon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕵️</text></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,9 +18,9 @@
         :root {
             --bg-dark: #05050a;
             --bg-card: rgba(20, 20, 30, 0.7);
-            --primary: #00f2ff; /* Cyan */
-            --secondary: #7000ff; /* Purple */
-            --accent: #ff0055; /* Pink/Red for Spy alerts */
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --accent: #ff0055;
             --text-main: #ffffff;
             --text-muted: #8b8b9e;
             --border: rgba(255, 255, 255, 0.1);
@@ -37,7 +36,6 @@
             overflow-x: hidden;
         }
 
-        /* Background Effects */
         .bg-gradient-main {
             background: 
                 radial-gradient(circle at 10% 20%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
@@ -45,7 +43,6 @@
                 var(--bg-dark);
         }
 
-        /* Glass Morphism */
         .glass-panel {
             background: var(--bg-card);
             backdrop-filter: blur(20px);
@@ -54,10 +51,8 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* Typography */
         .font-tech { font-family: 'Rajdhani', sans-serif; }
 
-        /* Animations */
         @keyframes pulse-glow {
             0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); }
             50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); }
@@ -82,7 +77,6 @@
         .animate-fade-in { animation: fade-in-up 0.6s ease-out forwards; }
         .animate-float { animation: float 3s ease-in-out infinite; }
         
-        /* Logo Animation */
         .logo-container {
             position: relative;
             width: 50px;
@@ -102,7 +96,6 @@
             animation: rotate-border 3s linear infinite;
         }
 
-        /* Title Style */
         .game-title {
             font-family: 'Rajdhani', sans-serif;
             font-weight: 700;
@@ -113,7 +106,6 @@
             animation: pulse-glow 3s infinite alternate;
         }
 
-        /* Buttons */
         .btn-neon {
             position: relative;
             background: linear-gradient(90deg, var(--secondary), var(--primary));
@@ -135,7 +127,6 @@
         }
         .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
 
-        /* Input */
         .input-dark {
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid var(--border);
@@ -148,15 +139,11 @@
             box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
         }
 
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
 
-        /* Specific Components */
-        .player-card {
-            transition: all 0.3s;
-        }
+        .player-card { transition: all 0.3s; }
         .player-card.active {
             border: 1px solid var(--primary);
             box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
@@ -169,32 +156,16 @@
             filter: grayscale(100%);
         }
 
-        /* Timer Circle */
-        .timer-svg {
-            transform: rotate(-90deg);
-        }
-        .timer-circle-bg {
-            fill: none;
-            stroke: rgba(255,255,255,0.1);
-        }
-        .timer-circle-progress {
-            fill: none;
-            stroke: var(--primary);
-            stroke-linecap: round;
-            transition: stroke-dashoffset 1s linear;
-        }
+        .timer-svg { transform: rotate(-90deg); }
+        .timer-circle-bg { fill: none; stroke: rgba(255,255,255,0.1); }
+        .timer-circle-progress { fill: none; stroke: var(--primary); stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
 
-        /* Chat */
-        .chat-container {
-            height: 200px;
-            overflow-y: auto;
-        }
+        .chat-container { height: 200px; overflow-y: auto; }
     </style>
 </head>
 <body class="bg-gradient-main">
     <div id="root"></div>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -232,7 +203,7 @@
                 spectator: "SPECTATOR", ejected: "EJECTED",
                 noChoice: "NO VOTE", confirm: "CONFIRM", gameOver: "GAME OVER",
                 spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!",
-                playAgain: "PLAY AGAIN"
+                playAgain: "PLAY AGAIN", connecting: "Establishing Secure Connection..."
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -247,11 +218,11 @@
                 spectator: "مشاهد", ejected: "مطرود",
                 noChoice: "لم يصوت", confirm: "تأكيد", gameOver: "انتهت اللعبة",
                 spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!",
-                playAgain: "لعب مجدداً"
+                playAgain: "لعب مجدداً", connecting: "جاري تأمين الاتصال..."
             }
         };
 
-        // --- Scenarios DB (Expanded) ---
+        // --- Scenarios DB ---
         const SCENARIOS = [
             { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
             { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Sonar"] },
@@ -274,7 +245,7 @@
             const [nickname, setNickname] = useState(() => localStorage.getItem('pro_spy_nick') || '');
             const [loading, setLoading] = useState(false);
             const [chatMsg, setChatMsg] = useState('');
-            const [voteTarget, setVoteTarget] = useState(null); // UID of voted player
+            const [voteTarget, setVoteTarget] = useState(null); 
             const [turnTimer, setTurnTimer] = useState(30);
             
             const t = TRANSLATIONS[lang];
@@ -300,29 +271,29 @@
                 return unsub;
             }, [user, roomId]);
 
-            // Turn Timer Logic (Client side simulation for smoothness, synced with server timestamp)
+            // Turn Timer Logic
             useEffect(() => {
-                if (room?.status === 'discussing' && room.currentTurnUID === user.uid && room.turnEndTime) {
+                if (room?.status === 'discussing' && room.currentTurnUID === user?.uid && room.turnEndTime) {
                     const interval = setInterval(() => {
                         const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000));
                         setTurnTimer(remaining);
-                        if (remaining <= 0) handleSkipTurn(); // Auto skip
+                        if (remaining <= 0) handleSkipTurn(); 
                     }, 1000);
                     return () => clearInterval(interval);
                 } else {
-                    setTurnTimer(30); // Reset visual
+                    setTurnTimer(30);
                 }
             }, [room?.status, room?.currentTurnUID, room?.turnEndTime]);
 
             // --- Actions ---
 
             const handleCreate = async () => {
-                if (!nickname.trim()) return;
+                if (!nickname.trim() || !user) return;
                 setLoading(true);
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set({
                     id, admin: user.uid, status: 'waiting',
-                    players: [{ uid: user.uid, name: nickname, status: 'active' }], // status: active, spectator
+                    players: [{ uid: user.uid, name: nickname, status: 'active' }],
                     scenario: null, spyId: null, 
                     currentTurnUID: null, turnEndTime: null, currentRound: 0,
                     messages: [], votes: {}, usedLocations: []
@@ -332,8 +303,8 @@
             };
 
             const handleJoin = async () => {
+                if (!nickname.trim() || !inputCode || !user) return;
                 const code = inputCode.toUpperCase();
-                if (!nickname.trim() || !code) return;
                 setLoading(true);
                 const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(code);
                 const snap = await ref.get();
@@ -351,11 +322,17 @@
             const startGame = async () => {
                 if (room.admin !== user.uid) return;
                 
-                // Logic: Pick Scenario & Spy
                 const used = room.usedLocations || [];
                 const avail = SCENARIOS.filter(s => !used.includes(s.loc_en));
                 const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))];
                 const activePlayers = room.players.filter(p => p.status === 'active');
+                
+                if (activePlayers.length < 3) {
+                     alert("Need at least 3 players!"); // Simple alert for now
+                     setLoading(false);
+                     return;
+                }
+
                 const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)];
                 const firstPlayer = activePlayers[0];
 
@@ -364,11 +341,11 @@
                     scenario,
                     spyId: spy.uid,
                     currentTurnUID: firstPlayer.uid,
-                    turnEndTime: Date.now() + 30000, // 30 secs
+                    turnEndTime: Date.now() + 30000,
                     currentRound: 1,
-                    players: room.players.map(p => ({ ...p, vote: null })), // Reset votes on start
+                    players: room.players.map(p => ({ ...p, vote: null })),
                     usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en),
-                    messages: [] // Clear chat
+                    messages: []
                 });
             };
 
@@ -382,7 +359,6 @@
                 const currentIndex = activePlayers.findIndex(p => p.uid === room.currentTurnUID);
                 const nextIndex = (currentIndex + 1) % activePlayers.length;
 
-                // If full circle, move to voting
                 if (nextIndex === 0) {
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                         status: 'voting',
@@ -399,7 +375,7 @@
 
             const sendMessage = async (e) => {
                 e.preventDefault();
-                if (!chatMsg.trim()) return;
+                if (!chatMsg.trim() || !user) return;
                 const msg = { sender: user.uid, name: nickname, text: chatMsg, time: Date.now() };
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                     messages: firebase.firestore.FieldValue.arrayUnion(msg)
@@ -407,27 +383,19 @@
                 setChatMsg('');
             };
 
-            const handleVote = async (targetUID) => {
-                // Store vote locally first
-                setVoteTarget(targetUID);
-            };
-
             const confirmVote = async () => {
-                if (!voteTarget) return;
-                // We use a map in Firestore: { voterUID: targetUID }
+                if (!voteTarget || !user) return;
                 const voteUpdate = {};
                 voteUpdate[`votes.${user.uid}`] = voteTarget;
                 
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update(voteUpdate);
                 
-                // Check if all active players voted (Admin job)
                 if (room.admin === user.uid) {
                     checkVoteResult();
                 }
             };
 
             const checkVoteResult = async () => {
-                // Simple majority logic
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 const votes = room.votes || {};
                 const voteCounts = {};
@@ -443,9 +411,7 @@
                     }
                 }
 
-                // Check majority
                 if (maxVotes >= Math.ceil(activePlayers.length / 2)) {
-                    // Eject player
                     const newPlayers = room.players.map(p => {
                         if (p.uid === ejectedUID) return { ...p, status: 'spectator' };
                         return p;
@@ -453,22 +419,17 @@
 
                     const isSpy = ejectedUID === room.spyId;
                     const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.uid !== room.spyId);
-
-                    // If Spy ejected -> Game Over (Agents Win)
-                    // If only Spy remains -> Game Over (Spy Wins)
                     let newStatus = room.status;
+
                     if (isSpy) {
                         newStatus = 'finished_spy_caught';
                     } else if (remainingAgents.length <= 1) {
                         newStatus = 'finished_spy_wins';
                     } else {
-                        // Continue game with one less agent
-                        newStatus = 'discussing';
-                        // Reset for next round
                         await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                             players: newPlayers,
                             status: 'discussing',
-                            votes: {}, // Clear votes
+                            votes: {},
                             currentTurnUID: room.players.find(p => p.status === 'active')?.uid,
                             turnEndTime: Date.now() + 30000
                         });
@@ -483,7 +444,6 @@
             };
 
             const resetGame = async () => {
-                // Keep same players, reset state
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                     status: 'waiting',
                     scenario: null,
@@ -492,9 +452,27 @@
                     currentRound: 0,
                     votes: {},
                     messages: [],
-                    players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active' })) // Reactivate all
+                    players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active' }))
                 });
             };
+
+            // --- Render Guards ---
+            // 1. If connecting to auth
+            if (!user) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center bg-gradient-main">
+                        <div className="text-center space-y-4 animate-fade-in">
+                            <div className="logo-container mx-auto">
+                                <div className="logo-border"></div>
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                                </svg>
+                            </div>
+                            <p className="text-gray-400 font-mono text-sm animate-pulse">{t.connecting}</p>
+                        </div>
+                    </div>
+                );
+            }
 
             // --- Render Helpers ---
             const currentWords = useMemo(() => {
@@ -506,10 +484,9 @@
 
             const isMyTurn = room?.currentTurnUID === user.uid;
             const isSpy = room?.spyId === user.uid;
-            const me = room?.players.find(p => p.uid === user.uid);
+            const me = room?.players?.find(p => p.uid === user.uid);
             const isSpectator = me?.status === 'spectator';
 
-            // Timer visual calculation
             const timerProgress = (turnTimer / 30) * 100;
             const circumference = 2 * Math.PI * 18;
             const strokeDashoffset = circumference - (timerProgress / 100) * circumference;
