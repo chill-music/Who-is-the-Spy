@@ -342,7 +342,8 @@
                 noChoice: "NO VOTE", confirm: "CONFIRM VOTE", gameOver: "GAME OVER",
                 spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!",
                 playAgain: "PLAY AGAIN", connecting: "Establishing Secure Connection...",
-                voteWait: "Waiting for votes...", voteDone: "VOTE LOCKED", soundOn: "SOUND ON", soundOff: "SOUND OFF"
+                voteWait: "Waiting for votes...", voteDone: "VOTE LOCKED", soundOn: "SOUND ON", soundOff: "SOUND OFF",
+                linkGuessCard: "GUESS MY CARD"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -358,7 +359,8 @@
                 noChoice: "لم يصوت", confirm: "تأكيد التصويت", gameOver: "انتهت اللعبة",
                 spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!",
                 playAgain: "لعب مجدداً", connecting: "جاري تأمين الاتصال...",
-                voteWait: "بانتظار الأصوات...", voteDone: "تم تثبيت التصويت", soundOn: "تشغيل الصوت", soundOff: "إيقاف الصوت"
+                voteWait: "بانتظار الأصوات...", voteDone: "تم تثبيت التصويت", soundOn: "تشغيل الصوت", soundOff: "إيقاف الصوت",
+                linkGuessCard: "خمن كرتي"
             }
         };
 
@@ -757,6 +759,9 @@
                             </div>
                         </div>
                         <div className="flex gap-2 items-center">
+                            <a href="https://guessmycard.mooo.info/" target="_blank" rel="noopener noreferrer" className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700 hover:text-pink-400 hover:border-pink-400">
+                                {t.linkGuessCard}
+                            </a>
                             <button onClick={() => { initAudio(); setSoundEnabled(!soundEnabled); }} className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700">
                                 {soundEnabled ? t.soundOn : t.soundOff}
                             </button>
