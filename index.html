@@ -25,229 +25,74 @@
             --text-muted: #8b8b9e;
             --border: rgba(255, 255, 255, 0.1);
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body { 
-            background-color: var(--bg-dark); 
-            color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        #bg-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        .glass-panel {
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-        }
-
+        body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Outfit', sans-serif; min-height: 100vh; overflow-x: hidden; position: relative; }
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .glass-panel { background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
         .font-tech { font-family: 'Rajdhani', sans-serif; }
-
-        @keyframes pulse-glow {
-            0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); }
-            50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); }
-            100% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); }
-        }
-
-        @keyframes rotate-border {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes fade-in-up {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes pop-in {
-            0% { transform: scale(0); opacity: 0; }
-            70% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
+        @keyframes pulse-glow { 0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } 50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); } 100% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } }
+        @keyframes rotate-border { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pop-in { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
         .animate-fade-in { animation: fade-in-up 0.6s ease-out forwards; }
         .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        
-        .logo-container {
-            position: relative;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .logo-border {
-            position: absolute;
-            inset: 0;
-            border-radius: 12px;
-            border: 2px solid transparent;
-            border-top-color: var(--primary);
-            border-right-color: var(--secondary);
-            animation: rotate-border 3s linear infinite;
-        }
-
-        .game-title {
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 700;
-            letter-spacing: 2px;
-            background: linear-gradient(to right, #fff, var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: pulse-glow 3s infinite alternate;
-        }
-
-        .btn-neon {
-            position: relative;
-            background: linear-gradient(90deg, var(--secondary), var(--primary));
-            color: white;
-            font-weight: 700;
-            transition: all 0.3s;
-            overflow: hidden;
-        }
-        
-        .btn-neon:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 0 20px var(--primary);
-        }
-        
+        .logo-container { position: relative; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+        .logo-border { position: absolute; inset: 0; border-radius: 12px; border: 2px solid transparent; border-top-color: var(--primary); border-right-color: var(--secondary); animation: rotate-border 3s linear infinite; }
+        .game-title { font-family: 'Rajdhani', sans-serif; font-weight: 700; letter-spacing: 2px; background: linear-gradient(to right, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: pulse-glow 3s infinite alternate; }
+        .btn-neon { position: relative; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: white; font-weight: 700; transition: all 0.3s; overflow: hidden; }
+        .btn-neon:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px var(--primary); }
         .btn-neon:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        .btn-ghost {
-            background: transparent;
-            border: 1px solid var(--border);
-            transition: 0.3s;
-        }
+        .btn-ghost { background: transparent; border: 1px solid var(--border); transition: 0.3s; }
         .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
-        
-        .btn-vote {
-            background: linear-gradient(90deg, #ff0055, #ff3366);
-            color: white;
-        }
-        
+        .btn-vote { background: linear-gradient(90deg, #ff0055, #ff3366); color: white; }
         .btn-success { background: linear-gradient(90deg, #10b981, #22c55e); color: white; }
         .btn-danger { background: linear-gradient(90deg, #ef4444, #dc2626); color: white; }
-        
-        .btn-google {
-            background: white;
-            color: #333;
-            font-weight: bold;
-        }
+        .btn-google { background: white; color: #333; font-weight: bold; }
         .btn-google:hover { background: #f0f0f0; }
-
-        .input-dark {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid var(--border);
-            color: white;
-            transition: 0.2s;
-        }
-        .input-dark:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-        }
-        
-        .input-locked {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.6);
-            cursor: not-allowed;
-        }
-
+        .input-dark { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border); color: white; transition: 0.2s; }
+        .input-dark:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
+        .input-locked { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6); cursor: not-allowed; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
-
         .player-card { transition: all 0.3s; position: relative; border: 1px solid transparent; cursor: pointer; }
         .player-card:hover { border-color: rgba(255,255,255,0.2); }
         .player-card.active { background: rgba(0, 242, 255, 0.1); border-color: var(--primary); }
         .player-card.eliminated { opacity: 0.4; border-color: var(--accent); filter: grayscale(100%); }
-        
         .timer-bar-container { width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
         .timer-bar-fill { height: 100%; background: var(--primary); transition: width 1s linear; }
-
-        .chat-bubble-me {
-            background: linear-gradient(135deg, var(--secondary), var(--primary));
-            color: white;
-            border-radius: 18px 18px 4px 18px;
-            padding: 8px 12px;
-            max-width: 80%;
-            align-self: flex-end;
-            word-wrap: break-word;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .chat-bubble-other {
-            background: rgba(255, 255, 255, 0.1);
-            color: #e0e0e0;
-            border-radius: 18px 18px 18px 4px;
-            padding: 8px 12px;
-            max-width: 80%;
-            align-self: flex-start;
-            word-wrap: break-word;
-        }
-        
-        .identity-square {
-            width: 100%; max-width: 280px; aspect-ratio: 1 / 1; margin: 0 auto;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; border-radius: 20px; position: relative; overflow: hidden;
-            transition: all 0.5s ease;
-        }
-        
+        .chat-bubble-me { background: linear-gradient(135deg, var(--secondary), var(--primary)); color: white; border-radius: 18px 18px 4px 18px; padding: 8px 12px; max-width: 80%; align-self: flex-end; word-wrap: break-word; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .chat-bubble-other { background: rgba(255, 255, 255, 0.1); color: #e0e0e0; border-radius: 18px 18px 18px 4px; padding: 8px 12px; max-width: 80%; align-self: flex-start; word-wrap: break-word; }
+        .identity-square { width: 100%; max-width: 280px; aspect-ratio: 1 / 1; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 20px; position: relative; overflow: hidden; transition: all 0.5s ease; }
         .identity-spy { border: 2px solid var(--accent); background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); }
         .identity-agent { border: 2px solid #10b981; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%); box-shadow: 0 0 40px rgba(16, 185, 129, 0.2); }
-
         .emoji-btn { font-size: 18px; padding: 5px; cursor: pointer; transition: transform 0.2s; filter: grayscale(100%); opacity: 0.7; }
         .emoji-btn:hover { transform: scale(1.4); filter: grayscale(0%); opacity: 1; }
-
         .word-vote-card { background: rgba(255, 255, 255, 0.05); border: 2px solid transparent; transition: all 0.3s; position: relative; }
         .word-vote-card.selected { border-color: var(--primary); background: rgba(0, 242, 255, 0.1); transform: scale(1.02); }
         .voter-name { position: absolute; bottom: -8px; right: 10px; font-size: 10px; background: var(--secondary); padding: 2px 6px; border-radius: 8px; color: white; }
-        
         .vote-request-banner { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 50; width: 90%; max-width: 500px; }
-        
         .xp-bar-bg { background: rgba(255,255,255,0.1); }
         .xp-bar-fill { background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 0.5s ease; }
         .kd-circle { transition: stroke-dashoffset 1s ease; }
         .achievement-card { transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); }
         .achievement-card.locked { filter: grayscale(100%); opacity: 0.4; }
         .achievement-card.unlocked { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
-        
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 8px;
-            min-width: 180px;
-            z-index: 9999;
-        }
-        
+        .dropdown-menu { position: absolute; top: 100%; right: 0; margin-top: 8px; min-width: 180px; z-index: 9999; }
         .error-msg { color: #ff4d4d; font-size: 12px; margin-top: 5px; text-align: center; }
+        .alert-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
         
-        /* Custom Alert Modal */
-        .alert-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+        /* Nav Tabs */
+        .nav-tab { padding: 8px 16px; border-bottom: 2px solid transparent; transition: 0.3s; color: #888; cursor: pointer; }
+        .nav-tab:hover { color: #fff; }
+        .nav-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        
+        /* Friend Status */
+        .status-online { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #10b981; }
+        .status-offline { width: 10px; height: 10px; background: #555; border-radius: 50%; display: inline-block; }
+        
+        .leaderboard-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .leaderboard-row:hover { background: rgba(255,255,255,0.03); }
     </style>
 </head>
 <body>
@@ -274,10 +119,11 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v12_final';
+        const appId = 'pro_spy_v13_social'; // Updated Version
         const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
+        const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
 
-        // --- Achievements Definition ---
+        // --- Achievements & Scenarios ---
         const ACHIEVEMENTS = [
             { id: 'first_win', name_en: "First Blood", name_ar: "أول دم", icon: "🩸" },
             { id: 'wins_5', name_en: "Rookie Spy", name_ar: "جاسوس مبتدئ", icon: "🕵️" },
@@ -286,30 +132,37 @@
             { id: 'wins_50', name_en: "Shadow Legend", name_ar: "أسطورة الظل", icon: "👁️" },
             { id: 'wins_100', name_en: "Immortal", name_ar: "خالد", icon: "👑", special: true }
         ];
+        
+        const SCENARIOS = [
+            { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
+            { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Sonar"] },
+            { loc_ar: "قصر ملكي", words_ar: ["تاج", "حراس", "عروش", "خدم"], loc_en: "Royal Palace", words_en: ["Crown", "Guards", "Throne", "Servants"] },
+            { loc_ar: "بنك مركزي", words_ar: ["خزنة", "مال", "رصاص", "مفتاح"], loc_en: "Central Bank", words_en: ["Vault", "Money", "Lead", "Key"] },
+            { loc_ar: "مستشفى مهجور", words_ar: ["أشباح", "أطباء", "ظلام", "حقن"], loc_en: "Abandoned Hospital", words_en: ["Ghosts", "Doctors", "Dark", "Syringe"] },
+            { loc_ar: "قطار ليلي", words_ar: ["درجات", "تذاكر", "نوم", "ممر"], loc_en: "Night Train", words_en: ["Bunks", "Tickets", "Sleep", "Aisle"] },
+            { loc_ar: "جزيرة كنز", words_ar: ["خريطة", "حفر", "ذهب", "قراصنة"], loc_en: "Treasure Island", words_en: ["Map", "Dig", "Gold", "Pirates"] },
+            { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] }
+        ];
 
-        // --- Sound System ---
+        const EMOJIS = ['🕵️', '🔍', '🚨', '🤐', '👀', '🔪', '🛡️', '💀', '🤫', '✅'];
+        const MAX_ROUNDS = 3;
+
+        // --- Helpers ---
+        const generateUID = () => Math.floor(100000 + Math.random() * 900000).toString();
+        const calculateLevel = (xp) => Math.floor(xp / 100) + 1;
+        const calculateXPProgress = (xp) => (xp % 100);
+        
+        // --- Audio ---
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null; 
         const initAudio = () => { if (!audioCtx) audioCtx = new AudioCtx(); };
         const playSound = (type) => {
             if (!audioCtx) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            if (type === 'click') {
-                osc.frequency.value = 800; osc.type = 'sine';
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'success') {
-                osc.frequency.value = 600; osc.type = 'sine';
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-            }
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            if (type === 'click') { osc.frequency.value = 800; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
+            else if (type === 'success') { osc.frequency.value = 600; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
         };
 
         // --- Translations ---
@@ -332,29 +185,20 @@
                 agree: "AGREE", decline: "DECLINE",
                 endVoting: "END VOTING NOW", votesTitle: "VOTES:",
                 roundsFormat: (c, m) => `ROUND ${c}/${m}`,
-                wordSelectionTitle: "SELECT KEYWORD",
-                wordSelectionDesc: "Choose a keyword for this round",
-                finishSelection: "FINISH SELECTION",
-                selectedWord: "Selected Keyword",
-                // Auth
-                loginGoogle: "Login",
-                myAccount: "My Account",
-                logout: "Logout",
-                profile: "Profile",
-                guest: "Guest",
-                linkGuessCard: "GUESS MY CARD",
-                // Stats
-                level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate",
-                totalGames: "Games", achievements: "Achievements", id: "ID",
-                // New
-                enterCodeError: "Please enter a room code.",
-                changeName: "Change Name",
-                nameChangeLimit: "Once a month",
-                copied: "Copied!",
-                save: "Save",
-                or: "OR",
-                needPlayers: "Need at least 3 players!",
-                ok: "OK"
+                wordSelectionTitle: "SELECT KEYWORD", wordSelectionDesc: "Choose a keyword for this round", finishSelection: "FINISH SELECTION", selectedWord: "Selected Keyword",
+                loginGoogle: "Login", myAccount: "My Account", logout: "Logout", profile: "Profile", guest: "Guest", linkGuessCard: "GUESS MY CARD",
+                level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID",
+                enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Need at least 3 players!", ok: "OK",
+                // Nav
+                tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends",
+                // Friends
+                addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID",
+                online: "Online", offline: "Offline", noFriends: "No friends yet.",
+                friendAdded: "Friend Added!", friendNotFound: "User not found.",
+                // Report
+                report: "Report Player", reportSent: "Report Sent!", reportReason: "Reason",
+                // Leaderboard
+                rank: "Rank", name: "Name", score: "Score"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -374,60 +218,31 @@
                 agree: "موافق", decline: "رفض",
                 endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:",
                 roundsFormat: (c, m) => `الجولة ${c}/${m}`,
-                wordSelectionTitle: "اختر كلمة السر",
-                wordSelectionDesc: "اختر كلمة سر لهذه الجولة",
-                finishSelection: "إنهاء الاختيار",
-                selectedWord: "كلمة السر",
-                // Auth
-                loginGoogle: "دخول",
-                myAccount: "حسابي",
-                logout: "تسجيل الخروج",
-                profile: "الملف الشخصي",
-                guest: "زائر",
-                linkGuessCard: "خمن كرتي",
-                // Stats
-                level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز",
-                totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم",
-                // New
-                enterCodeError: "برجاء إدخال كود الغرفة.",
-                changeName: "تغيير الاسم",
-                nameChangeLimit: "مرة شهرياً",
-                copied: "تم النسخ!",
-                save: "حفظ",
-                or: "أو",
-                needPlayers: "يحتاج 3 لاعبين على الأقل!",
-                ok: "حسناً"
+                wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر",
+                loginGoogle: "دخول", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي",
+                level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم",
+                enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "يحتاج 3 لاعبين على الأقل!", ok: "حسناً",
+                // Nav
+                tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء",
+                // Friends
+                addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق",
+                online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.",
+                friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.",
+                // Report
+                report: "إبلاغ", reportSent: "تم الإبلاغ!", reportReason: "السبب",
+                // Leaderboard
+                rank: "الترتيب", name: "الاسم", score: "النقاط"
             }
         };
 
-        const SCENARIOS = [
-            { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
-            { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Sonar"] },
-            { loc_ar: "قصر ملكي", words_ar: ["تاج", "حراس", "عروش", "خدم"], loc_en: "Royal Palace", words_en: ["Crown", "Guards", "Throne", "Servants"] },
-            { loc_ar: "بنك مركزي", words_ar: ["خزنة", "مال", "رصاص", "مفتاح"], loc_en: "Central Bank", words_en: ["Vault", "Money", "Lead", "Key"] },
-            { loc_ar: "مستشفى مهجور", words_ar: ["أشباح", "أطباء", "ظلام", "حقن"], loc_en: "Abandoned Hospital", words_en: ["Ghosts", "Doctors", "Dark", "Syringe"] },
-            { loc_ar: "قطار ليلي", words_ar: ["درجات", "تذاكر", "نوم", "ممر"], loc_en: "Night Train", words_en: ["Bunks", "Tickets", "Sleep", "Aisle"] },
-            { loc_ar: "جزيرة كنز", words_ar: ["خريطة", "حفر", "ذهب", "قراصنة"], loc_en: "Treasure Island", words_en: ["Map", "Dig", "Gold", "Pirates"] },
-            { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] },
-            { loc_ar: "مطار دولي", words_ar: ["جوازات", "طائرات", "حقائب", "إقلاع"], loc_en: "Airport", words_en: ["Passports", "Planes", "Bags", "Takeoff"] },
-            { loc_ar: "جامعة سحر", words_ar: ["كتب", "عصا", "عفاريت", "تراكيب"], loc_en: "Magic Uni", words_en: ["Books", "Wand", "Ghosts", "Potions"] }
-        ];
-
-        const EMOJIS = ['🕵️', '🔍', '🚨', '🤐', '👀', '🔪', '🛡️', '💀', '🤫', '✅'];
-        const MAX_ROUNDS = 3;
-
-        // --- Helper Functions ---
-        const generateUID = () => Math.floor(100000 + Math.random() * 900000).toString();
-        const calculateLevel = (xp) => Math.floor(xp / 100) + 1;
-        const calculateXPProgress = (xp) => (xp % 100);
-
         // --- Components ---
-
+        
         const ProfileModal = ({ show, onClose, targetUID, currentUserData, lang, isSelf, onUpdate }) => {
             const t = TRANSLATIONS[lang];
             const [profileData, setProfileData] = useState(null);
             const [newName, setNewName] = useState('');
             const [msg, setMsg] = useState('');
+            const [reporting, setReporting] = useState(false);
             
             useEffect(() => {
                 if (show && targetUID) {
@@ -455,28 +270,30 @@
             const circumference = 2 * Math.PI * 45;
             const offset = circumference - (winRate / 100) * circumference;
 
-            const handleCopyId = () => {
-                navigator.clipboard.writeText(profileData.customId);
-                setMsg(t.copied);
-                setTimeout(() => setMsg(''), 2000);
-            };
-
+            const handleCopyId = () => { navigator.clipboard.writeText(profileData.customId); setMsg(t.copied); setTimeout(() => setMsg(''), 2000); };
             const handleChangeName = async () => {
                 if(!newName.trim()) return;
                 const lastChange = profileData.lastChangedName?.toMillis() || 0;
                 const monthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-                
-                if (lastChange > monthAgo) {
-                    setMsg(t.nameChangeLimit);
-                    return;
-                }
-                
-                await usersCollection.doc(profileData.uid).update({
-                    displayName: newName,
-                    lastChangedName: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                if (lastChange > monthAgo) { setMsg(t.nameChangeLimit); return; }
+                await usersCollection.doc(profileData.uid).update({ displayName: newName, lastChangedName: firebase.firestore.FieldValue.serverTimestamp() });
                 setMsg("Updated!");
                 if (onUpdate) onUpdate();
+            };
+            
+            const handleReport = async () => {
+                if (isSelf) return;
+                setReporting(true);
+                // Simple report logic
+                await reportsCollection.add({
+                    reporterId: currentUserData.uid,
+                    reportedId: profileData.uid,
+                    reportedName: profileData.displayName,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'pending'
+                });
+                setMsg(t.reportSent);
+                setTimeout(() => { setMsg(''); setReporting(false); }, 2000);
             };
 
             return (
@@ -496,7 +313,6 @@
                             <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button>
                         </div>
 
-                         {/* Change Name (Only for self) */}
                          {isSelf && (
                              <div className="mb-4 glass-panel p-3 rounded-lg border border-white/10">
                                  <label className="text-[10px] text-gray-400 uppercase">{t.changeName}</label>
@@ -541,11 +357,7 @@
                                     <circle cx="50" cy="50" r="45" stroke="rgba(255,255,255,0.1)" strokeWidth="10" fill="none"/>
                                     <circle cx="50" cy="50" r="45" stroke="url(#gradient)" strokeWidth="10" fill="none"
                                         strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="kd-circle"/>
-                                    <defs>
-                                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#7000ff"/>
-                                            <stop offset="100%" stopColor="#00f2ff"/>
-                                        </linearGradient>
+                                    <defs><linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#7000ff"/><stop offset="100%" stopColor="#00f2ff"/></linearGradient>
                                     </defs>
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -569,7 +381,13 @@
                                 })}
                             </div>
                         </div>
-
+                        
+                        {/* Report Button */}
+                        {!isSelf && (
+                            <button onClick={handleReport} disabled={reporting} className="w-full mt-4 py-2 text-xs text-red-400 border border-red-400/30 rounded-lg hover:bg-red-400/10 transition-all disabled:opacity-50">
+                                {reporting ? t.reportSent : t.report}
+                            </button>
+                        )}
                     </div>
                 </div>
             );
@@ -595,7 +413,14 @@
             const [showDropdown, setShowDropdown] = useState(false);
             const [joinError, setJoinError] = useState('');
             const [targetProfileUID, setTargetProfileUID] = useState(null);
-            const [alertMessage, setAlertMessage] = useState(null); // Custom Alert
+            const [alertMessage, setAlertMessage] = useState(null);
+            
+            // New Views State
+            const [activeView, setActiveView] = useState('lobby'); // 'lobby', 'leaderboard', 'friends'
+            const [leaderboardData, setLeaderboardData] = useState([]);
+            const [friendsData, setFriendsData] = useState([]);
+            const [addFriendId, setAddFriendId] = useState('');
+            const [friendSearchMsg, setFriendSearchMsg] = useState('');
             
             const t = TRANSLATIONS[lang];
 
@@ -636,7 +461,7 @@
                 return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
             }, []);
 
-            // Auth State (Support Guest & Google)
+            // Auth State
             useEffect(() => {
                 const unsub = auth.onAuthStateChanged(async (u) => {
                     if (u) {
@@ -647,9 +472,10 @@
                             const newUserData = {
                                 uid: u.uid, email: u.email, displayName: u.displayName || u.uid.substring(0,5),
                                 photoURL: u.photoURL, customId: generateUID(),
-                                stats: { wins: 0, losses: 0, xp: 0 }, achievements: [],
+                                stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [],
                                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                lastChangedName: null
+                                lastChangedName: null,
+                                lastActive: firebase.firestore.FieldValue.serverTimestamp()
                             };
                             await userRef.set(newUserData);
                             setUserData(newUserData);
@@ -658,13 +484,19 @@
                             setUserData(doc.data());
                             if (doc.data().displayName) setNickname(doc.data().displayName);
                         }
-                    } else { 
-                        setUser(null); 
-                        setUserData(null); 
-                    }
+                    } else { setUser(null); setUserData(null); }
                 });
                 return unsub;
             }, []);
+
+            // Update Last Active (Online Status)
+            useEffect(() => {
+                if (!user) return;
+                const interval = setInterval(() => {
+                    usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() });
+                }, 60000); // Every minute
+                return () => clearInterval(interval);
+            }, [user]);
 
             // Room Listener
             useEffect(() => {
@@ -673,6 +505,29 @@
                     .onSnapshot(doc => { if (doc.exists) setRoom(doc.data()); else setRoom(null); });
                 return unsub;
             }, [user, roomId]);
+
+            // Fetch Leaderboard
+            useEffect(() => {
+                if (activeView === 'leaderboard') {
+                    usersCollection.orderBy('stats.wins', 'desc').limit(100).get().then(snap => {
+                        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setLeaderboardData(data);
+                    });
+                }
+            }, [activeView]);
+
+            // Fetch Friends
+            useEffect(() => {
+                if (activeView === 'friends' && userData?.friends?.length > 0) {
+                    // Fetch friend docs based on IDs array
+                    usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).get().then(snap => {
+                        const friends = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setFriendsData(friends);
+                    });
+                } else {
+                    setFriendsData([]);
+                }
+            }, [activeView, userData?.friends]);
 
             // Timers
             useEffect(() => {
@@ -741,6 +596,7 @@
                 });
                 setRoomId(id);
                 setLoading(false);
+                setActiveView('lobby'); // Ensure back to lobby
             };
 
             const handleJoin = async () => {
@@ -766,6 +622,7 @@
                         await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: userData?.photoURL }] });
                     }
                     setRoomId(inputCode.toUpperCase());
+                    setActiveView('lobby');
                 } else {
                     setJoinError("Room not found");
                 }
@@ -778,7 +635,6 @@
                 
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 if (activePlayers.length < 3) { 
-                    // Use Custom Alert
                     setAlertMessage(t.needPlayers); 
                     return; 
                 }
@@ -786,7 +642,6 @@
                 const used = room.usedLocations || [];
                 const avail = SCENARIOS.filter(s => !used.includes(s.loc_en));
                 const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))];
-
                 const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)];
                 let potentialStarters = activePlayers.filter(p => p.uid !== spy.uid);
                 if (potentialStarters.length === 0) potentialStarters = activePlayers; 
@@ -980,7 +835,6 @@
             
             const checkAchievements = async (players, spyId) => {
                 const spyWin = room.status === 'finished_spy_wins';
-                
                 players.forEach(async (p) => {
                     if(!p || !p.uid) return;
                     const userRef = usersCollection.doc(p.uid);
@@ -1027,7 +881,29 @@
                 setShowProfile(true);
             };
 
-            // --- Render ---
+            // Friends Logic
+            const handleAddFriend = async () => {
+                if (!addFriendId || addFriendId === userData.customId) return;
+                // Find user by customId
+                const snap = await usersCollection.where('customId', '==', addFriendId).get();
+                if (snap.empty) { setFriendSearchMsg(t.friendNotFound); return; }
+                
+                const friendDoc = snap.docs[0];
+                const friendUid = friendDoc.id;
+                
+                if (userData.friends?.includes(friendUid)) { setFriendSearchMsg("Already added!"); return; }
+                
+                await usersCollection.doc(user.uid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(friendUid)
+                });
+                
+                // Update local state to reflect immediately
+                setUserData(prev => ({ ...prev, friends: [...(prev.friends || []), friendUid] }));
+                setFriendSearchMsg(t.friendAdded);
+                setAddFriendId('');
+            };
+            
+            // Render Helpers
             const isMyTurn = room?.currentTurnUID === user?.uid;
             const isSpy = room?.spyId === user?.uid;
             const me = room?.players?.find(p => p.uid === user?.uid);
@@ -1046,15 +922,12 @@
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 md:p-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                     
-                    {/* Custom Alert Modal */}
                     {alertMessage && (
                         <div className="alert-modal" onClick={() => setAlertMessage(null)}>
                             <div className="glass-panel rounded-2xl p-6 w-full max-w-sm animate-pop text-center border border-pink-500" onClick={e => e.stopPropagation()}>
                                 <div className="text-4xl mb-4">🚫</div>
                                 <p className="text-lg font-bold mb-4">{alertMessage}</p>
-                                <button onClick={() => setAlertMessage(null)} className="btn-ghost px-6 py-2 rounded-lg border border-white/20">
-                                    {t.ok}
-                                </button>
+                                <button onClick={() => setAlertMessage(null)} className="btn-ghost px-6 py-2 rounded-lg border border-white/20">{t.ok}</button>
                             </div>
                         </div>
                     )}
@@ -1084,8 +957,8 @@
                          </div>
                     )}
 
-                    {/* Header with Z-Index 50 */}
-                    <header className="w-full max-w-4xl flex justify-between items-center mb-6 animate-fade-in relative z-50">
+                    {/* Header */}
+                    <header className="w-full max-w-4xl flex justify-between items-center mb-4 animate-fade-in relative z-50">
                         <div className="flex items-center gap-3">
                             <div className="logo-container">
                                 <div className="logo-border"></div>
@@ -1098,10 +971,16 @@
                                 <p className="text-[10px] text-gray-500 tracking-widest font-tech">{t.tagline}</p>
                             </div>
                         </div>
+                        
+                        {/* Navigation Tabs */}
+                        <nav className="hidden md:flex gap-1 glass-panel rounded-full p-1">
+                            <button onClick={() => setActiveView('lobby')} className={`nav-tab rounded-full text-xs ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
+                            <button onClick={() => setActiveView('leaderboard')} className={`nav-tab rounded-full text-xs ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
+                            <button onClick={() => setActiveView('friends')} className={`nav-tab rounded-full text-xs ${activeView === 'friends' ? 'active' : ''}`}>{t.tabFriends}</button>
+                        </nav>
+
                         <div className="flex gap-2 items-center">
-                             <a href="https://guessmycard.mooo.info/" target="_blank" rel="noopener noreferrer" className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700 hover:text-pink-400 hover:border-pink-400">
-                                {t.linkGuessCard}
-                            </a>
+                             <a href="https://guessmycard.mooo.info/" target="_blank" rel="noopener noreferrer" className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700 hover:text-pink-400 hover:border-pink-400">{t.linkGuessCard}</a>
                             <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">{t.langBtn}</button>
                             
                             {/* Auth Area */}
@@ -1122,7 +1001,7 @@
                                     </>
                                 ) : (
                                     <button onClick={handleGoogleLogin} className="btn-google px-4 py-1 rounded-full text-xs font-bold flex items-center gap-2">
-                                        <svg className="w-4 h-4" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg>
+                                        <svg className="w-4 h-4" viewBox="0 0 21 20" fill="none"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg>
                                         {t.loginGoogle}
                                     </button>
                                 )}
@@ -1130,203 +1009,284 @@
                         </div>
                     </header>
 
+                    {/* Mobile Nav */}
+                    <nav className="md:hidden w-full max-w-4xl flex justify-around glass-panel rounded-xl p-1 mb-4">
+                         <button onClick={() => setActiveView('lobby')} className={`nav-tab flex-1 text-center ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
+                         <button onClick={() => setActiveView('leaderboard')} className={`nav-tab flex-1 text-center ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
+                         <button onClick={() => setActiveView('friends')} className={`nav-tab flex-1 text-center ${activeView === 'friends' ? 'active' : ''}`}>{t.tabFriends}</button>
+                    </nav>
+
                     <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
                         
-                        {/* Left Column */}
-                        {room && (
-                            <div className="glass-panel rounded-2xl p-4 space-y-2 animate-fade-in delay-1">
-                                <h3 className="text-xs font-bold text-gray-400 mb-2 border-b border-gray-800 pb-2 uppercase tracking-wider flex justify-between items-center">
-                                    <span>{t.players}</span>
-                                    <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-cyan-400">{t.roundsFormat(room.currentRound || 1, MAX_ROUNDS)}</span>
-                                </h3>
-                                <div className="space-y-2">
-                                    {room.players.map((p, i) => (
-                                        <div key={i} 
+                        {/* Views Logic */}
+                        {activeView === 'leaderboard' && (
+                            <div className="md:col-span-3 glass-panel rounded-2xl p-6 animate-fade-in overflow-x-auto">
+                                <h2 className="text-xl font-bold mb-4 text-primary">{t.tabLeaderboard}</h2>
+                                <div className="min-w-[600px]">
+                                    <div className="leaderboard-row border-b border-white/20 font-bold text-xs text-gray-400">
+                                        <div className="w-16">{t.rank}</div>
+                                        <div className="flex-1">{t.name}</div>
+                                        <div className="w-16 text-center">{t.level}</div>
+                                        <div className="w-20 text-center">{t.wins}</div>
+                                        <div className="w-20 text-center">{t.losses}</div>
+                                    </div>
+                                    {leaderboardData.map((p, i) => (
+                                        <div key={p.uid} 
                                             onClick={() => openProfile(p.uid)}
-                                            className={`player-card relative p-2 rounded-lg flex items-center justify-between ${p.status === 'spectator' ? 'eliminated' : ''}`}>
-                                            <div className="flex items-center gap-2 flex-1">
-                                                <img src={p.photo || `https://ui-avatars.com/api/?name=${p.name}`} className="w-6 h-6 rounded-full" alt=""/>
-                                                <span className="font-bold text-sm truncate">{p.name}</span>
+                                            className={`leaderboard-row cursor-pointer ${p.uid === user?.uid ? 'bg-cyan-500/10' : ''}`}>
+                                            <div className="w-16 font-bold text-lg">#{i + 1}</div>
+                                            <div className="flex-1 flex items-center gap-2">
+                                                <img src={p.photoURL} className="w-6 h-6 rounded-full"/>
+                                                <span>{p.displayName}</span>
                                                 {p.uid === user?.uid && <span className="text-[8px] bg-blue-500 px-1 rounded">{t.you}</span>}
                                             </div>
-                                            {p.uid === room.currentTurnUID && room.status === 'discussing' && (
-                                                <div className="flex items-center gap-1 ml-2">
-                                                    <div className="timer-bar-container"><div className="timer-bar-fill" style={{width: `${(turnTimer/30)*100}%`}}></div></div>
-                                                    <span className="text-[10px] font-mono text-cyan-400 w-6 text-right">{turnTimer}</span>
-                                                </div>
-                                            )}
+                                            <div className="w-16 text-center">{calculateLevel(p.stats?.xp)}</div>
+                                            <div className="w-20 text-center text-green-400">{p.stats?.wins || 0}</div>
+                                            <div className="w-20 text-center text-red-400">{p.stats?.losses || 0}</div>
                                         </div>
                                     ))}
                                 </div>
-
-                                {room.status === 'discussing' && !isSpectator && (
-                                    <button onClick={requestVoting} className="btn-vote w-full py-2 rounded-lg font-bold text-xs mt-4 uppercase tracking-wide">{t.startVoting}</button>
-                                )}
                             </div>
                         )}
 
-                        {/* Middle Column */}
-                        <div className={`${room ? 'md:col-span-2' : 'md:col-span-3'} space-y-4`}>
-                            
-                            {!room && (
-                                <div className="glass-panel rounded-2xl p-8 text-center space-y-6 animate-fade-in mx-auto max-w-md w-full">
-                                    <div className="space-y-2">
-                                        <label className="text-xs text-gray-400 uppercase">{t.nickname}</label>
-                                        <input 
-                                            className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg text-center font-bold`}
-                                            value={nickname} 
-                                            onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }}
-                                            disabled={isLoggedIn}
-                                        />
-                                    </div>
-                                    <button onClick={handleCreate} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">{t.create}</button>
-                                    <div className="flex flex-col gap-2">
-                                        <div className="flex gap-2">
-                                            <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value)} />
-                                            <button onClick={handleJoin} disabled={loading || !nickname} className="btn-ghost px-6 rounded-lg font-bold">{t.join}</button>
-                                        </div>
-                                        {joinError && <div className="error-msg">{joinError}</div>}
-                                    </div>
+                        {activeView === 'friends' && (
+                            <div className="md:col-span-3 glass-panel rounded-2xl p-6 animate-fade-in space-y-4">
+                                <h2 className="text-xl font-bold mb-4 text-primary">{t.tabFriends}</h2>
+                                
+                                <div className="flex gap-2">
+                                    <input 
+                                        className="input-dark flex-1 p-2 rounded text-sm" 
+                                        placeholder={t.friendIdPlaceholder} 
+                                        value={addFriendId} 
+                                        onChange={e => setAddFriendId(e.target.value)} 
+                                    />
+                                    <button onClick={handleAddFriend} className="btn-neon px-4 rounded text-sm">{t.addFriend}</button>
                                 </div>
-                            )}
-
-                            {room && (
-                                <>
-                                    <div className="glass-panel rounded-xl p-3 flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-mono font-bold text-lg tracking-widest text-cyan-400">{room.id}</span>
-                                            <button onClick={() => navigator.clipboard.writeText(room.id)} className="text-[10px] bg-white/10 px-2 py-1 rounded">Copy</button>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded text-cyan-400">
-                                                {room.status === 'word_selection' ? 'KEYWORD' : room.status === 'discussing' ? 'DISCUSSION' : room.status.toUpperCase()}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {room.status === 'waiting' && (
-                                        <div className="glass-panel rounded-2xl p-6 text-center animate-fade-in">
-                                            <div className="animate-pulse text-gray-400 text-sm mb-4">{t.waiting}</div>
-                                            {room.admin === user?.uid && (<button onClick={startGame} className="btn-neon w-full py-3 rounded-lg font-bold">{t.start}</button>)}
-                                        </div>
-                                    )}
-
-                                    {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins') && (
-                                        <div className="glass-panel rounded-2xl p-8 text-center animate-fade-in border border-purple-500">
-                                            <h2 className="text-3xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-                                                {room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}
-                                            </h2>
-                                            <p className="text-gray-400 mb-6">The Spy was: <span className="text-white font-bold">{room.players.find(p => p.uid === room.spyId)?.name}</span></p>
-                                            {room.admin === user?.uid && (<button onClick={resetGame} className="btn-ghost border-white/20 text-white w-full py-3 rounded-lg">{t.playAgain}</button>)}
-                                        </div>
-                                    )}
-
-                                    {room.status === 'word_selection' && (
-                                        <div className="space-y-4 animate-fade-in">
-                                            <div className="glass-panel rounded-2xl p-6 text-center relative overflow-hidden border border-cyan-500/30">
-                                                <div className="absolute top-4 right-4 w-12 h-12">
-                                                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                                        <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle>
-                                                        <circle cx="18" cy="18" r="16" fill="none" stroke="#00f2ff" strokeWidth="3" strokeDasharray={`${(wordSelTimer/30)*100} ${100-((wordSelTimer/30)*100)}`} strokeLinecap="round"></circle>
-                                                    </svg>
-                                                    <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-cyan-400">{wordSelTimer}</div>
-                                                </div>
-                                                <h3 className="text-xl font-black mb-2 uppercase text-cyan-400">{t.wordSelectionTitle}</h3>
-                                                <p className="text-xs text-gray-500 mb-6">{t.wordSelectionDesc}</p>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    {(() => {
-                                                        const wordsToDisplay = isSpy ? ['?', '?', '?', '?'] : (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en);
-                                                        return wordsToDisplay?.map((word, i) => {
-                                                            const voters = Object.entries(room.wordVotes || {}).filter(([uid, w]) => w === word).map(([uid]) => room.players.find(p => p.uid === uid)?.name);
-                                                            return (
-                                                                <button key={i} onClick={() => submitWordVote(word)} disabled={isSpy} className={`word-vote-card p-6 rounded-xl font-bold text-lg transition-all ${hasVotedWord === word ? 'selected' : 'bg-white/5 border border-white/10'} ${isSpy ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                                                    {word}
-                                                                    {voters.length > 0 && (<div className="flex justify-center gap-1 mt-2 flex-wrap">{voters.map(v => <span key={v} className="voter-name relative">{v}</span>)}</div>)}
-                                                                </button>
-                                                            );
-                                                        });
-                                                    })()}
-                                                </div>
-                                                {room.admin === user?.uid && !isSpy && (<button onClick={() => finishWordSelection(false)} className="btn-neon w-full py-3 rounded-lg font-bold mt-6">{t.finishSelection}</button>)}
-                                            </div>
-                                            <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
-                                                <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
-                                                    <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
-                                                    {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-3xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {room.status === 'discussing' && (
-                                        <div className="space-y-4 animate-fade-in">
-                                            {room.chosenWord && (<div className="glass-panel rounded-xl p-3 text-center border border-cyan-500/50"><span className="text-[10px] text-cyan-400 font-bold uppercase">{t.selectedWord}:</span><span className="ml-2 text-lg font-bold text-white">{room.chosenWord}</span></div>)}
-                                            <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
-                                                <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
-                                                    <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
-                                                    {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3><p className="text-xs text-gray-500 mt-2 text-center">{lang === 'ar' ? 'اكتشف المكان دون أن تنكشف' : 'Find the location without getting caught'}</p></> ) : ( <><div className="text-4xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
-                                                </div>
-                                            </div>
-                                            <div className="glass-panel rounded-2xl p-4 flex flex-col overflow-hidden relative">
-                                                <div className="chat-container space-y-2 mb-3 px-2 h-40 overflow-y-auto relative z-10 mt-4">
-                                                    {room.messages?.slice(-20).map((m, i) => (
-                                                        <div key={i} className={`flex w-full ${m.sender === user?.uid ? 'justify-end' : 'justify-start'}`}>
-                                                            <div className={m.sender === user?.uid ? 'chat-bubble-me' : 'chat-bubble-other'}>
-                                                                {m.sender !== 'system' && <div className="text-[10px] opacity-70 mb-1 font-bold">{m.name}</div>}
-                                                                <div className="text-sm leading-tight">{m.text}</div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                {!isSpectator && isMyTurn ? (
-                                                    <div className="flex flex-col gap-2 mt-auto border-t border-white/10 pt-3 relative z-10">
-                                                        <div className="flex gap-1 mb-1">{EMOJIS.map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>))}</div>
-                                                        <form onSubmit={(e) => { e.preventDefault(); sendMessage(chatMsg); }} className="flex gap-2">
-                                                            <input className="input-dark flex-1 p-3 rounded-xl text-sm" placeholder={t.chatPlaceholder} value={chatMsg} onChange={e => setChatMsg(e.target.value)} />
-                                                            <button type="submit" className="btn-neon px-5 rounded-xl text-xs">{t.send}</button>
-                                                            <button type="button" onClick={() => handleSkipTurn(false)} className="btn-ghost px-4 rounded-xl text-xs border-orange-500 text-orange-400">{t.skip}</button>
-                                                        </form>
+                                {friendSearchMsg && <div className="text-xs text-center text-cyan-400">{friendSearchMsg}</div>}
+                                
+                                <div className="space-y-2 mt-4">
+                                    {friendsData.length === 0 && <p className="text-center text-gray-500 text-sm">{t.noFriends}</p>}
+                                    {friendsData.map(f => {
+                                        const isOnline = f.lastActive && (Date.now() - f.lastActive.toMillis() < 120000); // 2 mins
+                                        return (
+                                            <div key={f.uid} onClick={() => openProfile(f.uid)} className="player-card flex items-center justify-between p-3">
+                                                <div className="flex items-center gap-2">
+                                                    <img src={f.photoURL} className="w-10 h-10 rounded-full"/>
+                                                    <div>
+                                                        <div className="font-bold">{f.displayName}</div>
+                                                        <div className="text-xs text-gray-400">Lvl {calculateLevel(f.stats?.xp)}</div>
                                                     </div>
-                                                ) : (<div className="text-center text-xs text-gray-600 py-3 border-t border-white/10 mt-2">{isSpectator ? t.spectator : "Waiting for turn..."}</div>)}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`${isOnline ? 'status-online' : 'status-offline'}`}></span>
+                                                    <span className="text-xs">{isOnline ? t.online : t.offline}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeView === 'lobby' && (
+                            <>
+                                {/* Left Column (Players) */}
+                                {room && (
+                                    <div className="glass-panel rounded-2xl p-4 space-y-2 animate-fade-in delay-1">
+                                        <h3 className="text-xs font-bold text-gray-400 mb-2 border-b border-gray-800 pb-2 uppercase tracking-wider flex justify-between items-center">
+                                            <span>{t.players}</span>
+                                            <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-cyan-400">{t.roundsFormat(room.currentRound || 1, MAX_ROUNDS)}</span>
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {room.players.map((p, i) => (
+                                                <div key={i} 
+                                                    onClick={() => openProfile(p.uid)}
+                                                    className={`player-card relative p-2 rounded-lg flex items-center justify-between ${p.status === 'spectator' ? 'eliminated' : ''}`}>
+                                                    <div className="flex items-center gap-2 flex-1">
+                                                        <img src={p.photo || `https://ui-avatars.com/api/?name=${p.name}`} className="w-6 h-6 rounded-full" alt=""/>
+                                                        <span className="font-bold text-sm truncate">{p.name}</span>
+                                                        {p.uid === user?.uid && <span className="text-[8px] bg-blue-500 px-1 rounded">{t.you}</span>}
+                                                    </div>
+                                                    {p.uid === room.currentTurnUID && room.status === 'discussing' && (
+                                                        <div className="flex items-center gap-1 ml-2">
+                                                            <div className="timer-bar-container"><div className="timer-bar-fill" style={{width: `${(turnTimer/30)*100}%`}}></div></div>
+                                                            <span className="text-[10px] font-mono text-cyan-400 w-6 text-right">{turnTimer}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {room.status === 'discussing' && !isSpectator && (
+                                            <button onClick={requestVoting} className="btn-vote w-full py-2 rounded-lg font-bold text-xs mt-4 uppercase tracking-wide">{t.startVoting}</button>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Middle Column (Lobby/Game) */}
+                                <div className={`${room ? 'md:col-span-2' : 'md:col-span-3'} space-y-4`}>
+                                    
+                                    {!room && (
+                                        <div className="glass-panel rounded-2xl p-8 text-center space-y-6 animate-fade-in mx-auto max-w-md w-full">
+                                            <div className="space-y-2">
+                                                <label className="text-xs text-gray-400 uppercase">{t.nickname}</label>
+                                                <input 
+                                                    className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg text-center font-bold`}
+                                                    value={nickname} 
+                                                    onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }}
+                                                    disabled={isLoggedIn}
+                                                />
+                                            </div>
+                                            <button onClick={handleCreate} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">{t.create}</button>
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex gap-2">
+                                                    <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value)} />
+                                                    <button onClick={handleJoin} disabled={loading || !nickname} className="btn-ghost px-6 rounded-lg font-bold">{t.join}</button>
+                                                </div>
+                                                {joinError && <div className="error-msg">{joinError}</div>}
                                             </div>
                                         </div>
                                     )}
 
-                                    {room.status === 'voting' && (
-                                        <div className="glass-panel rounded-2xl p-6 animate-fade-in space-y-4">
-                                            <div className="flex justify-between items-center">
-                                                <h3 className="text-lg font-bold text-yellow-400">{t.vote}</h3>
-                                                <div className="relative w-10 h-10">
-                                                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                                        <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle>
-                                                        <circle cx="18" cy="18" r="16" fill="none" stroke="#ff0055" strokeWidth="3" strokeDasharray={`${(votingTimer/30)*100} ${100-((votingTimer/30)*100)}`} strokeLinecap="round"></circle>
-                                                    </svg>
-                                                    <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-yellow-400">{votingTimer}</div>
+                                    {room && (
+                                        <>
+                                            <div className="glass-panel rounded-xl p-3 flex justify-between items-center">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-mono font-bold text-lg tracking-widest text-cyan-400">{room.id}</span>
+                                                    <button onClick={() => navigator.clipboard.writeText(room.id)} className="text-[10px] bg-white/10 px-2 py-1 rounded">Copy</button>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded text-cyan-400">
+                                                        {room.status === 'word_selection' ? 'KEYWORD' : room.status === 'discussing' ? 'DISCUSSION' : room.status.toUpperCase()}
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <div className="bg-black/20 p-3 rounded-lg text-xs space-y-1 mb-2 border border-white/5">
-                                                <span className="text-gray-500 font-bold">{t.votesTitle}</span>
-                                                <div className="flex flex-wrap gap-2 mt-1">
-                                                    {Object.entries(room.votes || {}).map(([uid, target]) => {
-                                                        const voter = room.players.find(p => p.uid === uid);
-                                                        const targetName = room.players.find(p => p.uid === target)?.name;
-                                                        return (<span key={uid} className="bg-white/5 px-2 py-1 rounded">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>);
-                                                    })}
+
+                                            {room.status === 'waiting' && (
+                                                <div className="glass-panel rounded-2xl p-6 text-center animate-fade-in">
+                                                    <div className="animate-pulse text-gray-400 text-sm mb-4">{t.waiting}</div>
+                                                    {room.admin === user?.uid && (<button onClick={startGame} className="btn-neon w-full py-3 rounded-lg font-bold">{t.start}</button>)}
                                                 </div>
-                                            </div>
-                                            {!hasVoted ? (
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    {room.players.filter(p => p.status === 'active').map(p => (
-                                                        <button key={p.uid} onClick={() => submitVote(p.uid)} className="p-4 rounded-xl border text-sm font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10">{p.name}</button>
-                                                    ))}
+                                            )}
+
+                                            {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins') && (
+                                                <div className="glass-panel rounded-2xl p-8 text-center animate-fade-in border border-purple-500">
+                                                    <h2 className="text-3xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+                                                        {room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}
+                                                    </h2>
+                                                    <p className="text-gray-400 mb-6">The Spy was: <span className="text-white font-bold">{room.players.find(p => p.uid === room.spyId)?.name}</span></p>
+                                                    {room.admin === user?.uid && (<button onClick={resetGame} className="btn-ghost border-white/20 text-white w-full py-3 rounded-lg">{t.playAgain}</button>)}
                                                 </div>
-                                            ) : (<div className="text-center space-y-4 py-4"><div className="text-green-400 font-bold">{t.confirm}</div></div>)}
-                                            {room.admin === user?.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg font-bold text-xs uppercase mt-2">{t.endVoting}</button>)}
-                                        </div>
+                                            )}
+
+                                            {room.status === 'word_selection' && (
+                                                <div className="space-y-4 animate-fade-in">
+                                                    <div className="glass-panel rounded-2xl p-6 text-center relative overflow-hidden border border-cyan-500/30">
+                                                        <div className="absolute top-4 right-4 w-12 h-12">
+                                                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                                                <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle>
+                                                                <circle cx="18" cy="18" r="16" fill="none" stroke="#00f2ff" strokeWidth="3" strokeDasharray={`${(wordSelTimer/30)*100} ${100-((wordSelTimer/30)*100)}`} strokeLinecap="round"></circle>
+                                                            </svg>
+                                                            <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-cyan-400">{wordSelTimer}</div>
+                                                        </div>
+                                                        <h3 className="text-xl font-black mb-2 uppercase text-cyan-400">{t.wordSelectionTitle}</h3>
+                                                        <p className="text-xs text-gray-500 mb-6">{t.wordSelectionDesc}</p>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            {(() => {
+                                                                const wordsToDisplay = isSpy ? ['?', '?', '?', '?'] : (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en);
+                                                                return wordsToDisplay?.map((word, i) => {
+                                                                    const voters = Object.entries(room.wordVotes || {}).filter(([uid, w]) => w === word).map(([uid]) => room.players.find(p => p.uid === uid)?.name);
+                                                                    return (
+                                                                        <button key={i} onClick={() => submitWordVote(word)} disabled={isSpy} className={`word-vote-card p-6 rounded-xl font-bold text-lg transition-all ${hasVotedWord === word ? 'selected' : 'bg-white/5 border border-white/10'} ${isSpy ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                                                            {word}
+                                                                            {voters.length > 0 && (<div className="flex justify-center gap-1 mt-2 flex-wrap">{voters.map(v => <span key={v} className="voter-name relative">{v}</span>)}</div>)}
+                                                                        </button>
+                                                                    );
+                                                                });
+                                                            })()}
+                                                        </div>
+                                                        {room.admin === user?.uid && !isSpy && (<button onClick={() => finishWordSelection(false)} className="btn-neon w-full py-3 rounded-lg font-bold mt-6">{t.finishSelection}</button>)}
+                                                    </div>
+                                                    <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
+                                                        <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
+                                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
+                                                            {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-3xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {room.status === 'discussing' && (
+                                                <div className="space-y-4 animate-fade-in">
+                                                    {room.chosenWord && (<div className="glass-panel rounded-xl p-3 text-center border border-cyan-500/50"><span className="text-[10px] text-cyan-400 font-bold uppercase">{t.selectedWord}:</span><span className="ml-2 text-lg font-bold text-white">{room.chosenWord}</span></div>)}
+                                                    <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
+                                                        <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
+                                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
+                                                            {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3><p className="text-xs text-gray-500 mt-2 text-center">{lang === 'ar' ? 'اكتشف المكان دون أن تنكشف' : 'Find the location without getting caught'}</p></> ) : ( <><div className="text-4xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="glass-panel rounded-2xl p-4 flex flex-col overflow-hidden relative">
+                                                        <div className="chat-container space-y-2 mb-3 px-2 h-40 overflow-y-auto relative z-10 mt-4">
+                                                            {room.messages?.slice(-20).map((m, i) => (
+                                                                <div key={i} className={`flex w-full ${m.sender === user?.uid ? 'justify-end' : 'justify-start'}`}>
+                                                                    <div className={m.sender === user?.uid ? 'chat-bubble-me' : 'chat-bubble-other'}>
+                                                                        {m.sender !== 'system' && <div className="text-[10px] opacity-70 mb-1 font-bold">{m.name}</div>}
+                                                                        <div className="text-sm leading-tight">{m.text}</div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        {!isSpectator && isMyTurn ? (
+                                                            <div className="flex flex-col gap-2 mt-auto border-t border-white/10 pt-3 relative z-10">
+                                                                <div className="flex gap-1 mb-1">{EMOJIS.map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>))}</div>
+                                                                <form onSubmit={(e) => { e.preventDefault(); sendMessage(chatMsg); }} className="flex gap-2">
+                                                                    <input className="input-dark flex-1 p-3 rounded-xl text-sm" placeholder={t.chatPlaceholder} value={chatMsg} onChange={e => setChatMsg(e.target.value)} />
+                                                                    <button type="submit" className="btn-neon px-5 rounded-xl text-xs">{t.send}</button>
+                                                                    <button type="button" onClick={() => handleSkipTurn(false)} className="btn-ghost px-4 rounded-xl text-xs border-orange-500 text-orange-400">{t.skip}</button>
+                                                                </form>
+                                                            </div>
+                                                        ) : (<div className="text-center text-xs text-gray-600 py-3 border-t border-white/10 mt-2">{isSpectator ? t.spectator : "Waiting for turn..."}</div>)}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {room.status === 'voting' && (
+                                                <div className="glass-panel rounded-2xl p-6 animate-fade-in space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <h3 className="text-lg font-bold text-yellow-400">{t.vote}</h3>
+                                                        <div className="relative w-10 h-10">
+                                                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                                                <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle>
+                                                                <circle cx="18" cy="18" r="16" fill="none" stroke="#ff0055" strokeWidth="3" strokeDasharray={`${(votingTimer/30)*100} ${100-((votingTimer/30)*100)}`} strokeLinecap="round"></circle>
+                                                            </svg>
+                                                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-yellow-400">{votingTimer}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="bg-black/20 p-3 rounded-lg text-xs space-y-1 mb-2 border border-white/5">
+                                                        <span className="text-gray-500 font-bold">{t.votesTitle}</span>
+                                                        <div className="flex flex-wrap gap-2 mt-1">
+                                                            {Object.entries(room.votes || {}).map(([uid, target]) => {
+                                                                const voter = room.players.find(p => p.uid === uid);
+                                                                const targetName = room.players.find(p => p.uid === target)?.name;
+                                                                return (<span key={uid} className="bg-white/5 px-2 py-1 rounded">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>);
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                    {!hasVoted ? (
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            {room.players.filter(p => p.status === 'active').map(p => (
+                                                                <button key={p.uid} onClick={() => submitVote(p.uid)} className="p-4 rounded-xl border text-sm font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10">{p.name}</button>
+                                                            ))}
+                                                        </div>
+                                                    ) : (<div className="text-center space-y-4 py-4"><div className="text-green-400 font-bold">{t.confirm}</div></div>)}
+                                                    {room.admin === user?.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg font-bold text-xs uppercase mt-2">{t.endVoting}</button>)}
+                                                </div>
+                                            )}
+                                        </>
                                     )}
-                                </>
-                            )}
-                        </div>
+                                </div>
+                            </>
+                        )}
                     </main>
                 </div>
             );
