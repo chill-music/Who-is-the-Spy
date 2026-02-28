@@ -784,7 +784,6 @@
             const handleJoinFromInvite = async (rId) => {
                 setShowChat(false);
                 setInputCode(rId);
-                // Directly call join logic with the ID
                 setLoading(true);
                 let uid = user?.uid;
                 if (!uid) { const anon = await auth.signInAnonymously(); uid = anon.user.uid; setUser(anon.user); }
