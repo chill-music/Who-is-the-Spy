@@ -83,10 +83,17 @@
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
         }
+        
+        @keyframes pop-in {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
 
         .animate-fade-in { animation: fade-in-up 0.6s ease-out forwards; }
         .animate-float { animation: float 3s ease-in-out infinite; }
         .animate-shake { animation: shake 0.5s ease-in-out; }
+        .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         
         .logo-container {
             position: relative;
@@ -157,6 +164,13 @@
              background: linear-gradient(90deg, #ef4444, #dc2626);
              color: white;
         }
+        
+        .btn-google {
+            background: white;
+            color: #333;
+            font-weight: bold;
+        }
+        .btn-google:hover { background: #f0f0f0; }
 
         .input-dark {
             background: rgba(0, 0, 0, 0.6);
@@ -282,7 +296,6 @@
             color: white;
         }
         
-        /* Banner Styles */
         .vote-request-banner {
             position: fixed;
             top: 80px;
@@ -291,6 +304,43 @@
             z-index: 50;
             width: 90%;
             max-width: 500px;
+        }
+        
+        /* Profile & Level Styles */
+        .level-badge {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 2px solid var(--secondary);
+        }
+        
+        .xp-bar-bg { background: rgba(255,255,255,0.1); }
+        .xp-bar-fill { background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 0.5s ease; }
+        
+        .kd-circle { transition: stroke-dashoffset 1s ease; }
+        
+        .achievement-card {
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .achievement-card.locked { filter: grayscale(100%); opacity: 0.4; }
+        .achievement-card.unlocked { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
+        
+        /* Mini Profile */
+        .mini-profile-popup {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            margin-left: 10px;
+            z-index: 100;
+            width: 250px;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            min-width: 180px;
+            z-index: 50;
         }
     </style>
 </head>
@@ -318,25 +368,30 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v9_final';
+        const appId = 'pro_spy_v10_accounts';
+        const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
+
+        // --- Achievements Definition ---
+        const ACHIEVEMENTS = [
+            { id: 'first_win', name_en: "First Blood", name_ar: "أول دم", desc_en: "Win your first game", desc_ar: "اربح أول لعبة", icon: "🩸", tier: 1 },
+            { id: 'wins_5', name_en: "Rookie Spy", name_ar: "جاسوس مبتدئ", desc_en: "Win 5 games", desc_ar: "اربح 5 مباريات", icon: "🕵️", tier: 2 },
+            { id: 'wins_10', name_en: "Field Agent", name_ar: "عميل ميداني", desc_en: "Win 10 games", desc_ar: "اربح 10 مباريات", icon: "🔫", tier: 3 },
+            { id: 'wins_20', name_en: "Master of Disguise", name_ar: "سيد التنكر", desc_en: "Win 20 games", desc_ar: "اربح 20 مباراة", icon: "🎭", tier: 4 },
+            { id: 'wins_50', name_en: "Shadow Legend", name_ar: "أسطورة الظل", desc_en: "Win 50 games", desc_ar: "اربح 50 مباراة", icon: "👁️", tier: 5 },
+            { id: 'wins_100', name_en: "Immortal", name_ar: "خالد", desc_en: "Win 100 games", desc_ar: "اربح 100 مباراة", icon: "👑", tier: 6, special: true }
+        ];
 
         // --- Sound System ---
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null; 
-
-        const initAudio = () => {
-            if (!audioCtx) audioCtx = new AudioCtx();
-        };
-        
+        const initAudio = () => { if (!audioCtx) audioCtx = new AudioCtx(); };
         const playSound = (type) => {
             if (!audioCtx) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             osc.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-
             if (type === 'click') {
                 osc.frequency.value = 800; osc.type = 'sine';
                 gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
@@ -348,17 +403,6 @@
                 osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-            } else if (type === 'fail') {
-                osc.frequency.value = 200; osc.type = 'sawtooth';
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-            } else if (type === 'alert') {
-                 osc.frequency.value = 1000; osc.type = 'square';
-                 gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                 osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.1);
-                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                 osc.start(); osc.stop(audioCtx.currentTime + 0.2);
             }
         };
 
@@ -370,32 +414,38 @@
                 codePlaceholder: "ENTER CODE", players: "OPERATIVES", start: "LAUNCH MISSION",
                 langBtn: "العربية", loading: "PROCESSING...", you: "YOU",
                 statusSpy: "SPY", statusAgent: "AGENT",
-                round: "ROUND", discussionTime: "DISCUSSION TIME",
-                skip: "SKIP TURN", vote: "VOTE TO EJECT",
+                round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT",
                 chatPlaceholder: "Type message...", send: "SEND",
                 waiting: "Awaiting host...", location: "LOCATION",
                 spectator: "SPECTATOR", ejected: "EJECTED",
-                noChoice: "NO VOTE", confirm: "CONFIRM VOTE", gameOver: "GAME OVER",
+                confirm: "CONFIRM VOTE", gameOver: "GAME OVER",
                 spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!",
-                playAgain: "PLAY AGAIN", connecting: "Establishing Secure Connection...",
-                voteWait: "Waiting for votes...", voteDone: "VOTE LOCKED", soundOn: "SOUND ON", soundOff: "SOUND OFF",
-                linkGuessCard: "GUESS MY CARD",
+                playAgain: "PLAY AGAIN", connecting: "Connecting...",
+                startVoting: "START VOTING", votingStarted: "VOTING INITIATED",
+                voteRequestTitle: "VOTING REQUEST", voteRequestDesc: "wants to start voting.",
+                agree: "AGREE", decline: "DECLINE",
+                endVoting: "END VOTING NOW", votesTitle: "VOTES:",
+                roundsFormat: (c, m) => `ROUND ${c}/${m}`,
                 wordSelectionTitle: "SELECT KEYWORD",
                 wordSelectionDesc: "Choose a keyword for this round",
                 finishSelection: "FINISH SELECTION",
                 selectedWord: "Selected Keyword",
-                startVoting: "START VOTING",
-                votingStarted: "VOTING INITIATED",
-                // Voting Request
-                voteRequestTitle: "VOTING REQUEST",
-                voteRequestDesc: "wants to start voting.",
-                agree: "AGREE",
-                decline: "DECLINE",
-                requestSent: "Request Sent...",
-                // End Voting
-                endVoting: "END VOTING NOW",
-                votesTitle: "VOTES CAST:",
-                roundsFormat: (c, m) => `ROUND ${c}/${m}`
+                // Auth
+                loginGoogle: "Login with Google",
+                myAccount: "My Account",
+                logout: "Logout",
+                profile: "Profile",
+                guest: "Guest",
+                // Stats
+                level: "Level",
+                wins: "Wins",
+                losses: "Losses",
+                winRate: "Win Rate",
+                totalGames: "Games",
+                kd: "K/D",
+                achievements: "Achievements",
+                noAchievements: "No achievements yet",
+                id: "ID"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -403,36 +453,41 @@
                 codePlaceholder: "أدخل الكود", players: "العملاء", start: "بدء المهمة",
                 langBtn: "English", loading: "جاري التحميل...", you: "أنت",
                 statusSpy: "جاسوس", statusAgent: "عميل",
-                round: "الجولة", discussionTime: "وقت النقاش",
-                skip: "تخطي الدور", vote: "تصويت للطرد",
+                round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد",
                 chatPlaceholder: "اكتب رسالة...", send: "إرسال",
                 waiting: "بانتظار المضيف...", location: "الموقع",
                 spectator: "مشاهد", ejected: "مطرود",
-                noChoice: "لم يصوت", confirm: "تأكيد التصويت", gameOver: "انتهت اللعبة",
+                confirm: "تأكيد التصويت", gameOver: "انتهت اللعبة",
                 spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!",
-                playAgain: "لعب مجدداً", connecting: "جاري تأمين الاتصال...",
-                voteWait: "بانتظار الأصوات...", voteDone: "تم تثبيت التصويت", soundOn: "تشغيل الصوت", soundOff: "إيقاف الصوت",
-                linkGuessCard: "خمن كرتي",
+                playAgain: "لعب مجدداً", connecting: "جاري التأمين...",
+                startVoting: "بدء التصويت", votingStarted: "بدأ التصويت",
+                voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.",
+                agree: "موافق", decline: "رفض",
+                endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:",
+                roundsFormat: (c, m) => `الجولة ${c}/${m}`,
                 wordSelectionTitle: "اختر كلمة السر",
                 wordSelectionDesc: "اختر كلمة سر لهذه الجولة",
                 finishSelection: "إنهاء الاختيار",
                 selectedWord: "كلمة السر",
-                startVoting: "بدء التصويت",
-                votingStarted: "بدأ التصويت",
-                // Voting Request
-                voteRequestTitle: "طلب تصويت",
-                voteRequestDesc: "يريد بدء التصويت.",
-                agree: "موافق",
-                decline: "رفض",
-                requestSent: "تم إرسال الطلب...",
-                // End Voting
-                endVoting: "إنهاء التصويت الآن",
-                votesTitle: "الأصوات المسجلة:",
-                roundsFormat: (c, m) => `الجولة ${c}/${m}`
+                // Auth
+                loginGoogle: "الدخول بجوجل",
+                myAccount: "حسابي",
+                logout: "تسجيل الخروج",
+                profile: "الملف الشخصي",
+                guest: "زائر",
+                // Stats
+                level: "المستوى",
+                wins: "فوز",
+                losses: "خسارة",
+                winRate: "نسبة الفوز",
+                totalGames: "المباريات",
+                kd: "نسبة الفوز",
+                achievements: "الإنجازات",
+                noAchievements: "لا توجد إنجازات بعد",
+                id: "الرقم"
             }
         };
 
-        // --- Scenarios DB ---
         const SCENARIOS = [
             { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
             { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Sonar"] },
@@ -448,65 +503,174 @@
             { loc_ar: "مركز شرطة", words_ar: ["قضبان", "شرطي", "سيارة", "قانون"], loc_en: "Police Station", words_en: ["Bars", "Cop", "Car", "Law"] },
             { loc_ar: "مدرسة ثانوية", words_ar: ["طالب", "حقيبة", "سبورة", "جرس"], loc_en: "High School", words_en: ["Student", "Bag", "Board", "Bell"] },
             { loc_ar: "مطعم فاخر", words_ar: ["نادل", "قائمة", "منديل", "شوكة"], loc_en: "Fancy Restaurant", words_en: ["Waiter", "Menu", "Napkin", "Fork"] },
-            { loc_ar: "شاطئ استوائي", words_ar: ["رمل", "موجة", "شمس", "كوكتيل"], loc_en: "Tropical Beach", words_en: ["Sand", "Wave", "Sun", "Cocktail"] },
-            { loc_ar: "معرض فني", words_ar: ["لوحة", "تمثال", "إطار", "مصور"], loc_en: "Art Gallery", words_en: ["Painting", "Statue", "Frame", "Photographer"] },
-            { loc_ar: "حديقة حيوان", words_ar: ["قفص", "أسد", "زائر", "طعام"], loc_en: "Zoo", words_en: ["Cage", "Lion", "Visitor", "Food"] },
-            { loc_ar: "ملعب كرة قدم", words_ar: ["حكم", "هدف", "جمهور", "عشب"], loc_en: "Stadium", words_en: ["Referee", "Goal", "Crowd", "Grass"] },
-            { loc_ar: "دار مسنين", words_ar: ["سرير", "طبيب", "عكاز", "هدوء"], loc_en: "Nursing Home", words_en: ["Bed", "Doctor", "Cane", "Quiet"] },
-            { loc_ar: "محطة وقود", words_ar: ["بنزين", "سيارة", "مضخة", "زيت"], loc_en: "Gas Station", words_en: ["Gas", "Car", "Pump", "Oil"] },
-            { loc_ar: "مكتبة عامة", words_ar: ["كتاب", "صمت", "رف", "مكتب"], loc_en: "Library", words_en: ["Book", "Silence", "Shelf", "Desk"] },
-            { loc_ar: "مصحة نفسية", words_ar: ["جنون", "حبوب", "طبيب", "غرفة"], loc_en: "Asylum", words_en: ["Madness", "Pills", "Doctor", "Room"] },
-            { loc_ar: "مختبر كيميائي", words_ar: ["أنبوب", "سائل", "تفاعل", "غاز"], loc_en: "Chem Lab", words_en: ["Tube", "Liquid", "Reaction", "Gas"] },
-            { loc_ar: "مسرح", words_ar: ["ستار", "ممثل", "مقعد", "إضاءة"], loc_en: "Theater", words_en: ["Curtain", "Actor", "Seat", "Light"] },
-            { loc_ar: "فندق 5 نجوم", words_ar: ["غرفة", "مفتاح", "استقبال", "جناح"], loc_en: "Hotel", words_en: ["Room", "Key", "Reception", "Suite"] },
-            { loc_ar: "سجن", words_ar: ["زنزانة", "حارس", "قضبان", "هروب"], loc_en: "Prison", words_en: ["Cell", "Guard", "Bars", "Escape"] },
-            { loc_ar: "مصنع شوكولاتة", words_ar: ["كاكاو", "سكر", "قالب", "حلوى"], loc_en: "Chocolate Factory", words_en: ["Cocoa", "Sugar", "Mold", "Candy"] },
-            { loc_ar: "مزرعة", words_ar: ["بقرة", "حصاد", "تراكتور", "بئر"], loc_en: "Farm", words_en: ["Cow", "Harvest", "Tractor", "Well"] },
-            { loc_ar: "سفارة", words_ar: ["جواز", "سفير", "تأشيرة", "علم"], loc_en: "Embassy", words_en: ["Passport", "Ambassador", "Visa", "Flag"] },
-            { loc_ar: "مؤتمر صحفي", words_ar: ["ميكروفون", "صحفي", "كاميرا", "أسئلة"], loc_en: "Press Conf", words_en: ["Mic", "Journalist", "Camera", "Questions"] },
-            { loc_ar: "غرفة عمليات", words_ar: ["شاشة", "خريطة", "جنود", "خطة"], loc_en: "War Room", words_en: ["Screen", "Map", "Soldiers", "Plan"] },
-            { loc_ar: "محطة مترو", words_ar: ["قطار", "رصيف", "تذكرة", "نفق"], loc_en: "Subway", words_en: ["Train", "Platform", "Ticket", "Tunnel"] },
-            { loc_ar: "ستوديو تصوير", words_ar: ["إضاءة", "خلفية", "كاميرا", "موديل"], loc_en: "Studio", words_en: ["Light", "Backdrop", "Camera", "Model"] },
-            { loc_ar: "مصلى", words_ar: ["سجادة", "قبلة", " Imam ", "صلاة"], loc_en: "Mosque", words_en: ["Rug", "Qibla", "Imam", "Prayer"] },
-            { loc_ar: "كنيسة", words_ar: ["جرس", "مذبح", "قسيس", "صليب"], loc_en: "Church", words_en: ["Bell", "Altar", "Priest", "Cross"] },
-            { loc_ar: "سينما", words_ar: ["شاشة", "فشار", "تذاكر", "ظلام"], loc_en: "Cinema", words_en: ["Screen", "Popcorn", "Tickets", "Dark"] },
-            { loc_ar: "ملهى ليلي", words_ar: ["موسيقى", "رقص", "بار", "أضواء"], loc_en: "Night Club", words_en: ["Music", "Dance", "Bar", "Lights"] },
-            { loc_ar: "ملاهي", words_ar: ["ألعاب", "قطار", "مطر", "تذاكر"], loc_en: "Carnival", words_en: ["Rides", "Train", "Cotton", "Tickets"] },
-            { loc_ar: "صيدلية", words_ar: ["دواء", "وصفة", "طبيب", "رفوف"], loc_en: "Pharmacy", words_en: ["Medicine", "Rx", "Doctor", "Shelves"] },
-            { loc_ar: "مسبح", words_ar: ["ماء", "غطاس", "حمام", "كلور"], loc_en: "Pool", words_en: ["Water", "Diver", "Swim", "Chlorine"] },
-            { loc_ar: "نادي رياضي", words_ar: ["أثقال", "جري", "مدرب", "عضلات"], loc_en: "Gym", words_en: ["Weights", "Run", "Trainer", "Muscles"] },
-            { loc_ar: "مركز تسوق", words_ar: ["محلات", "حقائب", "طعام", "ممرات"], loc_en: "Mall", words_en: ["Shops", "Bags", "Food", "Halls"] },
-            { loc_ar: "منارة", words_ar: ["ضوء", "بحر", "سلم", "جزيرة"], loc_en: "Lighthouse", words_en: ["Light", "Sea", "Stairs", "Island"] },
-            { loc_ar: "ورشة نجارة", words_ar: ["خشب", "منشار", "مطرقة", "غبار"], loc_en: "Workshop", words_en: ["Wood", "Saw", "Hammer", "Dust"] },
-            { loc_ar: "مكتب تحقيقات", words_ar: ["ملفات", "محقق", "عدسة", "أدلة"], loc_en: "Detective Office", words_en: ["Files", "Detective", "Lens", "Clues"] },
-            { loc_ar: "قارب صيد", words_ar: ["شبكة", "سمك", "بحر", "صنارة"], loc_en: "Fishing Boat", words_en: ["Net", "Fish", "Sea", "Hook"] },
-            { loc_ar: "محطة إذاعة", words_ar: ["مايك", "أنتينا", "صوت", "أغنية"], loc_en: "Radio Station", words_en: ["Mic", "Antenna", "Voice", "Song"] },
-            { loc_ar: "مشفى للأمراض النفسية", words_ar: ["جنون", "حبوب", "طبيب", "نعاس"], loc_en: "Mental Hospital", words_en: ["Mad", "Pills", "Doctor", "Sleep"] },
-            { loc_ar: "محطة إطفاء", words_ar: ["نار", "خرطوم", "سيارة", "إنذار"], loc_en: "Fire Station", words_en: ["Fire", "Hose", "Truck", "Alarm"] },
-            { loc_ar: "مكتب محاماة", words_ar: ["قانون", "ملفات", "قاضي", "دفاع"], loc_en: "Law Firm", words_en: ["Law", "Files", "Judge", "Defense"] }
+            { loc_ar: "شاطئ استوائي", words_ar: ["رمل", "موجة", "شمس", "كوكتيل"], loc_en: "Tropical Beach", words_en: ["Sand", "Wave", "Sun", "Cocktail"] }
         ];
 
         const EMOJIS = ['🕵️', '🔍', '🚨', '🤐', '👀', '🔪', '🛡️', '💀', '🤫', '✅'];
         const MAX_ROUNDS = 3;
 
+        // --- Helper Functions ---
+        const generateUID = () => {
+            return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit ID
+        };
+        
+        const calculateLevel = (xp) => Math.floor(xp / 100) + 1;
+        const calculateXPProgress = (xp) => (xp % 100);
+
+        // --- Components ---
+
+        const ProfileModal = ({ show, onClose, userData, lang }) => {
+            const t = TRANSLATIONS[lang];
+            if (!show || !userData) return null;
+
+            const level = calculateLevel(userData.stats?.xp || 0);
+            const xpProgress = calculateXPProgress(userData.stats?.xp || 0);
+            const wins = userData.stats?.wins || 0;
+            const losses = userData.stats?.losses || 0;
+            const totalGames = wins + losses;
+            const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(0) : 0;
+            
+            // KD Circle Math
+            const circumference = 2 * Math.PI * 45;
+            const offset = circumference - (winRate / 100) * circumference;
+
+            return (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+                    <div className="glass-panel rounded-2xl p-6 w-full max-w-md animate-pop" onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="flex items-center gap-4">
+                                <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="w-16 h-16 rounded-full border-2 border-cyan-400" />
+                                <div>
+                                    <h2 className="text-xl font-bold">{userData.displayName}</h2>
+                                    <p className="text-gray-400 text-xs font-mono">ID: #{userData.uid.substring(0, 6)}</p>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button>
+                        </div>
+
+                        {/* Level & XP */}
+                        <div className="mb-6 glass-panel rounded-xl p-4 border border-white/10">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="font-bold text-primary">{t.level} {level}</span>
+                                <span className="text-xs text-gray-400">{xpProgress}/100 XP</span>
+                            </div>
+                            <div className="w-full h-2 xp-bar-bg rounded-full overflow-hidden">
+                                <div className="h-full xp-bar-fill" style={{ width: `${xpProgress}%` }}></div>
+                            </div>
+                        </div>
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-green-400">{wins}</div>
+                                <div className="text-[10px] text-gray-500 uppercase">{t.wins}</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-red-400">{losses}</div>
+                                <div className="text-[10px] text-gray-500 uppercase">{t.losses}</div>
+                            </div>
+                             <div className="text-center">
+                                <div className="text-3xl font-bold text-cyan-400">{totalGames}</div>
+                                <div className="text-[10px] text-gray-500 uppercase">{t.totalGames}</div>
+                            </div>
+                        </div>
+
+                        {/* KD Circle */}
+                        <div className="flex justify-center mb-6">
+                            <div className="relative w-32 h-32">
+                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="45" stroke="rgba(255,255,255,0.1)" strokeWidth="10" fill="none"/>
+                                    <circle cx="50" cy="50" r="45" stroke="url(#gradient)" strokeWidth="10" fill="none"
+                                        strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="kd-circle"/>
+                                    <defs>
+                                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#7000ff"/>
+                                            <stop offset="100%" stopColor="#00f2ff"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span className="text-3xl font-black">{winRate}%</span>
+                                    <span className="text-[10px] text-gray-400 uppercase">{t.winRate}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Achievements */}
+                        <div>
+                            <h3 className="text-sm font-bold text-gray-400 mb-3">{t.achievements}</h3>
+                            <div className="grid grid-cols-3 gap-2">
+                                {ACHIEVEMENTS.map(ach => {
+                                    const isUnlocked = (userData.achievements || []).includes(ach.id);
+                                    return (
+                                        <div key={ach.id} className={`achievement-card rounded-lg p-2 text-center ${isUnlocked ? 'unlocked' : 'locked'}`}>
+                                            <div className={`text-2xl mb-1 ${ach.special && isUnlocked ? 'animate-float' : ''}`}>{ach.icon}</div>
+                                            <div className="text-[10px] font-bold truncate">{lang === 'ar' ? ach.name_ar : ach.name_en}</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            );
+        };
+
+        const MiniProfile = ({ show, onClose, userData, lang }) => {
+            const t = TRANSLATIONS[lang];
+            if (!show || !userData) return null;
+
+            const level = calculateLevel(userData.stats?.xp || 0);
+            const wins = userData.stats?.wins || 0;
+            const losses = userData.stats?.losses || 0;
+            const totalGames = wins + losses;
+            const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(0) : 0;
+
+            return (
+                <div className="mini-profile-popup glass-panel rounded-lg p-3 animate-fade-in" style={{animationDuration: '0.2s'}}>
+                    <div className="flex items-center gap-2 mb-2 border-b border-white/10 pb-2">
+                        <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}`} className="w-8 h-8 rounded-full"/>
+                        <div>
+                            <div className="font-bold text-sm">{userData.displayName}</div>
+                            <div className="text-[9px] text-cyan-400">Lvl {level}</div>
+                        </div>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-gray-400">
+                        <span>{t.wins}: <span className="text-white">{wins}</span></span>
+                        <span>{t.losses}: <span className="text-white">{losses}</span></span>
+                    </div>
+                    <div className="mt-1 text-center text-[10px] font-bold text-cyan-400">{winRate}% {t.winRate}</div>
+                </div>
+            );
+        };
+
         function App() {
             const [lang, setLang] = useState('en');
             const [user, setUser] = useState(null);
+            const [userData, setUserData] = useState(null);
             const [room, setRoom] = useState(null);
             const [roomId, setRoomId] = useState('');
             const [inputCode, setInputCode] = useState('');
             const [nickname, setNickname] = useState(() => localStorage.getItem('pro_spy_nick') || '');
             const [loading, setLoading] = useState(false);
             const [chatMsg, setChatMsg] = useState('');
-            const [voteTarget, setVoteTarget] = useState(null); 
             const [turnTimer, setTurnTimer] = useState(30);
             const [votingTimer, setVotingTimer] = useState(30);
             const [wordSelTimer, setWordSelTimer] = useState(30);
             const [soundEnabled, setSoundEnabled] = useState(true);
             
+            // UI State
+            const [showProfile, setShowProfile] = useState(false);
+            const [showDropdown, setShowDropdown] = useState(false);
+            const [selectedPlayerId, setSelectedPlayerId] = useState(null); // For Mini Profile
+            
             const t = TRANSLATIONS[lang];
 
-            // --- Background Logic ---
+            // --- Effects ---
+
+            // Background Logic
             useEffect(() => {
                 const canvas = document.getElementById('bg-canvas');
                 if (!canvas) return;
@@ -514,109 +678,74 @@
                 let width, height, particles;
                 let mouse = { x: null, y: null };
                 const particleCount = 60;
-
-                const resize = () => {
-                    width = canvas.width = window.innerWidth;
-                    height = canvas.height = window.innerHeight;
-                };
-                
-                const handleMouseMove = (e) => {
-                    mouse.x = e.clientX;
-                    mouse.y = e.clientY;
-                };
-
-                window.addEventListener('resize', resize);
-                window.addEventListener('mousemove', handleMouseMove);
-                resize();
-
+                const resize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; };
+                const handleMouseMove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
+                window.addEventListener('resize', resize); window.addEventListener('mousemove', handleMouseMove); resize();
                 class Particle {
-                    constructor() {
-                        this.x = Math.random() * width;
-                        this.y = Math.random() * height;
-                        this.vx = (Math.random() - 0.5) * 0.5;
-                        this.vy = (Math.random() - 0.5) * 0.5;
-                        this.size = Math.random() * 2;
-                    }
+                    constructor() { this.x = Math.random() * width; this.y = Math.random() * height; this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5; this.size = Math.random() * 2; }
                     update() {
-                        this.x += this.vx;
-                        this.y += this.vy;
+                        this.x += this.vx; this.y += this.vy;
                         if (this.x < 0 || this.x > width) this.vx *= -1;
                         if (this.y < 0 || this.y > height) this.vy *= -1;
-                        
-                        if (mouse.x != null) {
-                            let dx = mouse.x - this.x;
-                            let dy = mouse.y - this.y;
-                            let dist = Math.sqrt(dx*dx + dy*dy);
-                            if (dist < 150) {
-                                const force = (150 - dist) / 150;
-                                this.x -= dx * force * 0.02;
-                                this.y -= dy * force * 0.02;
-                            }
-                        }
+                        if (mouse.x != null) { let dx = mouse.x - this.x; let dy = mouse.y - this.y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 150) { const force = (150 - dist) / 150; this.x -= dx * force * 0.02; this.y -= dy * force * 0.02; } }
                     }
-                    draw() {
-                        ctx.fillStyle = 'rgba(0, 242, 255, 0.5)';
-                        ctx.beginPath();
-                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
+                    draw() { ctx.fillStyle = 'rgba(0, 242, 255, 0.5)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
                 }
-
                 particles = Array.from({ length: particleCount }, () => new Particle());
                 let animId;
                 const animate = () => {
-                    ctx.clearRect(0, 0, width, height);
-                    ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)';
-                    ctx.lineWidth = 1;
-                    
+                    ctx.clearRect(0, 0, width, height); ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)'); ctx.lineWidth = 1;
                     for (let i = 0; i < particles.length; i++) {
-                        particles[i].update();
-                        particles[i].draw();
-                        
-                        for (let j = i; j < particles.length; j++) {
-                            let dx = particles[i].x - particles[j].x;
-                            let dy = particles[i].y - particles[j].y;
-                            let dist = Math.sqrt(dx*dx + dy*dy);
-                            if (dist < 120) {
-                                ctx.beginPath();
-                                ctx.moveTo(particles[i].x, particles[i].y);
-                                ctx.lineTo(particles[j].x, particles[j].y);
-                                ctx.stroke();
-                            }
-                        }
+                        particles[i].update(); particles[i].draw();
+                        for (let j = i; j < particles.length; j++) { let dx = particles[i].x - particles[j].x; let dy = particles[i].y - particles[j].y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke(); } }
                     }
                     animId = requestAnimationFrame(animate);
                 };
                 animate();
+                return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
+            }, []);
 
-                return () => {
-                    cancelAnimationFrame(animId);
-                    window.removeEventListener('resize', resize);
-                    window.removeEventListener('mousemove', handleMouseMove);
-                };
-            }, []); 
-
-            // --- Auth Effect ---
+            // Auth State
             useEffect(() => {
                 const unsub = auth.onAuthStateChanged(async (u) => {
-                    if (u) setUser(u);
-                    else await auth.signInAnonymously();
+                    if (u) {
+                        setUser(u);
+                        // Fetch or Create User Data
+                        const userRef = usersCollection.doc(u.uid);
+                        const doc = await userRef.get();
+                        if (!doc.exists) {
+                            const newUser = {
+                                uid: u.uid,
+                                email: u.email,
+                                displayName: u.displayName,
+                                photoURL: u.photoURL,
+                                customId: generateUID(),
+                                stats: { wins: 0, losses: 0, xp: 0 },
+                                achievements: [],
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            };
+                            await userRef.set(newUser);
+                            setUserData(newUser);
+                        } else {
+                            setUserData(doc.data());
+                        }
+                    } else {
+                        setUser(null);
+                        setUserData(null);
+                    }
                 });
                 return unsub;
             }, []);
 
-            // --- Room Listener ---
+            // Room Listener
             useEffect(() => {
                 if (!user || !roomId) return;
                 const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
-                    .onSnapshot(doc => {
-                        if (doc.exists) setRoom(doc.data());
-                        else setRoom(null);
-                    });
+                    .onSnapshot(doc => { if (doc.exists) setRoom(doc.data()); else setRoom(null); });
                 return unsub;
             }, [user, roomId]);
 
-            // --- Timers Logic ---
+            // Timers
             useEffect(() => {
                 if (room?.status === 'discussing' && room?.turnEndTime) {
                     const interval = setInterval(() => {
@@ -633,9 +762,6 @@
                     const interval = setInterval(() => {
                         const remaining = Math.max(0, Math.floor((room.votingEndTime - Date.now()) / 1000));
                         setVotingTimer(remaining);
-                        // REMOVED: Auto resolve on timer end. We want manual end or very long timer.
-                        // Actually, keeping auto-resolve is safer for UX, but we add manual button.
-                        // Let's keep auto-resolve but allow manual trigger.
                         if (remaining <= 0) { resolveVotes(true); clearInterval(interval); }
                     }, 1000);
                     return () => clearInterval(interval);
@@ -655,6 +781,16 @@
 
             // --- Actions ---
 
+            const handleGoogleLogin = async () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                try { await auth.signInWithPopup(provider); } catch (e) { console.error(e); }
+            };
+
+            const handleLogout = async () => {
+                await auth.signOut();
+                setShowDropdown(false);
+            };
+
             const handleCreate = async () => {
                 if (!nickname.trim() || !user) return;
                 if (soundEnabled) playSound('click');
@@ -662,7 +798,7 @@
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set({
                     id, admin: user.uid, status: 'waiting',
-                    players: [{ uid: user.uid, name: nickname, status: 'active' }],
+                    players: [{ uid: user.uid, name: nickname, status: 'active', photo: userData?.photoURL }],
                     scenario: null, spyId: null, 
                     currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0,
                     messages: [], votes: {}, usedLocations: [], 
@@ -683,7 +819,7 @@
                     const data = snap.data();
                     const exists = data.players.find(p => p.uid === user.uid);
                     if (!exists) {
-                        await ref.update({ players: [...data.players, { uid: user.uid, name: nickname, status: 'active' }] });
+                        await ref.update({ players: [...data.players, { uid: user.uid, name: nickname, status: 'active', photo: userData?.photoURL }] });
                     }
                     setRoomId(inputCode.toUpperCase());
                 }
@@ -698,7 +834,6 @@
                 const avail = SCENARIOS.filter(s => !used.includes(s.loc_en));
                 const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))];
                 const activePlayers = room.players.filter(p => p.status === 'active');
-                
                 if (activePlayers.length < 3) { alert("Need at least 3 players!"); return; }
 
                 const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)];
@@ -707,17 +842,12 @@
                 const firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)];
 
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    status: 'word_selection',
-                    scenario, spyId: spy.uid,
-                    currentTurnUID: firstPlayer.uid, 
-                    turnEndTime: null, 
-                    currentRound: 1, 
+                    status: 'word_selection', scenario, spyId: spy.uid,
+                    currentTurnUID: firstPlayer.uid, turnEndTime: null, currentRound: 1, 
                     players: room.players.map(p => ({ ...p, vote: null })),
                     usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en),
-                    messages: [], votes: {},
-                    wordVotes: {}, chosenWord: null, 
-                    wordSelEndTime: Date.now() + 30000,
-                    votingRequest: null
+                    messages: [], votes: {}, wordVotes: {}, chosenWord: null, 
+                    wordSelEndTime: Date.now() + 30000, votingRequest: null
                 });
             };
 
@@ -733,21 +863,13 @@
                 if (!room || room.status !== 'word_selection') return;
                 const freshSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).get();
                 const freshData = freshSnap.data();
-
                 const counts = {};
                 Object.values(freshData.wordVotes || {}).forEach(v => counts[v] = (counts[v] || 0) + 1);
                 let maxCount = 0;
                 let chosenWord = (lang === 'ar' ? freshData.scenario.words_ar[0] : freshData.scenario.words_en[0]);
-                
-                for (const w in counts) {
-                    if (counts[w] > maxCount) { maxCount = counts[w]; chosenWord = w; }
-                }
-
+                for (const w in counts) { if (counts[w] > maxCount) { maxCount = counts[w]; chosenWord = w; } }
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    status: 'discussing',
-                    turnEndTime: Date.now() + 30000,
-                    chosenWord: chosenWord,
-                    wordSelEndTime: null
+                    status: 'discussing', turnEndTime: Date.now() + 30000, chosenWord: chosenWord, wordSelEndTime: null
                 });
             };
 
@@ -763,96 +885,52 @@
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 const currentIndex = activePlayers.findIndex(p => p.uid === room.currentTurnUID);
                 const nextIndex = (currentIndex + 1) % activePlayers.length;
-
-                // Just loop discussion, no auto-vote
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    currentTurnUID: activePlayers[nextIndex].uid,
-                    turnEndTime: Date.now() + 30000
+                    currentTurnUID: activePlayers[nextIndex].uid, turnEndTime: Date.now() + 30000
                 });
             };
 
-            // --- Voting Request Logic ---
             const requestVoting = async () => {
                 if (!room || room.status !== 'discussing') return;
                 if (soundEnabled) playSound('click');
-                
-                // Admin starts immediately
-                if (room.admin === user.uid) {
-                    await triggerVoting();
-                    return;
-                }
-
-                // Others request
+                if (room.admin === user.uid) { await triggerVoting(); return; }
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    votingRequest: {
-                        requestedBy: user.uid,
-                        votes: { [user.uid]: true } // True = Agree
-                    }
+                    votingRequest: { requestedBy: user.uid, votes: { [user.uid]: true } }
                 });
             };
 
             const agreeToVote = async () => {
                 if (!room || !room.votingRequest) return;
                 if (soundEnabled) playSound('click');
-                
                 const currentVotes = room.votingRequest.votes || {};
                 const newVotes = { ...currentVotes, [user.uid]: true };
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 const majorityCount = Math.floor(activePlayers.length / 2) + 1;
-
-                // Admin override
-                if (user.uid === room.admin) {
-                    await triggerVoting();
-                    return;
-                }
-
-                // Check Majority Agree
+                if (user.uid === room.admin) { await triggerVoting(); return; }
                 const agreeCount = Object.values(newVotes).filter(v => v === true).length;
-                if (agreeCount >= majorityCount) {
-                    await triggerVoting();
-                } else {
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                        "votingRequest.votes": newVotes
-                    });
-                }
+                if (agreeCount >= majorityCount) { await triggerVoting(); } 
+                else { await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ "votingRequest.votes": newVotes }); }
             };
 
-            // NEW: Decline Vote Logic
             const declineVote = async () => {
                 if (!room || !room.votingRequest) return;
                 if (soundEnabled) playSound('click');
-
                 const currentVotes = room.votingRequest.votes || {};
-                const newVotes = { ...currentVotes, [user.uid]: false }; // False = Decline
+                const newVotes = { ...currentVotes, [user.uid]: false };
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 const majorityCount = Math.floor(activePlayers.length / 2) + 1;
-
-                // Check Majority Decline
                 const declineCount = Object.values(newVotes).filter(v => v === false).length;
-                
                 if (declineCount >= majorityCount) {
-                    // Cancel the request
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                        votingRequest: null
-                    });
-                } else {
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                        "votingRequest.votes": newVotes
-                    });
-                }
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ votingRequest: null });
+                } else { await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ "votingRequest.votes": newVotes }); }
             };
 
             const triggerVoting = async () => {
-                if (soundEnabled) playSound('alert');
+                if (soundEnabled) playSound('click');
                 const sysMsg = { sender: 'system', name: 'SYSTEM', text: t.votingStarted, time: Date.now() };
-                
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    status: 'voting', 
-                    currentTurnUID: null, 
-                    turnEndTime: null,
-                    votingEndTime: Date.now() + 30000,
-                    messages: firebase.firestore.FieldValue.arrayUnion(sysMsg),
-                    votingRequest: null // Clear request
+                    status: 'voting', currentTurnUID: null, turnEndTime: null,
+                    votingEndTime: Date.now() + 30000, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg), votingRequest: null
                 });
             };
 
@@ -869,88 +947,117 @@
             const submitVote = async (targetUID) => {
                 if (!targetUID || !user || (room.votes && room.votes[user.uid])) return;
                 if (soundEnabled) playSound('click');
-                const voteUpdate = {};
-                voteUpdate[`votes.${user.uid}`] = targetUID;
+                const voteUpdate = {}; voteUpdate[`votes.${user.uid}`] = targetUID;
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update(voteUpdate);
             };
 
-            // NEW: Manual End Voting
             const endVotingNow = async () => {
-                if (room.admin !== user.uid) return; // Admin only
+                if (room.admin !== user.uid) return;
                 await resolveVotes(true);
             };
 
             const resolveVotes = async (forced = false) => {
                 if (!room || room.status !== 'voting') return;
-                
                 const freshSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).get();
                 const freshData = freshSnap.data();
                 if (freshData.status !== 'voting') return;
 
                 const activePlayers = freshData.players.filter(p => p.status === 'active');
                 const votes = freshData.votes || {};
-                
                 const voteCounts = {};
                 Object.values(votes).forEach(v => voteCounts[v] = (voteCounts[v] || 0) + 1);
-                
                 let maxVotes = 0; let ejectedUID = null; let isTie = false;
                 for (const uid in voteCounts) {
                     if (voteCounts[uid] > maxVotes) { maxVotes = voteCounts[uid]; ejectedUID = uid; isTie = false; }
                     else if (voteCounts[uid] === maxVotes) { isTie = true; }
                 }
-
                 const majorityNeeded = Math.floor(activePlayers.length / 2) + 1;
                 
                 if (isTie || maxVotes < majorityNeeded) {
                     const nextRound = (freshData.currentRound || 1) + 1;
-                    if (nextRound > MAX_ROUNDS) {
-                        await endGame(false); 
-                    } else {
+                    if (nextRound > MAX_ROUNDS) { await endGame(false); } 
+                    else {
                         const firstPlayer = activePlayers.find(p => p.uid !== freshData.spyId) || activePlayers[0];
                         await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                            status: 'word_selection', 
-                            votes: {}, 
-                            currentRound: nextRound, // Increment Round
-                            currentTurnUID: firstPlayer.uid, 
-                            turnEndTime: null, 
-                            votingEndTime: null,
-                            wordVotes: {}, chosenWord: null, 
-                            wordSelEndTime: Date.now() + 30000
+                            status: 'word_selection', votes: {}, currentRound: nextRound,
+                            currentTurnUID: firstPlayer.uid, turnEndTime: null, votingEndTime: null,
+                            wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000
                         });
                     }
                 } else {
-                    const newPlayers = freshData.players.map(p => {
-                        if (p.uid === ejectedUID) return { ...p, status: 'spectator' };
-                        return p;
-                    });
-
+                    const newPlayers = freshData.players.map(p => { if (p.uid === ejectedUID) return { ...p, status: 'spectator' }; return p; });
                     const isSpy = ejectedUID === freshData.spyId;
                     const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.uid !== freshData.spyId);
-
-                    if (isSpy) { 
-                        await endGame(true);
-                    } else if (remainingAgents.length <= 1) { 
-                        await endGame(false);
-                    } else {
+                    let newStatus = freshData.status;
+                    if (isSpy) { newStatus = 'finished_spy_caught'; await updateStats(freshData.players, freshData.spyId); } 
+                    else if (remainingAgents.length <= 1) { newStatus = 'finished_spy_wins'; await updateStats(freshData.players, freshData.spyId); }
+                    else {
                         const nextRound = (freshData.currentRound || 1) + 1;
-                        if (nextRound > MAX_ROUNDS) {
-                            await endGame(false);
-                        } else {
+                        if (nextRound > MAX_ROUNDS) { newStatus = 'finished_spy_wins'; await updateStats(freshData.players, freshData.spyId); }
+                        else {
                             const firstPlayer = newPlayers.filter(p => p.status === 'active').find(p => p.uid !== freshData.spyId) || newPlayers.filter(p => p.status === 'active')[0];
-                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                                players: newPlayers, 
-                                status: 'word_selection', 
-                                votes: {},
-                                currentTurnUID: firstPlayer.uid,
-                                turnEndTime: null, 
-                                votingEndTime: null,
-                                currentRound: nextRound, // Increment Round
-                                wordVotes: {}, chosenWord: null, 
-                                wordSelEndTime: Date.now() + 30000
+                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                                players: newPlayers, status: 'word_selection', votes: {},
+                                currentTurnUID: firstPlayer.uid, turnEndTime: null, votingEndTime: null,
+                                currentRound: nextRound, wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000
                             });
+                            return;
                         }
                     }
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                        players: newPlayers, status: newStatus
+                    });
                 }
+            };
+
+            const updateStats = async (players, spyId) => {
+                const batch = db.batch();
+                players.forEach(p => {
+                    // Only update if user exists in our system
+                    const userRef = usersCollection.doc(p.uid);
+                    // We rely on cloud functions ideally, but here we do transactional updates
+                    // For simplicity in client-side, we'll just increment. 
+                    // Logic: Winner gets +Win, +XP. Loser gets +Loss.
+                    const isWinner = (p.uid === spyId && room.status === 'finished_spy_wins') || (p.uid !== spyId && room.status === 'finished_spy_caught');
+                    
+                    batch.update(userRef, {
+                        "stats.wins": firebase.firestore.FieldValue.increment(isWinner ? 1 : 0),
+                        "stats.losses": firebase.firestore.FieldValue.increment(!isWinner ? 1 : 0),
+                        "stats.xp": firebase.firestore.FieldValue.increment(isWinner ? 50 : 10)
+                    });
+                });
+                await batch.commit();
+                // Achievement check could happen here, but for simplicity we check on profile load or via backend.
+                // We will add a simple client-side check for achievements right here.
+                checkAchievements(players, spyId);
+            };
+            
+            const checkAchievements = async (players, spyId) => {
+                // Simplified check for the winner
+                const winnerId = (room.status === 'finished_spy_wins') ? spyId : null; // Spy won
+                const winners = (room.status === 'finished_spy_caught') ? players.filter(p => p.uid !== spyId) : (winnerId ? [players.find(p => p.uid === winnerId)] : []);
+                
+                winners.forEach(async (p) => {
+                    if(!p || !p.uid) return;
+                    const userRef = usersCollection.doc(p.uid);
+                    const doc = await userRef.get();
+                    if(!doc.exists) return;
+                    const data = doc.data();
+                    const wins = (data.stats?.wins || 0) + 1; // Already incremented
+                    const currentAch = data.achievements || [];
+                    let newAch = [...currentAch];
+                    
+                    if(wins >= 1 && !currentAch.includes('first_win')) newAch.push('first_win');
+                    if(wins >= 5 && !currentAch.includes('wins_5')) newAch.push('wins_5');
+                    if(wins >= 10 && !currentAch.includes('wins_10')) newAch.push('wins_10');
+                    if(wins >= 20 && !currentAch.includes('wins_20')) newAch.push('wins_20');
+                    if(wins >= 50 && !currentAch.includes('wins_50')) newAch.push('wins_50');
+                    if(wins >= 100 && !currentAch.includes('wins_100')) newAch.push('wins_100');
+
+                    if(newAch.length > currentAch.length) {
+                        await userRef.update({ achievements: newAch });
+                    }
+                });
             };
 
             const endGame = async (agentsWin) => {
@@ -966,9 +1073,8 @@
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                     status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0,
                     votes: {}, messages: [], votingEndTime: null, turnEndTime: null,
-                    players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active' })),
-                    wordVotes: {}, chosenWord: null, wordSelEndTime: null,
-                    votingRequest: null
+                    players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo })),
+                    wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null
                 });
             };
 
@@ -984,6 +1090,10 @@
                                 </svg>
                             </div>
                             <p className="text-gray-400 font-mono text-sm animate-pulse">{t.connecting}</p>
+                            <button onClick={handleGoogleLogin} className="btn-google px-6 py-3 rounded-lg text-sm font-bold mt-4 inline-flex items-center gap-2">
+                                <svg class="w-5 h-5" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0)"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></g><defs><clipPath id="clip0"><rect width="20" height="20" fill="white" transform="translate(0.351562)"/></clipPath></defs></svg>
+                                {t.loginGoogle}
+                            </button>
                         </div>
                     </div>
                 );
@@ -997,8 +1107,6 @@
             const hasVoted = room?.votes?.[user.uid];
             const hasVotedWord = room?.wordVotes?.[user.uid];
             const activePlayersCount = room?.players?.filter(p => p.status === 'active').length || 0;
-            
-            // Request calculation
             const voteReq = room?.votingRequest;
             const agreeCount = voteReq?.votes ? Object.values(voteReq.votes).filter(v => v === true).length : 0;
             const declineCount = voteReq?.votes ? Object.values(voteReq.votes).filter(v => v === false).length : 0;
@@ -1009,34 +1117,18 @@
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 md:p-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                     
-                    {/* Voting Request Banner */}
+                    <ProfileModal show={showProfile} onClose={() => setShowProfile(false)} userData={userData} lang={lang} />
+
                     {room?.status === 'discussing' && voteReq && (
                          <div className="vote-request-banner glass-panel rounded-xl p-4 border-2 border-pink-500 animate-shake">
                             <div className="flex flex-col gap-2">
-                                <div className="text-center font-bold text-pink-400">
-                                    {t.voteRequestTitle}
-                                </div>
+                                <div className="text-center font-bold text-pink-400">{t.voteRequestTitle}</div>
                                 <div className="text-center text-xs text-gray-300">
                                     <span className="font-bold">{room.players.find(p=>p.uid === voteReq.requestedBy)?.name}</span> {t.voteRequestDesc}
                                 </div>
-                                <div className="text-center text-[10px] text-gray-500">
-                                    ({agreeCount} / {majorityNeeded} needed)
-                                </div>
                                 <div className="flex justify-center gap-2 mt-2">
-                                    <button 
-                                        onClick={agreeToVote}
-                                        disabled={hasIAgreed}
-                                        className={`btn px-6 py-2 rounded-lg text-xs font-bold ${hasIAgreed ? 'btn-ghost opacity-50' : 'btn-success'}`}
-                                    >
-                                        {t.agree}
-                                    </button>
-                                    <button 
-                                        onClick={declineVote}
-                                        disabled={hasIDeclined}
-                                        className={`btn px-6 py-2 rounded-lg text-xs font-bold ${hasIDeclined ? 'btn-ghost opacity-50' : 'btn-danger'}`}
-                                    >
-                                        {t.decline} ({declineCount})
-                                    </button>
+                                    <button onClick={agreeToVote} disabled={hasIAgreed} className={`btn px-6 py-2 rounded-lg text-xs font-bold ${hasIAgreed ? 'btn-ghost opacity-50' : 'btn-success'}`}>{t.agree}</button>
+                                    <button onClick={declineVote} disabled={hasIDeclined} className={`btn px-6 py-2 rounded-lg text-xs font-bold ${hasIDeclined ? 'btn-ghost opacity-50' : 'btn-danger'}`}>{t.decline}</button>
                                 </div>
                             </div>
                          </div>
@@ -1056,43 +1148,49 @@
                                 <p className="text-[10px] text-gray-500 tracking-widest font-tech">{t.tagline}</p>
                             </div>
                         </div>
-                        <div className="flex gap-2 items-center">
-                            <button onClick={() => { initAudio(); setSoundEnabled(!soundEnabled); }} className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700">
+                        <div className="flex gap-2 items-center relative">
+                             <button onClick={() => { initAudio(); setSoundEnabled(!soundEnabled); }} className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700">
                                 {soundEnabled ? t.soundOn : t.soundOff}
                             </button>
-                            <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">
-                                {t.langBtn}
-                            </button>
+                            <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">{t.langBtn}</button>
+                            
+                            {/* User Area */}
+                            <div className="relative">
+                                <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-2 btn-ghost px-3 py-1 rounded-full border-gray-700">
+                                    <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${userData?.displayName}`} className="w-6 h-6 rounded-full"/>
+                                    <span className="text-xs font-bold hidden md:block">{t.myAccount}</span>
+                                </button>
+                                
+                                {showDropdown && (
+                                    <div className="dropdown-menu glass-panel rounded-lg py-2 animate-fade-in">
+                                        <button onClick={() => { setShowProfile(true); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button>
+                                        <button onClick={handleLogout} className="w-full text-right px-4 py-2 text-sm text-red-400 hover:bg-white/10">{t.logout}</button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </header>
 
                     <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
                         
-                        {/* Left Column: Players List */}
+                        {/* Left Column */}
                         {room && (
                             <div className="glass-panel rounded-2xl p-4 space-y-2 animate-fade-in delay-1">
                                 <h3 className="text-xs font-bold text-gray-400 mb-2 border-b border-gray-800 pb-2 uppercase tracking-wider flex justify-between items-center">
                                     <span>{t.players}</span>
-                                    <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-cyan-400">
-                                        {t.roundsFormat(room.currentRound || 1, MAX_ROUNDS)}
-                                    </span>
+                                    <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-cyan-400">{t.roundsFormat(room.currentRound || 1, MAX_ROUNDS)}</span>
                                 </h3>
                                 <div className="space-y-2">
                                     {room.players.map((p, i) => (
-                                        <div key={i} 
-                                            className={`player-card relative p-2 rounded-lg flex items-center justify-between ${p.status === 'spectator' ? 'eliminated' : ''}`}
-                                        >
+                                        <div key={i} className={`player-card relative p-2 rounded-lg flex items-center justify-between ${p.status === 'spectator' ? 'eliminated' : ''}`}>
                                             <div className="flex items-center gap-2 flex-1">
-                                                <div className={`w-2 h-2 rounded-full ${p.status === 'spectator' ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                                                <img src={p.photo || `https://ui-avatars.com/api/?name=${p.name}`} className="w-6 h-6 rounded-full"/>
                                                 <span className="font-bold text-sm truncate">{p.name}</span>
                                                 {p.uid === user.uid && <span className="text-[8px] bg-blue-500 px-1 rounded">{t.you}</span>}
                                             </div>
-                                            
                                             {p.uid === room.currentTurnUID && room.status === 'discussing' && (
                                                 <div className="flex items-center gap-1 ml-2">
-                                                    <div className="timer-bar-container">
-                                                        <div className="timer-bar-fill" style={{width: `${(turnTimer/30)*100}%`}}></div>
-                                                    </div>
+                                                    <div className="timer-bar-container"><div className="timer-bar-fill" style={{width: `${(turnTimer/30)*100}%`}}></div></div>
                                                     <span className="text-[10px] font-mono text-cyan-400 w-6 text-right">{turnTimer}</span>
                                                 </div>
                                             )}
@@ -1100,14 +1198,8 @@
                                     ))}
                                 </div>
 
-                                {/* Start Voting Button */}
                                 {room.status === 'discussing' && !isSpectator && (
-                                    <button 
-                                        onClick={requestVoting} 
-                                        className="btn-vote w-full py-2 rounded-lg font-bold text-xs mt-4 uppercase tracking-wide"
-                                    >
-                                        {t.startVoting}
-                                    </button>
+                                    <button onClick={requestVoting} className="btn-vote w-full py-2 rounded-lg font-bold text-xs mt-4 uppercase tracking-wide">{t.startVoting}</button>
                                 )}
                             </div>
                         )}
@@ -1119,18 +1211,12 @@
                                 <div className="glass-panel rounded-2xl p-8 text-center space-y-6 animate-fade-in mx-auto max-w-md w-full">
                                     <div className="space-y-2">
                                         <label className="text-xs text-gray-400 uppercase">{t.nickname}</label>
-                                        <input className="input-dark w-full p-3 rounded-lg text-center font-bold" value={nickname} 
-                                            onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} 
-                                        />
+                                        <input className="input-dark w-full p-3 rounded-lg text-center font-bold" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} />
                                     </div>
-                                    <button onClick={handleCreate} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">
-                                        {t.create}
-                                    </button>
+                                    <button onClick={handleCreate} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">{t.create}</button>
                                     <div className="flex gap-2">
                                         <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value)} />
-                                        <button onClick={handleJoin} disabled={loading || !nickname || !inputCode} className="btn-ghost px-6 rounded-lg font-bold">
-                                            {t.join}
-                                        </button>
+                                        <button onClick={handleJoin} disabled={loading || !nickname || !inputCode} className="btn-ghost px-6 rounded-lg font-bold">{t.join}</button>
                                     </div>
                                 </div>
                             )}
@@ -1152,11 +1238,7 @@
                                     {room.status === 'waiting' && (
                                         <div className="glass-panel rounded-2xl p-6 text-center animate-fade-in">
                                             <div className="animate-pulse text-gray-400 text-sm mb-4">{t.waiting}</div>
-                                            {room.admin === user.uid && (
-                                                <button onClick={startGame} className="btn-neon w-full py-3 rounded-lg font-bold">
-                                                    {t.start}
-                                                </button>
-                                            )}
+                                            {room.admin === user.uid && (<button onClick={startGame} className="btn-neon w-full py-3 rounded-lg font-bold">{t.start}</button>)}
                                         </div>
                                     )}
 
@@ -1165,14 +1247,8 @@
                                             <h2 className="text-3xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
                                                 {room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}
                                             </h2>
-                                            <p className="text-gray-400 mb-6">
-                                                The Spy was: <span className="text-white font-bold">{room.players.find(p => p.uid === room.spyId)?.name}</span>
-                                            </p>
-                                            {room.admin === user.uid && (
-                                                <button onClick={resetGame} className="btn-ghost border-white/20 text-white w-full py-3 rounded-lg">
-                                                    {t.playAgain}
-                                                </button>
-                                            )}
+                                            <p className="text-gray-400 mb-6">The Spy was: <span className="text-white font-bold">{room.players.find(p => p.uid === room.spyId)?.name}</span></p>
+                                            {room.admin === user.uid && (<button onClick={resetGame} className="btn-ghost border-white/20 text-white w-full py-3 rounded-lg">{t.playAgain}</button>)}
                                         </div>
                                     )}
 
@@ -1182,76 +1258,32 @@
                                                 <div className="absolute top-4 right-4 w-12 h-12">
                                                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                                                         <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle>
-                                                        <circle cx="18" cy="18" r="16" fill="none" stroke="#00f2ff" strokeWidth="3"
-                                                            strokeDasharray={`${(wordSelTimer/30)*100} ${100-((wordSelTimer/30)*100)}`}
-                                                            strokeLinecap="round"></circle>
+                                                        <circle cx="18" cy="18" r="16" fill="none" stroke="#00f2ff" strokeWidth="3" strokeDasharray={`${(wordSelTimer/30)*100} ${100-((wordSelTimer/30)*100)}`} strokeLinecap="round"></circle>
                                                     </svg>
-                                                    <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-cyan-400">
-                                                        {wordSelTimer}
-                                                    </div>
+                                                    <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-cyan-400">{wordSelTimer}</div>
                                                 </div>
-
                                                 <h3 className="text-xl font-black mb-2 uppercase text-cyan-400">{t.wordSelectionTitle}</h3>
                                                 <p className="text-xs text-gray-500 mb-6">{t.wordSelectionDesc}</p>
-
                                                 <div className="grid grid-cols-2 gap-4">
                                                     {(() => {
-                                                        const wordsToDisplay = isSpy 
-                                                            ? ['?', '?', '?', '?'] 
-                                                            : (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en);
-                                                        
+                                                        const wordsToDisplay = isSpy ? ['?', '?', '?', '?'] : (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en);
                                                         return wordsToDisplay?.map((word, i) => {
-                                                            const voters = Object.entries(room.wordVotes || {})
-                                                                .filter(([uid, w]) => w === word)
-                                                                .map(([uid]) => room.players.find(p => p.uid === uid)?.name);
-                                                            
+                                                            const voters = Object.entries(room.wordVotes || {}).filter(([uid, w]) => w === word).map(([uid]) => room.players.find(p => p.uid === uid)?.name);
                                                             return (
-                                                                <button 
-                                                                    key={i} 
-                                                                    onClick={() => submitWordVote(word)}
-                                                                    disabled={isSpy}
-                                                                    className={`word-vote-card p-6 rounded-xl font-bold text-lg transition-all
-                                                                        ${hasVotedWord === word ? 'selected' : 'bg-white/5 border border-white/10'}
-                                                                        ${isSpy ? 'opacity-50 cursor-not-allowed' : ''}
-                                                                    `}
-                                                                >
+                                                                <button key={i} onClick={() => submitWordVote(word)} disabled={isSpy} className={`word-vote-card p-6 rounded-xl font-bold text-lg transition-all ${hasVotedWord === word ? 'selected' : 'bg-white/5 border border-white/10'} ${isSpy ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                                                     {word}
-                                                                    {voters.length > 0 && (
-                                                                        <div className="flex justify-center gap-1 mt-2 flex-wrap">
-                                                                            {voters.map(v => <span key={v} className="voter-name relative">{v}</span>)}
-                                                                        </div>
-                                                                    )}
+                                                                    {voters.length > 0 && (<div className="flex justify-center gap-1 mt-2 flex-wrap">{voters.map(v => <span key={v} className="voter-name relative">{v}</span>)}</div>)}
                                                                 </button>
                                                             );
                                                         });
                                                     })()}
                                                 </div>
-
-                                                {room.admin === user.uid && !isSpy && (
-                                                    <button onClick={() => finishWordSelection(false)} className="btn-neon w-full py-3 rounded-lg font-bold mt-6">
-                                                        {t.finishSelection}
-                                                    </button>
-                                                )}
+                                                {room.admin === user.uid && !isSpy && (<button onClick={() => finishWordSelection(false)} className="btn-neon w-full py-3 rounded-lg font-bold mt-6">{t.finishSelection}</button>)}
                                             </div>
-
                                             <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
                                                 <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
-                                                    <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
-                                                        {isSpy ? t.statusSpy : t.statusAgent}
-                                                    </span>
-                                                    {isSpy ? (
-                                                        <>
-                                                            <div className="text-5xl mb-2">🕵️</div>
-                                                            <h3 className="text-3xl font-black tracking-wider text-red-500">???</h3>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <div className="text-3xl font-black mt-2 text-center px-2">
-                                                                {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}
-                                                            </div>
-                                                            <p className="text-xs text-gray-400 mt-2">{t.location}</p>
-                                                        </>
-                                                    )}
+                                                    <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
+                                                    {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-3xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
                                                 </div>
                                             </div>
                                         </div>
@@ -1259,36 +1291,13 @@
 
                                     {room.status === 'discussing' && (
                                         <div className="space-y-4 animate-fade-in">
-                                            {room.chosenWord && (
-                                                <div className="glass-panel rounded-xl p-3 text-center border border-cyan-500/50">
-                                                    <span className="text-[10px] text-cyan-400 font-bold uppercase">{t.selectedWord}:</span>
-                                                    <span className="ml-2 text-lg font-bold text-white">{room.chosenWord}</span>
-                                                </div>
-                                            )}
-
+                                            {room.chosenWord && (<div className="glass-panel rounded-xl p-3 text-center border border-cyan-500/50"><span className="text-[10px] text-cyan-400 font-bold uppercase">{t.selectedWord}:</span><span className="ml-2 text-lg font-bold text-white">{room.chosenWord}</span></div>)}
                                             <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
                                                 <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
-                                                    <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
-                                                        {isSpy ? t.statusSpy : t.statusAgent}
-                                                    </span>
-                                                    
-                                                    {isSpy ? (
-                                                        <>
-                                                            <div className="text-5xl mb-2">🕵️</div>
-                                                            <h3 className="text-3xl font-black tracking-wider text-red-500">???</h3>
-                                                            <p className="text-xs text-gray-500 mt-2 text-center">{lang === 'ar' ? 'اكتشف المكان دون أن تنكشف' : 'Find the location without getting caught'}</p>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <div className="text-4xl font-black mt-2 text-center px-2">
-                                                                {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}
-                                                            </div>
-                                                            <p className="text-xs text-gray-400 mt-2">{t.location}</p>
-                                                        </>
-                                                    )}
+                                                    <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
+                                                    {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3><p className="text-xs text-gray-500 mt-2 text-center">{lang === 'ar' ? 'اكتشف المكان دون أن تنكشف' : 'Find the location without getting caught'}</p></> ) : ( <><div className="text-4xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
                                                 </div>
                                             </div>
-
                                             <div className="glass-panel rounded-2xl p-4 flex flex-col overflow-hidden relative">
                                                 <div className="chat-container space-y-2 mb-3 px-2 h-40 overflow-y-auto relative z-10 mt-4">
                                                     {room.messages?.slice(-20).map((m, i) => (
@@ -1300,30 +1309,16 @@
                                                         </div>
                                                     ))}
                                                 </div>
-                                                
                                                 {!isSpectator && isMyTurn ? (
                                                     <div className="flex flex-col gap-2 mt-auto border-t border-white/10 pt-3 relative z-10">
-                                                        <div className="flex gap-1 mb-1">
-                                                            {EMOJIS.map(emoji => (
-                                                                <span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>
-                                                            ))}
-                                                        </div>
+                                                        <div className="flex gap-1 mb-1">{EMOJIS.map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>))}</div>
                                                         <form onSubmit={(e) => { e.preventDefault(); sendMessage(chatMsg); }} className="flex gap-2">
-                                                            <input 
-                                                                className="input-dark flex-1 p-3 rounded-xl text-sm" 
-                                                                placeholder={t.chatPlaceholder} 
-                                                                value={chatMsg} 
-                                                                onChange={e => setChatMsg(e.target.value)} 
-                                                            />
+                                                            <input className="input-dark flex-1 p-3 rounded-xl text-sm" placeholder={t.chatPlaceholder} value={chatMsg} onChange={e => setChatMsg(e.target.value)} />
                                                             <button type="submit" className="btn-neon px-5 rounded-xl text-xs">{t.send}</button>
                                                             <button type="button" onClick={() => handleSkipTurn(false)} className="btn-ghost px-4 rounded-xl text-xs border-orange-500 text-orange-400">{t.skip}</button>
                                                         </form>
                                                     </div>
-                                                ) : (
-                                                    <div className="text-center text-xs text-gray-600 py-3 border-t border-white/10 mt-2">
-                                                        {isSpectator ? t.spectator : "Waiting for turn..."}
-                                                    </div>
-                                                )}
+                                                ) : (<div className="text-center text-xs text-gray-600 py-3 border-t border-white/10 mt-2">{isSpectator ? t.spectator : "Waiting for turn..."}</div>)}
                                             </div>
                                         </div>
                                     )}
@@ -1335,57 +1330,29 @@
                                                 <div className="relative w-10 h-10">
                                                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                                                         <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle>
-                                                        <circle cx="18" cy="18" r="16" fill="none" stroke="#ff0055" strokeWidth="3"
-                                                            strokeDasharray={`${(votingTimer/30)*100} ${100-((votingTimer/30)*100)}`}
-                                                            strokeLinecap="round"></circle>
+                                                        <circle cx="18" cy="18" r="16" fill="none" stroke="#ff0055" strokeWidth="3" strokeDasharray={`${(votingTimer/30)*100} ${100-((votingTimer/30)*100)}`} strokeLinecap="round"></circle>
                                                     </svg>
-                                                    <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-yellow-400">
-                                                        {votingTimer}
-                                                    </div>
+                                                    <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-yellow-400">{votingTimer}</div>
                                                 </div>
                                             </div>
-                                            
-                                            {/* Votes List */}
                                             <div className="bg-black/20 p-3 rounded-lg text-xs space-y-1 mb-2 border border-white/5">
                                                 <span className="text-gray-500 font-bold">{t.votesTitle}</span>
                                                 <div className="flex flex-wrap gap-2 mt-1">
                                                     {Object.entries(room.votes || {}).map(([uid, target]) => {
                                                         const voter = room.players.find(p => p.uid === uid);
                                                         const targetName = room.players.find(p => p.uid === target)?.name;
-                                                        return (
-                                                            <span key={uid} className="bg-white/5 px-2 py-1 rounded">
-                                                                {voter?.name}: <span className="text-cyan-400">{targetName}</span>
-                                                            </span>
-                                                        )
+                                                        return (<span key={uid} className="bg-white/5 px-2 py-1 rounded">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>);
                                                     })}
                                                 </div>
                                             </div>
-
                                             {!hasVoted ? (
-                                                <>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        {room.players.filter(p => p.status === 'active').map(p => (
-                                                            <button key={p.uid} onClick={() => submitVote(p.uid)}
-                                                                className={`p-4 rounded-xl border text-sm font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10`}
-                                                            >
-                                                                {p.name}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <div className="text-center space-y-4 py-4">
-                                                    <div className="text-green-400 font-bold">{t.voteDone}</div>
-                                                    <div className="text-xs text-gray-500">{t.voteWait}</div>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {room.players.filter(p => p.status === 'active').map(p => (
+                                                        <button key={p.uid} onClick={() => submitVote(p.uid)} className="p-4 rounded-xl border text-sm font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10">{p.name}</button>
+                                                    ))}
                                                 </div>
-                                            )}
-
-                                            {/* Admin End Voting Button */}
-                                            {room.admin === user.uid && (
-                                                <button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg font-bold text-xs uppercase mt-2">
-                                                    {t.endVoting}
-                                                </button>
-                                            )}
+                                            ) : (<div className="text-center space-y-4 py-4"><div className="text-green-400 font-bold">{t.confirm}</div></div>)}
+                                            {room.admin === user.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg font-bold text-xs uppercase mt-2">{t.endVoting}</button>)}
                                         </div>
                                     )}
                                 </>
