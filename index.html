@@ -61,13 +61,11 @@
         .player-card.eliminated { opacity: 0.4; border-color: var(--accent); filter: grayscale(100%); }
         .timer-bar-container { width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
         .timer-bar-fill { height: 100%; background: var(--primary); transition: width 1s linear; }
-        .chat-bubble-me { background: linear-gradient(135deg, var(--secondary), var(--primary)); color: white; border-radius: 18px 18px 4px 18px; padding: 8px 12px; max-width: 80%; align-self: flex-end; word-wrap: break-word; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .chat-bubble-other { background: rgba(255, 255, 255, 0.1); color: #e0e0e0; border-radius: 18px 18px 18px 4px; padding: 8px 12px; max-width: 80%; align-self: flex-start; word-wrap: break-word; }
         .identity-square { width: 100%; max-width: 280px; aspect-ratio: 1 / 1; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 20px; position: relative; overflow: hidden; transition: all 0.5s ease; }
         .identity-spy { border: 2px solid var(--accent); background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); }
         .identity-agent { border: 2px solid #10b981; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%); box-shadow: 0 0 40px rgba(16, 185, 129, 0.2); }
-        .emoji-btn { font-size: 18px; padding: 5px; cursor: pointer; transition: transform 0.2s; filter: grayscale(100%); opacity: 0.7; }
-        .emoji-btn:hover { transform: scale(1.4); filter: grayscale(0%); opacity: 1; }
+        .emoji-btn { font-size: 20px; cursor: pointer; transition: transform 0.2s; }
+        .emoji-btn:hover { transform: scale(1.2); }
         .word-vote-card { background: rgba(255, 255, 255, 0.05); border: 2px solid transparent; transition: all 0.3s; position: relative; }
         .word-vote-card.selected { border-color: var(--primary); background: rgba(0, 242, 255, 0.1); transform: scale(1.02); }
         .voter-name { position: absolute; bottom: -8px; right: 10px; font-size: 10px; background: var(--secondary); padding: 2px 6px; border-radius: 8px; color: white; }
@@ -81,7 +79,7 @@
         .dropdown-menu { position: absolute; top: 100%; right: 0; margin-top: 8px; min-width: 180px; z-index: 9999; }
         .error-msg { color: #ff4d4d; font-size: 12px; margin-top: 5px; text-align: center; }
         .alert-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .nav-tab { padding: 8px 16px; border-bottom: 2px solid transparent; transition: 0.3s; color: #888; cursor: pointer; }
+        .nav-tab { padding: 8px 16px; border-bottom: 2px solid transparent; transition: 0.3s; color: #888; cursor: pointer; position: relative; }
         .nav-tab:hover { color: #fff; }
         .nav-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
         .status-online { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #10b981; }
@@ -91,6 +89,28 @@
         .invite-bubble { background: linear-gradient(135deg, rgba(112, 0, 255, 0.2), rgba(0, 242, 255, 0.2)); border: 1px solid var(--primary); border-radius: 12px; padding: 10px; text-align: center; margin: 5px 0; }
         .ach-tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--primary); padding: 8px; border-radius: 8px; width: 150px; font-size: 10px; text-align: center; z-index: 10; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
         .achievement-card:hover .ach-tooltip, .achievement-card:active .ach-tooltip { opacity: 1; }
+        
+        /* Notification Badge */
+        .notification-badge { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 2px solid var(--bg-dark); }
+        
+        /* Chat Styles */
+        .chat-message-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .chat-avatar { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); flex-shrink: 0; }
+        .chat-bubble-container { flex: 1; display: flex; flex-direction: column; }
+        .chat-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+        .chat-name { font-size: 12px; font-weight: bold; color: var(--primary); }
+        .chat-time { font-size: 10px; color: var(--text-muted); }
+        .chat-bubble-new { padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; word-wrap: break-word; max-width: 100%; }
+        .chat-bubble-me-new { background: linear-gradient(135deg, rgba(112, 0, 255, 0.3), rgba(0, 242, 255, 0.3)); border: 1px solid var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
+        .chat-bubble-other-new { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 2px; }
+        
+        /* Emoji Picker */
+        .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: rgba(0,0,0,0.8); border: 1px solid var(--border); padding: 8px; border-radius: 12px; position: absolute; bottom: 60px; right: 10px; width: 260px; max-height: 200px; overflow-y: auto; z-index: 20; }
+        
+        /* My Account Page Styles */
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .info-label { color: var(--text-muted); font-size: 12px; }
+        .info-value { font-size: 14px; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -117,7 +137,7 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v16_realtime';
+        const appId = 'pro_spy_v18_final_ui';
         const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
         const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
         const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
@@ -143,7 +163,7 @@
             { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] }
         ];
 
-        const EMOJIS = ['🕵️', '🔍', '🚨', '🤐', '👀', '🔪', '🛡️', '💀', '🤫', '✅'];
+        const EMOJIS = ['😀', '😂', '😍', '🤔', '😎', '🤫', '😡', '🤢', '😴', '🤯', '😤', '🥺', '😱', '🤬', '💀', '👻', '👾', '🤖', '💩', '😈', '👁️', ' mouths', '🧠', '🦷', '🦴', '👀', '👊', '✌️', '🤞', '🤟', '👌', '🤙', '👈', '👉', '☝️', '👆', '👇', '✋', '🤚', '🖐️', '🖖', '👋', '🤝', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🙌', '🙏', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁', '👅', '👄', '💋', '🩸', '💘', '❤️', '🧡', '💛', '💚', '💙', '💜', '🤎', '🖤', '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '⛎', '🔀', '🔁', '🔂', '▶️', '⏩', '⏭️', '⏯️', '◀️', '⏪', '⏮️', '🔼', '⏫', '🔽', '⏬', '⏸️', '⏹️', '⏺️', '⏏️', '🎦', '🔅', '🔆', '📶', '📳', '📴', '♀️', '♂️', '⚕️', '♾️', '♻️', '⚜️', '🔱', '📛', '🔰', '⭕', '✅', '☑️', '✔️', '✖️', '❌', '❎', '➕', '➖', '➗', '➰', '➿', '〽️', '✳️', '✴️', '❇️', '‼️', '⁉️', '❓', '❔', '❕', '❗', '〰️', '©️', '®️', '™️', '#️⃣', '*️⃣', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔠', '🔡', '🔢', '🔣', '🔤', '🅰️', '🆎', '🅱️', '🆑', '🆒', '🆓', 'ℹ️', '🆔', 'Ⓜ️', '🆕', '🆖', '🅾️', '🆗', '🅿️', '🆘', '🆙', '🆚', '🈁', '🈂️', '🈷️', '🈶', '🈯', '🉐', '🈹', '🈚', '🈲', '🉑', '🈸', '🈴', '🈳', '㊗️', '㊙️', '🈺', '🈵'];
         const MAX_ROUNDS = 3;
 
         // --- Helpers ---
@@ -152,6 +172,34 @@
         const calculateXPProgress = (xp) => (xp % 100);
         const getChatId = (id1, id2) => [id1, id2].sort().join('_');
         
+        const formatTime = (timestamp) => {
+            if (!timestamp) return '';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        };
+        
+        const formatDate = (timestamp) => {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        };
+
+        const getTimeRemaining = (lastChanged) => {
+            if (!lastChanged) return "0d 0h"; // Can change now
+            const lastChangeDate = lastChanged.toDate ? lastChanged.toDate() : new Date(lastChanged);
+            const nextChangeDate = new Date(lastChangeDate);
+            nextChangeDate.setMonth(nextChangeDate.getMonth() + 1);
+            
+            const now = new Date();
+            const diff = nextChangeDate - now;
+
+            if (diff <= 0) return "0d 0h";
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            return `${days}d ${hours}h`;
+        };
+
         // --- Audio ---
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null; 
@@ -197,7 +245,14 @@
                 accept: "Accept", reject: "Reject",
                 sendMessage: "Send", chatPlaceholder: "Message...",
                 inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?",
-                inviteFriends: "Invite Friends"
+                inviteFriends: "Invite Friends",
+                // My Account Page
+                accountInfo: "Account Information",
+                email: "Email",
+                memberSince: "Member Since",
+                nameChangeCountdown: "Name Change In",
+                canChangeNow: "Can change now!",
+                selectEmoji: "Emoji"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -229,17 +284,205 @@
                 accept: "قبول", reject: "رفض",
                 sendMessage: "إرسال", chatPlaceholder: "رسالة...",
                 inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟",
-                inviteFriends: "دعوة أصدقاء"
+                inviteFriends: "دعوة أصدقاء",
+                // My Account Page
+                accountInfo: "معلومات الحساب",
+                email: "البريد الإلكتروني",
+                memberSince: "عضو منذ",
+                nameChangeCountdown: "تغيير الاسم بعد",
+                canChangeNow: "يمكن التغيير الآن!",
+                selectEmoji: "إيموجي"
             }
         };
 
         // --- Components ---
-        
-        // Private Chat Modal
+
+        // Other User Profile Modal (Simpler)
+        const UserProfileModal = ({ show, onClose, targetUID, lang, onAddFriend, isFriend, currentUser }) => {
+            const t = TRANSLATIONS[lang];
+            const [profileData, setProfileData] = useState(null);
+            const [msg, setMsg] = useState('');
+
+            useEffect(() => {
+                if (show && targetUID) {
+                    usersCollection.doc(targetUID).get().then(doc => {
+                        if (doc.exists) setProfileData(doc.data());
+                    });
+                }
+            }, [show, targetUID]);
+
+            if (!show || !profileData) return null;
+
+            const level = calculateLevel(profileData.stats?.xp || 0);
+            const wins = profileData.stats?.wins || 0;
+            const losses = profileData.stats?.losses || 0;
+            const totalGames = wins + losses;
+            const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(0) : 0;
+            
+            const handleSendRequest = async () => {
+                if (isFriend) return;
+                // Logic to send request
+                await usersCollection.doc(targetUID).update({
+                    friendRequests: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                });
+                setMsg(t.requestSent);
+                setTimeout(() => setMsg(''), 2000);
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4" onClick={onClose}>
+                    <div className="glass-panel rounded-2xl p-6 w-full max-w-sm animate-pop" onClick={e => e.stopPropagation()}>
+                        <div className="flex flex-col items-center mb-6">
+                            <img src={profileData.photoURL || `https://ui-avatars.com/api/?name=${profileData.displayName}&background=random`} className="w-20 h-20 rounded-full border-2 border-cyan-400 mb-3" alt="Avatar" />
+                            <h2 className="text-xl font-bold">{profileData.displayName}</h2>
+                            <p className="text-gray-400 text-xs font-mono">ID: #{profileData.customId}</p>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 mb-6 text-center">
+                            <div>
+                                <div className="text-2xl font-bold text-green-400">{wins}</div>
+                                <div className="text-[10px] text-gray-500 uppercase">{t.wins}</div>
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold text-red-400">{losses}</div>
+                                <div className="text-[10px] text-gray-500 uppercase">{t.losses}</div>
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold text-cyan-400">{winRate}%</div>
+                                <div className="text-[10px] text-gray-500 uppercase">{t.winRate}</div>
+                            </div>
+                        </div>
+
+                        <div className="text-center mb-4">
+                            <span className="text-sm font-bold text-primary">{t.level} {level}</span>
+                        </div>
+
+                        {!isFriend && targetUID !== currentUser.uid && (
+                            <button onClick={handleSendRequest} disabled={msg} className="btn-neon w-full py-2 rounded-lg font-bold text-xs">
+                                {msg || t.addFriend}
+                            </button>
+                        )}
+                        {isFriend && targetUID !== currentUser.uid && (
+                             <div className="text-center text-green-400 text-xs">Already Friends</div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // My Account Page (Detailed)
+        const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
+            const t = TRANSLATIONS[lang];
+            const [newName, setNewName] = useState('');
+            const [msg, setMsg] = useState('');
+
+            useEffect(() => {
+                if (userData) setNewName(userData.displayName || '');
+            }, [userData]);
+
+            if (!show || !userData) return null;
+
+            const level = calculateLevel(userData.stats?.xp || 0);
+            const xpProgress = calculateXPProgress(userData.stats?.xp || 0);
+            const timeRemaining = getTimeRemaining(userData.lastChangedName);
+            const canChange = timeRemaining === "0d 0h";
+
+            const handleChangeName = async () => {
+                if(!newName.trim()) return;
+                if (!canChange) { setMsg(t.nameChangeLimit); return; }
+                await usersCollection.doc(userData.uid).update({ displayName: newName, lastChangedName: firebase.firestore.FieldValue.serverTimestamp() });
+                setMsg("Updated!");
+                if (onUpdate) onUpdate();
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 overflow-y-auto" onClick={onClose}>
+                    <div className="glass-panel rounded-2xl p-6 w-full max-w-md animate-pop my-8" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-primary">{t.myAccount}</h2>
+                            <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button>
+                        </div>
+
+                        {/* Account Info */}
+                        <div className="mb-6 space-y-1">
+                            <h3 className="text-sm font-bold text-gray-300 mb-2 border-b border-white/10 pb-2">{t.accountInfo}</h3>
+                            <div className="info-row">
+                                <span className="info-label">{t.email}</span>
+                                <span className="info-value">{user.email}</span>
+                            </div>
+                            <div className="info-row">
+                                <span className="info-label">{t.memberSince}</span>
+                                <span className="info-value text-[10px]">{formatDate(userData.createdAt)}</span>
+                            </div>
+                        </div>
+
+                        {/* Change Name */}
+                        <div className="mb-6 glass-panel p-3 rounded-lg border border-white/10">
+                            <label className="text-[10px] text-gray-400 uppercase">{t.changeName}</label>
+                            <div className="flex gap-2 mt-1">
+                                <input className="input-dark flex-1 p-2 rounded text-sm" value={newName} onChange={e => setNewName(e.target.value)} />
+                                <button onClick={handleChangeName} disabled={!canChange} className={`px-3 rounded text-xs ${canChange ? 'btn-neon' : 'bg-gray-700 text-gray-400 cursor-not-allowed'}`}>{t.save}</button>
+                            </div>
+                            <p className="text-[10px] text-gray-500 mt-1">
+                                {canChange ? t.canChangeNow : `${t.nameChangeCountdown}: ${timeRemaining}`}
+                            </p>
+                            {msg && <div className="text-center text-xs text-cyan-400 mt-2">{msg}</div>}
+                        </div>
+
+                        {/* Stats */}
+                        <div className="mb-6 glass-panel rounded-xl p-4 border border-white/10">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="font-bold text-primary">{t.level} {level}</span>
+                                <span className="text-xs text-gray-400">{xpProgress}/100 XP</span>
+                            </div>
+                            <div className="w-full h-2 xp-bar-bg rounded-full overflow-hidden">
+                                <div className="h-full xp-bar-fill" style={{ width: `${xpProgress}%` }}></div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-green-400">{userData.stats?.wins || 0}</div>
+                                <div className="text-[10px] text-gray-500 uppercase">{t.wins}</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-red-400">{userData.stats?.losses || 0}</div>
+                                <div className="text-[10px] text-gray-500 uppercase">{t.losses}</div>
+                            </div>
+                             <div className="text-center">
+                                <div className="text-3xl font-bold text-cyan-400">{(userData.stats?.wins || 0) + (userData.stats?.losses || 0)}</div>
+                                <div className="text-[10px] text-gray-500 uppercase">{t.totalGames}</div>
+                            </div>
+                        </div>
+
+                         {/* Achievements */}
+                         <div>
+                            <h3 className="text-sm font-bold text-gray-400 mb-3">{t.achievements}</h3>
+                            <div className="grid grid-cols-3 gap-2">
+                                {ACHIEVEMENTS.map(ach => {
+                                    const isUnlocked = (userData.achievements || []).includes(ach.id);
+                                    return (
+                                        <div key={ach.id} className={`achievement-card rounded-lg p-2 text-center ${isUnlocked ? 'unlocked' : 'locked'}`}>
+                                            <div className={`text-2xl mb-1`}>{ach.icon}</div>
+                                            <div className="text-[10px] font-bold truncate">{lang === 'ar' ? ach.name_ar : ach.name_en}</div>
+                                            <div className="ach-tooltip">{lang === 'ar' ? ach.desc_ar : ach.desc_en}</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            );
+        };
+
+        // Chat Modal
         const PrivateChatModal = ({ show, onClose, friendData, currentUser, lang, onInvite, roomId, onJoinInvite }) => {
             const t = TRANSLATIONS[lang];
             const [messages, setMessages] = useState([]);
             const [newMsg, setNewMsg] = useState('');
+            const [showEmojis, setShowEmojis] = useState(false);
             const chatId = (friendData && currentUser) ? getChatId(currentUser.uid, friendData.uid) : null;
             
             useEffect(() => {
@@ -251,19 +494,21 @@
                     return unsub;
                 }
             }, [show, chatId]);
-            
-            const handleSend = async () => {
-                if(!newMsg.trim() || !chatId) return;
+
+            const handleSend = async (text) => {
+                const msgText = text || newMsg;
+                if(!msgText.trim() || !chatId) return;
                 const msg = {
                     senderId: currentUser.uid,
                     senderName: currentUser.displayName,
-                    text: newMsg,
+                    text: msgText,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     type: 'text'
                 };
                 await chatsCollection.doc(chatId).set({ members: [currentUser.uid, friendData.uid] }, { merge: true });
                 await chatsCollection.doc(chatId).collection('messages').add(msg);
                 setNewMsg('');
+                setShowEmojis(false);
             };
             
             const handleInvite = async () => {
@@ -284,7 +529,7 @@
             
             return (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4" onClick={onClose}>
-                    <div className="glass-panel rounded-2xl w-full max-w-lg h-[600px] flex flex-col animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="glass-panel rounded-2xl w-full max-w-lg h-[600px] flex flex-col animate-pop relative" onClick={e => e.stopPropagation()}>
                         <div className="p-4 border-b border-white/10 flex justify-between items-center">
                             <div className="flex items-center gap-2">
                                 <img src={friendData.photoURL} className="w-8 h-8 rounded-full"/>
@@ -292,181 +537,46 @@
                             </div>
                             <button onClick={onClose} className="text-xl">&times;</button>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
                             {messages.map(m => (
-                                <div key={m.id} className={`flex ${m.senderId === currentUser.uid ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={m.senderId === currentUser.uid ? 'chat-bubble-me' : 'chat-bubble-other'}>
-                                        {m.type === 'invite' ? (
-                                            <div className="invite-bubble">
-                                                <p className="text-sm">{m.text}</p>
-                                                {m.senderId !== currentUser.uid && m.roomId && (
-                                                    <button onClick={() => onJoinInvite(m.roomId)} className="btn-neon px-4 py-1 rounded text-xs mt-2">{t.joinInvite}</button>
-                                                )}
-                                            </div>
-                                        ) : ( <p className="text-sm">{m.text}</p> )}
+                                <div key={m.id} className={`chat-message-row ${m.senderId === currentUser.uid ? 'flex-row-reverse' : ''}`}>
+                                    <img src={m.senderId === currentUser.uid ? currentUser.photoURL : friendData.photoURL} className="chat-avatar" alt=""/>
+                                    <div className="chat-bubble-container items-end">
+                                        <div className={`chat-meta ${m.senderId === currentUser.uid ? 'flex-row-reverse' : ''}`}>
+                                            <span className="chat-name">{m.senderName}</span>
+                                            <span className="chat-time">{formatTime(m.timestamp)}</span>
+                                        </div>
+                                        <div className={`chat-bubble-new ${m.senderId === currentUser.uid ? 'chat-bubble-me-new' : 'chat-bubble-other-new'}`}>
+                                            {m.type === 'invite' ? (
+                                                <div className="invite-bubble">
+                                                    <p className="text-sm">{m.text}</p>
+                                                    {m.senderId !== currentUser.uid && m.roomId && (
+                                                        <button onClick={() => onJoinInvite(m.roomId)} className="btn-neon px-4 py-1 rounded text-xs mt-2">{t.joinInvite}</button>
+                                                    )}
+                                                </div>
+                                            ) : ( <p className="text-sm">{m.text}</p> )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <div className="p-4 border-t border-white/10">
+                        
+                        {showEmojis && (
+                            <div className="emoji-grid">
+                                {EMOJIS.map(emoji => (
+                                    <span key={emoji} onClick={() => handleSend(emoji)} className="emoji-btn text-xl p-1 rounded hover:bg-white/10">{emoji}</span>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="p-4 border-t border-white/10 relative">
                             {roomId && (<button onClick={handleInvite} className="btn-success w-full py-2 rounded text-xs mb-2">{t.inviteBtn} ({t.inviteFriends})</button>)}
                             <div className="flex gap-2">
+                                <button onClick={() => setShowEmojis(!showEmojis)} className="btn-ghost px-3 rounded text-xl">😀</button>
                                 <input className="input-dark flex-1 p-2 rounded text-sm" placeholder={t.chatPlaceholder} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} />
-                                <button onClick={handleSend} className="btn-neon px-4 rounded">{t.send}</button>
+                                <button onClick={() => handleSend()} className="btn-neon px-4 rounded">{t.send}</button>
                             </div>
                         </div>
-                    </div>
-                </div>
-            );
-        };
-        
-        const ProfileModal = ({ show, onClose, targetUID, currentUserData, lang, isSelf, onUpdate }) => {
-            const t = TRANSLATIONS[lang];
-            const [profileData, setProfileData] = useState(null);
-            const [newName, setNewName] = useState('');
-            const [msg, setMsg] = useState('');
-            const [reporting, setReporting] = useState(false);
-            
-            useEffect(() => {
-                if (show && targetUID) {
-                    const fetchData = async () => {
-                        const doc = await usersCollection.doc(targetUID).get();
-                        if (doc.exists) {
-                            const data = doc.data();
-                            setProfileData(data);
-                            if (isSelf) setNewName(data.displayName || '');
-                        }
-                    };
-                    fetchData();
-                }
-            }, [show, targetUID]);
-
-            if (!show || !profileData) return null;
-
-            const level = calculateLevel(profileData.stats?.xp || 0);
-            const xpProgress = calculateXPProgress(profileData.stats?.xp || 0);
-            const wins = profileData.stats?.wins || 0;
-            const losses = profileData.stats?.losses || 0;
-            const totalGames = wins + losses;
-            const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(0) : 0;
-            const circumference = 2 * Math.PI * 45;
-            const offset = circumference - (winRate / 100) * circumference;
-
-            const handleCopyId = () => { navigator.clipboard.writeText(profileData.customId); setMsg(t.copied); setTimeout(() => setMsg(''), 2000); };
-            const handleChangeName = async () => {
-                if(!newName.trim()) return;
-                const lastChange = profileData.lastChangedName?.toMillis() || 0;
-                const monthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-                if (lastChange > monthAgo) { setMsg(t.nameChangeLimit); return; }
-                await usersCollection.doc(profileData.uid).update({ displayName: newName, lastChangedName: firebase.firestore.FieldValue.serverTimestamp() });
-                setMsg("Updated!");
-                if (onUpdate) onUpdate();
-            };
-            
-            const handleReport = async () => {
-                if (isSelf) return;
-                setReporting(true);
-                await reportsCollection.add({
-                    reporterId: currentUserData.uid,
-                    reportedId: profileData.uid,
-                    reportedName: profileData.displayName,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    status: 'pending'
-                });
-                setMsg(t.reportSent);
-                setTimeout(() => { setMsg(''); setReporting(false); }, 2000);
-            };
-
-            return (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4" onClick={onClose}>
-                    <div className="glass-panel rounded-2xl p-6 w-full max-w-md animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="flex justify-between items-start mb-6">
-                            <div className="flex items-center gap-4">
-                                <img src={profileData.photoURL || `https://ui-avatars.com/api/?name=${profileData.displayName}&background=random`} className="w-16 h-16 rounded-full border-2 border-cyan-400" alt="Avatar" />
-                                <div>
-                                    <h2 className="text-xl font-bold">{profileData.displayName}</h2>
-                                    <div className="flex items-center gap-1 cursor-pointer hover:text-cyan-400" onClick={handleCopyId}>
-                                        <p className="text-gray-400 text-xs font-mono">ID: #{profileData.customId}</p>
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button>
-                        </div>
-
-                         {isSelf && (
-                             <div className="mb-4 glass-panel p-3 rounded-lg border border-white/10">
-                                 <label className="text-[10px] text-gray-400 uppercase">{t.changeName}</label>
-                                 <div className="flex gap-2 mt-1">
-                                    <input className="input-dark flex-1 p-2 rounded text-xs" value={newName} onChange={e => setNewName(e.target.value)} />
-                                    <button onClick={handleChangeName} className="btn-ghost px-3 rounded text-xs">{t.save}</button>
-                                 </div>
-                                 <p className="text-[10px] text-gray-500 mt-1">{t.nameChangeLimit}</p>
-                             </div>
-                         )}
-                         {msg && <div className="text-center text-xs text-cyan-400 mb-2">{msg}</div>}
-
-                        <div className="mb-6 glass-panel rounded-xl p-4 border border-white/10">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="font-bold text-primary">{t.level} {level}</span>
-                                <span className="text-xs text-gray-400">{xpProgress}/100 XP</span>
-                            </div>
-                            <div className="w-full h-2 xp-bar-bg rounded-full overflow-hidden">
-                                <div className="h-full xp-bar-fill" style={{ width: `${xpProgress}%` }}></div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4 mb-6">
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-green-400">{wins}</div>
-                                <div className="text-[10px] text-gray-500 uppercase">{t.wins}</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-red-400">{losses}</div>
-                                <div className="text-[10px] text-gray-500 uppercase">{t.losses}</div>
-                            </div>
-                             <div className="text-center">
-                                <div className="text-3xl font-bold text-cyan-400">{totalGames}</div>
-                                <div className="text-[10px] text-gray-500 uppercase">{t.totalGames}</div>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-center mb-6">
-                            <div className="relative w-32 h-32">
-                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                    <circle cx="50" cy="50" r="45" stroke="rgba(255,255,255,0.1)" strokeWidth="10" fill="none"/>
-                                    <circle cx="50" cy="50" r="45" stroke="url(#gradient)" strokeWidth="10" fill="none"
-                                        strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="kd-circle"/>
-                                    <defs><linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#7000ff"/><stop offset="100%" stopColor="#00f2ff"/></linearGradient></defs>
-                                </svg>
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className="text-3xl font-black">{winRate}%</span>
-                                    <span className="text-[10px] text-gray-400 uppercase">{t.winRate}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 className="text-sm font-bold text-gray-400 mb-3">{t.achievements}</h3>
-                            <div className="grid grid-cols-3 gap-2">
-                                {ACHIEVEMENTS.map(ach => {
-                                    const isUnlocked = (profileData.achievements || []).includes(ach.id);
-                                    return (
-                                        <div key={ach.id} className={`achievement-card rounded-lg p-2 text-center ${isUnlocked ? 'unlocked' : 'locked'}`}>
-                                            <div className={`text-2xl mb-1 ${ach.special && isUnlocked ? 'animate-float' : ''}`}>{ach.icon}</div>
-                                            <div className="text-[10px] font-bold truncate">{lang === 'ar' ? ach.name_ar : ach.name_en}</div>
-                                            <div className="ach-tooltip">{lang === 'ar' ? ach.desc_ar : ach.desc_en}</div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                        
-                        {!isSelf && (
-                            <button onClick={handleReport} disabled={reporting} className="w-full mt-4 py-2 text-xs text-red-400 border border-red-400/30 rounded-lg hover:bg-red-400/10 transition-all disabled:opacity-50">
-                                {reporting ? t.reportSent : t.report}
-                            </button>
-                        )}
                     </div>
                 </div>
             );
@@ -488,27 +598,25 @@
             const [soundEnabled, setSoundEnabled] = useState(true);
             
             // UI State
-            const [showProfile, setShowProfile] = useState(false);
+            const [activeView, setActiveView] = useState('lobby');
             const [showDropdown, setShowDropdown] = useState(false);
             const [joinError, setJoinError] = useState('');
-            const [targetProfileUID, setTargetProfileUID] = useState(null);
             const [alertMessage, setAlertMessage] = useState(null);
-            
-            // Views State
-            const [activeView, setActiveView] = useState('lobby');
             const [leaderboardData, setLeaderboardData] = useState([]);
             const [friendsData, setFriendsData] = useState([]);
             const [addFriendId, setAddFriendId] = useState('');
             const [friendSearchMsg, setFriendSearchMsg] = useState('');
-            
-            // Friend Requests
             const [friendRequests, setFriendRequests] = useState([]);
-            
-            // Chat Modal
             const [showChat, setShowChat] = useState(false);
             const [chatFriend, setChatFriend] = useState(null);
             
+            // Modals State
+            const [showMyAccount, setShowMyAccount] = useState(false);
+            const [showUserProfile, setShowUserProfile] = useState(false);
+            const [targetProfileUID, setTargetProfileUID] = useState(null);
+            
             const t = TRANSLATIONS[lang];
+            const isLoggedIn = user && !user.isAnonymous;
 
             // --- Effects ---
 
@@ -547,14 +655,12 @@
                 return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
             }, []);
 
-            // Auth State & Realtime User Data Listener (FIXED)
+            // Auth & UserData Realtime
             useEffect(() => {
                 const unsubAuth = auth.onAuthStateChanged(async (u) => {
                     if (u) {
                         setUser(u);
                         const userRef = usersCollection.doc(u.uid);
-                        
-                        // Check if doc exists first
                         const doc = await userRef.get();
                         if (!doc.exists) {
                              const newUserData = {
@@ -565,22 +671,17 @@
                                 lastChangedName: null, lastActive: firebase.firestore.FieldValue.serverTimestamp()
                             };
                             await userRef.set(newUserData);
-                            // Set initial data
                             setUserData(newUserData);
                             if (u.displayName) setNickname(u.displayName);
                         }
-
-                        // Listen for real-time changes on user document
                         const unsubSnap = userRef.onSnapshot(snap => {
                             if (snap.exists) {
                                 setUserData(snap.data());
                                 if (snap.data().displayName) setNickname(snap.data().displayName);
                             }
                         });
-                        return () => unsubSnap(); // Cleanup listener
-                    } else { 
-                        setUser(null); setUserData(null); 
-                    }
+                        return () => unsubSnap();
+                    } else { setUser(null); setUserData(null); }
                 });
                 return unsubAuth;
             }, []);
@@ -602,7 +703,7 @@
                 return unsub;
             }, [user, roomId]);
 
-            // Fetch Leaderboard
+            // Leaderboard
             useEffect(() => {
                 if (activeView === 'leaderboard') {
                     usersCollection.orderBy('stats.wins', 'desc').limit(100).get().then(snap => {
@@ -612,20 +713,18 @@
                 }
             }, [activeView]);
 
-            // Fetch Friends & Requests
+            // Friends & Requests
             useEffect(() => {
                 if (activeView === 'friends' && userData) {
                     if (userData.friends?.length > 0) {
                         usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).get().then(snap => {
-                            const friends = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                            setFriendsData(friends);
+                            setFriendsData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
                         });
                     } else { setFriendsData([]); }
                     
                     if (userData.friendRequests?.length > 0) {
                         usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).get().then(snap => {
-                            const reqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                            setFriendRequests(reqs);
+                            setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
                         });
                     } else { setFriendRequests([]); }
                 }
@@ -997,7 +1096,12 @@
             const openProfile = (uid) => {
                 if(!uid) return;
                 setTargetProfileUID(uid);
-                setShowProfile(true);
+                setShowUserProfile(true);
+            };
+            
+            const openChat = (friend) => {
+                setChatFriend(friend);
+                setShowChat(true);
             };
 
             // Friends Logic
@@ -1021,12 +1125,10 @@
             };
             
             const handleAcceptRequest = async (fromUid) => {
-                // Update my document
                 await usersCollection.doc(user.uid).update({
                     friends: firebase.firestore.FieldValue.arrayUnion(fromUid),
                     friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
                 });
-                // Update other user's document (requires security rule fix!)
                 await usersCollection.doc(fromUid).update({
                     friends: firebase.firestore.FieldValue.arrayUnion(user.uid)
                 });
@@ -1037,12 +1139,7 @@
                     friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
                 });
             };
-            
-            const openChat = (friend) => {
-                setChatFriend(friend);
-                setShowChat(true);
-            };
-            
+
             // Render Helpers
             const isMyTurn = room?.currentTurnUID === user?.uid;
             const isSpy = room?.spyId === user?.uid;
@@ -1057,7 +1154,6 @@
             const majorityNeeded = Math.floor(activePlayersCount / 2) + 1;
             const hasIAgreed = voteReq?.votes?.[user?.uid] === true;
             const hasIDeclined = voteReq?.votes?.[user?.uid] === false;
-            const isLoggedIn = user && !user.isAnonymous;
 
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 md:p-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -1072,14 +1168,23 @@
                         </div>
                     )}
 
-                    <ProfileModal 
-                        show={showProfile} 
-                        onClose={() => setShowProfile(false)} 
-                        targetUID={targetProfileUID} 
-                        currentUserData={userData} 
-                        lang={lang} 
-                        isSelf={targetProfileUID === user?.uid}
-                        onUpdate={async () => { if(user){ const d = await usersCollection.doc(user.uid).get(); setUserData(d.data()); }}} 
+                    <MyAccountPage 
+                        show={showMyAccount}
+                        onClose={() => setShowMyAccount(false)}
+                        userData={userData}
+                        user={user}
+                        lang={lang}
+                        onUpdate={async () => { if(user){ const d = await usersCollection.doc(user.uid).get(); setUserData(d.data()); }}}
+                    />
+
+                    <UserProfileModal 
+                        show={showUserProfile}
+                        onClose={() => setShowUserProfile(false)}
+                        targetUID={targetProfileUID}
+                        lang={lang}
+                        onAddFriend={handleSendRequest}
+                        isFriend={userData?.friends?.includes(targetProfileUID)}
+                        currentUser={user}
                     />
                     
                     <PrivateChatModal 
@@ -1122,10 +1227,13 @@
                             </div>
                         </div>
                         
-                        <nav className="hidden md:flex gap-1 glass-panel rounded-full p-1">
+                        <nav className="hidden md:flex gap-1 glass-panel rounded-full p-1 items-center">
                             <button onClick={() => setActiveView('lobby')} className={`nav-tab rounded-full text-xs ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
                             <button onClick={() => setActiveView('leaderboard')} className={`nav-tab rounded-full text-xs ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
-                            <button onClick={() => setActiveView('friends')} className={`nav-tab rounded-full text-xs ${activeView === 'friends' ? 'active' : ''}`}>{t.tabFriends}</button>
+                            <button onClick={() => setActiveView('friends')} className={`nav-tab rounded-full text-xs relative ${activeView === 'friends' ? 'active' : ''}`}>
+                                {t.tabFriends}
+                                {friendRequests.length > 0 && <span className="notification-badge">{friendRequests.length}</span>}
+                            </button>
                         </nav>
 
                         <div className="flex gap-2 items-center">
@@ -1142,7 +1250,7 @@
                                         
                                         {showDropdown && (
                                             <div className="dropdown-menu glass-panel rounded-lg py-2 animate-fade-in">
-                                                <button onClick={() => { openProfile(user.uid); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button>
+                                                <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button>
                                                 <button onClick={handleLogout} className="w-full text-right px-4 py-2 text-sm text-red-400 hover:bg-white/10">{t.logout}</button>
                                             </div>
                                         )}
@@ -1160,7 +1268,10 @@
                     <nav className="md:hidden w-full max-w-4xl flex justify-around glass-panel rounded-xl p-1 mb-4">
                          <button onClick={() => setActiveView('lobby')} className={`nav-tab flex-1 text-center ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
                          <button onClick={() => setActiveView('leaderboard')} className={`nav-tab flex-1 text-center ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
-                         <button onClick={() => setActiveView('friends')} className={`nav-tab flex-1 text-center ${activeView === 'friends' ? 'active' : ''}`}>{t.tabFriends}</button>
+                         <button onClick={() => setActiveView('friends')} className={`nav-tab flex-1 text-center relative ${activeView === 'friends' ? 'active' : ''}`}>
+                            {t.tabFriends}
+                            {friendRequests.length > 0 && <span className="notification-badge">{friendRequests.length}</span>}
+                         </button>
                     </nav>
 
                     <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1414,7 +1525,7 @@
                                                         </div>
                                                         {!isSpectator && isMyTurn ? (
                                                             <div className="flex flex-col gap-2 mt-auto border-t border-white/10 pt-3 relative z-10">
-                                                                <div className="flex gap-1 mb-1">{EMOJIS.map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>))}</div>
+                                                                <div className="flex gap-1 mb-1">{EMOJIS.slice(0, 10).map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>))}</div>
                                                                 <form onSubmit={(e) => { e.preventDefault(); sendMessage(chatMsg); }} className="flex gap-2">
                                                                     <input className="input-dark flex-1 p-3 rounded-xl text-sm" placeholder={t.chatPlaceholder} value={chatMsg} onChange={e => setChatMsg(e.target.value)} />
                                                                     <button type="submit" className="btn-neon px-5 rounded-xl text-xs">{t.send}</button>
