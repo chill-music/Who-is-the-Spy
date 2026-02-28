@@ -81,40 +81,15 @@
         .dropdown-menu { position: absolute; top: 100%; right: 0; margin-top: 8px; min-width: 180px; z-index: 9999; }
         .error-msg { color: #ff4d4d; font-size: 12px; margin-top: 5px; text-align: center; }
         .alert-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        
-        /* Nav Tabs */
         .nav-tab { padding: 8px 16px; border-bottom: 2px solid transparent; transition: 0.3s; color: #888; cursor: pointer; }
         .nav-tab:hover { color: #fff; }
         .nav-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-        
-        /* Friend Status */
         .status-online { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #10b981; }
         .status-offline { width: 10px; height: 10px; background: #555; border-radius: 50%; display: inline-block; }
-        
         .leaderboard-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .leaderboard-row:hover { background: rgba(255,255,255,0.03); }
-        
-        /* Chat Invite Bubble */
         .invite-bubble { background: linear-gradient(135deg, rgba(112, 0, 255, 0.2), rgba(0, 242, 255, 0.2)); border: 1px solid var(--primary); border-radius: 12px; padding: 10px; text-align: center; margin: 5px 0; }
-        
-        /* Achievement Tooltip */
-        .ach-tooltip {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.9);
-            border: 1px solid var(--primary);
-            padding: 8px;
-            border-radius: 8px;
-            width: 150px;
-            font-size: 10px;
-            text-align: center;
-            z-index: 10;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
+        .ach-tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--primary); padding: 8px; border-radius: 8px; width: 150px; font-size: 10px; text-align: center; z-index: 10; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
         .achievement-card:hover .ach-tooltip, .achievement-card:active .ach-tooltip { opacity: 1; }
     </style>
 </head>
@@ -142,7 +117,7 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v15_ach_fix';
+        const appId = 'pro_spy_v16_realtime';
         const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
         const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
         const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
@@ -214,17 +189,13 @@
                 loginGoogle: "Login", myAccount: "My Account", logout: "Logout", profile: "Profile", guest: "Guest", linkGuessCard: "GUESS MY CARD",
                 level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID",
                 enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Need at least 3 players!", ok: "OK",
-                // Nav
                 tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends",
-                // Friends
                 addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID",
                 online: "Online", offline: "Offline", noFriends: "No friends yet.",
                 friendAdded: "Friend Added!", friendNotFound: "User not found.", requestSent: "Request Sent!",
                 incomingRequests: "Incoming Requests", noRequests: "No pending requests.",
                 accept: "Accept", reject: "Reject",
-                // Chat
                 sendMessage: "Send", chatPlaceholder: "Message...",
-                // Invite
                 inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?",
                 inviteFriends: "Invite Friends"
             },
@@ -250,17 +221,13 @@
                 loginGoogle: "دخول", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي",
                 level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم",
                 enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "يحتاج 3 لاعبين على الأقل!", ok: "حسناً",
-                // Nav
                 tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء",
-                // Friends
                 addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق",
                 online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.",
                 friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!",
                 incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.",
                 accept: "قبول", reject: "رفض",
-                // Chat
                 sendMessage: "إرسال", chatPlaceholder: "رسالة...",
-                // Invite
                 inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟",
                 inviteFriends: "دعوة أصدقاء"
             }
@@ -273,8 +240,6 @@
             const t = TRANSLATIONS[lang];
             const [messages, setMessages] = useState([]);
             const [newMsg, setNewMsg] = useState('');
-            
-            // FIX: Safety check for props
             const chatId = (friendData && currentUser) ? getChatId(currentUser.uid, friendData.uid) : null;
             
             useEffect(() => {
@@ -327,7 +292,6 @@
                             </div>
                             <button onClick={onClose} className="text-xl">&times;</button>
                         </div>
-                        
                         <div className="flex-1 overflow-y-auto p-4 space-y-2">
                             {messages.map(m => (
                                 <div key={m.id} className={`flex ${m.senderId === currentUser.uid ? 'justify-end' : 'justify-start'}`}>
@@ -336,33 +300,18 @@
                                             <div className="invite-bubble">
                                                 <p className="text-sm">{m.text}</p>
                                                 {m.senderId !== currentUser.uid && m.roomId && (
-                                                    <button onClick={() => onJoinInvite(m.roomId)} className="btn-neon px-4 py-1 rounded text-xs mt-2">
-                                                        {t.joinInvite}
-                                                    </button>
+                                                    <button onClick={() => onJoinInvite(m.roomId)} className="btn-neon px-4 py-1 rounded text-xs mt-2">{t.joinInvite}</button>
                                                 )}
                                             </div>
-                                        ) : (
-                                            <p className="text-sm">{m.text}</p>
-                                        )}
+                                        ) : ( <p className="text-sm">{m.text}</p> )}
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        
                         <div className="p-4 border-t border-white/10">
-                            {roomId && (
-                                <button onClick={handleInvite} className="btn-success w-full py-2 rounded text-xs mb-2">
-                                    {t.inviteBtn} ({t.inviteFriends})
-                                </button>
-                            )}
+                            {roomId && (<button onClick={handleInvite} className="btn-success w-full py-2 rounded text-xs mb-2">{t.inviteBtn} ({t.inviteFriends})</button>)}
                             <div className="flex gap-2">
-                                <input 
-                                    className="input-dark flex-1 p-2 rounded text-sm"
-                                    placeholder={t.chatPlaceholder}
-                                    value={newMsg}
-                                    onChange={e => setNewMsg(e.target.value)}
-                                    onKeyPress={e => e.key === 'Enter' && handleSend()}
-                                />
+                                <input className="input-dark flex-1 p-2 rounded text-sm" placeholder={t.chatPlaceholder} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} />
                                 <button onClick={handleSend} className="btn-neon px-4 rounded">{t.send}</button>
                             </div>
                         </div>
@@ -400,7 +349,6 @@
             const losses = profileData.stats?.losses || 0;
             const totalGames = wins + losses;
             const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(0) : 0;
-            
             const circumference = 2 * Math.PI * 45;
             const offset = circumference - (winRate / 100) * circumference;
 
@@ -456,7 +404,6 @@
                                  <p className="text-[10px] text-gray-500 mt-1">{t.nameChangeLimit}</p>
                              </div>
                          )}
-                         
                          {msg && <div className="text-center text-xs text-cyan-400 mb-2">{msg}</div>}
 
                         <div className="mb-6 glass-panel rounded-xl p-4 border border-white/10">
@@ -490,8 +437,7 @@
                                     <circle cx="50" cy="50" r="45" stroke="rgba(255,255,255,0.1)" strokeWidth="10" fill="none"/>
                                     <circle cx="50" cy="50" r="45" stroke="url(#gradient)" strokeWidth="10" fill="none"
                                         strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="kd-circle"/>
-                                    <defs><linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#7000ff"/><stop offset="100%" stopColor="#00f2ff"/></linearGradient>
-                                    </defs>
+                                    <defs><linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#7000ff"/><stop offset="100%" stopColor="#00f2ff"/></linearGradient></defs>
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                                     <span className="text-3xl font-black">{winRate}%</span>
@@ -509,17 +455,13 @@
                                         <div key={ach.id} className={`achievement-card rounded-lg p-2 text-center ${isUnlocked ? 'unlocked' : 'locked'}`}>
                                             <div className={`text-2xl mb-1 ${ach.special && isUnlocked ? 'animate-float' : ''}`}>{ach.icon}</div>
                                             <div className="text-[10px] font-bold truncate">{lang === 'ar' ? ach.name_ar : ach.name_en}</div>
-                                            {/* Tooltip */}
-                                            <div className="ach-tooltip">
-                                                {lang === 'ar' ? ach.desc_ar : ach.desc_en}
-                                            </div>
+                                            <div className="ach-tooltip">{lang === 'ar' ? ach.desc_ar : ach.desc_en}</div>
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
                         
-                        {/* Report Button */}
                         {!isSelf && (
                             <button onClick={handleReport} disabled={reporting} className="w-full mt-4 py-2 text-xs text-red-400 border border-red-400/30 rounded-lg hover:bg-red-400/10 transition-all disabled:opacity-50">
                                 {reporting ? t.reportSent : t.report}
@@ -605,32 +547,42 @@
                 return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
             }, []);
 
-            // Auth State
+            // Auth State & Realtime User Data Listener (FIXED)
             useEffect(() => {
-                const unsub = auth.onAuthStateChanged(async (u) => {
+                const unsubAuth = auth.onAuthStateChanged(async (u) => {
                     if (u) {
                         setUser(u);
                         const userRef = usersCollection.doc(u.uid);
+                        
+                        // Check if doc exists first
                         const doc = await userRef.get();
                         if (!doc.exists) {
-                            const newUserData = {
+                             const newUserData = {
                                 uid: u.uid, email: u.email, displayName: u.displayName || u.uid.substring(0,5),
                                 photoURL: u.photoURL, customId: generateUID(),
                                 stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [], friendRequests: [],
                                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                lastChangedName: null,
-                                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                                lastChangedName: null, lastActive: firebase.firestore.FieldValue.serverTimestamp()
                             };
                             await userRef.set(newUserData);
+                            // Set initial data
                             setUserData(newUserData);
                             if (u.displayName) setNickname(u.displayName);
-                        } else {
-                            setUserData(doc.data());
-                            if (doc.data().displayName) setNickname(doc.data().displayName);
                         }
-                    } else { setUser(null); setUserData(null); }
+
+                        // Listen for real-time changes on user document
+                        const unsubSnap = userRef.onSnapshot(snap => {
+                            if (snap.exists) {
+                                setUserData(snap.data());
+                                if (snap.data().displayName) setNickname(snap.data().displayName);
+                            }
+                        });
+                        return () => unsubSnap(); // Cleanup listener
+                    } else { 
+                        setUser(null); setUserData(null); 
+                    }
                 });
-                return unsub;
+                return unsubAuth;
             }, []);
 
             // Update Last Active
@@ -663,7 +615,6 @@
             // Fetch Friends & Requests
             useEffect(() => {
                 if (activeView === 'friends' && userData) {
-                    // Fetch Friends
                     if (userData.friends?.length > 0) {
                         usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).get().then(snap => {
                             const friends = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -671,7 +622,6 @@
                         });
                     } else { setFriendsData([]); }
                     
-                    // Fetch Requests
                     if (userData.friendRequests?.length > 0) {
                         usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).get().then(snap => {
                             const reqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -716,7 +666,6 @@
             }, [room?.status, room?.wordSelEndTime]);
 
             // --- Actions ---
-
             const handleGoogleLogin = async () => {
                 const provider = new firebase.auth.GoogleAuthProvider();
                 try { await auth.signInWithPopup(provider); } catch (e) { console.error(e); }
@@ -1072,10 +1021,12 @@
             };
             
             const handleAcceptRequest = async (fromUid) => {
+                // Update my document
                 await usersCollection.doc(user.uid).update({
                     friends: firebase.firestore.FieldValue.arrayUnion(fromUid),
                     friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
                 });
+                // Update other user's document (requires security rule fix!)
                 await usersCollection.doc(fromUid).update({
                     friends: firebase.firestore.FieldValue.arrayUnion(user.uid)
                 });
@@ -1171,7 +1122,6 @@
                             </div>
                         </div>
                         
-                        {/* Navigation Tabs */}
                         <nav className="hidden md:flex gap-1 glass-panel rounded-full p-1">
                             <button onClick={() => setActiveView('lobby')} className={`nav-tab rounded-full text-xs ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
                             <button onClick={() => setActiveView('leaderboard')} className={`nav-tab rounded-full text-xs ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
@@ -1182,7 +1132,6 @@
                              <a href="https://guessmycard.mooo.info/" target="_blank" rel="noopener noreferrer" className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700 hover:text-pink-400 hover:border-pink-400">{t.linkGuessCard}</a>
                             <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">{t.langBtn}</button>
                             
-                            {/* Auth Area */}
                             <div className="relative">
                                 {isLoggedIn ? (
                                     <>
@@ -1208,7 +1157,6 @@
                         </div>
                     </header>
 
-                    {/* Mobile Nav */}
                     <nav className="md:hidden w-full max-w-4xl flex justify-around glass-panel rounded-xl p-1 mb-4">
                          <button onClick={() => setActiveView('lobby')} className={`nav-tab flex-1 text-center ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
                          <button onClick={() => setActiveView('leaderboard')} className={`nav-tab flex-1 text-center ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
@@ -1217,7 +1165,6 @@
 
                     <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
                         
-                        {/* Views Logic */}
                         {activeView === 'leaderboard' && (
                             <div className="md:col-span-3 glass-panel rounded-2xl p-6 animate-fade-in overflow-x-auto">
                                 <h2 className="text-xl font-bold mb-4 text-primary">{t.tabLeaderboard}</h2>
@@ -1252,7 +1199,6 @@
                             <div className="md:col-span-3 glass-panel rounded-2xl p-6 animate-fade-in space-y-6">
                                 <h2 className="text-xl font-bold text-primary">{t.tabFriends}</h2>
                                 
-                                {/* Add Friend Section */}
                                 <div className="flex gap-2">
                                     <input 
                                         className="input-dark flex-1 p-2 rounded text-sm" 
@@ -1264,7 +1210,6 @@
                                 </div>
                                 {friendSearchMsg && <div className="text-xs text-center text-cyan-400">{friendSearchMsg}</div>}
                                 
-                                {/* Friend Requests */}
                                 {friendRequests.length > 0 && (
                                     <div className="border-t border-white/10 pt-4">
                                         <h3 className="text-sm font-bold text-gray-400 mb-2">{t.incomingRequests}</h3>
@@ -1285,7 +1230,6 @@
                                     </div>
                                 )}
                                 
-                                {/* Friends List */}
                                 <div className="border-t border-white/10 pt-4">
                                     <h3 className="text-sm font-bold text-gray-400 mb-2">{t.tabFriends}</h3>
                                     <div className="space-y-2">
@@ -1316,7 +1260,6 @@
 
                         {activeView === 'lobby' && (
                             <>
-                                {/* Lobby Friends Button (Inside Room) */}
                                 {room && (
                                     <div className="md:col-span-3 flex justify-end mb-2">
                                         <button onClick={() => setActiveView('friends')} className="btn-ghost px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
@@ -1325,7 +1268,6 @@
                                     </div>
                                 )}
 
-                                {/* Left Column (Players) */}
                                 {room && (
                                     <div className="glass-panel rounded-2xl p-4 space-y-2 animate-fade-in delay-1">
                                         <h3 className="text-xs font-bold text-gray-400 mb-2 border-b border-gray-800 pb-2 uppercase tracking-wider flex justify-between items-center">
@@ -1358,7 +1300,6 @@
                                     </div>
                                 )}
 
-                                {/* Middle Column (Lobby/Game) */}
                                 <div className={`${room ? 'md:col-span-2' : 'md:col-span-3'} space-y-4`}>
                                     
                                     {!room && (
