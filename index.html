@@ -37,7 +37,6 @@
             position: relative;
         }
 
-        /* Interactive Background Canvas */
         #bg-canvas {
             position: fixed;
             top: 0;
@@ -58,7 +57,6 @@
 
         .font-tech { font-family: 'Rajdhani', sans-serif; }
 
-        /* Animations */
         @keyframes pulse-glow {
             0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); }
             50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); }
@@ -164,7 +162,6 @@
             filter: grayscale(100%);
         }
 
-        /* Small Timer for Player List */
         .player-timer-svg { 
             transform: rotate(-90deg); 
             width: 24px; 
@@ -193,7 +190,6 @@
             z-index: 11;
         }
 
-        /* Chat Bubbles */
         .chat-bubble-me {
             background: linear-gradient(135deg, var(--secondary), var(--primary));
             color: white;
@@ -242,7 +238,6 @@
             box-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
         }
 
-        /* Emoji Picker */
         .emoji-btn {
             font-size: 18px;
             padding: 5px;
@@ -255,6 +250,29 @@
             transform: scale(1.4);
             filter: grayscale(0%);
             opacity: 1;
+        }
+
+        /* Word Selection Grid */
+        .word-vote-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .word-vote-card.selected {
+            border-color: var(--primary);
+            background: rgba(0, 242, 255, 0.1);
+            transform: scale(1.02);
+        }
+        .voter-name {
+            position: absolute;
+            bottom: -8px;
+            right: 10px;
+            font-size: 10px;
+            background: var(--secondary);
+            padding: 2px 6px;
+            border-radius: 8px;
+            color: white;
         }
     </style>
 </head>
@@ -282,9 +300,9 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v7_final_pro';
+        const appId = 'pro_spy_v8_final';
 
-        // --- Sound System (Synthesized) ---
+        // --- Sound System ---
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null; 
 
@@ -343,7 +361,12 @@
                 spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!",
                 playAgain: "PLAY AGAIN", connecting: "Establishing Secure Connection...",
                 voteWait: "Waiting for votes...", voteDone: "VOTE LOCKED", soundOn: "SOUND ON", soundOff: "SOUND OFF",
-                linkGuessCard: "GUESS MY CARD"
+                linkGuessCard: "GUESS MY CARD",
+                // New
+                wordSelectionTitle: "SELECT KEYWORD",
+                wordSelectionDesc: "Choose a keyword for this round",
+                finishSelection: "FINISH SELECTION",
+                selectedWord: "Selected Keyword"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -360,11 +383,16 @@
                 spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!",
                 playAgain: "لعب مجدداً", connecting: "جاري تأمين الاتصال...",
                 voteWait: "بانتظار الأصوات...", voteDone: "تم تثبيت التصويت", soundOn: "تشغيل الصوت", soundOff: "إيقاف الصوت",
-                linkGuessCard: "خمن كرتي"
+                linkGuessCard: "خمن كرتي",
+                // New
+                wordSelectionTitle: "اختر كلمة السر",
+                wordSelectionDesc: "اختر كلمة سر لهذه الجولة",
+                finishSelection: "إنهاء الاختيار",
+                selectedWord: "كلمة السر"
             }
         };
 
-        // --- Scenarios DB ---
+        // --- Scenarios DB (Expanded > 50) ---
         const SCENARIOS = [
             { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
             { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Sonar"] },
@@ -375,10 +403,51 @@
             { loc_ar: "جزيرة كنز", words_ar: ["خريطة", "حفر", "ذهب", "قراصنة"], loc_en: "Treasure Island", words_en: ["Map", "Dig", "Gold", "Pirates"] },
             { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] },
             { loc_ar: "مطار دولي", words_ar: ["جوازات", "طائرات", "حقائب", "إقلاع"], loc_en: "Airport", words_en: ["Passports", "Planes", "Bags", "Takeoff"] },
-            { loc_ar: "جامعة سحر", words_ar: ["كتب", "عصا", "عفاريت", "تراكيب"], loc_en: "Magic Uni", words_en: ["Books", "Wand", "Ghosts", "Potions"] }
+            { loc_ar: "جامعة سحر", words_ar: ["كتب", "عصا", "عفاريت", "تراكيب"], loc_en: "Magic Uni", words_en: ["Books", "Wand", "Ghosts", "Potions"] },
+            { loc_ar: "سفينة قراصنة", words_ar: ["شراع", "مدفع", "طوق", "خشب"], loc_en: "Pirate Ship", words_en: ["Sail", "Cannon", "Parrot", "Wood"] },
+            { loc_ar: "مركز شرطة", words_ar: ["قضبان", "شرطي", "سيارة", "قانون"], loc_en: "Police Station", words_en: ["Bars", "Cop", "Car", "Law"] },
+            { loc_ar: "مدرسة ثانوية", words_ar: ["طالب", "حقيبة", "سبورة", "جرس"], loc_en: "High School", words_en: ["Student", "Bag", "Board", "Bell"] },
+            { loc_ar: "مطعم فاخر", words_ar: ["نادل", "قائمة", "منديل", "شوكة"], loc_en: "Fancy Restaurant", words_en: ["Waiter", "Menu", "Napkin", "Fork"] },
+            { loc_ar: "شاطئ استوائي", words_ar: ["رمل", "موجة", "شمس", "كوكتيل"], loc_en: "Tropical Beach", words_en: ["Sand", "Wave", "Sun", "Cocktail"] },
+            { loc_ar: "معرض فني", words_ar: ["لوحة", "تمثال", "إطار", "مصور"], loc_en: "Art Gallery", words_en: ["Painting", "Statue", "Frame", "Photographer"] },
+            { loc_ar: "حديقة حيوان", words_ar: ["قفص", "أسد", "زائر", "طعام"], loc_en: "Zoo", words_en: ["Cage", "Lion", "Visitor", "Food"] },
+            { loc_ar: "ملعب كرة قدم", words_ar: ["حكم", "هدف", "جمهور", "عشب"], loc_en: "Stadium", words_en: ["Referee", "Goal", "Crowd", "Grass"] },
+            { loc_ar: "دار مسنين", words_ar: ["سرير", "طبيب", "عكاز", "هدوء"], loc_en: "Nursing Home", words_en: ["Bed", "Doctor", "Cane", "Quiet"] },
+            { loc_ar: "محطة وقود", words_ar: ["بنزين", "سيارة", "مضخة", "زيت"], loc_en: "Gas Station", words_en: ["Gas", "Car", "Pump", "Oil"] },
+            { loc_ar: "مكتبة عامة", words_ar: ["كتاب", "صمت", "رف", "مكتب"], loc_en: "Library", words_en: ["Book", "Silence", "Shelf", "Desk"] },
+            { loc_ar: "مصحة نفسية", words_ar: ["جنون", "حبوب", "طبيب", "غرفة"], loc_en: "Asylum", words_en: ["Madness", "Pills", "Doctor", "Room"] },
+            { loc_ar: "مختبر كيميائي", words_ar: ["أنبوب", "سائل", "تفاعل", "غاز"], loc_en: "Chem Lab", words_en: ["Tube", "Liquid", "Reaction", "Gas"] },
+            { loc_ar: "مسرح", words_ar: ["ستار", "ممثل", "مقعد", "إضاءة"], loc_en: "Theater", words_en: ["Curtain", "Actor", "Seat", "Light"] },
+            { loc_ar: "فندق 5 نجوم", words_ar: ["غرفة", "مفتاح", "استقبال", "جناح"], loc_en: "Hotel", words_en: ["Room", "Key", "Reception", "Suite"] },
+            { loc_ar: "سجن", words_ar: ["زنزانة", "حارس", "قضبان", "هروب"], loc_en: "Prison", words_en: ["Cell", "Guard", "Bars", "Escape"] },
+            { loc_ar: "مصنع شوكولاتة", words_ar: ["كاكاو", "سكر", "قالب", "حلوى"], loc_en: "Chocolate Factory", words_en: ["Cocoa", "Sugar", "Mold", "Candy"] },
+            { loc_ar: "مزرعة", words_ar: ["بقرة", "حصاد", "تراكتور", "بئر"], loc_en: "Farm", words_en: ["Cow", "Harvest", "Tractor", "Well"] },
+            { loc_ar: "سفارة", words_ar: ["جواز", "سفير", "تأشيرة", "علم"], loc_en: "Embassy", words_en: ["Passport", "Ambassador", "Visa", "Flag"] },
+            { loc_ar: "مؤتمر صحفي", words_ar: ["ميكروفون", "صحفي", "كاميرا", "أسئلة"], loc_en: "Press Conf", words_en: ["Mic", "Journalist", "Camera", "Questions"] },
+            { loc_ar: "غرفة عمليات", words_ar: ["شاشة", "خريطة", "جنود", "خطة"], loc_en: "War Room", words_en: ["Screen", "Map", "Soldiers", "Plan"] },
+            { loc_ar: "محطة مترو", words_ar: ["قطار", "رصيف", "تذكرة", "نفق"], loc_en: "Subway", words_en: ["Train", "Platform", "Ticket", "Tunnel"] },
+            { loc_ar: "ستوديو تصوير", words_ar: ["إضاءة", "خلفية", "كاميرا", "موديل"], loc_en: "Studio", words_en: ["Light", "Backdrop", "Camera", "Model"] },
+            { loc_ar: "مصلى", words_ar: ["سجادة", "قبلة", " Imam ", "صلاة"], loc_en: "Mosque", words_en: ["Rug", "Qibla", "Imam", "Prayer"] },
+            { loc_ar: "كنيسة", words_ar: ["جرس", "مذبح", "قسيس", "صليب"], loc_en: "Church", words_en: ["Bell", "Altar", "Priest", "Cross"] },
+            { loc_ar: "سينما", words_ar: ["شاشة", "فشار", "تذاكر", "ظلام"], loc_en: "Cinema", words_en: ["Screen", "Popcorn", "Tickets", "Dark"] },
+            { loc_ar: "ملهى ليلي", words_ar: ["موسيقى", "رقص", "بار", "أضواء"], loc_en: "Night Club", words_en: ["Music", "Dance", "Bar", "Lights"] },
+            { loc_ar: "ملاهي", words_ar: ["ألعاب", "قطار", "مطر", "تذاكر"], loc_en: "Carnival", words_en: ["Rides", "Train", "Cotton", "Tickets"] },
+            { loc_ar: "صيدلية", words_ar: ["دواء", "وصفة", "طبيب", "رفوف"], loc_en: "Pharmacy", words_en: ["Medicine", "Rx", "Doctor", "Shelves"] },
+            { loc_ar: "مسبح", words_ar: ["ماء", "غطاس", "حمام", "كلور"], loc_en: "Pool", words_en: ["Water", "Diver", "Swim", "Chlorine"] },
+            { loc_ar: "نادي رياضي", words_ar: ["أثقال", "جري", "مدرب", "عضلات"], loc_en: "Gym", words_en: ["Weights", "Run", "Trainer", "Muscles"] },
+            { loc_ar: "مركز تسوق", words_ar: ["محلات", "حقائب", "طعام", "ممرات"], loc_en: "Mall", words_en: ["Shops", "Bags", "Food", "Halls"] },
+            { loc_ar: "منارة", words_ar: ["ضوء", "بحر", "سلم", "جزيرة"], loc_en: "Lighthouse", words_en: ["Light", "Sea", "Stairs", "Island"] },
+            { loc_ar: "ورشة نجارة", words_ar: ["خشب", "منشار", "مطرقة", "غبار"], loc_en: "Workshop", words_en: ["Wood", "Saw", "Hammer", "Dust"] },
+            { loc_ar: "مكتب تحقيقات", words_ar: ["ملفات", "محقق", "عدسة", "أدلة"], loc_en: "Detective Office", words_en: ["Files", "Detective", "Lens", "Clues"] },
+            { loc_ar: "قارب صيد", words_ar: ["شبكة", "سمك", "بحر", "صنارة"], loc_en: "Fishing Boat", words_en: ["Net", "Fish", "Sea", "Hook"] },
+            { loc_ar: "محطة إذاعة", words_ar: ["مايك", "أنتينا", "صوت", "أغنية"], loc_en: "Radio Station", words_en: ["Mic", "Antenna", "Voice", "Song"] },
+            { loc_ar: "مشفى للأمراض النفسية", words_ar: ["جنون", "حبوب", "طبيب", "نعاس"], loc_en: "Mental Hospital", words_en: ["Mad", "Pills", "Doctor", "Sleep"] },
+            { loc_ar: "محطة إطفاء", words_ar: ["نار", "خرطوم", "سيارة", "إنذار"], loc_en: "Fire Station", words_en: ["Fire", "Hose", "Truck", "Alarm"] },
+            { loc_ar: "مكتب محاماة", words_ar: ["قانون", "ملفات", "قاضي", "دفاع"], loc_en: "Law Firm", words_en: ["Law", "Files", "Judge", "Defense"] }
         ];
 
         const EMOJIS = ['🕵️', '🔍', '🚨', '🤐', '👀', '🔪', '🛡️', '💀', '🤫', '✅'];
+        const MAX_ROUNDS = 3;
 
         function App() {
             const [lang, setLang] = useState('en');
@@ -392,11 +461,12 @@
             const [voteTarget, setVoteTarget] = useState(null); 
             const [turnTimer, setTurnTimer] = useState(30);
             const [votingTimer, setVotingTimer] = useState(30);
+            const [wordSelTimer, setWordSelTimer] = useState(30);
             const [soundEnabled, setSoundEnabled] = useState(true);
             
             const t = TRANSLATIONS[lang];
 
-            // --- 1. Background Animation Logic (Fixed Placement) ---
+            // --- Background Logic ---
             useEffect(() => {
                 const canvas = document.getElementById('bg-canvas');
                 if (!canvas) return;
@@ -479,15 +549,14 @@
                 };
                 animate();
 
-                // Cleanup function
                 return () => {
                     cancelAnimationFrame(animId);
                     window.removeEventListener('resize', resize);
                     window.removeEventListener('mousemove', handleMouseMove);
                 };
-            }, []); // Run once
+            }, []); 
 
-            // --- 2. Auth Effect ---
+            // --- Auth Effect ---
             useEffect(() => {
                 const unsub = auth.onAuthStateChanged(async (u) => {
                     if (u) setUser(u);
@@ -496,7 +565,7 @@
                 return unsub;
             }, []);
 
-            // --- 3. Room Listener ---
+            // --- Room Listener ---
             useEffect(() => {
                 if (!user || !roomId) return;
                 const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
@@ -507,7 +576,7 @@
                 return unsub;
             }, [user, roomId]);
 
-            // --- 4. Turn Timer Logic ---
+            // --- Turn Timer Logic ---
             useEffect(() => {
                 if (room?.status === 'discussing' && room?.turnEndTime) {
                     const interval = setInterval(() => {
@@ -524,7 +593,7 @@
                 }
             }, [room?.status, room?.turnEndTime]);
 
-            // --- 5. Voting Timer Logic (Fixed) ---
+            // --- Voting Timer Logic ---
             useEffect(() => {
                 if (room?.status === 'voting' && room?.votingEndTime) {
                     const interval = setInterval(() => {
@@ -532,7 +601,7 @@
                         setVotingTimer(remaining);
                         
                         if (remaining <= 0) {
-                            resolveVotes(true); // Force resolve
+                            resolveVotes(true);
                             clearInterval(interval);
                         }
                     }, 1000);
@@ -542,13 +611,23 @@
                 }
             }, [room?.status, room?.votingEndTime]);
 
-            // --- Memoized Words Logic ---
-            const currentWords = useMemo(() => {
-                if (!room?.scenario || !user) return [];
-                const isSpy = room.spyId === user.uid;
-                if (isSpy) return ["?", "?", "?", "?"];
-                return lang === 'ar' ? room.scenario.words_ar : room.scenario.words_en;
-            }, [room, user, lang]);
+            // --- Word Selection Timer Logic ---
+            useEffect(() => {
+                if (room?.status === 'word_selection' && room?.wordSelEndTime) {
+                    const interval = setInterval(() => {
+                        const remaining = Math.max(0, Math.floor((room.wordSelEndTime - Date.now()) / 1000));
+                        setWordSelTimer(remaining);
+                        
+                        if (remaining <= 0) {
+                            finishWordSelection(); // Force finish
+                            clearInterval(interval);
+                        }
+                    }, 1000);
+                    return () => clearInterval(interval);
+                } else {
+                    setWordSelTimer(30);
+                }
+            }, [room?.status, room?.wordSelEndTime]);
 
             // --- Actions ---
 
@@ -562,7 +641,8 @@
                     players: [{ uid: user.uid, name: nickname, status: 'active' }],
                     scenario: null, spyId: null, 
                     currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0,
-                    messages: [], votes: {}, usedLocations: []
+                    messages: [], votes: {}, usedLocations: [], 
+                    wordVotes: {}, chosenWord: null, wordSelEndTime: null
                 });
                 setRoomId(id);
                 setLoading(false);
@@ -597,14 +677,62 @@
                 if (activePlayers.length < 3) { alert("Need at least 3 players!"); return; }
 
                 const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)];
-                const firstPlayer = activePlayers[0];
+                
+                // Pick first player (Must NOT be Spy)
+                let potentialStarters = activePlayers.filter(p => p.uid !== spy.uid);
+                if (potentialStarters.length === 0) potentialStarters = activePlayers; // Fallback if everyone is spy (impossible but safe)
+                const firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)];
 
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                    status: 'discussing', scenario, spyId: spy.uid,
-                    currentTurnUID: firstPlayer.uid, turnEndTime: Date.now() + 30000,
-                    currentRound: 1, players: room.players.map(p => ({ ...p, vote: null })),
+                    status: 'word_selection', // New Phase
+                    scenario, spyId: spy.uid,
+                    currentTurnUID: firstPlayer.uid, 
+                    turnEndTime: null, 
+                    currentRound: 1, 
+                    players: room.players.map(p => ({ ...p, vote: null })),
                     usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en),
-                    messages: [], votes: {}
+                    messages: [], votes: {},
+                    wordVotes: {}, chosenWord: null, 
+                    wordSelEndTime: Date.now() + 30000 // 30s for word selection
+                });
+            };
+
+            const submitWordVote = async (word) => {
+                if (!user || !room || room.status !== 'word_selection') return;
+                if (soundEnabled) playSound('click');
+                
+                // Logic: Vote for a word
+                const voteUpdate = {};
+                voteUpdate[`wordVotes.${user.uid}`] = word;
+                
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update(voteUpdate);
+            };
+
+            const finishWordSelection = async (forced = false) => {
+                if (!room || room.status !== 'word_selection') return;
+
+                const freshSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).get();
+                const freshData = freshSnap.data();
+
+                // Calculate majority word
+                const counts = {};
+                Object.values(freshData.wordVotes || {}).forEach(v => counts[v] = (counts[v] || 0) + 1);
+                let maxCount = 0;
+                let chosenWord = (lang === 'ar' ? freshData.scenario.words_ar[0] : freshData.scenario.words_en[0]);
+                
+                for (const w in counts) {
+                    if (counts[w] > maxCount) {
+                        maxCount = counts[w];
+                        chosenWord = w;
+                    }
+                }
+
+                // Transition to discussing
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                    status: 'discussing',
+                    turnEndTime: Date.now() + 30000,
+                    chosenWord: chosenWord,
+                    wordSelEndTime: null
                 });
             };
 
@@ -622,6 +750,7 @@
                 const nextIndex = (currentIndex + 1) % activePlayers.length;
 
                 if (nextIndex === 0) {
+                    // Full circle, go to voting
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                         status: 'voting', currentTurnUID: null, turnEndTime: null,
                         votingEndTime: Date.now() + 30000 
@@ -674,12 +803,25 @@
                 const majorityNeeded = Math.floor(activePlayers.length / 2) + 1;
                 
                 if (isTie || maxVotes < majorityNeeded) {
-                    const firstPlayer = activePlayers[0];
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                        status: 'discussing', votes: {}, currentTurnUID: firstPlayer.uid,
-                        turnEndTime: Date.now() + 30000, votingEndTime: null,
-                        currentRound: firebase.firestore.FieldValue.increment(1)
-                    });
+                    // Continue to next round logic
+                    const nextRound = (freshData.currentRound || 1) + 1;
+                    if (nextRound > MAX_ROUNDS) {
+                        // Spy Wins if time runs out or no ejection after max rounds
+                        await endGame(false); 
+                    } else {
+                        // Next Round
+                        const firstPlayer = activePlayers.find(p => p.uid !== freshData.spyId) || activePlayers[0];
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                            status: 'word_selection', 
+                            votes: {}, 
+                            currentRound: nextRound,
+                            currentTurnUID: firstPlayer.uid, 
+                            turnEndTime: null, 
+                            votingEndTime: null,
+                            wordVotes: {}, chosenWord: null, 
+                            wordSelEndTime: Date.now() + 30000
+                        });
+                    }
                 } else {
                     const newPlayers = freshData.players.map(p => {
                         if (p.uid === ejectedUID) return { ...p, status: 'spectator' };
@@ -688,19 +830,40 @@
 
                     const isSpy = ejectedUID === freshData.spyId;
                     const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.uid !== freshData.spyId);
-                    let newStatus = freshData.status;
 
-                    if (isSpy) { newStatus = 'finished_spy_caught'; if(soundEnabled) playSound('success'); } 
-                    else if (remainingAgents.length <= 1) { newStatus = 'finished_spy_wins'; if(soundEnabled) playSound('fail'); } 
-                    else { newStatus = 'discussing'; }
-
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                        players: newPlayers, status: newStatus, votes: {},
-                        currentTurnUID: isSpy ? null : newPlayers.find(p => p.status === 'active')?.uid,
-                        turnEndTime: isSpy ? null : (Date.now() + 30000), votingEndTime: null,
-                        currentRound: firebase.firestore.FieldValue.increment(1)
-                    });
+                    if (isSpy) { 
+                        await endGame(true); // Agents Win
+                    } else if (remainingAgents.length <= 1) { 
+                        await endGame(false); // Spy Wins
+                    } else {
+                        // Continue with ejected spectator
+                        const nextRound = (freshData.currentRound || 1) + 1;
+                        if (nextRound > MAX_ROUNDS) {
+                            await endGame(false);
+                        } else {
+                            const firstPlayer = newPlayers.filter(p => p.status === 'active').find(p => p.uid !== freshData.spyId) || newPlayers.filter(p => p.status === 'active')[0];
+                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                                players: newPlayers, 
+                                status: 'word_selection', 
+                                votes: {},
+                                currentTurnUID: firstPlayer.uid,
+                                turnEndTime: null, 
+                                votingEndTime: null,
+                                currentRound: nextRound,
+                                wordVotes: {}, chosenWord: null, 
+                                wordSelEndTime: Date.now() + 30000
+                            });
+                        }
+                    }
                 }
+            };
+
+            const endGame = async (agentsWin) => {
+                if (soundEnabled) playSound(agentsWin ? 'success' : 'fail');
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                    status: agentsWin ? 'finished_spy_caught' : 'finished_spy_wins',
+                    turnEndTime: null, votingEndTime: null
+                });
             };
 
             const resetGame = async () => {
@@ -708,7 +871,8 @@
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                     status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0,
                     votes: {}, messages: [], votingEndTime: null, turnEndTime: null,
-                    players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active' }))
+                    players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active' })),
+                    wordVotes: {}, chosenWord: null, wordSelEndTime: null
                 });
             };
 
@@ -735,6 +899,7 @@
             const me = room?.players?.find(p => p.uid === user.uid);
             const isSpectator = me?.status === 'spectator';
             const hasVoted = room?.votes?.[user.uid];
+            const hasVotedWord = room?.wordVotes?.[user.uid];
 
             const timerProgress = (turnTimer / 30) * 100;
             const circumference = 2 * Math.PI * 18;
@@ -773,46 +938,48 @@
 
                     <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
                         
-                        {/* Left Column: Players List */}
-                        <div className="glass-panel rounded-2xl p-4 space-y-2 animate-fade-in delay-1">
-                            <h3 className="text-xs font-bold text-gray-400 mb-2 border-b border-gray-800 pb-2 uppercase tracking-wider">{t.players}</h3>
-                            <div className="space-y-2">
-                                {room?.players.map((p, i) => (
-                                    <div key={i} 
-                                        className={`player-card relative p-2 rounded-lg flex items-center justify-between 
-                                        ${p.uid === room.currentTurnUID ? 'active' : 'border border-transparent'}
-                                        ${p.status === 'spectator' ? 'eliminated' : ''}`}
-                                    >
-                                        {p.uid === room.currentTurnUID && room.status === 'discussing' && (
-                                            <>
-                                                <svg className="player-timer-svg" viewBox="0 0 24 24">
-                                                    <circle className="player-timer-bg" cx="12" cy="12" r="10"/>
-                                                    <circle className="player-timer-progress" cx="12" cy="12" r="10"
-                                                        strokeDasharray={smallCircumference} strokeDashoffset={smallStrokeDashoffset}
-                                                    />
-                                                </svg>
-                                                <div className="player-timer-text">{turnTimer}</div>
-                                            </>
-                                        )}
-                                        <div className="flex items-center gap-2 pl-5">
-                                            <div className={`w-2 h-2 rounded-full ${p.status === 'spectator' ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                                            <span className="font-bold text-sm truncate">{p.name}</span>
-                                            {p.uid === user.uid && <span className="text-[9px] bg-blue-500 px-1 rounded">{t.you}</span>}
+                        {/* Left Column: Players List - ONLY IF ROOM */}
+                        {room && (
+                            <div className="glass-panel rounded-2xl p-4 space-y-2 animate-fade-in delay-1">
+                                <h3 className="text-xs font-bold text-gray-400 mb-2 border-b border-gray-800 pb-2 uppercase tracking-wider">{t.players}</h3>
+                                <div className="space-y-2">
+                                    {room.players.map((p, i) => (
+                                        <div key={i} 
+                                            className={`player-card relative p-2 rounded-lg flex items-center justify-between 
+                                            ${p.uid === room.currentTurnUID && room.status === 'discussing' ? 'active' : 'border border-transparent'}
+                                            ${p.status === 'spectator' ? 'eliminated' : ''}`}
+                                        >
+                                            {p.uid === room.currentTurnUID && room.status === 'discussing' && (
+                                                <>
+                                                    <svg className="player-timer-svg" viewBox="0 0 24 24">
+                                                        <circle className="player-timer-bg" cx="12" cy="12" r="10"/>
+                                                        <circle className="player-timer-progress" cx="12" cy="12" r="10"
+                                                            strokeDasharray={smallCircumference} strokeDashoffset={smallStrokeDashoffset}
+                                                        />
+                                                    </svg>
+                                                    <div className="player-timer-text">{turnTimer}</div>
+                                                </>
+                                            )}
+                                            <div className="flex items-center gap-2 pl-5">
+                                                <div className={`w-2 h-2 rounded-full ${p.status === 'spectator' ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                                                <span className="font-bold text-sm truncate">{p.name}</span>
+                                                {p.uid === user.uid && <span className="text-[9px] bg-blue-500 px-1 rounded">{t.you}</span>}
+                                            </div>
+                                            <div>
+                                                {p.status === 'spectator' && <span className="text-[9px] text-red-400">{t.spectator}</span>}
+                                            </div>
                                         </div>
-                                        <div>
-                                            {p.status === 'spectator' && <span className="text-[9px] text-red-400">{t.spectator}</span>}
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Middle Column: Main Game Area */}
-                        <div className="md:col-span-2 space-y-4">
+                        <div className={`${room ? 'md:col-span-2' : 'md:col-span-3'} space-y-4`}>
                             
                             {/* Waiting / Setup Screen */}
                             {!room && (
-                                <div className="glass-panel rounded-2xl p-8 text-center space-y-6 animate-fade-in">
+                                <div className="glass-panel rounded-2xl p-8 text-center space-y-6 animate-fade-in mx-auto max-w-md w-full">
                                     <div className="space-y-2">
                                         <label className="text-xs text-gray-400 uppercase">{t.nickname}</label>
                                         <input className="input-dark w-full p-3 rounded-lg text-center font-bold" value={nickname} 
@@ -839,7 +1006,12 @@
                                             <span className="font-mono font-bold text-lg tracking-widest text-cyan-400">{room.id}</span>
                                             <button onClick={() => navigator.clipboard.writeText(room.id)} className="text-[10px] bg-white/10 px-2 py-1 rounded">Copy</button>
                                         </div>
-                                        <span className="text-xs text-gray-400">{t.round}: {room.currentRound || 0}</span>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs text-gray-400">{t.round}: {room.currentRound || 1}/{MAX_ROUNDS}</span>
+                                            <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded text-cyan-400">
+                                                {room.status === 'word_selection' ? 'KEYWORD' : room.status === 'discussing' ? 'DISCUSSION' : room.status.toUpperCase()}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     {/* Waiting for players */}
@@ -871,10 +1043,99 @@
                                         </div>
                                     )}
 
+                                    {/* Word Selection Phase */}
+                                    {room.status === 'word_selection' && (
+                                        <div className="space-y-4 animate-fade-in">
+                                            <div className="glass-panel rounded-2xl p-6 text-center relative overflow-hidden border border-cyan-500/30">
+                                                {/* Timer */}
+                                                <div className="absolute top-4 right-4 w-12 h-12">
+                                                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                                        <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle>
+                                                        <circle 
+                                                            cx="18" cy="18" r="16" 
+                                                            fill="none" 
+                                                            stroke="#00f2ff" 
+                                                            strokeWidth="3"
+                                                            strokeDasharray={`${(wordSelTimer/30)*100} ${100-((wordSelTimer/30)*100)}`}
+                                                            strokeLinecap="round"
+                                                        ></circle>
+                                                    </svg>
+                                                    <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-cyan-400">
+                                                        {wordSelTimer}
+                                                    </div>
+                                                </div>
+
+                                                <h3 className="text-xl font-black mb-2 uppercase text-cyan-400">{t.wordSelectionTitle}</h3>
+                                                <p className="text-xs text-gray-500 mb-6">{t.wordSelectionDesc}</p>
+
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    {(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => {
+                                                        // Find who voted for this word
+                                                        const voters = Object.entries(room.wordVotes || {})
+                                                            .filter(([uid, w]) => w === word)
+                                                            .map(([uid]) => room.players.find(p => p.uid === uid)?.name);
+                                                        
+                                                        return (
+                                                            <button 
+                                                                key={i} 
+                                                                onClick={() => submitWordVote(word)}
+                                                                className={`word-vote-card p-6 rounded-xl font-bold text-lg transition-all
+                                                                    ${hasVotedWord === word ? 'selected' : 'bg-white/5 border border-white/10'}
+                                                                `}
+                                                            >
+                                                                {word}
+                                                                {voters.length > 0 && (
+                                                                    <div className="flex justify-center gap-1 mt-2 flex-wrap">
+                                                                        {voters.map(v => <span key={v} className="voter-name relative">{v}</span>)}
+                                                                    </div>
+                                                                )}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                {room.admin === user.uid && (
+                                                    <button onClick={() => finishWordSelection(false)} className="btn-neon w-full py-3 rounded-lg font-bold mt-6">
+                                                        {t.finishSelection}
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Identity Card (Show during selection too) */}
+                                            <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
+                                                <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
+                                                    <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
+                                                        {isSpy ? t.statusSpy : t.statusAgent}
+                                                    </span>
+                                                    {isSpy ? (
+                                                        <>
+                                                            <div className="text-5xl mb-2">🕵️</div>
+                                                            <h3 className="text-3xl font-black tracking-wider text-red-500">???</h3>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="text-3xl font-black mt-2 text-center px-2">
+                                                                {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}
+                                                            </div>
+                                                            <p className="text-xs text-gray-400 mt-2">{t.location}</p>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Discussion Phase */}
                                     {room.status === 'discussing' && (
                                         <div className="space-y-4 animate-fade-in">
-                                            
+                                            {/* Chosen Word Display */}
+                                            {room.chosenWord && (
+                                                <div className="glass-panel rounded-xl p-3 text-center border border-cyan-500/50">
+                                                    <span className="text-[10px] text-cyan-400 font-bold uppercase">{t.selectedWord}:</span>
+                                                    <span className="ml-2 text-lg font-bold text-white">{room.chosenWord}</span>
+                                                </div>
+                                            )}
+
                                             {/* Identity Card */}
                                             <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
                                                 <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
@@ -901,7 +1162,12 @@
 
                                             {/* Chat Area */}
                                             <div className="glass-panel rounded-2xl p-4 flex flex-col overflow-hidden relative">
-                                                <div className="chat-container space-y-2 mb-3 px-2 h-48 overflow-y-auto">
+                                                {/* Big Timer */}
+                                                <div className="absolute top-2 left-1/2 transform -translate-x-1/2 text-4xl font-mono font-bold text-cyan-400 opacity-30 pointer-events-none z-0">
+                                                    {turnTimer}
+                                                </div>
+
+                                                <div className="chat-container space-y-2 mb-3 px-2 h-40 overflow-y-auto relative z-10 mt-8">
                                                     {room.messages?.slice(-20).map((m, i) => (
                                                         <div key={i} className={`flex w-full ${m.sender === user.uid ? 'justify-end' : 'justify-start'}`}>
                                                             <div className={m.sender === user.uid ? 'chat-bubble-me' : 'chat-bubble-other'}>
@@ -944,7 +1210,6 @@
                                         <div className="glass-panel rounded-2xl p-6 animate-fade-in space-y-4">
                                             <div className="flex justify-between items-center">
                                                 <h3 className="text-lg font-bold text-yellow-400">{t.vote}</h3>
-                                                {/* Voting Timer Circle */}
                                                 <div className="relative w-10 h-10">
                                                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                                                         <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle>
@@ -954,7 +1219,6 @@
                                                             stroke="#ff0055" 
                                                             strokeWidth="3"
                                                             strokeDasharray={`${(votingTimer/30)*100} ${100-((votingTimer/30)*100)}`}
-                                                            strokeDashoffset="0"
                                                             strokeLinecap="round"
                                                         ></circle>
                                                     </svg>
@@ -997,5 +1261,3 @@
     </script>
 </body>
 </html>
-
-
