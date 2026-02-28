@@ -64,6 +64,8 @@
         .identity-square { width: 100%; max-width: 280px; aspect-ratio: 1 / 1; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 20px; position: relative; overflow: hidden; transition: all 0.5s ease; }
         .identity-spy { border: 2px solid var(--accent); background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); }
         .identity-agent { border: 2px solid #10b981; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%); box-shadow: 0 0 40px rgba(16, 185, 129, 0.2); }
+        .emoji-btn { font-size: 20px; cursor: pointer; transition: transform 0.2s; }
+        .emoji-btn:hover { transform: scale(1.2); }
         .word-vote-card { background: rgba(255, 255, 255, 0.05); border: 2px solid transparent; transition: all 0.3s; position: relative; }
         .word-vote-card.selected { border-color: var(--primary); background: rgba(0, 242, 255, 0.1); transform: scale(1.02); }
         .voter-name { position: absolute; bottom: -8px; right: 10px; font-size: 10px; background: var(--secondary); padding: 2px 6px; border-radius: 8px; color: white; }
@@ -89,10 +91,11 @@
         .achievement-card:hover .ach-tooltip, .achievement-card:active .ach-tooltip { opacity: 1; }
         .notification-badge { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 2px solid var(--bg-dark); }
         
-        /* Chat Styles Revamp */
+        /* Chat Styles Revamp - Works for both Private & In-Game */
         .chat-msg-row { display: flex; gap: 10px; margin-bottom: 16px; }
-        .chat-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; }
-        .chat-content { flex: 1; display: flex; flex-direction: column; }
+        .chat-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; cursor: pointer; transition: 0.2s; }
+        .chat-avatar:hover { border-color: var(--primary); transform: scale(1.1); }
+        .chat-content { flex: 1; display: flex; flex-direction: column; max-width: 80%; }
         .chat-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
         .chat-username { font-size: 13px; font-weight: 700; color: var(--primary); }
         .chat-timestamp { font-size: 10px; color: var(--text-muted); }
@@ -145,7 +148,7 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v19_ux_update';
+        const appId = 'pro_spy_v20_final_fix';
         const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
         const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
         const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
@@ -647,6 +650,34 @@
                 </div>
             );
         };
+        
+        // In-Game Chat Message Component
+        const GameChatMessage = ({ msg, currentUser, players, onAvatarClick }) => {
+            const sender = players.find(p => p.uid === msg.sender);
+            const isMe = msg.sender === currentUser.uid;
+            
+            if(msg.sender === 'system') return <div className="text-center text-[10px] text-gray-500 my-2">{msg.text}</div>;
+            
+            return (
+                <div className={`chat-msg-row ${isMe ? 'flex-row-reverse' : ''}`}>
+                    <img 
+                        src={sender?.photo || `https://ui-avatars.com/api/?name=${sender?.name}`} 
+                        className="chat-avatar" 
+                        alt=""
+                        onClick={() => onAvatarClick(msg.sender)}
+                    />
+                    <div className="chat-content">
+                        <div className={`chat-header ${isMe ? 'justify-end' : ''}`}>
+                            <span className="chat-username">{msg.name}</span>
+                            <span className="chat-timestamp">{formatTime(msg.time)}</span>
+                        </div>
+                        <div className={`chat-bubble ${isMe ? 'chat-bubble-me' : 'chat-bubble-other'}`}>
+                            <p>{msg.text}</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
         function App() {
             const [lang, setLang] = useState('en');
@@ -1105,9 +1136,11 @@
                 const spyWin = room.status === 'finished_spy_wins';
                 
                 players.forEach(p => {
+                    if(!p.uid) return;
                     const userRef = usersCollection.doc(p.uid);
                     const isWinner = (p.uid === spyId && spyWin) || (p.uid !== spyId && !spyWin);
                     
+                    // Batch update for ALL users (Guests included, but rules allow stats update now)
                     batch.update(userRef, {
                         "stats.wins": firebase.firestore.FieldValue.increment(isWinner ? 1 : 0),
                         "stats.losses": firebase.firestore.FieldValue.increment(!isWinner ? 1 : 0),
@@ -1122,7 +1155,7 @@
             const checkAchievements = async (players, spyId) => {
                 const spyWin = room.status === 'finished_spy_wins';
                 players.forEach(async (p) => {
-                    if(!p || p.uid || p.isAnonymous) return; // Skip guests
+                    if(!p || !p.uid || p.isAnonymous) return; // Skip guests for achievements
                     const userRef = usersCollection.doc(p.uid);
                     const doc = await userRef.get();
                     if(!doc.exists) return;
@@ -1589,14 +1622,10 @@
                                                         </div>
                                                     </div>
                                                     <div className="glass-panel rounded-2xl p-4 flex flex-col overflow-hidden relative">
-                                                        <div className="chat-container space-y-2 mb-3 px-2 h-40 overflow-y-auto relative z-10 mt-4">
+                                                        {/* In-Game Chat Revamp */}
+                                                        <div className="flex-1 overflow-y-auto p-2 space-y-2 h-48 relative z-10">
                                                             {room.messages?.slice(-20).map((m, i) => (
-                                                                <div key={i} className={`flex w-full ${m.sender === user?.uid ? 'justify-end' : 'justify-start'}`}>
-                                                                    <div className={m.sender === user?.uid ? 'chat-bubble-me' : 'chat-bubble-other'}>
-                                                                        {m.sender !== 'system' && <div className="text-[10px] opacity-70 mb-1 font-bold">{m.name}</div>}
-                                                                        <div className="text-sm leading-tight">{m.text}</div>
-                                                                    </div>
-                                                                </div>
+                                                                <GameChatMessage key={i} msg={m} currentUser={user} players={room.players} onAvatarClick={openProfile} />
                                                             ))}
                                                         </div>
                                                         {!isSpectator && isMyTurn ? (
@@ -1632,7 +1661,7 @@
                                                                 const voter = room.players.find(p => p.uid === uid);
                                                                 const targetName = room.players.find(p => p.uid === target)?.name;
                                                                 return (<span key={uid} className="bg-white/5 px-2 py-1 rounded">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>);
-                                                            })}
+                                            })}
                                                         </div>
                                                     </div>
                                                     {!hasVoted ? (
