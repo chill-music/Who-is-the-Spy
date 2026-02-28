@@ -148,7 +148,7 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v21_ach_fix';
+        const appId = 'pro_spy_v21_final_fix';
         const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
         const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
         const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
@@ -1140,7 +1140,6 @@
                     const userRef = usersCollection.doc(p.uid);
                     const isWinner = (p.uid === spyId && spyWin) || (p.uid !== spyId && !spyWin);
                     
-                    // Batch update for ALL users (Guests included, rules allow stats update now)
                     batch.update(userRef, {
                         "stats.wins": firebase.firestore.FieldValue.increment(isWinner ? 1 : 0),
                         "stats.losses": firebase.firestore.FieldValue.increment(!isWinner ? 1 : 0),
@@ -1154,11 +1153,8 @@
             
             const checkAchievements = async (players, spyId) => {
                 const spyWin = room.status === 'finished_spy_wins';
-                // Fix: Use Promise.all for parallel execution and fix logic condition
                 await Promise.all(players.map(async (p) => {
-                    // Fix logic: Check if p exists, has uid, and is NOT anonymous
                     if(!p || !p.uid || p.isAnonymous) return;
-                    
                     const userRef = usersCollection.doc(p.uid);
                     const doc = await userRef.get();
                     if(!doc.exists) return;
@@ -1176,11 +1172,7 @@
                     if(wins >= 100 && !currentAch.includes('wins_100')) newAch.push('wins_100');
 
                     if(newAch.length > currentAch.length) { 
-                        try {
-                            await userRef.update({ achievements: newAch }); 
-                        } catch(err) {
-                            console.error("Achievement update failed for", p.name, err);
-                        }
+                        try { await userRef.update({ achievements: newAch }); } catch(err) { console.error("Ach err", err); }
                     }
                 }));
             };
@@ -1615,4 +1607,95 @@
                                                     <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
                                                         <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
                                                             <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
-                                                            {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-3xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</
+                                                            {isSpy ? ( 
+                                                                <> 
+                                                                    <div className="text-5xl mb-2">🕵️</div>
+                                                                    <h3 className="text-3xl font-black tracking-wider text-red-500">???</h3>
+                                                                </> 
+                                                            ) : ( 
+                                                                <> 
+                                                                    <div className="text-3xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div>
+                                                                    <p className="text-xs text-gray-400 mt-2">{t.location}</p>
+                                                                </> 
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {room.status === 'discussing' && (
+                                                <div className="space-y-4 animate-fade-in">
+                                                    {room.chosenWord && (<div className="glass-panel rounded-xl p-3 text-center border border-cyan-500/50"><span className="text-[10px] text-cyan-400 font-bold uppercase">{t.selectedWord}:</span><span className="ml-2 text-lg font-bold text-white">{room.chosenWord}</span></div>)}
+                                                    <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
+                                                        <div className="relative z-10 p-6 flex flex-col items-center justify-content h-full">
+                                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
+                                                            {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3><p className="text-xs text-gray-500 mt-2 text-center">{lang === 'ar' ? 'اكتشف المكان دون أن تنكشف' : 'Find the location without getting caught'}</p></> ) : ( <><div className="text-4xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="glass-panel rounded-2xl p-4 flex flex-col overflow-hidden relative">
+                                                        <div className="flex-1 overflow-y-auto p-2 space-y-2 h-48 relative z-10">
+                                                            {room.messages?.slice(-20).map((m, i) => (
+                                                                <GameChatMessage key={i} msg={m} currentUser={user} players={room.players} onAvatarClick={openProfile} />
+                                                            ))}
+                                                        </div>
+                                                        {!isSpectator && isMyTurn ? (
+                                                            <div className="flex flex-col gap-2 mt-auto border-t border-white/10 pt-3 relative z-10">
+                                                                <div className="flex gap-1 mb-1">{EMOJI_LIST.slice(0, 10).map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>))}</div>
+                                                                <form onSubmit={(e) => { e.preventDefault(); sendMessage(chatMsg); }} className="flex gap-2">
+                                                                    <input className="input-dark flex-1 p-3 rounded-xl text-sm" placeholder={t.chatPlaceholder} value={chatMsg} onChange={e => setChatMsg(e.target.value)} />
+                                                                    <button type="submit" className="btn-neon px-5 rounded-xl text-xs">{t.send}</button>
+                                                                    <button type="button" onClick={() => handleSkipTurn(false)} className="btn-ghost px-4 rounded-xl text-xs border-orange-500 text-orange-400">{t.skip}</button>
+                                                                </form>
+                                                            </div>
+                                                        ) : (<div className="text-center text-xs text-gray-600 py-3 border-t border-white/10 mt-2">{isSpectator ? t.spectator : "Waiting for turn..."}</div>)}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {room.status === 'voting' && (
+                                                <div className="glass-panel rounded-2xl p-6 animate-fade-in space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <h3 className="text-lg font-bold text-yellow-400">{t.vote}</h3>
+                                                        <div className="relative w-10 h-10">
+                                                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                                                <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle>
+                                                                <circle cx="18" cy="18" r="16" fill="none" stroke="#ff0055" strokeWidth="3" strokeDasharray={`${(votingTimer/30)*100} ${100-((votingTimer/30)*100)}`} strokeLinecap="round"></circle>
+                                                            </svg>
+                                                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-yellow-400">{votingTimer}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="bg-black/20 p-3 rounded-lg text-xs space-y-1 mb-2 border border-white/5">
+                                                        <span className="text-gray-500 font-bold">{t.votesTitle}</span>
+                                                        <div className="flex flex-wrap gap-2 mt-1">
+                                                            {Object.entries(room.votes || {}).map(([uid, target]) => {
+                                                                const voter = room.players.find(p => p.uid === uid);
+                                                                const targetName = room.players.find(p => p.uid === target)?.name;
+                                                                return (<span key={uid} className="bg-white/5 px-2 py-1 rounded">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>);
+                                            })}
+                                                        </div>
+                                                    </div>
+                                                    {!hasVoted ? (
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            {room.players.filter(p => p.status === 'active').map(p => (
+                                                                <button key={p.uid} onClick={() => submitVote(p.uid)} className="p-4 rounded-xl border text-sm font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10">{p.name}</button>
+                                                            ))}
+                                                        </div>
+                                                    ) : (<div className="text-center space-y-4 py-4"><div className="text-green-400 font-bold">{t.confirm}</div></div>)}
+                                                    {room.admin === user?.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg font-bold text-xs uppercase mt-2">{t.endVoting}</button>)}
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
