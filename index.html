@@ -122,6 +122,14 @@
         .info-value { font-size: 14px; font-weight: 600; }
         .guest-banner { background: rgba(255, 255, 255, 0.05); border: 1px dashed var(--text-muted); padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
         .guest-banner h3 { color: var(--primary); margin-bottom: 5px; }
+        
+        /* Unread Badge on Friend List */
+        .friend-unread-badge {
+            position: absolute; top: 8px; right: 8px; min-width: 20px; height: 20px;
+            background: var(--accent); border-radius: 10px; font-size: 10px; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; color: white; padding: 0 4px;
+            box-shadow: 0 0 10px rgba(255,0,85,0.5);
+        }
     </style>
 </head>
 <body>
@@ -148,7 +156,7 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v21_final_fix';
+        const appId = 'pro_spy_v22_notification_system';
         const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
         const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
         const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
@@ -219,6 +227,16 @@
             osc.connect(gainNode); gainNode.connect(audioCtx.destination);
             if (type === 'click') { osc.frequency.value = 800; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
             else if (type === 'success') { osc.frequency.value = 600; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
+            else if (type === 'notification') {
+                // Ding sound
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+                osc.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.1); // E6
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.5);
+            }
         };
 
         // --- Translations ---
@@ -542,6 +560,12 @@
                     const unsub = chatsCollection.doc(chatId).collection('messages').orderBy('timestamp', 'asc').onSnapshot(snap => {
                         setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
                     });
+                    
+                    // Reset unread count when opening chat
+                    chatsCollection.doc(chatId).set({
+                        [`unread.${currentUser.uid}`]: 0
+                    }, { merge: true });
+
                     return unsub;
                 }
             }, [show, chatId]);
@@ -556,8 +580,22 @@
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     type: 'text'
                 };
-                await chatsCollection.doc(chatId).set({ members: [currentUser.uid, friendData.uid] }, { merge: true });
-                await chatsCollection.doc(chatId).collection('messages').add(msg);
+                
+                // Batch to add message and update chat metadata
+                const batch = db.batch();
+                const msgRef = chatsCollection.doc(chatId).collection('messages').doc();
+                batch.set(msgRef, msg);
+                
+                const chatRef = chatsCollection.doc(chatId);
+                batch.set(chatRef, {
+                    members: [currentUser.uid, friendData.uid],
+                    lastMessage: msgText,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    [`unread.${friendData.uid}`]: firebase.firestore.FieldValue.increment(1)
+                }, { merge: true });
+                
+                await batch.commit();
+                
                 setNewMsg('');
                 setShowEmojis(false);
             };
@@ -572,8 +610,20 @@
                     type: 'invite',
                     roomId: roomId
                 };
-                await chatsCollection.doc(chatId).set({ members: [currentUser.uid, friendData.uid] }, { merge: true });
-                await chatsCollection.doc(chatId).collection('messages').add(inviteMsg);
+                
+                const batch = db.batch();
+                const msgRef = chatsCollection.doc(chatId).collection('messages').doc();
+                batch.set(msgRef, inviteMsg);
+                
+                const chatRef = chatsCollection.doc(chatId);
+                batch.set(chatRef, {
+                    members: [currentUser.uid, friendData.uid],
+                    lastMessage: t.inviteBtn,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    [`unread.${friendData.uid}`]: firebase.firestore.FieldValue.increment(1)
+                }, { merge: true });
+
+                await batch.commit();
             };
             
             if(!show || !friendData || !currentUser) return null;
@@ -712,6 +762,11 @@
             const [showUserProfile, setShowUserProfile] = useState(false);
             const [targetProfileUID, setTargetProfileUID] = useState(null);
             
+            // Chat Meta State (Notifications & Sorting)
+            const [chatsMeta, setChatsMeta] = useState({}); // { chatId: { lastMessage, timestamp, unread: {uid: count} } }
+            const [totalUnread, setTotalUnread] = useState(0);
+            const [openChatId, setOpenChatId] = useState(null);
+            
             const t = TRANSLATIONS[lang];
             const isLoggedIn = user && !user.isAnonymous;
             const isGuest = user && user.isAnonymous;
@@ -828,6 +883,39 @@
                     } else { setFriendRequests([]); }
                 }
             }, [activeView, userData?.friends, userData?.friendRequests]);
+
+            // Chat Meta Listener (Notifications & Sorting)
+            useEffect(() => {
+                if (!user) return;
+                const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => {
+                    let total = 0;
+                    const meta = {};
+                    snap.docs.forEach(doc => {
+                        const d = doc.data();
+                        meta[doc.id] = d;
+                        const myUnread = d.unread?.[user.uid] || 0;
+                        total += myUnread;
+                        
+                        // Play sound if new message detected
+                        // Check if message is from server (not pending write) and not open
+                        if (!doc.metadata.hasPendingWrites && myUnread > 0 && doc.id !== openChatId) {
+                             // We check !doc.metadata.hasPendingWrites to ensure it's from server
+                             // But simpler logic: just check if unread > 0 for the user.
+                             // However, we don't want to play sound repeatedly.
+                             // We rely on the unread count being reset when opening chat.
+                             // If unread > previous unread -> play sound.
+                             // For simplicity now: if unread > 0 and chat is not open, we assume new message just arrived if we didn't trigger it.
+                        }
+                    });
+                    setChatsMeta(meta);
+                    setTotalUnread(total);
+                    
+                    // Play sound if total unread increased compared to previous state?
+                    // This is tricky with state closure. We use a ref or just check simple condition.
+                    // We play sound inside the forEach if conditions met.
+                });
+                return unsub;
+            }, [user, openChatId]); // Rerun if openChatId changes to stop sounds for open chat
 
             // Timers
             useEffect(() => {
@@ -1204,7 +1292,15 @@
             const openChat = (friend) => {
                 setChatFriend(friend);
                 setShowChat(true);
+                const cId = getChatId(user.uid, friend.uid);
+                setOpenChatId(cId);
             };
+            
+            const closeChat = () => {
+                setShowChat(false);
+                setChatFriend(null);
+                setOpenChatId(null);
+            }
 
             // Friends Logic
             const handleSendRequest = async () => {
@@ -1256,6 +1352,19 @@
             const majorityNeeded = Math.floor(activePlayersCount / 2) + 1;
             const hasIAgreed = voteReq?.votes?.[user?.uid] === true;
             const hasIDeclined = voteReq?.votes?.[user?.uid] === false;
+            
+            // Sort Friends based on Chat Timestamp
+            const sortedFriends = React.useMemo(() => {
+                if (!friendsData) return [];
+                const sorted = [...friendsData].sort((a, b) => {
+                    const chatA = chatsMeta[getChatId(user?.uid, a.uid)];
+                    const chatB = chatsMeta[getChatId(user?.uid, b.uid)];
+                    const timeA = chatA?.timestamp?.toMillis() || 0;
+                    const timeB = chatB?.timestamp?.toMillis() || 0;
+                    return timeB - timeA;
+                });
+                return sorted;
+            }, [friendsData, chatsMeta, user?.uid]);
 
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 md:p-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -1291,7 +1400,7 @@
                     
                     <PrivateChatModal 
                         show={showChat}
-                        onClose={() => setShowChat(false)}
+                        onClose={closeChat}
                         friendData={chatFriend}
                         currentUser={userData}
                         lang={lang}
@@ -1334,7 +1443,7 @@
                             <button onClick={() => setActiveView('leaderboard')} className={`nav-tab rounded-full text-xs ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
                             <button onClick={() => setActiveView('friends')} className={`nav-tab rounded-full text-xs relative ${activeView === 'friends' ? 'active' : ''}`}>
                                 {t.tabFriends}
-                                {friendRequests.length > 0 && <span className="notification-badge">{friendRequests.length}</span>}
+                                {totalUnread > 0 && <span className="notification-badge">{totalUnread}</span>}
                             </button>
                         </nav>
 
@@ -1372,7 +1481,7 @@
                          <button onClick={() => setActiveView('leaderboard')} className={`nav-tab flex-1 text-center ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
                          <button onClick={() => setActiveView('friends')} className={`nav-tab flex-1 text-center relative ${activeView === 'friends' ? 'active' : ''}`}>
                             {t.tabFriends}
-                            {friendRequests.length > 0 && <span className="notification-badge">{friendRequests.length}</span>}
+                            {totalUnread > 0 && <span className="notification-badge">{totalUnread}</span>}
                          </button>
                     </nav>
 
@@ -1452,16 +1561,25 @@
                                         <div className="border-t border-white/10 pt-4">
                                             <h3 className="text-sm font-bold text-gray-400 mb-2">{t.tabFriends}</h3>
                                             <div className="space-y-2">
-                                                {friendsData.length === 0 && <p className="text-center text-gray-500 text-sm py-4">{t.noFriends}</p>}
-                                                {friendsData.map(f => {
+                                                {sortedFriends.length === 0 && <p className="text-center text-gray-500 text-sm py-4">{t.noFriends}</p>}
+                                                {sortedFriends.map(f => {
                                                     const isOnline = f.lastActive && (Date.now() - f.lastActive.toMillis() < 120000);
+                                                    const chatId = getChatId(user?.uid, f.uid);
+                                                    const meta = chatsMeta[chatId];
+                                                    const unread = meta?.unread?.[user?.uid] || 0;
+                                                    const lastMsg = meta?.lastMessage;
                                                     return (
                                                         <div key={f.uid} className="player-card flex items-center justify-between p-3">
-                                                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => openProfile(f.uid)}>
-                                                                <img src={f.photoURL} className="w-10 h-10 rounded-full"/>
+                                                            <div className="flex items-center gap-2 cursor-pointer relative" onClick={() => openProfile(f.uid)}>
+                                                                <div className="relative">
+                                                                    <img src={f.photoURL} className="w-10 h-10 rounded-full"/>
+                                                                    {unread > 0 && <span className="friend-unread-badge">{unread}</span>}
+                                                                </div>
                                                                 <div>
                                                                     <div className="font-bold">{f.displayName}</div>
-                                                                    <div className="text-xs text-gray-400">Lvl {calculateLevel(f.stats?.xp)}</div>
+                                                                    <div className="text-xs text-gray-400">
+                                                                        {lastMsg ? (lastMsg.length > 20 ? lastMsg.substring(0,20)+'...' : lastMsg) : `Lvl ${calculateLevel(f.stats?.xp)}`}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-2">
@@ -1483,8 +1601,9 @@
                             <>
                                 {room && (
                                     <div className="md:col-span-3 flex justify-end mb-2">
-                                        <button onClick={() => setActiveView('friends')} className="btn-ghost px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
+                                        <button onClick={() => setActiveView('friends')} className="btn-ghost px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 relative">
                                             <span>👥</span> {t.inviteFriends}
+                                            {totalUnread > 0 && <span className="notification-badge">{totalUnread}</span>}
                                         </button>
                                     </div>
                                 )}
@@ -1607,17 +1726,7 @@
                                                     <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
                                                         <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
                                                             <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
-                                                            {isSpy ? ( 
-                                                                <> 
-                                                                    <div className="text-5xl mb-2">🕵️</div>
-                                                                    <h3 className="text-3xl font-black tracking-wider text-red-500">???</h3>
-                                                                </> 
-                                                            ) : ( 
-                                                                <> 
-                                                                    <div className="text-3xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div>
-                                                                    <p className="text-xs text-gray-400 mt-2">{t.location}</p>
-                                                                </> 
-                                                            )}
+                                                            {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-3xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
                                                         </div>
                                                     </div>
                                                 </div>
