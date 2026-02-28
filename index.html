@@ -72,27 +72,14 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
         
         @keyframes pop-in {
             0% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.1); }
+            70% { transform: scale(1.05); }
             100% { transform: scale(1); opacity: 1; }
         }
 
         .animate-fade-in { animation: fade-in-up 0.6s ease-out forwards; }
-        .animate-float { animation: float 3s ease-in-out infinite; }
-        .animate-shake { animation: shake 0.5s ease-in-out; }
         .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         
         .logo-container {
@@ -151,19 +138,9 @@
             background: linear-gradient(90deg, #ff0055, #ff3366);
             color: white;
         }
-        .btn-vote:hover:not(:disabled) {
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.5);
-        }
         
-        .btn-success {
-             background: linear-gradient(90deg, #10b981, #22c55e);
-             color: white;
-        }
-        
-        .btn-danger {
-             background: linear-gradient(90deg, #ef4444, #dc2626);
-             color: white;
-        }
+        .btn-success { background: linear-gradient(90deg, #10b981, #22c55e); color: white; }
+        .btn-danger { background: linear-gradient(90deg, #ef4444, #dc2626); color: white; }
         
         .btn-google {
             background: white;
@@ -189,28 +166,11 @@
         ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
 
         .player-card { transition: all 0.3s; position: relative; border: 1px solid transparent; }
-        .player-card.active {
-            background: rgba(0, 242, 255, 0.1);
-            border-color: var(--primary);
-        }
-        .player-card.eliminated {
-            opacity: 0.4;
-            border-color: var(--accent);
-            filter: grayscale(100%);
-        }
+        .player-card.active { background: rgba(0, 242, 255, 0.1); border-color: var(--primary); }
+        .player-card.eliminated { opacity: 0.4; border-color: var(--accent); filter: grayscale(100%); }
         
-        .timer-bar-container {
-            width: 60px;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        .timer-bar-fill {
-            height: 100%;
-            background: var(--primary);
-            transition: width 1s linear;
-        }
+        .timer-bar-container { width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .timer-bar-fill { height: 100%; background: var(--primary); transition: width 1s linear; }
 
         .chat-bubble-me {
             background: linear-gradient(135deg, var(--secondary), var(--primary));
@@ -233,106 +193,30 @@
         }
         
         .identity-square {
-            width: 100%;
-            max-width: 280px;
-            aspect-ratio: 1 / 1; 
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
+            width: 100%; max-width: 280px; aspect-ratio: 1 / 1; margin: 0 auto;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; border-radius: 20px; position: relative; overflow: hidden;
             transition: all 0.5s ease;
         }
         
-        .identity-spy {
-            border: 2px solid var(--accent);
-            background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%);
-            box-shadow: 0 0 40px rgba(255, 0, 85, 0.3);
-        }
-        
-        .identity-agent {
-            border: 2px solid #10b981;
-            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%);
-            box-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
-        }
+        .identity-spy { border: 2px solid var(--accent); background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); }
+        .identity-agent { border: 2px solid #10b981; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%); box-shadow: 0 0 40px rgba(16, 185, 129, 0.2); }
 
-        .emoji-btn {
-            font-size: 18px;
-            padding: 5px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            filter: grayscale(100%);
-            opacity: 0.7;
-        }
-        .emoji-btn:hover {
-            transform: scale(1.4);
-            filter: grayscale(0%);
-            opacity: 1;
-        }
+        .emoji-btn { font-size: 18px; padding: 5px; cursor: pointer; transition: transform 0.2s; filter: grayscale(100%); opacity: 0.7; }
+        .emoji-btn:hover { transform: scale(1.4); filter: grayscale(0%); opacity: 1; }
 
-        .word-vote-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid transparent;
-            transition: all 0.3s;
-            position: relative;
-        }
-        .word-vote-card.selected {
-            border-color: var(--primary);
-            background: rgba(0, 242, 255, 0.1);
-            transform: scale(1.02);
-        }
-        .voter-name {
-            position: absolute;
-            bottom: -8px;
-            right: 10px;
-            font-size: 10px;
-            background: var(--secondary);
-            padding: 2px 6px;
-            border-radius: 8px;
-            color: white;
-        }
+        .word-vote-card { background: rgba(255, 255, 255, 0.05); border: 2px solid transparent; transition: all 0.3s; position: relative; }
+        .word-vote-card.selected { border-color: var(--primary); background: rgba(0, 242, 255, 0.1); transform: scale(1.02); }
+        .voter-name { position: absolute; bottom: -8px; right: 10px; font-size: 10px; background: var(--secondary); padding: 2px 6px; border-radius: 8px; color: white; }
         
-        .vote-request-banner {
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 50;
-            width: 90%;
-            max-width: 500px;
-        }
-        
-        /* Profile & Level Styles */
-        .level-badge {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border: 2px solid var(--secondary);
-        }
+        .vote-request-banner { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 50; width: 90%; max-width: 500px; }
         
         .xp-bar-bg { background: rgba(255,255,255,0.1); }
         .xp-bar-fill { background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 0.5s ease; }
-        
         .kd-circle { transition: stroke-dashoffset 1s ease; }
-        
-        .achievement-card {
-            transition: all 0.3s;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
+        .achievement-card { transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); }
         .achievement-card.locked { filter: grayscale(100%); opacity: 0.4; }
         .achievement-card.unlocked { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
-        
-        /* Mini Profile */
-        .mini-profile-popup {
-            position: absolute;
-            left: 100%;
-            top: 0;
-            margin-left: 10px;
-            z-index: 100;
-            width: 250px;
-        }
         
         .dropdown-menu {
             position: absolute;
@@ -340,8 +224,10 @@
             right: 0;
             margin-top: 8px;
             min-width: 180px;
-            z-index: 50;
+            z-index: 9999; /* Updated Z-Index */
         }
+        
+        .error-msg { color: #ff4d4d; font-size: 12px; margin-top: 5px; text-align: center; }
     </style>
 </head>
 <body>
@@ -373,12 +259,12 @@
 
         // --- Achievements Definition ---
         const ACHIEVEMENTS = [
-            { id: 'first_win', name_en: "First Blood", name_ar: "أول دم", desc_en: "Win your first game", desc_ar: "اربح أول لعبة", icon: "🩸", tier: 1 },
-            { id: 'wins_5', name_en: "Rookie Spy", name_ar: "جاسوس مبتدئ", desc_en: "Win 5 games", desc_ar: "اربح 5 مباريات", icon: "🕵️", tier: 2 },
-            { id: 'wins_10', name_en: "Field Agent", name_ar: "عميل ميداني", desc_en: "Win 10 games", desc_ar: "اربح 10 مباريات", icon: "🔫", tier: 3 },
-            { id: 'wins_20', name_en: "Master of Disguise", name_ar: "سيد التنكر", desc_en: "Win 20 games", desc_ar: "اربح 20 مباراة", icon: "🎭", tier: 4 },
-            { id: 'wins_50', name_en: "Shadow Legend", name_ar: "أسطورة الظل", desc_en: "Win 50 games", desc_ar: "اربح 50 مباراة", icon: "👁️", tier: 5 },
-            { id: 'wins_100', name_en: "Immortal", name_ar: "خالد", desc_en: "Win 100 games", desc_ar: "اربح 100 مباراة", icon: "👑", tier: 6, special: true }
+            { id: 'first_win', name_en: "First Blood", name_ar: "أول دم", icon: "🩸" },
+            { id: 'wins_5', name_en: "Rookie Spy", name_ar: "جاسوس مبتدئ", icon: "🕵️" },
+            { id: 'wins_10', name_en: "Field Agent", name_ar: "عميل ميداني", icon: "🔫" },
+            { id: 'wins_20', name_en: "Master of Disguise", name_ar: "سيد التنكر", icon: "🎭" },
+            { id: 'wins_50', name_en: "Shadow Legend", name_ar: "أسطورة الظل", icon: "👁️" },
+            { id: 'wins_100', name_en: "Immortal", name_ar: "خالد", icon: "👑", special: true }
         ];
 
         // --- Sound System ---
@@ -417,8 +303,8 @@
                 round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT",
                 chatPlaceholder: "Type message...", send: "SEND",
                 waiting: "Awaiting host...", location: "LOCATION",
-                spectator: "SPECTATOR", ejected: "EJECTED",
-                confirm: "CONFIRM VOTE", gameOver: "GAME OVER",
+                spectator: "SPECTATOR",
+                confirm: "CONFIRM VOTE", 
                 spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!",
                 playAgain: "PLAY AGAIN", connecting: "Connecting...",
                 startVoting: "START VOTING", votingStarted: "VOTING INITIATED",
@@ -431,21 +317,21 @@
                 finishSelection: "FINISH SELECTION",
                 selectedWord: "Selected Keyword",
                 // Auth
-                loginGoogle: "Login with Google",
+                loginGoogle: "Login",
                 myAccount: "My Account",
                 logout: "Logout",
                 profile: "Profile",
                 guest: "Guest",
+                linkGuessCard: "GUESS MY CARD",
                 // Stats
-                level: "Level",
-                wins: "Wins",
-                losses: "Losses",
-                winRate: "Win Rate",
-                totalGames: "Games",
-                kd: "K/D",
-                achievements: "Achievements",
-                noAchievements: "No achievements yet",
-                id: "ID"
+                level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate",
+                totalGames: "Games", achievements: "Achievements", id: "ID",
+                // New
+                enterCodeError: "Please enter a room code.",
+                changeName: "Change Name",
+                nameChangeLimit: "Once a month",
+                copied: "Copied!",
+                save: "Save"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -456,8 +342,8 @@
                 round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد",
                 chatPlaceholder: "اكتب رسالة...", send: "إرسال",
                 waiting: "بانتظار المضيف...", location: "الموقع",
-                spectator: "مشاهد", ejected: "مطرود",
-                confirm: "تأكيد التصويت", gameOver: "انتهت اللعبة",
+                spectator: "مشاهد",
+                confirm: "تأكيد التصويت",
                 spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!",
                 playAgain: "لعب مجدداً", connecting: "جاري التأمين...",
                 startVoting: "بدء التصويت", votingStarted: "بدأ التصويت",
@@ -470,21 +356,21 @@
                 finishSelection: "إنهاء الاختيار",
                 selectedWord: "كلمة السر",
                 // Auth
-                loginGoogle: "الدخول بجوجل",
+                loginGoogle: "دخول",
                 myAccount: "حسابي",
                 logout: "تسجيل الخروج",
                 profile: "الملف الشخصي",
                 guest: "زائر",
+                linkGuessCard: "خمن كرتي",
                 // Stats
-                level: "المستوى",
-                wins: "فوز",
-                losses: "خسارة",
-                winRate: "نسبة الفوز",
-                totalGames: "المباريات",
-                kd: "نسبة الفوز",
-                achievements: "الإنجازات",
-                noAchievements: "لا توجد إنجازات بعد",
-                id: "الرقم"
+                level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز",
+                totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم",
+                // New
+                enterCodeError: "برجاء إدخال كود الغرفة.",
+                changeName: "تغيير الاسم",
+                nameChangeLimit: "مرة شهرياً",
+                copied: "تم النسخ!",
+                save: "حفظ"
             }
         };
 
@@ -498,12 +384,7 @@
             { loc_ar: "جزيرة كنز", words_ar: ["خريطة", "حفر", "ذهب", "قراصنة"], loc_en: "Treasure Island", words_en: ["Map", "Dig", "Gold", "Pirates"] },
             { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] },
             { loc_ar: "مطار دولي", words_ar: ["جوازات", "طائرات", "حقائب", "إقلاع"], loc_en: "Airport", words_en: ["Passports", "Planes", "Bags", "Takeoff"] },
-            { loc_ar: "جامعة سحر", words_ar: ["كتب", "عصا", "عفاريت", "تراكيب"], loc_en: "Magic Uni", words_en: ["Books", "Wand", "Ghosts", "Potions"] },
-            { loc_ar: "سفينة قراصنة", words_ar: ["شراع", "مدفع", "طوق", "خشب"], loc_en: "Pirate Ship", words_en: ["Sail", "Cannon", "Parrot", "Wood"] },
-            { loc_ar: "مركز شرطة", words_ar: ["قضبان", "شرطي", "سيارة", "قانون"], loc_en: "Police Station", words_en: ["Bars", "Cop", "Car", "Law"] },
-            { loc_ar: "مدرسة ثانوية", words_ar: ["طالب", "حقيبة", "سبورة", "جرس"], loc_en: "High School", words_en: ["Student", "Bag", "Board", "Bell"] },
-            { loc_ar: "مطعم فاخر", words_ar: ["نادل", "قائمة", "منديل", "شوكة"], loc_en: "Fancy Restaurant", words_en: ["Waiter", "Menu", "Napkin", "Fork"] },
-            { loc_ar: "شاطئ استوائي", words_ar: ["رمل", "موجة", "شمس", "كوكتيل"], loc_en: "Tropical Beach", words_en: ["Sand", "Wave", "Sun", "Cocktail"] }
+            { loc_ar: "جامعة سحر", words_ar: ["كتب", "عصا", "عفاريت", "تراكيب"], loc_en: "Magic Uni", words_en: ["Books", "Wand", "Ghosts", "Potions"] }
         ];
 
         const EMOJIS = ['🕵️', '🔍', '🚨', '🤐', '👀', '🔪', '🛡️', '💀', '🤫', '✅'];
@@ -516,8 +397,15 @@
 
         // --- Components ---
 
-        const ProfileModal = ({ show, onClose, userData, lang }) => {
+        const ProfileModal = ({ show, onClose, userData, lang, onUpdate }) => {
             const t = TRANSLATIONS[lang];
+            const [newName, setNewName] = useState('');
+            const [msg, setMsg] = useState('');
+            
+            useEffect(() => {
+                if(userData) setNewName(userData.displayName || '');
+            }, [userData]);
+
             if (!show || !userData) return null;
 
             const level = calculateLevel(userData.stats?.xp || 0);
@@ -530,19 +418,58 @@
             const circumference = 2 * Math.PI * 45;
             const offset = circumference - (winRate / 100) * circumference;
 
+            const handleCopyId = () => {
+                navigator.clipboard.writeText(userData.customId);
+                setMsg(t.copied);
+                setTimeout(() => setMsg(''), 2000);
+            };
+
+            const handleChangeName = async () => {
+                if(!newName.trim()) return;
+                const lastChange = userData.lastChangedName?.toMillis() || 0;
+                const monthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+                
+                if (lastChange > monthAgo) {
+                    setMsg(t.nameChangeLimit);
+                    return;
+                }
+                
+                await usersCollection.doc(userData.uid).update({
+                    displayName: newName,
+                    lastChangedName: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                setMsg("Updated!");
+                onUpdate(); // Refresh user data
+            };
+
             return (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4" onClick={onClose}>
                     <div className="glass-panel rounded-2xl p-6 w-full max-w-md animate-pop" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-start mb-6">
                             <div className="flex items-center gap-4">
                                 <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="w-16 h-16 rounded-full border-2 border-cyan-400" />
                                 <div>
                                     <h2 className="text-xl font-bold">{userData.displayName}</h2>
-                                    <p className="text-gray-400 text-xs font-mono">ID: #{userData.customId}</p>
+                                    <div className="flex items-center gap-1 cursor-pointer hover:text-cyan-400" onClick={handleCopyId}>
+                                        <p className="text-gray-400 text-xs font-mono">ID: #{userData.customId}</p>
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    </div>
                                 </div>
                             </div>
                             <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button>
                         </div>
+
+                         {/* Change Name */}
+                         <div className="mb-4 glass-panel p-3 rounded-lg border border-white/10">
+                             <label className="text-[10px] text-gray-400 uppercase">{t.changeName}</label>
+                             <div className="flex gap-2 mt-1">
+                                <input className="input-dark flex-1 p-2 rounded text-xs" value={newName} onChange={e => setNewName(e.target.value)} />
+                                <button onClick={handleChangeName} className="btn-ghost px-3 rounded text-xs">{t.save}</button>
+                             </div>
+                             <p className="text-[10px] text-gray-500 mt-1">{t.nameChangeLimit}</p>
+                         </div>
+                         
+                         {msg && <div className="text-center text-xs text-cyan-400 mb-2">{msg}</div>}
 
                         <div className="mb-6 glass-panel rounded-xl p-4 border border-white/10">
                             <div className="flex justify-between items-center mb-2">
@@ -609,34 +536,6 @@
             );
         };
 
-        const MiniProfile = ({ show, onClose, userData, lang }) => {
-            const t = TRANSLATIONS[lang];
-            if (!show || !userData) return null;
-
-            const level = calculateLevel(userData.stats?.xp || 0);
-            const wins = userData.stats?.wins || 0;
-            const losses = userData.stats?.losses || 0;
-            const totalGames = wins + losses;
-            const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(0) : 0;
-
-            return (
-                <div className="mini-profile-popup glass-panel rounded-lg p-3 animate-fade-in" style={{animationDuration: '0.2s'}}>
-                    <div className="flex items-center gap-2 mb-2 border-b border-white/10 pb-2">
-                        <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}`} className="w-8 h-8 rounded-full"/>
-                        <div>
-                            <div className="font-bold text-sm">{userData.displayName}</div>
-                            <div className="text-[9px] text-cyan-400">Lvl {level}</div>
-                        </div>
-                    </div>
-                    <div className="flex justify-between text-[10px] text-gray-400">
-                        <span>{t.wins}: <span className="text-white">{wins}</span></span>
-                        <span>{t.losses}: <span className="text-white">{losses}</span></span>
-                    </div>
-                    <div className="mt-1 text-center text-[10px] font-bold text-cyan-400">{winRate}% {t.winRate}</div>
-                </div>
-            );
-        };
-
         function App() {
             const [lang, setLang] = useState('en');
             const [user, setUser] = useState(null);
@@ -655,102 +554,45 @@
             // UI State
             const [showProfile, setShowProfile] = useState(false);
             const [showDropdown, setShowDropdown] = useState(false);
-            const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+            const [joinError, setJoinError] = useState('');
             
             const t = TRANSLATIONS[lang];
 
             // --- Effects ---
 
-            // Background Logic (Fixed Syntax)
+            // Background Logic
             useEffect(() => {
                 const canvas = document.getElementById('bg-canvas');
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
-                let width, height;
+                let width, height, particles = [];
                 let mouse = { x: null, y: null };
-                const particles = [];
                 const particleCount = 60;
-
-                const resize = () => { 
-                    width = canvas.width = window.innerWidth; 
-                    height = canvas.height = window.innerHeight; 
-                };
-                
-                const handleMouseMove = (e) => { 
-                    mouse.x = e.clientX; 
-                    mouse.y = e.clientY; 
-                };
-
-                window.addEventListener('resize', resize); 
-                window.addEventListener('mousemove', handleMouseMove); 
-                resize();
-
+                const resize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; };
+                const handleMouseMove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
+                window.addEventListener('resize', resize); window.addEventListener('mousemove', handleMouseMove); resize();
                 class Particle {
-                    constructor() { 
-                        this.x = Math.random() * width; 
-                        this.y = Math.random() * height; 
-                        this.vx = (Math.random() - 0.5) * 0.5; 
-                        this.vy = (Math.random() - 0.5) * 0.5; 
-                        this.size = Math.random() * 2; 
-                    }
+                    constructor() { this.x = Math.random() * width; this.y = Math.random() * height; this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5; this.size = Math.random() * 2; }
                     update() {
-                        this.x += this.vx; 
-                        this.y += this.vy;
+                        this.x += this.vx; this.y += this.vy;
                         if (this.x < 0 || this.x > width) this.vx *= -1;
                         if (this.y < 0 || this.y > height) this.vy *= -1;
-                        if (mouse.x != null) { 
-                            let dx = mouse.x - this.x; 
-                            let dy = mouse.y - this.y; 
-                            let dist = Math.sqrt(dx*dx + dy*dy); 
-                            if (dist < 150) { 
-                                const force = (150 - dist) / 150; 
-                                this.x -= dx * force * 0.02; 
-                                this.y -= dy * force * 0.02; 
-                            } 
-                        }
+                        if (mouse.x != null) { let dx = mouse.x - this.x; let dy = mouse.y - this.y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 150) { const force = (150 - dist) / 150; this.x -= dx * force * 0.02; this.y -= dy * force * 0.02; } }
                     }
-                    draw() { 
-                        ctx.fillStyle = 'rgba(0, 242, 255, 0.5)'; 
-                        ctx.beginPath(); 
-                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
-                        ctx.fill(); 
-                    }
+                    draw() { ctx.fillStyle = 'rgba(0, 242, 255, 0.5)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
                 }
-
-                for (let i = 0; i < particleCount; i++) {
-                    particles.push(new Particle());
-                }
-
+                for(let i=0; i<particleCount; i++) particles.push(new Particle());
                 let animId;
                 const animate = () => {
-                    ctx.clearRect(0, 0, width, height);
-                    ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)'; // Fixed line
-                    ctx.lineWidth = 1;
-                    
+                    ctx.clearRect(0, 0, width, height); ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)'; ctx.lineWidth = 1;
                     for (let i = 0; i < particles.length; i++) {
-                        particles[i].update(); 
-                        particles[i].draw();
-                        
-                        for (let j = i; j < particles.length; j++) { 
-                            let dx = particles[i].x - particles[j].x; 
-                            let dy = particles[i].y - particles[j].y; 
-                            let dist = Math.sqrt(dx*dx + dy*dy); 
-                            if (dist < 120) { 
-                                ctx.beginPath(); 
-                                ctx.moveTo(particles[i].x, particles[i].y); 
-                                ctx.lineTo(particles[j].x, particles[j].y); 
-                                ctx.stroke(); 
-                            } 
-                        }
+                        particles[i].update(); particles[i].draw();
+                        for (let j = i; j < particles.length; j++) { let dx = particles[i].x - particles[j].x; let dy = particles[i].y - particles[j].y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke(); } }
                     }
                     animId = requestAnimationFrame(animate);
                 };
                 animate();
-                return () => { 
-                    cancelAnimationFrame(animId); 
-                    window.removeEventListener('resize', resize); 
-                    window.removeEventListener('mousemove', handleMouseMove); 
-                };
+                return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
             }, []);
 
             // Auth State
@@ -765,12 +607,15 @@
                                 uid: u.uid, email: u.email, displayName: u.displayName,
                                 photoURL: u.photoURL, customId: generateUID(),
                                 stats: { wins: 0, losses: 0, xp: 0 }, achievements: [],
-                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                lastChangedName: null
                             };
                             await userRef.set(newUser);
                             setUserData(newUser);
+                            setNickname(newUser.displayName); // Auto-fill
                         } else {
                             setUserData(doc.data());
+                            setNickname(doc.data().displayName || ''); // Auto-fill
                         }
                     } else { setUser(null); setUserData(null); }
                 });
@@ -826,15 +671,13 @@
                 try { await auth.signInWithPopup(provider); } catch (e) { console.error(e); }
             };
 
-            const handleLogout = async () => {
-                await auth.signOut();
-                setShowDropdown(false);
-            };
+            const handleLogout = async () => { await auth.signOut(); setShowDropdown(false); };
 
             const handleCreate = async () => {
                 if (!nickname.trim() || !user) return;
                 if (soundEnabled) playSound('click');
                 setLoading(true);
+                setJoinError('');
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set({
                     id, admin: user.uid, status: 'waiting',
@@ -849,9 +692,11 @@
             };
 
             const handleJoin = async () => {
-                if (!nickname.trim() || !inputCode || !user) return;
+                if (!nickname.trim()) return;
+                if (!inputCode.trim()) { setJoinError(t.enterCodeError); return; }
                 if (soundEnabled) playSound('click');
                 setLoading(true);
+                setJoinError('');
                 const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(inputCode.toUpperCase());
                 const snap = await ref.get();
                 if (snap.exists) {
@@ -861,6 +706,8 @@
                         await ref.update({ players: [...data.players, { uid: user.uid, name: nickname, status: 'active', photo: userData?.photoURL }] });
                     }
                     setRoomId(inputCode.toUpperCase());
+                } else {
+                    setJoinError("Room not found");
                 }
                 setLoading(false);
             };
@@ -1043,22 +890,16 @@
                             return;
                         }
                     }
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                        players: newPlayers, status: newStatus
-                    });
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ players: newPlayers, status: newStatus });
                 }
             };
 
-            // Server-Side Stats Update Logic
             const updateGameStats = async (players, spyId) => {
                 const batch = db.batch();
                 const spyWin = room.status === 'finished_spy_wins';
                 
                 players.forEach(p => {
-                    // Only update for users who exist in our system
                     const userRef = usersCollection.doc(p.uid);
-                    
-                    // Determine Win/Loss
                     const isWinner = (p.uid === spyId && spyWin) || (p.uid !== spyId && !spyWin);
                     
                     batch.update(userRef, {
@@ -1069,7 +910,6 @@
                 });
                 
                 await batch.commit();
-                // Check achievements after update
                 checkAchievements(players, spyId);
             };
             
@@ -1083,7 +923,6 @@
                     if(!doc.exists) return;
                     
                     const data = doc.data();
-                    // Recalculate total wins based on new value
                     const wins = (data.stats?.wins || 0);
                     const currentAch = data.achievements || [];
                     let newAch = [...currentAch];
@@ -1095,9 +934,7 @@
                     if(wins >= 50 && !currentAch.includes('wins_50')) newAch.push('wins_50');
                     if(wins >= 100 && !currentAch.includes('wins_100')) newAch.push('wins_100');
 
-                    if(newAch.length > currentAch.length) {
-                        await userRef.update({ achievements: newAch });
-                    }
+                    if(newAch.length > currentAch.length) { await userRef.update({ achievements: newAch }); }
                 });
             };
 
@@ -1119,28 +956,7 @@
                 });
             };
 
-            // --- Render Guard ---
-            if (!user) {
-                return (
-                    <div className="min-h-screen flex items-center justify-center">
-                        <div className="text-center space-y-4 animate-fade-in">
-                            <div className="logo-container mx-auto animate-float">
-                                <div className="logo-border"></div>
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
-                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                                </svg>
-                            </div>
-                            <p className="text-gray-400 font-mono text-sm animate-pulse">{t.connecting}</p>
-                            <button onClick={handleGoogleLogin} className="btn-google px-6 py-3 rounded-lg text-sm font-bold mt-4 inline-flex items-center gap-2">
-                                <svg class="w-5 h-5" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0)"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></g><defs><clipPath id="clip0"><rect width="20" height="20" fill="white" transform="translate(0.351562)"/></clipPath></defs></svg>
-                                {t.loginGoogle}
-                            </button>
-                        </div>
-                    </div>
-                );
-            }
-
-            // --- Render Helpers ---
+            // --- Render ---
             const isMyTurn = room?.currentTurnUID === user.uid;
             const isSpy = room?.spyId === user.uid;
             const me = room?.players?.find(p => p.uid === user.uid);
@@ -1158,10 +974,10 @@
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 md:p-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                     
-                    <ProfileModal show={showProfile} onClose={() => setShowProfile(false)} userData={userData} lang={lang} />
+                    <ProfileModal show={showProfile} onClose={() => setShowProfile(false)} userData={userData} lang={lang} onUpdate={async () => { const d = await usersCollection.doc(user.uid).get(); setUserData(d.data()); }} />
 
                     {room?.status === 'discussing' && voteReq && (
-                         <div className="vote-request-banner glass-panel rounded-xl p-4 border-2 border-pink-500 animate-shake">
+                         <div className="vote-request-banner glass-panel rounded-xl p-4 border-2 border-pink-500 animate-pop">
                             <div className="flex flex-col gap-2">
                                 <div className="text-center font-bold text-pink-400">{t.voteRequestTitle}</div>
                                 <div className="text-center text-xs text-gray-300">
@@ -1178,7 +994,7 @@
                     {/* Header */}
                     <header className="w-full max-w-4xl flex justify-between items-center mb-6 animate-fade-in">
                         <div className="flex items-center gap-3">
-                            <div className="logo-container animate-float">
+                            <div className="logo-container">
                                 <div className="logo-border"></div>
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
                                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
@@ -1189,24 +1005,36 @@
                                 <p className="text-[10px] text-gray-500 tracking-widest font-tech">{t.tagline}</p>
                             </div>
                         </div>
-                        <div className="flex gap-2 items-center relative">
+                        <div className="flex gap-2 items-center">
                              <button onClick={() => { initAudio(); setSoundEnabled(!soundEnabled); }} className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700">
                                 {soundEnabled ? t.soundOn : t.soundOff}
                             </button>
+                             <a href="https://guessmycard.mooo.info/" target="_blank" rel="noopener noreferrer" className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700 hover:text-pink-400 hover:border-pink-400">
+                                {t.linkGuessCard}
+                            </a>
                             <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">{t.langBtn}</button>
                             
-                            {/* User Area */}
+                            {/* Auth Area */}
                             <div className="relative">
-                                <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-2 btn-ghost px-3 py-1 rounded-full border-gray-700">
-                                    <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${userData?.displayName}`} className="w-6 h-6 rounded-full"/>
-                                    <span className="text-xs font-bold hidden md:block">{t.myAccount}</span>
-                                </button>
-                                
-                                {showDropdown && (
-                                    <div className="dropdown-menu glass-panel rounded-lg py-2 animate-fade-in">
-                                        <button onClick={() => { setShowProfile(true); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button>
-                                        <button onClick={handleLogout} className="w-full text-right px-4 py-2 text-sm text-red-400 hover:bg-white/10">{t.logout}</button>
-                                    </div>
+                                {user ? (
+                                    <>
+                                        <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-2 btn-ghost px-3 py-1 rounded-full border-gray-700">
+                                            <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${userData?.displayName}`} className="w-6 h-6 rounded-full"/>
+                                            <span className="text-xs font-bold hidden md:block">{t.myAccount}</span>
+                                        </button>
+                                        
+                                        {showDropdown && (
+                                            <div className="dropdown-menu glass-panel rounded-lg py-2 animate-fade-in">
+                                                <button onClick={() => { setShowProfile(true); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button>
+                                                <button onClick={handleLogout} className="w-full text-right px-4 py-2 text-sm text-red-400 hover:bg-white/10">{t.logout}</button>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <button onClick={handleGoogleLogin} className="btn-google px-4 py-1 rounded-full text-xs font-bold flex items-center gap-2">
+                                        <svg class="w-4 h-4" viewBox="0 0 21 20" fill="none"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg>
+                                        {t.loginGoogle}
+                                    </button>
                                 )}
                             </div>
                         </div>
@@ -1255,9 +1083,12 @@
                                         <input className="input-dark w-full p-3 rounded-lg text-center font-bold" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} />
                                     </div>
                                     <button onClick={handleCreate} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">{t.create}</button>
-                                    <div className="flex gap-2">
-                                        <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value)} />
-                                        <button onClick={handleJoin} disabled={loading || !nickname || !inputCode} className="btn-ghost px-6 rounded-lg font-bold">{t.join}</button>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex gap-2">
+                                            <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value)} />
+                                            <button onClick={handleJoin} disabled={loading || !nickname} className="btn-ghost px-6 rounded-lg font-bold">{t.join}</button>
+                                        </div>
+                                        {joinError && <div className="error-msg">{joinError}</div>}
                                     </div>
                                 </div>
                             )}
@@ -1405,7 +1236,7 @@
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        root.render(<App>());
     </script>
 </body>
 </html>
