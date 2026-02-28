@@ -239,7 +239,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef, useMemo } = React;
+        const { useState, useEffect } = React;
 
         // --- Configuration ---
         const firebaseConfig = {
@@ -447,7 +447,7 @@
                     <div className="glass-panel rounded-2xl p-6 w-full max-w-md animate-pop" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-start mb-6">
                             <div className="flex items-center gap-4">
-                                <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="w-16 h-16 rounded-full border-2 border-cyan-400" alt="Avatar" />
+                                <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="w-16 h-16 rounded-full border-2 border-cyan-400" alt="User Avatar" />
                                 <div>
                                     <h2 className="text-xl font-bold">{userData.displayName}</h2>
                                     <div className="flex items-center gap-1 cursor-pointer hover:text-cyan-400" onClick={handleCopyId}>
@@ -956,7 +956,29 @@
                 });
             };
 
-            // --- Render ---
+            // --- Render Guard ---
+            // MUST CHECK USER EXISTANCE BEFORE CALCULATING VARS THAT USE user.uid
+            if (!user) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center">
+                        <div className="text-center space-y-4 animate-fade-in">
+                            <div className="logo-container mx-auto animate-float">
+                                <div className="logo-border"></div>
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                                </svg>
+                            </div>
+                            <p className="text-gray-400 font-mono text-sm animate-pulse">{t.connecting}</p>
+                            <button onClick={handleGoogleLogin} className="btn-google px-6 py-3 rounded-lg text-sm font-bold mt-4 inline-flex items-center gap-2">
+                                <svg className="w-4 h-4" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg>
+                                {t.loginGoogle}
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- Derived State (Safe now because user is not null) ---
             const isMyTurn = room?.currentTurnUID === user.uid;
             const isSpy = room?.spyId === user.uid;
             const me = room?.players?.find(p => p.uid === user.uid);
@@ -1032,7 +1054,7 @@
                                     </>
                                 ) : (
                                     <button onClick={handleGoogleLogin} className="btn-google px-4 py-1 rounded-full text-xs font-bold flex items-center gap-2">
-                                        <svg className="w-4 h-4" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg>
+                                        <svg className="w-4 h-4" viewBox="0 0 21 20" fill="none"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg>
                                         {t.loginGoogle}
                                     </button>
                                 )}
