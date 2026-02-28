@@ -510,10 +510,7 @@
         const MAX_ROUNDS = 3;
 
         // --- Helper Functions ---
-        const generateUID = () => {
-            return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit ID
-        };
-        
+        const generateUID = () => Math.floor(100000 + Math.random() * 900000).toString();
         const calculateLevel = (xp) => Math.floor(xp / 100) + 1;
         const calculateXPProgress = (xp) => (xp % 100);
 
@@ -530,26 +527,23 @@
             const totalGames = wins + losses;
             const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(0) : 0;
             
-            // KD Circle Math
             const circumference = 2 * Math.PI * 45;
             const offset = circumference - (winRate / 100) * circumference;
 
             return (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
                     <div className="glass-panel rounded-2xl p-6 w-full max-w-md animate-pop" onClick={e => e.stopPropagation()}>
-                        {/* Header */}
                         <div className="flex justify-between items-start mb-6">
                             <div className="flex items-center gap-4">
                                 <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="w-16 h-16 rounded-full border-2 border-cyan-400" />
                                 <div>
                                     <h2 className="text-xl font-bold">{userData.displayName}</h2>
-                                    <p className="text-gray-400 text-xs font-mono">ID: #{userData.uid.substring(0, 6)}</p>
+                                    <p className="text-gray-400 text-xs font-mono">ID: #{userData.customId}</p>
                                 </div>
                             </div>
                             <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button>
                         </div>
 
-                        {/* Level & XP */}
                         <div className="mb-6 glass-panel rounded-xl p-4 border border-white/10">
                             <div className="flex justify-between items-center mb-2">
                                 <span className="font-bold text-primary">{t.level} {level}</span>
@@ -560,7 +554,6 @@
                             </div>
                         </div>
 
-                        {/* Stats Grid */}
                         <div className="grid grid-cols-3 gap-4 mb-6">
                             <div className="text-center">
                                 <div className="text-3xl font-bold text-green-400">{wins}</div>
@@ -576,7 +569,6 @@
                             </div>
                         </div>
 
-                        {/* KD Circle */}
                         <div className="flex justify-center mb-6">
                             <div className="relative w-32 h-32">
                                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -597,7 +589,6 @@
                             </div>
                         </div>
 
-                        {/* Achievements */}
                         <div>
                             <h3 className="text-sm font-bold text-gray-400 mb-3">{t.achievements}</h3>
                             <div className="grid grid-cols-3 gap-2">
@@ -664,45 +655,102 @@
             // UI State
             const [showProfile, setShowProfile] = useState(false);
             const [showDropdown, setShowDropdown] = useState(false);
-            const [selectedPlayerId, setSelectedPlayerId] = useState(null); // For Mini Profile
+            const [selectedPlayerId, setSelectedPlayerId] = useState(null);
             
             const t = TRANSLATIONS[lang];
 
             // --- Effects ---
 
-            // Background Logic
+            // Background Logic (Fixed Syntax)
             useEffect(() => {
                 const canvas = document.getElementById('bg-canvas');
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
-                let width, height, particles;
+                let width, height;
                 let mouse = { x: null, y: null };
+                const particles = [];
                 const particleCount = 60;
-                const resize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; };
-                const handleMouseMove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
-                window.addEventListener('resize', resize); window.addEventListener('mousemove', handleMouseMove); resize();
+
+                const resize = () => { 
+                    width = canvas.width = window.innerWidth; 
+                    height = canvas.height = window.innerHeight; 
+                };
+                
+                const handleMouseMove = (e) => { 
+                    mouse.x = e.clientX; 
+                    mouse.y = e.clientY; 
+                };
+
+                window.addEventListener('resize', resize); 
+                window.addEventListener('mousemove', handleMouseMove); 
+                resize();
+
                 class Particle {
-                    constructor() { this.x = Math.random() * width; this.y = Math.random() * height; this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5; this.size = Math.random() * 2; }
+                    constructor() { 
+                        this.x = Math.random() * width; 
+                        this.y = Math.random() * height; 
+                        this.vx = (Math.random() - 0.5) * 0.5; 
+                        this.vy = (Math.random() - 0.5) * 0.5; 
+                        this.size = Math.random() * 2; 
+                    }
                     update() {
-                        this.x += this.vx; this.y += this.vy;
+                        this.x += this.vx; 
+                        this.y += this.vy;
                         if (this.x < 0 || this.x > width) this.vx *= -1;
                         if (this.y < 0 || this.y > height) this.vy *= -1;
-                        if (mouse.x != null) { let dx = mouse.x - this.x; let dy = mouse.y - this.y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 150) { const force = (150 - dist) / 150; this.x -= dx * force * 0.02; this.y -= dy * force * 0.02; } }
+                        if (mouse.x != null) { 
+                            let dx = mouse.x - this.x; 
+                            let dy = mouse.y - this.y; 
+                            let dist = Math.sqrt(dx*dx + dy*dy); 
+                            if (dist < 150) { 
+                                const force = (150 - dist) / 150; 
+                                this.x -= dx * force * 0.02; 
+                                this.y -= dy * force * 0.02; 
+                            } 
+                        }
                     }
-                    draw() { ctx.fillStyle = 'rgba(0, 242, 255, 0.5)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+                    draw() { 
+                        ctx.fillStyle = 'rgba(0, 242, 255, 0.5)'; 
+                        ctx.beginPath(); 
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
+                        ctx.fill(); 
+                    }
                 }
-                particles = Array.from({ length: particleCount }, () => new Particle());
+
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+
                 let animId;
                 const animate = () => {
-                    ctx.clearRect(0, 0, width, height); ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)'); ctx.lineWidth = 1;
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)'; // Fixed line
+                    ctx.lineWidth = 1;
+                    
                     for (let i = 0; i < particles.length; i++) {
-                        particles[i].update(); particles[i].draw();
-                        for (let j = i; j < particles.length; j++) { let dx = particles[i].x - particles[j].x; let dy = particles[i].y - particles[j].y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke(); } }
+                        particles[i].update(); 
+                        particles[i].draw();
+                        
+                        for (let j = i; j < particles.length; j++) { 
+                            let dx = particles[i].x - particles[j].x; 
+                            let dy = particles[i].y - particles[j].y; 
+                            let dist = Math.sqrt(dx*dx + dy*dy); 
+                            if (dist < 120) { 
+                                ctx.beginPath(); 
+                                ctx.moveTo(particles[i].x, particles[i].y); 
+                                ctx.lineTo(particles[j].x, particles[j].y); 
+                                ctx.stroke(); 
+                            } 
+                        }
                     }
                     animId = requestAnimationFrame(animate);
                 };
                 animate();
-                return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
+                return () => { 
+                    cancelAnimationFrame(animId); 
+                    window.removeEventListener('resize', resize); 
+                    window.removeEventListener('mousemove', handleMouseMove); 
+                };
             }, []);
 
             // Auth State
@@ -710,18 +758,13 @@
                 const unsub = auth.onAuthStateChanged(async (u) => {
                     if (u) {
                         setUser(u);
-                        // Fetch or Create User Data
                         const userRef = usersCollection.doc(u.uid);
                         const doc = await userRef.get();
                         if (!doc.exists) {
                             const newUser = {
-                                uid: u.uid,
-                                email: u.email,
-                                displayName: u.displayName,
-                                photoURL: u.photoURL,
-                                customId: generateUID(),
-                                stats: { wins: 0, losses: 0, xp: 0 },
-                                achievements: [],
+                                uid: u.uid, email: u.email, displayName: u.displayName,
+                                photoURL: u.photoURL, customId: generateUID(),
+                                stats: { wins: 0, losses: 0, xp: 0 }, achievements: [],
                                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
                             };
                             await userRef.set(newUser);
@@ -729,10 +772,7 @@
                         } else {
                             setUserData(doc.data());
                         }
-                    } else {
-                        setUser(null);
-                        setUserData(null);
-                    }
+                    } else { setUser(null); setUserData(null); }
                 });
                 return unsub;
             }, []);
@@ -802,8 +842,7 @@
                     scenario: null, spyId: null, 
                     currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0,
                     messages: [], votes: {}, usedLocations: [], 
-                    wordVotes: {}, chosenWord: null, wordSelEndTime: null,
-                    votingRequest: null
+                    wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null
                 });
                 setRoomId(id);
                 setLoading(false);
@@ -854,8 +893,7 @@
             const submitWordVote = async (word) => {
                 if (!user || !room || room.status !== 'word_selection') return;
                 if (soundEnabled) playSound('click');
-                const voteUpdate = {};
-                voteUpdate[`wordVotes.${user.uid}`] = word;
+                const voteUpdate = {}; voteUpdate[`wordVotes.${user.uid}`] = word;
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update(voteUpdate);
             };
 
@@ -989,11 +1027,12 @@
                     const isSpy = ejectedUID === freshData.spyId;
                     const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.uid !== freshData.spyId);
                     let newStatus = freshData.status;
-                    if (isSpy) { newStatus = 'finished_spy_caught'; await updateStats(freshData.players, freshData.spyId); } 
-                    else if (remainingAgents.length <= 1) { newStatus = 'finished_spy_wins'; await updateStats(freshData.players, freshData.spyId); }
+                    
+                    if (isSpy) { newStatus = 'finished_spy_caught'; await updateGameStats(freshData.players, freshData.spyId); } 
+                    else if (remainingAgents.length <= 1) { newStatus = 'finished_spy_wins'; await updateGameStats(freshData.players, freshData.spyId); }
                     else {
                         const nextRound = (freshData.currentRound || 1) + 1;
-                        if (nextRound > MAX_ROUNDS) { newStatus = 'finished_spy_wins'; await updateStats(freshData.players, freshData.spyId); }
+                        if (nextRound > MAX_ROUNDS) { newStatus = 'finished_spy_wins'; await updateGameStats(freshData.players, freshData.spyId); }
                         else {
                             const firstPlayer = newPlayers.filter(p => p.status === 'active').find(p => p.uid !== freshData.spyId) || newPlayers.filter(p => p.status === 'active')[0];
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
@@ -1010,15 +1049,17 @@
                 }
             };
 
-            const updateStats = async (players, spyId) => {
+            // Server-Side Stats Update Logic
+            const updateGameStats = async (players, spyId) => {
                 const batch = db.batch();
+                const spyWin = room.status === 'finished_spy_wins';
+                
                 players.forEach(p => {
-                    // Only update if user exists in our system
+                    // Only update for users who exist in our system
                     const userRef = usersCollection.doc(p.uid);
-                    // We rely on cloud functions ideally, but here we do transactional updates
-                    // For simplicity in client-side, we'll just increment. 
-                    // Logic: Winner gets +Win, +XP. Loser gets +Loss.
-                    const isWinner = (p.uid === spyId && room.status === 'finished_spy_wins') || (p.uid !== spyId && room.status === 'finished_spy_caught');
+                    
+                    // Determine Win/Loss
+                    const isWinner = (p.uid === spyId && spyWin) || (p.uid !== spyId && !spyWin);
                     
                     batch.update(userRef, {
                         "stats.wins": firebase.firestore.FieldValue.increment(isWinner ? 1 : 0),
@@ -1026,24 +1067,24 @@
                         "stats.xp": firebase.firestore.FieldValue.increment(isWinner ? 50 : 10)
                     });
                 });
+                
                 await batch.commit();
-                // Achievement check could happen here, but for simplicity we check on profile load or via backend.
-                // We will add a simple client-side check for achievements right here.
+                // Check achievements after update
                 checkAchievements(players, spyId);
             };
             
             const checkAchievements = async (players, spyId) => {
-                // Simplified check for the winner
-                const winnerId = (room.status === 'finished_spy_wins') ? spyId : null; // Spy won
-                const winners = (room.status === 'finished_spy_caught') ? players.filter(p => p.uid !== spyId) : (winnerId ? [players.find(p => p.uid === winnerId)] : []);
+                const spyWin = room.status === 'finished_spy_wins';
                 
-                winners.forEach(async (p) => {
+                players.forEach(async (p) => {
                     if(!p || !p.uid) return;
                     const userRef = usersCollection.doc(p.uid);
                     const doc = await userRef.get();
                     if(!doc.exists) return;
+                    
                     const data = doc.data();
-                    const wins = (data.stats?.wins || 0) + 1; // Already incremented
+                    // Recalculate total wins based on new value
+                    const wins = (data.stats?.wins || 0);
                     const currentAch = data.achievements || [];
                     let newAch = [...currentAch];
                     
