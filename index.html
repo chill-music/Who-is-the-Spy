@@ -93,6 +93,9 @@
         
         .leaderboard-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .leaderboard-row:hover { background: rgba(255,255,255,0.03); }
+        
+        /* Chat Invite Bubble */
+        .invite-bubble { background: linear-gradient(135deg, rgba(112, 0, 255, 0.2), rgba(0, 242, 255, 0.2)); border: 1px solid var(--primary); border-radius: 12px; padding: 10px; text-align: center; margin: 5px 0; }
     </style>
 </head>
 <body>
@@ -119,9 +122,10 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v13_social'; // Updated Version
+        const appId = 'pro_spy_v14_social_chat';
         const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
         const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
+        const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
 
         // --- Achievements & Scenarios ---
         const ACHIEVEMENTS = [
@@ -151,6 +155,7 @@
         const generateUID = () => Math.floor(100000 + Math.random() * 900000).toString();
         const calculateLevel = (xp) => Math.floor(xp / 100) + 1;
         const calculateXPProgress = (xp) => (xp % 100);
+        const getChatId = (id1, id2) => [id1, id2].sort().join('_'); // Unique sorted ID for private chat
         
         // --- Audio ---
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -194,11 +199,14 @@
                 // Friends
                 addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID",
                 online: "Online", offline: "Offline", noFriends: "No friends yet.",
-                friendAdded: "Friend Added!", friendNotFound: "User not found.",
-                // Report
-                report: "Report Player", reportSent: "Report Sent!", reportReason: "Reason",
-                // Leaderboard
-                rank: "Rank", name: "Name", score: "Score"
+                friendAdded: "Friend Added!", friendNotFound: "User not found.", requestSent: "Request Sent!",
+                incomingRequests: "Incoming Requests", noRequests: "No pending requests.",
+                accept: "Accept", reject: "Reject",
+                // Chat
+                sendMessage: "Send", chatPlaceholder: "Message...",
+                // Invite
+                inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?",
+                inviteFriends: "Invite Friends"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -227,15 +235,119 @@
                 // Friends
                 addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق",
                 online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.",
-                friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.",
-                // Report
-                report: "إبلاغ", reportSent: "تم الإبلاغ!", reportReason: "السبب",
-                // Leaderboard
-                rank: "الترتيب", name: "الاسم", score: "النقاط"
+                friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!",
+                incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.",
+                accept: "قبول", reject: "رفض",
+                // Chat
+                sendMessage: "إرسال", chatPlaceholder: "رسالة...",
+                // Invite
+                inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟",
+                inviteFriends: "دعوة أصدقاء"
             }
         };
 
         // --- Components ---
+        
+        // Private Chat Modal
+        const PrivateChatModal = ({ show, onClose, friendData, currentUser, lang, onInvite, roomId, onJoinInvite }) => {
+            const t = TRANSLATIONS[lang];
+            const [messages, setMessages] = useState([]);
+            const [newMsg, setNewMsg] = useState('');
+            
+            const chatId = getChatId(currentUser.uid, friendData.uid);
+            
+            useEffect(() => {
+                if(show) {
+                    const unsub = chatsCollection.doc(chatId).collection('messages').orderBy('timestamp', 'asc').onSnapshot(snap => {
+                        const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setMessages(msgs);
+                    });
+                    return unsub;
+                }
+            }, [show]);
+            
+            const handleSend = async () => {
+                if(!newMsg.trim()) return;
+                const msg = {
+                    senderId: currentUser.uid,
+                    senderName: currentUser.displayName,
+                    text: newMsg,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    type: 'text'
+                };
+                await chatsCollection.doc(chatId).set({ members: [currentUser.uid, friendData.uid] }, { merge: true });
+                await chatsCollection.doc(chatId).collection('messages').add(msg);
+                setNewMsg('');
+            };
+            
+            const handleInvite = async () => {
+                const inviteMsg = {
+                    senderId: currentUser.uid,
+                    senderName: currentUser.displayName,
+                    text: `${currentUser.displayName} ${t.invitedYou}`,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    type: 'invite',
+                    roomId: roomId
+                };
+                await chatsCollection.doc(chatId).set({ members: [currentUser.uid, friendData.uid] }, { merge: true });
+                await chatsCollection.doc(chatId).collection('messages').add(inviteMsg);
+            };
+            
+            if(!show) return null;
+            
+            return (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4" onClick={onClose}>
+                    <div className="glass-panel rounded-2xl w-full max-w-lg h-[600px] flex flex-col animate-pop" onClick={e => e.stopPropagation()}>
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <img src={friendData.photoURL} className="w-8 h-8 rounded-full"/>
+                                <h3 className="font-bold">{friendData.displayName}</h3>
+                            </div>
+                            <button onClick={onClose} className="text-xl">&times;</button>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                            {messages.map(m => (
+                                <div key={m.id} className={`flex ${m.senderId === currentUser.uid ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={m.senderId === currentUser.uid ? 'chat-bubble-me' : 'chat-bubble-other'}>
+                                        {m.type === 'invite' ? (
+                                            <div className="invite-bubble">
+                                                <p className="text-sm">{m.text}</p>
+                                                {m.senderId !== currentUser.uid && m.roomId && (
+                                                    <button onClick={() => onJoinInvite(m.roomId)} className="btn-neon px-4 py-1 rounded text-xs mt-2">
+                                                        {t.joinInvite}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm">{m.text}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <div className="p-4 border-t border-white/10">
+                            {roomId && (
+                                <button onClick={handleInvite} className="btn-success w-full py-2 rounded text-xs mb-2">
+                                    {t.inviteBtn} ({t.inviteFriends})
+                                </button>
+                            )}
+                            <div className="flex gap-2">
+                                <input 
+                                    className="input-dark flex-1 p-2 rounded text-sm"
+                                    placeholder={t.chatPlaceholder}
+                                    value={newMsg}
+                                    onChange={e => setNewMsg(e.target.value)}
+                                    onKeyPress={e => e.key === 'Enter' && handleSend()}
+                                />
+                                <button onClick={handleSend} className="btn-neon px-4 rounded">{t.send}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
         
         const ProfileModal = ({ show, onClose, targetUID, currentUserData, lang, isSelf, onUpdate }) => {
             const t = TRANSLATIONS[lang];
@@ -284,7 +396,6 @@
             const handleReport = async () => {
                 if (isSelf) return;
                 setReporting(true);
-                // Simple report logic
                 await reportsCollection.add({
                     reporterId: currentUserData.uid,
                     reportedId: profileData.uid,
@@ -415,18 +526,25 @@
             const [targetProfileUID, setTargetProfileUID] = useState(null);
             const [alertMessage, setAlertMessage] = useState(null);
             
-            // New Views State
-            const [activeView, setActiveView] = useState('lobby'); // 'lobby', 'leaderboard', 'friends'
+            // Views State
+            const [activeView, setActiveView] = useState('lobby');
             const [leaderboardData, setLeaderboardData] = useState([]);
             const [friendsData, setFriendsData] = useState([]);
             const [addFriendId, setAddFriendId] = useState('');
             const [friendSearchMsg, setFriendSearchMsg] = useState('');
             
+            // Friend Requests
+            const [friendRequests, setFriendRequests] = useState([]);
+            
+            // Chat Modal
+            const [showChat, setShowChat] = useState(false);
+            const [chatFriend, setChatFriend] = useState(null);
+            
             const t = TRANSLATIONS[lang];
 
             // --- Effects ---
 
-            // Background Logic
+            // Background
             useEffect(() => {
                 const canvas = document.getElementById('bg-canvas');
                 if (!canvas) return;
@@ -472,7 +590,7 @@
                             const newUserData = {
                                 uid: u.uid, email: u.email, displayName: u.displayName || u.uid.substring(0,5),
                                 photoURL: u.photoURL, customId: generateUID(),
-                                stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [],
+                                stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [], friendRequests: [],
                                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                                 lastChangedName: null,
                                 lastActive: firebase.firestore.FieldValue.serverTimestamp()
@@ -489,12 +607,12 @@
                 return unsub;
             }, []);
 
-            // Update Last Active (Online Status)
+            // Update Last Active
             useEffect(() => {
                 if (!user) return;
                 const interval = setInterval(() => {
                     usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() });
-                }, 60000); // Every minute
+                }, 60000);
                 return () => clearInterval(interval);
             }, [user]);
 
@@ -516,18 +634,26 @@
                 }
             }, [activeView]);
 
-            // Fetch Friends
+            // Fetch Friends & Requests
             useEffect(() => {
-                if (activeView === 'friends' && userData?.friends?.length > 0) {
-                    // Fetch friend docs based on IDs array
-                    usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).get().then(snap => {
-                        const friends = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        setFriendsData(friends);
-                    });
-                } else {
-                    setFriendsData([]);
+                if (activeView === 'friends' && userData) {
+                    // Fetch Friends
+                    if (userData.friends?.length > 0) {
+                        usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).get().then(snap => {
+                            const friends = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            setFriendsData(friends);
+                        });
+                    } else { setFriendsData([]); }
+                    
+                    // Fetch Requests
+                    if (userData.friendRequests?.length > 0) {
+                        usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).get().then(snap => {
+                            const reqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            setFriendRequests(reqs);
+                        });
+                    } else { setFriendRequests([]); }
                 }
-            }, [activeView, userData?.friends]);
+            }, [activeView, userData?.friends, userData?.friendRequests]);
 
             // Timers
             useEffect(() => {
@@ -596,7 +722,7 @@
                 });
                 setRoomId(id);
                 setLoading(false);
-                setActiveView('lobby'); // Ensure back to lobby
+                setActiveView('lobby');
             };
 
             const handleJoin = async () => {
@@ -627,6 +753,12 @@
                     setJoinError("Room not found");
                 }
                 setLoading(false);
+            };
+            
+            const handleJoinFromInvite = async (rId) => {
+                setShowChat(false);
+                setInputCode(rId);
+                await handleJoin(); // Reuse join logic
             };
 
             const startGame = async () => {
@@ -882,25 +1014,46 @@
             };
 
             // Friends Logic
-            const handleAddFriend = async () => {
+            const handleSendRequest = async () => {
                 if (!addFriendId || addFriendId === userData.customId) return;
-                // Find user by customId
                 const snap = await usersCollection.where('customId', '==', addFriendId).get();
                 if (snap.empty) { setFriendSearchMsg(t.friendNotFound); return; }
                 
                 const friendDoc = snap.docs[0];
                 const friendUid = friendDoc.id;
                 
-                if (userData.friends?.includes(friendUid)) { setFriendSearchMsg("Already added!"); return; }
+                if (userData.friends?.includes(friendUid)) { setFriendSearchMsg("Already friends!"); return; }
+                if (userData.friendRequests?.includes(friendUid)) { setFriendSearchMsg("Request already pending!"); return; }
                 
-                await usersCollection.doc(user.uid).update({
-                    friends: firebase.firestore.FieldValue.arrayUnion(friendUid)
+                // Add to friend's friendRequests array
+                await usersCollection.doc(friendUid).update({
+                    friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid)
                 });
                 
-                // Update local state to reflect immediately
-                setUserData(prev => ({ ...prev, friends: [...(prev.friends || []), friendUid] }));
-                setFriendSearchMsg(t.friendAdded);
+                setFriendSearchMsg(t.requestSent);
                 setAddFriendId('');
+            };
+            
+            const handleAcceptRequest = async (fromUid) => {
+                // Add to friends for both
+                await usersCollection.doc(user.uid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(fromUid),
+                    friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
+                });
+                await usersCollection.doc(fromUid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(user.uid)
+                });
+            };
+            
+            const handleRejectRequest = async (fromUid) => {
+                await usersCollection.doc(user.uid).update({
+                    friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
+                });
+            };
+            
+            const openChat = (friend) => {
+                setChatFriend(friend);
+                setShowChat(true);
             };
             
             // Render Helpers
@@ -940,6 +1093,16 @@
                         lang={lang} 
                         isSelf={targetProfileUID === user?.uid}
                         onUpdate={async () => { if(user){ const d = await usersCollection.doc(user.uid).get(); setUserData(d.data()); }}} 
+                    />
+                    
+                    <PrivateChatModal 
+                        show={showChat}
+                        onClose={() => setShowChat(false)}
+                        friendData={chatFriend}
+                        currentUser={userData}
+                        lang={lang}
+                        roomId={roomId}
+                        onJoinInvite={handleJoinFromInvite}
                     />
 
                     {room?.status === 'discussing' && voteReq && (
@@ -1050,9 +1213,10 @@
                         )}
 
                         {activeView === 'friends' && (
-                            <div className="md:col-span-3 glass-panel rounded-2xl p-6 animate-fade-in space-y-4">
-                                <h2 className="text-xl font-bold mb-4 text-primary">{t.tabFriends}</h2>
+                            <div className="md:col-span-3 glass-panel rounded-2xl p-6 animate-fade-in space-y-6">
+                                <h2 className="text-xl font-bold text-primary">{t.tabFriends}</h2>
                                 
+                                {/* Add Friend Section */}
                                 <div className="flex gap-2">
                                     <input 
                                         className="input-dark flex-1 p-2 rounded text-sm" 
@@ -1060,36 +1224,71 @@
                                         value={addFriendId} 
                                         onChange={e => setAddFriendId(e.target.value)} 
                                     />
-                                    <button onClick={handleAddFriend} className="btn-neon px-4 rounded text-sm">{t.addFriend}</button>
+                                    <button onClick={handleSendRequest} className="btn-neon px-4 rounded text-sm">{t.addFriend}</button>
                                 </div>
                                 {friendSearchMsg && <div className="text-xs text-center text-cyan-400">{friendSearchMsg}</div>}
                                 
-                                <div className="space-y-2 mt-4">
-                                    {friendsData.length === 0 && <p className="text-center text-gray-500 text-sm">{t.noFriends}</p>}
-                                    {friendsData.map(f => {
-                                        const isOnline = f.lastActive && (Date.now() - f.lastActive.toMillis() < 120000); // 2 mins
-                                        return (
-                                            <div key={f.uid} onClick={() => openProfile(f.uid)} className="player-card flex items-center justify-between p-3">
-                                                <div className="flex items-center gap-2">
-                                                    <img src={f.photoURL} className="w-10 h-10 rounded-full"/>
-                                                    <div>
-                                                        <div className="font-bold">{f.displayName}</div>
-                                                        <div className="text-xs text-gray-400">Lvl {calculateLevel(f.stats?.xp)}</div>
+                                {/* Friend Requests */}
+                                {friendRequests.length > 0 && (
+                                    <div className="border-t border-white/10 pt-4">
+                                        <h3 className="text-sm font-bold text-gray-400 mb-2">{t.incomingRequests}</h3>
+                                        <div className="space-y-2">
+                                            {friendRequests.map(f => (
+                                                <div key={f.uid} className="flex items-center justify-between p-2 bg-white/5 rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <img src={f.photoURL} className="w-8 h-8 rounded-full"/>
+                                                        <span>{f.displayName}</span>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => handleAcceptRequest(f.uid)} className="btn-success px-3 py-1 rounded text-xs">{t.accept}</button>
+                                                        <button onClick={() => handleRejectRequest(f.uid)} className="btn-danger px-3 py-1 rounded text-xs">{t.reject}</button>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`${isOnline ? 'status-online' : 'status-offline'}`}></span>
-                                                    <span className="text-xs">{isOnline ? t.online : t.offline}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Friends List */}
+                                <div className="border-t border-white/10 pt-4">
+                                    <h3 className="text-sm font-bold text-gray-400 mb-2">{t.tabFriends}</h3>
+                                    <div className="space-y-2">
+                                        {friendsData.length === 0 && <p className="text-center text-gray-500 text-sm py-4">{t.noFriends}</p>}
+                                        {friendsData.map(f => {
+                                            const isOnline = f.lastActive && (Date.now() - f.lastActive.toMillis() < 120000);
+                                            return (
+                                                <div key={f.uid} className="player-card flex items-center justify-between p-3">
+                                                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => openProfile(f.uid)}>
+                                                        <img src={f.photoURL} className="w-10 h-10 rounded-full"/>
+                                                        <div>
+                                                            <div className="font-bold">{f.displayName}</div>
+                                                            <div className="text-xs text-gray-400">Lvl {calculateLevel(f.stats?.xp)}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`${isOnline ? 'status-online' : 'status-offline'}`}></span>
+                                                        <span className="text-xs mr-2">{isOnline ? t.online : t.offline}</span>
+                                                        <button onClick={() => openChat(f)} className="btn-ghost px-3 py-1 rounded text-xs border-blue-500 text-blue-400">Chat</button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         )}
 
                         {activeView === 'lobby' && (
                             <>
+                                {/* Lobby Friends Button (Inside Room) */}
+                                {room && (
+                                    <div className="md:col-span-3 flex justify-end mb-2">
+                                        <button onClick={() => setActiveView('friends')} className="btn-ghost px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
+                                            <span>👥</span> {t.inviteFriends}
+                                        </button>
+                                    </div>
+                                )}
+
                                 {/* Left Column (Players) */}
                                 {room && (
                                     <div className="glass-panel rounded-2xl p-4 space-y-2 animate-fade-in delay-1">
@@ -1233,9 +1432,9 @@
                                                                         {m.sender !== 'system' && <div className="text-[10px] opacity-70 mb-1 font-bold">{m.name}</div>}
                                                                         <div className="text-sm leading-tight">{m.text}</div>
                                                                     </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                                         {!isSpectator && isMyTurn ? (
                                                             <div className="flex flex-col gap-2 mt-auto border-t border-white/10 pt-3 relative z-10">
                                                                 <div className="flex gap-1 mb-1">{EMOJIS.map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>))}</div>
@@ -1269,8 +1468,8 @@
                                                                 const voter = room.players.find(p => p.uid === uid);
                                                                 const targetName = room.players.find(p => p.uid === target)?.name;
                                                                 return (<span key={uid} className="bg-white/5 px-2 py-1 rounded">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>);
-                                                            })}
-                                                        </div>
+                                            })}
+                                        </div>
                                                     </div>
                                                     {!hasVoted ? (
                                                         <div className="grid grid-cols-2 gap-3">
