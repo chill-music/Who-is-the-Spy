@@ -165,7 +165,8 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
 
-        .player-card { transition: all 0.3s; position: relative; border: 1px solid transparent; }
+        .player-card { transition: all 0.3s; position: relative; border: 1px solid transparent; cursor: pointer; }
+        .player-card:hover { border-color: rgba(255,255,255,0.2); }
         .player-card.active { background: rgba(0, 242, 255, 0.1); border-color: var(--primary); }
         .player-card.eliminated { opacity: 0.4; border-color: var(--accent); filter: grayscale(100%); }
         
@@ -254,7 +255,7 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v10_accounts';
+        const appId = 'pro_spy_v11_mixed';
         const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
 
         // --- Achievements Definition ---
@@ -331,7 +332,8 @@
                 changeName: "Change Name",
                 nameChangeLimit: "Once a month",
                 copied: "Copied!",
-                save: "Save"
+                save: "Save",
+                or: "OR"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
@@ -370,7 +372,8 @@
                 changeName: "تغيير الاسم",
                 nameChangeLimit: "مرة شهرياً",
                 copied: "تم النسخ!",
-                save: "حفظ"
+                save: "حفظ",
+                or: "أو"
             }
         };
 
@@ -397,21 +400,33 @@
 
         // --- Components ---
 
-        const ProfileModal = ({ show, onClose, userData, lang, onUpdate }) => {
+        const ProfileModal = ({ show, onClose, targetUID, currentUserData, lang, isSelf, onUpdate }) => {
             const t = TRANSLATIONS[lang];
+            const [profileData, setProfileData] = useState(null);
             const [newName, setNewName] = useState('');
             const [msg, setMsg] = useState('');
             
             useEffect(() => {
-                if(userData) setNewName(userData.displayName || '');
-            }, [userData]);
+                if (show && targetUID) {
+                    // Load profile data
+                    const fetchData = async () => {
+                        const doc = await usersCollection.doc(targetUID).get();
+                        if (doc.exists) {
+                            const data = doc.data();
+                            setProfileData(data);
+                            if (isSelf) setNewName(data.displayName || '');
+                        }
+                    };
+                    fetchData();
+                }
+            }, [show, targetUID]);
 
-            if (!show || !userData) return null;
+            if (!show || !profileData) return null;
 
-            const level = calculateLevel(userData.stats?.xp || 0);
-            const xpProgress = calculateXPProgress(userData.stats?.xp || 0);
-            const wins = userData.stats?.wins || 0;
-            const losses = userData.stats?.losses || 0;
+            const level = calculateLevel(profileData.stats?.xp || 0);
+            const xpProgress = calculateXPProgress(profileData.stats?.xp || 0);
+            const wins = profileData.stats?.wins || 0;
+            const losses = profileData.stats?.losses || 0;
             const totalGames = wins + losses;
             const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(0) : 0;
             
@@ -419,14 +434,14 @@
             const offset = circumference - (winRate / 100) * circumference;
 
             const handleCopyId = () => {
-                navigator.clipboard.writeText(userData.customId);
+                navigator.clipboard.writeText(profileData.customId);
                 setMsg(t.copied);
                 setTimeout(() => setMsg(''), 2000);
             };
 
             const handleChangeName = async () => {
                 if(!newName.trim()) return;
-                const lastChange = userData.lastChangedName?.toMillis() || 0;
+                const lastChange = profileData.lastChangedName?.toMillis() || 0;
                 const monthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
                 
                 if (lastChange > monthAgo) {
@@ -434,12 +449,12 @@
                     return;
                 }
                 
-                await usersCollection.doc(userData.uid).update({
+                await usersCollection.doc(profileData.uid).update({
                     displayName: newName,
                     lastChangedName: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 setMsg("Updated!");
-                onUpdate(); 
+                if (onUpdate) onUpdate();
             };
 
             return (
@@ -447,11 +462,11 @@
                     <div className="glass-panel rounded-2xl p-6 w-full max-w-md animate-pop" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-start mb-6">
                             <div className="flex items-center gap-4">
-                                <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="w-16 h-16 rounded-full border-2 border-cyan-400" alt="User Avatar" />
+                                <img src={profileData.photoURL || `https://ui-avatars.com/api/?name=${profileData.displayName}&background=random`} className="w-16 h-16 rounded-full border-2 border-cyan-400" alt="Avatar" />
                                 <div>
-                                    <h2 className="text-xl font-bold">{userData.displayName}</h2>
+                                    <h2 className="text-xl font-bold">{profileData.displayName}</h2>
                                     <div className="flex items-center gap-1 cursor-pointer hover:text-cyan-400" onClick={handleCopyId}>
-                                        <p className="text-gray-400 text-xs font-mono">ID: #{userData.customId}</p>
+                                        <p className="text-gray-400 text-xs font-mono">ID: #{profileData.customId}</p>
                                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                                     </div>
                                 </div>
@@ -459,15 +474,17 @@
                             <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button>
                         </div>
 
-                         {/* Change Name */}
-                         <div className="mb-4 glass-panel p-3 rounded-lg border border-white/10">
-                             <label className="text-[10px] text-gray-400 uppercase">{t.changeName}</label>
-                             <div className="flex gap-2 mt-1">
-                                <input className="input-dark flex-1 p-2 rounded text-xs" value={newName} onChange={e => setNewName(e.target.value)} />
-                                <button onClick={handleChangeName} className="btn-ghost px-3 rounded text-xs">{t.save}</button>
+                         {/* Change Name (Only for self) */}
+                         {isSelf && (
+                             <div className="mb-4 glass-panel p-3 rounded-lg border border-white/10">
+                                 <label className="text-[10px] text-gray-400 uppercase">{t.changeName}</label>
+                                 <div className="flex gap-2 mt-1">
+                                    <input className="input-dark flex-1 p-2 rounded text-xs" value={newName} onChange={e => setNewName(e.target.value)} />
+                                    <button onClick={handleChangeName} className="btn-ghost px-3 rounded text-xs">{t.save}</button>
+                                 </div>
+                                 <p className="text-[10px] text-gray-500 mt-1">{t.nameChangeLimit}</p>
                              </div>
-                             <p className="text-[10px] text-gray-500 mt-1">{t.nameChangeLimit}</p>
-                         </div>
+                         )}
                          
                          {msg && <div className="text-center text-xs text-cyan-400 mb-2">{msg}</div>}
 
@@ -520,7 +537,7 @@
                             <h3 className="text-sm font-bold text-gray-400 mb-3">{t.achievements}</h3>
                             <div className="grid grid-cols-3 gap-2">
                                 {ACHIEVEMENTS.map(ach => {
-                                    const isUnlocked = (userData.achievements || []).includes(ach.id);
+                                    const isUnlocked = (profileData.achievements || []).includes(ach.id);
                                     return (
                                         <div key={ach.id} className={`achievement-card rounded-lg p-2 text-center ${isUnlocked ? 'unlocked' : 'locked'}`}>
                                             <div className={`text-2xl mb-1 ${ach.special && isUnlocked ? 'animate-float' : ''}`}>{ach.icon}</div>
@@ -555,6 +572,7 @@
             const [showProfile, setShowProfile] = useState(false);
             const [showDropdown, setShowDropdown] = useState(false);
             const [joinError, setJoinError] = useState('');
+            const [targetProfileUID, setTargetProfileUID] = useState(null);
             
             const t = TRANSLATIONS[lang];
 
@@ -595,7 +613,7 @@
                 return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
             }, []);
 
-            // Auth State
+            // Auth State (Support Guest & Google)
             useEffect(() => {
                 const unsub = auth.onAuthStateChanged(async (u) => {
                     if (u) {
@@ -603,21 +621,24 @@
                         const userRef = usersCollection.doc(u.uid);
                         const doc = await userRef.get();
                         if (!doc.exists) {
-                            const newUser = {
-                                uid: u.uid, email: u.email, displayName: u.displayName,
+                            const newUserData = {
+                                uid: u.uid, email: u.email, displayName: u.displayName || u.uid.substring(0,5),
                                 photoURL: u.photoURL, customId: generateUID(),
                                 stats: { wins: 0, losses: 0, xp: 0 }, achievements: [],
                                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                                 lastChangedName: null
                             };
-                            await userRef.set(newUser);
-                            setUserData(newUser);
-                            setNickname(newUser.displayName);
+                            await userRef.set(newUserData);
+                            setUserData(newUserData);
+                            if (u.displayName) setNickname(u.displayName);
                         } else {
                             setUserData(doc.data());
-                            setNickname(doc.data().displayName || '');
+                            if (doc.data().displayName) setNickname(doc.data().displayName);
                         }
-                    } else { setUser(null); setUserData(null); }
+                    } else { 
+                        setUser(null); 
+                        setUserData(null); 
+                    }
                 });
                 return unsub;
             }, []);
@@ -671,20 +692,26 @@
                 try { await auth.signInWithPopup(provider); } catch (e) { console.error(e); }
             };
 
-            const handleLogout = async () => { await auth.signOut(); setShowDropdown(false); };
+            const handleLogout = async () => { await auth.signOut(); setShowDropdown(false); setNickname(''); localStorage.removeItem('pro_spy_nick'); };
 
             const handleCreate = async () => {
-                // Defensive Check
-                if (!user) return;
                 if (!nickname.trim()) return;
-                
                 if (soundEnabled) playSound('click');
                 setLoading(true);
                 setJoinError('');
+                
+                // If not logged in, sign in anonymously first
+                let uid = user?.uid;
+                if (!uid) {
+                    const anon = await auth.signInAnonymously();
+                    uid = anon.user.uid;
+                    setUser(anon.user);
+                }
+                
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set({
-                    id, admin: user.uid, status: 'waiting',
-                    players: [{ uid: user.uid, name: nickname, status: 'active', photo: userData?.photoURL }],
+                    id, admin: uid, status: 'waiting',
+                    players: [{ uid: uid, name: nickname, status: 'active', photo: userData?.photoURL }],
                     scenario: null, spyId: null, 
                     currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0,
                     messages: [], votes: {}, usedLocations: [], 
@@ -695,21 +722,26 @@
             };
 
             const handleJoin = async () => {
-                // Defensive Check
-                if (!user) return;
                 if (!nickname.trim()) return;
                 if (!inputCode.trim()) { setJoinError(t.enterCodeError); return; }
-                
                 if (soundEnabled) playSound('click');
                 setLoading(true);
                 setJoinError('');
+                
+                let uid = user?.uid;
+                if (!uid) {
+                    const anon = await auth.signInAnonymously();
+                    uid = anon.user.uid;
+                    setUser(anon.user);
+                }
+
                 const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(inputCode.toUpperCase());
                 const snap = await ref.get();
                 if (snap.exists) {
                     const data = snap.data();
-                    const exists = data.players.find(p => p.uid === user.uid);
+                    const exists = data.players.find(p => p.uid === uid);
                     if (!exists) {
-                        await ref.update({ players: [...data.players, { uid: user.uid, name: nickname, status: 'active', photo: userData?.photoURL }] });
+                        await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: userData?.photoURL }] });
                     }
                     setRoomId(inputCode.toUpperCase());
                 } else {
@@ -719,7 +751,7 @@
             };
 
             const startGame = async () => {
-                if (room.admin !== user.uid) return;
+                if (room.admin !== user?.uid) return;
                 if (soundEnabled) playSound('success');
                 
                 const used = room.usedLocations || [];
@@ -766,7 +798,7 @@
 
             const handleSkipTurn = async (forced = false) => {
                 if (!room) return;
-                if (!forced && room.currentTurnUID !== user.uid) return;
+                if (!forced && room.currentTurnUID !== user?.uid) return;
                 if (forced && room.status !== 'discussing') return;
                 nextTurn();
             };
@@ -784,7 +816,7 @@
             const requestVoting = async () => {
                 if (!room || room.status !== 'discussing') return;
                 if (soundEnabled) playSound('click');
-                if (room.admin === user.uid) { await triggerVoting(); return; }
+                if (room.admin === user?.uid) { await triggerVoting(); return; }
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
                     votingRequest: { requestedBy: user.uid, votes: { [user.uid]: true } }
                 });
@@ -797,7 +829,7 @@
                 const newVotes = { ...currentVotes, [user.uid]: true };
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 const majorityCount = Math.floor(activePlayers.length / 2) + 1;
-                if (user.uid === room.admin) { await triggerVoting(); return; }
+                if (user?.uid === room.admin) { await triggerVoting(); return; }
                 const agreeCount = Object.values(newVotes).filter(v => v === true).length;
                 if (agreeCount >= majorityCount) { await triggerVoting(); } 
                 else { await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ "votingRequest.votes": newVotes }); }
@@ -843,7 +875,7 @@
             };
 
             const endVotingNow = async () => {
-                if (room.admin !== user.uid) return;
+                if (room.admin !== user?.uid) return;
                 await resolveVotes(true);
             };
 
@@ -961,31 +993,14 @@
                     wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null
                 });
             };
+            
+            const openProfile = (uid) => {
+                if(!uid) return;
+                setTargetProfileUID(uid);
+                setShowProfile(true);
+            };
 
-            // --- Render Guard ---
-            // We check if user is null FIRST.
-            if (!user) {
-                return (
-                    <div className="min-h-screen flex items-center justify-center">
-                        <div className="text-center space-y-4 animate-fade-in">
-                            <div className="logo-container mx-auto animate-float">
-                                <div className="logo-border"></div>
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
-                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                                </svg>
-                            </div>
-                            <p className="text-gray-400 font-mono text-sm animate-pulse">{t.connecting}</p>
-                            <button onClick={handleGoogleLogin} className="btn-google px-6 py-3 rounded-lg text-sm font-bold mt-4 inline-flex items-center gap-2">
-                                <svg className="w-4 h-4" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg>
-                                {t.loginGoogle}
-                            </button>
-                        </div>
-                    </div>
-                );
-            }
-
-            // --- Derived State ---
-            // We use user?.uid (optional chaining) to prevent crashes if user becomes null unexpectedly.
+            // --- Render ---
             const isMyTurn = room?.currentTurnUID === user?.uid;
             const isSpy = room?.spyId === user?.uid;
             const me = room?.players?.find(p => p.uid === user?.uid);
@@ -999,11 +1014,20 @@
             const majorityNeeded = Math.floor(activePlayersCount / 2) + 1;
             const hasIAgreed = voteReq?.votes?.[user?.uid] === true;
             const hasIDeclined = voteReq?.votes?.[user?.uid] === false;
+            const isLoggedIn = user && !user.isAnonymous;
 
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 md:p-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                     
-                    <ProfileModal show={showProfile} onClose={() => setShowProfile(false)} userData={userData} lang={lang} onUpdate={async () => { if(user){ const d = await usersCollection.doc(user.uid).get(); setUserData(d.data()); }}} />
+                    <ProfileModal 
+                        show={showProfile} 
+                        onClose={() => setShowProfile(false)} 
+                        targetUID={targetProfileUID} 
+                        currentUserData={userData} 
+                        lang={lang} 
+                        isSelf={targetProfileUID === user?.uid}
+                        onUpdate={async () => { if(user){ const d = await usersCollection.doc(user.uid).get(); setUserData(d.data()); }}} 
+                    />
 
                     {room?.status === 'discussing' && voteReq && (
                          <div className="vote-request-banner glass-panel rounded-xl p-4 border-2 border-pink-500 animate-pop">
@@ -1045,7 +1069,7 @@
                             
                             {/* Auth Area */}
                             <div className="relative">
-                                {user ? (
+                                {isLoggedIn ? (
                                     <>
                                         <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-2 btn-ghost px-3 py-1 rounded-full border-gray-700">
                                             <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${userData?.displayName}`} className="w-6 h-6 rounded-full" alt=""/>
@@ -1054,7 +1078,7 @@
                                         
                                         {showDropdown && (
                                             <div className="dropdown-menu glass-panel rounded-lg py-2 animate-fade-in">
-                                                <button onClick={() => { setShowProfile(true); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button>
+                                                <button onClick={() => { openProfile(user.uid); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button>
                                                 <button onClick={handleLogout} className="w-full text-right px-4 py-2 text-sm text-red-400 hover:bg-white/10">{t.logout}</button>
                                             </div>
                                         )}
@@ -1080,7 +1104,9 @@
                                 </h3>
                                 <div className="space-y-2">
                                     {room.players.map((p, i) => (
-                                        <div key={i} className={`player-card relative p-2 rounded-lg flex items-center justify-between ${p.status === 'spectator' ? 'eliminated' : ''}`}>
+                                        <div key={i} 
+                                            onClick={() => openProfile(p.uid)}
+                                            className={`player-card relative p-2 rounded-lg flex items-center justify-between ${p.status === 'spectator' ? 'eliminated' : ''}`}>
                                             <div className="flex items-center gap-2 flex-1">
                                                 <img src={p.photo || `https://ui-avatars.com/api/?name=${p.name}`} className="w-6 h-6 rounded-full" alt=""/>
                                                 <span className="font-bold text-sm truncate">{p.name}</span>
@@ -1119,6 +1145,16 @@
                                         </div>
                                         {joinError && <div className="error-msg">{joinError}</div>}
                                     </div>
+                                    
+                                    <div className="relative py-4">
+                                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-700"></div></div>
+                                        <div className="relative flex justify-center text-xs"><span className="px-2 bg-[#05050a] text-gray-500">{t.or}</span></div>
+                                    </div>
+
+                                    <button onClick={handleGoogleLogin} className="btn-google w-full py-3 rounded-lg text-sm font-bold inline-flex items-center justify-center gap-2">
+                                        <svg className="w-5 h-5" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg>
+                                        {t.loginGoogle}
+                                    </button>
                                 </div>
                             )}
 
