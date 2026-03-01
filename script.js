@@ -267,11 +267,31 @@ const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
     const [newName, setNewName] = useState(''); 
     const [msg, setMsg] = useState(''); 
     const [showEmail, setShowEmail] = useState(false);
+    
+    // Hooks MUST be at the top before any returns
+    useEffect(() => { 
+        if (userData) setNewName(userData.displayName || ''); 
+    }, [userData]);
+
+    useEffect(() => {
+        if(userData && !userData.isAnonymous) {
+            const level = calculateLevel(userData.stats?.xp || 0);
+            const currentAch = userData.achievements || [];
+            let newAch = [...currentAch];
+            if(level >= 5 && !currentAch.includes('level_5')) newAch.push('level_5');
+            if(level >= 10 && !currentAch.includes('level_10')) newAch.push('level_10');
+            if(level >= 25 && !currentAch.includes('level_25')) newAch.push('level_25');
+            if(level >= 50 && !currentAch.includes('level_50')) newAch.push('level_50');
+            if(newAch.length > currentAch.length) {
+                usersCollection.doc(userData.uid).update({ achievements: newAch });
+            }
+        }
+    }, [userData?.stats?.xp]);
+
+    // Derived variables
     const isGuest = userData?.isAnonymous; 
     
-    useEffect(() => { if (userData) setNewName(userData.displayName || ''); }, [userData]); 
-    
-    // Safety check
+    // Now it is SAFE to return early
     if (!show || !userData || !user) return null; 
     
     const level = calculateLevel(userData.stats?.xp || 0); 
@@ -289,21 +309,6 @@ const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
 
     const email = user?.email || '';
     const maskedEmail = email.replace(/(.{2})(.*)(@.*)/, "$1***$3");
-
-    useEffect(() => {
-        if(userData && !userData.isAnonymous) {
-            const level = calculateLevel(userData.stats?.xp || 0);
-            const currentAch = userData.achievements || [];
-            let newAch = [...currentAch];
-            if(level >= 5 && !currentAch.includes('level_5')) newAch.push('level_5');
-            if(level >= 10 && !currentAch.includes('level_10')) newAch.push('level_10');
-            if(level >= 25 && !currentAch.includes('level_25')) newAch.push('level_25');
-            if(level >= 50 && !currentAch.includes('level_50')) newAch.push('level_50');
-            if(newAch.length > currentAch.length) {
-                usersCollection.doc(userData.uid).update({ achievements: newAch });
-            }
-        }
-    }, [userData?.stats?.xp]);
 
     return ( 
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 overflow-y-auto" onClick={onClose}> 
@@ -469,21 +474,6 @@ function App() {
     useEffect(() => { if (room?.status === 'word_selection' && room?.wordSelEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.wordSelEndTime - Date.now()) / 1000)); setWordSelTimer(remaining); if (remaining <= 0) { finishWordSelection(); clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setWordSelTimer(30); }, [room?.status, room?.wordSelEndTime]);
     useEffect(() => { const handleBeforeUnload = async (e) => { if (room && user) { handleLeaveRoom(true); } }; window.addEventListener('beforeunload', handleBeforeUnload); return () => window.removeEventListener('beforeunload', handleBeforeUnload); }, [room, user]);
     
-    useEffect(() => {
-        if(userData && !userData.isAnonymous) {
-            const level = calculateLevel(userData.stats?.xp || 0);
-            const currentAch = userData.achievements || [];
-            let newAch = [...currentAch];
-            if(level >= 5 && !currentAch.includes('level_5')) newAch.push('level_5');
-            if(level >= 10 && !currentAch.includes('level_10')) newAch.push('level_10');
-            if(level >= 25 && !currentAch.includes('level_25')) newAch.push('level_25');
-            if(level >= 50 && !currentAch.includes('level_50')) newAch.push('level_50');
-            if(newAch.length > currentAch.length) {
-                usersCollection.doc(userData.uid).update({ achievements: newAch });
-            }
-        }
-    }, [userData?.stats?.xp]);
-
     const handleGoogleLogin = async () => { const provider = new firebase.auth.GoogleAuthProvider(); try { await auth.signInWithPopup(provider); } catch (e) { console.error(e); } };
     const handleLogout = async () => { await auth.signOut(); setShowDropdown(false); setNickname(''); localStorage.removeItem('pro_spy_nick'); };
     
