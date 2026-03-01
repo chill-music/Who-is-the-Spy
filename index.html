@@ -121,7 +121,6 @@
         .guest-banner h3 { color: var(--primary); margin-bottom: 5px; }
         .friend-unread-badge { position: absolute; top: 8px; right: 8px; min-width: 20px; height: 20px; background: var(--accent); border-radius: 10px; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; color: white; padding: 0 4px; box-shadow: 0 0 10px rgba(255,0,85,0.5); }
         .role-icon { position: absolute; top: 10px; left: 10px; font-size: 24px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
-        /* Utility for small screens */
         .flex-wrap-gap { flex-wrap: wrap; gap: 0.5rem; }
     </style>
 </head>
@@ -149,7 +148,7 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v24_final_ui';
+        const appId = 'pro_spy_v25_final_fix';
         const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
         const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
         const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
@@ -936,7 +935,6 @@
             useEffect(() => {
                 const handleBeforeUnload = async (e) => {
                     if (room && user) {
-                        // Attempt to leave (best effort, might not always finish async)
                         handleLeaveRoom(true); 
                     }
                 };
@@ -1682,7 +1680,10 @@
                                         </h3>
                                         <div className="space-y-2">
                                             {room.players.map((p, i) => {
-                                                const roleIcon = p.role === 'mrwhite' ? '⚪' : p.role === 'informant' ? '🛈' : p.role === 'spy' ? '🕵️' : '';
+                                                // Only show role icon if it's ME (p.uid === user.uid). Others see nothing.
+                                                const isMe = p.uid === user?.uid;
+                                                const roleIcon = isMe ? (p.role === 'mrwhite' ? '⚪' : p.role === 'informant' ? '🛈' : p.role === 'spy' ? '🕵️' : '') : '';
+                                                
                                                 return (
                                                 <div key={i} onClick={() => openProfile(p.uid)} className={`player-card relative p-2 rounded-lg flex items-center justify-between ${p.status === 'ghost' ? 'ghost' : p.status === 'spectator' ? 'eliminated' : ''}`}>
                                                     <div className="flex items-center gap-2 flex-1">
@@ -1803,6 +1804,7 @@
                                                         <p className="text-xs text-gray-500 mb-6">{t.wordSelectionDesc}</p>
                                                         <div className="grid grid-cols-2 gap-4">
                                                             {(() => {
+                                                                // Fix: Hide words from Spy and Mr. White
                                                                 const wordsToDisplay = myRole === 'spy' || myRole === 'mrwhite' ? ['?', '?', '?', '?'] : (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en);
                                                                 return wordsToDisplay?.map((word, i) => {
                                                                     const voters = Object.entries(room.wordVotes || {}).filter(([uid, w]) => w === word).map(([uid]) => room.players.find(p => p.uid === uid)?.name);
@@ -1843,28 +1845,3 @@
                                                     
                                                     {/* Mr. White Guess Button */}
                                                     {myRole === 'mrwhite' && (
-                                                        <div className="mt-4">
-                                                            <button onClick={() => {
-                                                                const guess = prompt("Guess the location:");
-                                                                if(guess) handleMrWhiteGuess(guess);
-                                                            }} className="btn-gold w-full py-3 rounded-lg font-bold">{t.guessLocation}</button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {room.status === 'discussing' && (
-                                                <div className="space-y-4 animate-fade-in">
-                                                    {room.chosenWord && (<div className="glass-panel rounded-xl p-3 text-center border border-cyan-500/50"><span className="text-[10px] text-cyan-400 font-bold uppercase">{t.selectedWord}:</span><span className="ml-2 text-lg font-bold text-white">{room.chosenWord}</span></div>)}
-                                                    
-                                                    {/* Agent/Informant Identity */}
-                                                     <div className={`identity-square glass-panel ${myRole === 'spy' ? 'identity-spy' : myRole === 'informant' ? 'identity-informant' : myRole === 'mrwhite' ? 'identity-mrwhite' : 'identity-agent'}`}>
-                                                        <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
-                                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${
-                                                                myRole === 'spy' ? 'bg-red-500/20 text-red-400' : 
-                                                                myRole === 'informant' ? 'bg-blue-500/20 text-blue-400' : 
-                                                                myRole === 'mrwhite' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'
-                                                            }`}>
-                                                                {t[`status${myRole?.charAt(0).toUpperCase() + myRole?.slice(1) || 'Agent'}`]}
-                                                            </span>
-                                                            {myRole === 'spy' ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-4xl font-black mt-2 text-center px-2">{lang === 'ar' ?
