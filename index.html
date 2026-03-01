@@ -659,7 +659,7 @@
             useEffect(() => {
                 if(show) {
                     const unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => {
-                        setRooms(snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setRooms(snap.docs.map(d => ({ id: d.id, ...d.data() })));
                     });
                     return unsub;
                 }
@@ -1228,9 +1228,9 @@
                     if (mrWhite && ejectedUID === mrWhite.uid) {
                          // Mr White loses
                          await endGame(false); // Spy wins
+                         await roomsCollection.doc(roomId).update({ players: newPlayers });
                     }
                     else if (isSpy) { 
-                        newStatus = 'finished_spy_caught'; 
                         await updateGameStats(freshData.players, freshData.spyId); 
                         await roomsCollection.doc(roomId).update({ players: newPlayers, status: 'finished_spy_caught' });
                     } 
@@ -1240,10 +1240,11 @@
                          // Agents need to find spy. Informants count as agents.
                          if (remainingAgents.length <= 1) { 
                              await endGame(false); // Spy wins
+                             await roomsCollection.doc(roomId).update({ players: newPlayers });
                          }
                          else {
                              const nextRound = (freshData.currentRound || 1) + 1;
-                             if (nextRound > MAX_ROUNDS) { await endGame(false); }
+                             if (nextRound > MAX_ROUNDS) { await endGame(false); await roomsCollection.doc(roomId).update({ players: newPlayers }); }
                              else {
                                  const firstPlayer = newPlayers.filter(p => p.status === 'active').find(p => p.role !== 'spy') || newPlayers.filter(p => p.status === 'active')[0];
                                  await roomsCollection.doc(roomId).update({
@@ -1255,7 +1256,6 @@
                              }
                          }
                     }
-                    await roomsCollection.doc(roomId).update({ players: newPlayers });
                 }
             };
             
@@ -1353,7 +1353,7 @@
             
             const handleSendRequest = async () => {
                 if (!addFriendId || addFriendId === userData.customId || isGuest) return;
-                const snap = usersCollection.where('customId', '==', addFriendId).get();
+                const snap = await usersCollection.where('customId', '==', addFriendId).get();
                 if (snap.empty) { setFriendSearchMsg(t.friendNotFound); return; }
                 const friendDoc = snap.docs[0];
                 const friendUid = friendDoc.id;
@@ -1852,4 +1852,38 @@
                                                             <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-yellow-400">{votingTimer}</div>
                                                         </div>
                                                     </div>
-                                                    <div className="
+                                                    <div className="bg-black/20 p-3 rounded-lg text-xs space-y-1 mb-2 border border-white/5">
+                                                        <span className="text-gray-500 font-bold">{t.votesTitle}</span>
+                                                        <div className="flex flex-wrap gap-2 mt-1">
+                                                            {Object.entries(room.votes || {}).map(([uid, target]) => {
+                                                                const voter = room.players.find(p => p.uid === uid);
+                                                                const targetName = room.players.find(p => p.uid === target)?.name;
+                                                                return (<span key={uid} className="bg-white/5 px-2 py-1 rounded">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>);
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                    {!hasVoted ? (
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            {room.players.filter(p => p.status === 'active').map(p => (
+                                                                <button key={p.uid} onClick={() => submitVote(p.uid)} className="p-4 rounded-xl border text-sm font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10">{p.name}</button>
+                                                            ))}
+                                                        </div>
+                                                    ) : (<div className="text-center space-y-4 py-4"><div className="text-green-400 font-bold">{t.confirm}</div></div>)}
+                                                    {room.admin === user?.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg font-bold text-xs uppercase mt-2">{t.endVoting}</button>)}
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
