@@ -49,7 +49,6 @@ const ACHIEVEMENTS = [
     { id: 'wins_100', name_en: "Immortal", name_ar: "خالد", icon: "👑", special: true, desc_en: "Win 100 games.", desc_ar: "افوز 100 مرة.", hidden: false },
     { id: 'level_5', name_en: "Rising Star", name_ar: "نجم صاعد", icon: "⭐", desc_en: "Reach Level 5.", desc_ar: "الوصول للمستوى 5.", hidden: false },
     { id: 'level_10', name_en: "Veteran", name_ar: "محارب قديم", icon: "🛡️", desc_en: "Reach Level 10.", desc_ar: "الوصول للمستوى 10.", hidden: false },
-    // Hidden Achievements
     { id: 'ghost_protocol', name_en: "Ghost Protocol", name_ar: "بروتوكول الشبح", icon: "👻", desc_en: "Win a game without anyone voting for you.", desc_ar: "اربح لعبة دون أن يصوت عليك أحد.", hidden: true },
     { id: 'mr_white_lucky', name_en: "Lucky Guess", name_ar: "تخمين محظوظ", icon: "🎲", desc_en: "Win as Mr. White by guessing correctly.", desc_ar: "اربح كالسيد أبيض عن طريق التخمين الصحيح.", hidden: true }
 ];
@@ -77,20 +76,22 @@ const TRANSLATIONS = {
     en: { 
         appName: "PRO SPY", tagline: "COVERT ARENA", nickname: "OPERATOR NAME", create: "CREATE GAME", join: "JOIN OPS", browse: "BROWSE ROOMS", codePlaceholder: "ENTER CODE", players: "OPERATIVES", start: "LAUNCH MISSION", langBtn: "العربية", loading: "PROCESSING...", you: "YOU", statusSpy: "SPY", statusAgent: "AGENT", statusInformant: "INFORMANT", statusMrWhite: "MR. WHITE", statusGhost: "GHOST", round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT", chatPlaceholder: "Type message...", send: "SEND", waiting: "Awaiting host...", location: "LOCATION", spectator: "SPECTATOR", confirm: "CONFIRM VOTE", spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!", mrWhiteWin: "MR. WHITE WINS!", playAgain: "PLAY AGAIN", connecting: "Connecting...", startVoting: "START VOTING", votingStarted: "VOTING INITIATED", voteRequestTitle: "VOTING REQUEST", voteRequestDesc: "wants to start voting.", agree: "AGREE", decline: "DECLINE", endVoting: "END VOTING NOW", votesTitle: "VOTES:", roundsFormat: (c, m) => `ROUND ${c}/${m}`, wordSelectionTitle: "SELECT KEYWORD", wordSelectionDesc: "Choose a keyword for this round", finishSelection: "FINISH SELECTION", selectedWord: "Selected Keyword", loginGoogle: "Login", myAccount: "My Account", logout: "Logout", profile: "Profile", guest: "Guest", linkGuessCard: "GUESS MY CARD", level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID", enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Minimum players not met!", ok: "OK", tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends", addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID", online: "Online", offline: "Offline", noFriends: "No friends yet.", friendAdded: "Friend Added!", friendNotFound: "User not found.", requestSent: "Request Sent!", incomingRequests: "Incoming Requests", noRequests: "No pending requests.", accept: "Accept", reject: "Reject", sendMessage: "Send", inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?", inviteFriends: "Invite Friends", accountInfo: "Account Information", email: "Email", memberSince: "Member Since", nameChangeCountdown: "Name Change In", canChangeNow: "Can change now!", selectEmoji: "Emoji", guestTitle: "GUEST ACCOUNT", guestDesc: "Register to save progress and add friends.", kd: "K/D Ratio", stats: "Stats", noPermission: "Feature unavailable for guests.", normalMode: "NORMAL MODE", advancedMode: "ADVANCED MODE (6+)", modeNormalDesc: "Classic Spy vs Agents. 3-10 Players.", modeAdvDesc: "Special Roles included! 6-10 Players.", privateRoom: "Private Room", password: "Password", publicRoom: "Public Room", noRooms: "No active games found.", lobbyTitle: "GAME LOBBY", mrWhiteInstruction: "Guess the location to win!", informantInstruction: "You know a neighbor!", ghostInstruction: "You are now a Ghost. You can watch but cannot act.", guessLocation: "GUESS LOCATION", leaveRoom: "LEAVE", closeRoom: "CLOSE ROOM", showPassword: "Show Password", guestAccountLabel: "GUEST ACCOUNT", guestProfileMsg: "Guests cannot receive friend requests.", reportUser: "Report User", reportSent: "Report sent successfully!", reportTitle: "Report User", reportDesc: "Please select a reason for reporting this user.", reportReasonAbusive: "Abusive Behavior", reportReasonCheating: "Cheating", reportReasonSpam: "Spam", reportReasonOther: "Other", reportSubmit: "Submit Report", reportCancel: "Cancel", privateRoomError: "Private rooms require a password.",
         // New Translations
-        shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", 
+        shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", alreadyOwned: "Already Owned",
         tutorialTitle: "Welcome, Agent", tutorialStep1: "Your goal is to find the Spy (or blend in if you are the Spy).", tutorialStep2: "Each round, discuss and vote to eject a suspect.", tutorialStep3: "Win matches to earn Intel and buy items in the Shop!", skipTutorial: "Skip", next: "Next", startGame: "Start Game",
         matchSummary: "Match Summary", matchDuration: "Duration", mvp: "MVP", correctVotes: "Correct Votes", summaryTitle: "Game Over!",
         notifTitle: "Notification", achUnlock: "Achievement Unlocked!", newFriend: "New Friend Added!",
-        hiddenAch: "Hidden Achievement"
+        hiddenAch: "Hidden Achievement",
+        tabMain: "Main", tabInv: "Inventory", tabAch: "Achievements"
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", codePlaceholder: "أدخل الكود", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "دخول", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
         // New Translations
-        shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مزين", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", 
+        shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مزين", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
         tutorialTitle: "مرحباً أيها العميل", tutorialStep1: "هدفك هو العثور على الجاسوس (أو التخفي إن كنت الجاسوس).", tutorialStep2: "في كل جولة، ناقش وصوّت لطرد المشتبه به.", tutorialStep3: "اربح المباريات لتحصل على إنتل واشتري من المتجر!", skipTutorial: "تخطي", next: "التالي", startGame: "ابدأ اللعبة",
         matchSummary: "ملخص المباراة", matchDuration: "المدة", mvp: "الأفضل", correctVotes: "أصوات صحيحة", summaryTitle: "انتهت اللعبة!",
         notifTitle: "إشعار", achUnlock: "تم فتح إنجاز!", newFriend: "صديق جديد!",
-        hiddenAch: "إنجاز سري"
+        hiddenAch: "إنجاز سري",
+        tabMain: "الرئيسية", tabInv: "المخزون", tabAch: "الإنجازات"
     } 
 };
 
@@ -101,10 +102,10 @@ const GuestBanner = ({ lang }) => { const t = TRANSLATIONS[lang]; return ( <div 
 const NotificationToast = ({ message, onClose }) => {
     if(!message) return null;
     return (
-        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[9999] animate-pop">
-            <div className="glass-panel px-6 py-3 rounded-xl border border-cyan-400 text-white flex items-center gap-3 shadow-lg">
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-pop px-4 w-full max-w-sm pointer-events-none flex justify-center">
+            <div className="glass-panel px-6 py-3 rounded-xl border border-cyan-400 text-white flex items-center gap-3 shadow-lg pointer-events-auto">
                 <span className="text-lg">🎉</span>
-                <span className="text-sm font-bold">{message}</span>
+                <span className="text-sm font-bold text-center flex-1">{message}</span>
                 <button onClick={onClose} className="text-gray-400 hover:text-white text-lg font-bold">&times;</button>
             </div>
         </div>
@@ -125,18 +126,18 @@ const TutorialModal = ({ show, onClose, lang }) => {
 
     return (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4">
-            <div className="glass-panel rounded-2xl p-8 w-full max-w-md text-center animate-pop">
+            <div className="glass-panel rounded-2xl p-6 w-full max-w-sm text-center animate-pop">
                 <div className="text-6xl mb-6 animate-bounce">{steps[step].img}</div>
-                <p className="text-lg mb-8 text-gray-200">{steps[step].text}</p>
+                <p className="text-base mb-6 text-gray-200">{steps[step].text}</p>
                 <div className="flex justify-center gap-2 mb-4">
-                    {steps.map((_, i) => <div key={i} className={`w-3 h-3 rounded-full transition ${i === step ? 'bg-cyan-400 w-6' : 'bg-gray-600'}`}></div>)}
+                    {steps.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === step ? 'bg-cyan-400 w-4' : 'bg-gray-600'}`}></div>)}
                 </div>
-                <div className="flex gap-4">
-                    {step > 0 && <button onClick={() => setStep(s => s-1)} className="btn-ghost flex-1 py-2 rounded-lg">Back</button>}
+                <div className="flex gap-3">
+                    {step > 0 && <button onClick={() => setStep(s => s-1)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">Back</button>}
                     {step < steps.length - 1 ? (
-                        <button onClick={() => setStep(s => s+1)} className="btn-neon flex-1 py-2 rounded-lg">{t.next}</button>
+                        <button onClick={() => setStep(s => s+1)} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.next}</button>
                     ) : (
-                        <button onClick={onClose} className="btn-neon flex-1 py-2 rounded-lg">{t.startGame}</button>
+                        <button onClick={onClose} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.startGame}</button>
                     )}
                 </div>
                 <button onClick={onClose} className="text-xs text-gray-500 mt-4 hover:text-white">{t.skipTutorial}</button>
@@ -157,6 +158,13 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => {
     const equipped = userData.equipped || {};
 
     const handleBuy = async (item) => {
+        // Check if already owned
+        if(inventory[item.type]?.includes(item.id)) {
+            setMsg(t.alreadyOwned);
+            setTimeout(() => setMsg(''), 2000);
+            return;
+        }
+
         if(currency < item.cost) {
             setMsg(t.purchaseFail);
             setTimeout(() => setMsg(''), 2000);
@@ -186,38 +194,39 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => {
     const items = SHOP_ITEMS[tab] || [];
 
     return (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4" onClick={onClose}>
-            <div className="glass-panel rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col animate-pop" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-primary">{t.shop}</h2>
-                    <div className="flex items-center gap-2 text-yellow-400 font-bold">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-2" onClick={onClose}>
+            <div className="glass-panel rounded-2xl p-4 w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col animate-pop" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-3">
+                    <h2 className="text-lg font-bold text-primary">{t.shop}</h2>
+                    <div className="flex items-center gap-2 text-yellow-400 font-bold text-sm">
                         <span>{CURRENCY_ICON} {currency}</span>
                     </div>
                 </div>
                 
-                <div className="flex gap-2 mb-4 border-b border-white/10 pb-2">
+                <div className="flex gap-2 mb-3 border-b border-white/10 pb-2">
                     {['frames', 'titles', 'themes'].map(k => (
-                        <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 rounded-t-lg text-sm ${tab === k ? 'bg-white/10 text-white' : 'text-gray-500'}`}>{t[k]}</button>
+                        <button key={k} onClick={() => setTab(k)} className={`px-3 py-1 rounded-t-lg text-xs ${tab === k ? 'bg-white/10 text-white' : 'text-gray-500'}`}>{t[k]}</button>
                     ))}
                 </div>
 
-                {msg && <div className="text-center text-sm text-cyan-400 mb-2">{msg}</div>}
+                {msg && <div className="text-center text-xs text-cyan-400 mb-2">{msg}</div>}
 
-                <div className="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-3 pr-1">
                     {items.map(item => {
                         const owned = inventory[tab]?.includes(item.id);
                         const isEquipped = equipped[tab] === item.id;
                         return (
-                            <div key={item.id} className="bg-black/20 rounded-xl p-4 flex flex-col items-center">
-                                {item.type === 'frame' && <div className="w-16 h-16 rounded-full mb-2" style={{ border: `4px solid`, borderImage: item.preview, background: 'gray' }}></div>}
-                                {item.type === 'title' && <div className="text-lg font-bold mb-2 text-center" style={{ color: 'var(--primary)' }}>{item.name_en}</div>}
-                                <div className="text-xs font-bold mb-2">{lang === 'ar' ? item.name_ar : item.name_en}</div>
+                            <div key={item.id} className="bg-black/30 rounded-xl p-3 flex flex-col items-center justify-between h-36">
+                                <div className="text-xs font-bold mb-1 text-center">{lang === 'ar' ? item.name_ar : item.name_en}</div>
+                                {item.type === 'frame' && <div className="w-10 h-10 rounded-full mb-1" style={{ border: `3px solid`, borderColor: 'var(--primary)', borderImage: item.preview }}></div>}
+                                {item.type === 'title' && <div className="text-base font-bold mb-1 text-center" style={{ color: 'var(--primary)' }}>{item.name_en}</div>}
+                                
                                 {owned ? (
-                                    <button onClick={() => handleEquip(tab, item.id)} className={`w-full py-1 rounded text-xs ${isEquipped ? 'btn-neon' : 'btn-ghost border-white/20'}`}>
+                                    <button onClick={() => handleEquip(tab, item.id)} className={`w-full py-1 rounded text-[10px] ${isEquipped ? 'btn-neon' : 'btn-ghost border-white/20'}`}>
                                         {isEquipped ? t.equipped : t.equip}
                                     </button>
                                 ) : (
-                                    <button onClick={() => handleBuy(item)} className="btn-gold w-full py-1 rounded text-xs">{t.buy} ({item.cost} {CURRENCY_ICON})</button>
+                                    <button onClick={() => handleBuy(item)} className="btn-gold w-full py-1 rounded text-[10px]">{t.buy} ({item.cost})</button>
                                 )}
                             </div>
                         );
@@ -234,59 +243,51 @@ const MatchSummaryModal = ({ show, onClose, room, players, lang }) => {
     if(!show || !room) return null;
 
     const duration = room.finishedAt && room.startedAt ? formatDuration(room.finishedAt - room.startedAt) : "N/A";
-    const winnerRole = room.status === 'finished_spy_caught' ? 'Agent' : 'Spy';
-    if(room.status === 'finished_mrwhite_wins') winnerRole = 'Mr. White';
-
+    
     return (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4" onClick={onClose}>
-            <div className="glass-panel rounded-2xl p-8 w-full max-w-md text-center animate-pop" onClick={e => e.stopPropagation()}>
-                <h2 className="text-3xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">{t.summaryTitle}</h2>
+            <div className="glass-panel rounded-2xl p-6 w-full max-w-sm text-center animate-pop" onClick={e => e.stopPropagation()}>
+                <h2 className="text-2xl font-black mb-4 text-primary">{t.summaryTitle}</h2>
                 
-                <div className="grid grid-cols-2 gap-4 mb-6 text-left">
-                    <div className="bg-black/20 p-3 rounded-lg">
-                        <span className="text-xs text-gray-400">{t.matchDuration}</span>
-                        <div className="text-xl font-bold text-white">{duration}</div>
+                <div className="grid grid-cols-2 gap-3 mb-4 text-left text-xs">
+                    <div className="bg-black/30 p-2 rounded-lg">
+                        <span className="text-gray-400">{t.matchDuration}</span>
+                        <div className="text-lg font-bold text-white">{duration}</div>
                     </div>
-                    <div className="bg-black/20 p-3 rounded-lg">
-                        <span className="text-xs text-gray-400">{t.mvp}</span>
-                        <div className="text-xl font-bold text-primary">{winnerRole}</div>
+                    <div className="bg-black/30 p-2 rounded-lg">
+                        <span className="text-gray-400">{t.mvp}</span>
+                        <div className="text-lg font-bold text-primary truncate">{room.status === 'finished_spy_caught' ? 'Agents' : 'Spy'}</div>
                     </div>
                 </div>
 
-                <h3 className="text-lg font-bold mb-2">{t.players}</h3>
-                <div className="space-y-2 max-h-40 overflow-y-auto mb-4">
+                <div className="max-h-32 overflow-y-auto mb-4 space-y-1">
                     {players.map(p => (
-                        <div key={p.uid} className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-lg">
-                            <div className="flex items-center gap-2">
-                                <img src={p.photo} className="w-6 h-6 rounded-full"/>
-                                <span className="text-sm">{p.name}</span>
-                                {p.role === 'spy' && <span className="text-red-400 text-xs">(Spy)</span>}
-                            </div>
-                            <span className="text-xs text-gray-400">{p.status === 'active' ? 'Survived' : 'Eliminated'}</span>
+                        <div key={p.uid} className="flex justify-between items-center bg-white/5 px-2 py-1 rounded text-xs">
+                            <span>{p.name}</span>
+                            <span className={p.status === 'active' ? 'text-green-400' : 'text-red-400'}>{p.status === 'active' ? 'Survived' : 'Out'}</span>
                         </div>
                     ))}
                 </div>
 
-                <button onClick={onClose} className="btn-neon w-full py-3 rounded-lg">{t.ok}</button>
+                <button onClick={onClose} className="btn-neon w-full py-2 rounded-lg text-sm">{t.ok}</button>
             </div>
         </div>
     );
 };
-
 const KDCircle = ({ wins, losses, lang }) => {
     const t = TRANSLATIONS[lang];
     const total = wins + losses;
     const ratio = total > 0 ? wins / total : 0;
     const percentage = Math.round(ratio * 100);
     
-    const size = 120;
-    const strokeWidth = 8;
+    const size = 100; // Smaller size for compact design
+    const strokeWidth = 6;
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (ratio * circumference);
 
     return (
-        <div className="kd-circle-container">
+        <div className="kd-circle-container" style={{ width: size, height: size }}>
             <svg width={size} height={size}>
                 <defs>
                     <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -355,35 +356,35 @@ const ReportModal = ({ show, onClose, targetUser, currentUser, lang }) => {
     return (
         <div className="report-modal-overlay" onClick={onClose}>
             <div className="report-modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                <h2 className="text-xl font-bold text-red-400 mb-4">{t.reportTitle}</h2>
-                <p className="text-sm text-gray-400 mb-4">{t.reportDesc}</p>
+                <h2 className="text-lg font-bold text-red-400 mb-3">{t.reportTitle}</h2>
+                <p className="text-xs text-gray-400 mb-3">{t.reportDesc}</p>
                 
-                <div className="space-y-2 mb-4">
+                <div className="space-y-2 mb-3">
                     {reasons.map(r => (
                         <div 
                             key={r.id}
                             onClick={() => setSelectedReason(r.id)}
                             className={`report-reason-option ${selectedReason === r.id ? 'selected' : ''}`}
                         >
-                            <div className={`w-4 h-4 rounded-full border-2 ${selectedReason === r.id ? 'border-red-500 bg-red-500' : 'border-gray-500'}`}></div>
-                            <span>{r.label}</span>
+                            <div className={`w-3 h-3 rounded-full border-2 ${selectedReason === r.id ? 'border-red-500 bg-red-500' : 'border-gray-500'}`}></div>
+                            <span className="text-xs">{r.label}</span>
                         </div>
                     ))}
                 </div>
 
                 <textarea 
-                    className="input-dark w-full p-2 rounded text-sm h-20 resize-none"
+                    className="input-dark w-full p-2 rounded text-xs h-16 resize-none"
                     placeholder={t.reportReasonOther}
                     value={details}
                     onChange={e => setDetails(e.target.value)}
                     disabled={submitting}
                 ></textarea>
 
-                {msg && <div className="text-center text-green-400 text-sm my-2">{msg}</div>}
+                {msg && <div className="text-center text-green-400 text-xs my-2">{msg}</div>}
 
-                <div className="flex gap-2 mt-4">
-                    <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded" disabled={submitting}>{t.reportCancel}</button>
-                    <button onClick={handleSubmit} disabled={!selectedReason || submitting} className="btn-danger flex-1 py-2 rounded font-bold">
+                <div className="flex gap-2 mt-3">
+                    <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded text-xs" disabled={submitting}>{t.reportCancel}</button>
+                    <button onClick={handleSubmit} disabled={!selectedReason || submitting} className="btn-danger flex-1 py-2 rounded font-bold text-xs">
                         {submitting ? t.loading : t.reportSubmit}
                     </button>
                 </div>
@@ -392,7 +393,7 @@ const ReportModal = ({ show, onClose, targetUser, currentUser, lang }) => {
     );
 };
 
-const UserProfileModal = ({ show, onClose, targetUID, lang, onAddFriend, isFriend, currentUserData }) => { 
+const UserProfileModal = ({ show, onClose, targetUID, lang, isFriend, currentUserData, onSendRequest }) => { 
     const t = TRANSLATIONS[lang]; 
     const [profileData, setProfileData] = useState(null); 
     const [msg, setMsg] = useState(''); 
@@ -408,72 +409,65 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, onAddFriend, isFrien
     const totalGames = wins + losses; 
     const isTargetGuest = profileData.isAnonymous; 
     const equippedTitle = profileData.equipped?.titles ? SHOP_ITEMS.titles.find(i => i.id === profileData.equipped.titles) : null;
+    const isMe = targetUID === currentUserData.uid;
 
-    const handleSendRequest = async () => { 
-        if (isFriend || currentUserData.isAnonymous) return; 
-        await usersCollection.doc(targetUID).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(currentUserData.uid) }); 
-        setMsg(t.requestSent); 
-        setTimeout(() => setMsg(''), 2000); 
-    }; 
+    const handleAddClick = async () => {
+        if (isFriend || currentUserData.isAnonymous) return;
+        await onSendRequest(targetUID); 
+        setMsg(t.requestSent);
+        setTimeout(() => setMsg(''), 2000);
+    };
 
     return ( 
         <>
             <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4" onClick={onClose}> 
-                <div className="glass-panel rounded-2xl p-6 w-full max-w-sm animate-pop" onClick={e => e.stopPropagation()}> 
+                <div className="glass-panel rounded-2xl p-5 w-full max-w-sm animate-pop" onClick={e => e.stopPropagation()}> 
                     <div className="profile-header"> 
                         <div className="relative inline-block mb-2">
-                            <img src={profileData.photoURL || `https://ui-avatars.com/api/?name=${profileData.displayName}&background=random`} className="profile-avatar" alt=""/>
-                            {profileData.equipped?.frames && <div className="avatar-frame" style={{ borderImage: SHOP_ITEMS.frames.find(f=>f.id===profileData.equipped.frames)?.preview || 'none' }}></div>}
+                            <img src={profileData.photoURL || `https://ui-avatars.com/api/?name=${profileData.displayName}&background=random`} className="profile-avatar-sm" alt=""/>
+                            {profileData.equipped?.frames && <div className="avatar-frame-sm" style={{ borderImage: SHOP_ITEMS.frames.find(f=>f.id===profileData.equipped.frames)?.preview || 'none' }}></div>}
                         </div>
-                        <div className="profile-name">
-                            {equippedTitle && <span className="equipped-title">{lang === 'ar' ? equippedTitle.name_ar : equippedTitle.name_en}</span>}
+                        <div className="profile-name text-lg">
+                            {equippedTitle && <span className="equipped-title text-[8px]">{lang === 'ar' ? equippedTitle.name_ar : equippedTitle.name_en}</span>}
                             {profileData.displayName}
                         </div> 
                         
                         {isTargetGuest && (
-                            <div className="guest-badge-profile">
+                            <div className="guest-badge-profile text-[10px]">
                                 <span>⚠️</span> {t.guestAccountLabel}
                             </div>
                         )}
 
-                        <div className="profile-id-box" onClick={() => { navigator.clipboard.writeText(profileData.customId); setMsg(t.copied); setTimeout(()=>setMsg(''),1500) }}> 
-                            <span className="profile-id-text">ID: #{profileData.customId}</span> 
+                        <div className="profile-id-box mt-1" onClick={() => { navigator.clipboard.writeText(profileData.customId); setMsg(t.copied); setTimeout(()=>setMsg(''),1500) }}> 
+                            <span className="profile-id-text text-[10px]">ID: #{profileData.customId}</span> 
                         </div> 
                     </div> 
                     
-                    {/* Currency Display for own profile */}
-                    {targetUID === currentUserData.uid && (
-                        <div className="currency-banner" onClick={() => setShowShop(true)}>
-                            <span>{CURRENCY_ICON} {profileData.currency || 0} {CURRENCY_NAME}</span>
-                            <button className="text-xs bg-white/10 px-2 py-1 rounded">{t.shop}</button>
-                        </div>
-                    )}
-
-                    {msg && <div className="text-center text-xs text-cyan-400 mb-4">{msg}</div>}
+                    {msg && <div className="text-center text-[10px] text-cyan-400 mb-2">{msg}</div>}
                     
                     <KDCircle wins={wins} losses={losses} lang={lang} />
                     
-                    <div className="info-grid"> 
+                    <div className="info-grid text-xs"> 
                         <div className="info-box"><span className="info-label">{t.level}</span><span className="info-value text-primary">{level}</span></div> 
                         <div className="info-box"><span className="info-label">{t.totalGames}</span><span className="info-value">{totalGames}</span></div>
                         <div className="info-box"><span className="info-label">{t.wins}</span><span className="info-value text-green-400">{wins}</span></div> 
                         <div className="info-box"><span className="info-label">{t.losses}</span><span className="info-value text-red-400">{losses}</span></div> 
                     </div> 
                     
-                    {targetUID !== currentUserData.uid && ( 
+                    {!isMe && ( 
                         !currentUserData.isAnonymous ? (
                             !isTargetGuest ? (
-                                <button onClick={handleSendRequest} disabled={msg || isFriend} className={`w-full py-2 rounded-lg font-bold text-xs ${isFriend ? 'bg-gray-700 text-gray-400' : 'btn-neon'}`}> 
-                                    {isFriend ? "Already Friends" : (msg || t.addFriend)} 
+                                <button onClick={handleAddClick} disabled={msg || isFriend} className={`w-full py-2 rounded-lg font-bold text-xs mt-3 ${isFriend ? 'bg-gray-700 text-gray-400' : 'btn-neon'}`}> 
+                                    {isFriend ? "Friends" : (msg || t.addFriend)} 
                                 </button>
                             ) : (
-                                <div className="text-center text-xs text-yellow-400 bg-yellow-500/10 p-3 rounded-lg">{t.guestProfileMsg}</div>
+                                <div className="text-center text-[10px] text-yellow-400 bg-yellow-500/10 p-2 rounded-lg mt-3">{t.guestProfileMsg}</div>
                             )
-                        ) : (<div className="text-center text-xs text-gray-500 mt-2">{t.noPermission}</div>) 
+                        ) : (<div className="text-center text-[10px] text-gray-500 mt-3">{t.noPermission}</div>) 
                     )} 
                     
-                    {currentUserData && !currentUserData.isAnonymous && targetUID !== currentUserData.uid && (
-                        <button onClick={() => setShowReport(true)} className="btn-ghost w-full py-2 mt-2 rounded text-xs text-red-400 border-red-400/50 hover:bg-red-500/10">
+                    {currentUserData && !currentUserData.isAnonymous && !isMe && (
+                        <button onClick={() => setShowReport(true)} className="btn-ghost w-full py-1 mt-2 rounded text-[10px] text-red-400 border-red-400/50 hover:bg-red-500/10">
                             {t.reportUser}
                         </button>
                     )}
@@ -496,10 +490,9 @@ const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
     const [msg, setMsg] = useState(''); 
     const [showEmail, setShowEmail] = useState(false);
     const [showShop, setShowShop] = useState(false);
+    const [activeTab, setActiveTab] = useState('main'); // main, inv, ach
     
-    useEffect(() => { 
-        if (userData) setNewName(userData.displayName || ''); 
-    }, [userData]);
+    useEffect(() => { if (userData) setNewName(userData.displayName || ''); }, [userData]);
     
     useEffect(() => {
         if(userData && !userData.isAnonymous) {
@@ -533,103 +526,136 @@ const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
     const email = user?.email || '';
     const maskedEmail = email.replace(/(.{2})(.*)(@.*)/, "$1***$3");
     const currency = userData.currency || 0;
+    const inventory = userData.inventory || { frames: [], titles: [], themes: [] };
 
     return ( 
         <>
-            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 overflow-y-auto" onClick={onClose}> 
-                <div className="glass-panel rounded-2xl p-6 w-full max-w-md animate-pop my-8" onClick={e => e.stopPropagation()}> 
-                    <div className="flex justify-between items-center mb-6"> 
-                        <h2 className="text-xl font-bold text-primary">{t.myAccount}</h2> 
-                        <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button> 
+            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-2 overflow-y-auto" onClick={onClose}> 
+                <div className="glass-panel rounded-2xl p-4 w-full max-w-md animate-pop my-4 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}> 
+                    <div className="flex justify-between items-center mb-3 flex-shrink-0"> 
+                        <h2 className="text-lg font-bold text-primary">{t.myAccount}</h2> 
+                        <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">&times;</button> 
                     </div> 
+                    
                     {isGuest && <GuestBanner lang={lang} />} 
                     
-                    {/* Currency & Shop */}
-                    <div className="mb-4 p-3 rounded-lg bg-gradient-to-r from-yellow-900/30 to-yellow-500/10 border border-yellow-500/30 flex justify-between items-center cursor-pointer hover:bg-yellow-500/20 transition" onClick={() => setShowShop(true)}>
+                    {/* Currency & Shop Banner */}
+                    <div className="mb-3 p-2 rounded-lg bg-gradient-to-r from-yellow-900/30 to-yellow-500/10 border border-yellow-500/30 flex justify-between items-center cursor-pointer hover:bg-yellow-500/20 transition flex-shrink-0" onClick={() => setShowShop(true)}>
                         <div className="flex items-center gap-2">
-                            <span className="text-2xl">{CURRENCY_ICON}</span>
+                            <span className="text-xl">{CURRENCY_ICON}</span>
                             <div>
-                                <div className="text-lg font-bold text-yellow-400">{currency}</div>
-                                <div className="text-[10px] text-gray-400">{CURRENCY_NAME}</div>
+                                <div className="text-base font-bold text-yellow-400">{currency}</div>
+                                <div className="text-[8px] text-gray-400 uppercase">{CURRENCY_NAME}</div>
                             </div>
                         </div>
-                        <button className="btn-gold px-4 py-1 rounded text-xs">{t.shop}</button>
+                        <button className="btn-gold px-3 py-1 rounded text-[10px]">{t.shop}</button>
                     </div>
 
-                    <div className="profile-header mb-6"> 
+                    {/* Profile Header Compact */}
+                    <div className="flex items-center gap-3 mb-3 flex-shrink-0">
                         <div className="relative">
-                            <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="profile-avatar" alt=""/> 
-                            {userData.equipped?.frames && <div className="avatar-frame" style={{ borderImage: SHOP_ITEMS.frames.find(f=>f.id===userData.equipped.frames)?.preview || 'none' }}></div>}
+                            <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="w-14 h-14 rounded-full border-2 border-white/20" alt=""/> 
+                            {userData.equipped?.frames && <div className="avatar-frame-sm" style={{ borderImage: SHOP_ITEMS.frames.find(f=>f.id===userData.equipped.frames)?.preview || 'none' }}></div>}
                         </div>
-                        <div className="profile-name">{userData.displayName}</div> 
-                        {userData.equipped?.titles && <span className="equipped-title">{lang === 'ar' ? SHOP_ITEMS.titles.find(t=>t.id===userData.equipped.titles)?.name_ar : SHOP_ITEMS.titles.find(t=>t.id===userData.equipped.titles)?.name_en}</span>}
-                        <div className="profile-id-box" onClick={() => { navigator.clipboard.writeText(userData.customId); setMsg(t.copied); setTimeout(()=>setMsg(''),1500) }}> 
-                            <span className="profile-id-text">ID: #{userData.customId}</span> 
-                        </div> 
-                    </div> 
-                    
-                    <div className="mb-4 glass-panel p-3 rounded-lg border border-white/10">
-                        <span className="text-[10px] text-gray-400 uppercase">{t.email}</span>
-                        <div className="email-mask-container mt-1">
-                            <span className="text-sm font-mono">{showEmail ? email : maskedEmail}</span>
-                            <button onClick={() => setShowEmail(!showEmail)} className="email-toggle-btn">
-                                {showEmail ? "🙈" : "👁️"}
-                            </button>
+                        <div className="flex-1">
+                            <div className="text-sm font-bold">
+                                {userData.equipped?.titles && <span className="equipped-title text-[8px]">{lang === 'ar' ? SHOP_ITEMS.titles.find(t=>t.id===userData.equipped.titles)?.name_ar : SHOP_ITEMS.titles.find(t=>t.id===userData.equipped.titles)?.name_en}</span>}
+                                {userData.displayName}
+                            </div>
+                            <div className="text-[10px] text-gray-400 flex items-center gap-1 mt-1">
+                                <span>{t.level} {level}</span>
+                                <span className="opacity-50">|</span>
+                                <span>{t.wins}: {userData.stats?.wins || 0}</span>
+                            </div>
+                            <div className="w-full h-1 xp-bar-bg rounded-full overflow-hidden mt-1"> 
+                                <div className="h-full xp-bar-fill" style={{ width: `${xpProgress}%` }}></div> 
+                            </div> 
                         </div>
                     </div>
+                    
+                    {/* Tabs */}
+                    <div className="flex gap-1 mb-2 border-b border-white/10 pb-2 text-xs flex-shrink-0">
+                        <button onClick={() => setActiveTab('main')} className={`flex-1 py-1 rounded ${activeTab === 'main' ? 'bg-white/10 text-white' : 'text-gray-500'}`}>{t.tabMain}</button>
+                        <button onClick={() => setActiveTab('inv')} className={`flex-1 py-1 rounded ${activeTab === 'inv' ? 'bg-white/10 text-white' : 'text-gray-500'}`}>{t.tabInv}</button>
+                        <button onClick={() => setActiveTab('ach')} className={`flex-1 py-1 rounded ${activeTab === 'ach' ? 'bg-white/10 text-white' : 'text-gray-500'}`}>{t.tabAch}</button>
+                    </div>
 
-                    <div className="space-y-4 mb-6"> 
-                        <div className="info-grid"> 
-                            <div className="info-box col-span-2"><span className="info-label">{t.memberSince}</span><span className="info-value text-xs">{formatDate(userData.createdAt)}</span></div> 
-                        </div> 
-                    </div> 
-                    
-                    {!isGuest && ( 
-                        <div className="mb-6 glass-panel p-3 rounded-lg border border-white/10"> 
-                            <label className="text-[10px] text-gray-400 uppercase">{t.changeName}</label> 
-                            <div className="flex gap-2 mt-1"> 
-                                <input className="input-dark flex-1 p-2 rounded text-xs" value={newName} onChange={e => setNewName(e.target.value)} /> 
-                                <button onClick={handleChangeName} disabled={!canChange} className={`px-3 rounded text-xs font-bold ${canChange ? 'btn-neon' : 'bg-gray-700 text-gray-400 cursor-not-allowed'}`}>{t.save}</button> 
-                            </div> 
-                            <p className="text-[10px] text-gray-500 mt-1">{canChange ? t.canChangeNow : `${t.nameChangeCountdown}: ${timeRemaining}`}</p> 
-                        </div> 
-                    )} 
-                    
-                    {msg && !msg.includes('Copied') && <div className="text-center text-xs text-cyan-400 mb-2">{msg}</div>} 
-                    
-                    <div className="mb-6 glass-panel rounded-xl p-4 border border-white/10"> 
-                        <div className="flex justify-between items-center mb-2"> 
-                            <span className="font-bold text-primary">{t.level} {level}</span> 
-                            <span className="text-xs text-gray-400">{xpProgress}/100 XP</span> 
-                        </div> 
-                        <div className="w-full h-2 xp-bar-bg rounded-full overflow-hidden"> 
-                            <div className="h-full xp-bar-fill" style={{ width: `${xpProgress}%` }}></div> 
-                        </div> 
-                    </div> 
-                    
-                    <div className="grid grid-cols-3 gap-4 mb-6"> 
-                        <div className="text-center"><div className="text-3xl font-bold text-green-400">{userData.stats?.wins || 0}</div><div className="text-[10px] text-gray-500 uppercase">{t.wins}</div></div> 
-                        <div className="text-center"><div className="text-3xl font-bold text-red-400">{userData.stats?.losses || 0}</div><div className="text-[10px] text-gray-500 uppercase">{t.losses}</div></div> 
-                        <div className="text-center"><div className="text-3xl font-bold text-cyan-400">{(userData.stats?.wins || 0) + (userData.stats?.losses || 0)}</div><div className="text-[10px] text-gray-500 uppercase">{t.totalGames}</div></div> 
-                    </div> 
-                    
-                    <div> 
-                        <h3 className="text-sm font-bold text-gray-400 mb-3">{t.achievements}</h3> 
-                        <div className="grid grid-cols-3 gap-2"> 
-                            {ACHIEVEMENTS.map(ach => { 
-                                const isUnlocked = (userData.achievements || []).includes(ach.id);
-                                const isHidden = ach.hidden && !isUnlocked;
-                                if(isHidden) return <div key={ach.id} className="achievement-card locked rounded-lg p-2 text-center"><div className="text-2xl mb-1">❓</div><div className="text-[10px]">{t.hiddenAch}</div></div>;
-                                return ( 
-                                    <div key={ach.id} className={`achievement-card rounded-lg p-2 text-center ${isUnlocked ? 'unlocked' : 'locked'}`}> 
-                                        <div className="text-2xl mb-1">{ach.icon}</div> 
-                                        <div className="text-[10px] font-bold truncate">{lang === 'ar' ? ach.name_ar : ach.name_en}</div> 
-                                        <div className="ach-tooltip">{lang === 'ar' ? ach.desc_ar : ach.desc_en}</div> 
+                    {/* Content Area */}
+                    <div className="flex-1 overflow-y-auto pr-1 min-h-0">
+                        {activeTab === 'main' && (
+                            <div className="space-y-3">
+                                <div className="glass-panel p-2 rounded-lg border border-white/10 text-[10px]">
+                                    <span className="text-gray-400 uppercase">{t.email}</span>
+                                    <div className="flex justify-between items-center mt-1">
+                                        <span className="font-mono text-xs">{showEmail ? email : maskedEmail}</span>
+                                        <button onClick={() => setShowEmail(!showEmail)} className="text-cyan-400 text-[10px]">{showEmail ? "Hide" : "Show"}</button>
+                                    </div>
+                                </div>
+
+                                {!isGuest && ( 
+                                    <div className="glass-panel p-2 rounded-lg border border-white/10"> 
+                                        <label className="text-[9px] text-gray-400 uppercase">{t.changeName}</label> 
+                                        <div className="flex gap-1 mt-1"> 
+                                            <input className="input-dark flex-1 p-1 rounded text-xs" value={newName} onChange={e => setNewName(e.target.value)} /> 
+                                            <button onClick={handleChangeName} disabled={!canChange} className={`px-2 rounded text-[10px] font-bold ${canChange ? 'btn-neon' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>{t.save}</button> 
+                                        </div> 
+                                        <p className="text-[8px] text-gray-500 mt-1">{canChange ? t.canChangeNow : `${t.nameChangeCountdown}: ${timeRemaining}`}</p> 
                                     </div> 
-                                ); 
-                            })} 
-                        </div> 
-                    </div> 
+                                )} 
+                                {msg && !msg.includes('Copied') && <div className="text-center text-[10px] text-cyan-400">{msg}</div>}
+                            </div>
+                        )}
+
+                        {activeTab === 'inv' && (
+                            <div className="space-y-2">
+                                {inventory.frames?.length === 0 && inventory.titles?.length === 0 && <p className="text-center text-gray-500 text-xs py-4">No items yet.</p>}
+                                
+                                {inventory.titles?.length > 0 && (
+                                    <div>
+                                        <h4 className="text-[10px] font-bold text-gray-400 mb-1">{t.titles}</h4>
+                                        <div className="flex flex-wrap gap-1">
+                                            {inventory.titles.map(id => {
+                                                const item = SHOP_ITEMS.titles.find(i => i.id === id);
+                                                const isEq = userData.equipped?.titles === id;
+                                                if(!item) return null;
+                                                return <button key={id} onClick={() => { usersCollection.doc(userData.uid).update({"equipped.titles": id}); if(onUpdate) onUpdate(); }} className={`px-2 py-1 rounded text-[10px] ${isEq ? 'btn-neon' : 'btn-ghost'}`}>{lang === 'ar' ? item.name_ar : item.name_en}</button>
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {inventory.frames?.length > 0 && (
+                                    <div>
+                                        <h4 className="text-[10px] font-bold text-gray-400 mb-1">{t.frames}</h4>
+                                        <div className="flex flex-wrap gap-1">
+                                            {inventory.frames.map(id => {
+                                                const item = SHOP_ITEMS.frames.find(i => i.id === id);
+                                                const isEq = userData.equipped?.frames === id;
+                                                if(!item) return null;
+                                                return <button key={id} onClick={() => { usersCollection.doc(userData.uid).update({"equipped.frames": id}); if(onUpdate) onUpdate(); }} className={`w-8 h-8 rounded-full ${isEq ? 'ring-2 ring-cyan-400' : ''}`} style={{ border: `2px solid`, borderImage: item.preview }}></button>
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'ach' && (
+                            <div className="grid grid-cols-3 gap-1"> 
+                                {ACHIEVEMENTS.map(ach => { 
+                                    const isUnlocked = (userData.achievements || []).includes(ach.id);
+                                    const isHidden = ach.hidden && !isUnlocked;
+                                    if(isHidden) return <div key={ach.id} className="achievement-card locked rounded p-1 text-center opacity-50"><div className="text-lg">❓</div><div className="text-[8px]">{t.hiddenAch}</div></div>;
+                                    return ( 
+                                        <div key={ach.id} className={`achievement-card rounded p-1 text-center ${isUnlocked ? 'unlocked' : 'locked'}`}> 
+                                            <div className="text-lg">{ach.icon}</div> 
+                                            <div className="text-[8px] font-bold truncate">{lang === 'ar' ? ach.name_ar : ach.name_en}</div> 
+                                        </div> 
+                                    ); 
+                                })} 
+                            </div> 
+                        )}
+                    </div>
                 </div> 
             </div>
             <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={userData} lang={lang} onUpdate={onUpdate} />
@@ -637,11 +663,11 @@ const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
     ); 
 };
 
-const PrivateChatModal = ({ show, onClose, friendData, currentUser, lang, onInvite, roomId, onJoinInvite }) => { const t = TRANSLATIONS[lang]; const [messages, setMessages] = useState([]); const [newMsg, setNewMsg] = useState(''); const [showEmojis, setShowEmojis] = useState(false); const chatId = (friendData && currentUser) ? getChatId(currentUser.uid, friendData.uid) : null; useEffect(() => { if(show && chatId) { const unsub = chatsCollection.doc(chatId).collection('messages').orderBy('timestamp', 'asc').onSnapshot(snap => { setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); chatsCollection.doc(chatId).set({ [`unread.${currentUser.uid}`]: 0 }, { merge: true }); return unsub; } }, [show, chatId]); const handleSend = async (text) => { const msgText = text || newMsg; if(!msgText.trim() || !chatId) return; const msg = { senderId: currentUser.uid, senderName: currentUser.displayName, text: msgText, timestamp: firebase.firestore.FieldValue.serverTimestamp(), type: 'text' }; const batch = db.batch(); const msgRef = chatsCollection.doc(chatId).collection('messages').doc(); batch.set(msgRef, msg); const chatRef = chatsCollection.doc(chatId); batch.set(chatRef, { members: [currentUser.uid, friendData.uid], lastMessage: msgText, timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friendData.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true }); await batch.commit(); setNewMsg(''); setShowEmojis(false); }; const handleInvite = async () => { if(!chatId) return; const inviteMsg = { senderId: currentUser.uid, senderName: currentUser.displayName, text: `${currentUser.displayName} ${t.invitedYou}`, timestamp: firebase.firestore.FieldValue.serverTimestamp(), type: 'invite', roomId: roomId }; const batch = db.batch(); const msgRef = chatsCollection.doc(chatId).collection('messages').doc(); batch.set(msgRef, inviteMsg); const chatRef = chatsCollection.doc(chatId); batch.set(chatRef, { members: [currentUser.uid, friendData.uid], lastMessage: t.inviteBtn, timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friendData.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true }); await batch.commit(); }; if(!show || !friendData || !currentUser) return null; return ( <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4" onClick={()=>{onClose(); setShowEmojis(false);}}> <div className="glass-panel rounded-2xl w-full max-w-lg h-[600px] flex flex-col animate-pop relative" onClick={e => e.stopPropagation()}> <div className="p-4 border-b border-white/10 flex justify-between items-center"> <div className="flex items-center gap-3"> <img src={friendData.photoURL} className="w-10 h-10 rounded-full border-2 border-cyan-400"/> <div> <h3 className="font-bold">{friendData.displayName}</h3> <span className="text-xs text-gray-400">Lvl {calculateLevel(friendData.stats?.xp)}</span> </div> </div> <button onClick={onClose} className="text-xl text-gray-400 hover:text-white">&times;</button> </div> <div className="flex-1 overflow-y-auto p-4 space-y-4"> {messages.map(m => ( <div key={m.id} className={`chat-msg-row ${m.senderId === currentUser.uid ? 'flex-row-reverse' : ''}`}> <img src={m.senderId === currentUser.uid ? currentUser.photoURL : friendData.photoURL} className="chat-avatar" alt=""/> <div className="chat-content"> <div className={`chat-header ${m.senderId === currentUser.uid ? 'justify-end' : ''}`}> <span className="chat-username">{m.senderName}</span> <span className="chat-timestamp">{formatTime(m.timestamp)}</span> </div> <div className={`chat-bubble ${m.senderId === currentUser.uid ? 'chat-bubble-me' : 'chat-bubble-other'}`}> {m.type === 'invite' ? ( <div className="invite-bubble"> <p className="text-sm">{m.text}</p> {m.senderId !== currentUser.uid && m.roomId && ( <button onClick={() => onJoinInvite(m.roomId)} className="btn-neon px-4 py-1 rounded text-xs mt-2">{t.joinInvite}</button> )} </div> ) : ( <p>{m.text}</p> )} </div> </div> </div> ))} </div> {showEmojis && ( <div className="emoji-picker-container"> <div className="flex justify-between items-center mb-1"> <span className="text-xs text-gray-400">{t.selectEmoji}</span> <button onClick={() => setShowEmojis(false)} className="text-xs text-gray-500 hover:text-white">&times;</button> </div> <div className="emoji-grid"> {EMOJI_LIST.map(emoji => ( <span key={emoji} onClick={() => handleSend(emoji)} className="emoji-item">{emoji}</span> ))} </div> </div> )} <div className="p-4 border-t border-white/10 relative"> {roomId && !currentUser.isAnonymous && (<button onClick={handleInvite} className="btn-success w-full py-2 rounded text-xs mb-2">{t.inviteBtn} ({t.inviteFriends})</button>)} <div className="flex gap-2 items-center"> <button onClick={() => setShowEmojis(!showEmojis)} className="btn-ghost p-2 rounded-full text-xl">😀</button> <input className="input-dark flex-1 p-2 rounded-full text-sm" placeholder={t.chatPlaceholder} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} /> <button onClick={() => handleSend()} className="btn-neon px-4 rounded-full">{t.send}</button> </div> </div> </div> </div> ); };
+const PrivateChatModal = ({ show, onClose, friendData, currentUser, lang, onInvite, roomId, onJoinInvite }) => { const t = TRANSLATIONS[lang]; const [messages, setMessages] = useState([]); const [newMsg, setNewMsg] = useState(''); const [showEmojis, setShowEmojis] = useState(false); const chatId = (friendData && currentUser) ? getChatId(currentUser.uid, friendData.uid) : null; useEffect(() => { if(show && chatId) { const unsub = chatsCollection.doc(chatId).collection('messages').orderBy('timestamp', 'asc').onSnapshot(snap => { setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); chatsCollection.doc(chatId).set({ [`unread.${currentUser.uid}`]: 0 }, { merge: true }); return unsub; } }, [show, chatId]); const handleSend = async (text) => { const msgText = text || newMsg; if(!msgText.trim() || !chatId) return; const msg = { senderId: currentUser.uid, senderName: currentUser.displayName, text: msgText, timestamp: firebase.firestore.FieldValue.serverTimestamp(), type: 'text' }; const batch = db.batch(); const msgRef = chatsCollection.doc(chatId).collection('messages').doc(); batch.set(msgRef, msg); const chatRef = chatsCollection.doc(chatId); batch.set(chatRef, { members: [currentUser.uid, friendData.uid], lastMessage: msgText, timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friendData.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true }); await batch.commit(); setNewMsg(''); setShowEmojis(false); }; const handleInvite = async () => { if(!chatId) return; const inviteMsg = { senderId: currentUser.uid, senderName: currentUser.displayName, text: `${currentUser.displayName} ${t.invitedYou}`, timestamp: firebase.firestore.FieldValue.serverTimestamp(), type: 'invite', roomId: roomId }; const batch = db.batch(); const msgRef = chatsCollection.doc(chatId).collection('messages').doc(); batch.set(msgRef, inviteMsg); const chatRef = chatsCollection.doc(chatId); batch.set(chatRef, { members: [currentUser.uid, friendData.uid], lastMessage: t.inviteBtn, timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friendData.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true }); await batch.commit(); }; if(!show || !friendData || !currentUser) return null; return ( <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-2" onClick={()=>{onClose(); setShowEmojis(false);}}> <div className="glass-panel rounded-2xl w-full max-w-lg h-[550px] flex flex-col animate-pop relative" onClick={e => e.stopPropagation()}> <div className="p-3 border-b border-white/10 flex justify-between items-center flex-shrink-0"> <div className="flex items-center gap-2"> <img src={friendData.photoURL} className="w-8 h-8 rounded-full border-2 border-cyan-400"/> <div> <h3 className="font-bold text-sm">{friendData.displayName}</h3> <span className="text-[10px] text-gray-400">Lvl {calculateLevel(friendData.stats?.xp)}</span> </div> </div> <button onClick={onClose} className="text-xl text-gray-400 hover:text-white">&times;</button> </div> <div className="flex-1 overflow-y-auto p-3 space-y-3"> {messages.map(m => ( <div key={m.id} className={`chat-msg-row ${m.senderId === currentUser.uid ? 'flex-row-reverse' : ''}`}> <img src={m.senderId === currentUser.uid ? currentUser.photoURL : friendData.photoURL} className="chat-avatar-sm" alt=""/> <div className="chat-content"> <div className={`chat-header ${m.senderId === currentUser.uid ? 'justify-end' : ''}`}> <span className="chat-username">{m.senderName}</span> <span className="chat-timestamp">{formatTime(m.timestamp)}</span> </div> <div className={`chat-bubble ${m.senderId === currentUser.uid ? 'chat-bubble-me' : 'chat-bubble-other'}`}> {m.type === 'invite' ? ( <div className="invite-bubble"> <p className="text-xs">{m.text}</p> {m.senderId !== currentUser.uid && m.roomId && ( <button onClick={() => onJoinInvite(m.roomId)} className="btn-neon px-3 py-1 rounded text-[10px] mt-1">{t.joinInvite}</button> )} </div> ) : ( <p className="text-sm">{m.text}</p> )} </div> </div> </div> ))} </div> {showEmojis && ( <div className="emoji-picker-container"> <div className="flex justify-between items-center mb-1"> <span className="text-[10px] text-gray-400">{t.selectEmoji}</span> <button onClick={() => setShowEmojis(false)} className="text-[10px] text-gray-500 hover:text-white">&times;</button> </div> <div className="emoji-grid"> {EMOJI_LIST.map(emoji => ( <span key={emoji} onClick={() => handleSend(emoji)} className="emoji-item">{emoji}</span> ))} </div> </div> )} <div className="p-3 border-t border-white/10 relative flex-shrink-0"> {roomId && !currentUser.isAnonymous && (<button onClick={handleInvite} className="btn-success w-full py-1 rounded text-[10px] mb-1">{t.inviteBtn}</button>)} <div className="flex gap-1 items-center"> <button onClick={() => setShowEmojis(!showEmojis)} className="btn-ghost p-1 rounded-full text-lg">😀</button> <input className="input-dark flex-1 p-2 rounded-full text-xs" placeholder={t.chatPlaceholder} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} /> <button onClick={() => handleSend()} className="btn-neon px-3 rounded-full text-xs">{t.send}</button> </div> </div> </div> </div> ); };
         
-const GameChatMessage = ({ msg, currentUser, players, onAvatarClick }) => { const sender = players.find(p => p.uid === msg.sender); const isMe = msg.sender === currentUser.uid; if(msg.sender === 'system') return <div className="text-center text-[10px] text-gray-500 my-2">{msg.text}</div>; return ( <div className={`chat-msg-row ${isMe ? 'flex-row-reverse' : ''}`}> <img src={sender?.photo || `https://ui-avatars.com/api/?name=${sender?.name}`} className="chat-avatar" alt="" onClick={() => onAvatarClick(msg.sender)} /> <div className="chat-content"> <div className={`chat-header ${isMe ? 'justify-end' : ''}`}> <span className="chat-username">{msg.name}</span> <span className="chat-timestamp">{formatTime(msg.time)}</span> </div> <div className={`chat-bubble ${isMe ? 'chat-bubble-me' : 'chat-bubble-other'}`}><p>{msg.text}</p></div> </div> </div> ); };
+const GameChatMessage = ({ msg, currentUser, players, onAvatarClick }) => { const sender = players.find(p => p.uid === msg.sender); const isMe = msg.sender === currentUser.uid; if(msg.sender === 'system') return <div className="text-center text-[9px] text-gray-500 my-1">{msg.text}</div>; return ( <div className={`chat-msg-row ${isMe ? 'flex-row-reverse' : ''}`}> <img src={sender?.photo || `https://ui-avatars.com/api/?name=${sender?.name}`} className="chat-avatar-sm" alt="" onClick={() => onAvatarClick(msg.sender)} /> <div className="chat-content"> <div className={`chat-header ${isMe ? 'justify-end' : ''}`}> <span className="chat-username">{msg.name}</span> <span className="chat-timestamp">{formatTime(msg.time)}</span> </div> <div className={`chat-bubble ${isMe ? 'chat-bubble-me' : 'chat-bubble-other'}`}><p>{msg.text}</p></div> </div> </div> ); };
         
-const LobbyBrowserModal = ({ show, onClose, lang, onJoinRoom }) => { const t = TRANSLATIONS[lang]; const [rooms, setRooms] = useState([]); const [passwordInput, setPasswordInput] = useState(''); const [selectedRoom, setSelectedRoom] = useState(null); useEffect(() => { if(show) { const unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => { setRooms(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); return unsub; } }, [show]); const handleJoinClick = (room) => { if(room.isPrivate) { setSelectedRoom(room); } else { onJoinRoom(room.id, null); onClose(); } }; const handlePasswordSubmit = () => { if(selectedRoom && selectedRoom.password === passwordInput) { onJoinRoom(selectedRoom.id, passwordInput); onClose(); } else { alert("Wrong Password!"); } }; if(!show) return null; return ( <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4" onClick={onClose}> <div className="glass-panel rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col animate-pop" onClick={e => e.stopPropagation()}> <div className="flex justify-between items-center mb-4"> <h2 className="text-xl font-bold text-primary">{t.lobbyTitle}</h2> <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button> </div> {selectedRoom && ( <div className="mb-4 p-4 border border-white/10 rounded-lg bg-black/20"> <p className="text-sm mb-2">Enter password for <span className="font-bold">{selectedRoom.id}</span></p> <div className="flex gap-2"> <input type="password" className="input-dark flex-1 p-2 rounded" placeholder="Password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} /> <button onClick={handlePasswordSubmit} className="btn-neon px-4 rounded">{t.join}</button> <button onClick={() => setSelectedRoom(null)} className="btn-ghost px-2 rounded">&times;</button> </div> </div> )} <div className="flex-1 overflow-y-auto space-y-2"> {rooms.length === 0 && <div className="text-center text-gray-500 py-10">{t.noRooms}</div>} {rooms.map(r => ( <div key={r.id} className="flex justify-between items-center p-3 bg-white/5 rounded-lg hover:bg-white/10 transition"> <div> <div className="flex items-center gap-2"> <span className="font-mono text-primary font-bold">{r.id}</span> {r.isPrivate && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1 rounded">🔒</span>} <span className={`text-[10px] ${r.mode === 'advanced' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'} px-1 rounded`}>{r.mode === 'advanced' ? t.advancedMode : t.normalMode}</span> </div> <div className="text-xs text-gray-400">{r.players?.length || 0}/{r.mode === 'advanced' ? 10 : 10} {t.players}</div> </div> <button onClick={() => handleJoinClick(r)} className="btn-neon px-4 py-1 rounded text-xs">{t.join}</button> </div> ))} </div> </div> </div> ); };
+const LobbyBrowserModal = ({ show, onClose, lang, onJoinRoom }) => { const t = TRANSLATIONS[lang]; const [rooms, setRooms] = useState([]); const [passwordInput, setPasswordInput] = useState(''); const [selectedRoom, setSelectedRoom] = useState(null); useEffect(() => { if(show) { const unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => { setRooms(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); return unsub; } }, [show]); const handleJoinClick = (room) => { if(room.isPrivate) { setSelectedRoom(room); } else { onJoinRoom(room.id, null); onClose(); } }; const handlePasswordSubmit = () => { if(selectedRoom && selectedRoom.password === passwordInput) { onJoinRoom(selectedRoom.id, passwordInput); onClose(); } else { alert("Wrong Password!"); } }; if(!show) return null; return ( <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-2" onClick={onClose}> <div className="glass-panel rounded-2xl p-4 w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col animate-pop" onClick={e => e.stopPropagation()}> <div className="flex justify-between items-center mb-3"> <h2 className="text-lg font-bold text-primary">{t.lobbyTitle}</h2> <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">&times;</button> </div> {selectedRoom && ( <div className="mb-3 p-3 border border-white/10 rounded-lg bg-black/20"> <p className="text-xs mb-2">Password for <span className="font-bold">{selectedRoom.id}</span></p> <div className="flex gap-2"> <input type="password" className="input-dark flex-1 p-2 rounded text-xs" placeholder="Password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} /> <button onClick={handlePasswordSubmit} className="btn-neon px-3 rounded text-xs">{t.join}</button> <button onClick={() => setSelectedRoom(null)} className="btn-ghost px-2 rounded">&times;</button> </div> </div> )} <div className="flex-1 overflow-y-auto space-y-1"> {rooms.length === 0 && <div className="text-center text-gray-500 py-10 text-xs">{t.noRooms}</div>} {rooms.map(r => ( <div key={r.id} className="flex justify-between items-center p-2 bg-white/5 rounded-lg hover:bg-white/10 transition"> <div> <div className="flex items-center gap-1"> <span className="font-mono text-primary font-bold text-xs">{r.id}</span> {r.isPrivate && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded">🔒</span>} <span className={`text-[8px] ${r.mode === 'advanced' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'} px-1 rounded`}>{r.mode === 'advanced' ? t.advancedMode : t.normalMode}</span> </div> <div className="text-[10px] text-gray-400">{r.players?.length || 0}/10</div> </div> <button onClick={() => handleJoinClick(r)} className="btn-neon px-3 py-1 rounded text-[10px]">{t.join}</button> </div> ))} </div> </div> </div> ); };
 
 function App() {
     const [lang, setLang] = useState('en');
@@ -685,7 +711,6 @@ function App() {
     const [notification, setNotification] = useState(null);
     const [showTutorial, setShowTutorial] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
-    const [summaryData, setSummaryData] = useState(null);
     
     const t = TRANSLATIONS[lang];
     const isLoggedIn = user && !user.isAnonymous;
@@ -700,7 +725,7 @@ function App() {
         class Particle { constructor() { this.x = Math.random() * width; this.y = Math.random() * height; this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5; this.size = Math.random() * 2; }
             update() { this.x += this.vx; this.y += this.vy; if (this.x < 0 || this.x > width) this.vx *= -1; if (this.y < 0 || this.y > height) this.vy *= -1; if (mouse.x != null) { let dx = mouse.x - this.x; let dy = mouse.y - this.y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 150) { const force = (150 - dist) / 150; this.x -= dx * force * 0.02; this.y -= dy * force * 0.02; } } }
             draw() { ctx.fillStyle = 'rgba(0, 242, 255, 0.5)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } }
-        for(let i=0; i<60; i++) particles.push(new Particle());
+        for(let i=0; i<40; i++) particles.push(new Particle()); // Reduced particles for performance
         let animId; const animate = () => { ctx.clearRect(0, 0, width, height); ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)'; ctx.lineWidth = 1;
             for (let i = 0; i < particles.length; i++) { particles[i].update(); particles[i].draw(); for (let j = i; j < particles.length; j++) { let dx = particles[i].x - particles[j].x; let dy = particles[i].y - particles[j].y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke(); } } }
             animId = requestAnimationFrame(animate); }; animate();
@@ -710,7 +735,7 @@ function App() {
     useEffect(() => {
         const unsubAuth = auth.onAuthStateChanged(async (u) => {
             if (u) { setUser(u); const userRef = usersCollection.doc(u.uid); const doc = await userRef.get();
-                if (!doc.exists) { const newUserData = { uid: u.uid, email: u.email, displayName: u.displayName || u.uid.substring(0,5), photoURL: u.photoURL, customId: generateUID(), stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [], friendRequests: [], createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastChangedName: null, lastActive: firebase.firestore.FieldValue.serverTimestamp(), isAnonymous: u.isAnonymous, currency: 0, inventory: {frames: [], titles: [], themes: []}, equipped: {} }; await userRef.set(newUserData); setUserData(newUserData); if (u.displayName) setNickname(u.displayName); }
+                if (!doc.exists) { const newUserData = { uid: u.uid, email: u.email, displayName: u.displayName || u.uid.substring(0,5), photoURL: u.photoURL, customId: generateUID(), stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [], friendRequests: [], createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastChangedName: null, lastActive: firebase.firestore.FieldValue.serverTimestamp(), isAnonymous: u.isAnonymous, currency: 100, inventory: {frames: [], titles: [], themes: []}, equipped: {} }; await userRef.set(newUserData); setUserData(newUserData); if (u.displayName) setNickname(u.displayName); }
                 const unsubSnap = userRef.onSnapshot(snap => { if (snap.exists) { setUserData(snap.data()); if (snap.data().displayName) setNickname(snap.data().displayName); } }); return () => unsubSnap();
             } else { setUser(null); setUserData(null); }
         }); return unsubAuth;
@@ -718,20 +743,12 @@ function App() {
 
     // Tutorial Check
     useEffect(() => {
-        const tutorialDone = localStorage.getItem('pro_spy_tutorial');
+        const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2');
         if(!tutorialDone && !isGuest) setShowTutorial(true);
     }, [isGuest]);
 
     useEffect(() => { if (!user) return; const interval = setInterval(() => { usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 60000); return () => clearInterval(interval); }, [user]);
-    useEffect(() => { if (!user || !roomId) return; const unsub = roomsCollection.doc(roomId).onSnapshot(doc => { if (doc.exists) { const data = doc.data(); setRoom(data); if(data.status?.includes('finished')) { triggerSummary(data); } } else {setRoom(null); setRoomId('');} }); return unsub; }, [user, roomId]);
-    
-    const triggerSummary = (data) => {
-        if(!data.startedAt) return;
-        setSummaryData({ room: data, players: data.players });
-        setShowSummary(true);
-        historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    };
-
+    useEffect(() => { if (!user || !roomId) return; const unsub = roomsCollection.doc(roomId).onSnapshot(doc => { if (doc.exists) { const data = doc.data(); setRoom(data); if(data.status?.includes('finished') && !data.summaryShown) { setSummaryData({ room: data, players: data.players }); setShowSummary(true); historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); roomsCollection.doc(roomId).update({summaryShown: true}); } } else {setRoom(null); setRoomId('');} }); return unsub; }, [user, roomId]);
     useEffect(() => { if (activeView === 'leaderboard') { usersCollection.orderBy('stats.wins', 'desc').limit(100).get().then(snap => { const data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); setLeaderboardData(data); }); } }, [activeView]);
     useEffect(() => { if (activeView === 'friends' && userData) { if (userData.friends?.length > 0) { usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).get().then(snap => { setFriendsData(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); } else { setFriendsData([]); } if (userData.friendRequests?.length > 0) { usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).get().then(snap => { setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); } else { setFriendRequests([]); } } }, [activeView, userData?.friends, userData?.friendRequests]);
     useEffect(() => { if (!user) return; const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => { let total = 0; const meta = {}; snap.docs.forEach(doc => { const d = doc.data(); meta[doc.id] = d; const myUnread = d.unread?.[user.uid] || 0; total += myUnread; }); setChatsMeta(meta); setTotalUnread(total); }); return unsub; }, [user, openChatId]);
@@ -757,7 +774,7 @@ function App() {
         let uid = user?.uid; 
         if (!uid) { const anon = await auth.signInAnonymously(); uid = anon.user.uid; setUser(anon.user); } 
         const id = Math.random().toString(36).substring(2, 7).toUpperCase(); 
-        await roomsCollection.doc(id).set({ id, admin: uid, status: 'waiting', players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(userData, nickname), role: null }], scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null }); 
+        await roomsCollection.doc(id).set({ id, admin: uid, status: 'waiting', players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(userData, nickname), role: null }], scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null, summaryShown: false }); 
         setRoomId(id); setLoading(false); setShowSetupModal(false); setActiveView('lobby'); 
     };
     
@@ -786,7 +803,7 @@ function App() {
     
     const handleJoinFromInvite = async (rId) => { setShowChat(false); setInputCode(rId); setLoading(true); let uid = user?.uid; if (!uid) { const anon = await auth.signInAnonymously(); uid = anon.user.uid; setUser(anon.user); } const ref = roomsCollection.doc(rId); const snap = await ref.get(); if (snap.exists) { const data = snap.data(); const exists = data.players.find(p => p.uid === uid); if (!exists) { await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(userData, nickname), role: null }] }); } setRoomId(rId); setActiveView('lobby'); } setLoading(false); };
 
-    const handleLeaveRoom = async (isUnload = false) => { if (!room || !user) return; if (!isUnload) playSound('click'); const isAdmin = room.admin === user.uid; if (isAdmin) { await roomsCollection.doc(roomId).delete(); } else { await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== user.uid) }); } if (!isUnload) { setRoom(null); setRoomId(''); } };
+    const handleLeaveRoom = async (isUnload = false) => { if (!room || !user) return; if (!isUnload) playSound('click'); const isAdmin = room.admin === user.uid; if (isAdmin) { await roomsCollection.doc(roomId).delete(); } else { await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== user.uid) }); } if (!isUnload) { setRoom(null); setRoomId(''); setShowSummary(false); } };
     
     const startGame = async () => { if (room.admin !== user?.uid) return; playSound('success'); const activePlayers = room.players.filter(p => p.status === 'active'); const playerCount = activePlayers.length; if (room.mode === 'advanced' && playerCount < 6) { setAlertMessage("Advanced mode requires 6+ players!"); return; } if (playerCount < 3) { setAlertMessage(t.needPlayers); return; } if (playerCount > 10) { setAlertMessage("Max 10 players allowed."); return; } const used = room.usedLocations || []; const avail = SCENARIOS.filter(s => !used.includes(s.loc_en)); const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))]; const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)]; let roles = {}; if (room.mode === 'advanced') { roles[spy.uid] = 'spy'; let potentialWhites = activePlayers.filter(p => p.uid !== spy.uid); if(potentialWhites.length > 0) { const mrWhite = potentialWhites[Math.floor(Math.random() * potentialWhites.length)]; roles[mrWhite.uid] = 'mrwhite'; potentialWhites = potentialWhites.filter(p => p.uid !== mrWhite.uid); } if(potentialWhites.length > 0) { const informant = potentialWhites[Math.floor(Math.random() * potentialWhites.length)]; roles[informant.uid] = 'informant'; } activePlayers.forEach(p => { if(!roles[p.uid]) roles[p.uid] = 'agent'; }); } else { activePlayers.forEach(p => roles[p.uid] = p.uid === spy.uid ? 'spy' : 'agent'); } let potentialStarters = activePlayers.filter(p => roles[p.uid] !== 'spy'); if (potentialStarters.length === 0) potentialStarters = activePlayers; const firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)]; await roomsCollection.doc(roomId).update({ status: 'word_selection', scenario, spyId: spy.uid, currentTurnUID: firstPlayer.uid, turnEndTime: null, currentRound: 1, players: room.players.map(p => ({ ...p, vote: null, role: roles[p.uid] || 'agent' })), usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en), messages: [], votes: {}, wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000, votingRequest: null, startedAt: firebase.firestore.FieldValue.serverTimestamp() }); };
     const submitWordVote = async (word) => { if (!user || !room || room.status !== 'word_selection') return; playSound('click'); const voteUpdate = {}; voteUpdate[`wordVotes.${user.uid}`] = word; await roomsCollection.doc(roomId).update(voteUpdate); };
@@ -801,30 +818,42 @@ function App() {
     const submitVote = async (targetUID) => { if (!targetUID || !user || (room.votes && room.votes[user.uid])) return; playSound('click'); const voteUpdate = {}; voteUpdate[`votes.${user.uid}`] = targetUID; await roomsCollection.doc(roomId).update(voteUpdate); };
     const endVotingNow = async () => { if (room.admin !== user?.uid) return; await resolveVotes(true); };
     const resolveVotes = async (forced = false) => { if (!room || room.status !== 'voting') return; const freshSnap = await roomsCollection.doc(roomId).get(); const freshData = freshSnap.data(); if (freshData.status !== 'voting') return; const activePlayers = freshData.players.filter(p => p.status === 'active'); const votes = freshData.votes || {}; const voteCounts = {}; Object.values(votes).forEach(v => voteCounts[v] = (voteCounts[v] || 0) + 1); let maxVotes = 0; let ejectedUID = null; let isTie = false; for (const uid in voteCounts) { if (voteCounts[uid] > maxVotes) { maxVotes = voteCounts[uid]; ejectedUID = uid; isTie = false; } else if (voteCounts[uid] === maxVotes) { isTie = true; } } const majorityNeeded = Math.floor(activePlayers.length / 2) + 1; if (isTie || maxVotes < majorityNeeded) { const nextRound = (freshData.currentRound || 1) + 1; if (nextRound > MAX_ROUNDS) { await endGame(false); } else { const firstPlayer = activePlayers.find(p => freshData.players.find(fp=>fp.uid===p.uid)?.role !== 'spy') || activePlayers[0]; await roomsCollection.doc(roomId).update({ status: 'word_selection', votes: {}, currentRound: nextRound, currentTurnUID: firstPlayer.uid, turnEndTime: null, votingEndTime: null, wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000 }); } } else { const newPlayers = freshData.players.map(p => { if (p.uid === ejectedUID) return { ...p, status: freshData.mode === 'advanced' && p.role !== 'spy' ? 'ghost' : 'spectator' }; return p; }); const isSpy = ejectedUID === freshData.spyId; const mrWhite = freshData.players.find(p => p.role === 'mrwhite'); if (mrWhite && ejectedUID === mrWhite.uid) { await endGame(false, true); await roomsCollection.doc(roomId).update({ players: newPlayers, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); } else if (isSpy) { await updateGameStats(freshData.players, freshData.spyId); await roomsCollection.doc(roomId).update({ players: newPlayers, status: 'finished_spy_caught', finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); } else { const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.role !== 'spy'); if (remainingAgents.length <= 1) { await endGame(false); await roomsCollection.doc(roomId).update({ players: newPlayers, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); } else { const nextRound = (freshData.currentRound || 1) + 1; if (nextRound > MAX_ROUNDS) { await endGame(false); await roomsCollection.doc(roomId).update({ players: newPlayers, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); } else { const firstPlayer = newPlayers.filter(p => p.status === 'active').find(p => p.role !== 'spy') || newPlayers.filter(p => p.status === 'active')[0]; await roomsCollection.doc(roomId).update({ players: newPlayers, status: 'word_selection', votes: {}, currentTurnUID: firstPlayer.uid, turnEndTime: null, votingEndTime: null, currentRound: nextRound, wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000 }); return; } } } } };
-    const handleMrWhiteGuess = async (guess) => { if(!room || !user) return; const me = room.players.find(p => p.uid === user.uid); if(me.role !== 'mrwhite') return; const correct = (lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en); if(guess === correct) { playSound('success'); await endGame(false, true, true); } else { setAlertMessage("Wrong guess! You remain silent."); } };
-    const updateGameStats = async (players, spyId) => { const batch = db.batch(); const spyWin = room.status === 'finished_spy_wins'; players.forEach(p => { if(!p.uid) return; const userRef = usersCollection.doc(p.uid); const isWinner = (p.uid === spyId && spyWin) || (p.uid !== spyId && !spyWin); batch.update(userRef, { "stats.wins": firebase.firestore.FieldValue.increment(isWinner ? 1 : 0), "stats.losses": firebase.firestore.FieldValue.increment(!isWinner ? 1 : 0), "stats.xp": firebase.firestore.FieldValue.increment(isWinner ? 50 : 10), "currency": firebase.firestore.FieldValue.increment(isWinner ? 50 : 10) // Add currency on win/loss
-        }); }); await batch.commit(); checkGameAchievements(players, spyId); };
+    const handleMrWhiteGuess = async (guess) => { if(!room || !user) return; const me = room.players.find(p => p.uid === user.uid); if(me.role !== 'mrwhite') return; const correct = (lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en); if(guess === correct) { playSound('success'); await endGame(false, true, true); } else { setAlertMessage("Wrong guess!"); } };
+    const updateGameStats = async (players, spyId) => { const batch = db.batch(); const spyWin = room.status === 'finished_spy_wins'; players.forEach(p => { if(!p.uid) return; const userRef = usersCollection.doc(p.uid); const isWinner = (p.uid === spyId && spyWin) || (p.uid !== spyId && !spyWin); batch.update(userRef, { "stats.wins": firebase.firestore.FieldValue.increment(isWinner ? 1 : 0), "stats.losses": firebase.firestore.FieldValue.increment(!isWinner ? 1 : 0), "stats.xp": firebase.firestore.FieldValue.increment(isWinner ? 50 : 10), "currency": firebase.firestore.FieldValue.increment(isWinner ? 50 : 10) }); }); await batch.commit(); checkGameAchievements(players, spyId); };
     
-    const checkGameAchievements = async (players, spyId) => { const spyWin = room.status === 'finished_spy_wins'; await Promise.all(players.map(async (p) => { if(!p || !p.uid || p.isAnonymous) return; const userRef = usersCollection.doc(p.uid); const doc = await userRef.get(); if(!doc.exists) return; const data = doc.data(); const wins = (data.stats?.wins || 0); const currentAch = data.achievements || []; let newAch = [...currentAch]; if(wins >= 1 && !currentAch.includes('first_win')) newAch.push('first_win'); if(wins >= 5 && !currentAch.includes('wins_5')) newAch.push('wins_5'); if(wins >= 10 && !currentAch.includes('wins_10')) newAch.push('wins_10'); if(wins >= 20 && !currentAch.includes('wins_20')) newAch.push('wins_20'); if(wins >= 50 && !currentAch.includes('wins_50')) newAch.push('wins_50'); if(wins >= 100 && !currentAch.includes('wins_100')) newAch.push('wins_100'); // Hidden: Ghost Protocol
-        if(isWinner && !spyWin){ // Agents won
-             const votesAgainstMe = Object.values(room.votes || {}).filter(v => v === p.uid).length;
-             if(votesAgainstMe === 0 && !currentAch.includes('ghost_protocol')) newAch.push('ghost_protocol');
-        }
-        
-        if(newAch.length > currentAch.length) { 
-            try { 
-                await userRef.update({ achievements: newAch }); 
-                setNotification(`${t.achUnlock} ${lang==='ar' ? ACHIEVEMENTS.find(a=>a.id===newAch[newAch.length-1]).name_ar : ACHIEVEMENTS.find(a=>a.id===newAch[newAch.length-1]).name_en}`);
-            } catch(err) { console.error("Ach err", err); } 
-        } 
-    })); };
+    const checkGameAchievements = async (players, spyId) => { const spyWin = room.status === 'finished_spy_wins'; await Promise.all(players.map(async (p) => { if(!p || !p.uid || p.isAnonymous) return; const userRef = usersCollection.doc(p.uid); const doc = await userRef.get(); if(!doc.exists) return; const data = doc.data(); const wins = (data.stats?.wins || 0); const currentAch = data.achievements || []; let newAch = [...currentAch]; if(wins >= 1 && !currentAch.includes('first_win')) newAch.push('first_win'); if(wins >= 5 && !currentAch.includes('wins_5')) newAch.push('wins_5'); if(wins >= 10 && !currentAch.includes('wins_10')) newAch.push('wins_10'); if(wins >= 20 && !currentAch.includes('wins_20')) newAch.push('wins_20'); if(wins >= 50 && !currentAch.includes('wins_50')) newAch.push('wins_50'); if(wins >= 100 && !currentAch.includes('wins_100')) newAch.push('wins_100'); if(isWinner && !spyWin){ const votesAgainstMe = Object.values(room.votes || {}).filter(v => v === p.uid).length; if(votesAgainstMe === 0 && !currentAch.includes('ghost_protocol')) newAch.push('ghost_protocol'); } if(newAch.length > currentAch.length) { try { await userRef.update({ achievements: newAch }); setNotification(`${t.achUnlock}`); } catch(err) { console.error("Ach err", err); } } })); };
     
     const endGame = async (agentsWin, mrWhiteWin = false) => { playSound(agentsWin ? 'success' : 'fail'); let status = agentsWin ? 'finished_spy_caught' : 'finished_spy_wins'; if(mrWhiteWin) status = 'finished_mrwhite_wins'; await roomsCollection.doc(roomId).update({ status, turnEndTime: null, votingEndTime: null, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); };
-    const resetGame = async () => { playSound('click'); await roomsCollection.doc(roomId).update({ status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0, votes: {}, messages: [], votingEndTime: null, turnEndTime: null, players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo, role: null })), wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, startedAt: null, finishedAt: null }); setShowSummary(false); };
+    const resetGame = async () => { playSound('click'); await roomsCollection.doc(roomId).update({ status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0, votes: {}, messages: [], votingEndTime: null, turnEndTime: null, players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo, role: null })), wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, startedAt: null, finishedAt: null, summaryShown: false }); setShowSummary(false); };
     const openProfile = (uid) => { if(!uid) return; setTargetProfileUID(uid); setShowUserProfile(true); };
     const openChat = (friend) => { setChatFriend(friend); setShowChat(true); const cId = getChatId(user.uid, friend.uid); setOpenChatId(cId); };
     const closeChat = () => { setShowChat(false); setChatFriend(null); setOpenChatId(null); }
-    const handleSendRequest = async () => { if (!addFriendId || addFriendId === userData.customId || isGuest) return; const snap = await usersCollection.where('customId', '==', addFriendId).get(); if (snap.empty) { setFriendSearchMsg(t.friendNotFound); return; } const friendDoc = snap.docs[0]; const friendUid = friendDoc.id; if (userData.friends?.includes(friendUid)) { setFriendSearchMsg("Already friends!"); return; } if (userData.friendRequests?.includes(friendUid)) { setFriendSearchMsg("Request already pending!"); return; } await usersCollection.doc(friendUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) }); setFriendSearchMsg(t.requestSent); setAddFriendId(''); };
+
+    // Fixed Friend Request Handler
+    const handleSendRequest = async (targetUid) => { 
+        if (!targetUid || targetUid === userData.customId || isGuest) return;
+        const snap = await usersCollection.where('uid', '==', targetUid).get(); 
+        if (snap.empty) return; 
+        const friendDoc = snap.docs[0]; 
+        const friendUid = friendDoc.id; 
+        if (userData.friends?.includes(friendUid)) return; 
+        if (userData.friendRequests?.includes(friendUid)) return; 
+        await usersCollection.doc(friendUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) }); 
+    };
+
+    const handleSearchRequest = async () => {
+        if (!addFriendId || addFriendId === userData.customId || isGuest) return;
+        const snap = await usersCollection.where('customId', '==', addFriendId).get(); 
+        if (snap.empty) { setFriendSearchMsg(t.friendNotFound); return; } 
+        const friendDoc = snap.docs[0]; 
+        const friendUid = friendDoc.id; 
+        if (userData.friends?.includes(friendUid)) { setFriendSearchMsg("Already friends!"); return; } 
+        if (userData.friendRequests?.includes(friendUid)) { setFriendSearchMsg("Request already pending!"); return; } 
+        await usersCollection.doc(friendUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) }); 
+        setFriendSearchMsg(t.requestSent); 
+        setAddFriendId(''); 
+    };
+
     const handleAcceptRequest = async (fromUid) => { await usersCollection.doc(user.uid).update({ friends: firebase.firestore.FieldValue.arrayUnion(fromUid), friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); await usersCollection.doc(fromUid).update({ friends: firebase.firestore.FieldValue.arrayUnion(user.uid) }); setNotification(t.newFriend); };
     const handleRejectRequest = async (fromUid) => { await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); };
 
@@ -842,27 +871,40 @@ function App() {
     const handleCopy = () => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
     return (
-        <div className="min-h-screen flex flex-col items-center p-4 md:p-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen flex flex-col items-center p-2 md:p-4" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
             <NotificationToast message={notification} onClose={() => setNotification(null)} />
-            <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial', 'true'); }} lang={lang} />
+            <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
             <MatchSummaryModal show={showSummary} onClose={() => setShowSummary(false)} room={room} players={room?.players} lang={lang} />
             
-            {alertMessage && ( <div className="alert-modal" onClick={() => setAlertMessage(null)}> <div className="glass-panel rounded-2xl p-6 w-full max-w-sm animate-pop text-center border border-pink-500" onClick={e => e.stopPropagation()}> <div className="text-4xl mb-4">🚫</div> <p className="text-lg font-bold mb-4">{alertMessage}</p> <button onClick={() => setAlertMessage(null)} className="btn-ghost px-6 py-2 rounded-lg border border-white/20">{t.ok}</button> </div> </div> )}
-            {showSetupModal && ( <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4" onClick={()=>setShowSetupModal(false)}> <div className="glass-panel rounded-2xl p-6 w-full max-w-md animate-pop" onClick={e => e.stopPropagation()}> <h2 className="text-xl font-bold text-primary mb-4">{t.create}</h2> <div className="space-y-4"> <div> <label className="text-xs text-gray-400 block mb-1">{t.nickname}</label> <input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg font-bold`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} /> </div> <div className="grid grid-cols-2 gap-2"> <button onClick={() => setSetupMode('normal')} className={`p-3 rounded-lg border-2 ${setupMode === 'normal' ? 'border-cyan-400 bg-cyan-500/10' : 'border-white/10'}`}><div className="font-bold">{t.normalMode}</div><div className="text-[10px] text-gray-400">{t.modeNormalDesc}</div></button> <button onClick={() => setSetupMode('advanced')} className={`p-3 rounded-lg border-2 ${setupMode === 'advanced' ? 'border-purple-400 bg-purple-500/10' : 'border-white/10'}`}><div className="font-bold">{t.advancedMode}</div><div className="text-[10px] text-gray-400">{t.modeAdvDesc}</div></button> </div> <div className="flex items-center gap-2"> <input type="checkbox" id="privateCheck" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="w-4 h-4"/> <label htmlFor="privateCheck" className="text-sm">{t.privateRoom}</label> </div> {isPrivate && ( <input className="input-dark w-full p-2 rounded" placeholder={t.password} value={password} onChange={e => setPassword(e.target.value)} /> )} <button onClick={handleCreateGame} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">{loading ? t.loading : t.create}</button> </div> </div> </div> )}
+            {alertMessage && ( <div className="alert-modal" onClick={() => setAlertMessage(null)}> <div className="glass-panel rounded-xl p-4 w-full max-w-xs animate-pop text-center border border-pink-500 text-sm" onClick={e => e.stopPropagation()}> <div className="text-2xl mb-2">🚫</div> <p className="font-bold mb-2">{alertMessage}</p> <button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-1 rounded border border-white/20 text-xs">{t.ok}</button> </div> </div> )}
+            
+            {showSetupModal && ( <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-2" onClick={()=>setShowSetupModal(false)}> <div className="glass-panel rounded-xl p-4 w-full max-w-sm animate-pop" onClick={e => e.stopPropagation()}> <h2 className="text-lg font-bold text-primary mb-3">{t.create}</h2> <div className="space-y-3"> <div> <label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label> <input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-2 rounded font-bold text-sm`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} /> </div> <div className="grid grid-cols-2 gap-2"> <button onClick={() => setSetupMode('normal')} className={`p-2 rounded-lg border-2 text-xs ${setupMode === 'normal' ? 'border-cyan-400 bg-cyan-500/10' : 'border-white/10'}`}><div className="font-bold">{t.normalMode}</div><div className="text-[8px] text-gray-400">{t.modeNormalDesc}</div></button> <button onClick={() => setSetupMode('advanced')} className={`p-2 rounded-lg border-2 text-xs ${setupMode === 'advanced' ? 'border-purple-400 bg-purple-500/10' : 'border-white/10'}`}><div className="font-bold">{t.advancedMode}</div><div className="text-[8px] text-gray-400">{t.modeAdvDesc}</div></button> </div> <div className="flex items-center gap-2"> <input type="checkbox" id="privateCheck" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="w-3 h-3"/> <label htmlFor="privateCheck" className="text-xs">{t.privateRoom}</label> </div> {isPrivate && ( <input className="input-dark w-full p-2 rounded text-xs" placeholder={t.password} value={password} onChange={e => setPassword(e.target.value)} /> )} <button onClick={handleCreateGame} disabled={loading || !nickname} className="btn-neon w-full py-2 rounded-lg font-bold text-sm">{loading ? t.loading : t.create}</button> </div> </div> </div> )}
+            
             <MyAccountPage show={showMyAccount} onClose={() => setShowMyAccount(false)} userData={userData} user={user} lang={lang} onUpdate={async () => { if(user){ const d = await usersCollection.doc(user.uid).get(); setUserData(d.data()); }} } />
-            <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} lang={lang} onAddFriend={handleSendRequest} isFriend={userData?.friends?.includes(targetProfileUID)} currentUserData={userData} />
+            <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} lang={lang} onSendRequest={handleSendRequest} isFriend={userData?.friends?.includes(targetProfileUID)} currentUserData={userData} />
             <PrivateChatModal show={showChat} onClose={closeChat} friendData={chatFriend} currentUser={userData} lang={lang} roomId={roomId} onJoinInvite={handleJoinFromInvite} />
             <LobbyBrowserModal show={showLobby} onClose={() => setShowLobby(false)} lang={lang} onJoinRoom={(id, pwd) => handleJoinGame(id, pwd)} />
-            {room?.status === 'discussing' && voteReq && ( <div className="vote-request-banner glass-panel rounded-xl p-4 border-2 border-pink-500 animate-pop"> <div className="flex flex-col gap-2"> <div className="text-center font-bold text-pink-400">{t.voteRequestTitle}</div> <div className="text-center text-xs text-gray-300"> <span className="font-bold">{room.players.find(p=>p.uid === voteReq.requestedBy)?.name}</span> {t.voteRequestDesc} </div> <div className="flex justify-center gap-2 mt-2"> <button onClick={agreeToVote} disabled={hasIAgreed} className={`btn px-6 py-2 rounded-lg text-xs font-bold ${hasIAgreed ? 'btn-ghost opacity-50' : 'btn-success'}`}>{t.agree}</button> <button onClick={declineVote} disabled={hasIDeclined} className={`btn px-6 py-2 rounded-lg text-xs font-bold ${hasIDeclined ? 'btn-ghost opacity-50' : 'btn-danger'}`}>{t.decline}</button> </div> </div> </div> )}
-            <header className="w-full max-w-4xl flex justify-between items-center mb-4 animate-fade-in relative z-50"> <div className="flex items-center gap-3"> <div className="logo-container"> <div className="logo-border"></div> <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2"> <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/> </svg> </div> <div> <h1 className="game-title text-2xl">{t.appName}</h1> <p className="text-[10px] text-gray-500 tracking-widest font-tech">{t.tagline}</p> </div> </div> <nav className="hidden md:flex gap-1 glass-panel rounded-full p-1 items-center"> <button onClick={() => setActiveView('lobby')} className={`nav-tab rounded-full text-xs ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button> <button onClick={() => setActiveView('leaderboard')} className={`nav-tab rounded-full text-xs ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button> <button onClick={() => setActiveView('friends')} className={`nav-tab rounded-full text-xs relative ${activeView === 'friends' ? 'active' : ''}`}> {t.tabFriends} {totalUnread > 0 && <span className="notification-badge">{totalUnread}</span>} </button> </nav> <div className="flex gap-2 items-center">
-                <a href="https://guessmycard.mooo.info/" target="_blank" rel="noopener noreferrer" className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700 hover:text-pink-400 hover:border-pink-400">{t.linkGuessCard}</a>
-                <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">{t.langBtn}</button>
-                <div className="relative"> {isLoggedIn ? ( <> <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-2 btn-ghost px-3 py-1 rounded-full border-gray-700"> <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${userData?.displayName}`} className="w-6 h-6 rounded-full" alt=""/> <span className="text-xs font-bold hidden md:block">{t.myAccount}</span> </button> {showDropdown && ( <div className="dropdown-menu glass-panel rounded-lg py-2 animate-fade-in"> <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button> <button onClick={handleLogout} className="w-full text-right px-4 py-2 text-sm text-red-400 hover:bg-white/10">{t.logout}</button> </div> )} </> ) : ( <button onClick={handleGoogleLogin} className="btn-google px-4 py-1 rounded-full text-xs font-bold flex items-center gap-2"> <svg className="w-4 h-4" viewBox="0 0 21 20" fill="none"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg> {t.loginGoogle} </button> )} </div> </div> </header>
-            <nav className="md:hidden w-full max-w-4xl flex justify-around glass-panel rounded-xl p-1 mb-4"> <button onClick={() => setActiveView('lobby')} className={`nav-tab flex-1 text-center ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button> <button onClick={() => setActiveView('leaderboard')} className={`nav-tab flex-1 text-center ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button> <button onClick={() => setActiveView('friends')} className={`nav-tab flex-1 text-center relative ${activeView === 'friends' ? 'active' : ''}`}> {t.tabFriends} {totalUnread > 0 && <span className="notification-badge">{totalUnread}</span>} </button> </nav>
-            <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
-                {activeView === 'leaderboard' && ( <div className="md:col-span-3 glass-panel rounded-2xl p-6 animate-fade-in overflow-x-auto"> <h2 className="text-xl font-bold mb-4 text-primary">{t.tabLeaderboard}</h2> <div className="min-w-[600px]"> <div className="leaderboard-row border-b border-white/20 font-bold text-xs text-gray-400"> <div className="w-16">{t.rank}</div> <div className="flex-1">{t.name}</div> <div className="w-16 text-center">{t.level}</div> <div className="w-20 text-center">{t.wins}</div> <div className="w-20 text-center">{t.losses}</div> </div> {leaderboardData.map((p, i) => ( <div key={p.uid} onClick={() => openProfile(p.uid)} className={`leaderboard-row cursor-pointer ${p.uid === user?.uid ? 'bg-cyan-500/10' : ''}`}> <div className="w-16 font-bold text-lg">#{i + 1}</div> <div className="flex-1 flex items-center gap-2"> <img src={p.photoURL} className="w-6 h-6 rounded-full"/> <span>{p.displayName}</span> {p.uid === user?.uid && <span className="text-[8px] bg-blue-500 px-1 rounded">{t.you}</span>} </div> <div className="w-16 text-center">{calculateLevel(p.stats?.xp)}</div> <div className="w-20 text-center text-green-400">{p.stats?.wins || 0}</div> <div className="w-20 text-center text-red-400">{p.stats?.losses || 0}</div> </div> ))} </div> </div> )}
-                {activeView === 'friends' && ( <div className="md:col-span-3 glass-panel rounded-2xl p-6 animate-fade-in space-y-6"> <h2 className="text-xl font-bold text-primary">{t.tabFriends}</h2> {isGuest ? (<div className="text-center py-10"><p className="text-gray-400 mb-4">{t.noPermission}</p></div>) : ( <> <div className="flex gap-2"> <input className="input-dark flex-1 p-2 rounded text-sm" placeholder={t.friendIdPlaceholder} value={addFriendId} onChange={e => setAddFriendId(e.target.value)} /> <button onClick={handleSendRequest} className="btn-neon px-4 rounded text-sm">{t.addFriend}</button> </div> {friendSearchMsg && <div className="text-xs text-center text-cyan-400">{friendSearchMsg}</div>} {friendRequests.length > 0 && ( <div className="border-t border-white/10 pt-4"> <h3 className="text-sm font-bold text-gray-400 mb-2">{t.incomingRequests}</h3> <div className="space-y-2"> {friendRequests.map(f => ( <div key={f.uid} className="flex items-center justify-between p-2 bg-white/5 rounded"> <div className="flex items-center gap-2"> <img src={f.photoURL} className="w-8 h-8 rounded-full"/> <span>{f.displayName}</span> </div> <div className="flex gap-2"> <button onClick={() => handleAcceptRequest(f.uid)} className="btn-success px-3 py-1 rounded text-xs">{t.accept}</button> <button onClick={() => handleRejectRequest(f.uid)} className="btn-danger px-3 py-1 rounded text-xs">{t.reject}</button> </div> </div> ))} </div> </div> )} <div className="border-t border-white/10 pt-4"> <h3 className="text-sm font-bold text-gray-400 mb-2">{t.tabFriends}</h3> <div className="space-y-2"> {sortedFriends.length === 0 && <p className="text-center text-gray-500 text-sm py-4">{t.noFriends}</p>} {sortedFriends.map(f => { const isOnline = f.lastActive && (Date.now() - f.lastActive.toMillis() < 120000); const chatId = getChatId(user?.uid, f.uid); const meta = chatsMeta[chatId]; const unread = meta?.unread?.[user?.uid] || 0; const lastMsg = meta?.lastMessage; return ( <div key={f.uid} className="player-card flex items-center justify-between p-3"> <div className="flex items-center gap-2 cursor-pointer relative" onClick={() => openProfile(f.uid)}> <div className="relative"> <img src={f.photoURL} className="w-10 h-10 rounded-full"/> {unread > 0 && <span className="friend-unread-badge">{unread}</span>} </div> <div> <div className="font-bold">{f.displayName}</div> <div className="text-xs text-gray-400">{lastMsg ? (lastMsg.length > 20 ? lastMsg.substring(0,20)+'...' : lastMsg) : `Lvl ${calculateLevel(f.stats?.xp)}`}</div> </div> </div> <div className="flex items-center gap-2"> <span className={`${isOnline ? 'status-online' : 'status-offline'}`}></span> <span className="text-xs mr-2">{isOnline ? t.online : t.offline}</span> <button onClick={() => openChat(f)} className="btn-ghost px-3 py-1 rounded text-xs border-blue-500 text-blue-400">Chat</button> </div> </div> ); })} </div> </div> </> )} </div> )}
-                {activeView === 'lobby' && ( <> {room && ( <div className="md:col-span-3 flex justify-end mb-2"> <button onClick={() => setActiveView('friends')} className="btn-ghost px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 relative"> <span>👥</span> {t.inviteFriends} {totalUnread > 0 && <span className="notification-badge">{totalUnread}</span>} </button> </div> )} {room && ( <div className="glass-panel rounded-2xl p-4 space-y-2 animate-fade-in delay-1"> <h3 className="text-xs font-bold text-gray-400 mb-2 border-b border-gray-800 pb-2 uppercase tracking-wider flex justify-between items-center"> <span>{t.players}</span> <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-cyan-400">{t.roundsFormat(room.currentRound || 1, MAX_ROUNDS)}</span> </h3> <div className="space-y-2"> {room.players.map((p, i) => { const isMe = p.uid === user?.uid; const roleIcon = isMe ? (p.role === 'mrwhite' ? '⚪' : p.role === 'informant' ? '🛈' : p.role === 'spy' ? '🕵️' : '') : ''; return ( <div key={i} onClick={() => openProfile(p.uid)} className={`player-card relative p-2 rounded-lg flex items-center justify-between ${p.status === 'ghost' ? 'ghost' : p.status === 'spectator' ? 'eliminated' : ''}`}> <div className="flex items-center gap-2 flex-1"> <img src={p.photo || `https://ui-avatars.com/api/?name=${p.name}`} className="w-6 h-6 rounded-full" alt=""/> <span className="font-bold text-sm truncate">{p.name}</span> <span className="text-[10px]">{roleIcon}</span> {p.uid === user?.uid && <span className="text-[8px] bg-blue-500 px-1 rounded">{t.you}</span>} </div> {p.uid === room.currentTurnUID && room.status === 'discussing' && ( <div className="flex items-center gap-1 ml-2"> <div className="timer-bar-container"><div className="timer-bar-fill" style={{width: `${(turnTimer/30)*100}%`}}></div></div> <span className="text-[10px] font-mono text-cyan-400 w-6 text-right">{turnTimer}</span> </div> )} </div> )})} </div> {!isSpectator && room.status === 'discussing' && <button onClick={requestVoting} className="btn-vote w-full py-2 rounded-lg font-bold text-xs mt-4 uppercase tracking-wide">{t.startVoting}</button>} </div> )} <div className={`${room ? 'md:col-span-2' : 'md:col-span-3'} space-y-4`}> {!room && ( <div className="glass-panel rounded-2xl p-8 text-center space-y-6 animate-fade-in mx-auto max-w-md w-full"> <div className="space-y-2"> <label className="text-xs text-gray-400 uppercase">{t.nickname}</label> <input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg text-center font-bold`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} /> </div> <button onClick={() => setShowSetupModal(true)} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">{t.create}</button> <div className="flex flex-col gap-2"> <div className="flex gap-2"> <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value)} /> <button onClick={() => handleJoinGame(inputCode, null)} disabled={loading || !nickname} className="btn-ghost px-6 rounded-lg font-bold">{t.join}</button> </div> <button onClick={() => setShowLobby(true)} className="btn-gold w-full py-2 rounded-lg text-xs font-bold">{t.browse}</button> {joinError && <div className="error-msg">{joinError}</div>} </div> </div> )} {room && ( <> <div className="glass-panel rounded-xl p-3 space-y-2"> <div className="flex justify-between items-center"> <div className="flex items-center gap-2"> <span className="font-mono font-bold text-lg tracking-widest text-cyan-400">{roomId}</span> <button onClick={handleCopy} className={`btn-ghost p-1 rounded text-[10px] ${copied ? 'text-green-400' : 'text-gray-400'}`}> {copied ? '✓' : '📋'} </button> </div> <div className="flex items-center gap-2"> <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded text-cyan-400"> {activePlayersCount}/10 </span> <span className={`text-[10px] px-2 py-1 rounded ${room.mode === 'advanced' ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'}`}>{room.mode === 'advanced' ? t.advancedMode : t.normalMode}</span> </div> </div> <div className="flex justify-between items-center border-t border-white/10 pt-2 flex-wrap-gap"> <div className="flex items-center gap-2"> <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded text-cyan-400"> {room.status === 'word_selection' ? 'KEYWORD' : room.status === 'discussing' ? 'DISCUSSION' : room.status.toUpperCase()} </span> {room.isPrivate && ( <div className="flex items-center gap-1 bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded text-[10px]"> <span>🔒</span> {room.admin === user?.uid && ( <button onClick={() => setShowPwd(!showPwd)} className="hover:text-white">{showPwd ? '👁️' : '👁️‍🗨️'}</button> )} {room.admin === user?.uid && showPwd && ( <span className="text-[9px] font-mono">{room.password}</span> )} </div> )} </div> <div className="flex gap-2"> {room.admin === user?.uid ? ( <button onClick={() => handleLeaveRoom()} className="btn-danger px-2 py-1 rounded text-[10px]">{t.closeRoom}</button> ) : ( <button onClick={() => handleLeaveRoom()} className="btn-ghost px-2 py-1 rounded text-[10px]">{t.leaveRoom}</button> )} </div> </div> </div> {room.status === 'waiting' && ( <div className="glass-panel rounded-2xl p-6 text-center animate-fade-in"> <div className="animate-pulse text-gray-400 text-sm mb-4">{t.waiting}</div> {room.admin === user?.uid && (<button onClick={startGame} className="btn-neon w-full py-3 rounded-lg font-bold">{t.start}</button>)} </div> )} {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_mrwhite_wins') && ( <div className="glass-panel rounded-2xl p-8 text-center animate-fade-in border border-purple-500"> <h2 className="text-3xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600"> {room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : (room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin)} </h2> <p className="text-gray-400 mb-6">The Spy was: <span className="text-white font-bold">{room.players.find(p => p.role === 'spy')?.name}</span></p> {room.admin === user?.uid && (<button onClick={resetGame} className="btn-ghost border-white/20 text-white w-full py-3 rounded-lg">{t.playAgain}</button>)} </div> )} {room.status === 'word_selection' && ( <div className="space-y-4 animate-fade-in"> <div className="glass-panel rounded-2xl p-6 text-center relative overflow-hidden border border-cyan-500/30"> <div className="absolute top-4 right-4 w-12 h-12"> <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36"> <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle> <circle cx="18" cy="18" r="16" fill="none" stroke="#00f2ff" strokeWidth="3" strokeDasharray={`${(wordSelTimer/30)*100} ${100-((wordSelTimer/30)*100)}`} strokeLinecap="round"></circle> </svg> <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-cyan-400">{wordSelTimer}</div> </div> <h3 className="text-xl font-black mb-2 uppercase text-cyan-400">{t.wordSelectionTitle}</h3> <p className="text-xs text-gray-500 mb-6">{t.wordSelectionDesc}</p> <div className="grid grid-cols-2 gap-4"> {(() => { const wordsToDisplay = myRole === 'spy' || myRole === 'mrwhite' ? ['?', '?', '?', '?'] : (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en); return wordsToDisplay?.map((word, i) => { const voters = Object.entries(room.wordVotes || {}).filter(([uid, w]) => w === word).map(([uid]) => room.players.find(p => p.uid === uid)?.name); return ( <button key={i} onClick={() => submitWordVote(word)} disabled={myRole === 'spy' || myRole === 'mrwhite'} className={`word-vote-card p-6 rounded-xl font-bold text-lg transition-all ${hasVotedWord === word ? 'selected' : 'bg-white/5 border border-white/10'} ${(myRole === 'spy' || myRole === 'mrwhite') ? 'opacity-50 cursor-not-allowed' : ''}`}> {word} {voters.length > 0 && (<div className="flex justify-center gap-1 mt-2 flex-wrap">{voters.map(v => <span key={v} className="voter-name relative">{v}</span>)}</div>)} </button> ); }); })()} </div> {room.admin === user?.uid && myRole !== 'spy' && myRole !== 'mrwhite' && (<button onClick={() => finishWordSelection(false)} className="btn-neon w-full py-3 rounded-lg font-bold mt-6">{t.finishSelection}</button>)} </div> <div className={`identity-square glass-panel ${myRole === 'spy' ? 'identity-spy' : myRole === 'informant' ? 'identity-informant' : myRole === 'mrwhite' ? 'identity-mrwhite' : 'identity-agent'}`}> <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full"> <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${ myRole === 'spy' ? 'bg-red-500/20 text-red-400' : myRole === 'informant' ? 'bg-blue-500/20 text-blue-400' : myRole === 'mrwhite' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400' }`}> {t[`status${myRole?.charAt(0).toUpperCase() + myRole?.slice(1) || 'Agent'}`]} </span> {myRole === 'spy' && (<><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> )} {myRole === 'mrwhite' && (<><div className="text-5xl mb-2">⚪</div><p className="text-xs text-gray-300">{t.mrWhiteInstruction}</p></>)} {myRole === 'informant' && ( <> <div className="text-2xl font-bold mt-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div> <p className="text-xs text-blue-300 mt-2">{t.informantInstruction}</p> </> )} {myRole === 'agent' && (<><div className="text-3xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></>)} </div> </div> {myRole === 'mrwhite' && ( <div className="mt-4"> <button onClick={() => { const guess = prompt("Guess the location:"); if(guess) handleMrWhiteGuess(guess); }} className="btn-gold w-full py-3 rounded-lg font-bold">{t.guessLocation}</button> </div> )} </div> )} {room.status === 'discussing' && ( <div className="space-y-4 animate-fade-in"> {room.chosenWord && myRole !== 'spy' && myRole !== 'mrwhite' && ( <div className="glass-panel rounded-xl p-3 text-center border border-cyan-500/50"><span className="text-[10px] text-cyan-400 font-bold uppercase">{t.selectedWord}:</span><span className="ml-2 text-lg font-bold text-white">{room.chosenWord}</span></div> )} <div className={`identity-square glass-panel ${myRole === 'spy' ? 'identity-spy' : myRole === 'informant' ? 'identity-informant' : myRole === 'mrwhite' ? 'identity-mrwhite' : 'identity-agent'}`}> <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full"> <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${ myRole === 'spy' ? 'bg-red-500/20 text-red-400' : myRole === 'informant' ? 'bg-blue-500/20 text-blue-400' : myRole === 'mrwhite' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400' }`}> {t[`status${myRole?.charAt(0).toUpperCase() + myRole?.slice(1) || 'Agent'}`]} </span> {myRole === 'spy' ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-4xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )} </div> </div> {myRole === 'mrwhite' && ( <button onClick={() => { const guess = prompt("Guess the location:"); if(guess) handleMrWhiteGuess(guess); }} className="btn-gold w-full py-3 rounded-lg font-bold">{t.guessLocation}</button> )} <div className="glass-panel rounded-2xl p-4 flex flex-col overflow-hidden relative"> <div className="flex-1 overflow-y-auto p-2 space-y-2 h-48 relative z-10"> {room.messages?.slice(-20).map((m, i) => ( <GameChatMessage key={i} msg={m} currentUser={user} players={room.players} onAvatarClick={openProfile} /> ))} </div> {!isSpectator && isMyTurn ? ( <div className="flex flex-col gap-2 mt-auto border-t border-white/10 pt-3 relative z-10"> <div className="flex gap-1 mb-1">{EMOJI_LIST.slice(0, 10).map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>))}</div> <form onSubmit={(e) => { e.preventDefault(); sendMessage(chatMsg); }} className="flex gap-2"> <input className="input-dark flex-1 p-3 rounded-xl text-sm" placeholder={t.chatPlaceholder} value={chatMsg} onChange={e => setChatMsg(e.target.value)} /> <button type="submit" className="btn-neon px-5 rounded-xl text-xs">{t.send}</button> <button type="button" onClick={() => handleSkipTurn(false)} className="btn-ghost px-4 rounded-xl text-xs border-orange-500 text-orange-400">{t.skip}</button> </form> </div> ) : (<div className="text-center text-xs text-gray-600 py-3 border-t border-white/10 mt-2">{isSpectator ? (me?.status === 'ghost' ? t.ghostInstruction : t.spectator) : "Waiting for turn..."}</div>)} </div> </div> )} {room.status === 'voting' && ( <div className="glass-panel rounded-2xl p-6 animate-fade-in space-y-4"> <div className="flex justify-between items-center"> <h3 className="text-lg font-bold text-yellow-400">{t.vote}</h3> <div className="relative w-10 h-10"> <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36"> <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle> <circle cx="18" cy="18" r="16" fill="none" stroke="#ff0055" strokeWidth="3" strokeDasharray={`${(votingTimer/30)*100} ${100-((votingTimer/30)*100)}`} strokeLinecap="round"></circle> </svg> <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-yellow-400">{votingTimer}</div> </div> </div> <div className="bg-black/20 p-3 rounded-lg text-xs space-y-1 mb-2 border border-white/5"> <span className="text-gray-500 font-bold">{t.votesTitle}</span> <div className="flex flex-wrap gap-2 mt-1"> {Object.entries(room.votes || {}).map(([uid, target]) => { const voter = room.players.find(p => p.uid === uid); const targetName = room.players.find(p => p.uid === target)?.name; return (<span key={uid} className="bg-white/5 px-2 py-1 rounded">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>); })} </div> </div> {!hasVoted ? ( <div className="grid grid-cols-2 gap-3"> {room.players.filter(p => p.status === 'active').map(p => ( <button key={p.uid} onClick={() => submitVote(p.uid)} className="p-4 rounded-xl border text-sm font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10">{p.name}</button> ))} </div> ) : (<div className="text-center space-y-4 py-4"><div className="text-green-400 font-bold">{t.confirm}</div></div>)} {room.admin === user?.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg font-bold text-xs uppercase mt-2">{t.endVoting}</button>)} </div> )} </> )} </div> </> )} </main>
+            
+            {room?.status === 'discussing' && voteReq && ( <div className="vote-request-banner glass-panel rounded-lg p-3 border border-pink-500 animate-pop"> <div className="flex flex-col gap-1"> <div className="text-center font-bold text-pink-400 text-sm">{t.voteRequestTitle}</div> <div className="text-center text-[10px] text-gray-300"> <span className="font-bold">{room.players.find(p=>p.uid === voteReq.requestedBy)?.name}</span> {t.voteRequestDesc} </div> <div className="flex justify-center gap-2 mt-1"> <button onClick={agreeToVote} disabled={hasIAgreed} className={`btn px-4 py-1 rounded text-[10px] font-bold ${hasIAgreed ? 'btn-ghost opacity-50' : 'btn-success'}`}>{t.agree}</button> <button onClick={declineVote} disabled={hasIDeclined} className={`btn px-4 py-1 rounded text-[10px] font-bold ${hasIDeclined ? 'btn-ghost opacity-50' : 'btn-danger'}`}>{t.decline}</button> </div> </div> </div> )}
+            
+            <header className="w-full max-w-4xl flex justify-between items-center mb-3 animate-fade-in relative z-50 py-1"> 
+                <div className="flex items-center gap-2"> 
+                    <div className="logo-container-sm"> <div className="logo-border"></div> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2"> <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/> </svg> </div> 
+                    <div> <h1 className="game-title text-lg">{t.appName}</h1> <p className="text-[8px] text-gray-500 tracking-widest font-tech hidden md:block">{t.tagline}</p> </div> 
+                </div> 
+                <nav className="hidden md:flex gap-1 glass-panel rounded-full p-1 items-center text-xs"> <button onClick={() => setActiveView('lobby')} className={`nav-tab rounded-full ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button> <button onClick={() => setActiveView('leaderboard')} className={`nav-tab rounded-full ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button> <button onClick={() => setActiveView('friends')} className={`nav-tab rounded-full relative ${activeView === 'friends' ? 'active' : ''}`}> {t.tabFriends} {totalUnread > 0 && <span className="notification-badge text-[8px]">{totalUnread}</span>} </button> </nav> 
+                <div className="flex gap-1 items-center">
+                    <a href="https://guessmycard.mooo.info/" target="_blank" rel="noopener noreferrer" className="btn-ghost px-2 py-1 rounded text-[10px] font-bold border-gray-700 hover:text-pink-400 hover:border-pink-400 hidden sm:block">{t.linkGuessCard}</a>
+                    <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-2 py-1 rounded text-[10px] font-bold border-gray-700">{t.langBtn}</button>
+                    <div className="relative"> {isLoggedIn ? ( <> <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-1 btn-ghost px-2 py-1 rounded-full border-gray-700"> <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${userData?.displayName}`} className="w-5 h-5 rounded-full" alt=""/> <span className="text-[10px] font-bold hidden lg:block">{t.myAccount}</span> </button> {showDropdown && ( <div className="dropdown-menu glass-panel rounded-lg py-1 animate-fade-in text-xs"> <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-right px-3 py-1 hover:bg-white/10">{t.profile}</button> <button onClick={handleLogout} className="w-full text-right px-3 py-1 text-red-400 hover:bg-white/10">{t.logout}</button> </div> )} </> ) : ( <button onClick={handleGoogleLogin} className="btn-google px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1"> <svg className="w-3 h-3" viewBox="0 0 21 20" fill="none"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg> {t.loginGoogle} </button> )} </div> </div> 
+            </header>
+            
+            <nav className="md:hidden w-full max-w-4xl flex justify-around glass-panel rounded-lg p-1 mb-2 text-[10px]"> <button onClick={() => setActiveView('lobby')} className={`nav-tab flex-1 text-center ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button> <button onClick={() => setActiveView('leaderboard')} className={`nav-tab flex-1 text-center ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button> <button onClick={() => setActiveView('friends')} className={`nav-tab flex-1 text-center relative ${activeView === 'friends' ? 'active' : ''}`}> {t.tabFriends} {totalUnread > 0 && <span className="notification-badge text-[8px]">{totalUnread}</span>} </button> </nav>
+            
+            <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-2">
+                {activeView === 'leaderboard' && ( <div className="md:col-span-3 glass-panel rounded-xl p-3 animate-fade-in overflow-x-auto"> <h2 className="text-base font-bold mb-2 text-primary">{t.tabLeaderboard}</h2> <div className="min-w-[400px]"> <div className="leaderboard-row border-b border-white/20 font-bold text-[10px] text-gray-400"> <div className="w-10">{t.rank}</div> <div className="flex-1">{t.name}</div> <div className="w-10 text-center">{t.level}</div> <div className="w-12 text-center">{t.wins}</div> <div className="w-12 text-center">{t.losses}</div> </div> {leaderboardData.map((p, i) => ( <div key={p.uid} onClick={() => openProfile(p.uid)} className={`leaderboard-row cursor-pointer text-xs ${p.uid === user?.uid ? 'bg-cyan-500/10' : ''}`}> <div className="w-10 font-bold"># {i + 1}</div> <div className="flex-1 flex items-center gap-1"> <img src={p.photoURL} className="w-4 h-4 rounded-full"/> <span>{p.displayName}</span> {p.uid === user?.uid && <span className="text-[6px] bg-blue-500 px-1 rounded">{t.you}</span>} </div> <div className="w-10 text-center">{calculateLevel(p.stats?.xp)}</div> <div className="w-12 text-center text-green-400">{p.stats?.wins || 0}</div> <div className="w-12 text-center text-red-400">{p.stats?.losses || 0}</div> </div> ))} </div> </div> )}
+                {activeView === 'friends' && ( <div className="md:col-span-3 glass-panel rounded-xl p-3 animate-fade-in space-y-3"> <h2 className="text-base font-bold text-primary">{t.tabFriends}</h2> {isGuest ? (<div className="text-center py-6"><p className="text-gray-400 text-xs">{t.noPermission}</p></div>) : ( <> <div className="flex gap-1"> <input className="input-dark flex-1 p-1 rounded text-xs" placeholder={t.friendIdPlaceholder} value={addFriendId} onChange={e => setAddFriendId(e.target.value)} /> <button onClick={handleSearchRequest} className="btn-neon px-2 rounded text-[10px]">{t.addFriend}</button> </div> {friendSearchMsg && <div className="text-[10px] text-center text-cyan-400">{friendSearchMsg}</div>} {friendRequests.length > 0 && ( <div className="border-t border-white/10 pt-2"> <h3 className="text-[10px] font-bold text-gray-400 mb-1">{t.incomingRequests}</h3> <div className="space-y-1"> {friendRequests.map(f => ( <div key={f.uid} className="flex items-center justify-between p-1 bg-white/5 rounded text-[10px]"> <div className="flex items-center gap-1"> <img src={f.photoURL} className="w-5 h-5 rounded-full"/> <span>{f.displayName}</span> </div> <div className="flex gap-1"> <button onClick={() => handleAcceptRequest(f.uid)} className="btn-success px-2 py-0.5 rounded text-[9px]">{t.accept}</button> <button onClick={() => handleRejectRequest(f.uid)} className="btn-danger px-2 py-0.5 rounded text-[9px]">{t.reject}</button> </div> </div> ))} </div> </div> )} <div className="border-t border-white/10 pt-2"> <h3 className="text-[10px] font-bold text-gray-400 mb-1">{t.tabFriends}</h3> <div className="space-y-1"> {sortedFriends.length === 0 && <p className="text-center text-gray-500 text-[10px] py-2">{t.noFriends}</p>} {sortedFriends.map(f => { const isOnline = f.lastActive && (Date.now() - f.lastActive.toMillis() < 120000); const chatId = getChatId(user?.uid, f.uid); const meta = chatsMeta[chatId]; const unread = meta?.unread?.[user?.uid] || 0; const lastMsg = meta?.lastMessage; return ( <div key={f.uid} className="player-card flex items-center justify-between p-1"> <div className="flex items-center gap-1 cursor-pointer relative flex-1 min-w-0" onClick={() => openProfile(f.uid)}> <div className="relative flex-shrink-0"> <img src={f.photoURL} className="w-6 h-6 rounded-full"/> {unread > 0 && <span className="friend-unread-badge text-[8px]">{unread}</span>} </div> <div className="truncate"> <div className="font-bold text-[10px] truncate">{f.displayName}</div> <div className="text-[8px] text-gray-400 truncate">{lastMsg ? (lastMsg.length > 15 ? lastMsg.substring(0,15)+'...' : lastMsg) : `Lvl ${calculateLevel(f.stats?.xp)}`}</div> </div> </div> <div className="flex items-center gap-1 flex-shrink-0 ml-1"> <span className={`${isOnline ? 'status-online' : 'status-offline'}`}></span> <button onClick={() => openChat(f)} className="btn-ghost px-2 py-0.5 rounded text-[8px] border-blue-500 text-blue-400">Chat</button> </div> </div> ); })} </div> </div> </> )} </div> )}
+                {activeView === 'lobby' && ( <> {room && ( <div className="md:col-span-3 flex justify-end mb-1"> <button onClick={() => setActiveView('friends')} className="btn-ghost px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 relative"> <span>👥</span> {t.inviteFriends} {totalUnread > 0 && <span className="notification-badge text-[8px]">{totalUnread}</span>} </button> </div> )} {room && ( <div className="glass-panel rounded-xl p-2 space-y-1 animate-fade-in delay-1"> <h3 className="text-[10px] font-bold text-gray-400 mb-1 border-b border-gray-800 pb-1 uppercase tracking-wider flex justify-between items-center"> <span>{t.players}</span> <span className="text-[8px] bg-white/5 px-1 rounded text-cyan-400">{t.roundsFormat(room.currentRound || 1, MAX_ROUNDS)}</span> </h3> <div className="space-y-1"> {room.players.map((p, i) => { const isMe = p.uid === user?.uid; const roleIcon = isMe ? (p.role === 'mrwhite' ? '⚪' : p.role === 'informant' ? '🛈' : p.role === 'spy' ? '🕵️' : '') : ''; return ( <div key={i} onClick={() => openProfile(p.uid)} className={`player-card relative p-1 rounded flex items-center justify-between text-[10px] ${p.status === 'ghost' ? 'ghost' : p.status === 'spectator' ? 'eliminated' : ''}`}> <div className="flex items-center gap-1 flex-1 min-w-0"> <img src={p.photo || `https://ui-avatars.com/api/?name=${p.name}`} className="w-4 h-4 rounded-full" alt=""/> <span className="font-bold truncate">{p.name}</span> <span className="text-[8px]">{roleIcon}</span> {p.uid === user?.uid && <span className="text-[6px] bg-blue-500 px-0.5 rounded">{t.you}</span>} </div> {p.uid === room.currentTurnUID && room.status === 'discussing' && ( <div className="flex items-center gap-0.5 ml-1"> <div className="timer-bar-container w-8"><div className="timer-bar-fill" style={{width: `${(turnTimer/30)*100}%`}}></div></div> <span className="text-[8px] font-mono text-cyan-400 w-4">{turnTimer}</span> </div> )} </div> )})} </div> {!isSpectator && room.status === 'discussing' && <button onClick={requestVoting} className="btn-vote w-full py-1 rounded font-bold text-[10px] mt-1 uppercase">{t.startVoting}</button>} </div> )} <div className={`${room ? 'md:col-span-2' : 'md:col-span-3'} space-y-2`}> {!room && ( <div className="glass-panel rounded-xl p-4 text-center space-y-3 animate-fade-in mx-auto max-w-xs w-full"> <div className="space-y-1"> <label className="text-[10px] text-gray-400 uppercase">{t.nickname}</label> <input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-2 rounded text-center font-bold text-xs`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} /> </div> <button onClick={() => setShowSetupModal(true)} disabled={loading || !nickname} className="btn-neon w-full py-2 rounded font-bold text-xs">{loading ? t.loading : t.create}</button> <div className="flex flex-col gap-1"> <div className="flex gap-1"> <input className="input-dark flex-1 p-2 rounded text-center font-mono text-xs" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value)} /> <button onClick={() => handleJoinGame(inputCode, null)} disabled={loading || !nickname} className="btn-ghost px-3 rounded font-bold text-xs">{t.join}</button> </div> <button onClick={() => setShowLobby(true)} className="btn-gold w-full py-1 rounded text-[10px] font-bold">{t.browse}</button> {joinError && <div className="error-msg text-[10px]">{joinError}</div>} </div> </div> )} {room && ( <> <div className="glass-panel rounded-lg p-2 space-y-1"> <div className="flex justify-between items-center text-[10px]"> <div className="flex items-center gap-1"> <span className="font-mono font-bold text-base tracking-widest text-cyan-400">{roomId}</span> <button onClick={handleCopy} className={`btn-ghost p-0.5 rounded ${copied ? 'text-green-400' : 'text-gray-400'}`}> {copied ? '✓' : '📋'} </button> </div> <div className="flex items-center gap-1"> <span className="font-bold bg-white/10 px-1 rounded text-cyan-400"> {activePlayersCount}/10 </span> <span className={`px-1 rounded ${room.mode === 'advanced' ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'}`}>{room.mode === 'advanced' ? t.advancedMode : t.normalMode}</span> </div> </div> <div className="flex justify-between items-center border-t border-white/10 pt-1 flex-wrap-gap"> <div className="flex items-center gap-1"> <span className="font-bold bg-white/10 px-1 rounded text-cyan-400"> {room.status === 'word_selection' ? 'KEY' : room.status === 'discussing' ? 'TALK' : room.status.substring(0,4).toUpperCase()} </span> {room.isPrivate && ( <div className="flex items-center gap-0.5 bg-yellow-500/20 text-yellow-300 px-1 rounded text-[8px]"> <span>🔒</span> {room.admin === user?.uid && ( <button onClick={() => setShowPwd(!showPwd)} className="hover:text-white">{showPwd ? '👁️' : '👁️‍🗨️'}</button> )} {room.admin === user?.uid && showPwd && ( <span className="font-mono">{room.password}</span> )} </div> )} </div> <div className="flex gap-1"> {room.admin === user?.uid ? ( <button onClick={() => handleLeaveRoom()} className="btn-danger px-1 py-0.5 rounded text-[8px]">{t.closeRoom}</button> ) : ( <button onClick={() => handleLeaveRoom()} className="btn-ghost px-1 py-0.5 rounded text-[8px]">{t.leaveRoom}</button> )} </div> </div> </div> {room.status === 'waiting' && ( <div className="glass-panel rounded-xl p-3 text-center animate-fade-in"> <div className="animate-pulse text-gray-400 text-[10px] mb-2">{t.waiting}</div> {room.admin === user?.uid && (<button onClick={startGame} className="btn-neon w-full py-2 rounded font-bold text-xs">{t.start}</button>)} </div> )} {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_mrwhite_wins') && ( <div className="glass-panel rounded-xl p-4 text-center animate-fade-in border border-purple-500"> <h2 className="text-xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600"> {room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : (room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin)} </h2> <p className="text-gray-400 mb-2 text-[10px]">Spy: <span className="text-white font-bold">{room.players.find(p => p.role === 'spy')?.name}</span></p> {room.admin === user?.uid && (<button onClick={resetGame} className="btn-ghost border-white/20 text-white w-full py-1 rounded text-xs">{t.playAgain}</button>)} </div> )} {room.status === 'word_selection' && ( <div className="space-y-2 animate-fade-in"> <div className="glass-panel rounded-xl p-2 text-center relative overflow-hidden border border-cyan-500/30"> <div className="absolute top-1 right-1 w-8 h-8"> <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36"> <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle> <circle cx="18" cy="18" r="16" fill="none" stroke="#00f2ff" strokeWidth="3" strokeDasharray={`${(wordSelTimer/30)*100} ${100-((wordSelTimer/30)*100)}`} strokeLinecap="round"></circle> </svg> <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-cyan-400">{wordSelTimer}</div> </div> <h3 className="text-sm font-black mb-1 uppercase text-cyan-400">{t.wordSelectionTitle}</h3> <p className="text-[8px] text-gray-500 mb-2">{t.wordSelectionDesc}</p> <div className="grid grid-cols-2 gap-1"> {(() => { const wordsToDisplay = myRole === 'spy' || myRole === 'mrwhite' ? ['?', '?', '?', '?'] : (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en); return wordsToDisplay?.map((word, i) => { const voters = Object.entries(room.wordVotes || {}).filter(([uid, w]) => w === word).map(([uid]) => room.players.find(p => p.uid === uid)?.name); return ( <button key={i} onClick={() => submitWordVote(word)} disabled={myRole === 'spy' || myRole === 'mrwhite'} className={`word-vote-card p-2 rounded font-bold text-xs transition-all ${hasVotedWord === word ? 'selected' : 'bg-white/5 border border-white/10'} ${(myRole === 'spy' || myRole === 'mrwhite') ? 'opacity-50 cursor-not-allowed' : ''}`}> {word} {voters.length > 0 && (<div className="flex justify-center gap-0.5 mt-0.5 flex-wrap">{voters.map(v => <span key={v} className="voter-name relative text-[8px]">{v}</span>)}</div>)} </button> ); }); })()} </div> {room.admin === user?.uid && myRole !== 'spy' && myRole !== 'mrwhite' && (<button onClick={() => finishWordSelection(false)} className="btn-neon w-full py-1 rounded font-bold text-[10px] mt-2">{t.finishSelection}</button>)} </div> <div className={`identity-square glass-panel ${myRole === 'spy' ? 'identity-spy' : myRole === 'informant' ? 'identity-informant' : myRole === 'mrwhite' ? 'identity-mrwhite' : 'identity-agent'}`}> <div className="relative z-10 p-2 flex flex-col items-center justify-center h-full"> <span className={`text-[8px] font-bold uppercase tracking-widest mb-1 px-2 py-0.5 rounded-full ${ myRole === 'spy' ? 'bg-red-500/20 text-red-400' : myRole === 'informant' ? 'bg-blue-500/20 text-blue-400' : myRole === 'mrwhite' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400' }`}> {t[`status${myRole?.charAt(0).toUpperCase() + myRole?.slice(1) || 'Agent'}`]} </span> {myRole === 'spy' && (<><div className="text-3xl mb-1">🕵️</div><h3 className="text-xl font-black tracking-wider text-red-500">???</h3></> )} {myRole === 'mrwhite' && (<><div className="text-3xl mb-1">⚪</div><p className="text-[8px] text-gray-300">{t.mrWhiteInstruction}</p></>)} {myRole === 'informant' && ( <> <div className="text-sm font-bold mt-1">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div> <p className="text-[8px] text-blue-300 mt-1">{t.informantInstruction}</p> </> )} {myRole === 'agent' && (<><div className="text-lg font-black mt-1 text-center px-1">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-[8px] text-gray-400 mt-1">{t.location}</p></>)} </div> </div> {myRole === 'mrwhite' && ( <div className="mt-1"> <button onClick={() => { const guess = prompt("Guess the location:"); if(guess) handleMrWhiteGuess(guess); }} className="btn-gold w-full py-1 rounded font-bold text-[10px]">{t.guessLocation}</button> </div> )} </div> )} {room.status === 'discussing' && ( <div className="space-y-2 animate-fade-in"> {room.chosenWord && myRole !== 'spy' && myRole !== 'mrwhite' && ( <div className="glass-panel rounded-lg p-1 text-center border border-cyan-500/50 text-[10px]"><span className="text-cyan-400 font-bold uppercase">{t.selectedWord}:</span><span className="ml-1 text-white">{room.chosenWord}</span></div> )} <div className={`identity-square glass-panel ${myRole === 'spy' ? 'identity-spy' : myRole === 'informant' ? 'identity-informant' : myRole === 'mrwhite' ? 'identity-mrwhite' : 'identity-agent'}`}> <div className="relative z-10 p-2 flex flex-col items-center justify-center h-full"> <span className={`text-[8px] font-bold uppercase tracking-widest mb-1 px-2 py-0.5 rounded-full ${ myRole === 'spy' ? 'bg-red-500/20 text-red-400' : myRole === 'informant' ? 'bg-blue-500/20 text-blue-400' : myRole === 'mrwhite' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400' }`}> {t[`status${myRole?.charAt(0).toUpperCase() + myRole?.slice(1) || 'Agent'}`]} </span> {myRole === 'spy' ? ( <><div className="text-3xl mb-1">🕵️</div><h3 className="text-xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-lg font-black mt-1 text-center px-1">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-[8px] text-gray-400 mt-1">{t.location}</p></> )} </div> </div> {myRole === 'mrwhite' && ( <button onClick={() => { const guess = prompt("Guess the location:"); if(guess) handleMrWhiteGuess(guess); }} className="btn-gold w-full py-1 rounded font-bold text-[10px]">{t.guessLocation}</button> )} <div className="glass-panel rounded-xl p-2 flex flex-col overflow-hidden relative"> <div className="flex-1 overflow-y-auto p-1 space-y-1 h-32 relative z-10"> {room.messages?.slice(-15).map((m, i) => ( <GameChatMessage key={i} msg={m} currentUser={user} players={room.players} onAvatarClick={openProfile} /> ))} </div> {!isSpectator && isMyTurn ? ( <div className="flex flex-col gap-1 mt-auto border-t border-white/10 pt-1 relative z-10"> <div className="flex gap-0.5 mb-0.5">{EMOJI_LIST.slice(0, 6).map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn text-base">{emoji}</span>))}</div> <form onSubmit={(e) => { e.preventDefault(); sendMessage(chatMsg); }} className="flex gap-1"> <input className="input-dark flex-1 p-1 rounded text-[10px]" placeholder={t.chatPlaceholder} value={chatMsg} onChange={e => setChatMsg(e.target.value)} /> <button type="submit" className="btn-neon px-2 rounded text-[8px]">{t.send}</button> <button type="button" onClick={() => handleSkipTurn(false)} className="btn-ghost px-2 rounded text-[8px] border-orange-500 text-orange-400">{t.skip}</button> </form> </div> ) : (<div className="text-center text-[8px] text-gray-600 py-1 border-t border-white/10 mt-1">{isSpectator ? (me?.status === 'ghost' ? t.ghostInstruction : t.spectator) : "..."}</div>)} </div> </div> )} {room.status === 'voting' && ( <div className="glass-panel rounded-xl p-3 animate-fade-in space-y-2"> <div className="flex justify-between items-center"> <h3 className="text-sm font-bold text-yellow-400">{t.vote}</h3> <div className="relative w-8 h-8"> <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36"> <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle> <circle cx="18" cy="18" r="16" fill="none" stroke="#ff0055" strokeWidth="3" strokeDasharray={`${(votingTimer/30)*100} ${100-((votingTimer/30)*100)}`} strokeLinecap="round"></circle> </svg> <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-yellow-400">{votingTimer}</div> </div> </div> <div className="bg-black/20 p-1 rounded text-[8px] space-y-0.5 mb-1 border border-white/5"> <span className="text-gray-500 font-bold">{t.votesTitle}</span> <div className="flex flex-wrap gap-0.5 mt-0.5"> {Object.entries(room.votes || {}).map(([uid, target]) => { const voter = room.players.find(p => p.uid === uid); const targetName = room.players.find(p => p.uid === target)?.name; return (<span key={uid} className="bg-white/5 px-1 py-0.5 rounded text-[8px]">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>); })} </div> </div> {!hasVoted ? ( <div className="grid grid-cols-2 gap-1"> {room.players.filter(p => p.status === 'active').map(p => ( <button key={p.uid} onClick={() => submitVote(p.uid)} className="p-2 rounded border text-[10px] font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10">{p.name}</button> ))} </div> ) : (<div className="text-center space-y-2 py-2"><div className="text-green-400 font-bold text-xs">{t.confirm}</div></div>)} {room.admin === user?.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-1 rounded font-bold text-[8px] uppercase mt-1">{t.endVoting}</button>)} </div> )} </> )} </div> </> )} </main>
                 </div>
             );
         }
