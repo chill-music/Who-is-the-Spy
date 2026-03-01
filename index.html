@@ -21,6 +21,7 @@
             --primary: #00f2ff;
             --secondary: #7000ff;
             --accent: #ff0055;
+            --gold: #ffd700;
             --text-main: #ffffff;
             --text-muted: #8b8b9e;
             --border: rgba(255, 255, 255, 0.1);
@@ -47,8 +48,8 @@
         .btn-vote { background: linear-gradient(90deg, #ff0055, #ff3366); color: white; }
         .btn-success { background: linear-gradient(90deg, #10b981, #22c55e); color: white; }
         .btn-danger { background: linear-gradient(90deg, #ef4444, #dc2626); color: white; }
+        .btn-gold { background: linear-gradient(90deg, #b8860b, var(--gold)); color: #000; }
         .btn-google { background: white; color: #333; font-weight: bold; }
-        .btn-google:hover { background: #f0f0f0; }
         .input-dark { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border); color: white; transition: 0.2s; }
         .input-dark:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
         .input-locked { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6); cursor: not-allowed; }
@@ -58,12 +59,15 @@
         .player-card { transition: all 0.3s; position: relative; border: 1px solid transparent; cursor: pointer; }
         .player-card:hover { border-color: rgba(255,255,255,0.2); }
         .player-card.active { background: rgba(0, 242, 255, 0.1); border-color: var(--primary); }
-        .player-card.eliminated { opacity: 0.4; border-color: var(--accent); filter: grayscale(100%); }
+        .player-card.eliminated, .player-card.ghost { opacity: 0.6; filter: grayscale(80%); }
+        .player-card.ghost { border-color: var(--text-muted); }
         .timer-bar-container { width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
         .timer-bar-fill { height: 100%; background: var(--primary); transition: width 1s linear; }
         .identity-square { width: 100%; max-width: 280px; aspect-ratio: 1 / 1; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 20px; position: relative; overflow: hidden; transition: all 0.5s ease; }
         .identity-spy { border: 2px solid var(--accent); background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); }
         .identity-agent { border: 2px solid #10b981; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%); box-shadow: 0 0 40px rgba(16, 185, 129, 0.2); }
+        .identity-informant { border: 2px solid #3b82f6; background: radial-gradient(circle at center, rgba(59, 130, 246, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(59, 130, 246, 0.3); }
+        .identity-mrwhite { border: 2px solid var(--gold); background: radial-gradient(circle at center, rgba(255, 215, 0, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 215, 0, 0.3); }
         .emoji-btn { font-size: 20px; cursor: pointer; transition: transform 0.2s; }
         .emoji-btn:hover { transform: scale(1.2); }
         .word-vote-card { background: rgba(255, 255, 255, 0.05); border: 2px solid transparent; transition: all 0.3s; position: relative; }
@@ -72,7 +76,6 @@
         .vote-request-banner { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 50; width: 90%; max-width: 500px; }
         .xp-bar-bg { background: rgba(255,255,255,0.1); }
         .xp-bar-fill { background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 0.5s ease; }
-        .kd-circle { transition: stroke-dashoffset 1s ease; }
         .achievement-card { transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; }
         .achievement-card.locked { filter: grayscale(100%); opacity: 0.4; }
         .achievement-card.unlocked { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
@@ -90,8 +93,6 @@
         .ach-tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--primary); padding: 8px; border-radius: 8px; width: 150px; font-size: 10px; text-align: center; z-index: 10; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
         .achievement-card:hover .ach-tooltip, .achievement-card:active .ach-tooltip { opacity: 1; }
         .notification-badge { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 2px solid var(--bg-dark); }
-        
-        /* Chat Styles Revamp - Works for both Private & In-Game */
         .chat-msg-row { display: flex; gap: 10px; margin-bottom: 16px; }
         .chat-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; cursor: pointer; transition: 0.2s; }
         .chat-avatar:hover { border-color: var(--primary); transform: scale(1.1); }
@@ -102,14 +103,10 @@
         .chat-bubble { padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; word-wrap: break-word; max-width: 100%; display: inline-block; }
         .chat-bubble-me { background: linear-gradient(135deg, rgba(112, 0, 255, 0.25), rgba(0, 242, 255, 0.25)); border: 1px solid var(--primary); border-bottom-right-radius: 2px; align-self: flex-end; }
         .chat-bubble-other { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255,255,255,0.05); border-bottom-left-radius: 2px; }
-        
-        /* Emoji Picker */
         .emoji-picker-container { position: absolute; bottom: 70px; right: 10px; width: 280px; background: rgba(10,10,20,0.98); border: 1px solid var(--border); border-radius: 12px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20; }
         .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-height: 200px; overflow-y: auto; margin-top: 8px; padding-right: 4px; }
         .emoji-item { font-size: 22px; padding: 5px; cursor: pointer; text-align: center; border-radius: 6px; transition: 0.2s; }
         .emoji-item:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
-        
-        /* Account & Profile Styles */
         .profile-header { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 20px; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 10px; }
         .profile-name { font-size: 22px; font-weight: 800; }
@@ -122,14 +119,8 @@
         .info-value { font-size: 14px; font-weight: 600; }
         .guest-banner { background: rgba(255, 255, 255, 0.05); border: 1px dashed var(--text-muted); padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
         .guest-banner h3 { color: var(--primary); margin-bottom: 5px; }
-        
-        /* Unread Badge on Friend List */
-        .friend-unread-badge {
-            position: absolute; top: 8px; right: 8px; min-width: 20px; height: 20px;
-            background: var(--accent); border-radius: 10px; font-size: 10px; font-weight: bold;
-            display: flex; align-items: center; justify-content: center; color: white; padding: 0 4px;
-            box-shadow: 0 0 10px rgba(255,0,85,0.5);
-        }
+        .friend-unread-badge { position: absolute; top: 8px; right: 8px; min-width: 20px; height: 20px; background: var(--accent); border-radius: 10px; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; color: white; padding: 0 4px; box-shadow: 0 0 10px rgba(255,0,85,0.5); }
+        .role-icon { position: absolute; top: 10px; left: 10px; font-size: 24px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
     </style>
 </head>
 <body>
@@ -156,10 +147,11 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const appId = 'pro_spy_v22_notification_system';
+        const appId = 'pro_spy_v23_advanced_modes';
         const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
         const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
         const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
+        const roomsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms');
 
         // --- Content ---
         const ACHIEVEMENTS = [
@@ -182,7 +174,7 @@
             { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] }
         ];
 
-        const EMOJI_LIST = ['😀', '😂', '😍', '🤔', '😎', '🤫', '😡', '🤢', '😴', '🤯', '😤', '🥺', '😱', '🤬', '💀', '👻', '👾', '🤖', '💩', '😈', '👁️', '🧠', '🦷', '🦴', '👀', '👊', '✌️', '🤞', '🤟', '👌', '🤙', '👈', '👉', '☝️', '👆', '👇', '✋', '🤚', '🖐️', '🖖', '👋', '🤝', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🙏', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁', '👅', '👄', '💋', '🩸', '💘', '❤️', '🧡', '💛', '💚', '💙', '💜', '🤎', '🖤', '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '⛎', '🔀', '🔁', '🔂', '▶️', '⏩', '⏭️', '⏯️', '◀️', '⏪', '⏮️', '🔼', '⏫', '🔽', '⏬', '⏸️', '⏹️', '⏺️', '⏏️', '🎦', '🔅', '🔆', '📶', '📳', '📴', '♀️', '♂️', '⚕️', '♾️', '♻️', '⚜️', '🔱', '📛', '🔰', '⭕', '✅', '☑️', '✔️', '✖️', '❌', '❎', '➕', '➖', '➗', '➰', '➿', '〽️', '✳️', '✴️', '❇️', '‼️', '⁉️', '❓', '❔', '❕', '❗', '〰️', '©️', '®️', '™️', '#️⃣', '*️⃣', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔠', '🔡', '🔢', '🔣', '🔤', '🅰️', '🆎', '🅱️', '🆑', '🆒', '🆓', 'ℹ️', '🆔', 'Ⓜ️', '🆕', '🆖', '🅾️', '🆗', '🅿️', '🆘', '🆙', '🆚', '🈁', '🈂️', '🈷️', '🈶', '🈯', '🉐', '🈹', '🈚', '🈲', '🉑', '🈸', '🈴', '🈳', '㊗️', '㊙️', '🈺', '🈵'];
+        const EMOJI_LIST = ['😀', '😂', '😍', '🤔', '😎', '🤫', '😡', '🤢', '😴', '🤯', '😤', '🥺', '😱', '🤬', '💀', '👻', '👾', '🤖', '💩', '😈', '👁️', '🧠', '🦷', '🦴', '👀', '👊', '✌️', '🤞', '🤟', '👌', '🤙', '👈', '👉', '☝️', '👆', '👇', '✋', '🤚', '🖐️', '🖖', '👋', '🤝', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🙏', '💪'];
         const MAX_ROUNDS = 3;
 
         // --- Helpers ---
@@ -227,32 +219,23 @@
             osc.connect(gainNode); gainNode.connect(audioCtx.destination);
             if (type === 'click') { osc.frequency.value = 800; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
             else if (type === 'success') { osc.frequency.value = 600; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
-            else if (type === 'notification') {
-                // Ding sound
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
-                osc.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.1); // E6
-                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-                osc.start(audioCtx.currentTime);
-                osc.stop(audioCtx.currentTime + 0.5);
-            }
+            else if (type === 'notification') { osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.1); gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5); osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.5); }
         };
 
         // --- Translations ---
         const TRANSLATIONS = {
             en: {
                 appName: "PRO SPY", tagline: "COVERT ARENA",
-                nickname: "OPERATOR NAME", create: "CREATE LOBBY", join: "JOIN OPS",
+                nickname: "OPERATOR NAME", create: "CREATE GAME", join: "JOIN OPS", browse: "BROWSE ROOMS",
                 codePlaceholder: "ENTER CODE", players: "OPERATIVES", start: "LAUNCH MISSION",
                 langBtn: "العربية", loading: "PROCESSING...", you: "YOU",
-                statusSpy: "SPY", statusAgent: "AGENT",
+                statusSpy: "SPY", statusAgent: "AGENT", statusInformant: "INFORMANT", statusMrWhite: "MR. WHITE", statusGhost: "GHOST",
                 round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT",
                 chatPlaceholder: "Type message...", send: "SEND",
                 waiting: "Awaiting host...", location: "LOCATION",
                 spectator: "SPECTATOR",
                 confirm: "CONFIRM VOTE", 
-                spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!",
+                spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!", mrWhiteWin: "MR. WHITE WINS!",
                 playAgain: "PLAY AGAIN", connecting: "Connecting...",
                 startVoting: "START VOTING", votingStarted: "VOTING INITIATED",
                 voteRequestTitle: "VOTING REQUEST", voteRequestDesc: "wants to start voting.",
@@ -262,7 +245,7 @@
                 wordSelectionTitle: "SELECT KEYWORD", wordSelectionDesc: "Choose a keyword for this round", finishSelection: "FINISH SELECTION", selectedWord: "Selected Keyword",
                 loginGoogle: "Login", myAccount: "My Account", logout: "Logout", profile: "Profile", guest: "Guest", linkGuessCard: "GUESS MY CARD",
                 level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID",
-                enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Need at least 3 players!", ok: "OK",
+                enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Minimum players not met!", ok: "OK",
                 tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends",
                 addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID",
                 online: "Online", offline: "Offline", noFriends: "No friends yet.",
@@ -280,20 +263,29 @@
                 selectEmoji: "Emoji",
                 guestTitle: "GUEST ACCOUNT",
                 guestDesc: "Register to save progress and add friends.",
-                kd: "K/D Ratio", stats: "Stats", noPermission: "Feature unavailable for guests."
+                kd: "K/D Ratio", stats: "Stats", noPermission: "Feature unavailable for guests.",
+                normalMode: "NORMAL MODE", advancedMode: "ADVANCED MODE (6+)",
+                modeNormalDesc: "Classic Spy vs Agents. 3-10 Players.",
+                modeAdvDesc: "Special Roles included! 6-10 Players.",
+                privateRoom: "Private Room", password: "Password", publicRoom: "Public Room",
+                noRooms: "No active games found.", lobbyTitle: "GAME LOBBY",
+                mrWhiteInstruction: "Guess the location to win!",
+                informantInstruction: "You know a neighbor!",
+                ghostInstruction: "You are now a Ghost. You can watch but cannot act.",
+                guessLocation: "GUESS LOCATION"
             },
             ar: {
                 appName: "برو جاسوس", tagline: "ساحة العمليات",
-                nickname: "اسم العميل", create: "إنشاء المقر", join: "انضمام",
+                nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف",
                 codePlaceholder: "أدخل الكود", players: "العملاء", start: "بدء المهمة",
                 langBtn: "English", loading: "جاري التحميل...", you: "أنت",
-                statusSpy: "جاسوس", statusAgent: "عميل",
+                statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح",
                 round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد",
                 chatPlaceholder: "اكتب رسالة...", send: "إرسال",
                 waiting: "بانتظار المضيف...", location: "الموقع",
                 spectator: "مشاهد",
                 confirm: "تأكيد التصويت",
-                spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!",
+                spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!",
                 playAgain: "لعب مجدداً", connecting: "جاري التأمين...",
                 startVoting: "بدء التصويت", votingStarted: "بدأ التصويت",
                 voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.",
@@ -303,7 +295,7 @@
                 wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر",
                 loginGoogle: "دخول", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي",
                 level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم",
-                enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "يحتاج 3 لاعبين على الأقل!", ok: "حسناً",
+                enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً",
                 tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء",
                 addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق",
                 online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.",
@@ -321,13 +313,20 @@
                 selectEmoji: "إيموجي",
                 guestTitle: "حساب زائر",
                 guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.",
-                kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار."
+                kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.",
+                normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)",
+                modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.",
+                modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.",
+                privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة",
+                noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار",
+                mrWhiteInstruction: "خمن المكان لتفوز!",
+                informantInstruction: "تعرف على جارك!",
+                ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.",
+                guessLocation: "خمن المكان"
             }
         };
 
         // --- Components ---
-
-        // Guest Banner
         const GuestBanner = ({ lang }) => {
             const t = TRANSLATIONS[lang];
             return (
@@ -338,7 +337,6 @@
             );
         };
 
-        // User Profile Modal (For Others)
         const UserProfileModal = ({ show, onClose, targetUID, lang, onAddFriend, isFriend, currentUserData }) => {
             const t = TRANSLATIONS[lang];
             const [profileData, setProfileData] = useState(null);
@@ -373,8 +371,6 @@
             return (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4" onClick={onClose}>
                     <div className="glass-panel rounded-2xl p-6 w-full max-w-sm animate-pop" onClick={e => e.stopPropagation()}>
-                        
-                        {/* Header */}
                         <div className="profile-header">
                             <img src={profileData.photoURL || `https://ui-avatars.com/api/?name=${profileData.displayName}&background=random`} className="profile-avatar" alt=""/>
                             <div className="profile-name">{profileData.displayName}</div>
@@ -383,46 +379,25 @@
                                 <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             </div>
                         </div>
-
                         {msg && <div className="text-center text-xs text-cyan-400 mb-4">{msg}</div>}
-
-                        {/* Stats Grid */}
                         <div className="info-grid">
-                            <div className="info-box">
-                                <span className="info-label">{t.level}</span>
-                                <span className="info-value text-primary">{level}</span>
-                            </div>
-                            <div className="info-box">
-                                <span className="info-label">{t.kd}</span>
-                                <span className="info-value">{kd}</span>
-                            </div>
-                            <div className="info-box">
-                                <span className="info-label">{t.wins}</span>
-                                <span className="info-value text-green-400">{wins}</span>
-                            </div>
-                            <div className="info-box">
-                                <span className="info-label">{t.losses}</span>
-                                <span className="info-value text-red-400">{losses}</span>
-                            </div>
+                            <div className="info-box"><span className="info-label">{t.level}</span><span className="info-value text-primary">{level}</span></div>
+                            <div className="info-box"><span className="info-label">{t.kd}</span><span className="info-value">{kd}</span></div>
+                            <div className="info-box"><span className="info-label">{t.wins}</span><span className="info-value text-green-400">{wins}</span></div>
+                            <div className="info-box"><span className="info-label">{t.losses}</span><span className="info-value text-red-400">{losses}</span></div>
                         </div>
-
-                        {/* Actions */}
                         {targetUID !== currentUserData.uid && !isTargetGuest && (
                             !currentUserData.isAnonymous ? (
                                 <button onClick={handleSendRequest} disabled={msg || isFriend} className={`w-full py-2 rounded-lg font-bold text-xs ${isFriend ? 'bg-gray-700 text-gray-400' : 'btn-neon'}`}>
                                     {isFriend ? "Already Friends" : (msg || t.addFriend)}
                                 </button>
-                            ) : (
-                                <div className="text-center text-xs text-gray-500 mt-2">{t.noPermission}</div>
-                            )
+                            ) : (<div className="text-center text-xs text-gray-500 mt-2">{t.noPermission}</div>)
                         )}
-                        {isTargetGuest && <div className="text-center text-xs text-gray-500 mt-2">This is a guest account.</div>}
                     </div>
                 </div>
             );
         };
 
-        // My Account Page (Detailed)
         const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
             const t = TRANSLATIONS[lang];
             const [newName, setNewName] = useState('');
@@ -455,11 +430,7 @@
                             <h2 className="text-xl font-bold text-primary">{t.myAccount}</h2>
                             <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button>
                         </div>
-
-                        {/* Guest Banner */}
                         {isGuest && <GuestBanner lang={lang} />}
-
-                        {/* Profile Header */}
                         <div className="profile-header mb-6">
                             <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="profile-avatar" alt=""/>
                             <div className="profile-name">{userData.displayName}</div>
@@ -468,22 +439,12 @@
                                 <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             </div>
                         </div>
-
-                        {/* Info Grid */}
                         <div className="space-y-4 mb-6">
                             <div className="info-grid">
-                                <div className="info-box col-span-2">
-                                    <span className="info-label">{t.email}</span>
-                                    <span className="info-value text-sm">{user.email}</span>
-                                </div>
-                                <div className="info-box col-span-2">
-                                    <span className="info-label">{t.memberSince}</span>
-                                    <span className="info-value text-xs">{formatDate(userData.createdAt)}</span>
-                                </div>
+                                <div className="info-box col-span-2"><span className="info-label">{t.email}</span><span className="info-value text-sm">{user.email}</span></div>
+                                <div className="info-box col-span-2"><span className="info-label">{t.memberSince}</span><span className="info-value text-xs">{formatDate(userData.createdAt)}</span></div>
                             </div>
                         </div>
-
-                        {/* Change Name (Only for registered) */}
                         {!isGuest && (
                             <div className="mb-6 glass-panel p-3 rounded-lg border border-white/10">
                                 <label className="text-[10px] text-gray-400 uppercase">{t.changeName}</label>
@@ -491,14 +452,10 @@
                                     <input className="input-dark flex-1 p-2 rounded text-xs" value={newName} onChange={e => setNewName(e.target.value)} />
                                     <button onClick={handleChangeName} disabled={!canChange} className={`px-3 rounded text-xs font-bold ${canChange ? 'btn-neon' : 'bg-gray-700 text-gray-400 cursor-not-allowed'}`}>{t.save}</button>
                                 </div>
-                                <p className="text-[10px] text-gray-500 mt-1">
-                                    {canChange ? t.canChangeNow : `${t.nameChangeCountdown}: ${timeRemaining}`}
-                                </p>
+                                <p className="text-[10px] text-gray-500 mt-1">{canChange ? t.canChangeNow : `${t.nameChangeCountdown}: ${timeRemaining}`}</p>
                             </div>
                         )}
                         {msg && !msg.includes('Copied') && <div className="text-center text-xs text-cyan-400 mb-2">{msg}</div>}
-
-                        {/* Level Progress */}
                         <div className="mb-6 glass-panel rounded-xl p-4 border border-white/10">
                             <div className="flex justify-between items-center mb-2">
                                 <span className="font-bold text-primary">{t.level} {level}</span>
@@ -508,24 +465,11 @@
                                 <div className="h-full xp-bar-fill" style={{ width: `${xpProgress}%` }}></div>
                             </div>
                         </div>
-
-                        {/* Stats */}
                         <div className="grid grid-cols-3 gap-4 mb-6">
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-green-400">{userData.stats?.wins || 0}</div>
-                                <div className="text-[10px] text-gray-500 uppercase">{t.wins}</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-red-400">{userData.stats?.losses || 0}</div>
-                                <div className="text-[10px] text-gray-500 uppercase">{t.losses}</div>
-                            </div>
-                             <div className="text-center">
-                                <div className="text-3xl font-bold text-cyan-400">{(userData.stats?.wins || 0) + (userData.stats?.losses || 0)}</div>
-                                <div className="text-[10px] text-gray-500 uppercase">{t.totalGames}</div>
-                            </div>
+                            <div className="text-center"><div className="text-3xl font-bold text-green-400">{userData.stats?.wins || 0}</div><div className="text-[10px] text-gray-500 uppercase">{t.wins}</div></div>
+                            <div className="text-center"><div className="text-3xl font-bold text-red-400">{userData.stats?.losses || 0}</div><div className="text-[10px] text-gray-500 uppercase">{t.losses}</div></div>
+                            <div className="text-center"><div className="text-3xl font-bold text-cyan-400">{(userData.stats?.wins || 0) + (userData.stats?.losses || 0)}</div><div className="text-[10px] text-gray-500 uppercase">{t.totalGames}</div></div>
                         </div>
-
-                         {/* Achievements */}
                          <div>
                             <h3 className="text-sm font-bold text-gray-400 mb-3">{t.achievements}</h3>
                             <div className="grid grid-cols-3 gap-2">
@@ -541,13 +485,11 @@
                                 })}
                             </div>
                         </div>
-
                     </div>
                 </div>
             );
         };
 
-        // Chat Modal
         const PrivateChatModal = ({ show, onClose, friendData, currentUser, lang, onInvite, roomId, onJoinInvite }) => {
             const t = TRANSLATIONS[lang];
             const [messages, setMessages] = useState([]);
@@ -561,7 +503,6 @@
                         setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
                     });
                     
-                    // Reset unread count when opening chat
                     chatsCollection.doc(chatId).set({
                         [`unread.${currentUser.uid}`]: 0
                     }, { merge: true });
@@ -581,7 +522,6 @@
                     type: 'text'
                 };
                 
-                // Batch to add message and update chat metadata
                 const batch = db.batch();
                 const msgRef = chatsCollection.doc(chatId).collection('messages').doc();
                 batch.set(msgRef, msg);
@@ -631,7 +571,6 @@
             return (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4" onClick={()=>{onClose(); setShowEmojis(false);}}>
                     <div className="glass-panel rounded-2xl w-full max-w-lg h-[600px] flex flex-col animate-pop relative" onClick={e => e.stopPropagation()}>
-                        {/* Header */}
                         <div className="p-4 border-b border-white/10 flex justify-between items-center">
                             <div className="flex items-center gap-3">
                                 <img src={friendData.photoURL} className="w-10 h-10 rounded-full border-2 border-cyan-400"/>
@@ -642,16 +581,10 @@
                             </div>
                             <button onClick={onClose} className="text-xl text-gray-400 hover:text-white">&times;</button>
                         </div>
-
-                        {/* Messages */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-4">
                             {messages.map(m => (
                                 <div key={m.id} className={`chat-msg-row ${m.senderId === currentUser.uid ? 'flex-row-reverse' : ''}`}>
-                                    <img 
-                                        src={m.senderId === currentUser.uid ? currentUser.photoURL : friendData.photoURL} 
-                                        className="chat-avatar" 
-                                        alt=""
-                                    />
+                                    <img src={m.senderId === currentUser.uid ? currentUser.photoURL : friendData.photoURL} className="chat-avatar" alt=""/>
                                     <div className="chat-content">
                                         <div className={`chat-header ${m.senderId === currentUser.uid ? 'justify-end' : ''}`}>
                                             <span className="chat-username">{m.senderName}</span>
@@ -671,8 +604,6 @@
                                 </div>
                             ))}
                         </div>
-                        
-                        {/* Emoji Picker */}
                         {showEmojis && (
                             <div className="emoji-picker-container">
                                 <div className="flex justify-between items-center mb-1">
@@ -686,8 +617,6 @@
                                 </div>
                             </div>
                         )}
-
-                        {/* Input */}
                         <div className="p-4 border-t border-white/10 relative">
                             {roomId && !currentUser.isAnonymous && (<button onClick={handleInvite} className="btn-success w-full py-2 rounded text-xs mb-2">{t.inviteBtn} ({t.inviteFriends})</button>)}
                             <div className="flex gap-2 items-center">
@@ -701,7 +630,6 @@
             );
         };
         
-        // In-Game Chat Message Component
         const GameChatMessage = ({ msg, currentUser, players, onAvatarClick }) => {
             const sender = players.find(p => p.uid === msg.sender);
             const isMe = msg.sender === currentUser.uid;
@@ -710,19 +638,87 @@
             
             return (
                 <div className={`chat-msg-row ${isMe ? 'flex-row-reverse' : ''}`}>
-                    <img 
-                        src={sender?.photo || `https://ui-avatars.com/api/?name=${sender?.name}`} 
-                        className="chat-avatar" 
-                        alt=""
-                        onClick={() => onAvatarClick(msg.sender)}
-                    />
+                    <img src={sender?.photo || `https://ui-avatars.com/api/?name=${sender?.name}`} className="chat-avatar" alt="" onClick={() => onAvatarClick(msg.sender)} />
                     <div className="chat-content">
                         <div className={`chat-header ${isMe ? 'justify-end' : ''}`}>
                             <span className="chat-username">{msg.name}</span>
                             <span className="chat-timestamp">{formatTime(msg.time)}</span>
                         </div>
-                        <div className={`chat-bubble ${isMe ? 'chat-bubble-me' : 'chat-bubble-other'}`}>
-                            <p>{msg.text}</p>
+                        <div className={`chat-bubble ${isMe ? 'chat-bubble-me' : 'chat-bubble-other'}`}><p>{msg.text}</p></div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const LobbyBrowserModal = ({ show, onClose, lang, onJoinRoom }) => {
+            const t = TRANSLATIONS[lang];
+            const [rooms, setRooms] = useState([]);
+            const [passwordInput, setPasswordInput] = useState('');
+            const [selectedRoom, setSelectedRoom] = useState(null);
+            
+            useEffect(() => {
+                if(show) {
+                    const unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => {
+                        setRooms(snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    });
+                    return unsub;
+                }
+            }, [show]);
+            
+            const handleJoinClick = (room) => {
+                if(room.isPrivate) {
+                    setSelectedRoom(room);
+                } else {
+                    onJoinRoom(room.id, null);
+                    onClose();
+                }
+            };
+            
+            const handlePasswordSubmit = () => {
+                if(selectedRoom && selectedRoom.password === passwordInput) {
+                    onJoinRoom(selectedRoom.id, passwordInput);
+                    onClose();
+                } else {
+                    alert("Wrong Password!");
+                }
+            };
+            
+            if(!show) return null;
+            
+            return (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4" onClick={onClose}>
+                    <div className="glass-panel rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col animate-pop" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold text-primary">{t.lobbyTitle}</h2>
+                            <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl">&times;</button>
+                        </div>
+                        
+                        {selectedRoom && (
+                            <div className="mb-4 p-4 border border-white/10 rounded-lg bg-black/20">
+                                <p className="text-sm mb-2">Enter password for <span className="font-bold">{selectedRoom.id}</span></p>
+                                <div className="flex gap-2">
+                                    <input type="password" className="input-dark flex-1 p-2 rounded" placeholder="Password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} />
+                                    <button onClick={handlePasswordSubmit} className="btn-neon px-4 rounded">{t.join}</button>
+                                    <button onClick={() => setSelectedRoom(null)} className="btn-ghost px-2 rounded">&times;</button>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="flex-1 overflow-y-auto space-y-2">
+                            {rooms.length === 0 && <div className="text-center text-gray-500 py-10">{t.noRooms}</div>}
+                            {rooms.map(r => (
+                                <div key={r.id} className="flex justify-between items-center p-3 bg-white/5 rounded-lg hover:bg-white/10 transition">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-mono text-primary font-bold">{r.id}</span>
+                                            {r.isPrivate && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1 rounded">🔒 {t.privateRoom}</span>}
+                                            <span className={`text-[10px] ${r.mode === 'advanced' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'} px-1 rounded`}>{r.mode === 'advanced' ? t.advancedMode : t.normalMode}</span>
+                                        </div>
+                                        <div className="text-xs text-gray-400">{r.players?.length || 0} {t.players}</div>
+                                    </div>
+                                    <button onClick={() => handleJoinClick(r)} className="btn-neon px-4 py-1 rounded text-xs">{t.join}</button>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -742,7 +738,12 @@
             const [turnTimer, setTurnTimer] = useState(30);
             const [votingTimer, setVotingTimer] = useState(30);
             const [wordSelTimer, setWordSelTimer] = useState(30);
-            const [soundEnabled, setSoundEnabled] = useState(true);
+            
+            // Game Setup State
+            const [showSetupModal, setShowSetupModal] = useState(false);
+            const [setupMode, setSetupMode] = useState('normal'); // 'normal' or 'advanced'
+            const [isPrivate, setIsPrivate] = useState(false);
+            const [password, setPassword] = useState('');
             
             // UI State
             const [activeView, setActiveView] = useState('lobby');
@@ -756,24 +757,19 @@
             const [friendRequests, setFriendRequests] = useState([]);
             const [showChat, setShowChat] = useState(false);
             const [chatFriend, setChatFriend] = useState(null);
-            
-            // Modals State
             const [showMyAccount, setShowMyAccount] = useState(false);
             const [showUserProfile, setShowUserProfile] = useState(false);
             const [targetProfileUID, setTargetProfileUID] = useState(null);
-            
-            // Chat Meta State (Notifications & Sorting)
-            const [chatsMeta, setChatsMeta] = useState({}); // { chatId: { lastMessage, timestamp, unread: {uid: count} } }
+            const [chatsMeta, setChatsMeta] = useState({});
             const [totalUnread, setTotalUnread] = useState(0);
             const [openChatId, setOpenChatId] = useState(null);
+            const [showLobby, setShowLobby] = useState(false);
             
             const t = TRANSLATIONS[lang];
             const isLoggedIn = user && !user.isAnonymous;
             const isGuest = user && user.isAnonymous;
 
             // --- Effects ---
-
-            // Background
             useEffect(() => {
                 const canvas = document.getElementById('bg-canvas');
                 if (!canvas) return;
@@ -808,7 +804,6 @@
                 return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
             }, []);
 
-            // Auth & UserData Realtime
             useEffect(() => {
                 const unsubAuth = auth.onAuthStateChanged(async (u) => {
                     if (u) {
@@ -840,7 +835,6 @@
                 return unsubAuth;
             }, []);
 
-            // Update Last Active
             useEffect(() => {
                 if (!user) return;
                 const interval = setInterval(() => {
@@ -849,15 +843,12 @@
                 return () => clearInterval(interval);
             }, [user]);
 
-            // Room Listener
             useEffect(() => {
                 if (!user || !roomId) return;
-                const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId)
-                    .onSnapshot(doc => { if (doc.exists) setRoom(doc.data()); else setRoom(null); });
+                const unsub = roomsCollection.doc(roomId).onSnapshot(doc => { if (doc.exists) setRoom(doc.data()); else setRoom(null); });
                 return unsub;
             }, [user, roomId]);
 
-            // Leaderboard (Filter Guests)
             useEffect(() => {
                 if (activeView === 'leaderboard') {
                     usersCollection.orderBy('stats.wins', 'desc').limit(100).get().then(snap => {
@@ -867,7 +858,6 @@
                 }
             }, [activeView]);
 
-            // Friends & Requests
             useEffect(() => {
                 if (activeView === 'friends' && userData) {
                     if (userData.friends?.length > 0) {
@@ -884,7 +874,6 @@
                 }
             }, [activeView, userData?.friends, userData?.friendRequests]);
 
-            // Chat Meta Listener (Notifications & Sorting)
             useEffect(() => {
                 if (!user) return;
                 const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => {
@@ -895,29 +884,13 @@
                         meta[doc.id] = d;
                         const myUnread = d.unread?.[user.uid] || 0;
                         total += myUnread;
-                        
-                        // Play sound if new message detected
-                        // Check if message is from server (not pending write) and not open
-                        if (!doc.metadata.hasPendingWrites && myUnread > 0 && doc.id !== openChatId) {
-                             // We check !doc.metadata.hasPendingWrites to ensure it's from server
-                             // But simpler logic: just check if unread > 0 for the user.
-                             // However, we don't want to play sound repeatedly.
-                             // We rely on the unread count being reset when opening chat.
-                             // If unread > previous unread -> play sound.
-                             // For simplicity now: if unread > 0 and chat is not open, we assume new message just arrived if we didn't trigger it.
-                        }
                     });
                     setChatsMeta(meta);
                     setTotalUnread(total);
-                    
-                    // Play sound if total unread increased compared to previous state?
-                    // This is tricky with state closure. We use a ref or just check simple condition.
-                    // We play sound inside the forEach if conditions met.
                 });
                 return unsub;
-            }, [user, openChatId]); // Rerun if openChatId changes to stop sounds for open chat
+            }, [user, openChatId]);
 
-            // Timers
             useEffect(() => {
                 if (room?.status === 'discussing' && room?.turnEndTime) {
                     const interval = setInterval(() => {
@@ -959,11 +932,10 @@
 
             const handleLogout = async () => { await auth.signOut(); setShowDropdown(false); setNickname(''); localStorage.removeItem('pro_spy_nick'); };
 
-            const handleCreate = async () => {
+            const handleCreateGame = async () => {
                 if (!nickname.trim()) return;
-                if (soundEnabled) playSound('click');
+                playSound('click');
                 setLoading(true);
-                setJoinError('');
                 
                 let uid = user?.uid;
                 if (!uid) {
@@ -973,23 +945,24 @@
                 }
                 
                 const id = Math.random().toString(36).substring(2, 7).toUpperCase();
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(id).set({
+                await roomsCollection.doc(id).set({
                     id, admin: uid, status: 'waiting',
-                    players: [{ uid: uid, name: nickname, status: 'active', photo: userData?.photoURL }],
+                    players: [{ uid: uid, name: nickname, status: 'active', photo: userData?.photoURL, role: null }],
                     scenario: null, spyId: null, 
                     currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0,
                     messages: [], votes: {}, usedLocations: [], 
-                    wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null
+                    wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null,
+                    mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null
                 });
                 setRoomId(id);
                 setLoading(false);
+                setShowSetupModal(false);
                 setActiveView('lobby');
             };
 
-            const handleJoin = async () => {
+            const handleJoinGame = async (id, pwd) => {
                 if (!nickname.trim()) return;
-                if (!inputCode.trim()) { setJoinError(t.enterCodeError); return; }
-                if (soundEnabled) playSound('click');
+                playSound('click');
                 setLoading(true);
                 setJoinError('');
                 
@@ -1000,15 +973,27 @@
                     setUser(anon.user);
                 }
 
-                const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(inputCode.toUpperCase());
+                const ref = roomsCollection.doc(id.toUpperCase());
                 const snap = await ref.get();
                 if (snap.exists) {
                     const data = snap.data();
+                    if(data.isPrivate && data.password !== pwd) {
+                        setJoinError("Incorrect Password");
+                        setLoading(false);
+                        return;
+                    }
+                    
+                    if(data.mode === 'advanced' && data.players.filter(p=>p.status==='active').length >= 10) {
+                        setJoinError("Room is full (Max 10)");
+                        setLoading(false);
+                        return;
+                    }
+                    
                     const exists = data.players.find(p => p.uid === uid);
                     if (!exists) {
-                        await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: userData?.photoURL }] });
+                        await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: userData?.photoURL, role: null }] });
                     }
-                    setRoomId(inputCode.toUpperCase());
+                    setRoomId(id.toUpperCase());
                     setActiveView('lobby');
                 } else {
                     setJoinError("Room not found");
@@ -1022,12 +1007,12 @@
                 setLoading(true);
                 let uid = user?.uid;
                 if (!uid) { const anon = await auth.signInAnonymously(); uid = anon.user.uid; setUser(anon.user); }
-                const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(rId);
+                const ref = roomsCollection.doc(rId);
                 const snap = await ref.get();
                 if (snap.exists) {
                     const data = snap.data();
                     const exists = data.players.find(p => p.uid === uid);
-                    if (!exists) { await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: userData?.photoURL }] }); }
+                    if (!exists) { await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: userData?.photoURL, role: null }] }); }
                     setRoomId(rId);
                     setActiveView('lobby');
                 }
@@ -1036,26 +1021,66 @@
 
             const startGame = async () => {
                 if (room.admin !== user?.uid) return;
-                if (soundEnabled) playSound('success');
+                playSound('success');
                 
                 const activePlayers = room.players.filter(p => p.status === 'active');
-                if (activePlayers.length < 3) { 
+                const playerCount = activePlayers.length;
+                
+                // Mode checks
+                if (room.mode === 'advanced' && playerCount < 6) { 
+                    setAlertMessage("Advanced mode requires 6+ players!"); 
+                    return; 
+                }
+                if (playerCount < 3) { 
                     setAlertMessage(t.needPlayers); 
                     return; 
+                }
+                if (playerCount > 10) {
+                    setAlertMessage("Max 10 players allowed.");
+                    return;
                 }
 
                 const used = room.usedLocations || [];
                 const avail = SCENARIOS.filter(s => !used.includes(s.loc_en));
                 const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))];
                 const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)];
-                let potentialStarters = activePlayers.filter(p => p.uid !== spy.uid);
+                
+                let roles = {};
+                
+                if (room.mode === 'advanced') {
+                    // Assign Spy
+                    roles[spy.uid] = 'spy';
+                    
+                    // Assign Mr. White (1)
+                    let potentialWhites = activePlayers.filter(p => p.uid !== spy.uid);
+                    if(potentialWhites.length > 0) {
+                        const mrWhite = potentialWhites[Math.floor(Math.random() * potentialWhites.length)];
+                        roles[mrWhite.uid] = 'mrwhite';
+                        potentialWhites = potentialWhites.filter(p => p.uid !== mrWhite.uid);
+                    }
+                    
+                    // Assign Informant (1)
+                    if(potentialWhites.length > 0) {
+                        const informant = potentialWhites[Math.floor(Math.random() * potentialWhites.length)];
+                        roles[informant.uid] = 'informant';
+                    }
+                    
+                    // Rest are agents
+                    activePlayers.forEach(p => { if(!roles[p.uid]) roles[p.uid] = 'agent'; });
+                    
+                } else {
+                    // Normal mode
+                    activePlayers.forEach(p => roles[p.uid] = p.uid === spy.uid ? 'spy' : 'agent');
+                }
+                
+                let potentialStarters = activePlayers.filter(p => roles[p.uid] !== 'spy');
                 if (potentialStarters.length === 0) potentialStarters = activePlayers; 
                 const firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)];
 
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                await roomsCollection.doc(roomId).update({
                     status: 'word_selection', scenario, spyId: spy.uid,
                     currentTurnUID: firstPlayer.uid, turnEndTime: null, currentRound: 1, 
-                    players: room.players.map(p => ({ ...p, vote: null })),
+                    players: room.players.map(p => ({ ...p, vote: null, role: roles[p.uid] || 'agent' })),
                     usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en),
                     messages: [], votes: {}, wordVotes: {}, chosenWord: null, 
                     wordSelEndTime: Date.now() + 30000, votingRequest: null
@@ -1064,21 +1089,21 @@
 
             const submitWordVote = async (word) => {
                 if (!user || !room || room.status !== 'word_selection') return;
-                if (soundEnabled) playSound('click');
+                playSound('click');
                 const voteUpdate = {}; voteUpdate[`wordVotes.${user.uid}`] = word;
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update(voteUpdate);
+                await roomsCollection.doc(roomId).update(voteUpdate);
             };
 
             const finishWordSelection = async () => {
                 if (!room || room.status !== 'word_selection') return;
-                const freshSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).get();
+                const freshSnap = await roomsCollection.doc(roomId).get();
                 const freshData = freshSnap.data();
                 const counts = {};
                 Object.values(freshData.wordVotes || {}).forEach(v => counts[v] = (counts[v] || 0) + 1);
                 let maxCount = 0;
                 let chosenWord = (lang === 'ar' ? freshData.scenario.words_ar[0] : freshData.scenario.words_en[0]);
                 for (const w in counts) { if (counts[w] > maxCount) { maxCount = counts[w]; chosenWord = w; } }
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                await roomsCollection.doc(roomId).update({
                     status: 'discussing', turnEndTime: Date.now() + 30000, chosenWord: chosenWord, wordSelEndTime: null
                 });
             };
@@ -1095,23 +1120,23 @@
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 const currentIndex = activePlayers.findIndex(p => p.uid === room.currentTurnUID);
                 const nextIndex = (currentIndex + 1) % activePlayers.length;
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                await roomsCollection.doc(roomId).update({
                     currentTurnUID: activePlayers[nextIndex].uid, turnEndTime: Date.now() + 30000
                 });
             };
 
             const requestVoting = async () => {
                 if (!room || room.status !== 'discussing') return;
-                if (soundEnabled) playSound('click');
+                playSound('click');
                 if (room.admin === user?.uid) { await triggerVoting(); return; }
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                await roomsCollection.doc(roomId).update({
                     votingRequest: { requestedBy: user.uid, votes: { [user.uid]: true } }
                 });
             };
 
             const agreeToVote = async () => {
                 if (!room || !room.votingRequest) return;
-                if (soundEnabled) playSound('click');
+                playSound('click');
                 const currentVotes = room.votingRequest.votes || {};
                 const newVotes = { ...currentVotes, [user.uid]: true };
                 const activePlayers = room.players.filter(p => p.status === 'active');
@@ -1119,26 +1144,26 @@
                 if (user?.uid === room.admin) { await triggerVoting(); return; }
                 const agreeCount = Object.values(newVotes).filter(v => v === true).length;
                 if (agreeCount >= majorityCount) { await triggerVoting(); } 
-                else { await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ "votingRequest.votes": newVotes }); }
+                else { await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); }
             };
 
             const declineVote = async () => {
                 if (!room || !room.votingRequest) return;
-                if (soundEnabled) playSound('click');
+                playSound('click');
                 const currentVotes = room.votingRequest.votes || {};
                 const newVotes = { ...currentVotes, [user.uid]: false };
                 const activePlayers = room.players.filter(p => p.status === 'active');
                 const majorityCount = Math.floor(activePlayers.length / 2) + 1;
                 const declineCount = Object.values(newVotes).filter(v => v === false).length;
                 if (declineCount >= majorityCount) {
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ votingRequest: null });
-                } else { await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ "votingRequest.votes": newVotes }); }
+                    await roomsCollection.doc(roomId).update({ votingRequest: null });
+                } else { await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); }
             };
 
             const triggerVoting = async () => {
-                if (soundEnabled) playSound('click');
+                playSound('click');
                 const sysMsg = { sender: 'system', name: 'SYSTEM', text: t.votingStarted, time: Date.now() };
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                await roomsCollection.doc(roomId).update({
                     status: 'voting', currentTurnUID: null, turnEndTime: null,
                     votingEndTime: Date.now() + 30000, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg), votingRequest: null
                 });
@@ -1146,9 +1171,9 @@
 
             const sendMessage = async (text) => {
                 if (!text.trim() || !user) return;
-                if (soundEnabled) playSound('click');
+                playSound('click');
                 const msg = { sender: user.uid, name: nickname, text: text, time: Date.now() };
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                await roomsCollection.doc(roomId).update({
                     messages: firebase.firestore.FieldValue.arrayUnion(msg)
                 });
                 setChatMsg('');
@@ -1156,9 +1181,9 @@
 
             const submitVote = async (targetUID) => {
                 if (!targetUID || !user || (room.votes && room.votes[user.uid])) return;
-                if (soundEnabled) playSound('click');
+                playSound('click');
                 const voteUpdate = {}; voteUpdate[`votes.${user.uid}`] = targetUID;
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update(voteUpdate);
+                await roomsCollection.doc(roomId).update(voteUpdate);
             };
 
             const endVotingNow = async () => {
@@ -1168,7 +1193,7 @@
 
             const resolveVotes = async (forced = false) => {
                 if (!room || room.status !== 'voting') return;
-                const freshSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).get();
+                const freshSnap = await roomsCollection.doc(roomId).get();
                 const freshData = freshSnap.data();
                 if (freshData.status !== 'voting') return;
 
@@ -1187,54 +1212,83 @@
                     const nextRound = (freshData.currentRound || 1) + 1;
                     if (nextRound > MAX_ROUNDS) { await endGame(false); } 
                     else {
-                        const firstPlayer = activePlayers.find(p => p.uid !== freshData.spyId) || activePlayers[0];
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                        const firstPlayer = activePlayers.find(p => freshData.players.find(fp=>fp.uid===p.uid)?.role !== 'spy') || activePlayers[0];
+                        await roomsCollection.doc(roomId).update({
                             status: 'word_selection', votes: {}, currentRound: nextRound,
                             currentTurnUID: firstPlayer.uid, turnEndTime: null, votingEndTime: null,
                             wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000
                         });
                     }
                 } else {
-                    const newPlayers = freshData.players.map(p => { if (p.uid === ejectedUID) return { ...p, status: 'spectator' }; return p; });
+                    const newPlayers = freshData.players.map(p => { if (p.uid === ejectedUID) return { ...p, status: freshData.mode === 'advanced' && p.role !== 'spy' ? 'ghost' : 'spectator' }; return p; });
                     const isSpy = ejectedUID === freshData.spyId;
-                    const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.uid !== freshData.spyId);
-                    let newStatus = freshData.status;
+                    const mrWhite = freshData.players.find(p => p.role === 'mrwhite');
                     
-                    if (isSpy) { newStatus = 'finished_spy_caught'; await updateGameStats(freshData.players, freshData.spyId); } 
-                    else if (remainingAgents.length <= 1) { newStatus = 'finished_spy_wins'; await updateGameStats(freshData.players, freshData.spyId); }
-                    else {
-                        const nextRound = (freshData.currentRound || 1) + 1;
-                        if (nextRound > MAX_ROUNDS) { newStatus = 'finished_spy_wins'; await updateGameStats(freshData.players, freshData.spyId); }
-                        else {
-                            const firstPlayer = newPlayers.filter(p => p.status === 'active').find(p => p.uid !== freshData.spyId) || newPlayers.filter(p => p.status === 'active')[0];
-                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
-                                players: newPlayers, status: 'word_selection', votes: {},
-                                currentTurnUID: firstPlayer.uid, turnEndTime: null, votingEndTime: null,
-                                currentRound: nextRound, wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000
-                            });
-                            return;
-                        }
+                    // Mr. White wins logic handled in Guess button logic, but if voted out he loses normally.
+                    if (mrWhite && ejectedUID === mrWhite.uid) {
+                         // Mr White loses
+                         await endGame(false); // Spy wins
                     }
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({ players: newPlayers, status: newStatus });
+                    else if (isSpy) { 
+                        newStatus = 'finished_spy_caught'; 
+                        await updateGameStats(freshData.players, freshData.spyId); 
+                        await roomsCollection.doc(roomId).update({ players: newPlayers, status: 'finished_spy_caught' });
+                    } 
+                    else {
+                         // Ejected an agent/informant
+                         const remainingAgents = newPlayers.filter(p => p.status === 'active' && p.role !== 'spy');
+                         // Agents need to find spy. Informants count as agents.
+                         if (remainingAgents.length <= 1) { 
+                             await endGame(false); // Spy wins
+                         }
+                         else {
+                             const nextRound = (freshData.currentRound || 1) + 1;
+                             if (nextRound > MAX_ROUNDS) { await endGame(false); }
+                             else {
+                                 const firstPlayer = newPlayers.filter(p => p.status === 'active').find(p => p.role !== 'spy') || newPlayers.filter(p => p.status === 'active')[0];
+                                 await roomsCollection.doc(roomId).update({
+                                     players: newPlayers, status: 'word_selection', votes: {},
+                                     currentTurnUID: firstPlayer.uid, turnEndTime: null, votingEndTime: null,
+                                     currentRound: nextRound, wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000
+                                 });
+                                 return;
+                             }
+                         }
+                    }
+                    await roomsCollection.doc(roomId).update({ players: newPlayers });
+                }
+            };
+            
+            // Mr. White Guess Logic
+            const handleMrWhiteGuess = async (guess) => {
+                if(!room || !user) return;
+                const me = room.players.find(p => p.uid === user.uid);
+                if(me.role !== 'mrwhite') return;
+                
+                const correct = (lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en);
+                if(guess === correct) {
+                    playSound('success');
+                    await roomsCollection.doc(roomId).update({ status: 'finished_mrwhite_wins' });
+                } else {
+                    // He loses chance? Or just wrong. For simplicity: Nothing happens or he dies?
+                    // Let's say he just fails.
+                    setAlertMessage("Wrong guess! You remain silent.");
                 }
             };
 
             const updateGameStats = async (players, spyId) => {
                 const batch = db.batch();
                 const spyWin = room.status === 'finished_spy_wins';
-                
                 players.forEach(p => {
                     if(!p.uid) return;
                     const userRef = usersCollection.doc(p.uid);
                     const isWinner = (p.uid === spyId && spyWin) || (p.uid !== spyId && !spyWin);
-                    
                     batch.update(userRef, {
                         "stats.wins": firebase.firestore.FieldValue.increment(isWinner ? 1 : 0),
                         "stats.losses": firebase.firestore.FieldValue.increment(!isWinner ? 1 : 0),
                         "stats.xp": firebase.firestore.FieldValue.increment(isWinner ? 50 : 10)
                     });
                 });
-                
                 await batch.commit();
                 checkAchievements(players, spyId);
             };
@@ -1246,39 +1300,34 @@
                     const userRef = usersCollection.doc(p.uid);
                     const doc = await userRef.get();
                     if(!doc.exists) return;
-                    
                     const data = doc.data();
                     const wins = (data.stats?.wins || 0);
                     const currentAch = data.achievements || [];
                     let newAch = [...currentAch];
-                    
                     if(wins >= 1 && !currentAch.includes('first_win')) newAch.push('first_win');
                     if(wins >= 5 && !currentAch.includes('wins_5')) newAch.push('wins_5');
                     if(wins >= 10 && !currentAch.includes('wins_10')) newAch.push('wins_10');
                     if(wins >= 20 && !currentAch.includes('wins_20')) newAch.push('wins_20');
                     if(wins >= 50 && !currentAch.includes('wins_50')) newAch.push('wins_50');
                     if(wins >= 100 && !currentAch.includes('wins_100')) newAch.push('wins_100');
-
-                    if(newAch.length > currentAch.length) { 
-                        try { await userRef.update({ achievements: newAch }); } catch(err) { console.error("Ach err", err); }
-                    }
+                    if(newAch.length > currentAch.length) { try { await userRef.update({ achievements: newAch }); } catch(err) { console.error("Ach err", err); } }
                 }));
             };
 
             const endGame = async (agentsWin) => {
-                if (soundEnabled) playSound(agentsWin ? 'success' : 'fail');
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                playSound(agentsWin ? 'success' : 'fail');
+                await roomsCollection.doc(roomId).update({
                     status: agentsWin ? 'finished_spy_caught' : 'finished_spy_wins',
                     turnEndTime: null, votingEndTime: null
                 });
             };
 
             const resetGame = async () => {
-                if (soundEnabled) playSound('click');
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms').doc(roomId).update({
+                playSound('click');
+                await roomsCollection.doc(roomId).update({
                     status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0,
                     votes: {}, messages: [], votingEndTime: null, turnEndTime: null,
-                    players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo })),
+                    players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo, role: null })),
                     wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null
                 });
             };
@@ -1301,23 +1350,16 @@
                 setChatFriend(null);
                 setOpenChatId(null);
             }
-
-            // Friends Logic
+            
             const handleSendRequest = async () => {
                 if (!addFriendId || addFriendId === userData.customId || isGuest) return;
-                const snap = await usersCollection.where('customId', '==', addFriendId).get();
+                const snap = usersCollection.where('customId', '==', addFriendId).get();
                 if (snap.empty) { setFriendSearchMsg(t.friendNotFound); return; }
-                
                 const friendDoc = snap.docs[0];
                 const friendUid = friendDoc.id;
-                
                 if (userData.friends?.includes(friendUid)) { setFriendSearchMsg("Already friends!"); return; }
                 if (userData.friendRequests?.includes(friendUid)) { setFriendSearchMsg("Request already pending!"); return; }
-                
-                await usersCollection.doc(friendUid).update({
-                    friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid)
-                });
-                
+                await usersCollection.doc(friendUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) });
                 setFriendSearchMsg(t.requestSent);
                 setAddFriendId('');
             };
@@ -1327,33 +1369,26 @@
                     friends: firebase.firestore.FieldValue.arrayUnion(fromUid),
                     friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
                 });
-                await usersCollection.doc(fromUid).update({
-                    friends: firebase.firestore.FieldValue.arrayUnion(user.uid)
-                });
+                await usersCollection.doc(fromUid).update({ friends: firebase.firestore.FieldValue.arrayUnion(user.uid) });
             };
             
             const handleRejectRequest = async (fromUid) => {
-                await usersCollection.doc(user.uid).update({
-                    friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
-                });
+                await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) });
             };
 
             // Render Helpers
             const isMyTurn = room?.currentTurnUID === user?.uid;
-            const isSpy = room?.spyId === user?.uid;
             const me = room?.players?.find(p => p.uid === user?.uid);
-            const isSpectator = me?.status === 'spectator';
+            const myRole = me?.role;
+            const isSpectator = me?.status === 'spectator' || me?.status === 'ghost';
             const hasVoted = room?.votes?.[user?.uid];
             const hasVotedWord = room?.wordVotes?.[user?.uid];
             const activePlayersCount = room?.players?.filter(p => p.status === 'active').length || 0;
             const voteReq = room?.votingRequest;
-            const agreeCount = voteReq?.votes ? Object.values(voteReq.votes).filter(v => v === true).length : 0;
-            const declineCount = voteReq?.votes ? Object.values(voteReq.votes).filter(v => v === false).length : 0;
-            const majorityNeeded = Math.floor(activePlayersCount / 2) + 1;
             const hasIAgreed = voteReq?.votes?.[user?.uid] === true;
             const hasIDeclined = voteReq?.votes?.[user?.uid] === false;
-            
-            // Sort Friends based on Chat Timestamp
+
+            // Friend Sort
             const sortedFriends = React.useMemo(() => {
                 if (!friendsData) return [];
                 const sorted = [...friendsData].sort((a, b) => {
@@ -1379,34 +1414,54 @@
                         </div>
                     )}
 
-                    <MyAccountPage 
-                        show={showMyAccount}
-                        onClose={() => setShowMyAccount(false)}
-                        userData={userData}
-                        user={user}
-                        lang={lang}
-                        onUpdate={async () => { if(user){ const d = await usersCollection.doc(user.uid).get(); setUserData(d.data()); }}}
-                    />
+                    {/* Setup Modal */}
+                    {showSetupModal && (
+                         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4" onClick={()=>setShowSetupModal(false)}>
+                            <div className="glass-panel rounded-2xl p-6 w-full max-w-md animate-pop" onClick={e => e.stopPropagation()}>
+                                <h2 className="text-xl font-bold text-primary mb-4">{t.create}</h2>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs text-gray-400 block mb-1">{t.nickname}</label>
+                                        <input 
+                                            className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg font-bold`}
+                                            value={nickname} 
+                                            onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }}
+                                            disabled={isLoggedIn}
+                                        />
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button onClick={() => setSetupMode('normal')} className={`p-3 rounded-lg border-2 ${setupMode === 'normal' ? 'border-cyan-400 bg-cyan-500/10' : 'border-white/10'}`}>
+                                            <div className="font-bold">{t.normalMode}</div>
+                                            <div className="text-[10px] text-gray-400">{t.modeNormalDesc}</div>
+                                        </button>
+                                        <button onClick={() => setSetupMode('advanced')} className={`p-3 rounded-lg border-2 ${setupMode === 'advanced' ? 'border-purple-400 bg-purple-500/10' : 'border-white/10'}`}>
+                                            <div className="font-bold">{t.advancedMode}</div>
+                                            <div className="text-[10px] text-gray-400">{t.modeAdvDesc}</div>
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-2">
+                                        <input type="checkbox" id="privateCheck" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="w-4 h-4"/>
+                                        <label htmlFor="privateCheck" className="text-sm">{t.privateRoom}</label>
+                                    </div>
+                                    
+                                    {isPrivate && (
+                                        <input className="input-dark w-full p-2 rounded" placeholder={t.password} value={password} onChange={e => setPassword(e.target.value)} />
+                                    )}
+                                    
+                                    <button onClick={handleCreateGame} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">{loading ? t.loading : t.create}</button>
+                                </div>
+                            </div>
+                         </div>
+                    )}
 
-                    <UserProfileModal 
-                        show={showUserProfile}
-                        onClose={() => setShowUserProfile(false)}
-                        targetUID={targetProfileUID}
-                        lang={lang}
-                        onAddFriend={handleSendRequest}
-                        isFriend={userData?.friends?.includes(targetProfileUID)}
-                        currentUserData={userData}
+                    <MyAccountPage show={showMyAccount} onClose={() => setShowMyAccount(false)} userData={userData} user={user} lang={lang} onUpdate={async () => { if(user){ const d = await usersCollection.doc(user.uid).get(); setUserData(d.data()); }}}
                     />
-                    
-                    <PrivateChatModal 
-                        show={showChat}
-                        onClose={closeChat}
-                        friendData={chatFriend}
-                        currentUser={userData}
-                        lang={lang}
-                        roomId={roomId}
-                        onJoinInvite={handleJoinFromInvite}
-                    />
+                    <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} lang={lang} onAddFriend={handleSendRequest} isFriend={userData?.friends?.includes(targetProfileUID)} currentUserData={userData} />
+                    <PrivateChatModal show={showChat} onClose={closeChat} friendData={chatFriend} currentUser={userData} lang={lang} roomId={roomId} onJoinInvite={handleJoinFromInvite} />
+                    <LobbyBrowserModal show={showLobby} onClose={() => setShowLobby(false)} lang={lang} onJoinRoom={(id, pwd) => handleJoinGame(id, pwd)} />
 
                     {room?.status === 'discussing' && voteReq && (
                          <div className="vote-request-banner glass-panel rounded-xl p-4 border-2 border-pink-500 animate-pop">
@@ -1458,7 +1513,6 @@
                                             <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${userData?.displayName}`} className="w-6 h-6 rounded-full" alt=""/>
                                             <span className="text-xs font-bold hidden md:block">{t.myAccount}</span>
                                         </button>
-                                        
                                         {showDropdown && (
                                             <div className="dropdown-menu glass-panel rounded-lg py-2 animate-fade-in">
                                                 <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button>
@@ -1499,9 +1553,7 @@
                                         <div className="w-20 text-center">{t.losses}</div>
                                     </div>
                                     {leaderboardData.map((p, i) => (
-                                        <div key={p.uid} 
-                                            onClick={() => openProfile(p.uid)}
-                                            className={`leaderboard-row cursor-pointer ${p.uid === user?.uid ? 'bg-cyan-500/10' : ''}`}>
+                                        <div key={p.uid} onClick={() => openProfile(p.uid)} className={`leaderboard-row cursor-pointer ${p.uid === user?.uid ? 'bg-cyan-500/10' : ''}`}>
                                             <div className="w-16 font-bold text-lg">#{i + 1}</div>
                                             <div className="flex-1 flex items-center gap-2">
                                                 <img src={p.photoURL} className="w-6 h-6 rounded-full"/>
@@ -1520,24 +1572,13 @@
                         {activeView === 'friends' && (
                             <div className="md:col-span-3 glass-panel rounded-2xl p-6 animate-fade-in space-y-6">
                                 <h2 className="text-xl font-bold text-primary">{t.tabFriends}</h2>
-                                
-                                {isGuest ? (
-                                    <div className="text-center py-10">
-                                        <p className="text-gray-400 mb-4">{t.noPermission}</p>
-                                    </div>
-                                ) : (
+                                {isGuest ? (<div className="text-center py-10"><p className="text-gray-400 mb-4">{t.noPermission}</p></div>) : (
                                     <>
                                         <div className="flex gap-2">
-                                            <input 
-                                                className="input-dark flex-1 p-2 rounded text-sm" 
-                                                placeholder={t.friendIdPlaceholder} 
-                                                value={addFriendId} 
-                                                onChange={e => setAddFriendId(e.target.value)} 
-                                            />
+                                            <input className="input-dark flex-1 p-2 rounded text-sm" placeholder={t.friendIdPlaceholder} value={addFriendId} onChange={e => setAddFriendId(e.target.value)} />
                                             <button onClick={handleSendRequest} className="btn-neon px-4 rounded text-sm">{t.addFriend}</button>
                                         </div>
                                         {friendSearchMsg && <div className="text-xs text-center text-cyan-400">{friendSearchMsg}</div>}
-                                        
                                         {friendRequests.length > 0 && (
                                             <div className="border-t border-white/10 pt-4">
                                                 <h3 className="text-sm font-bold text-gray-400 mb-2">{t.incomingRequests}</h3>
@@ -1557,7 +1598,6 @@
                                                 </div>
                                             </div>
                                         )}
-                                        
                                         <div className="border-t border-white/10 pt-4">
                                             <h3 className="text-sm font-bold text-gray-400 mb-2">{t.tabFriends}</h3>
                                             <div className="space-y-2">
@@ -1577,9 +1617,7 @@
                                                                 </div>
                                                                 <div>
                                                                     <div className="font-bold">{f.displayName}</div>
-                                                                    <div className="text-xs text-gray-400">
-                                                                        {lastMsg ? (lastMsg.length > 20 ? lastMsg.substring(0,20)+'...' : lastMsg) : `Lvl ${calculateLevel(f.stats?.xp)}`}
-                                                                    </div>
+                                                                    <div className="text-xs text-gray-400">{lastMsg ? (lastMsg.length > 20 ? lastMsg.substring(0,20)+'...' : lastMsg) : `Lvl ${calculateLevel(f.stats?.xp)}`}</div>
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-2">
@@ -1615,13 +1653,14 @@
                                             <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-cyan-400">{t.roundsFormat(room.currentRound || 1, MAX_ROUNDS)}</span>
                                         </h3>
                                         <div className="space-y-2">
-                                            {room.players.map((p, i) => (
-                                                <div key={i} 
-                                                    onClick={() => openProfile(p.uid)}
-                                                    className={`player-card relative p-2 rounded-lg flex items-center justify-between ${p.status === 'spectator' ? 'eliminated' : ''}`}>
+                                            {room.players.map((p, i) => {
+                                                const roleIcon = p.role === 'mrwhite' ? '⚪' : p.role === 'informant' ? '🛈' : p.role === 'spy' ? '🕵️' : '';
+                                                return (
+                                                <div key={i} onClick={() => openProfile(p.uid)} className={`player-card relative p-2 rounded-lg flex items-center justify-between ${p.status === 'ghost' ? 'ghost' : p.status === 'spectator' ? 'eliminated' : ''}`}>
                                                     <div className="flex items-center gap-2 flex-1">
                                                         <img src={p.photo || `https://ui-avatars.com/api/?name=${p.name}`} className="w-6 h-6 rounded-full" alt=""/>
                                                         <span className="font-bold text-sm truncate">{p.name}</span>
+                                                        <span className="text-[10px]">{roleIcon}</span>
                                                         {p.uid === user?.uid && <span className="text-[8px] bg-blue-500 px-1 rounded">{t.you}</span>}
                                                     </div>
                                                     {p.uid === room.currentTurnUID && room.status === 'discussing' && (
@@ -1631,12 +1670,9 @@
                                                         </div>
                                                     )}
                                                 </div>
-                                            ))}
+                                            )})}
                                         </div>
-
-                                        {room.status === 'discussing' && !isSpectator && (
-                                            <button onClick={requestVoting} className="btn-vote w-full py-2 rounded-lg font-bold text-xs mt-4 uppercase tracking-wide">{t.startVoting}</button>
-                                        )}
+                                        {!isSpectator && room.status === 'discussing' && <button onClick={requestVoting} className="btn-vote w-full py-2 rounded-lg font-bold text-xs mt-4 uppercase tracking-wide">{t.startVoting}</button>}
                                     </div>
                                 )}
 
@@ -1646,19 +1682,15 @@
                                         <div className="glass-panel rounded-2xl p-8 text-center space-y-6 animate-fade-in mx-auto max-w-md w-full">
                                             <div className="space-y-2">
                                                 <label className="text-xs text-gray-400 uppercase">{t.nickname}</label>
-                                                <input 
-                                                    className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg text-center font-bold`}
-                                                    value={nickname} 
-                                                    onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }}
-                                                    disabled={isLoggedIn}
-                                                />
+                                                <input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg text-center font-bold`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} />
                                             </div>
-                                            <button onClick={handleCreate} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">{t.create}</button>
+                                            <button onClick={() => setShowSetupModal(true)} disabled={loading || !nickname} className="btn-neon w-full py-3 rounded-lg font-bold">{t.create}</button>
                                             <div className="flex flex-col gap-2">
                                                 <div className="flex gap-2">
                                                     <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value)} />
-                                                    <button onClick={handleJoin} disabled={loading || !nickname} className="btn-ghost px-6 rounded-lg font-bold">{t.join}</button>
+                                                    <button onClick={() => handleJoinGame(inputCode, null)} disabled={loading || !nickname} className="btn-ghost px-6 rounded-lg font-bold">{t.join}</button>
                                                 </div>
+                                                <button onClick={() => setShowLobby(true)} className="btn-gold w-full py-2 rounded-lg text-xs font-bold">{t.browse}</button>
                                                 {joinError && <div className="error-msg">{joinError}</div>}
                                             </div>
                                         </div>
@@ -1669,7 +1701,8 @@
                                             <div className="glass-panel rounded-xl p-3 flex justify-between items-center">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-mono font-bold text-lg tracking-widest text-cyan-400">{room.id}</span>
-                                                    <button onClick={() => navigator.clipboard.writeText(room.id)} className="text-[10px] bg-white/10 px-2 py-1 rounded">Copy</button>
+                                                    <span className={`text-[10px] px-2 py-1 rounded ${room.mode === 'advanced' ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'}`}>{room.mode === 'advanced' ? t.advancedMode : t.normalMode}</span>
+                                                    {room.isPrivate && <span className="text-[10px] bg-yellow-500/20 text-yellow-300">🔒</span>}
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded text-cyan-400">
@@ -1685,12 +1718,12 @@
                                                 </div>
                                             )}
 
-                                            {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins') && (
+                                            {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_mrwhite_wins') && (
                                                 <div className="glass-panel rounded-2xl p-8 text-center animate-fade-in border border-purple-500">
                                                     <h2 className="text-3xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-                                                        {room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}
+                                                        {room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : (room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin)}
                                                     </h2>
-                                                    <p className="text-gray-400 mb-6">The Spy was: <span className="text-white font-bold">{room.players.find(p => p.uid === room.spyId)?.name}</span></p>
+                                                    <p className="text-gray-400 mb-6">The Spy was: <span className="text-white font-bold">{room.players.find(p => p.role === 'spy')?.name}</span></p>
                                                     {room.admin === user?.uid && (<button onClick={resetGame} className="btn-ghost border-white/20 text-white w-full py-3 rounded-lg">{t.playAgain}</button>)}
                                                 </div>
                                             )}
@@ -1709,11 +1742,11 @@
                                                         <p className="text-xs text-gray-500 mb-6">{t.wordSelectionDesc}</p>
                                                         <div className="grid grid-cols-2 gap-4">
                                                             {(() => {
-                                                                const wordsToDisplay = isSpy ? ['?', '?', '?', '?'] : (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en);
+                                                                const wordsToDisplay = myRole === 'spy' || myRole === 'mrwhite' ? ['?', '?', '?', '?'] : (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en);
                                                                 return wordsToDisplay?.map((word, i) => {
                                                                     const voters = Object.entries(room.wordVotes || {}).filter(([uid, w]) => w === word).map(([uid]) => room.players.find(p => p.uid === uid)?.name);
                                                                     return (
-                                                                        <button key={i} onClick={() => submitWordVote(word)} disabled={isSpy} className={`word-vote-card p-6 rounded-xl font-bold text-lg transition-all ${hasVotedWord === word ? 'selected' : 'bg-white/5 border border-white/10'} ${isSpy ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                                                        <button key={i} onClick={() => submitWordVote(word)} disabled={myRole === 'spy' || myRole === 'mrwhite'} className={`word-vote-card p-6 rounded-xl font-bold text-lg transition-all ${hasVotedWord === word ? 'selected' : 'bg-white/5 border border-white/10'} ${(myRole === 'spy' || myRole === 'mrwhite') ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                                                             {word}
                                                                             {voters.length > 0 && (<div className="flex justify-center gap-1 mt-2 flex-wrap">{voters.map(v => <span key={v} className="voter-name relative">{v}</span>)}</div>)}
                                                                         </button>
@@ -1721,32 +1754,78 @@
                                                                 });
                                                             })()}
                                                         </div>
-                                                        {room.admin === user?.uid && !isSpy && (<button onClick={() => finishWordSelection(false)} className="btn-neon w-full py-3 rounded-lg font-bold mt-6">{t.finishSelection}</button>)}
+                                                        {room.admin === user?.uid && myRole !== 'spy' && myRole !== 'mrwhite' && (<button onClick={() => finishWordSelection(false)} className="btn-neon w-full py-3 rounded-lg font-bold mt-6">{t.finishSelection}</button>)}
                                                     </div>
-                                                    <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
+                                                    
+                                                    {/* Identity Card */}
+                                                    <div className={`identity-square glass-panel ${myRole === 'spy' ? 'identity-spy' : myRole === 'informant' ? 'identity-informant' : myRole === 'mrwhite' ? 'identity-mrwhite' : 'identity-agent'}`}>
                                                         <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
-                                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
-                                                            {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-3xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
+                                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${
+                                                                myRole === 'spy' ? 'bg-red-500/20 text-red-400' : 
+                                                                myRole === 'informant' ? 'bg-blue-500/20 text-blue-400' : 
+                                                                myRole === 'mrwhite' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'
+                                                            }`}>
+                                                                {t[`status${myRole?.charAt(0).toUpperCase() + myRole?.slice(1) || 'Agent'}`]}
+                                                            </span>
+                                                            
+                                                            {myRole === 'spy' && (<><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> )}
+                                                            {myRole === 'mrwhite' && (<><div className="text-5xl mb-2">⚪</div><p className="text-xs text-gray-300">{t.mrWhiteInstruction}</p></>)}
+                                                            {myRole === 'informant' && (
+                                                                <>
+                                                                    <div className="text-2xl font-bold mt-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div>
+                                                                    <p className="text-xs text-blue-300 mt-2">{t.informantInstruction}</p>
+                                                                </>
+                                                            )}
+                                                            {myRole === 'agent' && (<><div className="text-3xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></>)}
                                                         </div>
                                                     </div>
+                                                    
+                                                    {/* Mr. White Guess Button */}
+                                                    {myRole === 'mrwhite' && (
+                                                        <div className="mt-4">
+                                                            <button onClick={() => {
+                                                                const guess = prompt("Guess the location:");
+                                                                if(guess) handleMrWhiteGuess(guess);
+                                                            }} className="btn-gold w-full py-3 rounded-lg font-bold">{t.guessLocation}</button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
 
                                             {room.status === 'discussing' && (
                                                 <div className="space-y-4 animate-fade-in">
                                                     {room.chosenWord && (<div className="glass-panel rounded-xl p-3 text-center border border-cyan-500/50"><span className="text-[10px] text-cyan-400 font-bold uppercase">{t.selectedWord}:</span><span className="ml-2 text-lg font-bold text-white">{room.chosenWord}</span></div>)}
-                                                    <div className={`identity-square glass-panel ${isSpy ? 'identity-spy' : 'identity-agent'}`}>
-                                                        <div className="relative z-10 p-6 flex flex-col items-center justify-content h-full">
-                                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${isSpy ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{isSpy ? t.statusSpy : t.statusAgent}</span>
-                                                            {isSpy ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3><p className="text-xs text-gray-500 mt-2 text-center">{lang === 'ar' ? 'اكتشف المكان دون أن تنكشف' : 'Find the location without getting caught'}</p></> ) : ( <><div className="text-4xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
+                                                    
+                                                    {/* Agent/Informant Identity */}
+                                                     <div className={`identity-square glass-panel ${myRole === 'spy' ? 'identity-spy' : myRole === 'informant' ? 'identity-informant' : myRole === 'mrwhite' ? 'identity-mrwhite' : 'identity-agent'}`}>
+                                                        <div className="relative z-10 p-6 flex flex-col items-center justify-center h-full">
+                                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 px-3 py-1 rounded-full ${
+                                                                myRole === 'spy' ? 'bg-red-500/20 text-red-400' : 
+                                                                myRole === 'informant' ? 'bg-blue-500/20 text-blue-400' : 
+                                                                myRole === 'mrwhite' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'
+                                                            }`}>
+                                                                {t[`status${myRole?.charAt(0).toUpperCase() + myRole?.slice(1) || 'Agent'}`]}
+                                                            </span>
+                                                            {myRole === 'spy' ? ( <><div className="text-5xl mb-2">🕵️</div><h3 className="text-3xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-4xl font-black mt-2 text-center px-2">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-xs text-gray-400 mt-2">{t.location}</p></> )}
                                                         </div>
                                                     </div>
+                                                    
+                                                    {/* Mr. White Guess Button */}
+                                                    {myRole === 'mrwhite' && (
+                                                        <button onClick={() => {
+                                                            const guess = prompt("Guess the location:");
+                                                            if(guess) handleMrWhiteGuess(guess);
+                                                        }} className="btn-gold w-full py-3 rounded-lg font-bold">{t.guessLocation}</button>
+                                                    )}
+
                                                     <div className="glass-panel rounded-2xl p-4 flex flex-col overflow-hidden relative">
                                                         <div className="flex-1 overflow-y-auto p-2 space-y-2 h-48 relative z-10">
                                                             {room.messages?.slice(-20).map((m, i) => (
                                                                 <GameChatMessage key={i} msg={m} currentUser={user} players={room.players} onAvatarClick={openProfile} />
                                                             ))}
                                                         </div>
+                                                        
+                                                        {/* Ghosts can't chat */}
                                                         {!isSpectator && isMyTurn ? (
                                                             <div className="flex flex-col gap-2 mt-auto border-t border-white/10 pt-3 relative z-10">
                                                                 <div className="flex gap-1 mb-1">{EMOJI_LIST.slice(0, 10).map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn">{emoji}</span>))}</div>
@@ -1756,7 +1835,7 @@
                                                                     <button type="button" onClick={() => handleSkipTurn(false)} className="btn-ghost px-4 rounded-xl text-xs border-orange-500 text-orange-400">{t.skip}</button>
                                                                 </form>
                                                             </div>
-                                                        ) : (<div className="text-center text-xs text-gray-600 py-3 border-t border-white/10 mt-2">{isSpectator ? t.spectator : "Waiting for turn..."}</div>)}
+                                                        ) : (<div className="text-center text-xs text-gray-600 py-3 border-t border-white/10 mt-2">{me?.status === 'ghost' ? t.ghostInstruction : (isSpectator ? t.spectator : "Waiting for turn...")}</div>)}
                                                     </div>
                                                 </div>
                                             )}
@@ -1773,38 +1852,4 @@
                                                             <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-yellow-400">{votingTimer}</div>
                                                         </div>
                                                     </div>
-                                                    <div className="bg-black/20 p-3 rounded-lg text-xs space-y-1 mb-2 border border-white/5">
-                                                        <span className="text-gray-500 font-bold">{t.votesTitle}</span>
-                                                        <div className="flex flex-wrap gap-2 mt-1">
-                                                            {Object.entries(room.votes || {}).map(([uid, target]) => {
-                                                                const voter = room.players.find(p => p.uid === uid);
-                                                                const targetName = room.players.find(p => p.uid === target)?.name;
-                                                                return (<span key={uid} className="bg-white/5 px-2 py-1 rounded">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>);
-                                            })}
-                                                        </div>
-                                                    </div>
-                                                    {!hasVoted ? (
-                                                        <div className="grid grid-cols-2 gap-3">
-                                                            {room.players.filter(p => p.status === 'active').map(p => (
-                                                                <button key={p.uid} onClick={() => submitVote(p.uid)} className="p-4 rounded-xl border text-sm font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10">{p.name}</button>
-                                                            ))}
-                                                        </div>
-                                                    ) : (<div className="text-center space-y-4 py-4"><div className="text-green-400 font-bold">{t.confirm}</div></div>)}
-                                                    {room.admin === user?.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg font-bold text-xs uppercase mt-2">{t.endVoting}</button>)}
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </main>
-                </div>
-            );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+                                                    <div className="
