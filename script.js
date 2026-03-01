@@ -271,7 +271,7 @@ const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
     
     useEffect(() => { if (userData) setNewName(userData.displayName || ''); }, [userData]); 
     
-    // FIX: Safety check to prevent crash if user or userData is null
+    // Safety check
     if (!show || !userData || !user) return null; 
     
     const level = calculateLevel(userData.stats?.xp || 0); 
@@ -287,30 +287,23 @@ const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
         if (onUpdate) onUpdate(); 
     }; 
 
-    // Email Masking Logic
     const email = user?.email || '';
     const maskedEmail = email.replace(/(.{2})(.*)(@.*)/, "$1***$3");
 
-    // Check for new achievements
-    const checkLevelAchievements = (currentLevel) => {
-        const currentAch = userData.achievements || [];
-        let newAch = [...currentAch];
-        if(currentLevel >= 5 && !currentAch.includes('level_5')) newAch.push('level_5');
-        if(currentLevel >= 10 && !currentAch.includes('level_10')) newAch.push('level_10');
-        if(currentLevel >= 25 && !currentAch.includes('level_25')) newAch.push('level_25');
-        if(currentLevel >= 50 && !currentAch.includes('level_50')) newAch.push('level_50');
-        return newAch;
-    };
-    
-    // Update achievements if level changed
     useEffect(() => {
         if(userData && !userData.isAnonymous) {
-            const newAch = checkLevelAchievements(level);
-            if(newAch.length > (userData.achievements || []).length) {
+            const level = calculateLevel(userData.stats?.xp || 0);
+            const currentAch = userData.achievements || [];
+            let newAch = [...currentAch];
+            if(level >= 5 && !currentAch.includes('level_5')) newAch.push('level_5');
+            if(level >= 10 && !currentAch.includes('level_10')) newAch.push('level_10');
+            if(level >= 25 && !currentAch.includes('level_25')) newAch.push('level_25');
+            if(level >= 50 && !currentAch.includes('level_50')) newAch.push('level_50');
+            if(newAch.length > currentAch.length) {
                 usersCollection.doc(userData.uid).update({ achievements: newAch });
             }
         }
-    }, [level, userData]);
+    }, [userData?.stats?.xp]);
 
     return ( 
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 overflow-y-auto" onClick={onClose}> 
@@ -325,21 +318,15 @@ const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
                     <div className="profile-name">{userData.displayName}</div> 
                     <div className="profile-id-box" onClick={() => { navigator.clipboard.writeText(userData.customId); setMsg(t.copied); setTimeout(()=>setMsg(''),1500) }}> 
                         <span className="profile-id-text">ID: #{userData.customId}</span> 
-                        <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> 
                     </div> 
                 </div> 
                 
-                {/* Email Mask Section */}
                 <div className="mb-4 glass-panel p-3 rounded-lg border border-white/10">
                     <span className="text-[10px] text-gray-400 uppercase">{t.email}</span>
                     <div className="email-mask-container mt-1">
                         <span className="text-sm font-mono">{showEmail ? email : maskedEmail}</span>
                         <button onClick={() => setShowEmail(!showEmail)} className="email-toggle-btn">
-                            {showEmail ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                            ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                            )}
+                            {showEmail ? "🙈" : "👁️"}
                         </button>
                     </div>
                 </div>
@@ -482,7 +469,6 @@ function App() {
     useEffect(() => { if (room?.status === 'word_selection' && room?.wordSelEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.wordSelEndTime - Date.now()) / 1000)); setWordSelTimer(remaining); if (remaining <= 0) { finishWordSelection(); clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setWordSelTimer(30); }, [room?.status, room?.wordSelEndTime]);
     useEffect(() => { const handleBeforeUnload = async (e) => { if (room && user) { handleLeaveRoom(true); } }; window.addEventListener('beforeunload', handleBeforeUnload); return () => window.removeEventListener('beforeunload', handleBeforeUnload); }, [room, user]);
     
-    // Level Achievement Check
     useEffect(() => {
         if(userData && !userData.isAnonymous) {
             const level = calculateLevel(userData.stats?.xp || 0);
@@ -505,7 +491,6 @@ function App() {
         return uData?.photoURL || `https://ui-avatars.com/api/?name=${name || 'Guest'}&background=random`;
     };
 
-    // FIX: Added validation for private room password
     const handleCreateGame = async () => { 
         if (!nickname.trim()) return; 
         if (isPrivate && !password.trim()) {
@@ -520,7 +505,6 @@ function App() {
         setRoomId(id); setLoading(false); setShowSetupModal(false); setActiveView('lobby'); 
     };
     
-    // FIX: Validation for empty code
     const handleJoinGame = async (id, pwd) => {
         if (!id || id.trim() === "") { 
             setJoinError(t.enterCodeError); 
@@ -597,7 +581,7 @@ function App() {
             <PrivateChatModal show={showChat} onClose={closeChat} friendData={chatFriend} currentUser={userData} lang={lang} roomId={roomId} onJoinInvite={handleJoinFromInvite} />
             <LobbyBrowserModal show={showLobby} onClose={() => setShowLobby(false)} lang={lang} onJoinRoom={(id, pwd) => handleJoinGame(id, pwd)} />
             {room?.status === 'discussing' && voteReq && ( <div className="vote-request-banner glass-panel rounded-xl p-4 border-2 border-pink-500 animate-pop"> <div className="flex flex-col gap-2"> <div className="text-center font-bold text-pink-400">{t.voteRequestTitle}</div> <div className="text-center text-xs text-gray-300"> <span className="font-bold">{room.players.find(p=>p.uid === voteReq.requestedBy)?.name}</span> {t.voteRequestDesc} </div> <div className="flex justify-center gap-2 mt-2"> <button onClick={agreeToVote} disabled={hasIAgreed} className={`btn px-6 py-2 rounded-lg text-xs font-bold ${hasIAgreed ? 'btn-ghost opacity-50' : 'btn-success'}`}>{t.agree}</button> <button onClick={declineVote} disabled={hasIDeclined} className={`btn px-6 py-2 rounded-lg text-xs font-bold ${hasIDeclined ? 'btn-ghost opacity-50' : 'btn-danger'}`}>{t.decline}</button> </div> </div> </div> )}
-            <header className="w-full max-w-4xl flex justify-between items-center mb-4 animate-fade-in relative z-50"> <div className="flex items-center gap-3"> <div className="logo-container"> <div className="logo-border"></div> <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2"> <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/> </svg> </div> <div> <h1 className="game-title text-2xl">{t.appName}</h1> <p className="text-[10px] text-gray-500 tracking-widest font-tech">{t.tagline}</p> </div> </div> <nav className="hidden md:flex gap-1 glass-panel rounded-full p-1 items-center"> <button onClick={() => setActiveView('lobby')} className={`nav-tab rounded-full text-xs ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button> <button onClick={() => setActiveView('leaderboard')} className={`nav-tab rounded-full text-xs ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button> <button onClick={() => setActiveView('friends')} className={`nav-tab rounded-full text-xs relative ${activeView === 'friends' ? 'active' : ''}`}> {t.tabFriends} {totalUnread > 0 && <span className="notification-badge">{totalUnread}</span>} </button> </nav> <div className="flex gap-2 items-center"> <a href="https://guessmycard.mooo.info/" target="_blank" rel="noopener noreferrer" className="btn-ghost px-3 py-1 rounded text-xs font-bold border-gray-700 hover:text-pink-400 hover:border-pink-400">{t.linkGuessCard}</a> <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">{t.langBtn}</button> <div className="relative"> {isLoggedIn ? ( <> <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-2 btn-ghost px-3 py-1 rounded-full border-gray-700"> <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${userData?.displayName}`} className="w-6 h-6 rounded-full" alt=""/> <span className="text-xs font-bold hidden md:block">{t.myAccount}</span> </button> {showDropdown && ( <div className="dropdown-menu glass-panel rounded-lg py-2 animate-fade-in"> <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button> <button onClick={handleLogout} className="w-full text-right px-4 py-2 text-sm text-red-400 hover:bg-white/10">{t.logout}</button> </div> )} </> ) : ( <button onClick={handleGoogleLogin} className="btn-google px-4 py-1 rounded-full text-xs font-bold flex items-center gap-2"> <svg className="w-4 h-4" viewBox="0 0 21 20" fill="none"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg> {t.loginGoogle} </button> )} </div> </div> </header>
+            <header className="w-full max-w-4xl flex justify-between items-center mb-4 animate-fade-in relative z-50"> <div className="flex items-center gap-3"> <div className="logo-container"> <div className="logo-border"></div> <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2"> <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/> </svg> </div> <div> <h1 className="game-title text-2xl">{t.appName}</h1> <p className="text-[10px] text-gray-500 tracking-widest font-tech">{t.tagline}</p> </div> </div> <nav className="hidden md:flex gap-1 glass-panel rounded-full p-1 items-center"> <button onClick={() => setActiveView('lobby')} className={`nav-tab rounded-full text-xs ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button> <button onClick={() => setActiveView('leaderboard')} className={`nav-tab rounded-full text-xs ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button> <button onClick={() => setActiveView('friends')} className={`nav-tab rounded-full text-xs relative ${activeView === 'friends' ? 'active' : ''}`}> {t.tabFriends} {totalUnread > 0 && <span className="notification-badge">{totalUnread}</span>} </button> </nav> <div className="flex gap-2 items-center"> <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-4 py-1 rounded text-xs font-bold border-gray-700">{t.langBtn}</button> <div className="relative"> {isLoggedIn ? ( <> <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-2 btn-ghost px-3 py-1 rounded-full border-gray-700"> <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${userData?.displayName}`} className="w-6 h-6 rounded-full" alt=""/> <span className="text-xs font-bold hidden md:block">{t.myAccount}</span> </button> {showDropdown && ( <div className="dropdown-menu glass-panel rounded-lg py-2 animate-fade-in"> <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-right px-4 py-2 text-sm hover:bg-white/10">{t.profile}</button> <button onClick={handleLogout} className="w-full text-right px-4 py-2 text-sm text-red-400 hover:bg-white/10">{t.logout}</button> </div> )} </> ) : ( <button onClick={handleGoogleLogin} className="btn-google px-4 py-1 rounded-full text-xs font-bold flex items-center gap-2"> <svg className="w-4 h-4" viewBox="0 0 21 20" fill="none"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg> {t.loginGoogle} </button> )} </div> </div> </header>
             <nav className="md:hidden w-full max-w-4xl flex justify-around glass-panel rounded-xl p-1 mb-4"> <button onClick={() => setActiveView('lobby')} className={`nav-tab flex-1 text-center ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button> <button onClick={() => setActiveView('leaderboard')} className={`nav-tab flex-1 text-center ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button> <button onClick={() => setActiveView('friends')} className={`nav-tab flex-1 text-center relative ${activeView === 'friends' ? 'active' : ''}`}> {t.tabFriends} {totalUnread > 0 && <span className="notification-badge">{totalUnread}</span>} </button> </nav>
             <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
                 {activeView === 'leaderboard' && ( <div className="md:col-span-3 glass-panel rounded-2xl p-6 animate-fade-in overflow-x-auto"> <h2 className="text-xl font-bold mb-4 text-primary">{t.tabLeaderboard}</h2> <div className="min-w-[600px]"> <div className="leaderboard-row border-b border-white/20 font-bold text-xs text-gray-400"> <div className="w-16">{t.rank}</div> <div className="flex-1">{t.name}</div> <div className="w-16 text-center">{t.level}</div> <div className="w-20 text-center">{t.wins}</div> <div className="w-20 text-center">{t.losses}</div> </div> {leaderboardData.map((p, i) => ( <div key={p.uid} onClick={() => openProfile(p.uid)} className={`leaderboard-row cursor-pointer ${p.uid === user?.uid ? 'bg-cyan-500/10' : ''}`}> <div className="w-16 font-bold text-lg">#{i + 1}</div> <div className="flex-1 flex items-center gap-2"> <img src={p.photoURL} className="w-6 h-6 rounded-full"/> <span>{p.displayName}</span> {p.uid === user?.uid && <span className="text-[8px] bg-blue-500 px-1 rounded">{t.you}</span>} </div> <div className="w-16 text-center">{calculateLevel(p.stats?.xp)}</div> <div className="w-20 text-center text-green-400">{p.stats?.wins || 0}</div> <div className="w-20 text-center text-red-400">{p.stats?.losses || 0}</div> </div> ))} </div> </div> )}
