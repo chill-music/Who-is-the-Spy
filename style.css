@@ -24,11 +24,6 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .animate-fade-in { animation: fade-in-up 0.6s ease-out forwards; }
 .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-/* Logo */
-.logo-container { position: relative; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
-.logo-border { position: absolute; inset: 0; border-radius: 12px; border: 2px solid transparent; border-top-color: var(--primary); border-right-color: var(--secondary); animation: rotate-border 3s linear infinite; }
-.game-title { font-family: 'Rajdhani', sans-serif; font-weight: 700; letter-spacing: 2px; background: linear-gradient(to right, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: pulse-glow 3s infinite alternate; }
-
 /* Buttons */
 .btn-neon { position: relative; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: white; font-weight: 700; transition: all 0.3s; overflow: hidden; }
 .btn-neon:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px var(--primary); }
@@ -103,8 +98,8 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-height: 200px; overflow-y: auto; margin-top: 8px; padding-right: 4px; }
 .emoji-item { font-size: 22px; padding: 5px; cursor: pointer; text-align: center; border-radius: 6px; transition: 0.2s; } .emoji-item:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
 .profile-header { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 20px; }
-.profile-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 10px; }
-.profile-name { font-size: 22px; font-weight: 800; }
+.profile-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 10px; position: relative; }
+.profile-name { font-size: 22px; font-weight: 800; display: flex; flex-direction: column; gap: 4px; align-items: center; }
 .profile-id-box { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; cursor: pointer; transition: 0.2s; } .profile-id-box:hover { background: rgba(0, 242, 255, 0.1); }
 .profile-id-text { font-family: monospace; font-size: 12px; color: var(--text-muted); }
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
@@ -242,4 +237,38 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .report-reason-option.selected {
     border-color: var(--accent);
     background: rgba(255, 0, 85, 0.1);
+}
+
+/* Currency Banner */
+.currency-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* Equipped Title */
+.equipped-title {
+    font-size: 10px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    color: #000;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 6px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Avatar Frame */
+.avatar-frame {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    /* border-image is set via inline style */
+    pointer-events: none;
 }
