@@ -217,10 +217,21 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => {
                         const owned = inventory[item.type]?.includes(item.id);
                         const isEquipped = equipped[item.type] === item.id;
                         return (
-                            <div key={item.id} className="bg-black/30 rounded-xl p-3 flex flex-col items-center justify-between h-36">
-                                <div className="text-xs font-bold mb-1 text-center">{lang === 'ar' ? item.name_ar : item.name_en}</div>
-                                {item.type === 'frames' && <div className="w-10 h-10 rounded-full mb-1" style={{ border: `3px solid`, borderColor: 'var(--primary)', borderImage: item.preview }}></div>}
-                                {item.type === 'titles' && <div className="text-base font-bold mb-1 text-center" style={{ color: 'var(--primary)' }}>{item.name_en}</div>}
+                                    <div key={item.id} className="bg-black/30 rounded-xl p-3 flex flex-col items-center justify-between h-36">
+                                    <div className="text-xs font-bold mb-1 text-center">{lang === 'ar' ? item.name_ar : item.name_en}</div>
+                                    {item.type === 'frames' && (
+                                        <div className="w-10 h-10 rounded-full mb-1 relative overflow-hidden flex-shrink-0">
+                                            <div className="absolute inset-0 bg-gray-700 rounded-full"></div>
+                                            {item.preview.startsWith('http') ? (
+                                                <img src={item.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt="frame" />
+                                            ) : (
+                                                <div className="absolute inset-0 rounded-full" style={{ background: item.preview, padding: '2px' }}>
+                                                    <div className="w-full h-full rounded-full bg-gray-800"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    {item.type === 'titles' && <div className="text-base font-bold mb-1 text-center" style={{ color: 'var(--primary)' }}>{item.name_en}</div>}
                                 
                                 {owned ? (
                                     <button onClick={() => handleEquip(item.type, item.id)} className={`w-full py-1 rounded text-[10px] ${isEquipped ? 'btn-neon' : 'btn-ghost border-white/20'}`}>
@@ -424,9 +435,11 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, isFriend, currentUse
             <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4" onClick={onClose}> 
                 <div className="glass-panel rounded-2xl p-5 w-full max-w-sm animate-pop" onClick={e => e.stopPropagation()}> 
                     <div className="profile-header"> 
-                        <div className="relative inline-block mb-2">
-                            <img src={profileData.photoURL || `https://ui-avatars.com/api/?name=${profileData.displayName}&background=random`} className="profile-avatar-sm" alt=""/>
-                            {profileData.equipped?.frames && <div className="avatar-frame-sm" style={{ borderImage: SHOP_ITEMS.frames.find(f=>f.id===profileData.equipped.frames)?.preview || 'none' }}></div>}
+                           <div className="relative inline-block mb-2 rounded-full" style={profileData.equipped?.frames && !profileData.equipped.frames.startsWith('http') ? { padding: '3px', background: SHOP_ITEMS.frames.find(f=>f.id===profileData.equipped.frames)?.preview } : {}}>
+                            <img src={profileData.photoURL || `https://ui-avatars.com/api/?name=${profileData.displayName}&background=random`} className="profile-avatar-sm relative z-10" alt=""/>
+                            {profileData.equipped?.frames && profileData.equipped.frames.startsWith('http') && (
+                                <img src={SHOP_ITEMS.frames.find(f=>f.id===profileData.equipped.frames)?.preview} className="absolute top-1/2 left-1/2 w-[calc(100%+8px)] h-[calc(100%+8px)] -translate-x-1/2 -translate-y-1/2 pointer-events-none rounded-full z-20" alt="frame"/>
+                            )}
                         </div>
                         <div className="profile-name text-lg">
                             {equippedTitle && <span className="equipped-title text-[8px]">{lang === 'ar' ? equippedTitle.name_ar : equippedTitle.name_en}</span>}
@@ -554,9 +567,11 @@ const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => {
 
                     {/* Profile Header Compact */}
                     <div className="flex items-center gap-3 mb-3 flex-shrink-0">
-                        <div className="relative">
-                            <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="w-14 h-14 rounded-full border-2 border-white/20" alt=""/> 
-                            {userData.equipped?.frames && <div className="avatar-frame-sm" style={{ borderImage: SHOP_ITEMS.frames.find(f=>f.id===userData.equipped.frames)?.preview || 'none' }}></div>}
+                            <div className="relative rounded-full" style={userData.equipped?.frames && !userData.equipped.frames.startsWith('http') ? { padding: '3px', background: SHOP_ITEMS.frames.find(f=>f.id===userData.equipped.frames)?.preview } : {}}>
+                            <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="w-14 h-14 rounded-full border-2 border-white/20 relative z-10" alt=""/> 
+                            {userData.equipped?.frames && userData.equipped.frames.startsWith('http') && (
+                                <img src={SHOP_ITEMS.frames.find(f=>f.id===userData.equipped.frames)?.preview} className="absolute top-1/2 left-1/2 w-[calc(100%+8px)] h-[calc(100%+8px)] -translate-x-1/2 -translate-y-1/2 pointer-events-none rounded-full z-20" alt="frame"/>
+                            )}
                         </div>
                         <div className="flex-1">
                             <div className="text-sm font-bold">
@@ -935,6 +950,7 @@ function App() {
         }
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+
 
 
 
