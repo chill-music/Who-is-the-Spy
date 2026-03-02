@@ -24,13 +24,12 @@ const historyCollection = db.collection('artifacts').doc(appId).collection('publ
 const CURRENCY_NAME = "Intel";
 const CURRENCY_ICON = "🧠";
 
-// FIX: Types are PLURAL (frames, titles) to match inventory keys
 const SHOP_ITEMS = {
     frames: [
         { id: 'frame_gold', name_en: "Gold Frame", name_ar: "إطار ذهبي", cost: 500, type: 'frames', preview: 'linear-gradient(45deg, #f7ff00, #db9700)' },
         { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' },
         { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
-        // Example Image Frame (Correct Format)
+        // مثال لإطار صورة (قم بتغيير الرابط لما تريد)
         { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/N2sqpsSm/original-9c01f5f7daab22294120622521749a9b.png' }, 
     ],
     titles: [
@@ -147,7 +146,7 @@ const TutorialModal = ({ show, onClose, lang }) => {
     );
 };
 
-// Shop Modal
+// Shop Modal (FIXED)
 const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => {
     const t = TRANSLATIONS[lang];
     const [tab, setTab] = useState('frames');
@@ -159,7 +158,6 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => {
     const equipped = userData.equipped || {};
 
     const handleBuy = async (item) => {
-        // Check if already owned
         if(inventory[item.type]?.includes(item.id)) {
             setMsg(t.alreadyOwned);
             setTimeout(() => setMsg(''), 2000);
@@ -216,7 +214,8 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => {
                     {items.map(item => {
                         const owned = inventory[item.type]?.includes(item.id);
                         const isEquipped = equipped[item.type] === item.id;
-                        const isUrl = item.preview.startsWith('http');
+                        // FIX: Check if preview exists before using startsWith
+                        const isUrl = item.preview?.startsWith('http');
                         return (
                             <div key={item.id} className="bg-black/30 rounded-xl p-3 flex flex-col items-center justify-between h-36">
                                 <div className="text-xs font-bold mb-1 text-center">{lang === 'ar' ? item.name_ar : item.name_en}</div>
@@ -960,3 +959,4 @@ function App() {
         }
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+
