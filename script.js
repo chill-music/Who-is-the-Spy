@@ -2392,7 +2392,7 @@ function App() {
     }, [friendsData, chatsMeta, user?.uid]);
     
     const handleCopy = () => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 2000); };
-
+}
     // ==========================================
     // RENDER - WILL BE IN PART 7
     // ==========================================
@@ -2830,3 +2830,4 @@ const renderApp = () => {
 
 // This line goes at the end of App function
 return renderApp();
+
