@@ -30,12 +30,13 @@ const SHOP_ITEMS = {
         { id: 'frame_gold', name_en: "Gold Frame", name_ar: "إطار ذهبي", cost: 500, type: 'frames', preview: 'linear-gradient(45deg, #f7ff00, #db9700)' },
         { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' },
         { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
-        { id: 'shehab-test', name_en: "Shehab Frame", name_ar: "إطار ذهبي", cost: 1, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
+        { id: 'shehab', name_en: "Shehab Frame", name_ar: "0000", cost: 5, type: 'frames', preview: 'https://i.ibb.co/N2sqpsSm/original-9c01f5f7daab22294120622521749a9b.png' },
     ],
     titles: [
         { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles' },
         { id: 'title_hunter', name_en: "Hunter", name_ar: "صياد", cost: 450, type: 'titles' },
         { id: 'title_ghost', name_en: "Ghost", name_ar: "شبح", cost: 800, type: 'titles' },
+        { id: 'title_Shehab', name_en: "Shehab", name_ar: "شبح", cost: 1, type: 'titles' },
     ],
     themes: [
         { id: 'theme_dark', name_en: "Midnight", name_ar: "منتصف الليل", cost: 200, type: 'themes' },
@@ -914,5 +915,6 @@ function App() {
         }
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+
 
 
