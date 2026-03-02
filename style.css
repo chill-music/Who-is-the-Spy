@@ -10,7 +10,6 @@
     --border: rgba(255, 255, 255, 0.1);
 }
 
-/* Reset & Base */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; width: 100%; }
 body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Outfit', sans-serif; min-height: 100vh; overflow-x: hidden; }
@@ -107,8 +106,8 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .emoji-item { font-size: 20px; padding: 4px; cursor: pointer; text-align: center; border-radius: 4px; transition: 0.2s; } .emoji-item:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
 
 /* Profile Components */
-.profile-avatar-sm { width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); object-fit: cover; }
-.avatar-frame-sm { position: absolute; inset: -4px; border-radius: 50%; border: 2px solid transparent; pointer-events: none; }
+.profile-avatar-sm { width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); object-fit: cover; position: relative; z-index: 10; }
+.avatar-frame-sm { position: absolute; inset: -4px; border-radius: 50%; border: 3px solid transparent; pointer-events: none; z-index: 5; }
 .equipped-title { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: #000; margin-right: 4px; display: inline-block; vertical-align: middle; }
 .guest-badge-profile { background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); color: var(--gold); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-flex; align-items: center; gap: 5px; }
 .profile-id-box { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: 0.2s; margin-top: 4px; }
