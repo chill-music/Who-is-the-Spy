@@ -1,3 +1,8 @@
+/* ==========================================
+   UPDATED STYLE.CSS - PRO SPY GAME
+   All new additions for Charisma, Gifts, and UI improvements
+   ========================================== */
+
 :root {
     --bg-dark: #05050a;
     --bg-card: rgba(20, 20, 30, 0.85);
@@ -17,15 +22,32 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .glass-panel { background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
 .font-tech { font-family: 'Rajdhani', sans-serif; }
 
-/* Animations */
-@keyframes pulse-glow { 0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } 50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); } 100% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } }
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
+@keyframes pulse-glow { 
+    0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } 
+    50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); } 
+    100% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } 
+}
 @keyframes rotate-border { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pop-in { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes shimmer { 
+    0% { background-position: -200% center; } 
+    100% { background-position: 200% center; } 
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
 .animate-fade-in { animation: fade-in-up 0.6s ease-out forwards; }
 .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.animate-float { animation: float 3s ease-in-out infinite; }
 
-/* Buttons */
+/* ==========================================
+   BUTTONS
+   ========================================== */
 .btn { cursor: pointer; border: none; outline: none; font-family: inherit; }
 .btn-neon { position: relative; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: white; font-weight: 700; transition: all 0.3s; overflow: hidden; }
 .btn-neon:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px var(--primary); }
@@ -38,45 +60,131 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .btn-gold { background: linear-gradient(90deg, #b8860b, var(--gold)); color: #000; }
 .btn-google { background: white; color: #333; font-weight: bold; }
 
-/* Inputs */
+/* ==========================================
+   INPUTS
+   ========================================== */
 .input-dark { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border); color: white; transition: 0.2s; font-family: inherit; }
 .input-dark:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
 .input-locked { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6); cursor: not-allowed; }
 
-/* Scrollbar */
+/* ==========================================
+   SCROLLBAR
+   ========================================== */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
 
-/* Header & Logo - Fixed */
+/* ==========================================
+   HEADER & LOGO
+   ========================================== */
 .logo-container { position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
 .logo-border { position: absolute; inset: -2px; border: 2px solid transparent; border-radius: 8px; animation: rotate-border 4s linear infinite; background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary)) border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
 .game-title { font-size: 1.5rem; background: linear-gradient(90deg, #fff, #a5f3fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: pulse-glow 3s infinite; font-weight: 800; }
 
-/* Player Card */
+/* ==========================================
+   PLAYER CARD
+   ========================================== */
 .player-card { transition: all 0.3s; position: relative; border: 1px solid transparent; cursor: pointer; padding: 0.75rem; border-radius: 0.75rem; background: rgba(255,255,255,0.03); }
 .player-card:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
 .player-card.active { background: rgba(0, 242, 255, 0.1); border-color: var(--primary); }
 .player-card.eliminated, .player-card.ghost { opacity: 0.6; filter: grayscale(80%); }
 
-/* Timer */
+/* ==========================================
+   TIMER
+   ========================================== */
 .timer-bar-container { width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
 .timer-bar-fill { height: 100%; background: var(--primary); transition: width 1s linear; }
 
-/* Identity Square */
+/* ==========================================
+   IDENTITY SQUARE
+   ========================================== */
 .identity-square { width: 100%; max-width: 300px; aspect-ratio: 1 / 1; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 20px; position: relative; overflow: hidden; transition: all 0.5s ease; }
 .identity-spy { border: 2px solid var(--accent); background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); }
 .identity-agent { border: 2px solid #10b981; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%); box-shadow: 0 0 40px rgba(16, 185, 129, 0.2); }
 .identity-informant { border: 2px solid #3b82f6; background: radial-gradient(circle at center, rgba(59, 130, 246, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(59, 130, 246, 0.3); }
 .identity-mrwhite { border: 2px solid var(--gold); background: radial-gradient(circle at center, rgba(255, 215, 0, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 215, 0, 0.3); }
 
-/* Misc Components */
-.emoji-btn { font-size: 20px; cursor: pointer; transition: transform 0.2s; } .emoji-btn:hover { transform: scale(1.2); }
+/* ==========================================
+   CHARISMA BAR (NEW)
+   ========================================== */
+.charisma-container { margin: 15px 0; }
+.charisma-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; position: relative; }
+.charisma-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8800, var(--gold)); background-size: 200% 100%; animation: shimmer 2s linear infinite; transition: width 0.5s ease; }
+.charisma-icon { font-size: 24px; vertical-align: middle; margin-right: 5px; }
+
+/* Charisma Level Badge */
+.charisma-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 136, 0, 0.2));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    font-size: 10px;
+    font-weight: bold;
+    color: var(--gold);
+}
+
+/* ==========================================
+   GIFT CARD (NEW)
+   ========================================== */
+.gift-card { 
+    position: relative; 
+    border: 1px solid var(--border); 
+    border-radius: 10px; 
+    padding: 10px; 
+    background: rgba(0,0,0,0.2); 
+    transition: 0.2s; 
+    cursor: pointer; 
+}
+.gift-card:hover { 
+    border-color: var(--gold); 
+    background: rgba(255, 215, 0, 0.05);
+    transform: scale(1.02);
+}
+.gift-card.selected {
+    border-color: var(--gold);
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+.gift-icon { font-size: 32px; display: block; margin-bottom: 5px; }
+
+/* Gift Preview Card */
+.gift-preview-card {
+    background: linear-gradient(145deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.95));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Gift Message in Chat */
+.gift-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.1));
+    border-radius: 12px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+/* ==========================================
+   MISC COMPONENTS
+   ========================================== */
+.emoji-btn { font-size: 20px; cursor: pointer; transition: transform 0.2s; } 
+.emoji-btn:hover { transform: scale(1.2); }
 .word-vote-card { background: rgba(255, 255, 255, 0.05); border: 2px solid transparent; transition: all 0.3s; position: relative; padding: 1rem; border-radius: 0.75rem; }
 .word-vote-card.selected { border-color: var(--primary); background: rgba(0, 242, 255, 0.1); transform: scale(1.02); }
 .voter-name { position: absolute; bottom: -8px; right: 10px; font-size: 10px; background: var(--secondary); padding: 2px 6px; border-radius: 8px; color: white; }
 .vote-request-banner { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 50; width: 90%; max-width: 500px; }
-.xp-bar-bg { background: rgba(255,255,255,0.1); } .xp-bar-fill { background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 0.5s ease; }
+.xp-bar-bg { background: rgba(255,255,255,0.1); } 
+.xp-bar-fill { background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 0.5s ease; }
+
+/* ==========================================
+   ACHIEVEMENTS
+   ========================================== */
 .achievement-card { transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; padding: 0.5rem; border-radius: 0.5rem; }
 .achievement-card.locked { filter: grayscale(100%); opacity: 0.4; } 
 .achievement-card.unlocked { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); background: linear-gradient(145deg, rgba(0, 242, 255, 0.05), transparent); }
@@ -93,19 +201,28 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .ach-tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--primary); padding: 8px; border-radius: 8px; width: 150px; font-size: 10px; text-align: center; z-index: 10; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
 .achievement-card:hover .ach-tooltip { opacity: 1; }
 .notification-badge { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 2px solid var(--bg-dark); }
+
+/* ==========================================
+   CHAT
+   ========================================== */
 .chat-msg-row { display: flex; gap: 10px; margin-bottom: 16px; }
-.chat-avatar-sm { width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; cursor: pointer; } .chat-avatar-sm:hover { border-color: var(--primary); transform: scale(1.1); }
+.chat-avatar-sm { width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; cursor: pointer; } 
+.chat-avatar-sm:hover { border-color: var(--primary); transform: scale(1.1); }
 .chat-content { flex: 1; display: flex; flex-direction: column; max-width: 80%; }
 .chat-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
-.chat-username { font-size: 13px; font-weight: 700; color: var(--primary); } .chat-timestamp { font-size: 10px; color: var(--text-muted); }
+.chat-username { font-size: 13px; font-weight: 700; color: var(--primary); } 
+.chat-timestamp { font-size: 10px; color: var(--text-muted); }
 .chat-bubble { padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; word-wrap: break-word; max-width: 100%; display: inline-block; }
 .chat-bubble-me { background: linear-gradient(135deg, rgba(112, 0, 255, 0.25), rgba(0, 242, 255, 0.25)); border: 1px solid var(--primary); border-bottom-right-radius: 2px; align-self: flex-end; }
 .chat-bubble-other { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255,255,255,0.05); border-bottom-left-radius: 2px; }
 .emoji-picker-container { position: absolute; bottom: 60px; right: 10px; width: 260px; background: rgba(10,10,20,0.98); border: 1px solid var(--border); border-radius: 12px; padding: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20; }
 .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; max-height: 180px; overflow-y: auto; margin-top: 6px; }
-.emoji-item { font-size: 20px; padding: 4px; cursor: pointer; text-align: center; border-radius: 4px; transition: 0.2s; } .emoji-item:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
+.emoji-item { font-size: 20px; padding: 4px; cursor: pointer; text-align: center; border-radius: 4px; transition: 0.2s; } 
+.emoji-item:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
 
-/* Profile Components */
+/* ==========================================
+   PROFILE COMPONENTS
+   ========================================== */
 .profile-avatar-sm { width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); object-fit: cover; position: relative; z-index: 10; }
 .avatar-frame-sm { position: absolute; inset: -4px; border-radius: 50%; border: 3px solid transparent; pointer-events: none; z-index: 5; }
 .equipped-title { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: #000; margin-right: 4px; display: inline-block; vertical-align: middle; }
@@ -113,13 +230,17 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .profile-id-box { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: 0.2s; margin-top: 4px; }
 .profile-id-box:hover { background: rgba(0, 242, 255, 0.1); }
 
-/* Info Grid */
+/* ==========================================
+   INFO GRID
+   ========================================== */
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
 .info-box { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
 .info-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px; }
 .info-value { font-size: 16px; font-weight: 600; }
 
-/* KD Circle */
+/* ==========================================
+   KD CIRCLE
+   ========================================== */
 .kd-circle-container { position: relative; margin: 0 auto 15px auto; }
 .kd-circle-bg { fill: none; stroke: rgba(255, 255, 255, 0.1); }
 .kd-circle-progress { fill: none; stroke: url(#gradient); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.5s ease-out; }
@@ -127,24 +248,61 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .kd-value { font-size: 24px; font-weight: 800; color: white; display: block; }
 .kd-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
 
-/* Report Modal */
+/* ==========================================
+   REPORT MODAL
+   ========================================== */
 .report-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
 .report-modal-content { background: #111122; border: 1px solid var(--accent); border-radius: 16px; padding: 20px; width: 100%; max-width: 350px; box-shadow: 0 0 30px rgba(255, 0, 85, 0.2); }
 .report-reason-option { background: rgba(255, 255, 255, 0.05); border: 1px solid transparent; padding: 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
 .report-reason-option:hover { background: rgba(255, 255, 255, 0.1); }
 .report-reason-option.selected { border-color: var(--accent); background: rgba(255, 0, 85, 0.1); }
 
-/* Charisma Bar */
-.charisma-container { margin: 15px 0; }
-.charisma-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; position: relative; }
-.charisma-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8800); transition: width 0.5s ease; }
-.charisma-icon { font-size: 24px; vertical-align: middle; margin-right: 5px; }
-
-/* Gifts */
-.gift-card { position: relative; border: 1px solid var(--border); border-radius: 10px; padding: 10px; background: rgba(0,0,0,0.2); transition: 0.2s; cursor: pointer; }
-.gift-card:hover { border-color: var(--gold); }
-.gift-icon { font-size: 32px; display: block; margin-bottom: 5px; }
-
-/* Utility */
+/* ==========================================
+   UTILITY
+   ========================================== */
 .text-primary { color: var(--primary); }
 .friend-unread-badge { position: absolute; top: 8px; right: 8px; min-width: 20px; height: 20px; background: var(--accent); border-radius: 10px; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; color: white; padding: 0 4px; box-shadow: 0 0 10px rgba(255,0,85,0.5); }
+
+/* ==========================================
+   RESPONSIVE ADJUSTMENTS
+   ========================================== */
+@media (max-width: 640px) {
+    .identity-square { max-width: 200px; }
+    .kd-circle-container { transform: scale(0.9); }
+    .charisma-container { margin: 10px 0; }
+}
+
+/* ==========================================
+   GUEST BANNER (NEW)
+   ========================================== */
+.guest-banner {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.1));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* ==========================================
+   CASHBACK INDICATOR (NEW)
+   ========================================== */
+.cashback-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    font-size: 9px;
+    color: #10b981;
+}
+
+/* ==========================================
+   FRAME SIZE REFERENCE (NEW)
+   For avatar frames to be properly sized:
+   - 48px avatar needs 118% frame = 56.64px frame
+   - 32px avatar needs 118% frame = 37.76px frame
+   - Frame should be positioned with negative offset: -(size * 0.09)
+   ========================================== */
