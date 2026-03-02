@@ -855,7 +855,27 @@ function App() {
         setAddFriendId(''); 
     };
 
-    const handleAcceptRequest = async (fromUid) => { await usersCollection.doc(user.uid).update({ friends: firebase.firestore.FieldValue.arrayUnion(fromUid), friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); await usersCollection.doc(fromUid).update({ friends: firebase.firestore.FieldValue.arrayUnion(user.uid) }); setNotification(t.newFriend); };
+    // FIX: Use Batch Write for Atomic Accept
+    const handleAcceptRequest = async (fromUid) => { 
+        const batch = db.batch();
+        
+        // Update Current User (Accepter)
+        const currentUserRef = usersCollection.doc(user.uid);
+        batch.update(currentUserRef, { 
+            friends: firebase.firestore.FieldValue.arrayUnion(fromUid), 
+            friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) 
+        });
+        
+        // Update Sender
+        const senderRef = usersCollection.doc(fromUid);
+        batch.update(senderRef, { 
+            friends: firebase.firestore.FieldValue.arrayUnion(user.uid) 
+        });
+        
+        await batch.commit();
+        setNotification(t.newFriend); 
+    };
+    
     const handleRejectRequest = async (fromUid) => { await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); };
 
     const isMyTurn = room?.currentTurnUID === user?.uid;
