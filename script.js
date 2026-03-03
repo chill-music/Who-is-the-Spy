@@ -91,7 +91,7 @@ const SHOP_ITEMS = {
         { id: 'frame_gold', name_en: "Gold Frame", name_ar: "إطار ذهبي", cost: 500, type: 'frames', preview: 'linear-gradient(45deg, #f7ff00, #db9700)' },
         { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' },
         { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
-        { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://cdn.dribbble.com/userupload/39221248/file/original-d945a9ff7062779fd33f57575877c806.gif' },
+        { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png' },
     ],
     titles: [
         { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles' },
@@ -1376,6 +1376,7 @@ const NotificationCenter = ({ show, onClose, notifications, onClearAll, onMarkRe
         </div>
     );
 };
+
 // ==========================================
 // PRO SPY - COMPLETE SCRIPT PART 2 V2
 // App Component with ALL Systems
@@ -1480,17 +1481,23 @@ function App() {
     useEffect(() => { if (!user) return; const interval = setInterval(() => { usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 60000); return () => clearInterval(interval); }, [user]);
 
     // ==========================================
-    // NOTIFICATIONS LISTENER
+    // NOTIFICATIONS LISTENER - FIXED (No Index Required)
     // ==========================================
     useEffect(() => {
         if (!user || isGuest) return;
         
+        // Removed orderBy to avoid index requirement - sorting in client side
         const unsub = notificationsCollection
             .where('toUserId', '==', user.uid)
-            .orderBy('timestamp', 'desc')
             .limit(50)
             .onSnapshot(snap => {
-                const notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Sort by timestamp in client side (newest first)
+                notifs.sort((a, b) => {
+                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
+                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
+                    return timeB - timeA;
+                });
                 setNotifications(notifs);
                 setUnreadNotifications(notifs.filter(n => !n.read).length);
             });
