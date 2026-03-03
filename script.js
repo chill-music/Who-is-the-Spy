@@ -35,12 +35,12 @@ const MAX_ROUNDS = 3;
 // CHARISMA LEVELS - FIXED (Last level open, icon can be image or emoji)
 // ==========================================
 const CHARISMA_LEVELS = [
-    { level: 1, threshold: 0, icon: '⭐', iconType: 'emoji', iconUrl: '', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
-    { level: 2, threshold: 4000, icon: '⭐', iconType: 'emoji', iconUrl: '', name_en: 'Shining Star', name_ar: 'نجم ساطع', color: '#ffd700', badge_class: 'level-1-3' },
-    { level: 3, threshold: 12000, icon: '⭐', iconType: 'emoji', iconUrl: '', name_en: 'Bright Star', name_ar: 'نجم مضيء', color: '#ffd700', badge_class: 'level-1-3' },
-    { level: 4, threshold: 30000, icon: '💎', iconType: 'emoji', iconUrl: '', name_en: 'Diamond I', name_ar: 'ماسة 1', color: '#3b82f6', badge_class: 'level-4-6' },
-    { level: 5, threshold: 80000, icon: '💎', iconType: 'emoji', iconUrl: '', name_en: 'Diamond II', name_ar: 'ماسة 2', color: '#3b82f6', badge_class: 'level-4-6' },
-    { level: 6, threshold: 160000, icon: '💎', iconType: 'emoji', iconUrl: '', name_en: 'Diamond III', name_ar: 'ماسة 3', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 1, threshold: 0, icon: '', iconType: 'image', iconUrl: 'https://i.ibb.co/3mhcggzc/star3.png', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 2, threshold: 4000, icon: '', iconType: 'image', iconUrl: 'https://i.ibb.co/k2Dk82C7/star2.png', name_en: 'Shining Star', name_ar: 'نجم ساطع', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 3, threshold: 12000, icon: '', iconType: 'image', iconUrl: 'https://i.ibb.co/k2Dk82C7/star2.png', name_en: 'Bright Star', name_ar: 'نجم مضيء', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 4, threshold: 30000, icon: '💎', iconType: 'image', iconUrl: 'https://i.ibb.co/k61VC46r/1d.png', name_en: 'Diamond I', name_ar: 'ماسة 1', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 5, threshold: 80000, icon: '💎', iconType: 'image', iconUrl: 'https://i.ibb.co/Swdv3r1M/4d.png', name_en: 'Diamond II', name_ar: 'ماسة 2', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 6, threshold: 160000, icon: '💎', iconType: 'image', iconUrl: 'https://i.ibb.co/qT7bpPd/2d.png', name_en: 'Diamond III', name_ar: 'ماسة 3', color: '#3b82f6', badge_class: 'level-4-6' },
     { level: 7, threshold: 300000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Crown I', name_ar: 'تاج 1', color: '#ffd700', badge_class: 'level-7-9' },
     { level: 8, threshold: 500000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Crown II', name_ar: 'تاج 2', color: '#ffd700', badge_class: 'level-7-9' },
     { level: 9, threshold: 1000000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Crown III', name_ar: 'تاج 3', color: '#ffd700', badge_class: 'level-7-9' },
@@ -2075,4 +2075,5 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
