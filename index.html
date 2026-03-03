@@ -3,31 +3,703 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PRO SPY | Covert Arena</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕵️</text></svg>">
-    
-    <!-- Libraries -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <title>PRO SPY - Covert Arena</title>
     
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- React -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        /* ==========================================
+           PRO SPY - STYLE V2 - ALL IMPROVEMENTS
+           ========================================== */
+        
+        :root {
+            --bg-dark: #05050a;
+            --bg-card: rgba(20, 20, 30, 0.85);
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --accent: #ff0055;
+            --gold: #ffd700;
+            --text-main: #ffffff;
+            --text-muted: #8b8b9e;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body, #root { height: 100%; width: 100%; }
+        body { 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            font-family: 'Outfit', sans-serif; 
+            min-height: 100vh; 
+            overflow-x: hidden;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .glass-panel { background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
+        .font-tech { font-family: 'Rajdhani', sans-serif; }
+
+        /* Animations */
+        @keyframes pulse-glow { 
+            0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } 
+            50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); } 
+            100% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } 
+        }
+        @keyframes rotate-border { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pop-in { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes shimmer { 
+            0% { background-position: -200% center; } 
+            100% { background-position: 200% center; } 
+        }
+        @keyframes slide-down {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .animate-fade-in { animation: fade-in-up 0.6s ease-out forwards; }
+        .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .animate-slide-down { animation: slide-down 0.3s ease-out; }
+        .animate-pulse-badge { animation: pulse-badge 2s infinite; }
+
+        /* Buttons */
+        .btn { cursor: pointer; border: none; outline: none; font-family: inherit; transition: all 0.2s ease; }
+        .btn-neon { position: relative; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: white; font-weight: 700; }
+        .btn-neon:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px var(--primary); }
+        .btn-neon:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-ghost { background: transparent; border: 1px solid var(--border); color: inherit; }
+        .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-vote { background: linear-gradient(90deg, #ff0055, #ff3366); color: white; }
+        .btn-success { background: linear-gradient(90deg, #10b981, #22c55e); color: white; }
+        .btn-danger { background: linear-gradient(90deg, #ef4444, #dc2626); color: white; }
+        .btn-gold { background: linear-gradient(90deg, #b8860b, var(--gold)); color: #000; }
+        .btn-unequip { background: linear-gradient(90deg, #6b7280, #9ca3af); color: white; font-size: 10px; }
+        .btn-unequip:hover { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+        /* Inputs */
+        .input-dark { 
+            background: rgba(0, 0, 0, 0.6); 
+            border: 1px solid var(--border); 
+            color: white; 
+            font-family: inherit;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .input-dark:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
+        .input-locked { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6); cursor: not-allowed; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
+
+        /* Header */
+        .logo-container { position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+        .logo-border { position: absolute; inset: -2px; border: 2px solid transparent; border-radius: 8px; animation: rotate-border 4s linear infinite; background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary)) border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+        .game-title { font-size: 1.5rem; background: linear-gradient(90deg, #fff, #a5f3fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: pulse-glow 3s infinite; font-weight: 800; }
+
+        /* Player Card */
+        .player-card { 
+            transition: all 0.3s; 
+            position: relative; 
+            border: 1px solid transparent; 
+            cursor: pointer; 
+            padding: 10px; 
+            border-radius: 10px; 
+            background: rgba(255,255,255,0.03); 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .player-card:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+        .player-card.active { background: rgba(0, 242, 255, 0.1); border-color: var(--primary); }
+
+        /* Avatar Frame - FIXED */
+        .avatar-wrapper { position: relative; display: inline-block; }
+        .avatar-wrapper.size-sm { width: 32px; height: 32px; }
+        .avatar-wrapper.size-md { width: 48px; height: 48px; }
+        .avatar-wrapper.size-lg { width: 80px; height: 80px; }
+        .avatar-wrapper.size-xl { width: 100px; height: 100px; }
+        
+        .avatar-image { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; position: relative; z-index: 1; }
+        .avatar-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 118%; height: 118%; pointer-events: none; z-index: 2; }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: contain; }
+        .avatar-frame-gradient { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 118%; height: 118%; border-radius: 50%; z-index: 2; pointer-events: none; }
+
+        /* Timer */
+        .timer-bar-container { width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .timer-bar-fill { height: 100%; background: var(--primary); transition: width 1s linear; }
+
+        /* Identity Square */
+        .identity-square { width: 100%; max-width: 280px; aspect-ratio: 1 / 1; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 20px; position: relative; overflow: hidden; }
+        .identity-spy { border: 2px solid var(--accent); background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%); }
+        .identity-agent { border: 2px solid #10b981; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%); }
+        .identity-informant { border: 2px solid #3b82f6; background: radial-gradient(circle at center, rgba(59, 130, 246, 0.15), transparent 70%); }
+        .identity-mrwhite { border: 2px solid var(--gold); background: radial-gradient(circle at center, rgba(255, 215, 0, 0.15), transparent 70%); }
+
+        /* Charisma System - NEW */
+        .charisma-container { background: rgba(255, 215, 0, 0.05); border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 12px; padding: 12px; margin: 8px 0; }
+        .charisma-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .charisma-label { font-size: 12px; font-weight: bold; color: var(--gold); display: flex; align-items: center; gap: 6px; }
+        .charisma-level-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .charisma-level-badge.level-1-3 { background: linear-gradient(135deg, #ffd700, #ffec8b); color: #000; }
+        .charisma-level-badge.level-4-6 { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: #fff; }
+        .charisma-level-badge.level-7-9 { background: linear-gradient(135deg, #ffd700, #daa520); color: #000; }
+        .charisma-level-badge.level-10-12 { background: linear-gradient(135deg, #f97316, #fb923c); color: #fff; }
+        .charisma-level-badge.level-13-15 { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: #fff; }
+        .charisma-level-badge.level-16-21 { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; }
+        .charisma-bar-bg { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; }
+        .charisma-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8800, var(--gold)); background-size: 200% 100%; animation: shimmer 2s linear infinite; transition: width 0.5s ease; }
+        .charisma-info { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+        .charisma-current { font-size: 16px; font-weight: bold; color: var(--gold); }
+        .charisma-next { font-size: 10px; color: var(--text-muted); }
+
+        /* Modal - IMPROVED */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 420px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .modal-title { font-size: 16px; font-weight: bold; color: var(--primary); }
+        .modal-close-btn { width: 32px; height: 32px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .modal-close-btn:hover { background: rgba(255, 0, 85, 0.2); color: var(--accent); }
+        .modal-body { padding: 16px; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+        /* Notification Toast */
+        .notification-toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 9999; animation: slide-down 0.3s ease-out; max-width: 90%; width: 320px; }
+        .notification-content { background: var(--bg-card); border: 1px solid var(--primary); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 20px rgba(0, 242, 255, 0.2); }
+        .notification-text { flex: 1; font-size: 13px; font-weight: 500; }
+        .notification-close { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; }
+
+        /* Notification Center */
+        .notification-bell { position: relative; width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .notification-bell:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--primary); }
+        .notification-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; background: var(--accent); border-radius: 9px; font-size: 10px; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; padding: 0 4px; animation: pulse-badge 2s infinite; }
+        .notification-dropdown { position: absolute; top: 100%; right: 0; margin-top: 8px; width: 320px; max-height: 400px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); z-index: 1000; overflow: hidden; }
+        .notification-dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+        .notification-list { max-height: 320px; overflow-y: auto; }
+        .notification-item { padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); cursor: pointer; transition: background 0.2s; }
+        .notification-item:hover { background: rgba(255, 255, 255, 0.05); }
+        .notification-item.unread { background: rgba(0, 242, 255, 0.05); border-left: 3px solid var(--primary); }
+        .notification-empty { padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+        /* Inventory */
+        .inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .inventory-item { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: center; transition: all 0.2s; }
+        .inventory-item.equipped { border-color: var(--primary); background: rgba(0, 242, 255, 0.1); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
+        .inventory-item-preview { width: 48px; height: 48px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; }
+        .inventory-item-name { font-size: 11px; font-weight: 600; text-align: center; margin-bottom: 8px; }
+        .inventory-item-actions { width: 100%; display: flex; gap: 6px; }
+        .inventory-item-actions button { flex: 1; padding: 6px 8px; font-size: 10px; border-radius: 6px; }
+
+        /* Tabs */
+        .tab-container { display: flex; gap: 4px; padding: 4px; background: rgba(255, 255, 255, 0.03); border-radius: 10px; margin-bottom: 12px; }
+        .tab-button { flex: 1; padding: 10px 16px; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; position: relative; }
+        .tab-button.active { background: rgba(255, 255, 255, 0.1); color: white; }
+        .friends-tab-badge { position: absolute; top: 4px; right: 4px; min-width: 16px; height: 16px; background: var(--accent); border-radius: 8px; font-size: 9px; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+
+        /* Gift Card */
+        .gift-card { position: relative; border: 1px solid var(--border); border-radius: 10px; padding: 10px; background: rgba(0,0,0,0.2); transition: 0.2s; cursor: pointer; }
+        .gift-card:hover { border-color: var(--gold); background: rgba(255, 215, 0, 0.05); transform: scale(1.02); }
+
+        /* Leaderboard */
+        .leaderboard-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 8px; cursor: pointer; }
+        .leaderboard-row:hover { background: rgba(255,255,255,0.03); }
+
+        /* Dropdown */
+        .dropdown-menu { position: absolute; top: 100%; right: 0; margin-top: 8px; min-width: 180px; z-index: 9999; }
+
+        /* Alert Modal */
+        .alert-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+        /* Status */
+        .status-online { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #10b981; }
+        .status-offline { width: 10px; height: 10px; background: #555; border-radius: 50%; display: inline-block; }
+        .friend-unread-badge { position: absolute; top: 8px; right: 8px; min-width: 20px; height: 20px; background: var(--accent); border-radius: 10px; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; color: white; padding: 0 4px; }
+
+        /* Word Vote Card */
+        .word-vote-card { background: rgba(255, 255, 255, 0.05); border: 2px solid transparent; transition: all 0.3s; position: relative; padding: 1rem; border-radius: 0.75rem; cursor: pointer; }
+        .word-vote-card.selected { border-color: var(--primary); background: rgba(0, 242, 255, 0.1); transform: scale(1.02); }
+
+        /* Vote Request */
+        .vote-request-banner { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 50; width: 90%; max-width: 500px; }
+
+        /* Report Modal */
+        .report-reason-option { background: rgba(255, 255, 255, 0.05); border: 1px solid transparent; padding: 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .report-reason-option:hover { background: rgba(255, 255, 255, 0.1); }
+        .report-reason-option.selected { border-color: var(--accent); background: rgba(255, 0, 85, 0.1); }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .identity-square { max-width: 200px; }
+            .notification-dropdown { width: calc(100vw - 32px); right: -10px; }
+            .modal-content { max-height: 90vh; }
+        }
+    </style>
 </head>
 <body>
     <canvas id="bg-canvas"></canvas>
     <div id="root"></div>
+    
+    <!-- Main Script -->
+    <script type="text/babel">
+        // ==========================================
+        // PRO SPY - COMPLETE SCRIPT V2
+        // All Systems with Improvements
+        // ==========================================
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+        const { useState, useEffect, useRef } = React;
 
-    <!-- Main Application Script -->
-    <script type="text/babel" src="script.js"></script>
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyApAJaNfF0YHupunLRlK3jRYvttxczWShY",
+            authDomain: "who-is-the-spy-919b9.firebaseapp.com",
+            projectId: "who-is-the-spy-919b9",
+            storageBucket: "who-is-the-spy-919b9.firebasestorage.app",
+            messagingSenderId: "607075438373",
+            appId: "1:607075438373:web:a03e9fb8b243cd993e14cc"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const appId = 'pro_spy_v25_final_fix_complete';
+        const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
+        const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
+        const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
+        const roomsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms');
+        const historyCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('game_history');
+        const notificationsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('notifications');
+
+        // --- Constants ---
+        const CURRENCY_NAME = "Intel";
+        const CURRENCY_ICON = "🧠";
+        const MAX_ROUNDS = 3;
+
+        // --- Charisma Levels Configuration ---
+        const CHARISMA_LEVELS = [
+            { level: 1, threshold: 1000, icon: '⭐', name_en: 'Rising Star', name_ar: 'نجم صاعد', badge_class: 'level-1-3' },
+            { level: 2, threshold: 4000, icon: '⭐', name_en: 'Shining Star', name_ar: 'نجم ساطع', badge_class: 'level-1-3' },
+            { level: 3, threshold: 12000, icon: '⭐', name_en: 'Bright Star', name_ar: 'نجم مضيء', badge_class: 'level-1-3' },
+            { level: 4, threshold: 30000, icon: '💎', name_en: 'Diamond I', name_ar: 'ماسة 1', badge_class: 'level-4-6' },
+            { level: 5, threshold: 80000, icon: '💎', name_en: 'Diamond II', name_ar: 'ماسة 2', badge_class: 'level-4-6' },
+            { level: 6, threshold: 160000, icon: '💎', name_en: 'Diamond III', name_ar: 'ماسة 3', badge_class: 'level-4-6' },
+            { level: 7, threshold: 300000, icon: '👑', name_en: 'Crown I', name_ar: 'تاج 1', badge_class: 'level-7-9' },
+            { level: 8, threshold: 500000, icon: '👑', name_en: 'Crown II', name_ar: 'تاج 2', badge_class: 'level-7-9' },
+            { level: 9, threshold: 1000000, icon: '👑', name_en: 'Crown III', name_ar: 'تاج 3', badge_class: 'level-7-9' },
+            { level: 10, threshold: 2000000, icon: '👑', name_en: 'Royal Crown I', name_ar: 'تاج ملكي 1', badge_class: 'level-10-12' },
+            { level: 11, threshold: 3500000, icon: '👑', name_en: 'Royal Crown II', name_ar: 'تاج ملكي 2', badge_class: 'level-10-12' },
+            { level: 12, threshold: 6000000, icon: '👑', name_en: 'Royal Crown III', name_ar: 'تاج ملكي 3', badge_class: 'level-10-12' },
+            { level: 13, threshold: 8500000, icon: '👑', name_en: 'Purple Crown I', name_ar: 'تاج بنفسجي 1', badge_class: 'level-13-15' },
+            { level: 14, threshold: 12000000, icon: '👑', name_en: 'Purple Crown II', name_ar: 'تاج بنفسجي 2', badge_class: 'level-13-15' },
+            { level: 15, threshold: 16000000, icon: '👑', name_en: 'Purple Crown III', name_ar: 'تاج بنفسجي 3', badge_class: 'level-13-15' },
+            { level: 16, threshold: 26000000, icon: '🌟', name_en: 'Legend I', name_ar: 'أسطورة 1', badge_class: 'level-16-21' },
+            { level: 17, threshold: 48000000, icon: '🌟', name_en: 'Legend II', name_ar: 'أسطورة 2', badge_class: 'level-16-21' },
+            { level: 18, threshold: 86000000, icon: '🌟', name_en: 'Legend III', name_ar: 'أسطورة 3', badge_class: 'level-16-21' },
+            { level: 19, threshold: 120000000, icon: '🌟', name_en: 'Legend IV', name_ar: 'أسطورة 4', badge_class: 'level-16-21' },
+            { level: 20, threshold: 240000000, icon: '🌟', name_en: 'Legend V', name_ar: 'أسطورة 5', badge_class: 'level-16-21' },
+            { level: 21, threshold: 360000000, icon: '🌟', name_en: 'Ultimate Legend', name_ar: 'الأسطورة المطلقة', badge_class: 'level-16-21' },
+        ];
+
+        const getCharismaLevel = (charisma) => {
+            let currentLevel = CHARISMA_LEVELS[0];
+            let nextLevel = null;
+            for (let i = CHARISMA_LEVELS.length - 1; i >= 0; i--) {
+                if (charisma >= CHARISMA_LEVELS[i].threshold) {
+                    currentLevel = CHARISMA_LEVELS[i];
+                    nextLevel = CHARISMA_LEVELS[i + 1] || null;
+                    break;
+                }
+            }
+            return { currentLevel, nextLevel };
+        };
+
+        const getCharismaProgress = (charisma) => {
+            const { currentLevel, nextLevel } = getCharismaLevel(charisma);
+            if (!nextLevel) return 100;
+            const progress = ((charisma - currentLevel.threshold) / (nextLevel.threshold - currentLevel.threshold)) * 100;
+            return Math.min(100, Math.max(0, progress));
+        };
+
+        // --- Shop Items ---
+        const SHOP_ITEMS = {
+            frames: [
+                { id: 'frame_gold', name_en: "Gold Frame", name_ar: "إطار ذهبي", cost: 500, type: 'frames', preview: 'linear-gradient(45deg, #f7ff00, #db9700)' },
+                { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' },
+                { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
+                { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png' },
+            ],
+            titles: [
+                { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles' },
+                { id: 'title_hunter', name_en: "Hunter", name_ar: "صياد", cost: 450, type: 'titles' },
+                { id: 'title_ghost', name_en: "Ghost", name_ar: "شبح", cost: 800, type: 'titles' },
+            ],
+            themes: [
+                { id: 'theme_dark', name_en: "Midnight", name_ar: "منتصف الليل", cost: 200, type: 'themes' },
+            ],
+            gifts: [
+                { id: 'gift_rose', name_en: "Rose", name_ar: "وردة", cost: 1, type: 'gifts', charisma: 10, cashback: 1, desc_ar: "عبّر عن مشاعرك بوردة رقيقة", desc_en: "Express your feelings with a delicate rose", emoji: "🌹" },
+                { id: 'gift_icecream', name_en: "Ice Cream", name_ar: "آيس كريم", cost: 5, type: 'gifts', charisma: 55, cashback: 1.5, desc_ar: "برّد على قلب أصدقائك", desc_en: "Cool down your friends' hearts", emoji: "🍦" },
+                { id: 'gift_heart', name_en: "Heart", name_ar: "قلب", cost: 10, type: 'gifts', charisma: 120, cashback: 2, desc_ar: "نبض الحب في هدية واحدة", desc_en: "The pulse of love in one gift", emoji: "❤️" },
+                { id: 'gift_pizza', name_en: "Pizza", name_ar: "بيتزا", cost: 20, type: 'gifts', charisma: 250, cashback: 2.5, desc_ar: "وليمة لأغلى الناس", desc_en: "A feast for the dearest people", emoji: "🍕" },
+                { id: 'gift_ring', name_en: "Ring", name_ar: "خاتم", cost: 100, type: 'gifts', charisma: 1200, cashback: 3, desc_ar: "خاتم الأناقة والتميز", desc_en: "Ring of elegance and distinction", emoji: "💍" },
+                { id: 'gift_motorbike', name_en: "Motorbike", name_ar: "موتوسيكل", cost: 250, type: 'gifts', charisma: 3200, cashback: 3.5, desc_ar: "سرعة وكاريزما لا تُقاوم", desc_en: "Irresistible speed and charisma", emoji: "🏍️" },
+                { id: 'gift_racecar', name_en: "Race Car", name_ar: "سيارة سباق", cost: 500, type: 'gifts', charisma: 7000, cashback: 4, desc_ar: "انطلق كالمحترفين في الساحة", desc_en: "Race like a pro in the arena", emoji: "🏎️" },
+                { id: 'gift_yacht', name_en: "Yacht", name_ar: "يخت", cost: 1000, type: 'gifts', charisma: 15000, cashback: 5, desc_ar: "فخامة الملوك فوق الأمواج", desc_en: "Royal luxury over the waves", emoji: "🛥️" },
+                { id: 'gift_jet', name_en: "Private Jet", name_ar: "طائرة خاصة", cost: 5000, type: 'gifts', charisma: 85000, cashback: 7, desc_ar: "حلّق في سماء الكاريزما", desc_en: "Soar in the skies of charisma", emoji: "✈️" },
+                { id: 'gift_island', name_en: "Private Island", name_ar: "جزيرة خاصة", cost: 10000, type: 'gifts', charisma: 180000, cashback: 10, desc_ar: "أمتلك عالمك الخاص والفريد", desc_en: "Own your own unique world", emoji: "🏝️" },
+            ]
+        };
+
+        // --- Achievements ---
+        const ACHIEVEMENTS = [ 
+            { id: 'first_win', name_en: "First Blood", name_ar: "أول دم", icon: "🩸", desc_en: "Win your first game.", desc_ar: "افوز اول لعبة لك." }, 
+            { id: 'wins_5', name_en: "Rookie Spy", name_ar: "جاسوس مبتدئ", icon: "🔰", desc_en: "Win 5 games.", desc_ar: "افوز 5 مرات." },
+            { id: 'wins_10', name_en: "Field Agent", name_ar: "عميل ميداني", icon: "🔫", desc_en: "Win 10 games.", desc_ar: "افوز 10 مرات." }, 
+            { id: 'wins_20', name_en: "Master of Disguise", name_ar: "سيد التنكر", icon: "🎭", desc_en: "Win 20 games.", desc_ar: "افوز 20 مرة." }, 
+            { id: 'wins_50', name_en: "Shadow Legend", name_ar: "أسطورة الظل", icon: "👁️", desc_en: "Win 50 games.", desc_ar: "افوز 50 مرة." }, 
+            { id: 'wins_100', name_en: "Immortal", name_ar: "خالد", icon: "👑", special: true, desc_en: "Win 100 games.", desc_ar: "افوز 100 مرة." },
+            { id: 'charisma_1000', name_en: "Charming", name_ar: "ساحر", icon: "✨", desc_en: "Reach 1000 Charisma.", desc_ar: "الوصول لـ 1000 كاريزما." },
+            { id: 'charisma_10000', name_en: "Celebrity", name_ar: "مشهور", icon: "🌟", desc_en: "Reach 10000 Charisma.", desc_ar: "الوصول لـ 10000 كاريزما." },
+            { id: 'charisma_100000', name_en: "Icon", name_ar: "أيقونة", icon: "💎", desc_en: "Reach 100000 Charisma.", desc_ar: "الوصول لـ 100000 كاريزما." },
+        ];
+
+        // --- Scenarios ---
+        const SCENARIOS = [ 
+            { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] }, 
+            { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Sonar"] }, 
+            { loc_ar: "قصر ملكي", words_ar: ["تاج", "حراس", "عروش", "خدم"], loc_en: "Royal Palace", words_en: ["Crown", "Guards", "Throne", "Servants"] }, 
+            { loc_ar: "بنك مركزي", words_ar: ["خزنة", "مال", "رصاص", "مفتاح"], loc_en: "Central Bank", words_en: ["Vault", "Money", "Lead", "Key"] }, 
+            { loc_ar: "مستشفى مهجور", words_ar: ["أشباح", "أطباء", "ظلام", "حقن"], loc_en: "Abandoned Hospital", words_en: ["Ghosts", "Doctors", "Dark", "Syringe"] }, 
+            { loc_ar: "قطار ليلي", words_ar: ["درجات", "تذاكر", "نوم", "ممر"], loc_en: "Night Train", words_en: ["Bunks", "Tickets", "Sleep", "Aisle"] }, 
+            { loc_ar: "جزيرة كنز", words_ar: ["خريطة", "حفر", "ذهب", "قراصنة"], loc_en: "Treasure Island", words_en: ["Map", "Dig", "Gold", "Pirates"] }, 
+            { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] } 
+        ];
+
+        // --- Helper Functions ---
+        const generateUID = () => Math.floor(100000 + Math.random() * 900000).toString();
+        const getChatId = (id1, id2) => [id1, id2].sort().join('_');
+        const formatTime = (timestamp) => { if (!timestamp) return ''; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
+        const formatCharisma = (num) => { if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
+
+        // --- Audio System ---
+        const AudioCtx = window.AudioContext || window.webkitAudioContext; 
+        let audioCtx = null;
+        const initAudio = () => { if (!audioCtx) audioCtx = new AudioCtx(); };
+        const playSound = (type) => { 
+            if (!audioCtx) return; 
+            if (audioCtx.state === 'suspended') audioCtx.resume(); 
+            const osc = audioCtx.createOscillator(); 
+            const gainNode = audioCtx.createGain(); 
+            osc.connect(gainNode); 
+            gainNode.connect(audioCtx.destination); 
+            
+            if (type === 'click') { 
+                osc.frequency.value = 800; 
+                osc.type = 'sine'; 
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); 
+                osc.start(); 
+                osc.stop(audioCtx.currentTime + 0.1); 
+            } else if (type === 'success') { 
+                osc.frequency.value = 600; 
+                osc.type = 'sine'; 
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+                osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15); 
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); 
+                osc.start(); 
+                osc.stop(audioCtx.currentTime + 0.3); 
+            } else if (type === 'message') {
+                osc.frequency.value = 880;
+                osc.type = 'sine';
+                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(1100, audioCtx.currentTime + 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'gift') {
+                osc.frequency.value = 523;
+                osc.type = 'sine';
+                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(784, audioCtx.currentTime + 0.15);
+                osc.frequency.linearRampToValueAtTime(1047, audioCtx.currentTime + 0.3);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            }
+        };
+
+        // --- Translations ---
+        const TRANSLATIONS = { 
+            en: { 
+                appName: "PRO SPY", tagline: "COVERT ARENA", nickname: "OPERATOR NAME", create: "CREATE GAME", join: "JOIN OPS", browse: "BROWSE ROOMS", codePlaceholder: "ENTER CODE", players: "OPERATIVES", start: "LAUNCH MISSION", langBtn: "العربية", loading: "PROCESSING...", you: "YOU", statusSpy: "SPY", statusAgent: "AGENT", statusInformant: "INFORMANT", statusMrWhite: "MR. WHITE", statusGhost: "GHOST", round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT", chatPlaceholder: "Type message...", send: "SEND", waiting: "Awaiting host...", location: "LOCATION", spectator: "SPECTATOR", confirm: "CONFIRM VOTE", spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!", mrWhiteWin: "MR. WHITE WINS!", playAgain: "PLAY AGAIN", connecting: "Connecting...", startVoting: "START VOTING", votingStarted: "VOTING INITIATED", voteRequestTitle: "VOTING REQUEST", voteRequestDesc: "wants to start voting.", agree: "AGREE", decline: "DECLINE", endVoting: "END VOTING NOW", votesTitle: "VOTES:", roundsFormat: (c, m) => `ROUND ${c}/${m}`, wordSelectionTitle: "SELECT KEYWORD", wordSelectionDesc: "Choose a keyword for this round", finishSelection: "FINISH SELECTION", selectedWord: "Selected Keyword", loginGoogle: "Login", myAccount: "My Account", logout: "Logout", profile: "Profile", guest: "Guest", level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID", enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Minimum players not met!", ok: "OK", tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends", addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID", online: "Online", offline: "Offline", noFriends: "No friends yet.", friendAdded: "Friend Added!", friendNotFound: "User not found.", requestSent: "Request Sent!", incomingRequests: "Incoming Requests", noRequests: "No pending requests.", accept: "Accept", reject: "Reject", sendMessage: "Send", inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?", inviteFriends: "Invite Friends", accountInfo: "Account Information", email: "Email", memberSince: "Member Since", nameChangeCountdown: "Name Change In", canChangeNow: "Can change now!", selectEmoji: "Emoji", guestTitle: "GUEST ACCOUNT", guestDesc: "Register to save progress and add friends.", kd: "K/D Ratio", stats: "Stats", noPermission: "Feature unavailable for guests.", normalMode: "NORMAL MODE", advancedMode: "ADVANCED MODE (6+)", modeNormalDesc: "Classic Spy vs Agents. 3-10 Players.", modeAdvDesc: "Special Roles included! 6-10 Players.", privateRoom: "Private Room", password: "Password", publicRoom: "Public Room", noRooms: "No active games found.", lobbyTitle: "GAME LOBBY", mrWhiteInstruction: "Guess the location to win!", informantInstruction: "You know a neighbor!", ghostInstruction: "You are now a Ghost. You can watch but cannot act.", guessLocation: "GUESS LOCATION", leaveRoom: "LEAVE", closeRoom: "CLOSE ROOM", showPassword: "Show Password", guestAccountLabel: "GUEST ACCOUNT", guestProfileMsg: "Guests cannot receive friend requests.", reportUser: "Report User", reportSent: "Report sent successfully!", reportTitle: "Report User", reportDesc: "Please select a reason for reporting this user.", reportReasonAbusive: "Abusive Behavior", reportReasonCheating: "Cheating", reportReasonSpam: "Spam", reportReasonOther: "Other", reportSubmit: "Submit Report", reportCancel: "Cancel", privateRoomError: "Private rooms require a password.",
+                shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", unequip: "UnEquip", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", alreadyOwned: "Already Owned",
+                tutorialTitle: "Welcome, Agent", tutorialStep1: "Your goal is to find the Spy (or blend in if you are the Spy).", tutorialStep2: "Each round, discuss and vote to eject a suspect.", tutorialStep3: "Win matches to earn Intel and buy items in the Shop!", skipTutorial: "Skip", next: "Next", startGame: "Start Game",
+                matchSummary: "Match Summary", matchDuration: "Duration", mvp: "MVP", correctVotes: "Correct Votes", summaryTitle: "Game Over!",
+                notifTitle: "Notification", achUnlock: "Achievement Unlocked!", newFriend: "New Friend Added!", hiddenAch: "Hidden Achievement", tabMain: "Main", tabInv: "Inventory", tabAch: "Achievements",
+                charisma: "Charisma", charismaDesc: "Your influence in the arena", gifts: "Gifts", sendGift: "Send Gift", giftSent: "Gift Sent!", giftReceived: "You received a gift!", selectGift: "Select a Gift", giftPreview: "Gift Preview", cashback: "Cashback", willReceive: "You'll receive", charismaGain: "Charisma Gain", playerLeft: "Player Left", spyLeftAgentsWin: "Spy left! Agents Win!", agentLeftSpyWins: "Agent left! Spy Wins!", myGifts: "My Gifts", receivedGifts: "Received Gifts", noGifts: "No gifts yet.", fromPlayer: "From", toPlayer: "To", buyGift: "Buy Gift", sendToFriend: "Send to Friend",
+                notifications: "Notifications", clearAll: "Clear All", noNotifications: "No notifications", friendRequest: "sent you a friend request", giftNotification: "sent you a gift", messageNotification: "sent you a message", nextLevel: "Next level", close: "Close",
+            }, 
+            ar: { 
+                appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", codePlaceholder: "أدخل الكود", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "دخول", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
+                shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مُزين", unequip: "إزالة", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
+                tutorialTitle: "مرحباً أيها العميل", tutorialStep1: "هدفك هو العثور على الجاسوس (أو التخفي إن كنت الجاسوس).", tutorialStep2: "في كل جولة، ناقش وصوّت لطرد المشتبه به.", tutorialStep3: "اربح المباريات لتحصل على إنتل واشتري من المتجر!", skipTutorial: "تخطي", next: "التالي", startGame: "ابدأ اللعبة",
+                matchSummary: "ملخص المباراة", matchDuration: "المدة", mvp: "الأفضل", correctVotes: "أصوات صحيحة", summaryTitle: "انتهت اللعبة!",
+                notifTitle: "إشعار", achUnlock: "تم فتح إنجاز!", newFriend: "صديق جديد!", hiddenAch: "إنجاز سري", tabMain: "الرئيسية", tabInv: "المخزون", tabAch: "الإنجازات",
+                charisma: "الكاريزما", charismaDesc: "تأثيرك في الساحة", gifts: "الهدايا", sendGift: "إرسال هدية", giftSent: "تم إرسال الهدية!", giftReceived: "لقد استلمت هدية!", selectGift: "اختر هدية", giftPreview: "معاينة الهدية", cashback: "استرداد", willReceive: "ستستلم", charismaGain: "زيادة الكاريزما", playerLeft: "لاعب غادر", spyLeftAgentsWin: "الجاسوس غادر! فاز العملاء!", agentLeftSpyWins: "عميل غادر! فاز الجاسوس!", myGifts: "هداياي", receivedGifts: "الهدايا المستلمة", noGifts: "لا توجد هدايا بعد.", fromPlayer: "من", toPlayer: "إلى", buyGift: "شراء هدية", sendToFriend: "إرسال لصديق",
+                notifications: "الإشعارات", clearAll: "حذف الكل", noNotifications: "لا توجد إشعارات", friendRequest: "أرسل لك طلب صداقة", giftNotification: "أرسل لك هدية", messageNotification: "أرسل لك رسالة", nextLevel: "المستوى التالي", close: "إغلاق",
+            } 
+        };
+
+        // --- Components ---
+
+        // Notification Toast - Auto Dismiss
+        const NotificationToast = ({ message, onClose }) => {
+            useEffect(() => {
+                if (message) {
+                    const timer = setTimeout(() => { onClose(); }, 2000);
+                    return () => clearTimeout(timer);
+                }
+            }, [message, onClose]);
+            if(!message) return null;
+            return (
+                <div className="notification-toast">
+                    <div className="notification-content">
+                        <span>🎉</span>
+                        <span className="notification-text">{message}</span>
+                        <button onClick={onClose} className="notification-close">&times;</button>
+                    </div>
+                </div>
+            );
+        };
+
+        // Modal Close Button
+        const ModalCloseBtn = ({ onClose }) => (
+            <button onClick={onClose} className="modal-close-btn">&times;</button>
+        );
+
+        // Charisma Display
+        const CharismaDisplay = ({ charisma, lang }) => {
+            const t = TRANSLATIONS[lang];
+            const { currentLevel, nextLevel } = getCharismaLevel(charisma || 0);
+            const progress = getCharismaProgress(charisma || 0);
+            const neededForNext = nextLevel ? nextLevel.threshold - (charisma || 0) : 0;
+            
+            return (
+                <div className="charisma-container">
+                    <div className="charisma-header">
+                        <span className="charisma-label">
+                            <span>{currentLevel.icon}</span>
+                            {t.charisma}
+                        </span>
+                        <span className={`charisma-level-badge ${currentLevel.badge_class}`}>
+                            {currentLevel.icon} Lv.{currentLevel.level}
+                        </span>
+                    </div>
+                    <div className="charisma-bar-bg">
+                        <div className="charisma-bar-fill" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <div className="charisma-info">
+                        <span className="charisma-current">{formatCharisma(charisma || 0)}</span>
+                        {nextLevel && <span className="charisma-next">{t.nextLevel}: {formatCharisma(neededForNext)}</span>}
+                    </div>
+                </div>
+            );
+        };
+
+        // Avatar with Frame
+        const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
+            const sizeClasses = { sm: 'avatar-wrapper size-sm', md: 'avatar-wrapper size-md', lg: 'avatar-wrapper size-lg', xl: 'avatar-wrapper size-xl' };
+            const frameStyle = equipped?.frames || null;
+            const frameItem = SHOP_ITEMS.frames.find(f => f.id === frameStyle);
+            
+            return (
+                <div className={sizeClasses[size]} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+                    <img src={photoURL || `https://ui-avatars.com/api/?name=User&background=random`} className="avatar-image" alt="avatar" />
+                    {frameItem && (frameItem.preview.startsWith('http') ? <img src={frameItem.preview} className="avatar-frame" alt="frame" /> : <div className="avatar-frame-gradient" style={{ background: frameItem.preview }} />)}
+                </div>
+            );
+        };
+
+        // Shop Modal
+        const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => { 
+            const t = TRANSLATIONS[lang]; 
+            const [tab, setTab] = useState('frames'); 
+            const [msg, setMsg] = useState(''); 
+            
+            if(!show || !userData) return null; 
+            const currency = userData.currency || 0; 
+            const inventory = userData.inventory || { frames: [], titles: [], themes: [], gifts: [] }; 
+            const equipped = userData.equipped || {}; 
+            
+            const handleEquip = async (type, id) => {
+                const newEquipped = { ...equipped, [type]: id };
+                await usersCollection.doc(userData.uid).update({ equipped: newEquipped });
+                if(onUpdate) onUpdate();
+            };
+            
+            const handleUnequip = async (type) => {
+                const newEquipped = { ...equipped };
+                delete newEquipped[type];
+                await usersCollection.doc(userData.uid).update({ equipped: newEquipped });
+                if(onUpdate) onUpdate();
+            };
+            
+            const handleBuy = async (item) => { 
+                if(inventory[item.type]?.includes(item.id)) { setMsg(t.alreadyOwned); setTimeout(() => setMsg(''), 2000); return; } 
+                if(currency < item.cost) { setMsg(t.purchaseFail); setTimeout(() => setMsg(''), 2000); return; } 
+                const newCurrency = currency - item.cost; 
+                const newInventory = { ...inventory }; 
+                newInventory[item.type] = [...(newInventory[item.type] || []), item.id]; 
+                await usersCollection.doc(userData.uid).update({ currency: newCurrency, inventory: newInventory }); 
+                setMsg(t.purchaseSuccess); setTimeout(() => setMsg(''), 2000); if(onUpdate) onUpdate(); 
+            }; 
+            
+            const items = SHOP_ITEMS[tab] || []; 
+            
+            return ( 
+                <div className="modal-overlay" onClick={onClose}> 
+                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header"> 
+                            <h2 className="modal-title">{t.shop}</h2> 
+                            <div className="flex items-center gap-2">
+                                <span className="text-yellow-400 font-bold text-sm">{CURRENCY_ICON} {currency}</span>
+                                <ModalCloseBtn onClose={onClose} />
+                            </div>
+                        </div> 
+                        <div className="modal-body">
+                            <div className="tab-container">
+                                {['frames', 'titles', 'themes', 'gifts'].map(k => ( <button key={k} onClick={() => setTab(k)} className={`tab-button ${tab === k ? 'active' : ''}`}>{t[k]}</button> ))} 
+                            </div>
+                            {msg && <div className="text-center text-xs text-cyan-400 mb-2 animate-pop">{msg}</div>} 
+                            <div className="inventory-grid"> 
+                                {items.map(item => { 
+                                    const owned = item.type !== 'gifts' && inventory[item.type]?.includes(item.id); 
+                                    const isEquipped = equipped[item.type] === item.id; 
+                                    return ( 
+                                        <div key={item.id} className={`inventory-item ${isEquipped ? 'equipped' : ''}`}> 
+                                            <div className="inventory-item-preview">
+                                                {item.type === 'frames' && <div className="w-10 h-10 rounded-full relative"><div className="absolute inset-0 bg-gray-700 rounded-full"></div>{item.preview?.startsWith('http') ? <img src={item.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt="frame" /> : <div className="absolute inset-0 rounded-full" style={{ background: item.preview }}></div>}</div>}
+                                                {item.type === 'titles' && <span className="text-base font-bold" style={{color: 'var(--primary)'}}>{item.name_en}</span>}
+                                                {item.type === 'themes' && <span className="text-2xl">🎨</span>}
+                                                {item.type === 'gifts' && <><span className="text-2xl">{item.emoji}</span><span className="text-[10px] text-yellow-400">+{formatCharisma(item.charisma)} ✨</span></>}
+                                            </div>
+                                            <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
+                                            <div className="inventory-item-actions">
+                                                {item.type === 'gifts' ? (
+                                                    <button onClick={() => handleBuy(item)} disabled={currency < item.cost} className={currency >= item.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500'}>{t.buy} ({item.cost})</button>
+                                                ) : owned ? (
+                                                    isEquipped ? <button onClick={() => handleUnequip(item.type)} className="btn-unequip">{t.unequip}</button> : <button onClick={() => handleEquip(item.type, item.id)} className="btn-ghost">{t.equip}</button>
+                                                ) : (
+                                                    <button onClick={() => handleBuy(item)} className="btn-gold">{t.buy} ({item.cost})</button>
+                                                )}
+                                            </div>
+                                        </div> 
+                                    ); 
+                                })} 
+                            </div>
+                        </div> 
+                    </div> 
+                </div> 
+            ); 
+        };
+
+        // NotificationCenter
+        const NotificationCenter = ({ show, onClose, notifications, onClearAll, onMarkRead, lang }) => {
+            const t = TRANSLATIONS[lang];
+            if (!show) return null;
+            return (
+                <div className="notification-dropdown animate-pop">
+                    <div className="notification-dropdown-header">
+                        <span className="font-bold text-sm">{t.notifications}</span>
+                        {notifications.length > 0 && <button onClick={onClearAll} className="text-[10px] text-red-400">{t.clearAll}</button>}
+                    </div>
+                    <div className="notification-list">
+                        {notifications.length === 0 ? (
+                            <div className="notification-empty">{t.noNotifications}</div>
+                        ) : (
+                            notifications.map(notif => (
+                                <div key={notif.id} className={`notification-item ${!notif.read ? 'unread' : ''}`} onClick={() => onMarkRead(notif.id)}>
+                                    <div className="flex items-center gap-2">
+                                        <span>{notif.type === 'friend_request' ? '👋' : notif.type === 'gift' ? '🎁' : '💬'}</span>
+                                        <div>
+                                            <div className="text-xs">{notif.message}</div>
+                                            <div className="text-[10px] text-gray-500">{formatTime(notif.timestamp)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App Component - Continuing in next part due to length
+        // This file contains all the components and helpers
+        // The main App function is in the HTML file below
+
+        // Export for use
+        window.PRO_SPY = {
+            SHOP_ITEMS,
+            ACHIEVEMENTS,
+            CHARISMA_LEVELS,
+            TRANSLATIONS,
+            getCharismaLevel,
+            getCharismaProgress,
+            formatCharisma,
+            playSound,
+            initAudio,
+            generateUID,
+            getChatId,
+            formatTime,
+            usersCollection,
+            roomsCollection,
+            chatsCollection,
+            notificationsCollection,
+            historyCollection,
+            reportsCollection,
+            auth,
+            db,
+            firebase,
+            NotificationToast,
+            ModalCloseBtn,
+            CharismaDisplay,
+            AvatarWithFrame,
+            ShopModal,
+            NotificationCenter,
+            CURRENCY_NAME,
+            CURRENCY_ICON,
+            MAX_ROUNDS,
+            SCENARIOS
+        };
+    </script>
+    
+    <!-- App Script -->
+    <script type="text/babel" src="/pro_spy_script_part2_v2.js"></script>
+    
+    <!-- Render -->
+    <script type="text/babel">
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
 </body>
 </html>
