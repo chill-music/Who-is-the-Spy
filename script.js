@@ -35,28 +35,28 @@ const MAX_ROUNDS = 3;
 // CHARISMA LEVELS - FIXED (Last level open, icon can be image or emoji)
 // ==========================================
 const CHARISMA_LEVELS = [
-    { level: 1, threshold: 0, icon: '⭐', iconType: 'emoji', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
-    { level: 2, threshold: 4000, icon: '⭐', iconType: 'emoji', name_en: 'Shining Star', name_ar: 'نجم ساطع', color: '#ffd700', badge_class: 'level-1-3' },
-    { level: 3, threshold: 12000, icon: '⭐', iconType: 'emoji', name_en: 'Bright Star', name_ar: 'نجم مضيء', color: '#ffd700', badge_class: 'level-1-3' },
-    { level: 4, threshold: 30000, icon: '💎', iconType: 'emoji', name_en: 'Diamond I', name_ar: 'ماسة 1', color: '#3b82f6', badge_class: 'level-4-6' },
-    { level: 5, threshold: 80000, icon: '💎', iconType: 'emoji', name_en: 'Diamond II', name_ar: 'ماسة 2', color: '#3b82f6', badge_class: 'level-4-6' },
-    { level: 6, threshold: 160000, icon: '💎', iconType: 'emoji', name_en: 'Diamond III', name_ar: 'ماسة 3', color: '#3b82f6', badge_class: 'level-4-6' },
-    { level: 7, threshold: 300000, icon: '👑', iconType: 'emoji', name_en: 'Crown I', name_ar: 'تاج 1', color: '#ffd700', badge_class: 'level-7-9' },
-    { level: 8, threshold: 500000, icon: '👑', iconType: 'emoji', name_en: 'Crown II', name_ar: 'تاج 2', color: '#ffd700', badge_class: 'level-7-9' },
-    { level: 9, threshold: 1000000, icon: '👑', iconType: 'emoji', name_en: 'Crown III', name_ar: 'تاج 3', color: '#ffd700', badge_class: 'level-7-9' },
-    { level: 10, threshold: 2000000, icon: '👑', iconType: 'emoji', name_en: 'Royal Crown I', name_ar: 'تاج ملكي 1', color: '#f97316', badge_class: 'level-10-12' },
-    { level: 11, threshold: 3500000, icon: '👑', iconType: 'emoji', name_en: 'Royal Crown II', name_ar: 'تاج ملكي 2', color: '#f97316', badge_class: 'level-10-12' },
-    { level: 12, threshold: 6000000, icon: '👑', iconType: 'emoji', name_en: 'Royal Crown III', name_ar: 'تاج ملكي 3', color: '#f97316', badge_class: 'level-10-12' },
-    { level: 13, threshold: 8500000, icon: '👑', iconType: 'emoji', name_en: 'Purple Crown I', name_ar: 'تاج بنفسجي 1', color: '#8b5cf6', badge_class: 'level-13-15' },
-    { level: 14, threshold: 12000000, icon: '👑', iconType: 'emoji', name_en: 'Purple Crown II', name_ar: 'تاج بنفسجي 2', color: '#8b5cf6', badge_class: 'level-13-15' },
-    { level: 15, threshold: 16000000, icon: '👑', iconType: 'emoji', name_en: 'Purple Crown III', name_ar: 'تاج بنفسجي 3', color: '#8b5cf6', badge_class: 'level-13-15' },
-    { level: 16, threshold: 26000000, icon: '🌟', iconType: 'emoji', name_en: 'Legend I', name_ar: 'أسطورة 1', color: '#f97316', badge_class: 'level-16-21' },
-    { level: 17, threshold: 48000000, icon: '🌟', iconType: 'emoji', name_en: 'Legend II', name_ar: 'أسطورة 2', color: '#f97316', badge_class: 'level-16-21' },
-    { level: 18, threshold: 86000000, icon: '🌟', iconType: 'emoji', name_en: 'Legend III', name_ar: 'أسطورة 3', color: '#f97316', badge_class: 'level-16-21' },
-    { level: 19, threshold: 120000000, icon: '🌟', iconType: 'emoji', name_en: 'Legend IV', name_ar: 'أسطورة 4', color: '#f97316', badge_class: 'level-16-21' },
-    { level: 20, threshold: 240000000, icon: '🌟', iconType: 'emoji', name_en: 'Legend V', name_ar: 'أسطورة 5', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 1, threshold: 0, icon: '⭐', iconType: 'emoji', iconUrl: '', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 2, threshold: 4000, icon: '⭐', iconType: 'emoji', iconUrl: '', name_en: 'Shining Star', name_ar: 'نجم ساطع', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 3, threshold: 12000, icon: '⭐', iconType: 'emoji', iconUrl: '', name_en: 'Bright Star', name_ar: 'نجم مضيء', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 4, threshold: 30000, icon: '💎', iconType: 'emoji', iconUrl: '', name_en: 'Diamond I', name_ar: 'ماسة 1', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 5, threshold: 80000, icon: '💎', iconType: 'emoji', iconUrl: '', name_en: 'Diamond II', name_ar: 'ماسة 2', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 6, threshold: 160000, icon: '💎', iconType: 'emoji', iconUrl: '', name_en: 'Diamond III', name_ar: 'ماسة 3', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 7, threshold: 300000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Crown I', name_ar: 'تاج 1', color: '#ffd700', badge_class: 'level-7-9' },
+    { level: 8, threshold: 500000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Crown II', name_ar: 'تاج 2', color: '#ffd700', badge_class: 'level-7-9' },
+    { level: 9, threshold: 1000000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Crown III', name_ar: 'تاج 3', color: '#ffd700', badge_class: 'level-7-9' },
+    { level: 10, threshold: 2000000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Royal Crown I', name_ar: 'تاج ملكي 1', color: '#f97316', badge_class: 'level-10-12' },
+    { level: 11, threshold: 3500000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Royal Crown II', name_ar: 'تاج ملكي 2', color: '#f97316', badge_class: 'level-10-12' },
+    { level: 12, threshold: 6000000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Royal Crown III', name_ar: 'تاج ملكي 3', color: '#f97316', badge_class: 'level-10-12' },
+    { level: 13, threshold: 8500000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Purple Crown I', name_ar: 'تاج بنفسجي 1', color: '#8b5cf6', badge_class: 'level-13-15' },
+    { level: 14, threshold: 12000000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Purple Crown II', name_ar: 'تاج بنفسجي 2', color: '#8b5cf6', badge_class: 'level-13-15' },
+    { level: 15, threshold: 16000000, icon: '👑', iconType: 'emoji', iconUrl: '', name_en: 'Purple Crown III', name_ar: 'تاج بنفسجي 3', color: '#8b5cf6', badge_class: 'level-13-15' },
+    { level: 16, threshold: 26000000, icon: '🌟', iconType: 'emoji', iconUrl: '', name_en: 'Legend I', name_ar: 'أسطورة 1', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 17, threshold: 48000000, icon: '🌟', iconType: 'emoji', iconUrl: '', name_en: 'Legend II', name_ar: 'أسطورة 2', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 18, threshold: 86000000, icon: '🌟', iconType: 'emoji', iconUrl: '', name_en: 'Legend III', name_ar: 'أسطورة 3', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 19, threshold: 120000000, icon: '🌟', iconType: 'emoji', iconUrl: '', name_en: 'Legend IV', name_ar: 'أسطورة 4', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 20, threshold: 240000000, icon: '🌟', iconType: 'emoji', iconUrl: '', name_en: 'Legend V', name_ar: 'أسطورة 5', color: '#f97316', badge_class: 'level-16-21' },
     // Last level - Open ended (no next level, always shows progress to max)
-    { level: 21, threshold: 360000000, icon: '🌟', iconType: 'emoji', name_en: 'Ultimate Legend', name_ar: 'الأسطورة المطلقة', color: '#f97316', badge_class: 'level-16-21', isMaxLevel: true },
+    { level: 21, threshold: 360000000, icon: '🌟', iconType: 'emoji', iconUrl: '', name_en: 'Ultimate Legend', name_ar: 'الأسطورة المطلقة', color: '#f97316', badge_class: 'level-16-21', isMaxLevel: true },
 ];
 
 // Get charisma level info
@@ -2075,3 +2075,4 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
