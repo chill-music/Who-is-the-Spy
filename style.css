@@ -1,6 +1,6 @@
 /* ==========================================
-   UPDATED STYLE.CSS - PRO SPY GAME
-   All new additions for Charisma, Gifts, and UI improvements
+   PRO SPY - UPDATED STYLE V2
+   All improvements for UI, Charisma, Notifications
    ========================================== */
 
 :root {
@@ -17,10 +17,50 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; width: 100%; }
-body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Outfit', sans-serif; min-height: 100vh; overflow-x: hidden; }
+body { 
+    background-color: var(--bg-dark); 
+    color: var(--text-main); 
+    font-family: 'Outfit', sans-serif; 
+    min-height: 100vh; 
+    overflow-x: hidden;
+    font-size: 14px;
+    line-height: 1.5;
+}
 #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 .glass-panel { background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
 .font-tech { font-family: 'Rajdhani', sans-serif; }
+
+/* ==========================================
+   IMPROVED SPACING & LAYOUT
+   ========================================== */
+.container-main {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 8px;
+}
+
+.section-spacing {
+    margin-bottom: 12px;
+}
+
+.card-spacing {
+    padding: 12px;
+    border-radius: 12px;
+}
+
+/* Better text readability */
+.text-readable {
+    font-size: 13px;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+}
+
+/* Comfortable touch targets */
+.touch-target {
+    min-height: 44px;
+    min-width: 44px;
+}
 
 /* ==========================================
    ANIMATIONS
@@ -41,14 +81,24 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-5px); }
 }
+@keyframes slide-down {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+@keyframes pulse-badge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
 .animate-fade-in { animation: fade-in-up 0.6s ease-out forwards; }
 .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .animate-float { animation: float 3s ease-in-out infinite; }
+.animate-slide-down { animation: slide-down 0.3s ease-out; }
+.animate-pulse-badge { animation: pulse-badge 2s infinite; }
 
 /* ==========================================
-   BUTTONS
+   BUTTONS - Improved
    ========================================== */
-.btn { cursor: pointer; border: none; outline: none; font-family: inherit; }
+.btn { cursor: pointer; border: none; outline: none; font-family: inherit; transition: all 0.2s ease; }
 .btn-neon { position: relative; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: white; font-weight: 700; transition: all 0.3s; overflow: hidden; }
 .btn-neon:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px var(--primary); }
 .btn-neon:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -59,20 +109,38 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .btn-danger { background: linear-gradient(90deg, #ef4444, #dc2626); color: white; }
 .btn-gold { background: linear-gradient(90deg, #b8860b, var(--gold)); color: #000; }
 .btn-google { background: white; color: #333; font-weight: bold; }
+.btn-unequip { 
+    background: linear-gradient(90deg, #6b7280, #9ca3af); 
+    color: white; 
+    font-size: 10px;
+}
+.btn-unequip:hover {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+}
 
 /* ==========================================
-   INPUTS
+   INPUTS - Improved
    ========================================== */
-.input-dark { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border); color: white; transition: 0.2s; font-family: inherit; }
+.input-dark { 
+    background: rgba(0, 0, 0, 0.6); 
+    border: 1px solid var(--border); 
+    color: white; 
+    transition: 0.2s; 
+    font-family: inherit;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+}
 .input-dark:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
 .input-locked { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6); cursor: not-allowed; }
 
 /* ==========================================
-   SCROLLBAR
+   SCROLLBAR - Smoother
    ========================================== */
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
 /* ==========================================
    HEADER & LOGO
@@ -82,12 +150,87 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .game-title { font-size: 1.5rem; background: linear-gradient(90deg, #fff, #a5f3fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: pulse-glow 3s infinite; font-weight: 800; }
 
 /* ==========================================
-   PLAYER CARD
+   PLAYER CARD - Improved
    ========================================== */
-.player-card { transition: all 0.3s; position: relative; border: 1px solid transparent; cursor: pointer; padding: 0.75rem; border-radius: 0.75rem; background: rgba(255,255,255,0.03); }
+.player-card { 
+    transition: all 0.3s; 
+    position: relative; 
+    border: 1px solid transparent; 
+    cursor: pointer; 
+    padding: 10px; 
+    border-radius: 10px; 
+    background: rgba(255,255,255,0.03); 
+}
 .player-card:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
 .player-card.active { background: rgba(0, 242, 255, 0.1); border-color: var(--primary); }
 .player-card.eliminated, .player-card.ghost { opacity: 0.6; filter: grayscale(80%); }
+
+/* ==========================================
+   AVATAR FRAME - FIXED WITH CLIP-PATH
+   ========================================== */
+.avatar-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.avatar-wrapper.size-sm { width: 32px; height: 32px; }
+.avatar-wrapper.size-md { width: 48px; height: 48px; }
+.avatar-wrapper.size-lg { width: 80px; height: 80px; }
+.avatar-wrapper.size-xl { width: 100px; height: 100px; }
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    position: relative;
+    z-index: 1;
+}
+
+.avatar-frame {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 118%;
+    height: 118%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.avatar-frame img,
+.avatar-frame-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* For gradient frames */
+.avatar-frame-gradient {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 118%;
+    height: 118%;
+    border-radius: 50%;
+    padding: 4px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.avatar-frame-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: inherit;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    padding: 3px;
+}
 
 /* ==========================================
    TIMER
@@ -98,36 +241,113 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 /* ==========================================
    IDENTITY SQUARE
    ========================================== */
-.identity-square { width: 100%; max-width: 300px; aspect-ratio: 1 / 1; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 20px; position: relative; overflow: hidden; transition: all 0.5s ease; }
+.identity-square { width: 100%; max-width: 280px; aspect-ratio: 1 / 1; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 20px; position: relative; overflow: hidden; transition: all 0.5s ease; }
 .identity-spy { border: 2px solid var(--accent); background: radial-gradient(circle at center, rgba(255, 0, 85, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); }
 .identity-agent { border: 2px solid #10b981; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%); box-shadow: 0 0 40px rgba(16, 185, 129, 0.2); }
 .identity-informant { border: 2px solid #3b82f6; background: radial-gradient(circle at center, rgba(59, 130, 246, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(59, 130, 246, 0.3); }
 .identity-mrwhite { border: 2px solid var(--gold); background: radial-gradient(circle at center, rgba(255, 215, 0, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 215, 0, 0.3); }
 
 /* ==========================================
-   CHARISMA BAR (NEW)
+   CHARISMA SYSTEM - NEW WITH LEVELS
    ========================================== */
-.charisma-container { margin: 15px 0; }
-.charisma-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; position: relative; }
-.charisma-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8800, var(--gold)); background-size: 200% 100%; animation: shimmer 2s linear infinite; transition: width 0.5s ease; }
-.charisma-icon { font-size: 24px; vertical-align: middle; margin-right: 5px; }
+.charisma-container {
+    background: rgba(255, 215, 0, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 8px 0;
+}
 
-/* Charisma Level Badge */
-.charisma-badge {
+.charisma-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.charisma-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.charisma-level-badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     padding: 2px 8px;
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 136, 0, 0.2));
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* Level-specific badge colors */
+.charisma-level-badge.level-1-3 { background: linear-gradient(135deg, #ffd700, #ffec8b); color: #000; }
+.charisma-level-badge.level-4-6 { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: #fff; }
+.charisma-level-badge.level-7-9 { background: linear-gradient(135deg, #ffd700, #daa520); color: #000; }
+.charisma-level-badge.level-10-12 { background: linear-gradient(135deg, #f97316, #fb923c); color: #fff; }
+.charisma-level-badge.level-13-15 { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: #fff; }
+.charisma-level-badge.level-16-21 { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; }
+
+.charisma-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.charisma-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #ff8800, var(--gold));
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+    transition: width 0.5s ease;
+}
+
+.charisma-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.charisma-current {
+    font-size: 16px;
     font-weight: bold;
     color: var(--gold);
 }
 
+.charisma-next {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+/* Charisma Icon Display */
+.charisma-icon-display {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.charisma-icon-display img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Charisma Level Icons (emojis for now, can be replaced with images) */
+.charisma-icon {
+    font-size: 20px;
+}
+
 /* ==========================================
-   GIFT CARD (NEW)
+   GIFT CARD
    ========================================== */
 .gift-card { 
     position: relative; 
@@ -150,24 +370,404 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 }
 .gift-icon { font-size: 32px; display: block; margin-bottom: 5px; }
 
-/* Gift Preview Card */
-.gift-preview-card {
-    background: linear-gradient(145deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.95));
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 16px;
-    padding: 20px;
-    text-align: center;
+/* ==========================================
+   MODAL - IMPROVED WITH CLOSE BUTTON
+   ========================================== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
 }
 
-/* Gift Message in Chat */
-.gift-message {
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.modal-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.modal-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 0, 85, 0.2);
+    color: var(--accent);
+}
+
+.modal-body {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* ==========================================
+   NOTIFICATION TOAST - AUTO DISMISS
+   ========================================== */
+.notification-toast {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    animation: slide-down 0.3s ease-out;
+    max-width: 90%;
+    width: 320px;
+}
+
+.notification-content {
+    background: var(--bg-card);
+    border: 1px solid var(--primary);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(0, 242, 255, 0.2);
+}
+
+.notification-icon {
+    font-size: 20px;
+}
+
+.notification-text {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.notification-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 16px;
+}
+
+/* ==========================================
+   NOTIFICATION CENTER - NEW
+   ========================================== */
+.notification-center {
+    position: relative;
+}
+
+.notification-bell {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.notification-bell:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary);
+}
+
+.notification-bell-icon {
+    font-size: 18px;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    animation: pulse-badge 2s infinite;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    width: 320px;
+    max-height: 400px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.notification-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.notification-dropdown-title {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.notification-clear-all {
+    font-size: 11px;
+    color: var(--accent);
+    cursor: pointer;
+    background: transparent;
+    border: none;
+}
+
+.notification-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.notification-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.notification-item.unread {
+    background: rgba(0, 242, 255, 0.05);
+    border-left: 3px solid var(--primary);
+}
+
+.notification-item-icon {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.notification-item-content {
+    flex: 1;
+}
+
+.notification-item-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.notification-item-time {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.notification-empty {
+    padding: 24px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* ==========================================
+   INVENTORY - IMPROVED
+   ========================================== */
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.inventory-item {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.1));
+    transition: all 0.2s;
+}
+
+.inventory-item:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.inventory-item.equipped {
+    border-color: var(--primary);
+    background: rgba(0, 242, 255, 0.1);
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+}
+
+.inventory-item-preview {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inventory-item-name {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.inventory-item-actions {
+    width: 100%;
+    display: flex;
+    gap: 6px;
+}
+
+.inventory-item-actions button {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 10px;
+    border-radius: 6px;
+}
+
+/* ==========================================
+   PROFILE MODAL - IMPROVED
+   ========================================== */
+.profile-modal-content {
+    padding: 0;
+}
+
+.profile-header {
+    background: linear-gradient(135deg, rgba(112, 0, 255, 0.2), rgba(0, 242, 255, 0.2));
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.profile-avatar-container {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 12px;
+    position: relative;
+}
+
+.profile-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary);
+}
+
+.profile-frame {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 118%;
+    height: 118%;
+    pointer-events: none;
+}
+
+.profile-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.profile-title {
+    display: inline-block;
+    padding: 3px 10px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.profile-id {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 16px;
+}
+
+.profile-stat {
+    text-align: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+}
+
+.profile-stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.profile-stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
 }
 
 /* ==========================================
@@ -221,14 +821,24 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 .emoji-item:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
 
 /* ==========================================
-   PROFILE COMPONENTS
+   FRIENDS UNREAD BADGE
    ========================================== */
-.profile-avatar-sm { width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); object-fit: cover; position: relative; z-index: 10; }
-.avatar-frame-sm { position: absolute; inset: -4px; border-radius: 50%; border: 3px solid transparent; pointer-events: none; z-index: 5; }
-.equipped-title { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: #000; margin-right: 4px; display: inline-block; vertical-align: middle; }
-.guest-badge-profile { background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); color: var(--gold); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-flex; align-items: center; gap: 5px; }
-.profile-id-box { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: 0.2s; margin-top: 4px; }
-.profile-id-box:hover { background: rgba(0, 242, 255, 0.1); }
+.friends-tab-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 16px;
+    height: 16px;
+    background: var(--accent);
+    border-radius: 8px;
+    font-size: 9px;
+    font-weight: bold;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
 
 /* ==========================================
    INFO GRID
@@ -269,11 +879,15 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 @media (max-width: 640px) {
     .identity-square { max-width: 200px; }
     .kd-circle-container { transform: scale(0.9); }
-    .charisma-container { margin: 10px 0; }
+    .charisma-container { margin: 8px 0; padding: 10px; }
+    .notification-dropdown { width: calc(100vw - 32px); right: -10px; }
+    .modal-content { max-height: 90vh; }
+    .inventory-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .profile-stats { grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 12px; }
 }
 
 /* ==========================================
-   GUEST BANNER (NEW)
+   GUEST BANNER
    ========================================== */
 .guest-banner {
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.1));
@@ -285,7 +899,7 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 }
 
 /* ==========================================
-   CASHBACK INDICATOR (NEW)
+   CASHBACK INDICATOR
    ========================================== */
 .cashback-indicator {
     display: inline-flex;
@@ -300,9 +914,64 @@ body { background-color: var(--bg-dark); color: var(--text-main); font-family: '
 }
 
 /* ==========================================
-   FRAME SIZE REFERENCE (NEW)
-   For avatar frames to be properly sized:
-   - 48px avatar needs 118% frame = 56.64px frame
-   - 32px avatar needs 118% frame = 37.76px frame
-   - Frame should be positioned with negative offset: -(size * 0.09)
+   TABS - IMPROVED
    ========================================== */
+.tab-container {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-button.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.tab-button:hover:not(.active) {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* ==========================================
+   MESSAGE SOUND INDICATOR
+   ========================================== */
+.message-sound-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s;
+}
+
+.message-sound-indicator:hover {
+    border-color: var(--primary);
+}
+
+.message-sound-indicator.muted {
+    opacity: 0.5;
+}
