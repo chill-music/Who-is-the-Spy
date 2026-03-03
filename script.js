@@ -1,6 +1,6 @@
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT PART 1 - V3
-// All New Features & Improvements
+// PRO SPY - COMPLETE SCRIPT PART 1
+// All Features + All Fixes + All Updates
 // ==========================================
 
 const { useState, useEffect, useRef } = React;
@@ -32,7 +32,7 @@ const CURRENCY_ICON = "🧠";
 const MAX_ROUNDS = 3;
 
 // ==========================================
-// CHARISMA LEVELS - 21 Levels with Images
+// CHARISMA LEVELS - 21 Levels with Images + Glow Effect
 // ==========================================
 const CHARISMA_LEVELS = [
     { level: 1, threshold: 0, icon: '', iconType: 'image', iconUrl: 'https://i.ibb.co/3mhcggzc/star3.png', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
@@ -85,7 +85,7 @@ const getCharismaProgress = (charisma) => {
 };
 
 // ==========================================
-// SHOP ITEMS - EXPANDED WITH MORE GIFTS
+// SHOP ITEMS - EXPANDED WITH 60+ GIFTS + BADGES
 // ==========================================
 const SHOP_ITEMS = {
     frames: [
@@ -100,109 +100,78 @@ const SHOP_ITEMS = {
         { id: 'title_ghost', name_en: "Ghost", name_ar: "شبح", cost: 800, type: 'titles' },
     ],
     badges: [
-        { id: 'badge_vip', name_en: "VIP Badge", name_ar: "شارة VIP", cost: 1000, type: 'badges', icon: '', iconUrl: '', preview: '⭐' },
-        { id: 'badge_love', name_en: "Love Badge", name_ar: "شارة حب", cost: 800, type: 'badges', icon: '', iconUrl: '', preview: '💕' },
-        { id: 'badge_pro', name_en: "Pro Badge", name_ar: "شارة محترف", cost: 1500, type: 'badges', icon: '', iconUrl: '', preview: '🏆' },
-        { id: 'badge_legend', name_en: "Legend Badge", name_ar: "شارة أسطورة", cost: 5000, type: 'badges', icon: '', iconUrl: '', preview: '👑' },
-        { id: 'badge_star', name_en: "Star Badge", name_ar: "شارة نجم", cost: 2000, type: 'badges', icon: '', iconUrl: '', preview: '🌟' },
+        { id: 'badge_vip', name_en: "VIP Badge", name_ar: "شارة VIP", cost: 1000, type: 'badges', preview: '⭐' },
+        { id: 'badge_love', name_en: "Love Badge", name_ar: "شارة حب", cost: 800, type: 'badges', preview: '💕' },
+        { id: 'badge_pro', name_en: "Pro Badge", name_ar: "شارة محترف", cost: 1500, type: 'badges', preview: '🏆' },
+        { id: 'badge_legend', name_en: "Legend Badge", name_ar: "شارة أسطورة", cost: 5000, type: 'badges', preview: '👑' },
+        { id: 'badge_star', name_en: "Star Badge", name_ar: "شارة نجم", cost: 2000, type: 'badges', preview: '🌟' },
     ],
     themes: [
         { id: 'theme_dark', name_en: "Midnight", name_ar: "منتصف الليل", cost: 200, type: 'themes' },
     ],
     gifts: [
         // === VERY CHEAP GIFTS (1 - 100 coins) ===
-        { id: 'gift_rose', name_en: "Rose", name_ar: "وردة", cost: 1, type: 'gifts', charisma: 10, minCashback: 1, maxCashback: 50, desc_ar: "عبّر عن مشاعرك بوردة رقيقة", desc_en: "Express your feelings with a delicate rose", emoji: "🌹", iconUrl: '' },
-        { id: 'gift_candy', name_en: "Candy", name_ar: "حلوى", cost: 2, type: 'gifts', charisma: 20, minCashback: 1, maxCashback: 100, desc_ar: "حلاوة تُفرح القلب", desc_en: "Sweetness that delights the heart", emoji: "🍬", iconUrl: '' },
-        { id: 'gift_cookie', name_en: "Cookie", name_ar: "بسكويت", cost: 3, type: 'gifts', charisma: 30, minCashback: 1, maxCashback: 150, desc_ar: "بسكويت لذيذ ومقرمش", desc_en: "Delicious crunchy cookie", emoji: "🍪", iconUrl: '' },
-        { id: 'gift_chocolate', name_en: "Chocolate", name_ar: "شوكولاتة", cost: 5, type: 'gifts', charisma: 55, minCashback: 1, maxCashback: 250, desc_ar: "شوكولاتة فاخرة", desc_en: "Premium chocolate", emoji: "🍫", iconUrl: '' },
-        { id: 'gift_icecream', name_en: "Ice Cream", name_ar: "آيس كريم", cost: 5, type: 'gifts', charisma: 55, minCashback: 1, maxCashback: 250, desc_ar: "برّد على قلب أصدقائك", desc_en: "Cool down your friends' hearts", emoji: "🍦", iconUrl: '' },
-        { id: 'gift_coffee', name_en: "Coffee", name_ar: "قهوة", cost: 8, type: 'gifts', charisma: 80, minCashback: 1, maxCashback: 400, desc_ar: "قهوة صباحية منعشة", desc_en: "Refreshing morning coffee", emoji: "☕", iconUrl: '' },
+        { id: 'gift_rose', name_en: "Rose", name_ar: "وردة", cost: 1, type: 'gifts', charisma: 10, minCashback: 1, maxCashback: 50, desc_ar: "عبّر عن مشاعرك بوردة رقيقة", desc_en: "Express your feelings with a delicate rose", emoji: "🌹" },
+        { id: 'gift_candy', name_en: "Candy", name_ar: "حلوى", cost: 2, type: 'gifts', charisma: 20, minCashback: 1, maxCashback: 100, desc_ar: "حلاوة تُفرح القلب", desc_en: "Sweetness that delights the heart", emoji: "🍬" },
+        { id: 'gift_cookie', name_en: "Cookie", name_ar: "بسكويت", cost: 3, type: 'gifts', charisma: 30, minCashback: 1, maxCashback: 150, desc_ar: "بسكويت لذيذ ومقرمش", desc_en: "Delicious crunchy cookie", emoji: "🍪" },
+        { id: 'gift_chocolate', name_en: "Chocolate", name_ar: "شوكولاتة", cost: 5, type: 'gifts', charisma: 55, minCashback: 1, maxCashback: 250, desc_ar: "شوكولاتة فاخرة", desc_en: "Premium chocolate", emoji: "🍫" },
+        { id: 'gift_icecream', name_en: "Ice Cream", name_ar: "آيس كريم", cost: 5, type: 'gifts', charisma: 55, minCashback: 1, maxCashback: 250, desc_ar: "برّد على قلب أصدقائك", desc_en: "Cool down your friends' hearts", emoji: "🍦" },
+        { id: 'gift_coffee', name_en: "Coffee", name_ar: "قهوة", cost: 8, type: 'gifts', charisma: 80, minCashback: 1, maxCashback: 400, desc_ar: "قهوة صباحية منعشة", desc_en: "Refreshing morning coffee", emoji: "☕" },
         
         // === CHEAP GIFTS (10 - 100 coins) ===
-        { id: 'gift_heart', name_en: "Heart", name_ar: "قلب", cost: 10, type: 'gifts', charisma: 120, minCashback: 1, maxCashback: 500, desc_ar: "نبض الحب في هدية واحدة", desc_en: "The pulse of love in one gift", emoji: "❤️", iconUrl: '' },
-        { id: 'gift_cake', name_en: "Cake", name_ar: "كيكة", cost: 15, type: 'gifts', charisma: 180, minCashback: 1, maxCashback: 750, desc_ar: "كيكة لذيذة للاحتفال", desc_en: "Delicious celebration cake", emoji: "🎂", iconUrl: '' },
-        { id: 'gift_flower', name_en: "Bouquet", name_ar: "باقة ورد", cost: 20, type: 'gifts', charisma: 250, minCashback: 1, maxCashback: 1000, desc_ar: "باقة ورد جميلة", desc_en: "Beautiful flower bouquet", emoji: "💐", iconUrl: '' },
-        { id: 'gift_pizza', name_en: "Pizza", name_ar: "بيتزا", cost: 20, type: 'gifts', charisma: 250, minCashback: 1, maxCashback: 1000, desc_ar: "وليمة لأغلى الناس", desc_en: "A feast for the dearest people", emoji: "🍕", iconUrl: '' },
-        { id: 'gift_burger', name_en: "Burger", name_ar: "برجر", cost: 25, type: 'gifts', charisma: 300, minCashback: 1, maxCashback: 1250, desc_ar: "برجر شهي ولذيذ", desc_en: "Delicious juicy burger", emoji: "🍔", iconUrl: '' },
-        { id: 'gift_teddy', name_en: "Teddy Bear", name_ar: "دب Teddy", cost: 30, type: 'gifts', charisma: 350, minCashback: 1, maxCashback: 1500, desc_ar: "دب قطني ناعم", desc_en: "Soft cuddly teddy bear", emoji: "🧸", iconUrl: '' },
-        { id: 'gift_balloon', name_en: "Balloons", name_ar: "بالونات", cost: 35, type: 'gifts', charisma: 400, minCashback: 1, maxCashback: 1750, desc_ar: "بالونات ملونة احتفالية", desc_en: "Colorful celebration balloons", emoji: "🎈", iconUrl: '' },
-        { id: 'gift_donut', name_en: "Donut", name_ar: "دونات", cost: 40, type: 'gifts', charisma: 450, minCashback: 1, maxCashback: 2000, desc_ar: "دونات محلاة بالشوكولاتة", desc_en: "Chocolate glazed donut", emoji: "🍩", iconUrl: '' },
-        { id: 'gift_music', name_en: "Music", name_ar: "موسيقى", cost: 50, type: 'gifts', charisma: 600, minCashback: 1, maxCashback: 2500, desc_ar: "نغمة موسيقية جميلة", desc_en: "Beautiful musical note", emoji: "🎵", iconUrl: '' },
+        { id: 'gift_heart', name_en: "Heart", name_ar: "قلب", cost: 10, type: 'gifts', charisma: 120, minCashback: 1, maxCashback: 500, desc_ar: "نبض الحب في هدية واحدة", desc_en: "The pulse of love in one gift", emoji: "❤️" },
+        { id: 'gift_cake', name_en: "Cake", name_ar: "كيكة", cost: 15, type: 'gifts', charisma: 180, minCashback: 1, maxCashback: 750, desc_ar: "كيكة لذيذة للاحتفال", desc_en: "Delicious celebration cake", emoji: "🎂" },
+        { id: 'gift_flower', name_en: "Bouquet", name_ar: "باقة ورد", cost: 20, type: 'gifts', charisma: 250, minCashback: 1, maxCashback: 1000, desc_ar: "باقة ورد جميلة", desc_en: "Beautiful flower bouquet", emoji: "💐" },
+        { id: 'gift_pizza', name_en: "Pizza", name_ar: "بيتزا", cost: 20, type: 'gifts', charisma: 250, minCashback: 1, maxCashback: 1000, desc_ar: "وليمة لأغلى الناس", desc_en: "A feast for the dearest people", emoji: "🍕" },
+        { id: 'gift_burger', name_en: "Burger", name_ar: "برجر", cost: 25, type: 'gifts', charisma: 300, minCashback: 1, maxCashback: 1250, desc_ar: "برجر شهي ولذيذ", desc_en: "Delicious juicy burger", emoji: "🍔" },
+        { id: 'gift_teddy', name_en: "Teddy Bear", name_ar: "دب Teddy", cost: 30, type: 'gifts', charisma: 350, minCashback: 1, maxCashback: 1500, desc_ar: "دب قطني ناعم", desc_en: "Soft cuddly teddy bear", emoji: "🧸" },
+        { id: 'gift_balloon', name_en: "Balloons", name_ar: "بالونات", cost: 35, type: 'gifts', charisma: 400, minCashback: 1, maxCashback: 1750, desc_ar: "بالونات ملونة احتفالية", desc_en: "Colorful celebration balloons", emoji: "🎈" },
+        { id: 'gift_donut', name_en: "Donut", name_ar: "دونات", cost: 40, type: 'gifts', charisma: 450, minCashback: 1, maxCashback: 2000, desc_ar: "دونات محلاة بالشوكولاتة", desc_en: "Chocolate glazed donut", emoji: "🍩" },
+        { id: 'gift_music', name_en: "Music", name_ar: "موسيقى", cost: 50, type: 'gifts', charisma: 600, minCashback: 1, maxCashback: 2500, desc_ar: "نغمة موسيقية جميلة", desc_en: "Beautiful musical note", emoji: "🎵" },
         
-        // === MEDIUM GIFTS (100 - 1000 coins) ===
-        { id: 'gift_star', name_en: "Star", name_ar: "نجمة", cost: 50, type: 'gifts', charisma: 600, minCashback: 1, maxCashback: 2500, desc_ar: "نجمة ساطعة", desc_en: "Shining star", emoji: "⭐", iconUrl: '' },
-        { id: 'gift_gem', name_en: "Gem", name_ar: "جوهرة", cost: 75, type: 'gifts', charisma: 900, minCashback: 1, maxCashback: 3750, desc_ar: "جوهرة ثمينة", desc_en: "Precious gem", emoji: "💎", iconUrl: '' },
-        { id: 'gift_crown', name_en: "Crown", name_ar: "تاج", cost: 80, type: 'gifts', charisma: 1000, minCashback: 1, maxCashback: 4000, desc_ar: "تاج ملكي فاخر", desc_en: "Royal crown", emoji: "👑", iconUrl: '' },
-        { id: 'gift_trophy', name_en: "Trophy", name_ar: "كأس", cost: 100, type: 'gifts', charisma: 1200, minCashback: 1, maxCashback: 5000, desc_ar: "كأس الفوز والتميز", desc_en: "Trophy of victory", emoji: "🏆", iconUrl: '' },
-        { id: 'gift_ring', name_en: "Ring", name_ar: "خاتم", cost: 100, type: 'gifts', charisma: 1200, minCashback: 1, maxCashback: 5000, desc_ar: "خاتم الأناقة والتميز", desc_en: "Ring of elegance and distinction", emoji: "💍", iconUrl: '' },
-        { id: 'gift_rocket', name_en: "Rocket", name_ar: "صاروخ", cost: 150, type: 'gifts', charisma: 1800, minCashback: 1, maxCashback: 7500, desc_ar: "انطلق نحو النجوم", desc_en: "Launch to the stars", emoji: "🚀", iconUrl: '' },
-        { id: 'gift_robot', name_en: "Robot", name_ar: "روبوت", cost: 200, type: 'gifts', charisma: 2400, minCashback: 1, maxCashback: 10000, desc_ar: "روبوت ذكي ومميز", desc_en: "Smart robot companion", emoji: "🤖", iconUrl: '' },
-        { id: 'gift_unicorn', name_en: "Unicorn", name_ar: "حصان يونيكورن", cost: 250, type: 'gifts', charisma: 3200, minCashback: 1, maxCashback: 12000, desc_ar: "حصان سحري خرافي", desc_en: "Magical unicorn", emoji: "🦄", iconUrl: '' },
-        { id: 'gift_motorbike', name_en: "Motorbike", name_ar: "موتوسيكل", cost: 250, type: 'gifts', charisma: 3200, minCashback: 1, maxCashback: 12000, desc_ar: "سرعة وكاريزما لا تُقاوم", desc_en: "Irresistible speed and charisma", emoji: "🏍️", iconUrl: '' },
-        { id: 'gift_crystal', name_en: "Crystal", name_ar: "كريستال", cost: 300, type: 'gifts', charisma: 4000, minCashback: 1, maxCashback: 15000, desc_ar: "كريستال نادر وثمين", desc_en: "Rare precious crystal", emoji: "🔮", iconUrl: '' },
+        // === MEDIUM GIFTS (50 - 300 coins) ===
+        { id: 'gift_star', name_en: "Star", name_ar: "نجمة", cost: 50, type: 'gifts', charisma: 600, minCashback: 1, maxCashback: 2500, desc_ar: "نجمة ساطعة", desc_en: "Shining star", emoji: "⭐" },
+        { id: 'gift_gem', name_en: "Gem", name_ar: "جوهرة", cost: 75, type: 'gifts', charisma: 900, minCashback: 1, maxCashback: 3750, desc_ar: "جوهرة ثمينة", desc_en: "Precious gem", emoji: "💎" },
+        { id: 'gift_crown', name_en: "Crown", name_ar: "تاج", cost: 80, type: 'gifts', charisma: 1000, minCashback: 1, maxCashback: 4000, desc_ar: "تاج ملكي فاخر", desc_en: "Royal crown", emoji: "👑" },
+        { id: 'gift_trophy', name_en: "Trophy", name_ar: "كأس", cost: 100, type: 'gifts', charisma: 1200, minCashback: 1, maxCashback: 5000, desc_ar: "كأس الفوز والتميز", desc_en: "Trophy of victory", emoji: "🏆" },
+        { id: 'gift_ring', name_en: "Ring", name_ar: "خاتم", cost: 100, type: 'gifts', charisma: 1200, minCashback: 1, maxCashback: 5000, desc_ar: "خاتم الأناقة والتميز", desc_en: "Ring of elegance and distinction", emoji: "💍" },
+        { id: 'gift_rocket', name_en: "Rocket", name_ar: "صاروخ", cost: 150, type: 'gifts', charisma: 1800, minCashback: 1, maxCashback: 7500, desc_ar: "انطلق نحو النجوم", desc_en: "Launch to the stars", emoji: "🚀" },
+        { id: 'gift_robot', name_en: "Robot", name_ar: "روبوت", cost: 200, type: 'gifts', charisma: 2400, minCashback: 1, maxCashback: 10000, desc_ar: "روبوت ذكي ومميز", desc_en: "Smart robot companion", emoji: "🤖" },
+        { id: 'gift_unicorn', name_en: "Unicorn", name_ar: "حصان يونيكورن", cost: 250, type: 'gifts', charisma: 3200, minCashback: 1, maxCashback: 12000, desc_ar: "حصان سحري خرافي", desc_en: "Magical unicorn", emoji: "🦄" },
+        { id: 'gift_motorbike', name_en: "Motorbike", name_ar: "موتوسيكل", cost: 250, type: 'gifts', charisma: 3200, minCashback: 1, maxCashback: 12000, desc_ar: "سرعة وكاريزما لا تُقاوم", desc_en: "Irresistible speed and charisma", emoji: "🏍️" },
+        { id: 'gift_crystal', name_en: "Crystal", name_ar: "كريستال", cost: 300, type: 'gifts', charisma: 4000, minCashback: 1, maxCashback: 15000, desc_ar: "كريستال نادر وثمين", desc_en: "Rare precious crystal", emoji: "🔮" },
         
-        // === EXPENSIVE GIFTS (1000 - 5000 coins) ===
-        { id: 'gift_racecar', name_en: "Race Car", name_ar: "سيارة سباق", cost: 500, type: 'gifts', charisma: 7000, minCashback: 1, maxCashback: 25000, desc_ar: "انطلق كالمحترفين في الساحة", desc_en: "Race like a pro in the arena", emoji: "🏎️", iconUrl: '' },
-        { id: 'gift_castle', name_en: "Castle", name_ar: "قصر", cost: 750, type: 'gifts', charisma: 10000, minCashback: 1, maxCashback: 37500, desc_ar: "قصر ملكي فخم", desc_en: "Luxury royal castle", emoji: "🏰", iconUrl: '' },
-        { id: 'gift_yacht', name_en: "Yacht", name_ar: "يخت", cost: 1000, type: 'gifts', charisma: 15000, minCashback: 1, maxCashback: 50000, desc_ar: "فخامة الملوك فوق الأمواج", desc_en: "Royal luxury over the waves", emoji: "🛥️", iconUrl: '' },
-        { id: 'gift_diamond', name_en: "Diamond", name_ar: "ماسة", cost: 1500, type: 'gifts', charisma: 20000, minCashback: 1, maxCashback: 75000, desc_ar: "ماسة نادرة فائقة", desc_en: "Ultra rare diamond", emoji: "💠", iconUrl: '' },
-        { id: 'gift_spaceship', name_en: "Spaceship", name_ar: "مركبة فضائية", cost: 2000, type: 'gifts', charisma: 30000, minCashback: 1, maxCashback: 100000, desc_ar: "استكشف الفضاء بأسلوب", desc_en: "Explore space in style", emoji: "🛸", iconUrl: '' },
-        { id: 'gift_jet', name_en: "Private Jet", name_ar: "طائرة خاصة", cost: 5000, type: 'gifts', charisma: 85000, minCashback: 1, maxCashback: 120000, desc_ar: "حلّق في سماء الكاريزما", desc_en: "Soar in the skies of charisma", emoji: "✈️", iconUrl: '' },
+        // === EXPENSIVE GIFTS (500 - 5000 coins) ===
+        { id: 'gift_racecar', name_en: "Race Car", name_ar: "سيارة سباق", cost: 500, type: 'gifts', charisma: 7000, minCashback: 1, maxCashback: 25000, desc_ar: "انطلق كالمحترفين في الساحة", desc_en: "Race like a pro in the arena", emoji: "🏎️" },
+        { id: 'gift_castle', name_en: "Castle", name_ar: "قصر", cost: 750, type: 'gifts', charisma: 10000, minCashback: 1, maxCashback: 37500, desc_ar: "قصر ملكي فخم", desc_en: "Luxury royal castle", emoji: "🏰" },
+        { id: 'gift_yacht', name_en: "Yacht", name_ar: "يخت", cost: 1000, type: 'gifts', charisma: 15000, minCashback: 1, maxCashback: 50000, desc_ar: "فخامة الملوك فوق الأمواج", desc_en: "Royal luxury over the waves", emoji: "🛥️" },
+        { id: 'gift_diamond', name_en: "Diamond", name_ar: "ماسة", cost: 1500, type: 'gifts', charisma: 20000, minCashback: 1, maxCashback: 75000, desc_ar: "ماسة نادرة فائقة", desc_en: "Ultra rare diamond", emoji: "💠" },
+        { id: 'gift_spaceship', name_en: "Spaceship", name_ar: "مركبة فضائية", cost: 2000, type: 'gifts', charisma: 30000, minCashback: 1, maxCashback: 100000, desc_ar: "استكشف الفضاء بأسلوب", desc_en: "Explore space in style", emoji: "🛸" },
+        { id: 'gift_jet', name_en: "Private Jet", name_ar: "طائرة خاصة", cost: 5000, type: 'gifts', charisma: 85000, minCashback: 1, maxCashback: 120000, desc_ar: "حلّق في سماء الكاريزما", desc_en: "Soar in the skies of charisma", emoji: "✈️" },
         
-        // === VERY EXPENSIVE GIFTS (10000 coins) ===
-        { id: 'gift_island', name_en: "Private Island", name_ar: "جزيرة خاصة", cost: 10000, type: 'gifts', charisma: 180000, minCashback: 1, maxCashback: 120000, desc_ar: "أمتلك عالمك الخاص والفريد", desc_en: "Own your own unique world", emoji: "🏝️", iconUrl: '' },
-        { id: 'gift_planet', name_en: "Planet", name_ar: "كوكب", cost: 10000, type: 'gifts', charisma: 200000, minCashback: 1, maxCashback: 120000, desc_ar: "كوكب خاص بك", desc_en: "Your own planet", emoji: "🪐", iconUrl: '' },
-        { id: 'gift_galaxy', name_en: "Galaxy", name_ar: "مجرة", cost: 10000, type: 'gifts', charisma: 220000, minCashback: 1, maxCashback: 120000, desc_ar: "مجرة كاملة ملكك", desc_en: "Your own galaxy", emoji: "🌌", iconUrl: '' },
-        
-        // === 10000 coins gifts ===
-        { id: 'gift_palace', name_en: "Palace", name_ar: "قصر ملكي", cost: 10000, type: 'gifts', charisma: 190000, minCashback: 1, maxCashback: 120000, desc_ar: "قصر ملكي فخم", desc_en: "Luxurious royal palace", emoji: "🏛️", iconUrl: '' },
-        { id: 'gift_dragon', name_en: "Dragon", name_ar: "تنين", cost: 10000, type: 'gifts', charisma: 210000, minCashback: 1, maxCashback: 120000, desc_ar: "تنين أسطوري نادر", desc_en: "Legendary dragon", emoji: "🐉", iconUrl: '' },
-        { id: 'gift_phoenix', name_en: "Phoenix", name_ar: "عنقاء", cost: 10000, type: 'gifts', charisma: 230000, minCashback: 1, maxCashback: 120000, desc_ar: "طائر العنقاء الأسطوري", desc_en: "Legendary phoenix bird", emoji: "🔥", iconUrl: '' },
-        
-        // === 25000 coins gifts ===
-        { id: 'gift_golden_statue', name_en: "Golden Statue", name_ar: "تمثال ذهبي", cost: 25000, type: 'gifts', charisma: 350000, minCashback: 1, maxCashback: 120000, desc_ar: "تمثال ذهبي نادر", desc_en: "Rare golden statue", emoji: "🗿", iconUrl: '' },
-        { id: 'gift_treasure', name_en: "Treasure Chest", name_ar: "صندوق كنز", cost: 25000, type: 'gifts', charisma: 360000, minCashback: 1, maxCashback: 120000, desc_ar: "صندوق كنز مليء بالذهب", desc_en: "Treasure chest full of gold", emoji: "💎", iconUrl: '' },
-        { id: 'gift_crown_jewel', name_en: "Crown Jewel", name_ar: "جوهرة التاج", cost: 25000, type: 'gifts', charisma: 370000, minCashback: 1, maxCashback: 120000, desc_ar: "أندر جوهرة في العالم", desc_en: "World's rarest jewel", emoji: "📿", iconUrl: '' },
-        { id: 'gift_time_machine', name_en: "Time Machine", name_ar: "آلة الزمن", cost: 25000, type: 'gifts', charisma: 380000, minCashback: 1, maxCashback: 120000, desc_ar: "سافر عبر الزمن", desc_en: "Travel through time", emoji: "⏰", iconUrl: '' },
-        { id: 'gift_magic_lamp', name_en: "Magic Lamp", name_ar: "مصباح سحري", cost: 25000, type: 'gifts', charisma: 390000, minCashback: 1, maxCashback: 120000, desc_ar: "مصباح علاء الدين", desc_en: "Aladdin's magic lamp", emoji: "🪔", iconUrl: '' },
-        
-        // === 35000 coins gifts ===
-        { id: 'gift_pyramid', name_en: "Pyramid", name_ar: "هرم", cost: 35000, type: 'gifts', charisma: 500000, minCashback: 1, maxCashback: 120000, desc_ar: "هرم مصري عظيم", desc_en: "Great Egyptian pyramid", emoji: "🔺", iconUrl: '' },
-        { id: 'gift_volcano', name_en: "Volcano", name_ar: "بركان", cost: 35000, type: 'gifts', charisma: 520000, minCashback: 1, maxCashback: 120000, desc_ar: "بركان ناري هادر", desc_en: "Roaring fiery volcano", emoji: "🌋", iconUrl: '' },
-        { id: 'gift_aurora', name_en: "Aurora", name_ar: "شفق قطبي", cost: 35000, type: 'gifts', charisma: 540000, minCashback: 1, maxCashback: 120000, desc_ar: "شفق قطبي ساحر", desc_en: "Magical aurora lights", emoji: "🌌", iconUrl: '' },
-        { id: 'gift_blackhole', name_en: "Black Hole", name_ar: "ثقب أسود", cost: 35000, type: 'gifts', charisma: 560000, minCashback: 1, maxCashback: 120000, desc_ar: "ثقب أسود كوني", desc_en: "Cosmic black hole", emoji: "🕳️", iconUrl: '' },
-        { id: 'gift_nebula', name_en: "Nebula", name_ar: "سديم", cost: 35000, type: 'gifts', charisma: 580000, minCashback: 1, maxCashback: 120000, desc_ar: "سديم كوني خلاب", desc_en: "Stunning cosmic nebula", emoji: "🌠", iconUrl: '' },
-        
-        // === 50000 coins gifts ===
-        { id: 'gift_moon', name_en: "Moon", name_ar: "قمر", cost: 50000, type: 'gifts', charisma: 700000, minCashback: 1, maxCashback: 120000, desc_ar: "قمر خاص بك", desc_en: "Your own moon", emoji: "🌙", iconUrl: '' },
-        { id: 'gift_sun', name_en: "Sun", name_ar: "شمس", cost: 50000, type: 'gifts', charisma: 750000, minCashback: 1, maxCashback: 120000, desc_ar: "شمس ساطعة ملكك", desc_en: "Your shining sun", emoji: "☀️", iconUrl: '' },
-        { id: 'gift_rainbow', name_en: "Rainbow", name_ar: "قوس قزح", cost: 50000, type: 'gifts', charisma: 800000, minCashback: 1, maxCashback: 120000, desc_ar: "قوس قزح ملون", desc_en: "Colorful rainbow", emoji: "🌈", iconUrl: '' },
-        { id: 'gift_waterfall', name_en: "Waterfall", name_ar: "شلال", cost: 50000, type: 'gifts', charisma: 850000, minCashback: 1, maxCashback: 120000, desc_ar: "شلال رائع", desc_en: "Magnificent waterfall", emoji: "💦", iconUrl: '' },
-        { id: 'gift_mountain', name_en: "Mountain", name_ar: "جبل", cost: 50000, type: 'gifts', charisma: 900000, minCashback: 1, maxCashback: 120000, desc_ar: "جبل شاهق", desc_en: "Towering mountain", emoji: "⛰️", iconUrl: '' },
-        
-        // === 80000 coins gifts ===
-        { id: 'gift_ocean', name_en: "Ocean", name_ar: "محيط", cost: 80000, type: 'gifts', charisma: 1200000, minCashback: 1, maxCashback: 120000, desc_ar: "محيط واسع بلا حدود", desc_en: "Boundless ocean", emoji: "🌊", iconUrl: '' },
-        { id: 'gift_forest', name_en: "Forest", name_ar: "غابة", cost: 80000, type: 'gifts', charisma: 1250000, minCashback: 1, maxCashback: 120000, desc_ar: "غابة خضراء سرمدية", desc_en: "Eternal green forest", emoji: "🌲", iconUrl: '' },
-        { id: 'gift_desert', name_en: "Desert", name_ar: "صحراء", cost: 80000, type: 'gifts', charisma: 1300000, minCashback: 1, maxCashback: 120000, desc_ar: "صحراء ذهبية", desc_en: "Golden desert", emoji: "🏜️", iconUrl: '' },
-        { id: 'gift_iceberg', name_en: "Iceberg", name_ar: "جبل جليدي", cost: 80000, type: 'gifts', charisma: 1350000, minCashback: 1, maxCashback: 120000, desc_ar: "جبل جليدي ضخم", desc_en: "Massive iceberg", emoji: "🧊", iconUrl: '' },
-        { id: 'gift_jungle', name_en: "Jungle", name_ar: "غابة استوائية", cost: 80000, type: 'gifts', charisma: 1400000, minCashback: 1, maxCashback: 120000, desc_ar: "غابة استوائية كثيفة", desc_en: "Dense tropical jungle", emoji: "🌴", iconUrl: '' },
-        
-        // === 100000 coins gifts ===
-        { id: 'gift_continent', name_en: "Continent", name_ar: "قارة", cost: 100000, type: 'gifts', charisma: 1600000, minCashback: 1, maxCashback: 120000, desc_ar: "قارة كاملة ملكك", desc_en: "Your own continent", emoji: "🗺️", iconUrl: '' },
-        { id: 'gift_world', name_en: "World", name_ar: "عالم", cost: 100000, type: 'gifts', charisma: 1700000, minCashback: 1, maxCashback: 120000, desc_ar: "عالم كامل خاص بك", desc_en: "Your own world", emoji: "🌍", iconUrl: '' },
-        { id: 'gift_solar_system', name_en: "Solar System", name_ar: "مجموعة شمسية", cost: 100000, type: 'gifts', charisma: 1800000, minCashback: 1, maxCashback: 120000, desc_ar: "مجموعة شمسية خاصة", desc_en: "Your own solar system", emoji: "☀️", iconUrl: '' },
-        { id: 'gift_universe', name_en: "Universe", name_ar: "كون", cost: 100000, type: 'gifts', charisma: 1900000, minCashback: 1, maxCashback: 120000, desc_ar: "كون كامل ملكك", desc_en: "Your own universe", emoji: "🌌", iconUrl: '' },
-        { id: 'gift_dimension', name_en: "Dimension", name_ar: "بُعد", cost: 100000, type: 'gifts', charisma: 2000000, minCashback: 1, maxCashback: 120000, desc_ar: "بُعد موازٍ خاص", desc_en: "Your own parallel dimension", emoji: "🌀", iconUrl: '' },
-        
-        // === 150000 coins gifts ===
-        { id: 'gift_multiverse', name_en: "Multiverse", name_ar: "متعدد الأكوان", cost: 150000, type: 'gifts', charisma: 2500000, minCashback: 1, maxCashback: 120000, desc_ar: "متعدد أكوان خاص بك", desc_en: "Your own multiverse", emoji: "🪐", iconUrl: '' },
-        { id: 'gift_reality', name_en: "Reality", name_ar: "واقع", cost: 150000, type: 'gifts', charisma: 2600000, minCashback: 1, maxCashback: 120000, desc_ar: "واقعك الخاص", desc_en: "Your own reality", emoji: "✨", iconUrl: '' },
-        { id: 'gift_dream', name_en: "Dream World", name_ar: "عالم الأحلام", cost: 150000, type: 'gifts', charisma: 2700000, minCashback: 1, maxCashback: 120000, desc_ar: "عالم أحلامك الخاص", desc_en: "Your dream world", emoji: "💭", iconUrl: '' },
-        { id: 'gift_paradise', name_en: "Paradise", name_ar: "جنة", cost: 150000, type: 'gifts', charisma: 2800000, minCashback: 1, maxCashback: 120000, desc_ar: "جنة خاصة بك", desc_en: "Your personal paradise", emoji: "🌺", iconUrl: '' },
-        { id: 'gift_eternity', name_en: "Eternity", name_ar: "خلود", cost: 150000, type: 'gifts', charisma: 2900000, minCashback: 1, maxCashback: 120000, desc_ar: "هدية الخلود", desc_en: "Gift of eternity", emoji: "♾️", iconUrl: '' },
-        { id: 'gift_infinity', name_en: "Infinity", name_ar: "ما لا نهاية", cost: 150000, type: 'gifts', charisma: 3000000, minCashback: 1, maxCashback: 120000, desc_ar: "هدية لا متناهية", desc_en: "Gift of infinity", emoji: "🔮", iconUrl: '' },
-        { id: 'gift_ultimate', name_en: "Ultimate Gift", name_ar: "الهدية المطلقة", cost: 150000, type: 'gifts', charisma: 3500000, minCashback: 1, maxCashback: 120000, desc_ar: "أعظم هدية على الإطلاق", desc_en: "The ultimate gift", emoji: "🏆", iconUrl: '' },
+        // === VERY EXPENSIVE GIFTS (10000 - 150000 coins) ===
+        { id: 'gift_island', name_en: "Private Island", name_ar: "جزيرة خاصة", cost: 10000, type: 'gifts', charisma: 180000, minCashback: 1, maxCashback: 120000, desc_ar: "أمتلك عالمك الخاص والفريد", desc_en: "Own your own unique world", emoji: "🏝️" },
+        { id: 'gift_planet', name_en: "Planet", name_ar: "كوكب", cost: 10000, type: 'gifts', charisma: 200000, minCashback: 1, maxCashback: 120000, desc_ar: "كوكب خاص بك", desc_en: "Your own planet", emoji: "🪐" },
+        { id: 'gift_galaxy', name_en: "Galaxy", name_ar: "مجرة", cost: 10000, type: 'gifts', charisma: 220000, minCashback: 1, maxCashback: 120000, desc_ar: "مجرة كاملة ملكك", desc_en: "Your own galaxy", emoji: "🌌" },
+        { id: 'gift_palace', name_en: "Palace", name_ar: "قصر ملكي", cost: 10000, type: 'gifts', charisma: 190000, minCashback: 1, maxCashback: 120000, desc_ar: "قصر ملكي فخم", desc_en: "Luxurious royal palace", emoji: "🏛️" },
+        { id: 'gift_dragon', name_en: "Dragon", name_ar: "تنين", cost: 10000, type: 'gifts', charisma: 210000, minCashback: 1, maxCashback: 120000, desc_ar: "تنين أسطوري نادر", desc_en: "Legendary dragon", emoji: "🐉" },
+        { id: 'gift_phoenix', name_en: "Phoenix", name_ar: "عنقاء", cost: 10000, type: 'gifts', charisma: 230000, minCashback: 1, maxCashback: 120000, desc_ar: "طائر العنقاء الأسطوري", desc_en: "Legendary phoenix bird", emoji: "🔥" },
+        { id: 'gift_golden_statue', name_en: "Golden Statue", name_ar: "تمثال ذهبي", cost: 25000, type: 'gifts', charisma: 350000, minCashback: 1, maxCashback: 120000, desc_ar: "تمثال ذهبي نادر", desc_en: "Rare golden statue", emoji: "🗿" },
+        { id: 'gift_treasure', name_en: "Treasure Chest", name_ar: "صندوق كنز", cost: 25000, type: 'gifts', charisma: 360000, minCashback: 1, maxCashback: 120000, desc_ar: "صندوق كنز مليء بالذهب", desc_en: "Treasure chest full of gold", emoji: "💎" },
+        { id: 'gift_pyramid', name_en: "Pyramid", name_ar: "هرم", cost: 35000, type: 'gifts', charisma: 500000, minCashback: 1, maxCashback: 120000, desc_ar: "هرم مصري عظيم", desc_en: "Great Egyptian pyramid", emoji: "🔺" },
+        { id: 'gift_moon', name_en: "Moon", name_ar: "قمر", cost: 50000, type: 'gifts', charisma: 700000, minCashback: 1, maxCashback: 120000, desc_ar: "قمر خاص بك", desc_en: "Your own moon", emoji: "🌙" },
+        { id: 'gift_sun', name_en: "Sun", name_ar: "شمس", cost: 50000, type: 'gifts', charisma: 750000, minCashback: 1, maxCashback: 120000, desc_ar: "شمس ساطعة ملكك", desc_en: "Your shining sun", emoji: "☀️" },
+        { id: 'gift_ocean', name_en: "Ocean", name_ar: "محيط", cost: 80000, type: 'gifts', charisma: 1200000, minCashback: 1, maxCashback: 120000, desc_ar: "محيط واسع بلا حدود", desc_en: "Boundless ocean", emoji: "🌊" },
+        { id: 'gift_world', name_en: "World", name_ar: "عالم", cost: 100000, type: 'gifts', charisma: 1700000, minCashback: 1, maxCashback: 120000, desc_ar: "عالم كامل خاص بك", desc_en: "Your own world", emoji: "🌍" },
+        { id: 'gift_universe', name_en: "Universe", name_ar: "كون", cost: 100000, type: 'gifts', charisma: 1900000, minCashback: 1, maxCashback: 120000, desc_ar: "كون كامل ملكك", desc_en: "Your own universe", emoji: "🌌" },
+        { id: 'gift_multiverse', name_en: "Multiverse", name_ar: "متعدد الأكوان", cost: 150000, type: 'gifts', charisma: 2500000, minCashback: 1, maxCashback: 120000, desc_ar: "متعدد أكوان خاص بك", desc_en: "Your own multiverse", emoji: "🪐" },
+        { id: 'gift_ultimate', name_en: "Ultimate Gift", name_ar: "الهدية المطلقة", cost: 150000, type: 'gifts', charisma: 3500000, minCashback: 1, maxCashback: 120000, desc_ar: "أعظم هدية على الإطلاق", desc_en: "The ultimate gift", emoji: "🏆" },
     ]
+};
+
+// --- Random Cashback Generator (Luck-based system) ---
+const generateRandomCashback = (minCashback, maxCashback) => {
+    return Math.floor(Math.random() * (maxCashback - minCashback + 1)) + minCashback;
 };
 
 // --- Achievements ---
@@ -252,12 +221,6 @@ const formatDate = (timestamp) => { if (!timestamp) return 'N/A'; const date = t
 const getTimeRemaining = (lastChanged) => { if (!lastChanged) return "0d 0h"; const lastChangeDate = lastChanged.toDate ? lastChanged.toDate() : new Date(lastChanged); const nextChangeDate = new Date(lastChangeDate); nextChangeDate.setMonth(nextChangeDate.getMonth() + 1); const now = new Date(); const diff = nextChangeDate - now; if (diff <= 0) return "0d 0h"; const days = Math.floor(diff / (1000 * 60 * 60 * 24)); const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); return `${days}d ${hours}h`; };
 const formatDuration = (ms) => { const totalSeconds = Math.floor(ms / 1000); const minutes = Math.floor(totalSeconds / 60); const seconds = totalSeconds % 60; return `${minutes}m ${seconds}s`; };
 const formatCharisma = (num) => { if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
-
-// Random Cashback Generator (Luck-based system)
-const generateRandomCashback = (minCashback, maxCashback) => {
-    // Generate random number between min and max
-    return Math.floor(Math.random() * (maxCashback - minCashback + 1)) + minCashback;
-};
 
 // --- Audio System ---
 const AudioCtx = window.AudioContext || window.webkitAudioContext; let audioCtx = null;
@@ -317,7 +280,6 @@ const playSound = (type) => {
         osc.start();
         osc.stop(audioCtx.currentTime + 0.4);
     } else if (type === 'jackpot') {
-        // Special sound for big cashback wins
         osc.frequency.value = 523;
         osc.type = 'sine';
         gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
@@ -338,28 +300,28 @@ const TRANSLATIONS = {
         tutorialTitle: "Welcome, Agent", tutorialStep1: "Your goal is to find the Spy (or blend in if you are the Spy).", tutorialStep2: "Each round, discuss and vote to eject a suspect.", tutorialStep3: "Win matches to earn Intel and buy items in the Shop!", skipTutorial: "Skip", next: "Next", startGame: "Start Game",
         matchSummary: "Match Summary", matchDuration: "Duration", mvp: "MVP", correctVotes: "Correct Votes", summaryTitle: "Game Over!",
         notifTitle: "Notification", achUnlock: "Achievement Unlocked!", newFriend: "New Friend Added!", hiddenAch: "Hidden Achievement", tabMain: "Main", tabInv: "Inventory", tabAch: "Achievements",
-        charisma: "Charisma", charismaDesc: "Your influence in the arena", charismaLevels: "Charisma Levels", charismaRequired: "Required", charismaCurrent: "Current Level", gifts: "Gifts", sendGift: "Send Gift", giftSent: "Gift Sent!", giftReceived: "You received a gift!", selectGift: "Select a Gift", giftPreview: "Gift Preview", cashback: "Cashback", willReceive: "You'll receive", charismaGain: "Charisma Gain", playerLeft: "Player Left", spyLeftAgentsWin: "Spy left! Agents Win!", agentLeftSpyWins: "Agent left! Spy Wins!", myGifts: "My Gifts", receivedGifts: "Received Gifts", noGifts: "No gifts yet.", fromPlayer: "From", toPlayer: "To", buyGift: "Buy Gift", sendToFriend: "Send to Friend",
+        charisma: "Charisma", charismaDesc: "Your influence in the arena", gifts: "Gifts", sendGift: "Send Gift", giftSent: "Gift Sent!", giftReceived: "You received a gift!", selectGift: "Select a Gift", giftPreview: "Gift Preview", cashback: "Cashback", willReceive: "You'll receive", charismaGain: "Charisma Gain", playerLeft: "Player Left", spyLeftAgentsWin: "Spy left! Agents Win!", agentLeftSpyWins: "Agent left! Spy Wins!", myGifts: "My Gifts", receivedGifts: "Received Gifts", noGifts: "No gifts yet.", fromPlayer: "From", toPlayer: "To", buyGift: "Buy Gift", sendToFriend: "Send to Friend",
         notifications: "Notifications", clearAll: "Clear All", noNotifications: "No notifications", friendRequest: "sent you a friend request", giftNotification: "sent you a gift", messageNotification: "sent you a message", nextLevel: "Next level", close: "Close",
         sendTo: "Send to", noFriendsToSend: "No friends to send gifts to.", selectFriend: "Select a friend", myInventory: "My Inventory", maxLevel: "MAX LEVEL",
         privateChat: "Private Chat", typeMessage: "Type a message...", noMessages: "No messages yet.",
-        luckyCashback: "Lucky Cashback", youWon: "You won", luckBonus: "Luck Bonus",
+        luckyCashback: "Lucky Cashback", luckBonus: "Luck Bonus Preview", charismaLevels: "Charisma Levels", allLevels: "All 21 Levels", currentLevel: "Current Level", progressToNext: "Progress to Next",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "دخول", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
-        shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مُزين", unequip: "إزالة", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", badges: "شارات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
+        shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مُزين", unequip: "إزالة", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
         tutorialTitle: "مرحباً أيها العميل", tutorialStep1: "هدفك هو العثور على الجاسوس (أو التخفي إن كنت الجاسوس).", tutorialStep2: "في كل جولة، ناقش وصوّت لطرد المشتبه به.", tutorialStep3: "اربح المباريات لتحصل على إنتل واشتري من المتجر!", skipTutorial: "تخطي", next: "التالي", startGame: "ابدأ اللعبة",
         matchSummary: "ملخص المباراة", matchDuration: "المدة", mvp: "الأفضل", correctVotes: "أصوات صحيحة", summaryTitle: "انتهت اللعبة!",
         notifTitle: "إشعار", achUnlock: "تم فتح إنجاز!", newFriend: "صديق جديد!", hiddenAch: "إنجاز سري", tabMain: "الرئيسية", tabInv: "المخزون", tabAch: "الإنجازات",
-        charisma: "الكاريزما", charismaDesc: "تأثيرك في الساحة", charismaLevels: "مستويات الكاريزما", charismaRequired: "المطلوب", charismaCurrent: "المستوى الحالي", gifts: "الهدايا", sendGift: "إرسال هدية", giftSent: "تم إرسال الهدية!", giftReceived: "لقد استلمت هدية!", selectGift: "اختر هدية", giftPreview: "معاينة الهدية", cashback: "استرداد", willReceive: "ستستلم", charismaGain: "زيادة الكاريزما", playerLeft: "لاعب غادر", spyLeftAgentsWin: "الجاسوس غادر! فاز العملاء!", agentLeftSpyWins: "عميل غادر! فاز الجاسوس!", myGifts: "هداياي", receivedGifts: "الهدايا المستلمة", noGifts: "لا توجد هدايا بعد.", fromPlayer: "من", toPlayer: "إلى", buyGift: "شراء هدية", sendToFriend: "إرسال لصديق",
+        charisma: "الكاريزما", charismaDesc: "تأثيرك في الساحة", gifts: "الهدايا", sendGift: "إرسال هدية", giftSent: "تم إرسال الهدية!", giftReceived: "لقد استلمت هدية!", selectGift: "اختر هدية", giftPreview: "معاينة الهدية", cashback: "استرداد", willReceive: "ستستلم", charismaGain: "زيادة الكاريزما", playerLeft: "لاعب غادر", spyLeftAgentsWin: "الجاسوس غادر! فاز العملاء!", agentLeftSpyWins: "عميل غادر! فاز الجاسوس!", myGifts: "هداياي", receivedGifts: "الهدايا المستلمة", noGifts: "لا توجد هدايا بعد.", fromPlayer: "من", toPlayer: "إلى", buyGift: "شراء هدية", sendToFriend: "إرسال لصديق",
         notifications: "الإشعارات", clearAll: "حذف الكل", noNotifications: "لا توجد إشعارات", friendRequest: "أرسل لك طلب صداقة", giftNotification: "أرسل لك هدية", messageNotification: "أرسل لك رسالة", nextLevel: "المستوى التالي", close: "إغلاق",
         sendTo: "إرسال إلى", noFriendsToSend: "لا يوجد أصدقاء لإرسال الهدايا.", selectFriend: "اختر صديق", myInventory: "مخزوني", maxLevel: "المستوى الأقصى",
         privateChat: "محادثة خاصة", typeMessage: "اكتب رسالة...", noMessages: "لا توجد رسائل بعد.",
-        luckyCashback: "كاش باك محظوظ", youWon: "ربحت", luckBonus: "مكافأة الحظ",
+        luckyCashback: "كاش باك محظوظ", luckBonus: "معاينة_bonus الحظ", charismaLevels: "مستويات الكاريزما", allLevels: "كل الـ 21 مستوى", currentLevel: "المستوى الحالي", progressToNext: "التقدم للمستوى التالي",
     } 
 };
 
 // ==========================================
-// COMPONENTS
+// COMPONENTS - PART 1
 // ==========================================
 
 // Guest Banner
@@ -372,7 +334,7 @@ const GuestBanner = ({ lang }) => {
 const NotificationToast = ({ message, onClose }) => {
     useEffect(() => {
         if (message) {
-            const timer = setTimeout(() => { onClose(); }, 2000);
+            const timer = setTimeout(() => { onClose(); }, 3000);
             return () => clearTimeout(timer);
         }
     }, [message, onClose]);
@@ -393,78 +355,132 @@ const ModalCloseBtn = ({ onClose }) => (
     <button onClick={onClose} className="modal-close-btn" aria-label="Close">&times;</button>
 );
 
-// ==========================================
-// CHARISMA LEVELS MODAL - NEW (Shows all 21 ranks)
-// ==========================================
+// K/D Circle Component
+const KDCircle = ({ wins, losses, lang }) => {
+    const total = wins + losses;
+    const rate = total > 0 ? ((wins / total) * 100).toFixed(0) : 0;
+    const strokeDasharray = 2 * Math.PI * 40;
+    const strokeDashoffset = strokeDasharray - (strokeDasharray * rate / 100);
+    
+    return (
+        <div className="kd-circle-container">
+            <svg viewBox="0 0 100 100" className="kd-circle-svg">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#374151" strokeWidth="8"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="url(#kdGradient)" strokeWidth="8" 
+                    strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round" transform="rotate(-90 50 50)"/>
+                <defs>
+                    <linearGradient id="kdGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#00f2ff"/>
+                        <stop offset="100%" stopColor="#7000ff"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div className="kd-circle-text">
+                <span className="kd-rate">{rate}%</span>
+                <span className="kd-label">{TRANSLATIONS[lang].winRate}</span>
+            </div>
+        </div>
+    );
+};
+
+// Charisma Display Component - Enhanced with Glow + Info Button
+const CharismaDisplay = ({ charisma, lang, onShowLevels }) => {
+    const t = TRANSLATIONS[lang];
+    const { currentLevel, nextLevel } = getCharismaLevel(charisma || 0);
+    const progress = getCharismaProgress(charisma || 0);
+    const neededForNext = nextLevel ? nextLevel.threshold - (charisma || 0) : 0;
+    const isMaxLevel = currentLevel.isMaxLevel;
+    const hasGlow = currentLevel.hasGlow;
+    
+    const renderIcon = () => {
+        if (currentLevel.iconType === 'image' && currentLevel.iconUrl) {
+            return <img src={currentLevel.iconUrl} alt="level" className={`w-5 h-5 ${hasGlow ? 'glow-effect' : ''}`} />;
+        }
+        return <span className="charisma-icon">{currentLevel.icon}</span>;
+    };
+    
+    return (
+        <div className={`charisma-container ${hasGlow ? 'has-glow' : ''}`}>
+            <div className="charisma-header">
+                <span className="charisma-label">
+                    {renderIcon()}
+                    {t.charisma}
+                </span>
+                <div className="flex items-center gap-2">
+                    <span className={`charisma-level-badge ${currentLevel.badge_class} ${hasGlow ? 'glow-badge' : ''}`}>
+                        {renderIcon()} Lv.{currentLevel.level}
+                    </span>
+                    {onShowLevels && (
+                        <button onClick={onShowLevels} className="charisma-info-btn" title={t.allLevels}>
+                            ?
+                        </button>
+                    )}
+                </div>
+            </div>
+            <div className="charisma-bar-bg">
+                <div className="charisma-bar-fill" style={{ width: `${progress}%` }}></div>
+            </div>
+            <div className="charisma-info">
+                <span className="charisma-current">{formatCharisma(charisma || 0)}</span>
+                {isMaxLevel ? (
+                    <span className="charisma-next text-yellow-400 font-bold">{t.maxLevel}</span>
+                ) : nextLevel && (
+                    <span className="charisma-next">{t.nextLevel}: {formatCharisma(neededForNext)}</span>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// Charisma Levels Modal - Shows all 21 levels
 const CharismaLevelsModal = ({ show, onClose, currentCharisma, lang }) => {
     const t = TRANSLATIONS[lang];
+    
     if (!show) return null;
     
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', maxHeight: '85vh' }}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', maxHeight: '80vh' }}>
                 <div className="modal-header">
                     <h2 className="modal-title">{t.charismaLevels}</h2>
                     <ModalCloseBtn onClose={onClose} />
                 </div>
-                <div className="modal-body overflow-y-auto" style={{ maxHeight: 'calc(85vh - 80px)' }}>
+                <div className="modal-body overflow-y-auto" style={{ maxHeight: '60vh' }}>
                     <div className="space-y-2">
-                        {CHARISMA_LEVELS.map((level, index) => {
-                            const isCurrentLevel = currentCharisma >= level.threshold && 
-                                (index === CHARISMA_LEVELS.length - 1 || currentCharisma < CHARISMA_LEVELS[index + 1].threshold);
-                            const isUnlocked = currentCharisma >= level.threshold;
-                            const isHighLevel = level.level >= 16;
+                        {CHARISMA_LEVELS.map((level) => {
+                            const isCurrent = currentCharisma >= level.threshold && 
+                                (level.isMaxLevel || currentCharisma < CHARISMA_LEVELS[level.level]?.threshold);
+                            const isAchieved = currentCharisma >= level.threshold;
                             
                             return (
-                                <div 
-                                    key={level.level} 
-                                    className={`p-3 rounded-lg border transition-all ${
-                                        isCurrentLevel ? 'border-yellow-400 bg-yellow-500/10' : 
-                                        isUnlocked ? 'border-green-500/30 bg-green-500/5' : 
-                                        'border-white/10 bg-white/5'
-                                    } ${isHighLevel && isUnlocked ? 'glow-effect' : ''}`}
-                                    style={isHighLevel && isUnlocked ? {
-                                        boxShadow: `0 0 20px ${level.color}40, 0 0 40px ${level.color}20`,
-                                        animation: 'pulse-glow 2s infinite'
-                                    } : {}}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        {/* Level Icon */}
-                                        <div className={`w-10 h-10 flex items-center justify-center rounded-full ${
-                                            isHighLevel ? 'animate-pulse' : ''
-                                        }`} style={isHighLevel && isUnlocked ? {
-                                            boxShadow: `0 0 15px ${level.color}`,
-                                        } : {}}>
-                                            {level.iconType === 'image' && level.iconUrl ? (
-                                                <img src={level.iconUrl} alt={`Level ${level.level}`} className="w-8 h-8 object-contain" />
-                                            ) : (
-                                                <span className="text-2xl">{level.icon}</span>
-                                            )}
-                                        </div>
-                                        
-                                        {/* Level Info */}
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-sm">Lv.{level.level}</span>
-                                                <span className={`text-xs ${isHighLevel ? 'text-orange-400' : 'text-gray-400'}`}>
-                                                    {lang === 'ar' ? level.name_ar : level.name_en}
-                                                </span>
-                                                {isCurrentLevel && (
-                                                    <span className="text-[10px] bg-yellow-500 text-black px-2 py-0.5 rounded-full font-bold">
-                                                        {t.charismaCurrent}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="text-[10px] text-gray-400 mt-1">
-                                                {t.charismaRequired}: <span className="text-yellow-400 font-bold">{formatCharisma(level.threshold)}</span>
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Status Icon */}
-                                        {isUnlocked && (
-                                            <span className="text-green-400 text-lg">✓</span>
+                                <div key={level.level} 
+                                    className={`p-3 rounded-lg flex items-center gap-3 ${
+                                        isCurrent ? 'bg-primary/20 border border-primary' : 
+                                        isAchieved ? 'bg-green-500/10 border border-green-500/30' : 
+                                        'bg-white/5 border border-white/10'
+                                    }`}>
+                                    <div className={`w-10 h-10 flex items-center justify-center ${level.hasGlow ? 'glow-effect' : ''}`}>
+                                        {level.iconType === 'image' && level.iconUrl ? (
+                                            <img src={level.iconUrl} alt={level.name_en} className="w-8 h-8 object-contain" />
+                                        ) : (
+                                            <span className="text-2xl">{level.icon}</span>
                                         )}
                                     </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-sm" style={{ color: level.color }}>
+                                                Lv.{level.level}
+                                            </span>
+                                            <span className="text-xs text-gray-400">
+                                                {lang === 'ar' ? level.name_ar : level.name_en}
+                                            </span>
+                                        </div>
+                                        <div className="text-[10px] text-gray-500">
+                                            {formatCharisma(level.threshold)} {t.charisma}
+                                        </div>
+                                    </div>
+                                    {isCurrent && <span className="text-xs text-primary font-bold">✓</span>}
                                 </div>
                             );
                         })}
@@ -475,110 +491,42 @@ const CharismaLevelsModal = ({ show, onClose, currentCharisma, lang }) => {
     );
 };
 
-// ==========================================
-// CHARISMA DISPLAY COMPONENT - IMPROVED with Glow
-// ==========================================
-const CharismaDisplay = ({ charisma, lang, showDetails = true, onShowLevels }) => {
-    const t = TRANSLATIONS[lang];
-    const { currentLevel, nextLevel } = getCharismaLevel(charisma || 0);
-    const progress = getCharismaProgress(charisma || 0);
-    const neededForNext = nextLevel ? nextLevel.threshold - (charisma || 0) : 0;
-    const isMaxLevel = currentLevel.isMaxLevel;
-    const hasGlow = currentLevel.hasGlow;
+// Badge Display Component
+const BadgeDisplay = ({ equipped, size = 'sm' }) => {
+    const badgeId = equipped?.badges;
+    if (!badgeId) return null;
     
-    const renderIcon = () => {
-        if (currentLevel.iconType === 'image' && currentLevel.iconUrl) {
-            return (
-                <img 
-                    src={currentLevel.iconUrl} 
-                    alt="level" 
-                    className={`w-5 h-5 ${hasGlow ? 'animate-pulse' : ''}`}
-                    style={hasGlow ? { filter: 'drop-shadow(0 0 8px ' + currentLevel.color + ')' } : {}}
-                />
-            );
-        }
-        return <span className="charisma-icon">{currentLevel.icon}</span>;
-    };
+    const badge = SHOP_ITEMS.badges.find(b => b.id === badgeId);
+    if (!badge) return null;
+    
+    const sizeClass = size === 'sm' ? 'text-sm' : 'text-lg';
     
     return (
-        <div 
-            className="charisma-container"
-            style={hasGlow ? {
-                boxShadow: `0 0 20px ${currentLevel.color}30, 0 0 40px ${currentLevel.color}15`,
-                borderColor: currentLevel.color + '60'
-            } : {}}
-        >
-            <div className="charisma-header">
-                <span className="charisma-label flex items-center gap-2">
-                    {renderIcon()}
-                    {t.charisma}
-                    {/* Info button to show all levels */}
-                    <button 
-                        onClick={onShowLevels}
-                        className="w-5 h-5 rounded-full bg-white/10 text-[10px] flex items-center justify-center hover:bg-white/20 transition"
-                        title={t.charismaLevels}
-                    >
-                        ?
-                    </button>
-                </span>
-                <span 
-                    className={`charisma-level-badge ${currentLevel.badge_class} ${hasGlow ? 'glow-badge' : ''}`}
-                    style={hasGlow ? {
-                        boxShadow: `0 0 15px ${currentLevel.color}`,
-                    } : {}}
-                >
-                    {renderIcon()} Lv.{currentLevel.level}
-                </span>
-            </div>
-            <div className="charisma-bar-bg">
-                <div 
-                    className="charisma-bar-fill" 
-                    style={{ 
-                        width: `${progress}%`,
-                        ...(hasGlow ? { boxShadow: '0 0 10px ' + currentLevel.color } : {})
-                    }}
-                ></div>
-            </div>
-            <div className="charisma-info">
-                <span className="charisma-current">{formatCharisma(charisma || 0)}</span>
-                {isMaxLevel ? (
-                    <span className="charisma-next text-yellow-400 font-bold">{t.maxLevel}</span>
-                ) : nextLevel && showDetails && (
-                    <span className="charisma-next">{t.nextLevel}: {formatCharisma(neededForNext)}</span>
-                )}
-            </div>
-        </div>
+        <span className={`badge-display ${sizeClass}`} title={badge.name_en}>
+            {badge.preview}
+        </span>
     );
 };
 
-// ==========================================
-// ACHIEVEMENTS DISPLAY - NEW (Full achievements box)
-// ==========================================
+// Achievements Display Component
 const AchievementsDisplay = ({ achievements, lang, showAll = false }) => {
     const t = TRANSLATIONS[lang];
-    const displayAchievements = showAll ? ACHIEVEMENTS : ACHIEVEMENTS.slice(0, 6);
-    const unlockedCount = achievements?.length || 0;
+    const userAch = achievements || [];
+    const visibleAch = showAll ? ACHIEVEMENTS : ACHIEVEMENTS.filter(a => userAch.includes(a.id)).slice(0, 6);
+    
+    if (visibleAch.length === 0) return null;
     
     return (
-        <div className="bg-white/5 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-bold text-gray-400">{t.achievements}</h4>
-                <span className="text-[10px] text-yellow-400">{unlockedCount}/{ACHIEVEMENTS.length}</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-                {displayAchievements.map(ach => {
-                    const isUnlocked = achievements?.includes(ach.id);
+        <div className="achievements-box">
+            <h4 className="text-xs font-bold text-gray-400 mb-2">{t.achievements}</h4>
+            <div className="flex flex-wrap gap-1">
+                {visibleAch.map(ach => {
+                    const unlocked = userAch.includes(ach.id);
                     return (
-                        <div 
-                            key={ach.id}
-                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
-                                isUnlocked 
-                                    ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30' 
-                                    : 'bg-black/30 border border-white/5 opacity-40'
-                            }`}
-                            title={lang === 'ar' ? `${ach.name_ar} - ${ach.desc_ar}` : `${ach.name_en} - ${ach.desc_en}`}
-                        >
-                            <span className={`text-lg ${!isUnlocked ? 'grayscale' : ''}`}>{ach.icon}</span>
+                        <div key={ach.id} 
+                            className={`achievement-icon ${unlocked ? 'unlocked' : 'locked'} ${ach.special ? 'special' : ''}`}
+                            title={lang === 'ar' ? ach.name_ar : ach.name_en}>
+                            {ach.icon}
                         </div>
                     );
                 })}
@@ -587,9 +535,7 @@ const AchievementsDisplay = ({ achievements, lang, showAll = false }) => {
     );
 };
 
-// ==========================================
-// AVATAR WITH FRAME - FIXED
-// ==========================================
+// Avatar with Frame Component - FIXED (Frame surrounds avatar)
 const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
     const sizeConfig = {
         sm: { wrapper: 48, avatar: 36, border: 5 },
@@ -666,36 +612,6 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
     );
 };
 
-// ==========================================
-// BADGE DISPLAY - NEW (Badge under name)
-// ==========================================
-const BadgeDisplay = ({ equipped, size = 'sm' }) => {
-    const badgeId = equipped?.badges;
-    if (!badgeId) return null;
-    
-    const badge = SHOP_ITEMS.badges.find(b => b.id === badgeId);
-    if (!badge) return null;
-    
-    const sizeStyles = {
-        sm: { width: '20px', height: '20px', fontSize: '12px' },
-        md: { width: '28px', height: '28px', fontSize: '16px' },
-        lg: { width: '36px', height: '36px', fontSize: '20px' }
-    };
-    
-    return (
-        <div 
-            className="badge-display inline-flex items-center justify-center"
-            style={sizeStyles[size]}
-        >
-            {badge.iconUrl ? (
-                <img src={badge.iconUrl} alt={badge.name_en} className="w-full h-full object-contain" />
-            ) : (
-                <span>{badge.preview}</span>
-            )}
-        </div>
-    );
-};
-
 // Tutorial Modal
 const TutorialModal = ({ show, onClose, lang }) => {
     const t = TRANSLATIONS[lang];
@@ -725,6 +641,14 @@ const TutorialModal = ({ show, onClose, lang }) => {
         </div>
     );
 };
+
+// ==========================================
+// PART 1 END - Continue in Part 2
+// ==========================================
+// ==========================================
+// PRO SPY - COMPLETE SCRIPT PART 2
+// All Modals + App Component
+// ==========================================
 
 // ==========================================
 // PRIVATE CHAT MODAL
@@ -811,103 +735,225 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang }) =>
                 <div className="modal-header">
                     <div className="flex items-center gap-2">
                         <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                        <div>
-                            <h2 className="modal-title text-sm">{friend.displayName}</h2>
-                            <span className="text-[10px] text-gray-400">{t.privateChat}</span>
-                        </div>
+                        <span className="font-bold">{friend.displayName}</span>
                     </div>
                     <ModalCloseBtn onClose={onClose} />
                 </div>
-                <div className="modal-body flex-1 overflow-y-auto p-3" style={{ maxHeight: 'calc(80vh - 140px)' }}>
-                    {messages.length === 0 ? (
-                        <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div>
-                    ) : (
-                        messages.map(msg => {
-                            const isMine = msg.senderId === user?.uid;
-                            return (
-                                <div key={msg.id} className={`flex mb-3 ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[80%] ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'}`}>
+                <div className="modal-body flex flex-col flex-1 overflow-hidden p-0">
+                    <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                        {messages.length === 0 ? (
+                            <div className="text-center text-gray-400 py-8">{t.noMessages}</div>
+                        ) : (
+                            messages.map(msg => (
+                                <div key={msg.id} className={`flex ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[70%] p-2 rounded-lg ${
+                                        msg.senderId === user?.uid 
+                                            ? 'bg-primary text-white' 
+                                            : 'bg-white/10 text-gray-200'
+                                    }`}>
                                         <p className="text-sm">{msg.text}</p>
-                                        <span className="text-[10px] text-gray-400 block mt-1">{formatTime(msg.timestamp)}</span>
+                                        <span className="text-[10px] text-gray-400">{formatTime(msg.timestamp)}</span>
                                     </div>
                                 </div>
-                            );
-                        })
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
-                <div className="modal-footer p-3 border-t border-white/10">
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            className="input-dark flex-1 p-2 rounded-lg text-sm"
-                            placeholder={t.typeMessage}
-                            value={newMsg}
-                            onChange={e => setNewMsg(e.target.value)}
-                            onKeyPress={e => e.key === 'Enter' && handleSend()}
-                        />
-                        <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="btn-neon px-4 py-2 rounded-lg text-sm">
-                            {t.send}
-                        </button>
+                            ))
+                        )}
+                        <div ref={messagesEndRef} />
                     </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// ==========================================
-// LUCKY CASHBACK DISPLAY - NEW
-// ==========================================
-const LuckyCashbackDisplay = ({ minCashback, maxCashback, wonAmount, lang }) => {
-    const t = TRANSLATIONS[lang];
-    
-    return (
-        <div className="lucky-cashback-container bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg p-3 text-center">
-            <div className="text-[10px] text-gray-400 mb-1">{t.luckyCashback}</div>
-            <div className="text-xs text-purple-400 mb-2">
-                {minCashback.toLocaleString()} - {maxCashback.toLocaleString()} {CURRENCY_NAME}
-            </div>
-            {wonAmount !== undefined && (
-                <div className="bg-black/30 rounded-lg p-2">
-                    <div className="text-[10px] text-gray-400">{t.youWon}</div>
-                    <div className="text-xl font-bold text-yellow-400 animate-pulse">
-                        +{wonAmount.toLocaleString()} 🧠
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-// ==========================================
-// NOTIFICATION CENTER
-// ==========================================
-const NotificationCenter = ({ show, onClose, notifications, onClearAll, onMarkRead, lang }) => {
-    const t = TRANSLATIONS[lang];
-    if (!show) return null;
-    
-    return (
-        <div className="notification-dropdown animate-pop">
-            <div className="notification-dropdown-header">
-                <span className="notification-dropdown-title">{t.notifications}</span>
-                {notifications.length > 0 && (<button onClick={onClearAll} className="notification-clear-all">{t.clearAll}</button>)}
-            </div>
-            <div className="notification-list">
-                {notifications.length === 0 ? (
-                    <div className="notification-empty">{t.noNotifications}</div>
-                ) : (
-                    notifications.map(notif => (
-                        <div key={notif.id} className={`notification-item ${!notif.read ? 'unread' : ''}`} onClick={() => onMarkRead(notif.id)}>
-                            <div className="flex items-center">
-                                <span className="notification-item-icon">{notif.type === 'friend_request' ? '👋' : notif.type === 'gift' ? '🎁' : notif.type === 'message' ? '💬' : '🔔'}</span>
-                                <div className="notification-item-content">
-                                    <div className="notification-item-title">{notif.message}</div>
-                                    <div className="notification-item-time">{formatTime(notif.timestamp)}</div>
-                                </div>
-                            </div>
+                    <div className="p-3 border-t border-white/10">
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={newMsg}
+                                onChange={e => setNewMsg(e.target.value)}
+                                onKeyPress={e => e.key === 'Enter' && handleSend()}
+                                placeholder={t.typeMessage}
+                                className="input-dark flex-1 p-2 rounded text-sm"
+                            />
+                            <button onClick={handleSend} disabled={sending} className="btn-neon px-4 py-2 rounded">
+                                {t.send}
+                            </button>
                         </div>
-                    ))
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// GIFT PREVIEW MODAL - With Lucky Cashback
+// ==========================================
+const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false }) => { 
+    const t = TRANSLATIONS[lang];
+    const [previewCashback, setPreviewCashback] = useState(null);
+    
+    if(!show || !gift) return null; 
+    
+    useEffect(() => {
+        if (gift && show) {
+            const sample = generateRandomCashback(gift.minCashback || 1, gift.maxCashback || gift.cost);
+            setPreviewCashback(sample);
+        }
+    }, [gift, show]);
+    
+    return ( 
+        <div className="modal-overlay" onClick={onClose}> 
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.giftPreview}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body text-center">
+                    <div className="text-6xl mb-3">{gift.emoji}</div> 
+                    <h3 className="text-lg font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3> 
+                    <p className="text-xs text-gray-400 mb-4">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p> 
+                    
+                    <div className="grid grid-cols-2 gap-2 mb-4"> 
+                        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-2">
+                            <div className="text-[10px] text-gray-400">{t.charismaGain}</div>
+                            <div className="text-lg font-bold text-purple-400">+{formatCharisma(gift.charisma)}</div>
+                        </div> 
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-2">
+                            <div className="text-[10px] text-gray-400">{t.luckyCashback}</div>
+                            <div className="text-sm font-bold text-green-400">
+                                {(gift.minCashback || 1).toLocaleString()} - {(gift.maxCashback || gift.cost).toLocaleString()}
+                            </div>
+                        </div> 
+                    </div>
+                    
+                    <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg p-2 mb-3">
+                        <div className="text-[10px] text-gray-400">{t.luckBonus}</div>
+                        <div className="text-xl font-bold text-yellow-400 animate-pulse">
+                            +{previewCashback?.toLocaleString() || 0} 🧠
+                        </div>
+                    </div>
+                </div>
+                <div className="modal-footer">
+                    <div className="flex gap-2">
+                        <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.reportCancel}</button> 
+                        <button onClick={() => onBuy(gift)} disabled={currency < gift.cost} className={`flex-1 py-2 rounded-lg text-sm font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>
+                            {isSending ? t.sendToFriend : t.buy} ({gift.cost} 🧠)
+                        </button> 
+                    </div>
+                </div>
+            </div>
+        </div> 
+    ); 
+};
+
+// ==========================================
+// SEND GIFT MODAL
+// ==========================================
+const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency }) => { 
+    const t = TRANSLATIONS[lang]; 
+    const [selectedGift, setSelectedGift] = useState(null); 
+    const [showPreview, setShowPreview] = useState(false); 
+    
+    if(!show || !targetUser) return null; 
+    
+    const gifts = SHOP_ITEMS.gifts; 
+    
+    const handleSend = async (gift) => { 
+        if (onSendGift) { 
+            await onSendGift(gift, targetUser); 
+        } 
+        onClose(); 
+    }; 
+    
+    return ( 
+        <> 
+            <div className="modal-overlay" onClick={onClose}> 
+                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <h2 className="modal-title">{t.sendGift}</h2>
+                        <ModalCloseBtn onClose={onClose} />
+                    </div> 
+                    <div className="modal-body">
+                        <div className="flex items-center gap-2 mb-3 p-2 bg-white/5 rounded-lg"> 
+                            <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
+                            <div>
+                                <div className="font-bold text-sm">{targetUser.displayName}</div>
+                                <div className="text-[10px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div>
+                            </div> 
+                        </div> 
+                        <div className="flex items-center gap-2 mb-3 text-xs text-yellow-400">
+                            <span>🧠 {currency} {CURRENCY_NAME}</span>
+                        </div> 
+                        <div className="grid grid-cols-5 gap-2 max-h-[300px] overflow-y-auto"> 
+                            {gifts.map(gift => ( 
+                                <button 
+                                    key={gift.id} 
+                                    onClick={() => { setSelectedGift(gift); setShowPreview(true); }} 
+                                    disabled={currency < gift.cost} 
+                                    className={`gift-card flex flex-col items-center justify-center p-2 rounded-lg transition ${currency >= gift.cost ? 'hover:border-yellow-400 hover:bg-yellow-500/10' : 'opacity-40 cursor-not-allowed'}`}
+                                > 
+                                    <span className="text-2xl">{gift.emoji}</span>
+                                    <span className="text-[10px] font-bold text-yellow-400">{gift.cost}</span> 
+                                </button> 
+                            ))}
+                        </div>
+                    </div> 
+                </div> 
+            </div> 
+            <GiftPreviewModal show={showPreview} onClose={() => setShowPreview(false)} gift={selectedGift} lang={lang} onBuy={(gift) => handleSend(gift)} currency={currency} isSending={true} /> 
+        </> 
+    ); 
+};
+
+// ==========================================
+// REPORT MODAL
+// ==========================================
+const ReportModal = ({ show, onClose, targetUser, currentUser, lang }) => {
+    const t = TRANSLATIONS[lang];
+    const [reason, setReason] = useState('');
+    const [submitted, setSubmitted] = useState(false);
+    
+    if(!show || !targetUser) return null;
+    
+    const handleSubmit = async () => {
+        if (!reason) return;
+        try {
+            await reportsCollection.add({
+                reporterId: currentUser.uid,
+                reporterName: currentUser.displayName,
+                targetId: targetUser.uid,
+                targetName: targetUser.displayName,
+                reason: reason,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            setSubmitted(true);
+            setTimeout(() => { setSubmitted(false); onClose(); }, 1500);
+        } catch (e) { console.error(e); }
+    };
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.reportTitle}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body">
+                    {submitted ? (
+                        <div className="text-center py-4 text-green-400">{t.reportSent}</div>
+                    ) : (
+                        <>
+                            <p className="text-sm text-gray-400 mb-3">{t.reportDesc}</p>
+                            <div className="space-y-2">
+                                {['Abusive', 'Cheating', 'Spam', 'Other'].map(r => (
+                                    <button key={r} onClick={() => setReason(r.toLowerCase())}
+                                        className={`w-full text-left p-2 rounded text-sm ${reason === r.toLowerCase() ? 'bg-primary/20 border border-primary' : 'bg-white/5'}`}>
+                                        {t[`reportReason${r}`]}
+                                    </button>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+                {!submitted && (
+                    <div className="modal-footer">
+                        <button onClick={handleSubmit} disabled={!reason} className="btn-danger w-full py-2 rounded-lg text-sm">{t.reportSubmit}</button>
+                    </div>
                 )}
             </div>
         </div>
@@ -915,35 +961,334 @@ const NotificationCenter = ({ show, onClose, notifications, onClearAll, onMarkRe
 };
 
 // ==========================================
-// KD CIRCLE
+// SHOP MODAL - With Inventory Tab
 // ==========================================
-const KDCircle = ({ wins, losses, lang }) => { 
+const ShopModal = ({ show, onClose, userData, lang, onUpdate, onSendInventoryGift, friendsData }) => { 
     const t = TRANSLATIONS[lang]; 
-    const total = wins + losses; 
-    const ratio = total > 0 ? wins / total : 0; 
-    const percentage = Math.round(ratio * 100); 
-    const size = 100; const strokeWidth = 6; 
-    const radius = (size - strokeWidth) / 2; 
-    const circumference = 2 * Math.PI * radius; 
-    const offset = circumference - (ratio * circumference); 
+    const [tab, setTab] = useState('frames'); 
+    const [msg, setMsg] = useState(''); 
+    const [selectedGift, setSelectedGift] = useState(null); 
+    const [showGiftPreview, setShowGiftPreview] = useState(false); 
+    const [showSendToFriend, setShowSendToFriend] = useState(false);
+    const [selectedInventoryGift, setSelectedInventoryGift] = useState(null);
+    
+    if(!show || !userData) return null; 
+    
+    const currency = userData.currency || 0; 
+    const inventory = userData.inventory || { frames: [], titles: [], themes: [], gifts: [], badges: [] }; 
+    const equipped = userData.equipped || {}; 
+    
+    const handleBuy = async (item) => { 
+        if(inventory[item.type]?.includes(item.id)) { setMsg(t.alreadyOwned); setTimeout(() => setMsg(''), 2000); return; } 
+        if(currency < item.cost) { setMsg(t.purchaseFail); setTimeout(() => setMsg(''), 2000); return; } 
+        const newCurrency = currency - item.cost; 
+        const newInventory = { ...inventory }; 
+        newInventory[item.type] = [...(newInventory[item.type] || []), item.id]; 
+        await usersCollection.doc(userData.uid).update({ currency: newCurrency, inventory: newInventory }); 
+        setMsg(t.purchaseSuccess); setTimeout(() => setMsg(''), 2000); if(onUpdate) onUpdate(); 
+    }; 
+    
+    const handleBuyGiftForSelf = async (gift) => { 
+        if(currency < gift.cost) { setMsg(t.purchaseFail); setTimeout(() => setMsg(''), 2000); return; } 
+        
+        const luckyCashback = generateRandomCashback(gift.minCashback || 1, gift.maxCashback || gift.cost);
+        
+        const newCurrency = currency - gift.cost + luckyCashback; 
+        const newInventory = { ...inventory }; 
+        
+        const existingGiftIndex = (newInventory.gifts || []).findIndex(g => g.id === gift.id);
+        if (existingGiftIndex >= 0) { 
+            newInventory.gifts[existingGiftIndex].count += 1; 
+        } else { 
+            newInventory.gifts = [...(newInventory.gifts || []), { id: gift.id, count: 1 }]; 
+        }
+        
+        await usersCollection.doc(userData.uid).update({ currency: newCurrency, inventory: newInventory }); 
+        
+        const isJackpot = luckyCashback >= (gift.maxCashback * 0.8);
+        if (isJackpot) {
+            playSound('jackpot');
+            setMsg(`🎉 JACKPOT! +${luckyCashback.toLocaleString()} Cashback!`);
+        } else {
+            playSound('gift');
+            setMsg(`${t.purchaseSuccess} +${luckyCashback.toLocaleString()} 💰`);
+        }
+        
+        setTimeout(() => setMsg(''), 3000); 
+        setShowGiftPreview(false); 
+        if(onUpdate) onUpdate(); 
+    }; 
+    
+    const handleEquip = async (type, id) => {
+        const newEquipped = { ...equipped, [type]: id };
+        await usersCollection.doc(userData.uid).update({ equipped: newEquipped });
+        if(onUpdate) onUpdate();
+    };
+    
+    const handleUnequip = async (type) => {
+        const newEquipped = { ...equipped };
+        delete newEquipped[type];
+        await usersCollection.doc(userData.uid).update({ equipped: newEquipped });
+        if(onUpdate) onUpdate();
+    };
+    
+    const openSendToFriend = (gift) => { 
+        setSelectedInventoryGift(gift); 
+        setShowSendToFriend(true); 
+    };
+    
+    const items = SHOP_ITEMS[tab] || []; 
+    const inventoryGifts = (inventory.gifts || []).map(g => { 
+        const giftDetails = SHOP_ITEMS.gifts.find(gd => gd.id === g.id); 
+        return { ...giftDetails, count: g.count }; 
+    }).filter(g => g.id);
+    
+    const tabs = ['frames', 'titles', 'badges', 'themes', 'gifts', 'inventory'];
+    
     return ( 
-        <div className="kd-circle-container" style={{ width: size, height: size }}> 
-            <svg width={size} height={size}> 
-                <defs><linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="var(--secondary)" /><stop offset="100%" stopColor="var(--primary)" /></linearGradient></defs> 
-                <circle className="kd-circle-bg" cx={size/2} cy={size/2} r={radius} /> 
-                <circle className="kd-circle-progress" cx={size/2} cy={size/2} r={radius} strokeDasharray={circumference} strokeDashoffset={offset} /> 
-            </svg> 
-            <div className="kd-text"><span className="kd-value">{percentage}%</span><span className="kd-label">{t.winRate}</span></div> 
-        </div> 
+        <> 
+            <div className="modal-overlay" onClick={onClose}> 
+                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <h2 className="modal-title">{t.shop}</h2>
+                        <div className="flex items-center gap-2">
+                            <span className="text-yellow-400 font-bold text-sm">{CURRENCY_ICON} {currency}</span>
+                            <ModalCloseBtn onClose={onClose} />
+                        </div>
+                    </div> 
+                    <div className="modal-body">
+                        <div className="flex gap-1 mb-3 overflow-x-auto pb-2">
+                            {tabs.map(k => (
+                                <button 
+                                    key={k} 
+                                    onClick={() => setTab(k)} 
+                                    className={`tab-button whitespace-nowrap text-[11px] px-3 py-2 ${tab === k ? 'active' : ''}`}
+                                >
+                                    {t[k] || k}
+                                    {k === 'inventory' && inventoryGifts.length > 0 && (
+                                        <span className="ml-1 bg-yellow-500 text-black text-[10px] px-1 rounded-full">
+                                            {inventoryGifts.reduce((acc, g) => acc + g.count, 0)}
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        {msg && <div className="text-center text-xs text-cyan-400 mb-2 animate-pop bg-cyan-500/10 py-2 rounded-lg">{msg}</div>}
+                        
+                        {tab === 'inventory' && (
+                            <div>
+                                {inventoryGifts.length > 0 && (
+                                    <div className="mb-4">
+                                        <h4 className="text-xs font-bold text-gray-400 mb-2">{t.gifts} ({inventoryGifts.reduce((acc, g) => acc + g.count, 0)})</h4>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {inventoryGifts.map(gift => (
+                                                <div key={gift.id} className="bg-white/5 border border-white/10 rounded-lg p-2 text-center">
+                                                    <span className="text-2xl">{gift.emoji}</span>
+                                                    <div className="text-[10px] text-gray-400">x{gift.count}</div>
+                                                    <div className="text-[10px] text-purple-400">+{formatCharisma(gift.charisma)}</div>
+                                                    <button 
+                                                        onClick={() => openSendToFriend(gift)} 
+                                                        className="btn-neon w-full py-1 rounded text-[10px] mt-1"
+                                                    >
+                                                        {t.sendToFriend}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {(inventory.frames || []).length > 0 && (
+                                    <div className="mb-4">
+                                        <h4 className="text-xs font-bold text-gray-400 mb-2">{t.frames}</h4>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {(inventory.frames || []).map(frameId => {
+                                                const frame = SHOP_ITEMS.frames.find(f => f.id === frameId);
+                                                if (!frame) return null;
+                                                const isEquipped = equipped.frames === frameId;
+                                                return (
+                                                    <div key={frameId} className={`rounded-lg p-2 text-center ${isEquipped ? 'bg-primary/20 border border-primary' : 'bg-white/5 border border-white/10'}`}>
+                                                        <div className="w-10 h-10 mx-auto rounded-full relative">
+                                                            <div className="absolute inset-0 bg-gray-700 rounded-full"></div>
+                                                            {frame.preview?.startsWith('http') ? (
+                                                                <img src={frame.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt="frame" />
+                                                            ) : (
+                                                                <div className="absolute inset-0 rounded-full" style={{ background: frame.preview }}></div>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-[10px] text-gray-300 mt-1 truncate">{lang === 'ar' ? frame.name_ar : frame.name_en}</div>
+                                                        {isEquipped ? (
+                                                            <button onClick={() => handleUnequip('frames')} className="btn-unequip w-full py-1 rounded text-[10px] mt-1">{t.unequip}</button>
+                                                        ) : (
+                                                            <button onClick={() => handleEquip('frames', frameId)} className="btn-ghost w-full py-1 rounded text-[10px] mt-1">{t.equip}</button>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {(inventory.titles || []).length > 0 && (
+                                    <div className="mb-4">
+                                        <h4 className="text-xs font-bold text-gray-400 mb-2">{t.titles}</h4>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {(inventory.titles || []).map(titleId => {
+                                                const title = SHOP_ITEMS.titles.find(t => t.id === titleId);
+                                                if (!title) return null;
+                                                const isEquipped = equipped.titles === titleId;
+                                                return (
+                                                    <div key={titleId} className={`rounded-lg p-2 text-center ${isEquipped ? 'bg-primary/20 border border-primary' : 'bg-white/5 border border-white/10'}`}>
+                                                        <div className="text-sm font-bold text-primary">{title.name_en}</div>
+                                                        <div className="text-[10px] text-gray-400">{title.name_ar}</div>
+                                                        {isEquipped ? (
+                                                            <button onClick={() => handleUnequip('titles')} className="btn-unequip w-full py-1 rounded text-[10px] mt-1">{t.unequip}</button>
+                                                        ) : (
+                                                            <button onClick={() => handleEquip('titles', titleId)} className="btn-ghost w-full py-1 rounded text-[10px] mt-1">{t.equip}</button>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {(inventory.badges || []).length > 0 && (
+                                    <div className="mb-4">
+                                        <h4 className="text-xs font-bold text-gray-400 mb-2">{t.badges}</h4>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {(inventory.badges || []).map(badgeId => {
+                                                const badge = SHOP_ITEMS.badges.find(b => b.id === badgeId);
+                                                if (!badge) return null;
+                                                const isEquipped = equipped.badges === badgeId;
+                                                return (
+                                                    <div key={badgeId} className={`rounded-lg p-2 text-center ${isEquipped ? 'bg-primary/20 border border-primary' : 'bg-white/5 border border-white/10'}`}>
+                                                        <span className="text-2xl">{badge.preview}</span>
+                                                        <div className="text-[10px] text-gray-300 mt-1 truncate">{lang === 'ar' ? badge.name_ar : badge.name_en}</div>
+                                                        {isEquipped ? (
+                                                            <button onClick={() => handleUnequip('badges')} className="btn-unequip w-full py-1 rounded text-[10px] mt-1">{t.unequip}</button>
+                                                        ) : (
+                                                            <button onClick={() => handleEquip('badges', badgeId)} className="btn-ghost w-full py-1 rounded text-[10px] mt-1">{t.equip}</button>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {inventoryGifts.length === 0 && (inventory.frames || []).length === 0 && (inventory.titles || []).length === 0 && (inventory.badges || []).length === 0 && (
+                                    <div className="text-center py-8 text-gray-400">
+                                        <div className="text-4xl mb-2">📦</div>
+                                        <p className="text-sm">{t.inventory} Empty</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        
+                        {tab !== 'inventory' && tab !== 'gifts' && (
+                            <div className="grid grid-cols-3 gap-2">
+                                {items.map(item => {
+                                    const owned = inventory[item.type]?.includes(item.id);
+                                    return (
+                                        <div key={item.id} className={`rounded-lg p-2 text-center ${owned ? 'bg-green-500/10 border border-green-500/30' : 'bg-white/5 border border-white/10'}`}>
+                                            {item.type === 'frames' && (
+                                                <div className="w-12 h-12 mx-auto rounded-full relative mb-1">
+                                                    <div className="absolute inset-0 bg-gray-700 rounded-full"></div>
+                                                    {item.preview?.startsWith('http') ? (
+                                                        <img src={item.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt="frame" />
+                                                    ) : (
+                                                        <div className="absolute inset-0 rounded-full" style={{ background: item.preview }}></div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {item.type === 'badges' && (
+                                                <span className="text-3xl">{item.preview}</span>
+                                            )}
+                                            {item.type === 'titles' && (
+                                                <div className="text-sm font-bold text-primary">{item.name_en}</div>
+                                            )}
+                                            {item.type === 'themes' && (
+                                                <div className="text-2xl">🌙</div>
+                                            )}
+                                            <div className="text-[10px] text-gray-300 mt-1">{lang === 'ar' ? item.name_ar : item.name_en}</div>
+                                            <div className="text-[10px] font-bold text-yellow-400">{item.cost} 🧠</div>
+                                            {owned ? (
+                                                <div className="text-[10px] text-green-400 mt-1">{t.owned}</div>
+                                            ) : (
+                                                <button onClick={() => handleBuy(item)} disabled={currency < item.cost} 
+                                                    className={`w-full py-1 rounded text-[10px] mt-1 ${currency >= item.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>
+                                                    {t.buy}
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        
+                        {tab === 'gifts' && (
+                            <div className="grid grid-cols-4 gap-2 max-h-[400px] overflow-y-auto">
+                                {items.map(gift => (
+                                    <button key={gift.id} onClick={() => { setSelectedGift(gift); setShowGiftPreview(true); }}
+                                        disabled={currency < gift.cost}
+                                        className={`gift-card flex flex-col items-center justify-center p-2 rounded-lg transition ${currency >= gift.cost ? 'hover:border-yellow-400 hover:bg-yellow-500/10' : 'opacity-40 cursor-not-allowed'}`}>
+                                        <span className="text-2xl">{gift.emoji}</span>
+                                        <span className="text-[10px] font-bold text-yellow-400">{gift.cost}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div> 
+            </div> 
+            <GiftPreviewModal show={showGiftPreview} onClose={() => setShowGiftPreview(false)} gift={selectedGift} lang={lang} onBuy={handleBuyGiftForSelf} currency={currency} /> 
+            <SendToFriendModal show={showSendToFriend} onClose={() => setShowSendToFriend(false)} gift={selectedInventoryGift} friendsData={friendsData} lang={lang} onSend={onSendInventoryGift} />
+        </> 
     ); 
 };
-// ==========================================
-// PRO SPY - COMPLETE SCRIPT PART 2 - V3
-// App Component with ALL New Features
-// ==========================================
 
 // ==========================================
-// MY ACCOUNT MODAL - IMPROVED
+// SEND TO FRIEND MODAL (From Inventory)
+// ==========================================
+const SendToFriendModal = ({ show, onClose, gift, friendsData, lang, onSend }) => {
+    const t = TRANSLATIONS[lang];
+    
+    if (!show || !gift || !friendsData || friendsData.length === 0) return null;
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.sendToFriend}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body">
+                    <div className="text-center mb-4">
+                        <span className="text-4xl">{gift.emoji}</span>
+                        <p className="text-sm text-gray-400 mt-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</p>
+                    </div>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                        {friendsData.map(friend => (
+                            <button key={friend.uid} onClick={() => { onSend(gift, friend); onClose(); }}
+                                className="w-full flex items-center gap-2 p-2 bg-white/5 rounded-lg hover:bg-white/10 transition">
+                                <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                                <div className="text-left">
+                                    <div className="font-bold text-sm">{friend.displayName}</div>
+                                    <div className="text-[10px] text-gray-400">{t.charisma}: {formatCharisma(friend.charisma || 0)}</div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// MY ACCOUNT MODAL
 // ==========================================
 const MyAccountModal = ({ show, onClose, userData, user, lang, onLogout, onOpenShop }) => {
     const t = TRANSLATIONS[lang];
@@ -1003,7 +1348,6 @@ const MyAccountModal = ({ show, onClose, userData, user, lang, onLogout, onOpenS
                             </div>
                         </div>
                         
-                        {/* Charisma with info button */}
                         <CharismaDisplay 
                             charisma={userData.charisma} 
                             lang={lang} 
@@ -1039,7 +1383,6 @@ const MyAccountModal = ({ show, onClose, userData, user, lang, onLogout, onOpenS
                             <span className="text-lg font-bold text-yellow-400">{userData.currency || 0} {CURRENCY_NAME}</span>
                         </div>
                         
-                        {/* Achievements Box */}
                         <AchievementsDisplay achievements={userData.achievements} lang={lang} showAll={false} />
                         
                         {!isGuest && (
@@ -1070,13 +1413,109 @@ const MyAccountModal = ({ show, onClose, userData, user, lang, onLogout, onOpenS
                 </div>
             </div>
             
-            {/* Charisma Levels Modal */}
             <CharismaLevelsModal 
                 show={showCharismaLevels} 
                 onClose={() => setShowCharismaLevels(false)} 
                 currentCharisma={userData.charisma || 0}
                 lang={lang}
             />
+        </>
+    );
+};
+
+// ==========================================
+// USER PROFILE MODAL
+// ==========================================
+const UserProfileModal = ({ show, onClose, targetUID, currentUser, lang, onSendGift, onAddFriend }) => {
+    const t = TRANSLATIONS[lang];
+    const [targetData, setTargetData] = useState(null);
+    const [showSendGift, setShowSendGift] = useState(false);
+    const [showReport, setShowReport] = useState(false);
+    const [showCharismaLevels, setShowCharismaLevels] = useState(false);
+    
+    useEffect(() => {
+        if (targetUID && show) {
+            usersCollection.doc(targetUID).get().then(doc => {
+                if (doc.exists) { setTargetData({ id: doc.id, ...doc.data() }); }
+            });
+        }
+    }, [targetUID, show]);
+    
+    if (!show || !targetData) return null;
+    
+    const stats = targetData.stats || { wins: 0, losses: 0, xp: 0 };
+    const level = calculateLevel(stats.xp || 0);
+    const isOwnProfile = currentUser?.uid === targetUID;
+    const isGuest = currentUser?.isAnonymous;
+    const isFriend = currentUser?.friends?.includes(targetUID);
+    
+    return (
+        <>
+            <div className="modal-overlay" onClick={onClose}>
+                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <h2 className="modal-title">{t.profile}</h2>
+                        <ModalCloseBtn onClose={onClose} />
+                    </div>
+                    <div className="modal-body">
+                        <div className="profile-header">
+                            <div className="profile-avatar-container">
+                                <AvatarWithFrame photoURL={targetData.photoURL} equipped={targetData.equipped} size="lg" />
+                            </div>
+                            <div className="flex items-center justify-center gap-2">
+                                <h3 className="profile-name">{targetData.displayName}</h3>
+                                <BadgeDisplay equipped={targetData.equipped} size="sm" />
+                            </div>
+                            {targetData.equipped?.titles && (
+                                <span className="profile-title bg-gradient-to-r from-purple-500 to-cyan-500 text-white">
+                                    {SHOP_ITEMS.titles.find(t => t.id === targetData.equipped.titles)?.name_en || ''}
+                                </span>
+                            )}
+                            <div className="profile-id"><span>ID: {targetData.customId}</span></div>
+                        </div>
+                        
+                        <CharismaDisplay 
+                            charisma={targetData.charisma} 
+                            lang={lang} 
+                            onShowLevels={() => setShowCharismaLevels(true)}
+                        />
+                        
+                        <div className="profile-stats">
+                            <div className="profile-stat"><div className="profile-stat-value">{stats.wins || 0}</div><div className="profile-stat-label">{t.wins}</div></div>
+                            <div className="profile-stat"><div className="profile-stat-value">{stats.losses || 0}</div><div className="profile-stat-label">{t.losses}</div></div>
+                            <div className="profile-stat"><div className="profile-stat-value">{level}</div><div className="profile-stat-label">{t.level}</div></div>
+                        </div>
+                        
+                        <KDCircle wins={stats.wins || 0} losses={stats.losses || 0} lang={lang} />
+                        
+                        <div className="mt-4">
+                            <AchievementsDisplay achievements={targetData.achievements} lang={lang} showAll={true} />
+                        </div>
+                        
+                        <div className="text-xs text-gray-400 text-center mt-4">{t.memberSince}: {formatDate(targetData.createdAt)}</div>
+                    </div>
+                    {!isOwnProfile && !isGuest && (
+                        <div className="modal-footer">
+                            <div className="flex gap-2">
+                                <button onClick={() => setShowSendGift(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🎁 {t.sendGift}</button>
+                                {!isFriend && (<button onClick={() => onAddFriend(targetUID)} className="btn-neon flex-1 py-2 rounded-lg text-sm">👋 {t.addFriend}</button>)}
+                            </div>
+                            <button onClick={() => setShowReport(true)} className="btn-ghost w-full py-2 rounded-lg text-xs text-red-400 mt-2">⚠️ {t.reportUser}</button>
+                        </div>
+                    )}
+                    {isGuest && !isOwnProfile && (<div className="modal-footer"><p className="text-xs text-gray-400 text-center">{t.noPermission}</p></div>)}
+                </div>
+            </div>
+            
+            <CharismaLevelsModal 
+                show={showCharismaLevels} 
+                onClose={() => setShowCharismaLevels(false)} 
+                currentCharisma={targetData.charisma || 0}
+                lang={lang}
+            />
+            
+            <SendGiftModal show={showSendGift} onClose={() => setShowSendGift(false)} targetUser={targetData} currentUser={currentUser} lang={lang} onSendGift={onSendGift} currency={currentUser?.currency || 0} />
+            <ReportModal show={showReport} onClose={() => setShowReport(false)} targetUser={targetData} currentUser={currentUser} lang={lang} />
         </>
     );
 };
@@ -1171,768 +1610,87 @@ const BrowseRoomsModal = ({ show, onClose, nickname, userData, lang, onJoin, isG
 };
 
 // ==========================================
-// USER PROFILE MODAL
+// NOTIFICATIONS MODAL
 // ==========================================
-const UserProfileModal = ({ show, onClose, targetUID, currentUser, lang, onSendGift, onAddFriend }) => {
+const NotificationsModal = ({ show, onClose, notifications, lang, onMarkRead, onClearAll }) => {
     const t = TRANSLATIONS[lang];
-    const [targetData, setTargetData] = useState(null);
-    const [showSendGift, setShowSendGift] = useState(false);
-    const [showReport, setShowReport] = useState(false);
-    const [showCharismaLevels, setShowCharismaLevels] = useState(false);
     
-    useEffect(() => {
-        if (targetUID && show) {
-            usersCollection.doc(targetUID).get().then(doc => {
-                if (doc.exists) { setTargetData({ id: doc.id, ...doc.data() }); }
-            });
-        }
-    }, [targetUID, show]);
-    
-    if (!show || !targetData) return null;
-    
-    const stats = targetData.stats || { wins: 0, losses: 0, xp: 0 };
-    const level = calculateLevel(stats.xp || 0);
-    const isOwnProfile = currentUser?.uid === targetUID;
-    const isGuest = currentUser?.isAnonymous;
-    const isFriend = currentUser?.friends?.includes(targetUID);
-    
-    return (
-        <>
-            <div className="modal-overlay" onClick={onClose}>
-                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <h2 className="modal-title">{t.profile}</h2>
-                        <ModalCloseBtn onClose={onClose} />
-                    </div>
-                    <div className="modal-body">
-                        <div className="profile-header">
-                            <div className="profile-avatar-container">
-                                <AvatarWithFrame photoURL={targetData.photoURL} equipped={targetData.equipped} size="lg" />
-                            </div>
-                            <div className="flex items-center justify-center gap-2">
-                                <h3 className="profile-name">{targetData.displayName}</h3>
-                                <BadgeDisplay equipped={targetData.equipped} size="sm" />
-                            </div>
-                            {targetData.equipped?.titles && (
-                                <span className="profile-title bg-gradient-to-r from-purple-500 to-cyan-500 text-white">
-                                    {SHOP_ITEMS.titles.find(t => t.id === targetData.equipped.titles)?.name_en || ''}
-                                </span>
-                            )}
-                            <div className="profile-id"><span>ID: {targetData.customId}</span></div>
-                        </div>
-                        
-                        <CharismaDisplay 
-                            charisma={targetData.charisma} 
-                            lang={lang} 
-                            onShowLevels={() => setShowCharismaLevels(true)}
-                        />
-                        
-                        <div className="profile-stats">
-                            <div className="profile-stat"><div className="profile-stat-value">{stats.wins || 0}</div><div className="profile-stat-label">{t.wins}</div></div>
-                            <div className="profile-stat"><div className="profile-stat-value">{stats.losses || 0}</div><div className="profile-stat-label">{t.losses}</div></div>
-                            <div className="profile-stat"><div className="profile-stat-value">{level}</div><div className="profile-stat-label">{t.level}</div></div>
-                        </div>
-                        
-                        <KDCircle wins={stats.wins || 0} losses={stats.losses || 0} lang={lang} />
-                        
-                        {/* Full Achievements Display */}
-                        <div className="mt-4">
-                            <AchievementsDisplay achievements={targetData.achievements} lang={lang} showAll={true} />
-                        </div>
-                        
-                        <div className="text-xs text-gray-400 text-center mt-4">{t.memberSince}: {formatDate(targetData.createdAt)}</div>
-                    </div>
-                    {!isOwnProfile && !isGuest && (
-                        <div className="modal-footer">
-                            <div className="flex gap-2">
-                                <button onClick={() => setShowSendGift(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🎁 {t.sendGift}</button>
-                                {!isFriend && (<button onClick={() => onAddFriend(targetUID)} className="btn-neon flex-1 py-2 rounded-lg text-sm">👋 {t.addFriend}</button>)}
-                            </div>
-                            <button onClick={() => setShowReport(true)} className="btn-ghost w-full py-2 rounded-lg text-xs text-red-400 mt-2">⚠️ {t.reportUser}</button>
-                        </div>
-                    )}
-                    {isGuest && !isOwnProfile && (<div className="modal-footer"><p className="text-xs text-gray-400 text-center">{t.noPermission}</p></div>)}
-                </div>
-            </div>
-            
-            <CharismaLevelsModal 
-                show={showCharismaLevels} 
-                onClose={() => setShowCharismaLevels(false)} 
-                currentCharisma={targetData.charisma || 0}
-                lang={lang}
-            />
-            
-            <SendGiftModal show={showSendGift} onClose={() => setShowSendGift(false)} targetUser={targetData} currentUser={currentUser} lang={lang} onSendGift={onSendGift} currency={currentUser?.currency || 0} />
-            <ReportModal show={showReport} onClose={() => setShowReport(false)} targetUser={targetData} currentUser={currentUser} lang={lang} />
-        </>
-    );
-};
-
-// ==========================================
-// GIFT PREVIEW MODAL - IMPROVED with Lucky Cashback
-// ==========================================
-const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false }) => { 
-    const t = TRANSLATIONS[lang];
-    const [previewCashback, setPreviewCashback] = useState(null);
-    
-    if(!show || !gift) return null; 
-    
-    // Generate preview cashback range
-    useEffect(() => {
-        if (gift && show) {
-            const sample = generateRandomCashback(gift.minCashback || 1, gift.maxCashback || gift.cost);
-            setPreviewCashback(sample);
-        }
-    }, [gift, show]);
-    
-    return ( 
-        <div className="modal-overlay" onClick={onClose}> 
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.giftPreview}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
-                <div className="modal-body text-center">
-                    {/* Gift Icon - Image or Emoji */}
-                    <div className="text-6xl mb-3">
-                        {gift.iconUrl ? (
-                            <img src={gift.iconUrl} alt={gift.name_en} className="w-16 h-16 mx-auto object-contain" />
-                        ) : (
-                            gift.emoji
-                        )}
-                    </div> 
-                    <h3 className="text-lg font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3> 
-                    <p className="text-xs text-gray-400 mb-4">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p> 
-                    
-                    <div className="grid grid-cols-2 gap-2 mb-4"> 
-                        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-2">
-                            <div className="text-[10px] text-gray-400">{t.charismaGain}</div>
-                            <div className="text-lg font-bold text-purple-400">+{formatCharisma(gift.charisma)}</div>
-                        </div> 
-                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-2">
-                            <div className="text-[10px] text-gray-400">{t.luckyCashback}</div>
-                            <div className="text-sm font-bold text-green-400">
-                                {(gift.minCashback || 1).toLocaleString()} - {(gift.maxCashback || gift.cost * 10).toLocaleString()}
-                            </div>
-                        </div> 
-                    </div>
-                    
-                    <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg p-2 mb-3">
-                        <div className="text-[10px] text-gray-400">{t.luckBonus}</div>
-                        <div className="text-xl font-bold text-yellow-400 animate-pulse">
-                            +{previewCashback?.toLocaleString() || 0} 🧠
-                        </div>
-                    </div>
-                </div>
-                <div className="modal-footer">
-                    <div className="flex gap-2">
-                        <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.reportCancel}</button> 
-                        <button onClick={() => onBuy(gift)} disabled={currency < gift.cost} className={`flex-1 py-2 rounded-lg text-sm font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>
-                            {isSending ? t.sendToFriend : t.buy} ({gift.cost} 🧠)
-                        </button> 
-                    </div>
-                </div>
-            </div>
-        </div> 
-    ); 
-};
-
-// ==========================================
-// SEND GIFT MODAL
-// ==========================================
-const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const [selectedGift, setSelectedGift] = useState(null); 
-    const [showPreview, setShowPreview] = useState(false); 
-    
-    if(!show || !targetUser) return null; 
-    
-    const gifts = SHOP_ITEMS.gifts; 
-    
-    const handleSend = async (gift) => { 
-        if (onSendGift) { 
-            await onSendGift(gift, targetUser); 
-        } 
-        onClose(); 
-    }; 
-    
-    return ( 
-        <> 
-            <div className="modal-overlay" onClick={onClose}> 
-                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <h2 className="modal-title">{t.sendGift}</h2>
-                        <ModalCloseBtn onClose={onClose} />
-                    </div> 
-                    <div className="modal-body">
-                        <div className="flex items-center gap-2 mb-3 p-2 bg-white/5 rounded-lg"> 
-                            <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
-                            <div>
-                                <div className="font-bold text-sm">{targetUser.displayName}</div>
-                                <div className="text-[10px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div>
-                            </div> 
-                        </div> 
-                        <div className="flex items-center gap-2 mb-3 text-xs text-yellow-400">
-                            <span>🧠 {currency} {CURRENCY_NAME}</span>
-                        </div> 
-                        <div className="grid grid-cols-5 gap-2 max-h-[300px] overflow-y-auto"> 
-                            {gifts.map(gift => ( 
-                                <button 
-                                    key={gift.id} 
-                                    onClick={() => { setSelectedGift(gift); setShowPreview(true); }} 
-                                    disabled={currency < gift.cost} 
-                                    className={`gift-card flex flex-col items-center justify-center p-2 rounded-lg transition ${currency >= gift.cost ? 'hover:border-yellow-400 hover:bg-yellow-500/10' : 'opacity-40 cursor-not-allowed'}`}
-                                > 
-                                    {gift.iconUrl ? (
-                                        <img src={gift.iconUrl} alt={gift.name_en} className="w-8 h-8 object-contain" />
-                                    ) : (
-                                        <span className="text-2xl">{gift.emoji}</span>
-                                    )}
-                                    <span className="text-[10px] font-bold text-yellow-400">{gift.cost}</span> 
-                                </button> 
-                            ))}
-                        </div>
-                    </div> 
-                </div> 
-            </div> 
-            <GiftPreviewModal show={showPreview} onClose={() => setShowPreview(false)} gift={selectedGift} lang={lang} onBuy={(gift) => handleSend(gift)} currency={currency} isSending={true} /> 
-        </> 
-    ); 
-};
-
-// ==========================================
-// SHOP MODAL - IMPROVED with Inventory Tab
-// ==========================================
-const ShopModal = ({ show, onClose, userData, lang, onUpdate, onSendInventoryGift, friendsData }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const [tab, setTab] = useState('frames'); 
-    const [msg, setMsg] = useState(''); 
-    const [selectedGift, setSelectedGift] = useState(null); 
-    const [showGiftPreview, setShowGiftPreview] = useState(false); 
-    const [showSendToFriend, setShowSendToFriend] = useState(false);
-    const [selectedInventoryGift, setSelectedInventoryGift] = useState(null);
-    
-    if(!show || !userData) return null; 
-    
-    const currency = userData.currency || 0; 
-    const inventory = userData.inventory || { frames: [], titles: [], themes: [], gifts: [], badges: [] }; 
-    const equipped = userData.equipped || {}; 
-    
-    const handleBuy = async (item) => { 
-        if(inventory[item.type]?.includes(item.id)) { setMsg(t.alreadyOwned); setTimeout(() => setMsg(''), 2000); return; } 
-        if(currency < item.cost) { setMsg(t.purchaseFail); setTimeout(() => setMsg(''), 2000); return; } 
-        const newCurrency = currency - item.cost; 
-        const newInventory = { ...inventory }; 
-        newInventory[item.type] = [...(newInventory[item.type] || []), item.id]; 
-        await usersCollection.doc(userData.uid).update({ currency: newCurrency, inventory: newInventory }); 
-        setMsg(t.purchaseSuccess); setTimeout(() => setMsg(''), 2000); if(onUpdate) onUpdate(); 
-    }; 
-    
-    const handleBuyGiftForSelf = async (gift) => { 
-        if(currency < gift.cost) { setMsg(t.purchaseFail); setTimeout(() => setMsg(''), 2000); return; } 
-        
-        // Generate random lucky cashback
-        const luckyCashback = generateRandomCashback(gift.minCashback || 1, gift.maxCashback || gift.cost);
-        
-        const newCurrency = currency - gift.cost + luckyCashback; 
-        const newInventory = { ...inventory }; 
-        
-        // Add gift to inventory instead of auto-adding charisma
-        const existingGiftIndex = (newInventory.gifts || []).findIndex(g => g.id === gift.id);
-        if (existingGiftIndex >= 0) { 
-            newInventory.gifts[existingGiftIndex].count += 1; 
-        } else { 
-            newInventory.gifts = [...(newInventory.gifts || []), { id: gift.id, count: 1 }]; 
-        }
-        
-        await usersCollection.doc(userData.uid).update({ currency: newCurrency, inventory: newInventory }); 
-        
-        // Show cashback message
-        const isJackpot = luckyCashback >= (gift.maxCashback * 0.8);
-        if (isJackpot) {
-            playSound('jackpot');
-            setMsg(`🎉 JACKPOT! +${luckyCashback.toLocaleString()} Cashback!`);
-        } else {
-            playSound('gift');
-            setMsg(`${t.purchaseSuccess} +${luckyCashback.toLocaleString()} 💰`);
-        }
-        
-        setTimeout(() => setMsg(''), 3000); 
-        setShowGiftPreview(false); 
-        if(onUpdate) onUpdate(); 
-    }; 
-    
-    const handleEquip = async (type, id) => {
-        const newEquipped = { ...equipped, [type]: id };
-        await usersCollection.doc(userData.uid).update({ equipped: newEquipped });
-        if(onUpdate) onUpdate();
-    };
-    
-    const handleUnequip = async (type) => {
-        const newEquipped = { ...equipped };
-        delete newEquipped[type];
-        await usersCollection.doc(userData.uid).update({ equipped: newEquipped });
-        if(onUpdate) onUpdate();
-    };
-    
-    const openSendToFriend = (gift) => { 
-        setSelectedInventoryGift(gift); 
-        setShowSendToFriend(true); 
-    };
-    
-    const items = SHOP_ITEMS[tab] || []; 
-    const inventoryGifts = (inventory.gifts || []).map(g => { 
-        const giftDetails = SHOP_ITEMS.gifts.find(gd => gd.id === g.id); 
-        return { ...giftDetails, count: g.count }; 
-    }).filter(g => g.id);
-    
-    const tabs = ['frames', 'titles', 'badges', 'themes', 'gifts', 'inventory'];
-    
-    return ( 
-        <> 
-            <div className="modal-overlay" onClick={onClose}> 
-                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <h2 className="modal-title">{t.shop}</h2>
-                        <div className="flex items-center gap-2">
-                            <span className="text-yellow-400 font-bold text-sm">{CURRENCY_ICON} {currency}</span>
-                            <ModalCloseBtn onClose={onClose} />
-                        </div>
-                    </div> 
-                    <div className="modal-body">
-                        {/* Tab Navigation */}
-                        <div className="flex gap-1 mb-3 overflow-x-auto pb-2">
-                            {tabs.map(k => (
-                                <button 
-                                    key={k} 
-                                    onClick={() => setTab(k)} 
-                                    className={`tab-button whitespace-nowrap text-[11px] px-3 py-2 ${tab === k ? 'active' : ''}`}
-                                >
-                                    {t[k] || k}
-                                    {k === 'inventory' && inventoryGifts.length > 0 && (
-                                        <span className="ml-1 bg-yellow-500 text-black text-[10px] px-1 rounded-full">
-                                            {inventoryGifts.reduce((acc, g) => acc + g.count, 0)}
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                        
-                        {msg && <div className="text-center text-xs text-cyan-400 mb-2 animate-pop bg-cyan-500/10 py-2 rounded-lg">{msg}</div>}
-                        
-                        {/* Inventory Tab - Show owned items */}
-                        {tab === 'inventory' && (
-                            <div>
-                                {/* Inventory Gifts */}
-                                {inventoryGifts.length > 0 && (
-                                    <div className="mb-4">
-                                        <h4 className="text-xs font-bold text-gray-400 mb-2">{t.gifts} ({inventoryGifts.reduce((acc, g) => acc + g.count, 0)})</h4>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {inventoryGifts.map(gift => (
-                                                <div key={gift.id} className="bg-white/5 border border-white/10 rounded-lg p-2 text-center">
-                                                    {gift.iconUrl ? (
-                                                        <img src={gift.iconUrl} alt={gift.name_en} className="w-8 h-8 mx-auto object-contain" />
-                                                    ) : (
-                                                        <span className="text-2xl">{gift.emoji}</span>
-                                                    )}
-                                                    <div className="text-[10px] text-gray-400">x{gift.count}</div>
-                                                    <div className="text-[10px] text-purple-400">+{formatCharisma(gift.charisma)}</div>
-                                                    <button 
-                                                        onClick={() => openSendToFriend(gift)} 
-                                                        className="btn-neon w-full py-1 rounded text-[10px] mt-1"
-                                                    >
-                                                        {t.sendToFriend}
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                {/* Owned Frames */}
-                                {(inventory.frames || []).length > 0 && (
-                                    <div className="mb-4">
-                                        <h4 className="text-xs font-bold text-gray-400 mb-2">{t.frames}</h4>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {(inventory.frames || []).map(frameId => {
-                                                const frame = SHOP_ITEMS.frames.find(f => f.id === frameId);
-                                                if (!frame) return null;
-                                                const isEquipped = equipped.frames === frameId;
-                                                return (
-                                                    <div key={frameId} className={`rounded-lg p-2 text-center ${isEquipped ? 'bg-primary/20 border border-primary' : 'bg-white/5 border border-white/10'}`}>
-                                                        <div className="w-10 h-10 mx-auto rounded-full relative">
-                                                            <div className="absolute inset-0 bg-gray-700 rounded-full"></div>
-                                                            {frame.preview?.startsWith('http') ? (
-                                                                <img src={frame.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt="frame" />
-                                                            ) : (
-                                                                <div className="absolute inset-0 rounded-full" style={{ background: frame.preview }}></div>
-                                                            )}
-                                                        </div>
-                                                        <div className="text-[10px] text-gray-300 mt-1 truncate">{lang === 'ar' ? frame.name_ar : frame.name_en}</div>
-                                                        {isEquipped ? (
-                                                            <button onClick={() => handleUnequip('frames')} className="btn-unequip w-full py-1 rounded text-[10px] mt-1">{t.unequip}</button>
-                                                        ) : (
-                                                            <button onClick={() => handleEquip('frames', frameId)} className="btn-ghost w-full py-1 rounded text-[10px] mt-1">{t.equip}</button>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                {/* Owned Titles */}
-                                {(inventory.titles || []).length > 0 && (
-                                    <div className="mb-4">
-                                        <h4 className="text-xs font-bold text-gray-400 mb-2">{t.titles}</h4>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {(inventory.titles || []).map(titleId => {
-                                                const title = SHOP_ITEMS.titles.find(t => t.id === titleId);
-                                                if (!title) return null;
-                                                const isEquipped = equipped.titles === titleId;
-                                                return (
-                                                    <div key={titleId} className={`rounded-lg p-2 text-center ${isEquipped ? 'bg-primary/20 border border-primary' : 'bg-white/5 border border-white/10'}`}>
-                                                        <div className="text-sm font-bold text-primary">{title.name_en}</div>
-                                                        <div className="text-[10px] text-gray-400">{title.name_ar}</div>
-                                                        {isEquipped ? (
-                                                            <button onClick={() => handleUnequip('titles')} className="btn-unequip w-full py-1 rounded text-[10px] mt-1">{t.unequip}</button>
-                                                        ) : (
-                                                            <button onClick={() => handleEquip('titles', titleId)} className="btn-ghost w-full py-1 rounded text-[10px] mt-1">{t.equip}</button>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                {/* Owned Badges */}
-                                {(inventory.badges || []).length > 0 && (
-                                    <div className="mb-4">
-                                        <h4 className="text-xs font-bold text-gray-400 mb-2">{t.badges}</h4>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {(inventory.badges || []).map(badgeId => {
-                                                const badge = SHOP_ITEMS.badges.find(b => b.id === badgeId);
-                                                if (!badge) return null;
-                                                const isEquipped = equipped.badges === badgeId;
-                                                return (
-                                                    <div key={badgeId} className={`rounded-lg p-2 text-center ${isEquipped ? 'bg-primary/20 border border-primary' : 'bg-white/5 border border-white/10'}`}>
-                                                        {badge.iconUrl ? (
-                                                            <img src={badge.iconUrl} alt={badge.name_en} className="w-8 h-8 mx-auto object-contain" />
-                                                        ) : (
-                                                            <span className="text-2xl">{badge.preview}</span>
-                                                        )}
-                                                        <div className="text-[10px] text-gray-300 mt-1 truncate">{lang === 'ar' ? badge.name_ar : badge.name_en}</div>
-                                                        {isEquipped ? (
-                                                            <button onClick={() => handleUnequip('badges')} className="btn-unequip w-full py-1 rounded text-[10px] mt-1">{t.unequip}</button>
-                                                        ) : (
-                                                            <button onClick={() => handleEquip('badges', badgeId)} className="btn-ghost w-full py-1 rounded text-[10px] mt-1">{t.equip}</button>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                {/* Empty inventory message */}
-                                {inventoryGifts.length === 0 && (inventory.frames || []).length === 0 && (inventory.titles || []).length === 0 && (inventory.badges || []).length === 0 && (
-                                    <div className="text-center py-8 text-gray-400">
-                                        <div className="text-4xl mb-2">📦</div>
-                                        <p className="text-sm">{t.myInventory}</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        
-                        {/* Shop Items Grid */}
-                        {tab !== 'inventory' && (
-                            <div className="grid grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto"> 
-                                {items.map(item => { 
-                                    const owned = item.type !== 'gifts' && inventory[item.type]?.includes(item.id); 
-                                    const isEquipped = equipped[item.type] === item.id; 
-                                    return ( 
-                                        <div key={item.id} className={`inventory-item ${isEquipped ? 'equipped' : ''}`}> 
-                                            <div className="inventory-item-preview">
-                                                {item.type === 'frames' && (
-                                                    <div className="w-10 h-10 rounded-full relative">
-                                                        <div className="absolute inset-0 bg-gray-700 rounded-full"></div>
-                                                        {item.preview?.startsWith('http') ? (
-                                                            <img src={item.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt="frame" />
-                                                        ) : (
-                                                            <div className="absolute inset-0 rounded-full" style={{ background: item.preview, padding: '2px' }}>
-                                                                <div className="w-full h-full rounded-full bg-gray-800"></div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                {item.type === 'titles' && <span className="text-base font-bold text-primary">{item.name_en}</span>}
-                                                {item.type === 'badges' && (
-                                                    item.iconUrl ? (
-                                                        <img src={item.iconUrl} alt={item.name_en} className="w-10 h-10 object-contain" />
-                                                    ) : (
-                                                        <span className="text-2xl">{item.preview}</span>
-                                                    )
-                                                )}
-                                                {item.type === 'themes' && <span className="text-2xl">🎨</span>}
-                                                {item.type === 'gifts' && (
-                                                    <>
-                                                        {item.iconUrl ? (
-                                                            <img src={item.iconUrl} alt={item.name_en} className="w-8 h-8 object-contain" />
-                                                        ) : (
-                                                            <span className="text-2xl">{item.emoji}</span>
-                                                        )}
-                                                        <span className="text-[10px] text-purple-400">+{formatCharisma(item.charisma)}</span>
-                                                        <span className="text-[10px] text-green-400">💰 1-{formatCharisma(item.maxCashback || item.cost * 10)}</span>
-                                                    </>
-                                                )}
-                                            </div>
-                                            <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
-                                            <div className="inventory-item-actions">
-                                                {item.type === 'gifts' ? (
-                                                    <button 
-                                                        onClick={() => { setSelectedGift(item); setShowGiftPreview(true); }} 
-                                                        disabled={currency < item.cost} 
-                                                        className={currency >= item.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}
-                                                    >
-                                                        {t.buy} ({item.cost})
-                                                    </button>
-                                                ) : owned ? (
-                                                    isEquipped ? (
-                                                        <button onClick={() => handleUnequip(item.type)} className="btn-unequip">{t.unequip}</button>
-                                                    ) : (
-                                                        <button onClick={() => handleEquip(item.type, item.id)} className="btn-ghost border-white/20">{t.equip}</button>
-                                                    )
-                                                ) : (
-                                                    <button onClick={() => handleBuy(item)} className="btn-gold">{t.buy} ({item.cost})</button>
-                                                )}
-                                            </div>
-                                        </div> 
-                                    ); 
-                                })} 
-                            </div>
-                        )}
-                    </div> 
-                </div> 
-            </div> 
-            
-            <GiftPreviewModal show={showGiftPreview} onClose={() => setShowGiftPreview(false)} gift={selectedGift} lang={lang} onBuy={handleBuyGiftForSelf} currency={currency} />
-            <SendInventoryGiftModal show={showSendToFriend} onClose={() => setShowSendToFriend(false)} gift={selectedInventoryGift} friendsData={friendsData} userData={userData} lang={lang} onSend={onSendInventoryGift} onUpdate={onUpdate} />
-        </> 
-    ); 
-};
-
-// ==========================================
-// SEND INVENTORY GIFT MODAL
-// ==========================================
-const SendInventoryGiftModal = ({ show, onClose, gift, friendsData, userData, lang, onSend, onUpdate }) => {
-    const t = TRANSLATIONS[lang];
-    const [sending, setSending] = useState(false);
-    
-    if (!show || !gift) return null;
-    
-    const handleSend = async (friend) => {
-        setSending(true);
-        try {
-            const inventory = userData.inventory || { gifts: [] };
-            const newInventory = { ...inventory };
-            const giftIndex = newInventory.gifts.findIndex(g => g.id === gift.id);
-            if (giftIndex >= 0) {
-                if (newInventory.gifts[giftIndex].count > 1) { newInventory.gifts[giftIndex].count -= 1; }
-                else { newInventory.gifts.splice(giftIndex, 1); }
-            }
-            
-            // Generate lucky cashback for receiver
-            const luckyCashback = generateRandomCashback(gift.minCashback || 1, gift.maxCashback || 100);
-            
-            await usersCollection.doc(userData.uid).update({ inventory: newInventory });
-            
-            // Give charisma AND lucky cashback to receiver
-            await usersCollection.doc(friend.uid).update({ 
-                charisma: firebase.firestore.FieldValue.increment(gift.charisma),
-                currency: firebase.firestore.FieldValue.increment(luckyCashback)
-            });
-            
-            await notificationsCollection.add({ 
-                toUserId: friend.uid, 
-                fromUserId: userData.uid, 
-                fromName: userData.displayName, 
-                type: 'gift', 
-                message: `${userData.displayName} ${t.giftNotification}: ${gift.emoji} (+${luckyCashback} 💰)`, 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
-                read: false 
-            });
-            
-            playSound('gift');
-            if (onUpdate) onUpdate();
-            onClose();
-        } catch (e) { console.error('Send gift error:', e); }
-        setSending(false);
-    };
+    if (!show) return null;
     
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px' }}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">{t.sendToFriend}</h2>
+                    <h2 className="modal-title">{t.notifications}</h2>
                     <ModalCloseBtn onClose={onClose} />
                 </div>
                 <div className="modal-body">
-                    <div className="text-center mb-4 p-3 bg-white/5 rounded-lg">
-                        {gift.iconUrl ? (
-                            <img src={gift.iconUrl} alt={gift.name_en} className="w-12 h-12 mx-auto object-contain" />
-                        ) : (
-                            <span className="text-4xl">{gift.emoji}</span>
-                        )}
-                        <div className="text-sm font-bold mt-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</div>
-                        <div className="text-xs text-purple-400">+{formatCharisma(gift.charisma)} {t.charisma}</div>
-                        <div className="text-xs text-green-400">💰 {gift.minCashback || 1} - {formatCharisma(gift.maxCashback || 100)} {t.luckyCashback}</div>
-                    </div>
-                    <h4 className="text-xs font-bold text-gray-400 mb-2">{t.selectFriend}</h4>
-                    {!friendsData || friendsData.length === 0 ? (
-                        <p className="text-xs text-gray-500 text-center py-4">{t.noFriendsToSend}</p>
+                    {notifications.length === 0 ? (
+                        <div className="text-center py-8 text-gray-400">{t.noNotifications}</div>
                     ) : (
-                        <div className="max-h-[200px] overflow-y-auto space-y-1">
-                            {friendsData.map(friend => (
-                                <button 
-                                    key={friend.uid} 
-                                    onClick={() => handleSend(friend)} 
-                                    disabled={sending} 
-                                    className="w-full flex items-center gap-2 p-2 bg-white/5 rounded-lg hover:bg-white/10 transition"
-                                >
-                                    <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                                    <div className="flex-1 text-left">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-medium">{friend.displayName}</span>
-                                            <BadgeDisplay equipped={friend.equipped} size="sm" />
-                                        </div>
-                                        <div className="text-[10px] text-gray-400">✨ {formatCharisma(friend.charisma || 0)}</div>
-                                    </div>
-                                    <span className="text-lg">📤</span>
-                                </button>
+                        <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+                            {notifications.map(notif => (
+                                <div key={notif.id} 
+                                    className={`p-2 rounded-lg ${notif.read ? 'bg-white/5' : 'bg-primary/10 border border-primary/30'}`}
+                                    onClick={() => !notif.read && onMarkRead(notif.id)}>
+                                    <p className="text-sm">{notif.message}</p>
+                                    <span className="text-[10px] text-gray-400">{formatDate(notif.timestamp)}</span>
+                                </div>
                             ))}
                         </div>
                     )}
                 </div>
+                {notifications.length > 0 && (
+                    <div className="modal-footer">
+                        <button onClick={onClearAll} className="btn-ghost w-full py-2 rounded-lg text-sm">{t.clearAll}</button>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
 // ==========================================
-// MATCH SUMMARY MODAL
+// GAME SUMMARY MODAL
 // ==========================================
-const MatchSummaryModal = ({ show, onClose, room, players, lang }) => { 
-    const t = TRANSLATIONS[lang]; 
-    if(!show || !room) return null; 
-    const duration = room.finishedAt && room.startedAt ? formatDuration(room.finishedAt - room.startedAt) : "N/A"; 
-    return ( 
-        <div className="modal-overlay" onClick={onClose}> 
+const GameSummaryModal = ({ show, onClose, room, lang }) => {
+    const t = TRANSLATIONS[lang];
+    
+    if (!show || !room) return null;
+    
+    const agentsWin = room.status === 'finished_spy_caught';
+    const spyWin = room.status === 'finished_spy_wins';
+    const mrWhiteWin = room.status === 'finished_mrwhite_wins';
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.summaryTitle}</h2>
-                    <ModalCloseBtn onClose={onClose} />
+                <div className="modal-header text-center">
+                    <h2 className="modal-title text-2xl">{t.summaryTitle}</h2>
                 </div>
                 <div className="modal-body text-center">
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div className="bg-black/30 p-2 rounded-lg">
-                            <span className="text-gray-400">{t.matchDuration}</span>
-                            <div className="text-lg font-bold text-white">{duration}</div>
-                        </div>
-                        <div className="bg-black/30 p-2 rounded-lg">
-                            <span className="text-gray-400">{t.mvp}</span>
-                            <div className="text-lg font-bold text-primary truncate">{room.status === 'finished_spy_caught' ? 'Agents' : 'Spy'}</div>
-                        </div>
-                    </div> 
-                    <div className="max-h-32 overflow-y-auto mb-4 space-y-1">
-                        {players && players.map(p => (
-                            <div key={p.uid} className="flex justify-between items-center bg-white/5 px-2 py-1 rounded text-xs">
-                                <span>{p.name}</span>
-                                <span className={p.status === 'active' ? 'text-green-400' : 'text-red-400'}>
-                                    {p.status === 'active' ? 'Survived' : 'Out'}
+                    <div className="text-6xl mb-4">
+                        {agentsWin ? '🎉' : spyWin ? '🕵️' : mrWhiteWin ? '🤍' : '🎮'}
+                    </div>
+                    <h3 className="text-xl font-bold mb-4">
+                        {agentsWin ? t.agentsWin : spyWin ? t.spyWin : mrWhiteWin ? t.mrWhiteWin : ''}
+                    </h3>
+                    <div className="space-y-2">
+                        {room.players?.map(p => (
+                            <div key={p.uid} className="flex items-center justify-between p-2 bg-white/5 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                    <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
+                                    <span className="font-bold">{p.name}</span>
+                                </div>
+                                <span className="text-xs text-gray-400">
+                                    {p.role === 'spy' ? '🕵️' : p.role === 'mrwhite' ? '🤍' : p.role === 'informant' ? '📢' : '👤'}
                                 </span>
                             </div>
                         ))}
                     </div>
                 </div>
                 <div className="modal-footer">
-                    <button onClick={onClose} className="btn-neon w-full py-2 rounded-lg text-sm">{t.ok}</button>
-                </div>
-            </div>
-        </div> 
-    ); 
-};
-
-// ==========================================
-// REPORT MODAL
-// ==========================================
-const ReportModal = ({ show, onClose, targetUser, currentUser, lang }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const [selectedReason, setSelectedReason] = useState(null); 
-    const [details, setDetails] = useState(''); 
-    const [submitting, setSubmitting] = useState(false); 
-    const [msg, setMsg] = useState(''); 
-    
-    if (!show || !targetUser) return null; 
-    
-    const reasons = [ 
-        { id: 'abusive', label: t.reportReasonAbusive }, 
-        { id: 'cheating', label: t.reportReasonCheating }, 
-        { id: 'spam', label: t.reportReasonSpam }, 
-        { id: 'other', label: t.reportReasonOther } 
-    ]; 
-    
-    const handleSubmit = async () => { 
-        if (!selectedReason) return; 
-        setSubmitting(true); 
-        try { 
-            await reportsCollection.add({ 
-                reporterId: currentUser.uid, 
-                reporterName: currentUser.displayName, 
-                reportedId: targetUser.uid, 
-                reportedName: targetUser.displayName, 
-                reason: selectedReason, 
-                details: details, 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-            });
-            setMsg(t.reportSent);
-            setTimeout(() => { setMsg(''); onClose(); }, 1500);
-        } catch (e) { setMsg("Error submitting report"); }
-        setSubmitting(false);
-    };
-    
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.reportTitle}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
-                <div className="modal-body">
-                    <p className="text-xs text-gray-400 mb-3">{t.reportDesc}</p>
-                    {reasons.map(r => (
-                        <div 
-                            key={r.id} 
-                            onClick={() => setSelectedReason(r.id)} 
-                            className={`report-reason-option ${selectedReason === r.id ? 'selected' : ''}`}
-                        >
-                            <span>{r.label}</span>
-                        </div>
-                    ))}
-                    <textarea 
-                        value={details} 
-                        onChange={e => setDetails(e.target.value)} 
-                        placeholder="Additional details (optional)" 
-                        className="input-dark w-full mt-3 text-xs" 
-                        rows={2} 
-                    />
-                </div>
-                <div className="modal-footer">
-                    {msg && <div className="text-center text-xs text-cyan-400 mb-2">{msg}</div>}
-                    <div className="flex gap-2">
-                        <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.reportCancel}</button>
-                        <button onClick={handleSubmit} disabled={!selectedReason || submitting} className="btn-danger flex-1 py-2 rounded-lg text-sm">{t.reportSubmit}</button>
-                    </div>
+                    <button onClick={onClose} className="btn-neon w-full py-2 rounded-lg">{t.close}</button>
                 </div>
             </div>
         </div>
@@ -1940,8 +1698,10 @@ const ReportModal = ({ show, onClose, targetUser, currentUser, lang }) => {
 };
 
 // ==========================================
-// MAIN APP COMPONENT
+// PRO SPY - COMPLETE SCRIPT PART 3
+// Main App Component
 // ==========================================
+
 function App() {
     const [lang, setLang] = useState('en');
     const [user, setUser] = useState(null);
@@ -2035,16 +1795,21 @@ function App() {
     // Notifications Listener
     useEffect(() => {
         if (!user || isGuest) return;
-        const unsub = notificationsCollection.where('toUserId', '==', user.uid).limit(50).onSnapshot(snap => {
-            let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            notifs.sort((a, b) => {
-                const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
-                const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
-                return timeB - timeA;
+        
+        const unsub = notificationsCollection
+            .where('toUserId', '==', user.uid)
+            .limit(50)
+            .onSnapshot(snap => {
+                let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                notifs.sort((a, b) => {
+                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
+                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
+                    return timeB - timeA;
+                });
+                setNotifications(notifs);
+                setUnreadNotifications(notifs.filter(n => !n.read).length);
             });
-            setNotifications(notifs);
-            setUnreadNotifications(notifs.filter(n => !n.read).length);
-        });
+        
         return unsub;
     }, [user, isGuest]);
 
@@ -2117,7 +1882,9 @@ function App() {
                         setFriendsData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
                     });
                 return unsub;
-            } else { setFriendsData([]); }
+            } else { 
+                setFriendsData([]); 
+            }
         } 
     }, [activeView, userData?.friends, user]);
     
@@ -2130,7 +1897,9 @@ function App() {
                         setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
                     });
                 return unsub;
-            } else { setFriendRequests([]); }
+            } else { 
+                setFriendRequests([]); 
+            }
         } 
     }, [userData?.friendRequests, user, isGuest]);
     
@@ -2138,13 +1907,16 @@ function App() {
     useEffect(() => { 
         if (!user) return; 
         const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => { 
-            let total = 0; const meta = {}; 
+            let total = 0; 
+            const meta = {}; 
             snap.docs.forEach(doc => { 
-                const d = doc.data(); meta[doc.id] = d; 
+                const d = doc.data(); 
+                meta[doc.id] = d; 
                 const myUnread = d.unread?.[user.uid] || 0; 
                 total += myUnread; 
             }); 
-            setChatsMeta(meta); setTotalUnread(total); 
+            setChatsMeta(meta); 
+            setTotalUnread(total); 
         }); 
         return unsub; 
     }, [user, openChatId]);
@@ -2162,7 +1934,11 @@ function App() {
     // Notification Functions
     const createNotification = async (toUserId, type, message, fromUserId, fromName) => {
         try {
-            await notificationsCollection.add({ toUserId, fromUserId, fromName, type, message, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false });
+            await notificationsCollection.add({
+                toUserId, fromUserId, fromName, type, message,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            });
             playSound('message');
         } catch (e) { console.error('Notification error:', e); }
     };
@@ -2335,10 +2111,16 @@ function App() {
         setShowPrivateChat(true);
         const cId = getChatId(user.uid, friend.uid);
         setOpenChatId(cId);
-        chatsCollection.doc(cId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {});
+        chatsCollection.doc(cId).update({
+            [`unread.${user.uid}`]: 0
+        }).catch(() => {});
     };
     
-    const closePrivateChat = () => { setShowPrivateChat(false); setChatFriend(null); setOpenChatId(null); };
+    const closePrivateChat = () => { 
+        setShowPrivateChat(false); 
+        setChatFriend(null); 
+        setOpenChatId(null); 
+    };
     
     const handleSendRequest = async (targetUid) => { 
         if (!targetUid || targetUid === userData.customId || isGuest) return; 
@@ -2375,36 +2157,20 @@ function App() {
     
     const handleRejectRequest = async (fromUid) => { await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); };
 
-    // Gift Functions
+    // Gift Functions - With Lucky Cashback
     const handleSendGiftToUser = async (gift, targetUser) => {
         const currency = userData?.currency || 0;
         if (currency < gift.cost) return;
-        
-        // Generate lucky cashback for sender
-        const luckyCashback = generateRandomCashback(gift.minCashback || 1, gift.maxCashback || gift.cost);
-        const newCurrency = currency - gift.cost + luckyCashback;
-        
+        const cashbackAmount = generateRandomCashback(gift.minCashback || 1, gift.maxCashback || gift.cost);
+        const newCurrency = currency - gift.cost + cashbackAmount;
         try {
             await usersCollection.doc(user.uid).update({ currency: newCurrency });
+            await usersCollection.doc(targetUser.uid).update({ charisma: firebase.firestore.FieldValue.increment(gift.charisma) });
+            await createNotification(targetUser.uid, 'gift', `${userData.displayName} ${t.giftNotification}: ${gift.emoji}`, user.uid, userData.displayName);
             
-            // Generate lucky cashback for receiver too
-            const receiverCashback = generateRandomCashback(gift.minCashback || 1, gift.maxCashback || 100);
-            
-            await usersCollection.doc(targetUser.uid).update({ 
-                charisma: firebase.firestore.FieldValue.increment(gift.charisma),
-                currency: firebase.firestore.FieldValue.increment(receiverCashback)
-            });
-            
-            await createNotification(targetUser.uid, 'gift', `${userData.displayName} ${t.giftNotification}: ${gift.emoji} (+${receiverCashback} 💰)`, user.uid, userData.displayName);
-            playSound('gift');
-            
-            const isJackpot = luckyCashback >= (gift.maxCashback * 0.8);
-            if (isJackpot) {
-                playSound('jackpot');
-                setNotification(`🎉 JACKPOT! +${luckyCashback.toLocaleString()} Cashback!`);
-            } else {
-                setNotification(`${t.giftSent} (+${luckyCashback} 💰)`);
-            }
+            const isJackpot = cashbackAmount >= (gift.maxCashback * 0.8);
+            playSound(isJackpot ? 'jackpot' : 'gift');
+            setNotification(`${t.giftSent} +${cashbackAmount.toLocaleString()} 💰`);
         } catch (error) { console.error("Gift error:", error); }
     };
 
@@ -2417,16 +2183,9 @@ function App() {
                 if (newInventory.gifts[giftIndex].count > 1) { newInventory.gifts[giftIndex].count -= 1; }
                 else { newInventory.gifts.splice(giftIndex, 1); }
             }
-            
-            // Generate lucky cashback for receiver
-            const luckyCashback = generateRandomCashback(gift.minCashback || 1, gift.maxCashback || 100);
-            
-            await usersCollection.doc(userData.uid).update({ inventory: newInventory });
-            await usersCollection.doc(friend.uid).update({ 
-                charisma: firebase.firestore.FieldValue.increment(gift.charisma),
-                currency: firebase.firestore.FieldValue.increment(luckyCashback)
-            });
-            await notificationsCollection.add({ toUserId: friend.uid, fromUserId: user.uid, fromName: userData.displayName, type: 'gift', message: `${userData.displayName} ${t.giftNotification}: ${gift.emoji} (+${luckyCashback} 💰)`, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false });
+            await usersCollection.doc(user.uid).update({ inventory: newInventory });
+            await usersCollection.doc(friend.uid).update({ charisma: firebase.firestore.FieldValue.increment(gift.charisma) });
+            await notificationsCollection.add({ toUserId: friend.uid, fromUserId: user.uid, fromName: userData.displayName, type: 'gift', message: `${userData.displayName} ${t.giftNotification}: ${gift.emoji}`, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false });
             playSound('gift');
             setNotification(`${t.giftSent}`);
         } catch (e) { console.error('Send inventory gift error:', e); }
@@ -2444,354 +2203,330 @@ function App() {
     const hasIDeclined = voteReq?.votes?.[user?.uid] === false;
     const totalFriendsUnread = totalUnread + (friendRequests?.length || 0);
     
-    const handleCopy = () => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+    const handleCopy = () => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 1500); };
 
-    // ==========================================
     // RENDER
-    // ==========================================
     return (
-        <div className="min-h-screen flex flex-col items-center p-2 md:p-4" dir={lang === 'ar' ? 'rtl' : 'ltr'}> 
-            <NotificationToast message={notification} onClose={() => setNotification(null)} />
-            <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
-            <MatchSummaryModal show={showSummary} onClose={() => setShowSummary(false)} room={room} players={room?.players} lang={lang} />
-            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={userData} lang={lang} onUpdate={() => {}} onSendInventoryGift={handleSendInventoryGift} friendsData={friendsData} />
-            <MyAccountModal show={showMyAccount} onClose={() => setShowMyAccount(false)} userData={userData} user={user} lang={lang} onLogout={handleLogout} onOpenShop={() => { setShowMyAccount(false); setShowShop(true); }} />
-            <BrowseRoomsModal show={showBrowseRooms} onClose={() => setShowBrowseRooms(false)} nickname={nickname} userData={userData} lang={lang} onJoin={(id) => { setRoomId(id); }} isGuest={isGuest} />
-            <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} currentUser={userData} lang={lang} onSendGift={handleSendGiftToUser} onAddFriend={handleSendRequest} />
-            <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={userData} user={user} lang={lang} />
+        <div className={`app-container ${lang === 'ar' ? 'rtl' : 'ltr'}`}>
+            <canvas id="bg-canvas" className="bg-canvas"></canvas>
             
-            {alertMessage && ( 
-                <div className="alert-modal" onClick={() => setAlertMessage(null)}> 
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><span></span><ModalCloseBtn onClose={() => setAlertMessage(null)} /></div>
-                        <div className="modal-body text-center"><div className="text-2xl mb-2">🚫</div><p className="font-bold mb-4">{alertMessage}</p><button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button></div>
-                    </div> 
-                </div> 
-            )}
-            
-            {/* Setup Modal */}
-            {showSetupModal && ( 
-                <div className="modal-overlay" onClick={()=>setShowSetupModal(false)}> 
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}> 
-                        <div className="modal-header"><h2 className="modal-title">{t.create}</h2><ModalCloseBtn onClose={() => setShowSetupModal(false)} /></div>
-                        <div className="modal-body">
-                            <div className="space-y-3"> 
-                                <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-2 rounded font-bold text-sm`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} /></div>
-                                <div className="flex gap-2">
-                                    <button onClick={() => setSetupMode('normal')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'normal' ? 'btn-neon' : 'btn-ghost'}`}>{t.normalMode}</button>
-                                    <button onClick={() => setSetupMode('advanced')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'advanced' ? 'btn-neon' : 'btn-ghost'}`}>{t.advancedMode}</button>
+            {/* Header */}
+            <header className="app-header">
+                <div className="header-left">
+                    <h1 className="app-title">{t.appName}</h1>
+                    <span className="app-tagline">{t.tagline}</span>
+                </div>
+                <div className="header-right">
+                    <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-lang">{t.langBtn}</button>
+                    {user ? (
+                        <div className="relative">
+                            <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-2 p-1 rounded-full bg-white/10 hover:bg-white/20">
+                                <AvatarWithFrame photoURL={userData?.photoURL} equipped={userData?.equipped} size="sm" />
+                                {unreadNotifications > 0 && <span className="notification-badge">{unreadNotifications}</span>}
+                            </button>
+                            {showDropdown && (
+                                <div className="dropdown-menu">
+                                    <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="dropdown-item">{t.myAccount}</button>
+                                    {!isGuest && <button onClick={() => { setShowNotifications(true); setShowDropdown(false); }} className="dropdown-item">{t.notifications} {unreadNotifications > 0 && `(${unreadNotifications})`}</button>}
+                                    {!isGuest && <button onClick={handleLogout} className="dropdown-item text-red-400">{t.logout}</button>}
                                 </div>
-                                <p className="text-[10px] text-gray-400 text-center">{setupMode === 'normal' ? t.modeNormalDesc : t.modeAdvDesc}</p>
-                                <div className="flex items-center gap-2">
-                                    <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} id="privateCheck" />
-                                    <label htmlFor="privateCheck" className="text-xs">{t.privateRoom}</label>
+                            )}
+                        </div>
+                    ) : (
+                        <button onClick={handleGoogleLogin} className="btn-neon px-4 py-2 rounded-lg text-sm">{t.loginGoogle}</button>
+                    )}
+                </div>
+            </header>
+
+            {/* Main Content */}
+            <main className="app-main">
+                {!room ? (
+                    <div className="lobby-container">
+                        {/* Tab Navigation */}
+                        <div className="tab-nav">
+                            <button onClick={() => setActiveView('lobby')} className={`tab-btn ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
+                            <button onClick={() => setActiveView('leaderboard')} className={`tab-btn ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
+                            {!isGuest && <button onClick={() => setActiveView('friends')} className={`tab-btn ${activeView === 'friends' ? 'active' : ''}`}>
+                                {t.tabFriends} {totalFriendsUnread > 0 && <span className="badge">{totalFriendsUnread}</span>}
+                            </button>}
+                        </div>
+
+                        {activeView === 'lobby' && (
+                            <div className="lobby-content">
+                                <div className="nickname-input">
+                                    <input type="text" value={nickname} onChange={e => setNickname(e.target.value)} placeholder={t.nickname} className="input-dark w-full p-3 rounded-lg" />
                                 </div>
-                                {isPrivate && (
-                                    <div className="relative">
-                                        <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t.password} className="input-dark w-full p-2 pr-10 rounded text-sm" />
-                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">{showPassword ? '🙈' : '👁️'}</button>
+                                <div className="lobby-buttons">
+                                    <button onClick={() => setShowSetupModal(true)} className="btn-neon py-3 rounded-lg text-lg font-bold">{t.create}</button>
+                                    <div className="join-section">
+                                        <input type="text" value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder="CODE" className="input-dark p-3 rounded-lg text-center font-mono" maxLength={6} />
+                                        <button onClick={() => handleJoinGame(inputCode, '')} className="btn-gold py-3 rounded-lg text-lg font-bold">{t.join}</button>
+                                    </div>
+                                    {joinError && <p className="text-red-400 text-xs">{joinError}</p>}
+                                    <button onClick={() => setShowBrowseRooms(true)} className="btn-ghost py-2 rounded-lg text-sm">{t.browse}</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeView === 'leaderboard' && (
+                            <div className="leaderboard-container">
+                                {leaderboardData.slice(0, 10).map((player, i) => (
+                                    <div key={player.uid} onClick={() => openProfile(player.uid)} className="leaderboard-item">
+                                        <span className="rank">{i + 1}</span>
+                                        <AvatarWithFrame photoURL={player.photoURL} equipped={player.equipped} size="sm" />
+                                        <span className="name">{player.displayName}</span>
+                                        <CharismaDisplay charisma={player.charisma} lang={lang} showDetails={false} />
+                                        <span className="wins">{player.stats?.wins || 0} {t.wins}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {activeView === 'friends' && (
+                            <div className="friends-container">
+                                <div className="add-friend">
+                                    <input type="text" value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} className="input-dark flex-1 p-2 rounded" />
+                                    <button onClick={handleSearchRequest} className="btn-neon px-3 py-2 rounded">{t.addFriend}</button>
+                                </div>
+                                {friendSearchMsg && <p className="text-xs text-cyan-400">{friendSearchMsg}</p>}
+                                
+                                {friendRequests.length > 0 && (
+                                    <div className="friend-requests">
+                                        <h4 className="text-sm font-bold text-gray-400">{t.incomingRequests}</h4>
+                                        {friendRequests.map(req => (
+                                            <div key={req.uid} className="request-item">
+                                                <AvatarWithFrame photoURL={req.photoURL} equipped={req.equipped} size="sm" />
+                                                <span>{req.displayName}</span>
+                                                <button onClick={() => handleAcceptRequest(req.uid)} className="btn-neon px-2 py-1 rounded text-xs">{t.accept}</button>
+                                                <button onClick={() => handleRejectRequest(req.uid)} className="btn-ghost px-2 py-1 rounded text-xs">{t.reject}</button>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
-                            </div>
-                        </div>
-                        <div className="modal-footer"><button onClick={handleCreateGame} disabled={loading || !nickname.trim()} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{loading ? t.loading : t.create}</button></div>
-                    </div> 
-                </div> 
-            )}
-            
-            {/* Main Header */}
-            <header className="w-full max-w-md flex items-center justify-between mb-3 px-1">
-                <div className="flex items-center gap-2">
-                    <div className="logo-container"><div className="logo-border"></div><span className="text-xl">🕵️</span></div>
-                    <div><h1 className="game-title text-lg font-tech">{t.appName}</h1><p className="text-[8px] text-gray-500 uppercase tracking-wider">{t.tagline}</p></div>
-                </div>
-                <div className="flex items-center gap-2">
-                    {isLoggedIn && (
-                        <div className="notification-center relative">
-                            <button onClick={() => setShowNotifications(!showNotifications)} className="notification-bell">
-                                <span className="notification-bell-icon">🔔</span>
-                                {unreadNotifications > 0 && (<span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>)}
-                            </button>
-                            <NotificationCenter show={showNotifications} onClose={() => setShowNotifications(false)} notifications={notifications} onClearAll={clearAllNotifications} onMarkRead={markNotificationRead} lang={lang} />
-                        </div>
-                    )}
-                    <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
-                    <div className="relative">
-                        <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-1 bg-white/5 rounded-lg px-2 py-1">
-                            <AvatarWithFrame photoURL={userData?.photoURL} equipped={userData?.equipped} size="sm" onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} />
-                            <span className="text-[10px] text-gray-300 max-w-[60px] truncate">{userData?.displayName || t.guest}</span>
-                        </button>
-                        {showDropdown && (
-                            <div className="dropdown-menu glass-panel rounded-lg p-1">
-                                {isGuest ? (
-                                    <button onClick={handleGoogleLogin} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🔑</span> {t.loginGoogle}</button>
-                                ) : (
-                                    <>
-                                        <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>👤</span> {t.myAccount}</button>
-                                        <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🛒</span> {t.shop}</button>
-                                        <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400"><span>🚪</span> {t.logout}</button>
-                                    </>
-                                )}
+
+                                <div className="friends-list">
+                                    {friendsData.length === 0 ? (
+                                        <p className="text-gray-400 text-center">{t.noFriends}</p>
+                                    ) : (
+                                        friendsData.map(friend => {
+                                            const isOnline = friend.lastActive && (Date.now() - friend.lastActive.toMillis() < 300000);
+                                            const cId = getChatId(user.uid, friend.uid);
+                                            const unreadCount = chatsMeta[cId]?.unread?.[user.uid] || 0;
+                                            return (
+                                                <div key={friend.uid} className="friend-item">
+                                                    <div className="flex items-center gap-2" onClick={() => openProfile(friend.uid)}>
+                                                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                                                        <span>{friend.displayName}</span>
+                                                        <span className={`status-dot ${isOnline ? 'online' : 'offline'}`}></span>
+                                                    </div>
+                                                    <div className="flex gap-1">
+                                                        <button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-xs relative">
+                                                            💬 {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+                                                        </button>
+                                                        <button onClick={() => setShowShop(true)} className="btn-gold px-2 py-1 rounded text-xs">🎁</button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
-                </div>
-            </header>
-            
-            {/* Main Content - Not in Room */}
-            {!room && (
-                <main className="w-full max-w-md flex-1 flex flex-col">
-                    <div className="tab-container mb-3">
-                        <button onClick={() => setActiveView('lobby')} className={`tab-button ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
-                        <button onClick={() => setActiveView('leaderboard')} className={`tab-button ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
-                        <button onClick={() => setActiveView('friends')} className={`tab-button relative ${activeView === 'friends' ? 'active' : ''}`}>
-                            {t.tabFriends}
-                            {totalFriendsUnread > 0 && <span className="friends-tab-badge">{totalFriendsUnread > 9 ? '9+' : totalFriendsUnread}</span>}
-                        </button>
-                    </div>
-                    
-                    {/* Lobby View */}
-                    {activeView === 'lobby' && (
-                        <div className="glass-panel rounded-xl p-4 flex-1">
-                            <div className="space-y-3">
-                                <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg font-bold`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} placeholder={t.nickname} /></div>
-                                <div className="flex gap-2">
-                                    <button onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()} className="btn-neon flex-1 py-3 rounded-lg font-bold text-sm">{t.create}</button>
-                                    <button onClick={() => setShowBrowseRooms(true)} className="btn-ghost px-4 py-3 rounded-lg text-sm">{t.browse}</button>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase tracking-wider" value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder="CODE" maxLength={6} />
-                                    <button onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()} className="btn-neon px-4 py-3 rounded-lg font-bold text-sm">{loading ? '...' : t.join}</button>
-                                </div>
-                                {joinError && <p className="text-xs text-red-400 text-center">{joinError}</p>}
+                ) : (
+                    <div className="room-container">
+                        {/* Room Header */}
+                        <div className="room-header">
+                            <div className="room-info">
+                                <span className="room-code" onClick={handleCopy}>{copied ? t.copied : roomId}</span>
+                                <span className="room-mode">{room.mode === 'advanced' ? t.advancedMode : t.normalMode}</span>
+                            </div>
+                            <div className="room-actions">
+                                {room.status === 'waiting' && room.admin === user?.uid && (
+                                    <button onClick={startGame} className="btn-neon px-4 py-2 rounded">{t.start}</button>
+                                )}
+                                <button onClick={() => handleLeaveRoom(false)} className="btn-danger px-4 py-2 rounded">{room.admin === user?.uid ? t.closeRoom : t.leaveRoom}</button>
                             </div>
                         </div>
-                    )}
-                    
-                    {/* Leaderboard View */}
-                    {activeView === 'leaderboard' && (
-                        <div className="glass-panel rounded-xl p-3 flex-1 overflow-hidden">
-                            <div className="overflow-y-auto max-h-[60vh]">
-                                {leaderboardData.map((player, i) => (
-                                    <div key={player.id} onClick={() => openProfile(player.id)} className="leaderboard-row cursor-pointer">
-                                        <span className="w-6 text-xs font-bold text-gray-500">{i + 1}</span>
-                                        <AvatarWithFrame photoURL={player.photoURL} equipped={player.equipped} size="sm" onClick={() => openProfile(player.id)} />
-                                        <div className="flex-1 flex items-center gap-1">
-                                            <span className="text-sm font-medium truncate">{player.displayName}</span>
-                                            <BadgeDisplay equipped={player.equipped} size="sm" />
-                                        </div>
-                                        <div className="text-right"><div className="text-xs font-bold text-primary">{player.stats?.wins || 0} {t.wins}</div><div className="text-[10px] text-gray-500">✨ {formatCharisma(player.charisma || 0)}</div></div>
-                                    </div>
-                                ))}
+
+                        {/* Game Status */}
+                        {room.status !== 'waiting' && (
+                            <div className="game-status">
+                                <span className="round-indicator">{t.roundsFormat(room.currentRound || 1, MAX_ROUNDS)}</span>
+                                {room.status === 'word_selection' && <span className="timer">{wordSelTimer}s</span>}
+                                {room.status === 'discussing' && <span className="timer">{turnTimer}s</span>}
+                                {room.status === 'voting' && <span className="timer">{votingTimer}s</span>}
                             </div>
-                        </div>
-                    )}
-                    
-                    {/* Friends View */}
-                    {activeView === 'friends' && (
-                        <div className="glass-panel rounded-xl p-3 flex-1 overflow-hidden">
-                            {isGuest ? (
-                                <div className="text-center py-8"><p className="text-xs text-gray-400">{t.noPermission}</p></div>
-                            ) : (
-                                <>
-                                    <div className="flex gap-2 mb-3">
-                                        <input className="input-dark flex-1 p-2 rounded text-xs" value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} />
-                                        <button onClick={handleSearchRequest} className="btn-neon px-3 py-2 rounded text-xs">{t.addFriend}</button>
-                                    </div>
-                                    {friendSearchMsg && <p className="text-xs text-cyan-400 text-center mb-2">{friendSearchMsg}</p>}
-                                    {friendRequests.length > 0 && (
-                                        <div className="mb-3">
-                                            <h4 className="text-xs font-bold text-gray-400 mb-2">{t.incomingRequests}</h4>
-                                            {friendRequests.map(req => (
-                                                <div key={req.id} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg mb-1">
-                                                    <AvatarWithFrame photoURL={req.photoURL} equipped={req.equipped} size="sm" onClick={() => openProfile(req.id)} />
-                                                    <div className="flex-1 flex items-center gap-1">
-                                                        <span className="text-xs truncate">{req.displayName}</span>
-                                                        <BadgeDisplay equipped={req.equipped} size="sm" />
-                                                    </div>
-                                                    <button onClick={() => handleAcceptRequest(req.id)} className="btn-success px-2 py-1 rounded text-[10px]">{t.accept}</button>
-                                                    <button onClick={() => handleRejectRequest(req.id)} className="btn-danger px-2 py-1 rounded text-[10px]">{t.reject}</button>
-                                                </div>
-                                            ))}
-                                        </div>
+                        )}
+
+                        {/* Players Grid */}
+                        <div className="players-grid">
+                            {room.players?.map((p, i) => (
+                                <div key={i} className={`player-card ${p.status} ${p.uid === user?.uid ? 'is-me' : ''}`}>
+                                    <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="md" onClick={() => openProfile(p.uid)} />
+                                    <span className="player-name">{p.name}</span>
+                                    {room.status !== 'waiting' && p.status === 'active' && (
+                                        <span className={`role-badge ${p.role}`}>{p.role === 'spy' ? '🕵️' : p.role === 'mrwhite' ? '🤍' : p.role === 'informant' ? '📢' : ''}</span>
                                     )}
-                                    <h4 className="text-xs font-bold text-gray-400 mb-2">{t.tabFriends} ({friendsData.length})</h4>
-                                    <div className="overflow-y-auto max-h-[40vh]">
-                                        {friendsData.length === 0 ? (
-                                            <p className="text-xs text-gray-500 text-center py-4">{t.noFriends}</p>
-                                        ) : (
-                                            friendsData.map(friend => {
-                                                const chatMeta = chatsMeta[getChatId(user?.uid, friend.uid)];
-                                                const unreadCount = chatMeta?.unread?.[user.uid] || 0;
-                                                const isOnline = friend.lastActive && (Date.now() - friend.lastActive.toMillis() < 120000);
-                                                return (
-                                                    <div key={friend.id} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg mb-1">
-                                                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" onClick={() => openProfile(friend.id)} />
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-1">
-                                                                <span className="text-xs font-medium truncate">{friend.displayName}</span>
-                                                                <BadgeDisplay equipped={friend.equipped} size="sm" />
-                                                                <span className={isOnline ? 'status-online' : 'status-offline'}></span>
-                                                            </div>
-                                                            <div className="text-[10px] text-gray-500">✨ {formatCharisma(friend.charisma || 0)}</div>
-                                                        </div>
-                                                        {unreadCount > 0 && <span className="friend-unread-badge">{unreadCount}</span>}
-                                                        <button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-[10px]">💬</button>
-                                                    </div>
-                                                );
-                                            })
-                                        )}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-                </main>
-            )}
-            
-            {/* Room View */}
-            {room && (
-                <main className="w-full max-w-md flex-1 flex flex-col">
-                    <div className="glass-panel rounded-lg p-2 mb-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <button onClick={() => handleCopy()} className="bg-white/10 px-2 py-1 rounded text-xs font-mono">{copied ? t.copied : roomId}</button>
-                            {room.isPrivate && <span className="text-[10px] text-yellow-400">🔒</span>}
-                        </div>
-                        <div className="text-xs text-gray-400">{t.roundsFormat(room.currentRound || 0, MAX_ROUNDS)}</div>
-                    </div>
-                    
-                    {room.status === 'waiting' && (
-                        <div className="glass-panel rounded-xl p-4 flex-1">
-                            <h3 className="text-sm font-bold mb-3 text-center">{t.lobbyTitle}</h3>
-                            <div className="grid grid-cols-2 gap-2 mb-4">
-                                {room.players.map(p => (
-                                    <div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10" onClick={() => openProfile(p.uid)}>
-                                        <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
-                                        <div className="flex items-center gap-1">
-                                            <span className="text-xs truncate">{p.name}</span>
-                                            <BadgeDisplay equipped={p.equipped} size="sm" />
-                                        </div>
-                                        {p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded">HOST</span>}
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex gap-2">
-                                {room.admin === user?.uid ? (<button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>) : (<p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>)}
-                                <button onClick={() => handleLeaveRoom()} className="btn-danger px-4 py-2 rounded-lg text-sm">{t.leaveRoom}</button>
-                            </div>
-                            {room.isPrivate && room.admin === user?.uid && (
-                                <div className="mt-3 p-2 bg-yellow-500/10 rounded-lg">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs text-gray-400">{t.password}:</span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-mono">{showPassword ? room.password : '••••••'}</span>
-                                            <button onClick={() => setShowPassword(!showPassword)} className="text-gray-400 hover:text-white">{showPassword ? '🙈' : '👁️'}</button>
-                                        </div>
-                                    </div>
+                                    {p.status === 'spectator' && <span className="spectator-badge">👁️</span>}
+                                    {p.status === 'ghost' && <span className="ghost-badge">👻</span>}
                                 </div>
-                            )}
+                            ))}
                         </div>
-                    )}
-                    
-                    {room.status === 'word_selection' && !isSpectator && (
-                        <div className="glass-panel rounded-xl p-4 flex-1">
-                            <h3 className="text-sm font-bold mb-2 text-center">{t.wordSelectionTitle}</h3>
-                            <p className="text-xs text-gray-400 text-center mb-3">{t.wordSelectionDesc}</p>
-                            <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {wordSelTimer}s</div>
-                            <div className="grid grid-cols-2 gap-2">
-                                {(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => (
-                                    <button key={i} onClick={() => submitWordVote(word)} className={`word-vote-card ${hasVotedWord === word ? 'selected' : ''}`}><span className="font-bold">{word}</span></button>
-                                ))}
+
+                        {/* Word Selection */}
+                        {room.status === 'word_selection' && !isSpectator && (
+                            <div className="word-selection">
+                                <h3 className="text-lg font-bold mb-2">{t.wordSelectionTitle}</h3>
+                                <p className="text-sm text-gray-400 mb-3">{t.wordSelectionDesc}</p>
+                                {me?.role !== 'spy' ? (
+                                    <div className="word-options">
+                                        {(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => (
+                                            <button key={i} onClick={() => submitWordVote(word)} 
+                                                className={`word-btn ${hasVotedWord === word ? 'selected' : ''}`}>
+                                                {word}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-center text-yellow-400">{t.statusSpy}</p>
+                                )}
                             </div>
-                        </div>
-                    )}
-                    
-                    {room.status === 'discussing' && (
-                        <div className="flex-1 flex flex-col gap-2">
-                            <div className="glass-panel rounded-xl p-3">
-                                <div className="grid grid-cols-3 gap-2">
-                                    {room.players.filter(p => p.status === 'active').map(p => (
-                                        <div key={p.uid} className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === user?.uid ? 'border-primary' : ''}`} onClick={() => openProfile(p.uid)}>
+                        )}
+
+                        {/* Discussion Phase */}
+                        {room.status === 'discussing' && !isSpectator && (
+                            <div className="discussion-phase">
+                                {isMyTurn && <div className="your-turn">{t.you}</div>}
+                                <div className="action-buttons">
+                                    {isMyTurn && <button onClick={() => handleSkipTurn(false)} className="btn-ghost px-4 py-2 rounded">{t.skip}</button>}
+                                    <button onClick={requestVoting} className="btn-neon px-4 py-2 rounded">{t.vote}</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Voting Request */}
+                        {voteReq && room.status === 'discussing' && (
+                            <div className="voting-request">
+                                <p>{room.players.find(p => p.uid === voteReq.requestedBy)?.name} {t.voteRequestDesc}</p>
+                                <div className="flex gap-2">
+                                    {!hasIAgreed && <button onClick={agreeToVote} className="btn-neon px-4 py-2 rounded">{t.agree}</button>}
+                                    {!hasIDeclined && <button onClick={declineVote} className="btn-ghost px-4 py-2 rounded">{t.decline}</button>}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Voting Phase */}
+                        {room.status === 'voting' && !isSpectator && !hasVoted && (
+                            <div className="voting-phase">
+                                <h3 className="text-lg font-bold mb-2">{t.vote}</h3>
+                                <div className="vote-options">
+                                    {room.players.filter(p => p.status === 'active' && p.uid !== user?.uid).map(p => (
+                                        <button key={p.uid} onClick={() => submitVote(p.uid)} className="vote-btn">
                                             <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
-                                            <div className="flex items-center gap-1 mt-1">
-                                                <span className="text-[10px] truncate">{p.name}</span>
-                                                <BadgeDisplay equipped={p.equipped} size="sm" />
-                                            </div>
-                                            {room.currentTurnUID === p.uid && <span className="text-[8px] text-primary">Speaking</span>}
-                                        </div>
+                                            <span>{p.name}</span>
+                                        </button>
                                     ))}
                                 </div>
+                                {room.admin === user?.uid && <button onClick={endVotingNow} className="btn-danger mt-2">{t.endVoting}</button>}
                             </div>
-                            {!isSpectator && me && (
-                                <div className={`identity-square identity-${myRole === 'spy' ? 'spy' : myRole === 'mrwhite' ? 'mrwhite' : myRole === 'informant' ? 'informant' : 'agent'}`}>
-                                    <div className="text-4xl mb-2">{myRole === 'spy' ? '🕵️' : myRole === 'mrwhite' ? '👻' : myRole === 'informant' ? '👁️' : '🤵'}</div>
-                                    <div className="text-lg font-bold">{myRole === 'spy' ? t.statusSpy : myRole === 'mrwhite' ? t.statusMrWhite : myRole === 'informant' ? t.statusInformant : t.statusAgent}</div>
-                                    {myRole === 'spy' && (<div className="text-xs text-gray-300 mt-1">{t.location}: {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div>)}
-                                    {myRole !== 'spy' && room.chosenWord && (<div className="text-xs text-gray-300 mt-1">{t.selectedWord}: {room.chosenWord}</div>)}
-                                    {myRole === 'mrwhite' && <p className="text-[10px] text-yellow-400 mt-2">{t.mrWhiteInstruction}</p>}
-                                    {myRole === 'informant' && <p className="text-[10px] text-blue-400 mt-2">{t.informantInstruction}</p>}
-                                </div>
-                            )}
-                            <div className="glass-panel rounded-lg p-3">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="timer-bar-container"><div className="timer-bar-fill" style={{ width: `${(turnTimer / 30) * 100}%` }}></div></div>
-                                    <span className="text-xs text-gray-400">{turnTimer}s</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    {isMyTurn && (<button onClick={() => handleSkipTurn()} className="btn-ghost flex-1 py-2 rounded-lg text-xs">{t.skip}</button>)}
-                                    <button onClick={requestVoting} className="btn-vote flex-1 py-2 rounded-lg text-xs font-bold">{t.vote}</button>
-                                </div>
+                        )}
+
+                        {/* Mr White Guess */}
+                        {room.status === 'discussing' && myRole === 'mrwhite' && !isSpectator && (
+                            <div className="mrwhite-guess">
+                                <p className="text-xs text-yellow-400 mb-2">{t.mrWhiteInstruction}</p>
+                                <select onChange={(e) => handleMrWhiteGuess(e.target.value)} className="input-dark p-2 rounded">
+                                    <option value="">{t.guessLocation}</option>
+                                    {SCENARIOS.map((s, i) => <option key={i} value={lang === 'ar' ? s.loc_ar : s.loc_en}>{lang === 'ar' ? s.loc_ar : s.loc_en}</option>)}
+                                </select>
                             </div>
-                            {voteReq && (
-                                <div className="vote-request-banner glass-panel rounded-lg p-3">
-                                    <p className="text-xs text-center mb-2"><span className="font-bold">{room.players.find(p => p.uid === voteReq.requestedBy)?.name}</span> {t.voteRequestDesc}</p>
-                                    {!hasIAgreed && !hasIDeclined && (<div className="flex gap-2"><button onClick={agreeToVote} className="btn-success flex-1 py-2 rounded-lg text-xs">{t.agree}</button><button onClick={declineVote} className="btn-danger flex-1 py-2 rounded-lg text-xs">{t.decline}</button></div>)}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                    
-                    {room.status === 'voting' && (
-                        <div className="glass-panel rounded-xl p-4 flex-1">
-                            <h3 className="text-sm font-bold mb-2 text-center">{t.vote}</h3>
-                            <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {votingTimer}s</div>
-                            <div className="grid grid-cols-2 gap-2 mb-4">
-                                {room.players.filter(p => p.status === 'active').map(p => (
-                                    <button key={p.uid} onClick={() => submitVote(p.uid)} disabled={hasVoted} className={`player-card ${hasVoted === p.uid ? 'border-primary bg-primary/10' : ''}`}>
-                                        <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
-                                        <div className="flex items-center gap-1 mt-1">
-                                            <span className="text-xs truncate">{p.name}</span>
-                                            <BadgeDisplay equipped={p.equipped} size="sm" />
-                                        </div>
-                                        {room.votes && Object.values(room.votes).filter(v => v === p.uid).length > 0 && (<span className="text-[10px] text-red-400">{room.votes && Object.values(room.votes).filter(v => v === p.uid).length} votes</span>)}
-                                    </button>
+                        )}
+
+                        {/* Chat */}
+                        <div className="room-chat">
+                            <div className="messages">
+                                {room.messages?.slice(-20).map((msg, i) => (
+                                    <div key={i} className={`message ${msg.sender === 'system' ? 'system' : ''}`}>
+                                        {msg.sender !== 'system' && <span className="sender">{msg.name}:</span>}
+                                        <span className="text">{msg.text}</span>
+                                    </div>
                                 ))}
                             </div>
-                            {room.admin === user?.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg text-xs">{t.endVoting}</button>)}
+                            {room.status !== 'waiting' && !isSpectator && (
+                                <div className="chat-input">
+                                    <input type="text" placeholder={t.chatPlaceholder} onKeyPress={e => { if(e.key === 'Enter' && e.target.value) { sendMessage(e.target.value); e.target.value = ''; }}} className="input-dark flex-1 p-2 rounded" />
+                                    <button onClick={() => { const input = document.querySelector('.chat-input input'); if(input?.value) { sendMessage(input.value); input.value = ''; }}} className="btn-neon px-3 py-2 rounded">{t.send}</button>
+                                </div>
+                            )}
                         </div>
-                    )}
-                    
-                    {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_mrwhite_wins') && (
-                        <div className="glass-panel rounded-xl p-4 flex-1 text-center">
-                            <div className="text-4xl mb-4">{room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'}</div>
-                            <h2 className="text-xl font-bold mb-4">{room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin}</h2>
-                            {room.admin === user?.uid && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{t.playAgain}</button>)}
-                            <button onClick={() => handleLeaveRoom()} className="btn-ghost w-full py-2 rounded-lg text-sm mt-2">{t.leaveRoom}</button>
+                    </div>
+                )}
+            </main>
+
+            {/* Modals */}
+            <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'done'); }} lang={lang} />
+            <GameSummaryModal show={showSummary} onClose={() => setShowSummary(false)} room={room} lang={lang} />
+            <MyAccountModal show={showMyAccount} onClose={() => setShowMyAccount(false)} userData={userData} user={user} lang={lang} onLogout={handleLogout} onOpenShop={() => { setShowMyAccount(false); setShowShop(true); }} />
+            <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} currentUser={userData} lang={lang} onSendGift={handleSendGiftToUser} onAddFriend={handleSendRequest} />
+            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={userData} lang={lang} onUpdate={() => {}} onSendInventoryGift={handleSendInventoryGift} friendsData={friendsData} />
+            <BrowseRoomsModal show={showBrowseRooms} onClose={() => setShowBrowseRooms(false)} nickname={nickname} userData={userData} lang={lang} onJoin={(id) => setRoomId(id)} isGuest={isGuest} />
+            <NotificationsModal show={showNotifications} onClose={() => setShowNotifications(false)} notifications={notifications} lang={lang} onMarkRead={markNotificationRead} onClearAll={clearAllNotifications} />
+            <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={userData} user={user} lang={lang} />
+
+            {/* Setup Modal */}
+            {showSetupModal && (
+                <div className="modal-overlay" onClick={() => setShowSetupModal(false)}>
+                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">{t.create}</h2>
+                            <ModalCloseBtn onClose={() => setShowSetupModal(false)} />
                         </div>
-                    )}
-                    
-                    {isSpectator && room.status !== 'waiting' && !room.status.includes('finished') && (
-                        <div className="glass-panel rounded-xl p-4 flex-1 text-center">
-                            <div className="text-4xl mb-2">👻</div>
-                            <p className="text-sm text-gray-400">{t.spectator}</p>
-                            <p className="text-xs text-gray-500 mt-2">{me?.status === 'ghost' ? t.ghostInstruction : t.playerLeft}</p>
+                        <div className="modal-body">
+                            <div className="mb-3">
+                                <label className="text-xs text-gray-400 block mb-1">{t.normalMode}</label>
+                                <button onClick={() => setSetupMode('normal')} className={`w-full p-2 rounded ${setupMode === 'normal' ? 'bg-primary/20 border border-primary' : 'bg-white/5'}`}>
+                                    {t.modeNormalDesc}
+                                </button>
+                            </div>
+                            <div className="mb-3">
+                                <label className="text-xs text-gray-400 block mb-1">{t.advancedMode}</label>
+                                <button onClick={() => setSetupMode('advanced')} className={`w-full p-2 rounded ${setupMode === 'advanced' ? 'bg-primary/20 border border-primary' : 'bg-white/5'}`}>
+                                    {t.modeAdvDesc}
+                                </button>
+                            </div>
+                            <div className="mb-3">
+                                <label className="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} />
+                                    {t.privateRoom}
+                                </label>
+                            </div>
+                            {isPrivate && (
+                                <div className="relative">
+                                    <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t.password} className="input-dark w-full p-2 rounded pr-10" />
+                                    <button onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs">👁️</button>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </main>
+                        <div className="modal-footer">
+                            <button onClick={handleCreateGame} disabled={loading} className="btn-neon w-full py-2 rounded-lg">{loading ? t.loading : t.create}</button>
+                        </div>
+                    </div>
+                </div>
             )}
-            
-            {showDropdown && <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)}></div>}
-            {showNotifications && <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>}
+
+            {/* Notification Toast */}
+            <NotificationToast message={notification} onClose={() => setNotification(null)} />
+
+            {/* Alert Message */}
+            {alertMessage && (
+                <div className="alert-modal">
+                    <div className="alert-content">
+                        <p>{alertMessage}</p>
+                        <button onClick={() => setAlertMessage(null)} className="btn-neon px-4 py-2 rounded">{t.ok}</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
