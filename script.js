@@ -35,7 +35,7 @@ const MAX_ROUNDS = 3;
 // CHARISMA LEVELS - FIXED (Last level open, icon can be image or emoji)
 // ==========================================
 const CHARISMA_LEVELS = [
-    { level: 1, threshold: 0, icon: '⭐', iconType: 'emoji', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 1, threshold: 0, icon: 'star1.png', iconType: 'emoji', iconUrl: 'https://i.ibb.co/rRdQzRnR/1.png', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
     { level: 2, threshold: 4000, icon: '⭐', iconType: 'emoji', name_en: 'Shining Star', name_ar: 'نجم ساطع', color: '#ffd700', badge_class: 'level-1-3' },
     { level: 3, threshold: 12000, icon: '⭐', iconType: 'emoji', name_en: 'Bright Star', name_ar: 'نجم مضيء', color: '#ffd700', badge_class: 'level-1-3' },
     { level: 4, threshold: 30000, icon: '💎', iconType: 'emoji', name_en: 'Diamond I', name_ar: 'ماسة 1', color: '#3b82f6', badge_class: 'level-4-6' },
@@ -2016,3 +2016,4 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
