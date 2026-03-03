@@ -1,6 +1,7 @@
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT PART 1
+// PRO SPY - COMPLETE SCRIPT PART 1 V2
 // Constants, Translations, Components
+// With: Charisma Levels, Notifications, UI Improvements
 // ==========================================
 
 const { useState, useEffect, useRef } = React;
@@ -24,11 +25,65 @@ const reportsCollection = db.collection('artifacts').doc(appId).collection('publ
 const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
 const roomsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms');
 const historyCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('game_history');
+const notificationsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('notifications');
 
 // --- Constants ---
 const CURRENCY_NAME = "Intel";
 const CURRENCY_ICON = "🧠";
 const MAX_ROUNDS = 3;
+
+// ==========================================
+// CHARISMA LEVELS CONFIGURATION
+// ==========================================
+const CHARISMA_LEVELS = [
+    { level: 1, threshold: 1000, icon: '⭐', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 2, threshold: 4000, icon: '⭐', name_en: 'Shining Star', name_ar: 'نجم ساطع', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 3, threshold: 12000, icon: '⭐', name_en: 'Bright Star', name_ar: 'نجم مضيء', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 4, threshold: 30000, icon: '💎', name_en: 'Diamond I', name_ar: 'ماسة 1', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 5, threshold: 80000, icon: '💎', name_en: 'Diamond II', name_ar: 'ماسة 2', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 6, threshold: 160000, icon: '💎', name_en: 'Diamond III', name_ar: 'ماسة 3', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 7, threshold: 300000, icon: '👑', name_en: 'Crown I', name_ar: 'تاج 1', color: '#ffd700', badge_class: 'level-7-9' },
+    { level: 8, threshold: 500000, icon: '👑', name_en: 'Crown II', name_ar: 'تاج 2', color: '#ffd700', badge_class: 'level-7-9' },
+    { level: 9, threshold: 1000000, icon: '👑', name_en: 'Crown III', name_ar: 'تاج 3', color: '#ffd700', badge_class: 'level-7-9' },
+    { level: 10, threshold: 2000000, icon: '👑', name_en: 'Royal Crown I', name_ar: 'تاج ملكي 1', color: '#f97316', badge_class: 'level-10-12' },
+    { level: 11, threshold: 3500000, icon: '👑', name_en: 'Royal Crown II', name_ar: 'تاج ملكي 2', color: '#f97316', badge_class: 'level-10-12' },
+    { level: 12, threshold: 6000000, icon: '👑', name_en: 'Royal Crown III', name_ar: 'تاج ملكي 3', color: '#f97316', badge_class: 'level-10-12' },
+    { level: 13, threshold: 8500000, icon: '👑', name_en: 'Purple Crown I', name_ar: 'تاج بنفسجي 1', color: '#8b5cf6', badge_class: 'level-13-15' },
+    { level: 14, threshold: 12000000, icon: '👑', name_en: 'Purple Crown II', name_ar: 'تاج بنفسجي 2', color: '#8b5cf6', badge_class: 'level-13-15' },
+    { level: 15, threshold: 16000000, icon: '👑', name_en: 'Purple Crown III', name_ar: 'تاج بنفسجي 3', color: '#8b5cf6', badge_class: 'level-13-15' },
+    { level: 16, threshold: 26000000, icon: '🌟', name_en: 'Legend I', name_ar: 'أسطورة 1', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 17, threshold: 48000000, icon: '🌟', name_en: 'Legend II', name_ar: 'أسطورة 2', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 18, threshold: 86000000, icon: '🌟', name_en: 'Legend III', name_ar: 'أسطورة 3', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 19, threshold: 120000000, icon: '🌟', name_en: 'Legend IV', name_ar: 'أسطورة 4', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 20, threshold: 240000000, icon: '🌟', name_en: 'Legend V', name_ar: 'أسطورة 5', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 21, threshold: 360000000, icon: '🌟', name_en: 'Ultimate Legend', name_ar: 'الأسطورة المطلقة', color: '#f97316', badge_class: 'level-16-21' },
+];
+
+// Get charisma level info
+const getCharismaLevel = (charisma) => {
+    let currentLevel = CHARISMA_LEVELS[0];
+    let nextLevel = null;
+    
+    for (let i = CHARISMA_LEVELS.length - 1; i >= 0; i--) {
+        if (charisma >= CHARISMA_LEVELS[i].threshold) {
+            currentLevel = CHARISMA_LEVELS[i];
+            nextLevel = CHARISMA_LEVELS[i + 1] || null;
+            break;
+        }
+    }
+    
+    return { currentLevel, nextLevel };
+};
+
+// Calculate progress to next level
+const getCharismaProgress = (charisma) => {
+    const { currentLevel, nextLevel } = getCharismaLevel(charisma);
+    if (!nextLevel) return 100;
+    const currentThreshold = currentLevel.threshold;
+    const nextThreshold = nextLevel.threshold;
+    const progress = ((charisma - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
+    return Math.min(100, Math.max(0, progress));
+};
 
 // --- Shop Items (Frames, Titles, Themes, Gifts) ---
 const SHOP_ITEMS = {
@@ -36,7 +91,7 @@ const SHOP_ITEMS = {
         { id: 'frame_gold', name_en: "Gold Frame", name_ar: "إطار ذهبي", cost: 500, type: 'frames', preview: 'linear-gradient(45deg, #f7ff00, #db9700)' },
         { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' },
         { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
-        { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/Cpjjcd5n/Untitled-4.png' },
+        { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png' },
     ],
     titles: [
         { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles' },
@@ -102,28 +157,88 @@ const getTimeRemaining = (lastChanged) => { if (!lastChanged) return "0d 0h"; co
 const formatDuration = (ms) => { const totalSeconds = Math.floor(ms / 1000); const minutes = Math.floor(totalSeconds / 60); const seconds = totalSeconds % 60; return `${minutes}m ${seconds}s`; };
 const formatCharisma = (num) => { if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
 
-// --- Audio ---
+// --- Audio System with Message Sound ---
 const AudioCtx = window.AudioContext || window.webkitAudioContext; let audioCtx = null;
 const initAudio = () => { if (!audioCtx) audioCtx = new AudioCtx(); };
-const playSound = (type) => { if (!audioCtx) return; if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc.connect(gainNode); gainNode.connect(audioCtx.destination); if (type === 'click') { osc.frequency.value = 800; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } else if (type === 'success') { osc.frequency.value = 600; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); } };
+const playSound = (type) => { 
+    if (!audioCtx) return; 
+    if (audioCtx.state === 'suspended') audioCtx.resume(); 
+    const osc = audioCtx.createOscillator(); 
+    const gainNode = audioCtx.createGain(); 
+    osc.connect(gainNode); 
+    gainNode.connect(audioCtx.destination); 
+    
+    if (type === 'click') { 
+        osc.frequency.value = 800; 
+        osc.type = 'sine'; 
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); 
+        osc.start(); 
+        osc.stop(audioCtx.currentTime + 0.1); 
+    } else if (type === 'success') { 
+        osc.frequency.value = 600; 
+        osc.type = 'sine'; 
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+        osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15); 
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); 
+        osc.start(); 
+        osc.stop(audioCtx.currentTime + 0.3); 
+    } else if (type === 'message') {
+        // Message notification sound
+        osc.frequency.value = 880;
+        osc.type = 'sine';
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(1100, audioCtx.currentTime + 0.1);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+        
+        // Second tone
+        setTimeout(() => {
+            if (!audioCtx) return;
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.frequency.value = 1100;
+            osc2.type = 'sine';
+            gain2.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc2.start();
+            osc2.stop(audioCtx.currentTime + 0.15);
+        }, 100);
+    } else if (type === 'gift') {
+        // Gift sound
+        osc.frequency.value = 523;
+        osc.type = 'sine';
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(784, audioCtx.currentTime + 0.15);
+        osc.frequency.linearRampToValueAtTime(1047, audioCtx.currentTime + 0.3);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+    }
+};
 
 // --- Translations ---
 const TRANSLATIONS = { 
     en: { 
         appName: "PRO SPY", tagline: "COVERT ARENA", nickname: "OPERATOR NAME", create: "CREATE GAME", join: "JOIN OPS", browse: "BROWSE ROOMS", codePlaceholder: "ENTER CODE", players: "OPERATIVES", start: "LAUNCH MISSION", langBtn: "العربية", loading: "PROCESSING...", you: "YOU", statusSpy: "SPY", statusAgent: "AGENT", statusInformant: "INFORMANT", statusMrWhite: "MR. WHITE", statusGhost: "GHOST", round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT", chatPlaceholder: "Type message...", send: "SEND", waiting: "Awaiting host...", location: "LOCATION", spectator: "SPECTATOR", confirm: "CONFIRM VOTE", spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!", mrWhiteWin: "MR. WHITE WINS!", playAgain: "PLAY AGAIN", connecting: "Connecting...", startVoting: "START VOTING", votingStarted: "VOTING INITIATED", voteRequestTitle: "VOTING REQUEST", voteRequestDesc: "wants to start voting.", agree: "AGREE", decline: "DECLINE", endVoting: "END VOTING NOW", votesTitle: "VOTES:", roundsFormat: (c, m) => `ROUND ${c}/${m}`, wordSelectionTitle: "SELECT KEYWORD", wordSelectionDesc: "Choose a keyword for this round", finishSelection: "FINISH SELECTION", selectedWord: "Selected Keyword", loginGoogle: "Login", myAccount: "My Account", logout: "Logout", profile: "Profile", guest: "Guest", linkGuessCard: "GUESS MY CARD", level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID", enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Minimum players not met!", ok: "OK", tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends", addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID", online: "Online", offline: "Offline", noFriends: "No friends yet.", friendAdded: "Friend Added!", friendNotFound: "User not found.", requestSent: "Request Sent!", incomingRequests: "Incoming Requests", noRequests: "No pending requests.", accept: "Accept", reject: "Reject", sendMessage: "Send", inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?", inviteFriends: "Invite Friends", accountInfo: "Account Information", email: "Email", memberSince: "Member Since", nameChangeCountdown: "Name Change In", canChangeNow: "Can change now!", selectEmoji: "Emoji", guestTitle: "GUEST ACCOUNT", guestDesc: "Register to save progress and add friends.", kd: "K/D Ratio", stats: "Stats", noPermission: "Feature unavailable for guests.", normalMode: "NORMAL MODE", advancedMode: "ADVANCED MODE (6+)", modeNormalDesc: "Classic Spy vs Agents. 3-10 Players.", modeAdvDesc: "Special Roles included! 6-10 Players.", privateRoom: "Private Room", password: "Password", publicRoom: "Public Room", noRooms: "No active games found.", lobbyTitle: "GAME LOBBY", mrWhiteInstruction: "Guess the location to win!", informantInstruction: "You know a neighbor!", ghostInstruction: "You are now a Ghost. You can watch but cannot act.", guessLocation: "GUESS LOCATION", leaveRoom: "LEAVE", closeRoom: "CLOSE ROOM", showPassword: "Show Password", guestAccountLabel: "GUEST ACCOUNT", guestProfileMsg: "Guests cannot receive friend requests.", reportUser: "Report User", reportSent: "Report sent successfully!", reportTitle: "Report User", reportDesc: "Please select a reason for reporting this user.", reportReasonAbusive: "Abusive Behavior", reportReasonCheating: "Cheating", reportReasonSpam: "Spam", reportReasonOther: "Other", reportSubmit: "Submit Report", reportCancel: "Cancel", privateRoomError: "Private rooms require a password.",
-        shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", alreadyOwned: "Already Owned",
+        shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", unequip: "UnEquip", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", alreadyOwned: "Already Owned",
         tutorialTitle: "Welcome, Agent", tutorialStep1: "Your goal is to find the Spy (or blend in if you are the Spy).", tutorialStep2: "Each round, discuss and vote to eject a suspect.", tutorialStep3: "Win matches to earn Intel and buy items in the Shop!", skipTutorial: "Skip", next: "Next", startGame: "Start Game",
         matchSummary: "Match Summary", matchDuration: "Duration", mvp: "MVP", correctVotes: "Correct Votes", summaryTitle: "Game Over!",
         notifTitle: "Notification", achUnlock: "Achievement Unlocked!", newFriend: "New Friend Added!", hiddenAch: "Hidden Achievement", tabMain: "Main", tabInv: "Inventory", tabAch: "Achievements",
         charisma: "Charisma", charismaDesc: "Your influence in the arena", gifts: "Gifts", sendGift: "Send Gift", giftSent: "Gift Sent!", giftReceived: "You received a gift!", selectGift: "Select a Gift", giftPreview: "Gift Preview", cashback: "Cashback", willReceive: "You'll receive", charismaGain: "Charisma Gain", playerLeft: "Player Left", spyLeftAgentsWin: "Spy left! Agents Win!", agentLeftSpyWins: "Agent left! Spy Wins!", myGifts: "My Gifts", receivedGifts: "Received Gifts", noGifts: "No gifts yet.", fromPlayer: "From", toPlayer: "To", buyGift: "Buy Gift", sendToFriend: "Send to Friend",
+        notifications: "Notifications", clearAll: "Clear All", noNotifications: "No notifications", friendRequest: "sent you a friend request", giftNotification: "sent you a gift", messageNotification: "sent you a message", nextLevel: "Next level", close: "Close",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", codePlaceholder: "أدخل الكود", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "دخول", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
-        shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مزين", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
+        shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مُزين", unequip: "إزالة", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
         tutorialTitle: "مرحباً أيها العميل", tutorialStep1: "هدفك هو العثور على الجاسوس (أو التخفي إن كنت الجاسوس).", tutorialStep2: "في كل جولة، ناقش وصوّت لطرد المشتبه به.", tutorialStep3: "اربح المباريات لتحصل على إنتل واشتري من المتجر!", skipTutorial: "تخطي", next: "التالي", startGame: "ابدأ اللعبة",
         matchSummary: "ملخص المباراة", matchDuration: "المدة", mvp: "الأفضل", correctVotes: "أصوات صحيحة", summaryTitle: "انتهت اللعبة!",
         notifTitle: "إشعار", achUnlock: "تم فتح إنجاز!", newFriend: "صديق جديد!", hiddenAch: "إنجاز سري", tabMain: "الرئيسية", tabInv: "المخزون", tabAch: "الإنجازات",
         charisma: "الكاريزما", charismaDesc: "تأثيرك في الساحة", gifts: "الهدايا", sendGift: "إرسال هدية", giftSent: "تم إرسال الهدية!", giftReceived: "لقد استلمت هدية!", selectGift: "اختر هدية", giftPreview: "معاينة الهدية", cashback: "استرداد", willReceive: "ستستلم", charismaGain: "زيادة الكاريزما", playerLeft: "لاعب غادر", spyLeftAgentsWin: "الجاسوس غادر! فاز العملاء!", agentLeftSpyWins: "عميل غادر! فاز الجاسوس!", myGifts: "هداياي", receivedGifts: "الهدايا المستلمة", noGifts: "لا توجد هدايا بعد.", fromPlayer: "من", toPlayer: "إلى", buyGift: "شراء هدية", sendToFriend: "إرسال لصديق",
+        notifications: "الإشعارات", clearAll: "حذف الكل", noNotifications: "لا توجد إشعارات", friendRequest: "أرسل لك طلب صداقة", giftNotification: "أرسل لك هدية", messageNotification: "أرسل لك رسالة", nextLevel: "المستوى التالي", close: "إغلاق",
     } 
 };
 
@@ -134,77 +249,180 @@ const TRANSLATIONS = {
 // Guest Banner
 const GuestBanner = ({ lang }) => { 
     const t = TRANSLATIONS[lang]; 
-    return ( <div className="guest-banner bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 text-center mb-2"> <h3 className="text-sm font-bold text-yellow-400">{t.guestTitle}</h3> <p className="text-[10px] text-gray-400">{t.guestDesc}</p> </div> ); 
+    return ( <div className="guest-banner"> <h3 className="text-sm font-bold text-yellow-400">{t.guestTitle}</h3> <p className="text-[10px] text-gray-400">{t.guestDesc}</p> </div> ); 
 };
 
-// Notification Toast
+// Notification Toast - Auto Dismiss
 const NotificationToast = ({ message, onClose }) => {
+    useEffect(() => {
+        if (message) {
+            const timer = setTimeout(() => {
+                onClose();
+            }, 2000); // Auto dismiss after 2 seconds
+            return () => clearTimeout(timer);
+        }
+    }, [message, onClose]);
+    
     if(!message) return null;
+    
     return (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-pop px-4 w-full max-w-sm pointer-events-none flex justify-center">
-            <div className="glass-panel px-6 py-3 rounded-xl border border-cyan-400 text-white flex items-center gap-3 shadow-lg pointer-events-auto">
-                <span className="text-lg">🎉</span>
-                <span className="text-sm font-bold text-center flex-1">{message}</span>
-                <button onClick={onClose} className="text-gray-400 hover:text-white text-lg font-bold">&times;</button>
+        <div className="notification-toast">
+            <div className="notification-content">
+                <span className="notification-icon">🎉</span>
+                <span className="notification-text">{message}</span>
+                <button onClick={onClose} className="notification-close">&times;</button>
             </div>
         </div>
     );
 };
 
-// Tutorial Modal
+// Modal Close Button Component
+const ModalCloseBtn = ({ onClose }) => (
+    <button onClick={onClose} className="modal-close-btn" aria-label="Close">
+        &times;
+    </button>
+);
+
+// Charisma Display Component - NEW
+const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
+    const t = TRANSLATIONS[lang];
+    const { currentLevel, nextLevel } = getCharismaLevel(charisma || 0);
+    const progress = getCharismaProgress(charisma || 0);
+    const neededForNext = nextLevel ? nextLevel.threshold - (charisma || 0) : 0;
+    
+    return (
+        <div className="charisma-container">
+            <div className="charisma-header">
+                <span className="charisma-label">
+                    <span className="charisma-icon">{currentLevel.icon}</span>
+                    {t.charisma}
+                </span>
+                <span className={`charisma-level-badge ${currentLevel.badge_class}`}>
+                    {currentLevel.icon} Lv.{currentLevel.level}
+                </span>
+            </div>
+            <div className="charisma-bar-bg">
+                <div className="charisma-bar-fill" style={{ width: `${progress}%` }}></div>
+            </div>
+            <div className="charisma-info">
+                <span className="charisma-current">{formatCharisma(charisma || 0)}</span>
+                {nextLevel && showDetails && (
+                    <span className="charisma-next">
+                        {t.nextLevel}: {formatCharisma(neededForNext)}
+                    </span>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// Avatar with Frame Component - FIXED
+const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
+    const sizeClasses = {
+        sm: 'avatar-wrapper size-sm',
+        md: 'avatar-wrapper size-md', 
+        lg: 'avatar-wrapper size-lg',
+        xl: 'avatar-wrapper size-xl'
+    };
+    
+    const frameStyle = equipped?.frames || null;
+    const frameItem = SHOP_ITEMS.frames.find(f => f.id === frameStyle);
+    
+    return (
+        <div className={sizeClasses[size]} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+            <img 
+                src={photoURL || `https://ui-avatars.com/api/?name=User&background=random`} 
+                className="avatar-image" 
+                alt="avatar" 
+            />
+            {frameItem && (
+                frameItem.preview.startsWith('http') ? (
+                    <img 
+                        src={frameItem.preview} 
+                        className="avatar-frame"
+                        alt="frame"
+                    />
+                ) : (
+                    <div 
+                        className="avatar-frame-gradient"
+                        style={{ background: frameItem.preview }}
+                    />
+                )
+            )}
+        </div>
+    );
+};
+
+// Tutorial Modal with Close Button
 const TutorialModal = ({ show, onClose, lang }) => {
     const t = TRANSLATIONS[lang];
     const [step, setStep] = useState(0);
     if(!show) return null;
     const steps = [ { text: t.tutorialStep1, img: "🕵️" }, { text: t.tutorialStep2, img: "🗳️" }, { text: t.tutorialStep3, img: "🛒" } ];
     return (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4">
-            <div className="glass-panel rounded-2xl p-6 w-full max-w-sm text-center animate-pop">
-                <div className="text-6xl mb-6 animate-bounce">{steps[step].img}</div>
-                <p className="text-base mb-6 text-gray-200">{steps[step].text}</p>
-                <div className="flex justify-center gap-2 mb-4"> {steps.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === step ? 'bg-cyan-400 w-4' : 'bg-gray-600'}`}></div>)} </div>
-                <div className="flex gap-3">
-                    {step > 0 && <button onClick={() => setStep(s => s-1)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">Back</button>}
-                    {step < steps.length - 1 ? ( <button onClick={() => setStep(s => s+1)} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.next}</button> ) : ( <button onClick={onClose} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.startGame}</button> )}
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.tutorialTitle}</h2>
+                    <ModalCloseBtn onClose={onClose} />
                 </div>
-                <button onClick={onClose} className="text-xs text-gray-500 mt-4 hover:text-white">{t.skipTutorial}</button>
+                <div className="modal-body text-center">
+                    <div className="text-6xl mb-6 animate-bounce">{steps[step].img}</div>
+                    <p className="text-base mb-6 text-gray-200">{steps[step].text}</p>
+                    <div className="flex justify-center gap-2 mb-4"> 
+                        {steps.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === step ? 'bg-cyan-400 w-4' : 'bg-gray-600'}`}></div>)} 
+                    </div>
+                    <div className="flex gap-3">
+                        {step > 0 && <button onClick={() => setStep(s => s-1)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">Back</button>}
+                        {step < steps.length - 1 ? ( <button onClick={() => setStep(s => s+1)} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.next}</button> ) : ( <button onClick={onClose} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.startGame}</button> )}
+                    </div>
+                    <button onClick={onClose} className="text-xs text-gray-500 mt-4 hover:text-white">{t.skipTutorial}</button>
+                </div>
             </div>
         </div>
     );
 };
 
-// Gift Preview Modal
+// Gift Preview Modal with Close Button
 const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency }) => { 
     const t = TRANSLATIONS[lang]; 
     if(!show || !gift) return null; 
     const cashbackAmount = Math.floor(gift.cost * (gift.cashback / 100)); 
     return ( 
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4" onClick={onClose}> 
-            <div className="glass-panel rounded-2xl p-5 w-full max-w-xs text-center animate-pop border border-yellow-500/30" onClick={e => e.stopPropagation()}> 
-                <div className="text-6xl mb-3">{gift.emoji}</div> 
-                <h3 className="text-lg font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3> 
-                <p className="text-xs text-gray-400 mb-4">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p> 
-                <div className="grid grid-cols-2 gap-2 mb-4"> 
-                    <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-2"> 
-                        <div className="text-[10px] text-gray-400">{t.charismaGain}</div> 
-                        <div className="text-lg font-bold text-purple-400">+{formatCharisma(gift.charisma)}</div> 
+        <div className="modal-overlay" onClick={onClose}> 
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.giftPreview}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body text-center">
+                    <div className="text-6xl mb-3">{gift.emoji}</div> 
+                    <h3 className="text-lg font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3> 
+                    <p className="text-xs text-gray-400 mb-4">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p> 
+                    <div className="grid grid-cols-2 gap-2 mb-4"> 
+                        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-2"> 
+                            <div className="text-[10px] text-gray-400">{t.charismaGain}</div> 
+                            <div className="text-lg font-bold text-purple-400">+{formatCharisma(gift.charisma)}</div> 
+                        </div> 
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-2"> 
+                            <div className="text-[10px] text-gray-400">{t.cashback}</div> 
+                            <div className="text-lg font-bold text-green-400">+{cashbackAmount} 🧠</div> 
+                        </div> 
                     </div> 
-                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-2"> 
-                        <div className="text-[10px] text-gray-400">{t.cashback}</div> 
-                        <div className="text-lg font-bold text-green-400">+{cashbackAmount} 🧠</div> 
-                    </div> 
-                </div> 
-                <div className="text-sm text-yellow-400 mb-3">{t.willReceive}: {cashbackAmount} Intel ({gift.cashback}%)</div> 
-                <div className="flex gap-2"> 
-                    <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.reportCancel}</button> 
-                    <button onClick={() => onBuy(gift)} disabled={currency < gift.cost} className={`flex-1 py-2 rounded-lg text-sm font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>{t.buy} ({gift.cost} 🧠)</button> 
-                </div> 
-            </div> 
+                    <div className="text-sm text-yellow-400 mb-3">{t.willReceive}: {cashbackAmount} Intel ({gift.cashback}%)</div> 
+                </div>
+                <div className="modal-footer">
+                    <div className="flex gap-2">
+                        <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.reportCancel}</button> 
+                        <button onClick={() => onBuy(gift)} disabled={currency < gift.cost} className={`flex-1 py-2 rounded-lg text-sm font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>{t.buy} ({gift.cost} 🧠)</button> 
+                    </div>
+                </div>
+            </div>
         </div> 
     ); 
 };
 
-// Send Gift Modal
+// Send Gift Modal with Close Button
 const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency }) => { 
     const t = TRANSLATIONS[lang]; 
     const [selectedGift, setSelectedGift] = useState(null); 
@@ -217,24 +435,26 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
     }; 
     return ( 
         <> 
-            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4" onClick={onClose}> 
-                <div className="glass-panel rounded-2xl p-4 w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col animate-pop" onClick={e => e.stopPropagation()}> 
-                    <div className="flex justify-between items-center mb-3"> 
-                        <h2 className="text-lg font-bold text-primary">{t.sendGift}</h2> 
-                        <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">&times;</button> 
+            <div className="modal-overlay" onClick={onClose}> 
+                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header"> 
+                        <h2 className="modal-title">{t.sendGift}</h2> 
+                        <ModalCloseBtn onClose={onClose} />
                     </div> 
-                    <div className="flex items-center gap-2 mb-3 p-2 bg-white/5 rounded-lg"> 
-                        <img src={targetUser.photoURL} className="w-10 h-10 rounded-full border-2 border-cyan-400" alt=""/> 
-                        <div> <div className="font-bold text-sm">{targetUser.displayName}</div> <div className="text-[10px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div> </div> 
-                    </div> 
-                    <div className="flex items-center gap-2 mb-3 text-xs text-yellow-400"><span>🧠 {currency} {CURRENCY_NAME}</span></div> 
-                    <div className="flex-1 overflow-y-auto grid grid-cols-5 gap-2"> 
-                        {gifts.map(gift => ( 
-                            <button key={gift.id} onClick={() => { setSelectedGift(gift); setShowPreview(true); }} disabled={currency < gift.cost} className={`gift-card flex flex-col items-center justify-center p-2 rounded-lg transition ${currency >= gift.cost ? 'hover:border-yellow-400 hover:bg-yellow-500/10' : 'opacity-40 cursor-not-allowed'}`}> 
-                                <span className="text-2xl">{gift.emoji}</span> 
-                                <span className="text-[10px] font-bold text-yellow-400">{gift.cost}</span> 
-                            </button> 
-                        ))} 
+                    <div className="modal-body">
+                        <div className="flex items-center gap-2 mb-3 p-2 bg-white/5 rounded-lg"> 
+                            <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
+                            <div> <div className="font-bold text-sm">{targetUser.displayName}</div> <div className="text-[10px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div> </div> 
+                        </div> 
+                        <div className="flex items-center gap-2 mb-3 text-xs text-yellow-400"><span>🧠 {currency} {CURRENCY_NAME}</span></div> 
+                        <div className="grid grid-cols-5 gap-2"> 
+                            {gifts.map(gift => ( 
+                                <button key={gift.id} onClick={() => { setSelectedGift(gift); setShowPreview(true); }} disabled={currency < gift.cost} className={`gift-card flex flex-col items-center justify-center p-2 rounded-lg transition ${currency >= gift.cost ? 'hover:border-yellow-400 hover:bg-yellow-500/10' : 'opacity-40 cursor-not-allowed'}`}> 
+                                    <span className="text-2xl">{gift.emoji}</span> 
+                                    <span className="text-[10px] font-bold text-yellow-400">{gift.cost}</span> 
+                                </button> 
+                            ))} 
+                        </div>
                     </div> 
                 </div> 
             </div> 
@@ -265,34 +485,19 @@ const KDCircle = ({ wins, losses, lang }) => {
     ); 
 };
 
-// Charisma Bar
-const CharismaBar = ({ charisma, lang }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const level = Math.floor(charisma / 1000) + 1; 
-    const progress = (charisma % 1000) / 1000 * 100; 
-    return ( 
-        <div className="charisma-container"> 
-            <div className="flex justify-between items-center mb-1"> 
-                <span className="text-xs font-bold text-yellow-400 flex items-center gap-1">✨ {t.charisma}</span> 
-                <span className="text-xs text-gray-400">Lv.{level}</span> 
-            </div> 
-            <div className="charisma-bar-bg"><div className="charisma-bar-fill" style={{ width: `${progress}%` }}></div></div> 
-            <div className="text-center text-sm font-bold text-yellow-300 mt-1">{formatCharisma(charisma)} XP</div> 
-        </div> 
-    ); 
-};
-
-// Shop Modal
+// Shop Modal - IMPROVED with UnEquip
 const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => { 
     const t = TRANSLATIONS[lang]; 
     const [tab, setTab] = useState('frames'); 
     const [msg, setMsg] = useState(''); 
     const [selectedGift, setSelectedGift] = useState(null); 
     const [showGiftPreview, setShowGiftPreview] = useState(false); 
+    
     if(!show || !userData) return null; 
     const currency = userData.currency || 0; 
     const inventory = userData.inventory || { frames: [], titles: [], themes: [], gifts: [] }; 
     const equipped = userData.equipped || {}; 
+    
     const handleBuy = async (item) => { 
         if(inventory[item.type]?.includes(item.id)) { setMsg(t.alreadyOwned); setTimeout(() => setMsg(''), 2000); return; } 
         if(currency < item.cost) { setMsg(t.purchaseFail); setTimeout(() => setMsg(''), 2000); return; } 
@@ -302,6 +507,7 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => {
         await usersCollection.doc(userData.uid).update({ currency: newCurrency, inventory: newInventory }); 
         setMsg(t.purchaseSuccess); setTimeout(() => setMsg(''), 2000); if(onUpdate) onUpdate(); 
     }; 
+    
     const handleBuyGift = async (gift) => { 
         if(currency < gift.cost) { setMsg(t.purchaseFail); setTimeout(() => setMsg(''), 2000); return; } 
         const cashbackAmount = Math.floor(gift.cost * (gift.cashback / 100)); 
@@ -312,36 +518,94 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => {
         await usersCollection.doc(userData.uid).update({ currency: newCurrency, inventory: newInventory, charisma: newCharisma }); 
         setMsg(`${t.purchaseSuccess} +${formatCharisma(gift.charisma)} ✨`); setTimeout(() => setMsg(''), 2000); setShowGiftPreview(false); if(onUpdate) onUpdate(); 
     }; 
-    const handleEquip = async (type, id) => { const newEquipped = { ...equipped, [type]: id }; await usersCollection.doc(userData.uid).update({ equipped: newEquipped }); if(onUpdate) onUpdate(); }; 
+    
+    const handleEquip = async (type, id) => {
+        const newEquipped = { ...equipped, [type]: id };
+        await usersCollection.doc(userData.uid).update({ equipped: newEquipped });
+        if(onUpdate) onUpdate();
+    };
+    
+    const handleUnequip = async (type) => {
+        const newEquipped = { ...equipped };
+        delete newEquipped[type];
+        await usersCollection.doc(userData.uid).update({ equipped: newEquipped });
+        if(onUpdate) onUpdate();
+    };
+    
     const items = SHOP_ITEMS[tab] || []; 
+    
     return ( 
         <> 
-            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-2" onClick={onClose}> 
-                <div className="glass-panel rounded-2xl p-4 w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col animate-pop" onClick={e => e.stopPropagation()}> 
-                    <div className="flex justify-between items-center mb-3"> 
-                        <h2 className="text-lg font-bold text-primary">{t.shop}</h2> 
-                        <div className="flex items-center gap-2 text-yellow-400 font-bold text-sm"><span>{CURRENCY_ICON} {currency}</span></div> 
+            <div className="modal-overlay" onClick={onClose}> 
+                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header"> 
+                        <h2 className="modal-title">{t.shop}</h2> 
+                        <div className="flex items-center gap-2">
+                            <span className="text-yellow-400 font-bold text-sm">{CURRENCY_ICON} {currency}</span>
+                            <ModalCloseBtn onClose={onClose} />
+                        </div>
                     </div> 
-                    <div className="flex gap-1 mb-3 border-b border-white/10 pb-2 overflow-x-auto"> 
-                        {['frames', 'titles', 'themes', 'gifts'].map(k => ( <button key={k} onClick={() => setTab(k)} className={`px-3 py-1 rounded-t-lg text-xs whitespace-nowrap ${tab === k ? 'bg-white/10 text-white' : 'text-gray-500'}`}>{t[k]}</button> ))} 
-                    </div> 
-                    {msg && <div className="text-center text-xs text-cyan-400 mb-2 animate-pop">{msg}</div>} 
-                    <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-3 pr-1"> 
-                        {items.map(item => { 
-                            const owned = item.type !== 'gifts' && inventory[item.type]?.includes(item.id); 
-                            const isEquipped = equipped[item.type] === item.id; 
-                            const isUrl = item.preview?.startsWith('http') || item.emoji; 
-                            return ( 
-                                <div key={item.id} className="bg-black/30 rounded-xl p-3 flex flex-col items-center justify-between h-36"> 
-                                    <div className="text-xs font-bold mb-1 text-center">{lang === 'ar' ? item.name_ar : item.name_en}</div> 
-                                    {item.type === 'frames' && ( <div className="w-10 h-10 rounded-full mb-1 relative overflow-hidden flex-shrink-0"> <div className="absolute inset-0 bg-gray-700 rounded-full"></div> {isUrl && item.preview?.startsWith('http') ? ( <img src={item.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt="frame" /> ) : ( <div className="absolute inset-0 rounded-full" style={{ background: item.preview, padding: '2px' }}><div className="w-full h-full rounded-full bg-gray-800"></div></div> )} </div> )} 
-                                    {item.type === 'titles' && <div className="text-base font-bold mb-1 text-center" style={{ color: 'var(--primary)' }}>{item.name_en}</div>} 
-                                    {item.type === 'themes' && <div className="text-2xl mb-1">🎨</div>} 
-                                    {item.type === 'gifts' && ( <> <div className="text-2xl mb-1">{item.emoji}</div> <div className="text-[10px] text-yellow-400">+{formatCharisma(item.charisma)} ✨</div> </> )} 
-                                    {item.type === 'gifts' ? ( <button onClick={() => { setSelectedGift(item); setShowGiftPreview(true); }} disabled={currency < item.cost} className={`w-full py-1 rounded text-[10px] font-bold ${currency >= item.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>{t.buy} ({item.cost})</button> ) : owned ? ( <button onClick={() => handleEquip(item.type, item.id)} className={`w-full py-1 rounded text-[10px] ${isEquipped ? 'btn-neon' : 'btn-ghost border-white/20'}`}>{isEquipped ? t.equipped : t.equip}</button> ) : ( <button onClick={() => handleBuy(item)} className="btn-gold w-full py-1 rounded text-[10px]">{t.buy} ({item.cost})</button> )} 
-                                </div> 
-                            ); 
-                        })} 
+                    <div className="modal-body">
+                        <div className="tab-container">
+                            {['frames', 'titles', 'themes', 'gifts'].map(k => ( 
+                                <button key={k} onClick={() => setTab(k)} className={`tab-button ${tab === k ? 'active' : ''}`}>{t[k]}</button> 
+                            ))} 
+                        </div>
+                        {msg && <div className="text-center text-xs text-cyan-400 mb-2 animate-pop">{msg}</div>} 
+                        <div className="inventory-grid"> 
+                            {items.map(item => { 
+                                const owned = item.type !== 'gifts' && inventory[item.type]?.includes(item.id); 
+                                const isEquipped = equipped[item.type] === item.id; 
+                                return ( 
+                                    <div key={item.id} className={`inventory-item ${isEquipped ? 'equipped' : ''}`}> 
+                                        <div className="inventory-item-preview">
+                                            {item.type === 'frames' && (
+                                                <div className="w-10 h-10 rounded-full relative">
+                                                    <div className="absolute inset-0 bg-gray-700 rounded-full"></div>
+                                                    {item.preview?.startsWith('http') ? (
+                                                        <img src={item.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt="frame" />
+                                                    ) : (
+                                                        <div className="absolute inset-0 rounded-full" style={{ background: item.preview, padding: '2px' }}>
+                                                            <div className="w-full h-full rounded-full bg-gray-800"></div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {item.type === 'titles' && <span className="text-base font-bold text-primary">{item.name_en}</span>}
+                                            {item.type === 'themes' && <span className="text-2xl">🎨</span>}
+                                            {item.type === 'gifts' && (
+                                                <>
+                                                    <span className="text-2xl">{item.emoji}</span>
+                                                    <span className="text-[10px] text-yellow-400">+{formatCharisma(item.charisma)} ✨</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
+                                        <div className="inventory-item-actions">
+                                            {item.type === 'gifts' ? (
+                                                <button onClick={() => { setSelectedGift(item); setShowGiftPreview(true); }} disabled={currency < item.cost} className={currency >= item.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}>
+                                                    {t.buy} ({item.cost})
+                                                </button>
+                                            ) : owned ? (
+                                                isEquipped ? (
+                                                    <button onClick={() => handleUnequip(item.type)} className="btn-unequip">
+                                                        {t.unequip}
+                                                    </button>
+                                                ) : (
+                                                    <button onClick={() => handleEquip(item.type, item.id)} className="btn-ghost border-white/20">
+                                                        {t.equip}
+                                                    </button>
+                                                )
+                                            ) : (
+                                                <button onClick={() => handleBuy(item)} className="btn-gold">
+                                                    {t.buy} ({item.cost})
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div> 
+                                ); 
+                            })} 
+                        </div>
                     </div> 
                 </div> 
             </div> 
@@ -350,27 +614,41 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate }) => {
     ); 
 };
 
-// Match Summary Modal
+// Match Summary Modal with Close Button
 const MatchSummaryModal = ({ show, onClose, room, players, lang }) => { 
     const t = TRANSLATIONS[lang]; 
     if(!show || !room) return null; 
     const duration = room.finishedAt && room.startedAt ? formatDuration(room.finishedAt - room.startedAt) : "N/A"; 
     return ( 
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4" onClick={onClose}> 
-            <div className="glass-panel rounded-2xl p-6 w-full max-w-sm text-center animate-pop" onClick={e => e.stopPropagation()}> 
-                <h2 className="text-2xl font-black mb-4 text-primary">{t.summaryTitle}</h2> 
-                <div className="grid grid-cols-2 gap-3 mb-4 text-left text-xs"> 
-                    <div className="bg-black/30 p-2 rounded-lg"><span className="text-gray-400">{t.matchDuration}</span><div className="text-lg font-bold text-white">{duration}</div></div> 
-                    <div className="bg-black/30 p-2 rounded-lg"><span className="text-gray-400">{t.mvp}</span><div className="text-lg font-bold text-primary truncate">{room.status === 'finished_spy_caught' ? 'Agents' : 'Spy'}</div></div> 
-                </div> 
-                <div className="max-h-32 overflow-y-auto mb-4 space-y-1"> {players && players.map(p => ( <div key={p.uid} className="flex justify-between items-center bg-white/5 px-2 py-1 rounded text-xs"><span>{p.name}</span><span className={p.status === 'active' ? 'text-green-400' : 'text-red-400'}>{p.status === 'active' ? 'Survived' : 'Out'}</span></div> ))} </div> 
-                <button onClick={onClose} className="btn-neon w-full py-2 rounded-lg text-sm">{t.ok}</button> 
-            </div> 
+        <div className="modal-overlay" onClick={onClose}> 
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.summaryTitle}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body text-center">
+                    <div className="grid grid-cols-2 gap-3 mb-4"> 
+                        <div className="bg-black/30 p-2 rounded-lg"><span className="text-gray-400">{t.matchDuration}</span><div className="text-lg font-bold text-white">{duration}</div></div> 
+                        <div className="bg-black/30 p-2 rounded-lg"><span className="text-gray-400">{t.mvp}</span><div className="text-lg font-bold text-primary truncate">{room.status === 'finished_spy_caught' ? 'Agents' : 'Spy'}</div></div> 
+                    </div> 
+                    <div className="max-h-32 overflow-y-auto mb-4 space-y-1"> 
+                        {players && players.map(p => ( 
+                            <div key={p.uid} className="flex justify-between items-center bg-white/5 px-2 py-1 rounded text-xs">
+                                <span>{p.name}</span>
+                                <span className={p.status === 'active' ? 'text-green-400' : 'text-red-400'}>{p.status === 'active' ? 'Survived' : 'Out'}</span>
+                            </div> 
+                        ))} 
+                    </div>
+                </div>
+                <div className="modal-footer">
+                    <button onClick={onClose} className="btn-neon w-full py-2 rounded-lg text-sm">{t.ok}</button>
+                </div>
+            </div>
         </div> 
     ); 
 };
 
-// Report Modal
+// Report Modal with Close Button
 const ReportModal = ({ show, onClose, targetUser, currentUser, lang }) => { 
     const t = TRANSLATIONS[lang]; 
     const [selectedReason, setSelectedReason] = useState(null); 
@@ -383,199 +661,87 @@ const ReportModal = ({ show, onClose, targetUser, currentUser, lang }) => {
         if (!selectedReason) return; 
         setSubmitting(true); 
         try { 
-            await reportsCollection.add({ reporterId: currentUser.uid, reporterName: currentUser.displayName, reportedId: targetUser.uid, reportedName: targetUser.displayName, reason: selectedReason, details: details, timestamp: firebase.firestore.FieldValue.serverTimestamp(), status: 'pending' }); 
-            setMsg(t.reportSent); 
-            setTimeout(() => { onClose(); setMsg(''); setSelectedReason(null); setDetails(''); }, 1500); 
-        } catch (err) { console.error(err); } finally { setSubmitting(false); } 
-    }; 
-    return ( 
-        <div className="report-modal-overlay" onClick={onClose}> 
-            <div className="report-modal-content animate-pop" onClick={e => e.stopPropagation()}> 
-                <h2 className="text-lg font-bold text-red-400 mb-3">{t.reportTitle}</h2> 
-                <p className="text-xs text-gray-400 mb-3">{t.reportDesc}</p> 
-                <div className="space-y-2 mb-3"> {reasons.map(r => ( <div key={r.id} onClick={() => setSelectedReason(r.id)} className={`report-reason-option ${selectedReason === r.id ? 'selected' : ''}`}> <div className={`w-3 h-3 rounded-full border-2 ${selectedReason === r.id ? 'border-red-500 bg-red-500' : 'border-gray-500'}`}></div> <span className="text-xs">{r.label}</span> </div> ))} </div> 
-                <textarea className="input-dark w-full p-2 rounded text-xs h-16 resize-none" placeholder={t.reportReasonOther} value={details} onChange={e => setDetails(e.target.value)} disabled={submitting}></textarea> 
-                {msg && <div className="text-center text-green-400 text-xs my-2">{msg}</div>} 
-                <div className="flex gap-2 mt-3"> 
-                    <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded text-xs" disabled={submitting}>{t.reportCancel}</button> 
-                    <button onClick={handleSubmit} disabled={!selectedReason || submitting} className="btn-danger flex-1 py-2 rounded font-bold text-xs">{submitting ? t.loading : t.reportSubmit}</button> 
-                </div> 
-            </div> 
-        </div> 
-    ); 
+            await reportsCollection.add({ reporterId: currentUser.uid, reporterName: currentUser.displayName, reportedId: targetUser.uid, reportedName: targetUser.displayName, reason: selectedReason, details: details, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            setMsg(t.reportSent);
+            setTimeout(() => { setMsg(''); onClose(); }, 1500);
+        } catch (e) {
+            setMsg("Error submitting report");
+        }
+        setSubmitting(false);
+    };
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.reportTitle}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body">
+                    <p className="text-xs text-gray-400 mb-3">{t.reportDesc}</p>
+                    {reasons.map(r => (
+                        <div key={r.id} onClick={() => setSelectedReason(r.id)} className={`report-reason-option ${selectedReason === r.id ? 'selected' : ''}`}>
+                            <span>{r.label}</span>
+                        </div>
+                    ))}
+                    <textarea value={details} onChange={e => setDetails(e.target.value)} placeholder="Additional details (optional)" className="input-dark w-full mt-3 text-xs" rows={2} />
+                </div>
+                <div className="modal-footer">
+                    {msg && <div className="text-center text-xs text-cyan-400 mb-2">{msg}</div>}
+                    <div className="flex gap-2">
+                        <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.reportCancel}</button>
+                        <button onClick={handleSubmit} disabled={!selectedReason || submitting} className="btn-danger flex-1 py-2 rounded-lg text-sm">{t.reportSubmit}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
-// User Profile Modal
-const UserProfileModal = ({ show, onClose, targetUID, lang, isFriend, currentUserData, onSendRequest, onSendGift }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const [profileData, setProfileData] = useState(null); 
-    const [msg, setMsg] = useState(''); 
-    const [showReport, setShowReport] = useState(false); 
-    const [showSendGift, setShowSendGift] = useState(false); 
-    useEffect(() => { if (show && targetUID) { usersCollection.doc(targetUID).get().then(doc => { if (doc.exists) setProfileData(doc.data()); }); } }, [show, targetUID]); 
-    if (!show || !profileData) return null; 
-    const level = calculateLevel(profileData.stats?.xp || 0); 
-    const wins = profileData.stats?.wins || 0; 
-    const losses = profileData.stats?.losses || 0; 
-    const totalGames = wins + losses; 
-    const charisma = profileData.charisma || 0; 
-    const isTargetGuest = profileData.isAnonymous; 
-    const equippedTitle = profileData.equipped?.titles ? SHOP_ITEMS.titles.find(i => i.id === profileData.equipped.titles) : null; 
-    const isMe = targetUID === currentUserData.uid; 
-    const frameItem = profileData.equipped?.frames ? SHOP_ITEMS.frames.find(f=>f.id===profileData.equipped.frames) : null; 
-    const isFrameUrl = frameItem?.preview?.startsWith('http'); 
-    const avatarSize = 48; const frameScale = 1.18; 
-    const handleAddClick = async () => { if (isFriend || currentUserData.isAnonymous) return; await onSendRequest(targetUID); setMsg(t.requestSent); setTimeout(() => setMsg(''), 2000); }; 
-    return ( 
-        <> 
-            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4" onClick={onClose}> 
-                <div className="glass-panel rounded-2xl p-5 w-full max-w-sm animate-pop" onClick={e => e.stopPropagation()}> 
-                    <div className="profile-header text-center"> 
-                        <div className="relative inline-block mb-2 mx-auto" style={{ width: avatarSize, height: avatarSize }}> 
-                            {isFrameUrl && frameItem && ( <img src={frameItem.preview} className="absolute pointer-events-none z-20 rounded-full" style={{ width: avatarSize * frameScale, height: avatarSize * frameScale, top: -(avatarSize * (frameScale - 1) / 2), left: -(avatarSize * (frameScale - 1) / 2) }} alt="" /> )} 
-                            {!isFrameUrl && frameItem && ( <div className="absolute rounded-full z-0" style={{ width: avatarSize * frameScale, height: avatarSize * frameScale, top: -(avatarSize * (frameScale - 1) / 2), left: -(avatarSize * (frameScale - 1) / 2), background: frameItem.preview, padding: 3 }}><div className="w-full h-full rounded-full bg-gray-900"></div></div> )} 
-                            <img src={profileData.photoURL || `https://ui-avatars.com/api/?name=${profileData.displayName}&background=random`} className="profile-avatar-sm relative z-10 mx-auto" style={{ width: avatarSize, height: avatarSize }} alt=""/> 
-                        </div> 
-                        <div className="profile-name text-lg"> {equippedTitle && <span className="equipped-title text-[8px]">{lang === 'ar' ? equippedTitle.name_ar : equippedTitle.name_en}</span>} {profileData.displayName} </div> 
-                        {isTargetGuest && ( <div className="guest-badge-profile text-[10px]"><span>⚠️</span> {t.guestAccountLabel}</div> )} 
-                        <div className="profile-id-box mt-1" onClick={() => { navigator.clipboard.writeText(profileData.customId); setMsg(t.copied); setTimeout(()=>setMsg(''),1500) }}> <span className="profile-id-text text-[10px]">ID: #{profileData.customId}</span> </div> 
-                    </div> 
-                    {msg && <div className="text-center text-[10px] text-cyan-400 mb-2">{msg}</div>} 
-                    <CharismaBar charisma={charisma} lang={lang} /> 
-                    <KDCircle wins={wins} losses={losses} lang={lang} /> 
-                    <div className="info-grid text-xs"> <div className="info-box"><span className="info-label">{t.level}</span><span className="info-value text-primary">{level}</span></div> <div className="info-box"><span className="info-label">{t.totalGames}</span><span className="info-value">{totalGames}</span></div> <div className="info-box"><span className="info-label">{t.wins}</span><span className="info-value text-green-400">{wins}</span></div> <div className="info-box"><span className="info-label">{t.losses}</span><span className="info-value text-red-400">{losses}</span></div> </div> 
-                    {!isMe && ( !currentUserData.isAnonymous ? ( !isTargetGuest ? ( <div className="flex gap-2"> <button onClick={handleAddClick} disabled={msg || isFriend} className={`flex-1 py-2 rounded-lg font-bold text-xs mt-3 ${isFriend ? 'bg-gray-700 text-gray-400' : 'btn-neon'}`}>{isFriend ? "Friends" : (msg || t.addFriend)}</button> <button onClick={() => setShowSendGift(true)} className="btn-gold py-2 rounded-lg font-bold text-xs mt-3 px-3">🎁</button> </div> ) : ( <div className="text-center text-[10px] text-yellow-400 bg-yellow-500/10 p-2 rounded-lg mt-3">{t.guestProfileMsg}</div> ) ) : (<div className="text-center text-[10px] text-gray-500 mt-3">{t.noPermission}</div>) )} 
-                    {currentUserData && !currentUserData.isAnonymous && !isMe && ( <button onClick={() => setShowReport(true)} className="btn-ghost w-full py-1 mt-2 rounded text-[10px] text-red-400 border-red-400/50 hover:bg-red-500/10">{t.reportUser}</button> )} 
-                </div> 
-            </div> 
-            <ReportModal show={showReport} onClose={() => setShowReport(false)} targetUser={profileData} currentUser={currentUserData} lang={lang} /> 
-            <SendGiftModal show={showSendGift} onClose={() => setShowSendGift(false)} targetUser={profileData} currentUser={currentUserData} lang={lang} onSendGift={onSendGift} currency={currentUserData?.currency || 0} /> 
-        </> 
-    ); 
-};
-
-// My Account Page
-const MyAccountPage = ({ show, onClose, userData, user, lang, onUpdate }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const [newName, setNewName] = useState(''); 
-    const [msg, setMsg] = useState(''); 
-    const [showEmail, setShowEmail] = useState(false); 
-    const [showShop, setShowShop] = useState(false); 
-    const [activeTab, setActiveTab] = useState('main'); 
-    useEffect(() => { if (userData) setNewName(userData.displayName || ''); }, [userData]); 
-    useEffect(() => { if(userData && !userData.isAnonymous) { const level = calculateLevel(userData.stats?.xp || 0); const currentAch = userData.achievements || []; let newAch = [...currentAch]; if(level >= 5 && !currentAch.includes('level_5')) newAch.push('level_5'); if(level >= 10 && !currentAch.includes('level_10')) newAch.push('level_10'); const charisma = userData.charisma || 0; if(charisma >= 1000 && !currentAch.includes('charisma_1000')) newAch.push('charisma_1000'); if(charisma >= 10000 && !currentAch.includes('charisma_10000')) newAch.push('charisma_10000'); if(charisma >= 100000 && !currentAch.includes('charisma_100000')) newAch.push('charisma_100000'); if(newAch.length > currentAch.length) { usersCollection.doc(userData.uid).update({ achievements: newAch }); } } }, [userData?.stats?.xp, userData?.charisma]); 
-    if (!show || !userData || !user) return null; 
-    const isGuest = userData?.isAnonymous; 
-    const level = calculateLevel(userData.stats?.xp || 0); 
-    const xpProgress = calculateXPProgress(userData.stats?.xp || 0); 
-    const timeRemaining = getTimeRemaining(userData.lastChangedName); 
-    const canChange = timeRemaining === "0d 0h"; 
-    const charisma = userData.charisma || 0; 
-    const handleChangeName = async () => { if(!newName.trim()) return; if (!canChange) { setMsg(t.nameChangeLimit); return; } await usersCollection.doc(userData.uid).update({ displayName: newName, lastChangedName: firebase.firestore.FieldValue.serverTimestamp() }); setMsg("Updated!"); if (onUpdate) onUpdate(); }; 
-    const email = user?.email || ''; 
-    const maskedEmail = email.replace(/(.{2})(.*)(@.*)/, "$1***$3"); 
-    const currency = userData.currency || 0; 
-    const inventory = userData.inventory || { frames: [], titles: [], themes: [], gifts: [] }; 
-    const equippedFrameItem = userData.equipped?.frames ? SHOP_ITEMS.frames.find(f=>f.id===userData.equipped.frames) : null; 
-    const isEqFrameUrl = equippedFrameItem?.preview?.startsWith('http'); 
-    const avatarSize = 56; const frameScale = 1.18; 
-    return ( 
-        <> 
-            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-2 overflow-y-auto" onClick={onClose}> 
-                <div className="glass-panel rounded-2xl p-4 w-full max-w-md animate-pop my-4 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}> 
-                    <div className="flex justify-between items-center mb-3 flex-shrink-0"> <h2 className="text-lg font-bold text-primary">{t.myAccount}</h2> <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">&times;</button> </div> 
-                    {isGuest && <GuestBanner lang={lang} />} 
-                    <div className="mb-3 p-2 rounded-lg bg-gradient-to-r from-yellow-900/30 to-yellow-500/10 border border-yellow-500/30 flex justify-between items-center cursor-pointer hover:bg-yellow-500/20 transition flex-shrink-0" onClick={() => setShowShop(true)}> <div className="flex items-center gap-2"><span className="text-xl">{CURRENCY_ICON}</span><div><div className="text-base font-bold text-yellow-400">{currency}</div><div className="text-[8px] text-gray-400 uppercase">{CURRENCY_NAME}</div></div></div> <button className="btn-gold px-3 py-1 rounded text-[10px]">{t.shop}</button> </div> 
-                    <div className="flex items-center gap-3 mb-3 flex-shrink-0"> 
-                        <div className="relative" style={{ width: avatarSize, height: avatarSize }}> 
-                            {isEqFrameUrl && equippedFrameItem && ( <img src={equippedFrameItem.preview} className="absolute pointer-events-none z-20 rounded-full" style={{ width: avatarSize * frameScale, height: avatarSize * frameScale, top: -(avatarSize * (frameScale - 1) / 2), left: -(avatarSize * (frameScale - 1) / 2) }} alt="" /> )} 
-                            {!isEqFrameUrl && equippedFrameItem && ( <div className="absolute rounded-full z-0" style={{ width: avatarSize * frameScale, height: avatarSize * frameScale, top: -(avatarSize * (frameScale - 1) / 2), left: -(avatarSize * (frameScale - 1) / 2), background: equippedFrameItem.preview, padding: 3 }}><div className="w-full h-full rounded-full bg-gray-900"></div></div> )} 
-                            <img src={userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`} className="rounded-full border-2 border-white/20 relative z-10" style={{ width: avatarSize, height: avatarSize }} alt=""/> 
-                        </div> 
-                        <div className="flex-1"> <div className="text-sm font-bold"> {userData.equipped?.titles && <span className="equipped-title text-[8px]">{lang === 'ar' ? SHOP_ITEMS.titles.find(t=>t.id===userData.equipped.titles)?.name_ar : SHOP_ITEMS.titles.find(t=>t.id===userData.equipped.titles)?.name_en}</span>} {userData.displayName} </div> <div className="text-[10px] text-gray-400 flex items-center gap-1 mt-1"> <span>{t.level} {level}</span> <span className="opacity-50">|</span> <span>{t.wins}: {userData.stats?.wins || 0}</span> <span className="opacity-50">|</span> <span className="text-yellow-400">✨ {formatCharisma(charisma)}</span> </div> <div className="w-full h-1 xp-bar-bg rounded-full overflow-hidden mt-1"><div className="h-full xp-bar-fill" style={{ width: `${xpProgress}%` }}></div></div> </div> 
-                    </div> 
-                    <div className="flex gap-1 mb-2 border-b border-white/10 pb-2 text-xs flex-shrink-0"> <button onClick={() => setActiveTab('main')} className={`flex-1 py-1 rounded ${activeTab === 'main' ? 'bg-white/10 text-white' : 'text-gray-500'}`}>{t.tabMain}</button> <button onClick={() => setActiveTab('inv')} className={`flex-1 py-1 rounded ${activeTab === 'inv' ? 'bg-white/10 text-white' : 'text-gray-500'}`}>{t.tabInv}</button> <button onClick={() => setActiveTab('ach')} className={`flex-1 py-1 rounded ${activeTab === 'ach' ? 'bg-white/10 text-white' : 'text-gray-500'}`}>{t.tabAch}</button> </div> 
-                    <div className="flex-1 overflow-y-auto pr-1 min-h-0"> 
-                        {activeTab === 'main' && ( <div className="space-y-3"> <div className="glass-panel p-2 rounded-lg border border-yellow-500/30 bg-gradient-to-r from-yellow-900/20 to-transparent"><CharismaBar charisma={charisma} lang={lang} /></div> <div className="glass-panel p-2 rounded-lg border border-white/10 text-[10px]"> <span className="text-gray-400 uppercase">{t.email}</span> <div className="flex justify-between items-center mt-1"><span className="font-mono text-xs">{showEmail ? email : maskedEmail}</span><button onClick={() => setShowEmail(!showEmail)} className="text-cyan-400 text-[10px]">{showEmail ? "Hide" : "Show"}</button></div> </div> {!isGuest && ( <div className="glass-panel p-2 rounded-lg border border-white/10"> <label className="text-[9px] text-gray-400 uppercase">{t.changeName}</label> <div className="flex gap-1 mt-1"> <input className="input-dark flex-1 p-1 rounded text-xs" value={newName} onChange={e => setNewName(e.target.value)} /> <button onClick={handleChangeName} disabled={!canChange} className={`px-2 rounded text-[10px] font-bold ${canChange ? 'btn-neon' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>{t.save}</button> </div> <p className="text-[8px] text-gray-500 mt-1">{canChange ? t.canChangeNow : `${t.nameChangeCountdown}: ${timeRemaining}`}</p> </div> )} {msg && !msg.includes('Copied') && <div className="text-center text-[10px] text-cyan-400">{msg}</div>} </div> )} 
-                        {activeTab === 'inv' && ( <div className="space-y-3"> {inventory.frames?.length === 0 && inventory.titles?.length === 0 && inventory.themes?.length === 0 && inventory.gifts?.length === 0 && <p className="text-center text-gray-500 text-xs py-4">No items yet.</p>} {inventory.titles?.length > 0 && ( <div><h4 className="text-[10px] font-bold text-gray-400 mb-1">{t.titles}</h4><div className="flex flex-wrap gap-1">{inventory.titles.map(id => { const item = SHOP_ITEMS.titles.find(i => i.id === id); const isEq = userData.equipped?.titles === id; if(!item) return null; return <button key={id} onClick={() => { usersCollection.doc(userData.uid).update({"equipped.titles": id}); if(onUpdate) onUpdate(); }} className={`px-2 py-1 rounded text-[10px] ${isEq ? 'btn-neon' : 'btn-ghost'}`}>{lang === 'ar' ? item.name_ar : item.name_en}</button> })}</div></div> )} {inventory.frames?.length > 0 && ( <div><h4 className="text-[10px] font-bold text-gray-400 mb-1">{t.frames}</h4><div className="flex flex-wrap gap-2">{inventory.frames.map(id => { const item = SHOP_ITEMS.frames.find(i => i.id === id); const isEq = userData.equipped?.frames === id; if(!item) return null; const isUrl = item.preview?.startsWith('http'); return ( <button key={id} onClick={() => { usersCollection.doc(userData.uid).update({"equipped.frames": id}); if(onUpdate) onUpdate(); }} className={`w-10 h-10 rounded-full overflow-hidden relative transition ${isEq ? 'ring-2 ring-cyan-400 scale-110' : 'opacity-70 hover:opacity-100'}`}> {isUrl ? ( <img src={item.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt=""/> ) : ( <div className="absolute inset-0 rounded-full" style={{ background: item.preview, padding: '3px' }}><div className="w-full h-full rounded-full bg-gray-800"></div></div> )} </button> ); })}</div></div> )} {inventory.themes?.length > 0 && ( <div><h4 className="text-[10px] font-bold text-gray-400 mb-1">{t.themes}</h4><div className="flex flex-wrap gap-1">{inventory.themes.map(id => { const item = SHOP_ITEMS.themes.find(i => i.id === id); const isEq = userData.equipped?.themes === id; if(!item) return null; return <button key={id} onClick={() => { usersCollection.doc(userData.uid).update({"equipped.themes": id}); if(onUpdate) onUpdate(); }} className={`px-2 py-1 rounded text-[10px] ${isEq ? 'btn-neon' : 'btn-ghost'}`}>{lang === 'ar' ? item.name_ar : item.name_en}</button> })}</div></div> )} {inventory.gifts?.length > 0 && ( <div><h4 className="text-[10px] font-bold text-gray-400 mb-1">{t.gifts}</h4><div className="flex flex-wrap gap-2">{inventory.gifts.map(g => { const item = SHOP_ITEMS.gifts.find(i => i.id === g.id); if(!item) return null; return ( <div key={g.id} className="relative flex flex-col items-center"><span className="text-2xl">{item.emoji}</span><span className="absolute -top-1 -right-1 bg-cyan-500 text-white text-[8px] rounded-full w-4 h-4 flex items-center justify-center">{g.count}</span></div> ); })}</div></div> )} </div> )} 
-                        {activeTab === 'ach' && ( <div className="grid grid-cols-3 gap-1"> {ACHIEVEMENTS.map(ach => { const isUnlocked = (userData.achievements || []).includes(ach.id); const isHidden = ach.hidden && !isUnlocked; if(isHidden) return <div key={ach.id} className="achievement-card locked rounded p-1 text-center opacity-50"><div className="text-lg">❓</div><div className="text-[8px]">{t.hiddenAch}</div></div>; return ( <div key={ach.id} className={`achievement-card rounded p-1 text-center ${isUnlocked ? 'unlocked' : 'locked'}`}> <div className="text-lg">{ach.icon}</div> <div className="text-[8px] font-bold truncate">{lang === 'ar' ? ach.name_ar : ach.name_en}</div> </div> ); })} </div> )} 
-                    </div> 
-                </div> 
-            </div> 
-            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={userData} lang={lang} onUpdate={onUpdate} /> 
-        </> 
-    ); 
-};
-
-// Game Chat Message
-const GameChatMessage = ({ msg, currentUser, players, onAvatarClick }) => { 
-    const sender = players.find(p => p.uid === msg.sender); 
-    const isMe = msg.sender === currentUser.uid; 
-    if(msg.sender === 'system') return <div className="text-center text-[9px] text-gray-500 my-1">{msg.text}</div>; 
-    return ( 
-        <div className={`chat-msg-row ${isMe ? 'flex-row-reverse' : ''}`}> 
-            <img src={sender?.photo || `https://ui-avatars.com/api/?name=${sender?.name}`} className="chat-avatar-sm" alt="" onClick={() => onAvatarClick(msg.sender)} /> 
-            <div className="chat-content"> 
-                <div className={`chat-header ${isMe ? 'justify-end' : ''}`}> <span className="chat-username">{msg.name}</span> <span className="chat-timestamp">{formatTime(msg.time)}</span> </div> 
-                <div className={`chat-bubble ${isMe ? 'chat-bubble-me' : 'chat-bubble-other'}`}><p>{msg.text}</p></div> 
-            </div> 
-        </div> 
-    ); 
-};
-
-// Private Chat Modal
-const PrivateChatModal = ({ show, onClose, friendData, currentUser, lang, onInvite, roomId, onJoinInvite, onSendGift }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const [messages, setMessages] = useState([]); 
-    const [newMsg, setNewMsg] = useState(''); 
-    const [showEmojis, setShowEmojis] = useState(false); 
-    const [showGiftModal, setShowGiftModal] = useState(false); 
-    const chatId = (friendData && currentUser) ? getChatId(currentUser.uid, friendData.uid) : null; 
-    useEffect(() => { if(show && chatId) { const unsub = chatsCollection.doc(chatId).collection('messages').orderBy('timestamp', 'asc').onSnapshot(snap => { setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); chatsCollection.doc(chatId).set({ [`unread.${currentUser.uid}`]: 0 }, { merge: true }); return unsub; } }, [show, chatId]); 
-    const handleSend = async (text) => { const msgText = text || newMsg; if(!msgText.trim() || !chatId) return; const msg = { senderId: currentUser.uid, senderName: currentUser.displayName, text: msgText, timestamp: firebase.firestore.FieldValue.serverTimestamp(), type: 'text' }; const batch = db.batch(); const msgRef = chatsCollection.doc(chatId).collection('messages').doc(); batch.set(msgRef, msg); const chatRef = chatsCollection.doc(chatId); batch.set(chatRef, { members: [currentUser.uid, friendData.uid], lastMessage: msgText, timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friendData.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true }); await batch.commit(); setNewMsg(''); setShowEmojis(false); }; 
-    const handleInvite = async () => { if(!chatId) return; const inviteMsg = { senderId: currentUser.uid, senderName: currentUser.displayName, text: `${currentUser.displayName} ${t.invitedYou}`, timestamp: firebase.firestore.FieldValue.serverTimestamp(), type: 'invite', roomId: roomId }; const batch = db.batch(); const msgRef = chatsCollection.doc(chatId).collection('messages').doc(); batch.set(msgRef, inviteMsg); const chatRef = chatsCollection.doc(chatId); batch.set(chatRef, { members: [currentUser.uid, friendData.uid], lastMessage: t.inviteBtn, timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friendData.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true }); await batch.commit(); }; 
-    if(!show || !friendData || !currentUser) return null; 
-    return ( 
-        <> 
-            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-2" onClick={()=>{onClose(); setShowEmojis(false);}}> 
-                <div className="glass-panel rounded-2xl w-full max-w-lg h-[550px] flex flex-col animate-pop relative" onClick={e => e.stopPropagation()}> 
-                    <div className="p-3 border-b border-white/10 flex justify-between items-center flex-shrink-0"> 
-                        <div className="flex items-center gap-2"> <img src={friendData.photoURL} className="w-8 h-8 rounded-full border-2 border-cyan-400"/> <div><h3 className="font-bold text-sm">{friendData.displayName}</h3><span className="text-[10px] text-yellow-400">✨ {formatCharisma(friendData.charisma || 0)}</span></div> </div> 
-                        <div className="flex items-center gap-2"> <button onClick={() => setShowGiftModal(true)} className="btn-gold px-2 py-1 rounded text-[10px]">🎁</button> <button onClick={onClose} className="text-xl text-gray-400 hover:text-white">&times;</button> </div> 
-                    </div> 
-                    <div className="flex-1 overflow-y-auto p-3 space-y-3"> {messages.map(m => ( <div key={m.id} className={`chat-msg-row ${m.senderId === currentUser.uid ? 'flex-row-reverse' : ''}`}> <img src={m.senderId === currentUser.uid ? currentUser.photoURL : friendData.photoURL} className="chat-avatar-sm" alt=""/> <div className="chat-content"> <div className={`chat-header ${m.senderId === currentUser.uid ? 'justify-end' : ''}`}> <span className="chat-username">{m.senderName}</span> <span className="chat-timestamp">{formatTime(m.timestamp)}</span> </div> <div className={`chat-bubble ${m.senderId === currentUser.uid ? 'chat-bubble-me' : 'chat-bubble-other'}`}> {m.type === 'invite' ? ( <div className="invite-bubble"><p className="text-xs">{m.text}</p>{m.senderId !== currentUser.uid && m.roomId && ( <button onClick={() => onJoinInvite(m.roomId)} className="btn-neon px-3 py-1 rounded text-[10px] mt-1">{t.joinInvite}</button> )}</div> ) : m.type === 'gift' ? ( <div className="text-center py-1"><span className="text-3xl">{m.text.split(' ')[0]}</span><p className="text-[10px] text-yellow-400 mt-1">{t.giftReceived}</p></div> ) : ( <p className="text-sm">{m.text}</p> )} </div> </div> </div> ))} </div> 
-                    {showEmojis && ( <div className="emoji-picker-container"> <div className="flex justify-between items-center mb-1"><span className="text-[10px] text-gray-400">{t.selectEmoji}</span><button onClick={() => setShowEmojis(false)} className="text-[10px] text-gray-500 hover:text-white">&times;</button></div> <div className="emoji-grid">{EMOJI_LIST.map(emoji => ( <span key={emoji} onClick={() => handleSend(emoji)} className="emoji-item">{emoji}</span> ))}</div> </div> )} 
-                    <div className="p-3 border-t border-white/10 relative flex-shrink-0"> {roomId && !currentUser.isAnonymous && (<button onClick={handleInvite} className="btn-success w-full py-1 rounded text-[10px] mb-1">{t.inviteBtn}</button>)} <div className="flex gap-1 items-center"> <button onClick={() => setShowEmojis(!showEmojis)} className="btn-ghost p-1 rounded-full text-lg">😀</button> <input className="input-dark flex-1 p-2 rounded-full text-xs" placeholder={t.chatPlaceholder} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} /> <button onClick={() => handleSend()} className="btn-neon px-3 rounded-full text-xs">{t.send}</button> </div> </div> 
-                </div> 
-            </div> 
-            <SendGiftModal show={showGiftModal} onClose={() => setShowGiftModal(false)} targetUser={friendData} currentUser={currentUser} lang={lang} onSendGift={onSendGift} currency={currentUser?.currency || 0} /> 
-        </> 
-    ); 
-};
-
-// Lobby Browser Modal
-const LobbyBrowserModal = ({ show, onClose, lang, onJoinRoom }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const [rooms, setRooms] = useState([]); 
-    const [passwordInput, setPasswordInput] = useState(''); 
-    const [selectedRoom, setSelectedRoom] = useState(null); 
-    useEffect(() => { if(show) { const unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => { setRooms(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); return unsub; } }, [show]); 
-    const handleJoinClick = (room) => { if(room.isPrivate) { setSelectedRoom(room); } else { onJoinRoom(room.id, null); onClose(); } }; 
-    const handlePasswordSubmit = () => { if(selectedRoom && selectedRoom.password === passwordInput) { onJoinRoom(selectedRoom.id, passwordInput); onClose(); } else { alert("Wrong Password!"); } }; 
-    if(!show) return null; 
-    return ( 
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-2" onClick={onClose}> 
-            <div className="glass-panel rounded-2xl p-4 w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col animate-pop" onClick={e => e.stopPropagation()}> 
-                <div className="flex justify-between items-center mb-3"> <h2 className="text-lg font-bold text-primary">{t.lobbyTitle}</h2> <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">&times;</button> </div> 
-                {selectedRoom && ( <div className="mb-3 p-3 border border-white/10 rounded-lg bg-black/20"> <p className="text-xs mb-2">Password for <span className="font-bold">{selectedRoom.id}</span></p> <div className="flex gap-2"> <input type="password" className="input-dark flex-1 p-2 rounded text-xs" placeholder="Password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} /> <button onClick={handlePasswordSubmit} className="btn-neon px-3 rounded text-xs">{t.join}</button> <button onClick={() => setSelectedRoom(null)} className="btn-ghost px-2 rounded">&times;</button> </div> </div> )} 
-                <div className="flex-1 overflow-y-auto space-y-1"> {rooms.length === 0 && <div className="text-center text-gray-500 py-10 text-xs">{t.noRooms}</div>} {rooms.map(r => ( <div key={r.id} className="flex justify-between items-center p-2 bg-white/5 rounded-lg hover:bg-white/10 transition"> <div> <div className="flex items-center gap-1"> <span className="font-mono text-primary font-bold text-xs">{r.id}</span> {r.isPrivate && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded">🔒</span>} <span className={`text-[8px] ${r.mode === 'advanced' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'} px-1 rounded`}>{r.mode === 'advanced' ? t.advancedMode : t.normalMode}</span> </div> <div className="text-[10px] text-gray-400">{r.players?.length || 0}/10</div> </div> <button onClick={() => handleJoinClick(r)} className="btn-neon px-3 py-1 rounded text-[10px]">{t.join}</button> </div> ))} </div> 
-            </div> 
-        </div> 
-    ); 
+// Notification Center Component - NEW
+const NotificationCenter = ({ show, onClose, notifications, onClearAll, onMarkRead, lang }) => {
+    const t = TRANSLATIONS[lang];
+    const unreadCount = notifications.filter(n => !n.read).length;
+    
+    if (!show) return null;
+    
+    return (
+        <div className="notification-dropdown animate-pop">
+            <div className="notification-dropdown-header">
+                <span className="notification-dropdown-title">{t.notifications}</span>
+                {notifications.length > 0 && (
+                    <button onClick={onClearAll} className="notification-clear-all">{t.clearAll}</button>
+                )}
+            </div>
+            <div className="notification-list">
+                {notifications.length === 0 ? (
+                    <div className="notification-empty">{t.noNotifications}</div>
+                ) : (
+                    notifications.map(notif => (
+                        <div 
+                            key={notif.id} 
+                            className={`notification-item ${!notif.read ? 'unread' : ''}`}
+                            onClick={() => onMarkRead(notif.id)}
+                        >
+                            <div className="flex items-center">
+                                <span className="notification-item-icon">
+                                    {notif.type === 'friend_request' ? '👋' : notif.type === 'gift' ? '🎁' : '💬'}
+                                </span>
+                                <div className="notification-item-content">
+                                    <div className="notification-item-title">{notif.message}</div>
+                                    <div className="notification-item-time">{formatTime(notif.timestamp)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
 };
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT PART 2
+// PRO SPY - COMPLETE SCRIPT PART 2 V2
 // App Component with ALL Systems
+// With: Notifications, Charisma Levels, UI Improvements
 // ==========================================
 
 function App() {
@@ -618,6 +784,12 @@ function App() {
     const [notification, setNotification] = useState(null);
     const [showTutorial, setShowTutorial] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
+    const [showShop, setShowShop] = useState(false);
+    
+    // NEW: Notification System State
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [unreadNotifications, setUnreadNotifications] = useState(0);
     
     const t = TRANSLATIONS[lang];
     const isLoggedIn = user && !user.isAnonymous;
@@ -668,6 +840,25 @@ function App() {
 
     useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && !isGuest) setShowTutorial(true); }, [isGuest]);
     useEffect(() => { if (!user) return; const interval = setInterval(() => { usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 60000); return () => clearInterval(interval); }, [user]);
+
+    // ==========================================
+    // NOTIFICATIONS LISTENER - NEW
+    // ==========================================
+    useEffect(() => {
+        if (!user || isGuest) return;
+        
+        const unsub = notificationsCollection
+            .where('toUserId', '==', user.uid)
+            .orderBy('timestamp', 'desc')
+            .limit(50)
+            .onSnapshot(snap => {
+                const notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setNotifications(notifs);
+                setUnreadNotifications(notifs.filter(n => !n.read).length);
+            });
+        
+        return unsub;
+    }, [user, isGuest]);
 
     // ==========================================
     // ROOM LISTENER WITH PLAYER LEAVE DETECTION
@@ -743,6 +934,50 @@ function App() {
     const getDefaultPhoto = (uData, name) => uData?.photoURL || `https://ui-avatars.com/api/?name=${name || 'Guest'}&background=random`;
 
     // ==========================================
+    // NOTIFICATION FUNCTIONS - NEW
+    // ==========================================
+    const createNotification = async (toUserId, type, message, fromUserId, fromName) => {
+        try {
+            await notificationsCollection.add({
+                toUserId,
+                fromUserId,
+                fromName,
+                type,
+                message,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            });
+            
+            // Play notification sound
+            playSound('message');
+        } catch (e) {
+            console.error('Notification error:', e);
+        }
+    };
+
+    const markNotificationRead = async (notifId) => {
+        try {
+            await notificationsCollection.doc(notifId).update({ read: true });
+        } catch (e) {
+            console.error('Mark read error:', e);
+        }
+    };
+
+    const clearAllNotifications = async () => {
+        try {
+            const batch = db.batch();
+            notifications.forEach(n => {
+                batch.delete(notificationsCollection.doc(n.id));
+            });
+            await batch.commit();
+            setNotifications([]);
+            setUnreadNotifications(0);
+        } catch (e) {
+            console.error('Clear notifications error:', e);
+        }
+    };
+
+    // ==========================================
     // ROOM FUNCTIONS
     // ==========================================
     const handleCreateGame = async () => { 
@@ -783,7 +1018,7 @@ function App() {
         setLoading(false); 
     };
 
-    // LEAVE ROOM - Updated for Player Leave Detection
+    // LEAVE ROOM
     const handleLeaveRoom = async (isUnload = false) => { 
         if (!room || !user) return; 
         if (!isUnload) playSound('click'); 
@@ -911,13 +1146,49 @@ function App() {
     const openProfile = (uid) => { if(!uid) return; setTargetProfileUID(uid); setShowUserProfile(true); };
     const openChat = (friend) => { setChatFriend(friend); setShowChat(true); const cId = getChatId(user.uid, friend.uid); setOpenChatId(cId); };
     const closeChat = () => { setShowChat(false); setChatFriend(null); setOpenChatId(null); };
-    const handleSendRequest = async (targetUid) => { if (!targetUid || targetUid === userData.customId || isGuest) return; const friendUid = targetUid; if (userData.friends?.includes(friendUid)) return; if (userData.friendRequests?.includes(friendUid)) return; await usersCollection.doc(friendUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) }); };
-    const handleSearchRequest = async () => { if (!addFriendId || addFriendId === userData.customId || isGuest) return; const snap = await usersCollection.where('customId', '==', addFriendId).get(); if (snap.empty) { setFriendSearchMsg(t.friendNotFound); return; } const friendDoc = snap.docs[0]; const friendUid = friendDoc.id; if (userData.friends?.includes(friendUid)) { setFriendSearchMsg("Already friends!"); return; } if (userData.friendRequests?.includes(friendUid)) { setFriendSearchMsg("Request already pending!"); return; } await usersCollection.doc(friendUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) }); setFriendSearchMsg(t.requestSent); setAddFriendId(''); };
-    const handleAcceptRequest = async (fromUid) => { const batch = db.batch(); const currentUserRef = usersCollection.doc(user.uid); batch.update(currentUserRef, { friends: firebase.firestore.FieldValue.arrayUnion(fromUid), friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); const senderRef = usersCollection.doc(fromUid); batch.update(senderRef, { friends: firebase.firestore.FieldValue.arrayUnion(user.uid) }); await batch.commit(); setNotification(t.newFriend); };
+    
+    const handleSendRequest = async (targetUid) => { 
+        if (!targetUid || targetUid === userData.customId || isGuest) return; 
+        const friendUid = targetUid; 
+        if (userData.friends?.includes(friendUid)) return; 
+        if (userData.friendRequests?.includes(friendUid)) return; 
+        await usersCollection.doc(friendUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) });
+        
+        // Create notification
+        await createNotification(friendUid, 'friend_request', `${userData.displayName} ${t.friendRequest}`, user.uid, userData.displayName);
+    };
+    
+    const handleSearchRequest = async () => { 
+        if (!addFriendId || addFriendId === userData.customId || isGuest) return; 
+        const snap = await usersCollection.where('customId', '==', addFriendId).get(); 
+        if (snap.empty) { setFriendSearchMsg(t.friendNotFound); return; } 
+        const friendDoc = snap.docs[0]; 
+        const friendUid = friendDoc.id; 
+        if (userData.friends?.includes(friendUid)) { setFriendSearchMsg("Already friends!"); return; } 
+        if (userData.friendRequests?.includes(friendUid)) { setFriendSearchMsg("Request already pending!"); return; } 
+        await usersCollection.doc(friendUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) }); 
+        
+        // Create notification
+        const friendData = friendDoc.data();
+        await createNotification(friendUid, 'friend_request', `${userData.displayName} ${t.friendRequest}`, user.uid, userData.displayName);
+        
+        setFriendSearchMsg(t.requestSent); setAddFriendId(''); 
+    };
+    
+    const handleAcceptRequest = async (fromUid) => { 
+        const batch = db.batch(); 
+        const currentUserRef = usersCollection.doc(user.uid); 
+        batch.update(currentUserRef, { friends: firebase.firestore.FieldValue.arrayUnion(fromUid), friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); 
+        const senderRef = usersCollection.doc(fromUid); 
+        batch.update(senderRef, { friends: firebase.firestore.FieldValue.arrayUnion(user.uid) }); 
+        await batch.commit(); 
+        setNotification(t.newFriend); 
+    };
+    
     const handleRejectRequest = async (fromUid) => { await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); };
 
     // ==========================================
-    // GIFT FUNCTIONS - FIXED FOR FIREBASE RULES
+    // GIFT FUNCTIONS
     // ==========================================
     const handleSendGiftToUser = async (gift, targetUser) => {
         const currency = userData?.currency || 0;
@@ -928,16 +1199,22 @@ function App() {
         const charismaGain = gift.charisma;
         
         try {
-            // Step 1: Update sender (owner can update own profile)
+            // Update sender
             await usersCollection.doc(user.uid).update({
                 currency: newCurrency,
                 charisma: firebase.firestore.FieldValue.increment(charismaGain)
             });
             
-            // Step 2: Update receiver charisma only (Rule 4 allows this)
+            // Update receiver charisma only
             await usersCollection.doc(targetUser.uid).update({
                 charisma: firebase.firestore.FieldValue.increment(charismaGain)
             });
+            
+            // Create notification for receiver
+            await createNotification(targetUser.uid, 'gift', `${userData.displayName} ${t.giftNotification}: ${gift.emoji}`, user.uid, userData.displayName);
+            
+            // Play gift sound
+            playSound('gift');
             
             setNotification(`${t.giftSent} +${formatCharisma(charismaGain)} ✨`);
         } catch (error) {
@@ -955,18 +1232,18 @@ function App() {
         const charismaGain = gift.charisma;
         
         try {
-            // Step 1: Update sender
+            // Update sender
             await usersCollection.doc(user.uid).update({
                 currency: newCurrency,
                 charisma: firebase.firestore.FieldValue.increment(charismaGain)
             });
             
-            // Step 2: Update receiver charisma only
+            // Update receiver charisma only
             await usersCollection.doc(targetUser.uid).update({
                 charisma: firebase.firestore.FieldValue.increment(charismaGain)
             });
             
-            // Step 3: Send gift message
+            // Send gift message
             const giftMsg = {
                 senderId: user.uid,
                 senderName: userData.displayName,
@@ -985,6 +1262,11 @@ function App() {
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 [`unread.${targetUser.uid}`]: firebase.firestore.FieldValue.increment(1)
             }, { merge: true });
+            
+            // Create notification
+            await createNotification(targetUser.uid, 'gift', `${userData.displayName} ${t.giftNotification}: ${gift.emoji}`, user.uid, userData.displayName);
+            
+            playSound('gift');
             
         } catch (error) {
             console.error("Gift chat error:", error);
@@ -1015,38 +1297,484 @@ function App() {
             <NotificationToast message={notification} onClose={() => setNotification(null)} />
             <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
             <MatchSummaryModal show={showSummary} onClose={() => setShowSummary(false)} room={room} players={room?.players} lang={lang} />
-            {alertMessage && ( <div className="alert-modal" onClick={() => setAlertMessage(null)}> <div className="glass-panel rounded-xl p-4 w-full max-w-xs animate-pop text-center border border-pink-500 text-sm" onClick={e => e.stopPropagation()}> <div className="text-2xl mb-2">🚫</div> <p className="font-bold mb-2">{alertMessage}</p> <button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-1 rounded border border-white/20 text-xs">{t.ok}</button> </div> </div> )}
+            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={userData} lang={lang} onUpdate={() => {}} />
             
-            {showSetupModal && ( <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-2" onClick={()=>setShowSetupModal(false)}> <div className="glass-panel rounded-xl p-4 w-full max-w-sm animate-pop" onClick={e => e.stopPropagation()}> <h2 className="text-lg font-bold text-primary mb-3">{t.create}</h2> <div className="space-y-3"> <div> <label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label> <input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-2 rounded font-bold text-sm`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} /> </div> <div className="grid grid-cols-2 gap-2"> <button onClick={() => setSetupMode('normal')} className={`p-2 rounded-lg border-2 text-xs ${setupMode === 'normal' ? 'border-cyan-400 bg-cyan-500/10' : 'border-white/10'}`}><div className="font-bold">{t.normalMode}</div><div className="text-[8px] text-gray-400">{t.modeNormalDesc}</div></button> <button onClick={() => setSetupMode('advanced')} className={`p-2 rounded-lg border-2 text-xs ${setupMode === 'advanced' ? 'border-purple-400 bg-purple-500/10' : 'border-white/10'}`}><div className="font-bold">{t.advancedMode}</div><div className="text-[8px] text-gray-400">{t.modeAdvDesc}</div></button> </div> <div className="flex items-center gap-2"> <input type="checkbox" id="privateCheck" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="w-3 h-3"/> <label htmlFor="privateCheck" className="text-xs">{t.privateRoom}</label> </div> {isPrivate && ( <input className="input-dark w-full p-2 rounded text-xs" placeholder={t.password} value={password} onChange={e => setPassword(e.target.value)} /> )} <button onClick={handleCreateGame} disabled={loading || !nickname} className="btn-neon w-full py-2 rounded-lg font-bold text-sm">{loading ? t.loading : t.create}</button> </div> </div> </div> )}
+            {alertMessage && ( 
+                <div className="alert-modal" onClick={() => setAlertMessage(null)}> 
+                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <span></span>
+                            <ModalCloseBtn onClose={() => setAlertMessage(null)} />
+                        </div>
+                        <div className="modal-body text-center">
+                            <div className="text-2xl mb-2">🚫</div> 
+                            <p className="font-bold mb-4">{alertMessage}</p> 
+                            <button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button> 
+                        </div>
+                    </div> 
+                </div> 
+            )}
             
-            <MyAccountPage show={showMyAccount} onClose={() => setShowMyAccount(false)} userData={userData} user={user} lang={lang} onUpdate={async () => { if(user){ const d = await usersCollection.doc(user.uid).get(); setUserData(d.data()); }} } />
-            <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} lang={lang} onSendRequest={handleSendRequest} isFriend={userData?.friends?.includes(targetProfileUID)} currentUserData={userData} onSendGift={handleSendGiftToUser} />
-            <PrivateChatModal show={showChat} onClose={closeChat} friendData={chatFriend} currentUser={userData} lang={lang} roomId={roomId} onJoinInvite={handleJoinFromInvite} onSendGift={handleSendGiftInChat} />
-            <LobbyBrowserModal show={showLobby} onClose={() => setShowLobby(false)} lang={lang} onJoinRoom={(id, pwd) => handleJoinGame(id, pwd)} />
+            {/* Setup Modal */}
+            {showSetupModal && ( 
+                <div className="modal-overlay" onClick={()=>setShowSetupModal(false)}> 
+                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}> 
+                        <div className="modal-header">
+                            <h2 className="modal-title">{t.create}</h2>
+                            <ModalCloseBtn onClose={() => setShowSetupModal(false)} />
+                        </div>
+                        <div className="modal-body">
+                            <div className="space-y-3"> 
+                                <div> 
+                                    <label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label> 
+                                    <input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-2 rounded font-bold text-sm`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} /> 
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setSetupMode('normal')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'normal' ? 'btn-neon' : 'btn-ghost'}`}>{t.normalMode}</button>
+                                    <button onClick={() => setSetupMode('advanced')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'advanced' ? 'btn-neon' : 'btn-ghost'}`}>{t.advancedMode}</button>
+                                </div>
+                                <p className="text-[10px] text-gray-400 text-center">{setupMode === 'normal' ? t.modeNormalDesc : t.modeAdvDesc}</p>
+                                <div className="flex items-center gap-2">
+                                    <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} id="privateCheck" />
+                                    <label htmlFor="privateCheck" className="text-xs">{t.privateRoom}</label>
+                                </div>
+                                {isPrivate && (
+                                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={t.password} className="input-dark w-full p-2 rounded text-sm" />
+                                )}
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button onClick={handleCreateGame} disabled={loading || !nickname.trim()} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">
+                                {loading ? t.loading : t.create}
+                            </button>
+                        </div>
+                    </div> 
+                </div> 
+            )}
             
-            {room?.status === 'discussing' && voteReq && ( <div className="vote-request-banner glass-panel rounded-lg p-3 border border-pink-500 animate-pop"> <div className="flex flex-col gap-1"> <div className="text-center font-bold text-pink-400 text-sm">{t.voteRequestTitle}</div> <div className="text-center text-[10px] text-gray-300"> <span className="font-bold">{room.players.find(p=>p.uid === voteReq.requestedBy)?.name}</span> {t.voteRequestDesc} </div> <div className="flex justify-center gap-2 mt-1"> <button onClick={agreeToVote} disabled={hasIAgreed} className={`btn px-4 py-1 rounded text-[10px] font-bold ${hasIAgreed ? 'btn-ghost opacity-50' : 'btn-success'}`}>{t.agree}</button> <button onClick={declineVote} disabled={hasIDeclined} className={`btn px-4 py-1 rounded text-[10px] font-bold ${hasIDeclined ? 'btn-ghost opacity-50' : 'btn-danger'}`}>{t.decline}</button> </div> </div> </div> )}
-            
-            <header className="w-full max-w-4xl flex justify-between items-center mb-3 animate-fade-in relative z-50 py-1"> 
-                <div className="flex items-center gap-2"> <div className="logo-container"> <div className="logo-border"></div> <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2"> <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/> </svg> </div> <div> <h1 className="game-title text-lg">{t.appName}</h1> <p className="text-[8px] text-gray-500 tracking-widest font-tech hidden md:block">{t.tagline}</p> </div> </div> 
-                <nav className="hidden md:flex gap-1 glass-panel rounded-full p-1 items-center text-xs"> <button onClick={() => setActiveView('lobby')} className={`nav-tab rounded-full ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button> <button onClick={() => setActiveView('leaderboard')} className={`nav-tab rounded-full ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button> <button onClick={() => setActiveView('friends')} className={`nav-tab rounded-full relative ${activeView === 'friends' ? 'active' : ''}`}> {t.tabFriends} {totalUnread > 0 && <span className="notification-badge text-[8px]">{totalUnread}</span>} </button> </nav> 
-                <div className="flex gap-1 items-center">
-                    <a href="https://guessmycard.mooo.info/" target="_blank" rel="noopener noreferrer" className="btn-ghost px-2 py-1 rounded text-[10px] font-bold border-gray-700 hover:text-pink-400 hover:border-pink-400 hidden sm:block">{t.linkGuessCard}</a>
-                    <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="btn-ghost px-2 py-1 rounded text-[10px] font-bold border-gray-700">{t.langBtn}</button>
-                    <div className="relative"> {isLoggedIn ? ( <> <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-1 btn-ghost px-2 py-1 rounded-full border-gray-700"> <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${userData?.displayName}`} className="w-5 h-5 rounded-full" alt=""/> <span className="text-[10px] font-bold hidden lg:block">{t.myAccount}</span> </button> {showDropdown && ( <div className="dropdown-menu glass-panel rounded-lg py-1 animate-fade-in text-xs"> <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-right px-3 py-1 hover:bg-white/10">{t.profile}</button> <button onClick={handleLogout} className="w-full text-right px-3 py-1 text-red-400 hover:bg-white/10">{t.logout}</button> </div> )} </> ) : ( <button onClick={handleGoogleLogin} className="btn-google px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1"> <svg className="w-3 h-3" viewBox="0 0 21 20" fill="none"><path d="M20.3087 10.2242C20.3087 9.46273 20.2446 8.74991 20.1273 8.08594H10.5V11.9392H15.9715C15.7353 13.1916 15.0216 14.2518 13.9444 14.9582V17.4635H17.2543C19.1883 15.7262 20.3087 13.1977 20.3087 10.2242Z" fill="#4285F4"/><path d="M10.5 19.875C13.1617 19.875 15.3983 18.9749 17.2545 17.4636L13.9446 14.9582C12.9389 15.6222 11.7015 16.0092 10.5 16.0092C7.93332 16.0092 5.72548 14.2615 4.93682 11.9136H1.51758V14.4934C3.3629 18.0879 7.13889 19.875 10.5 19.875Z" fill="#34A853"/><path d="M4.93672 11.9136C4.73672 11.2496 4.62266 10.5469 4.62266 9.82357C4.62266 9.10026 4.73672 8.39751 4.93672 7.73354V5.15375H1.51748C0.774766 6.61518 0.351562 8.20361 0.351562 9.82357C0.351562 11.4435 0.774766 13.0319 1.51748 14.4934L4.93672 11.9136Z" fill="#FBBC05"/><path d="M10.5 3.63864C11.8379 3.63864 13.0392 4.09256 13.9864 4.98477L17.3199 1.65131C15.3941 -0.131629 13.1575 -0.124985 10.5 -0.124985C7.13889 -0.124985 3.3629 1.66216 1.51758 5.25668L4.93682 7.83647C5.72548 5.48861 7.93332 3.63864 10.5 3.63864Z" fill="#EA4335"/></svg> {t.loginGoogle} </button> )} </div> </div> 
+            {/* Main Header */}
+            <header className="w-full max-w-md flex items-center justify-between mb-3 px-1">
+                <div className="flex items-center gap-2">
+                    <div className="logo-container">
+                        <div className="logo-border"></div>
+                        <span className="text-xl">🕵️</span>
+                    </div>
+                    <div>
+                        <h1 className="game-title text-lg font-tech">{t.appName}</h1>
+                        <p className="text-[8px] text-gray-500 uppercase tracking-wider">{t.tagline}</p>
+                    </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                    {/* Notification Bell */}
+                    {isLoggedIn && (
+                        <div className="notification-center">
+                            <button onClick={() => setShowNotifications(!showNotifications)} className="notification-bell">
+                                <span className="notification-bell-icon">🔔</span>
+                                {unreadNotifications > 0 && (
+                                    <span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
+                                )}
+                            </button>
+                            <NotificationCenter 
+                                show={showNotifications}
+                                onClose={() => setShowNotifications(false)}
+                                notifications={notifications}
+                                onClearAll={clearAllNotifications}
+                                onMarkRead={markNotificationRead}
+                                lang={lang}
+                            />
+                        </div>
+                    )}
+                    
+                    <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
+                    
+                    {/* User Dropdown */}
+                    <div className="relative">
+                        <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-1 bg-white/5 rounded-lg px-2 py-1">
+                            <AvatarWithFrame 
+                                photoURL={userData?.photoURL} 
+                                equipped={userData?.equipped} 
+                                size="sm"
+                            />
+                            <span className="text-[10px] text-gray-300 max-w-[60px] truncate">{userData?.displayName || t.guest}</span>
+                        </button>
+                        
+                        {showDropdown && (
+                            <div className="dropdown-menu glass-panel rounded-lg p-1">
+                                {isGuest ? (
+                                    <button onClick={handleGoogleLogin} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2">
+                                        <span>🔑</span> {t.loginGoogle}
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2">
+                                            <span>👤</span> {t.myAccount}
+                                        </button>
+                                        <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2">
+                                            <span>🛒</span> {t.shop}
+                                        </button>
+                                        <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400">
+                                            <span>🚪</span> {t.logout}
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
             </header>
             
-            <nav className="md:hidden w-full max-w-4xl flex justify-around glass-panel rounded-lg p-1 mb-2 text-[10px]"> <button onClick={() => setActiveView('lobby')} className={`nav-tab flex-1 text-center ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button> <button onClick={() => setActiveView('leaderboard')} className={`nav-tab flex-1 text-center ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button> <button onClick={() => setActiveView('friends')} className={`nav-tab flex-1 text-center relative ${activeView === 'friends' ? 'active' : ''}`}> {t.tabFriends} {totalUnread > 0 && <span className="notification-badge text-[8px]">{totalUnread}</span>} </button> </nav>
+            {/* Main Content - Not in Room */}
+            {!room && (
+                <main className="w-full max-w-md flex-1 flex flex-col">
+                    {/* Tab Navigation */}
+                    <div className="tab-container mb-3">
+                        <button onClick={() => setActiveView('lobby')} className={`tab-button ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
+                        <button onClick={() => setActiveView('leaderboard')} className={`tab-button ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
+                        <button onClick={() => setActiveView('friends')} className={`tab-button relative ${activeView === 'friends' ? 'active' : ''}`}>
+                            {t.tabFriends}
+                            {totalUnread > 0 && <span className="friends-tab-badge">{totalUnread > 9 ? '9+' : totalUnread}</span>}
+                        </button>
+                    </div>
+                    
+                    {/* Lobby View */}
+                    {activeView === 'lobby' && (
+                        <div className="glass-panel rounded-xl p-4 flex-1">
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label>
+                                    <input 
+                                        className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg font-bold`}
+                                        value={nickname}
+                                        onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }}
+                                        disabled={isLoggedIn}
+                                        placeholder={t.nickname}
+                                    />
+                                </div>
+                                
+                                <div className="flex gap-2">
+                                    <button onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()} className="btn-neon flex-1 py-3 rounded-lg font-bold text-sm">
+                                        {t.create}
+                                    </button>
+                                    <button onClick={() => setShowLobby(true)} className="btn-ghost px-4 py-3 rounded-lg text-sm">
+                                        {t.browse}
+                                    </button>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                    <input 
+                                        className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase tracking-wider"
+                                        value={inputCode}
+                                        onChange={e => setInputCode(e.target.value.toUpperCase())}
+                                        placeholder={t.codePlaceholder}
+                                        maxLength={6}
+                                    />
+                                    <button onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()} className="btn-neon px-4 py-3 rounded-lg font-bold text-sm">
+                                        {loading ? '...' : t.join}
+                                    </button>
+                                </div>
+                                
+                                {joinError && <p className="text-xs text-red-400 text-center">{joinError}</p>}
+                                
+                                {/* Charisma Display in Lobby */}
+                                {userData && (
+                                    <CharismaDisplay charisma={userData.charisma} lang={lang} />
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Leaderboard View */}
+                    {activeView === 'leaderboard' && (
+                        <div className="glass-panel rounded-xl p-3 flex-1 overflow-hidden">
+                            <div className="overflow-y-auto max-h-[60vh]">
+                                {leaderboardData.map((player, i) => (
+                                    <div key={player.id} onClick={() => openProfile(player.id)} className="leaderboard-row cursor-pointer">
+                                        <span className="w-6 text-xs font-bold text-gray-500">{i + 1}</span>
+                                        <AvatarWithFrame photoURL={player.photoURL} equipped={player.equipped} size="sm" />
+                                        <span className="flex-1 text-sm font-medium truncate">{player.displayName}</span>
+                                        <div className="text-right">
+                                            <div className="text-xs font-bold text-primary">{player.stats?.wins || 0} {t.wins}</div>
+                                            <div className="text-[10px] text-gray-500">✨ {formatCharisma(player.charisma || 0)}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Friends View */}
+                    {activeView === 'friends' && (
+                        <div className="glass-panel rounded-xl p-3 flex-1 overflow-hidden">
+                            {isGuest ? (
+                                <div className="text-center py-8">
+                                    <p className="text-xs text-gray-400">{t.noPermission}</p>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Add Friend */}
+                                    <div className="flex gap-2 mb-3">
+                                        <input 
+                                            className="input-dark flex-1 p-2 rounded text-xs"
+                                            value={addFriendId}
+                                            onChange={e => setAddFriendId(e.target.value)}
+                                            placeholder={t.friendIdPlaceholder}
+                                        />
+                                        <button onClick={handleSearchRequest} className="btn-neon px-3 py-2 rounded text-xs">{t.addFriend}</button>
+                                    </div>
+                                    {friendSearchMsg && <p className="text-xs text-cyan-400 text-center mb-2">{friendSearchMsg}</p>}
+                                    
+                                    {/* Friend Requests */}
+                                    {friendRequests.length > 0 && (
+                                        <div className="mb-3">
+                                            <h4 className="text-xs font-bold text-gray-400 mb-2">{t.incomingRequests}</h4>
+                                            {friendRequests.map(req => (
+                                                <div key={req.id} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg mb-1">
+                                                    <AvatarWithFrame photoURL={req.photoURL} equipped={req.equipped} size="sm" onClick={() => openProfile(req.id)} />
+                                                    <span className="flex-1 text-xs truncate">{req.displayName}</span>
+                                                    <button onClick={() => handleAcceptRequest(req.id)} className="btn-success px-2 py-1 rounded text-[10px]">{t.accept}</button>
+                                                    <button onClick={() => handleRejectRequest(req.id)} className="btn-danger px-2 py-1 rounded text-[10px]">{t.reject}</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Friends List */}
+                                    <h4 className="text-xs font-bold text-gray-400 mb-2">{t.tabFriends} ({friendsData.length})</h4>
+                                    <div className="overflow-y-auto max-h-[40vh]">
+                                        {friendsData.length === 0 ? (
+                                            <p className="text-xs text-gray-500 text-center py-4">{t.noFriends}</p>
+                                        ) : (
+                                            sortedFriends.map(friend => {
+                                                const chatMeta = chatsMeta[getChatId(user?.uid, friend.uid)];
+                                                const unreadCount = chatMeta?.unread?.[user.uid] || 0;
+                                                const isOnline = friend.lastActive && (Date.now() - friend.lastActive.toMillis() < 120000);
+                                                
+                                                return (
+                                                    <div key={friend.id} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg mb-1">
+                                                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" onClick={() => openProfile(friend.id)} />
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-xs font-medium truncate">{friend.displayName}</span>
+                                                                <span className={isOnline ? 'status-online' : 'status-offline'}></span>
+                                                            </div>
+                                                            <div className="text-[10px] text-gray-500">✨ {formatCharisma(friend.charisma || 0)}</div>
+                                                        </div>
+                                                        {unreadCount > 0 && <span className="friend-unread-badge">{unreadCount}</span>}
+                                                        <button onClick={() => openChat(friend)} className="btn-ghost px-2 py-1 rounded text-[10px]">💬</button>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </main>
+            )}
             
-            <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-2">
-                {activeView === 'leaderboard' && ( <div className="md:col-span-3 glass-panel rounded-xl p-3 animate-fade-in overflow-x-auto"> <h2 className="text-base font-bold mb-2 text-primary">{t.tabLeaderboard}</h2> <div className="min-w-[400px]"> <div className="leaderboard-row border-b border-white/20 font-bold text-[10px] text-gray-400"> <div className="w-10">#</div> <div className="flex-1">{t.nickname}</div> <div className="w-10 text-center">{t.level}</div> <div className="w-12 text-center">{t.wins}</div> <div className="w-12 text-center">{t.losses}</div><div className="w-16 text-center">{t.charisma}</div></div> {leaderboardData.map((p, i) => ( <div key={p.uid} onClick={() => openProfile(p.uid)} className={`leaderboard-row cursor-pointer text-xs ${p.uid === user?.uid ? 'bg-cyan-500/10' : ''}`}> <div className="w-10 font-bold"># {i + 1}</div> <div className="flex-1 flex items-center gap-1"> <img src={p.photoURL} className="w-4 h-4 rounded-full"/> <span>{p.displayName}</span> {p.uid === user?.uid && <span className="text-[6px] bg-blue-500 px-1 rounded">{t.you}</span>} </div> <div className="w-10 text-center">{calculateLevel(p.stats?.xp)}</div> <div className="w-12 text-center text-green-400">{p.stats?.wins || 0}</div> <div className="w-12 text-center text-red-400">{p.stats?.losses || 0}</div><div className="w-16 text-center text-yellow-400">✨ {formatCharisma(p.charisma || 0)}</div></div> ))} </div> </div> )}
-                {activeView === 'friends' && ( <div className="md:col-span-3 glass-panel rounded-xl p-3 animate-fade-in space-y-3"> <h2 className="text-base font-bold text-primary">{t.tabFriends}</h2> {isGuest ? (<div className="text-center py-6"><p className="text-gray-400 text-xs">{t.noPermission}</p></div>) : ( <> <div className="flex gap-1"> <input className="input-dark flex-1 p-1 rounded text-xs" placeholder={t.friendIdPlaceholder} value={addFriendId} onChange={e => setAddFriendId(e.target.value)} /> <button onClick={handleSearchRequest} className="btn-neon px-2 rounded text-[10px]">{t.addFriend}</button> </div> {friendSearchMsg && <div className="text-[10px] text-center text-cyan-400">{friendSearchMsg}</div>} {friendRequests.length > 0 && ( <div className="border-t border-white/10 pt-2"> <h3 className="text-[10px] font-bold text-gray-400 mb-1">{t.incomingRequests}</h3> <div className="space-y-1"> {friendRequests.map(f => ( <div key={f.uid} className="flex items-center justify-between p-1 bg-white/5 rounded text-[10px]"> <div className="flex items-center gap-1"> <img src={f.photoURL} className="w-5 h-5 rounded-full"/> <span>{f.displayName}</span> </div> <div className="flex gap-1"> <button onClick={() => handleAcceptRequest(f.uid)} className="btn-success px-2 py-0.5 rounded text-[9px]">{t.accept}</button> <button onClick={() => handleRejectRequest(f.uid)} className="btn-danger px-2 py-0.5 rounded text-[9px]">{t.reject}</button> </div> </div> ))} </div> </div> )} <div className="border-t border-white/10 pt-2"> <h3 className="text-[10px] font-bold text-gray-400 mb-1">{t.tabFriends}</h3> <div className="space-y-1"> {sortedFriends.length === 0 && <p className="text-center text-gray-500 text-[10px] py-2">{t.noFriends}</p>} {sortedFriends.map(f => { const isOnline = f.lastActive && (Date.now() - f.lastActive.toMillis() < 120000); const chatId = getChatId(user?.uid, f.uid); const meta = chatsMeta[chatId]; const unread = meta?.unread?.[user?.uid] || 0; const lastMsg = meta?.lastMessage; return ( <div key={f.uid} className="player-card flex items-center justify-between p-1"> <div className="flex items-center gap-1 cursor-pointer relative flex-1 min-w-0" onClick={() => openProfile(f.uid)}> <div className="relative flex-shrink-0"> <img src={f.photoURL} className="w-6 h-6 rounded-full"/> {unread > 0 && <span className="friend-unread-badge text-[8px]">{unread}</span>} </div> <div className="truncate"> <div className="font-bold text-[10px] truncate">{f.displayName}</div> <div className="text-[8px] text-gray-400 truncate">{lastMsg ? (lastMsg.length > 15 ? lastMsg.substring(0,15)+'...' : lastMsg) : `Lvl ${calculateLevel(f.stats?.xp)}`}</div> </div> </div> <div className="flex items-center gap-1 flex-shrink-0 ml-1"> <span className={`${isOnline ? 'status-online' : 'status-offline'}`}></span> <button onClick={() => openChat(f)} className="btn-ghost px-2 py-0.5 rounded text-[8px] border-blue-500 text-blue-400">Chat</button> </div> </div> ); })} </div> </div> </> )} </div> )}
-                {activeView === 'lobby' && ( <> {room && ( <div className="md:col-span-3 flex justify-end mb-1"> <button onClick={() => setActiveView('friends')} className="btn-ghost px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 relative"> <span>👥</span> {t.inviteFriends} {totalUnread > 0 && <span className="notification-badge text-[8px]">{totalUnread}</span>} </button> </div> )} {room && ( <div className="glass-panel rounded-xl p-2 space-y-1 animate-fade-in delay-1"> <h3 className="text-[10px] font-bold text-gray-400 mb-1 border-b border-gray-800 pb-1 uppercase tracking-wider flex justify-between items-center"> <span>{t.players}</span> <span className="text-[8px] bg-white/5 px-1 rounded text-cyan-400">{t.roundsFormat(room.currentRound || 1, MAX_ROUNDS)}</span> </h3> <div className="space-y-1"> {room.players.map((p, i) => { const isMe = p.uid === user?.uid; const roleIcon = isMe ? (p.role === 'mrwhite' ? '⚪' : p.role === 'informant' ? '🛈' : p.role === 'spy' ? '🕵️' : '') : ''; const equippedFrame = p.equipped?.frames ? SHOP_ITEMS.frames.find(f=>f.id===p.equipped.frames) : null; const isFrameUrl = equippedFrame?.preview?.startsWith('http'); const pSize = 32; return ( <div key={i} onClick={() => openProfile(p.uid)} className={`player-card relative p-1 rounded flex items-center justify-between text-[10px] ${p.status === 'ghost' ? 'ghost' : p.status === 'spectator' ? 'eliminated' : ''}`}> <div className="flex items-center gap-1 flex-1 min-w-0"> <div className="relative flex-shrink-0" style={{ width: pSize, height: pSize }}> {isFrameUrl && equippedFrame && ( <img src={equippedFrame.preview} className="absolute pointer-events-none z-20 rounded-full" style={{ width: pSize * 1.18, height: pSize * 1.18, top: -pSize * 0.09, left: -pSize * 0.09 }} alt=""/> )} {!isFrameUrl && equippedFrame && ( <div className="absolute rounded-full" style={{ width: pSize * 1.18, height: pSize * 1.18, top: -pSize * 0.09, left: -pSize * 0.09, background: equippedFrame.preview, padding: 2 }}><div className="w-full h-full rounded-full bg-gray-900"></div></div> )} <img src={p.photo || `https://ui-avatars.com/api/?name=${p.name}`} className="w-full h-full rounded-full object-cover relative z-10" alt=""/> </div> <span className="font-bold truncate">{p.name}</span> <span className="text-[8px]">{roleIcon}</span> {p.uid === user?.uid && <span className="text-[6px] bg-blue-500 px-0.5 rounded">{t.you}</span>} </div> {p.uid === room.currentTurnUID && room.status === 'discussing' && ( <div className="flex items-center gap-0.5 ml-1"> <div className="timer-bar-container w-8"><div className="timer-bar-fill" style={{width: `${(turnTimer/30)*100}%`}}></div></div> <span className="text-[8px] font-mono text-cyan-400 w-4">{turnTimer}</span> </div> )} </div> )})} </div> {!isSpectator && room.status === 'discussing' && <button onClick={requestVoting} className="btn-vote w-full py-1 rounded font-bold text-[10px] mt-1 uppercase">{t.startVoting}</button>} </div> )} <div className={`${room ? 'md:col-span-2' : 'md:col-span-3'} space-y-2`}>{!room && ( <div className="glass-panel rounded-xl p-4 text-center space-y-3 animate-fade-in mx-auto max-w-xs w-full"> <div className="space-y-1"> <label className="text-[10px] text-gray-400 uppercase">{t.nickname}</label> <input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-2 rounded text-center font-bold text-xs`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} /> </div> <button onClick={() => setShowSetupModal(true)} disabled={loading || !nickname} className="btn-neon w-full py-2 rounded font-bold text-xs">{loading ? t.loading : t.create}</button> <div className="flex flex-col gap-1"> <div className="flex gap-1"> <input className="input-dark flex-1 p-2 rounded text-center font-mono text-xs" placeholder={t.codePlaceholder} value={inputCode} onChange={e => setInputCode(e.target.value)} /> <button onClick={() => handleJoinGame(inputCode, null)} disabled={loading || !nickname} className="btn-ghost px-3 rounded font-bold text-xs">{t.join}</button> </div> <button onClick={() => setShowLobby(true)} className="btn-gold w-full py-1 rounded text-[10px] font-bold">{t.browse}</button> {joinError && <div className="error-msg text-[10px]">{joinError}</div>} </div> </div> )} {room && ( <> <div className="glass-panel rounded-lg p-2 space-y-1"> <div className="flex justify-between items-center text-[10px]"> <div className="flex items-center gap-1"> <span className="font-mono font-bold text-base tracking-widest text-cyan-400">{roomId}</span> <button onClick={handleCopy} className={`btn-ghost p-0.5 rounded ${copied ? 'text-green-400' : 'text-gray-400'}`}> {copied ? '✓' : '📋'} </button> </div> <div className="flex items-center gap-1"> <span className="font-bold bg-white/10 px-1 rounded text-cyan-400"> {activePlayersCount}/10 </span> <span className={`px-1 rounded ${room.mode === 'advanced' ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'}`}>{room.mode === 'advanced' ? t.advancedMode : t.normalMode}</span> </div> </div> <div className="flex justify-between items-center border-t border-white/10 pt-1 flex-wrap-gap"> <div className="flex items-center gap-1"> <span className="font-bold bg-white/10 px-1 rounded text-cyan-400"> {room.status === 'word_selection' ? 'KEY' : room.status === 'discussing' ? 'TALK' : room.status.substring(0,4).toUpperCase()} </span> {room.isPrivate && ( <div className="flex items-center gap-0.5 bg-yellow-500/20 text-yellow-300 px-1 rounded text-[8px]"> <span>🔒</span> {room.admin === user?.uid && ( <button onClick={() => setShowPwd(!showPwd)} className="hover:text-white">{showPwd ? '👁️' : '👁️‍🗨️'}</button> )} {room.admin === user?.uid && showPwd && ( <span className="font-mono">{room.password}</span> )} </div> )} </div> <div className="flex gap-1"> {room.admin === user?.uid ? ( <button onClick={() => handleLeaveRoom()} className="btn-danger px-1 py-0.5 rounded text-[8px]">{t.closeRoom}</button> ) : ( <button onClick={() => handleLeaveRoom()} className="btn-ghost px-1 py-0.5 rounded text-[8px]">{t.leaveRoom}</button> )} </div> </div> </div> {room.status === 'waiting' && ( <div className="glass-panel rounded-xl p-3 text-center animate-fade-in"> <div className="animate-pulse text-gray-400 text-[10px] mb-2">{t.waiting}</div> {room.admin === user?.uid && (<button onClick={startGame} className="btn-neon w-full py-2 rounded font-bold text-xs">{t.start}</button>)} </div> )} {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_mrwhite_wins') && ( <div className="glass-panel rounded-xl p-4 text-center animate-fade-in border border-purple-500"> <h2 className="text-xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600"> {room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : (room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin)} </h2> <p className="text-gray-400 mb-2 text-[10px]">Spy: <span className="text-white font-bold">{room.players.find(p => p.role === 'spy')?.name}</span></p> {room.admin === user?.uid && (<button onClick={resetGame} className="btn-ghost border-white/20 text-white w-full py-1 rounded text-xs">{t.playAgain}</button>)} </div> )} {room.status === 'word_selection' && ( <div className="space-y-2 animate-fade-in"> <div className="glass-panel rounded-xl p-2 text-center relative overflow-hidden border border-cyan-500/30"> <div className="absolute top-1 right-1 w-8 h-8"> <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36"> <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle> <circle cx="18" cy="18" r="16" fill="none" stroke="#00f2ff" strokeWidth="3" strokeDasharray={`${(wordSelTimer/30)*100} ${100-((wordSelTimer/30)*100)}`} strokeLinecap="round"></circle> </svg> <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-cyan-400">{wordSelTimer}</div> </div> <h3 className="text-sm font-black mb-1 uppercase text-cyan-400">{t.wordSelectionTitle}</h3> <p className="text-[8px] text-gray-500 mb-2">{t.wordSelectionDesc}</p> <div className="grid grid-cols-2 gap-1"> {(() => { const wordsToDisplay = myRole === 'spy' || myRole === 'mrwhite' ? ['?', '?', '?', '?'] : (lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en); return wordsToDisplay?.map((word, i) => { const voters = Object.entries(room.wordVotes || {}).filter(([uid, w]) => w === word).map(([uid]) => room.players.find(p => p.uid === uid)?.name); return ( <button key={i} onClick={() => submitWordVote(word)} disabled={myRole === 'spy' || myRole === 'mrwhite'} className={`word-vote-card p-2 rounded font-bold text-xs transition-all ${hasVotedWord === word ? 'selected' : 'bg-white/5 border border-white/10'} ${(myRole === 'spy' || myRole === 'mrwhite') ? 'opacity-50 cursor-not-allowed' : ''}`}> {word} {voters.length > 0 && (<div className="flex justify-center gap-0.5 mt-0.5 flex-wrap">{voters.map(v => <span key={v} className="voter-name relative text-[8px]">{v}</span>)}</div>)} </button> ); }); })()} </div> {room.admin === user?.uid && myRole !== 'spy' && myRole !== 'mrwhite' && (<button onClick={() => finishWordSelection(false)} className="btn-neon w-full py-1 rounded font-bold text-[10px] mt-2">{t.finishSelection}</button>)} </div> <div className={`identity-square glass-panel ${myRole === 'spy' ? 'identity-spy' : myRole === 'informant' ? 'identity-informant' : myRole === 'mrwhite' ? 'identity-mrwhite' : 'identity-agent'}`}> <div className="relative z-10 p-2 flex flex-col items-center justify-center h-full"> <span className={`text-[8px] font-bold uppercase tracking-widest mb-1 px-2 py-0.5 rounded-full ${ myRole === 'spy' ? 'bg-red-500/20 text-red-400' : myRole === 'informant' ? 'bg-blue-500/20 text-blue-400' : myRole === 'mrwhite' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400' }`}> {t[`status${myRole?.charAt(0).toUpperCase() + myRole?.slice(1) || 'Agent'}`]} </span> {myRole === 'spy' && (<><div className="text-3xl mb-1">🕵️</div><h3 className="text-xl font-black tracking-wider text-red-500">???</h3></> )} {myRole === 'mrwhite' && (<><div className="text-3xl mb-1">⚪</div><p className="text-[8px] text-gray-300">{t.mrWhiteInstruction}</p></>)} {myRole === 'informant' && ( <> <div className="text-sm font-bold mt-1">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div> <p className="text-[8px] text-blue-300 mt-1">{t.informantInstruction}</p> </> )} {myRole === 'agent' && (<><div className="text-lg font-black mt-1 text-center px-1">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-[8px] text-gray-400 mt-1">{t.location}</p></>)} </div> </div> {myRole === 'mrwhite' && ( <div className="mt-1"> <button onClick={() => { const guess = prompt("Guess the location:"); if(guess) handleMrWhiteGuess(guess); }} className="btn-gold w-full py-1 rounded font-bold text-[10px]">{t.guessLocation}</button> </div> )} </div> )} {room.status === 'discussing' && ( <div className="space-y-2 animate-fade-in"> {room.chosenWord && myRole !== 'spy' && myRole !== 'mrwhite' && ( <div className="glass-panel rounded-lg p-1 text-center border border-cyan-500/50 text-[10px]"><span className="text-cyan-400 font-bold uppercase">{t.selectedWord}:</span><span className="ml-1 text-white">{room.chosenWord}</span></div> )} <div className={`identity-square glass-panel ${myRole === 'spy' ? 'identity-spy' : myRole === 'informant' ? 'identity-informant' : myRole === 'mrwhite' ? 'identity-mrwhite' : 'identity-agent'}`}> <div className="relative z-10 p-2 flex flex-col items-center justify-center h-full"> <span className={`text-[8px] font-bold uppercase tracking-widest mb-1 px-2 py-0.5 rounded-full ${ myRole === 'spy' ? 'bg-red-500/20 text-red-400' : myRole === 'informant' ? 'bg-blue-500/20 text-blue-400' : myRole === 'mrwhite' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400' }`}> {t[`status${myRole?.charAt(0).toUpperCase() + myRole?.slice(1) || 'Agent'}`]} </span> {myRole === 'spy' ? ( <><div className="text-3xl mb-1">🕵️</div><h3 className="text-xl font-black tracking-wider text-red-500">???</h3></> ) : ( <><div className="text-lg font-black mt-1 text-center px-1">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div><p className="text-[8px] text-gray-400 mt-1">{t.location}</p></> )} </div> </div> {myRole === 'mrwhite' && ( <button onClick={() => { const guess = prompt("Guess the location:"); if(guess) handleMrWhiteGuess(guess); }} className="btn-gold w-full py-1 rounded font-bold text-[10px]">{t.guessLocation}</button> )} <div className="glass-panel rounded-xl p-2 flex flex-col overflow-hidden relative"> <div className="flex-1 overflow-y-auto p-1 space-y-1 h-32 relative z-10"> {room.messages?.slice(-15).map((m, i) => ( <GameChatMessage key={i} msg={m} currentUser={user} players={room.players} onAvatarClick={openProfile} /> ))} </div> {!isSpectator && isMyTurn ? ( <div className="flex flex-col gap-1 mt-auto border-t border-white/10 pt-1 relative z-10"> <div className="flex gap-0.5 mb-0.5">{EMOJI_LIST.slice(0, 6).map(emoji => (<span key={emoji} onClick={() => sendMessage(emoji)} className="emoji-btn text-base">{emoji}</span>))}</div> <form onSubmit={(e) => { e.preventDefault(); sendMessage(chatMsg); }} className="flex gap-1"> <input className="input-dark flex-1 p-1 rounded text-[10px]" placeholder={t.chatPlaceholder} value={chatMsg} onChange={e => setChatMsg(e.target.value)} /> <button type="submit" className="btn-neon px-2 rounded text-[8px]">{t.send}</button> <button type="button" onClick={() => handleSkipTurn(false)} className="btn-ghost px-2 rounded text-[8px] border-orange-500 text-orange-400">{t.skip}</button> </form> </div> ) : (<div className="text-center text-[8px] text-gray-600 py-1 border-t border-white/10 mt-1">{isSpectator ? (me?.status === 'ghost' ? t.ghostInstruction : t.spectator) : "..."}</div>)} </div> </div> )} {room.status === 'voting' && ( <div className="glass-panel rounded-xl p-3 animate-fade-in space-y-2"> <div className="flex justify-between items-center"> <h3 className="text-sm font-bold text-yellow-400">{t.vote}</h3> <div className="relative w-8 h-8"> <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36"> <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3"></circle> <circle cx="18" cy="18" r="16" fill="none" stroke="#ff0055" strokeWidth="3" strokeDasharray={`${(votingTimer/30)*100} ${100-((votingTimer/30)*100)}`} strokeLinecap="round"></circle> </svg> <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-yellow-400">{votingTimer}</div> </div> </div> <div className="bg-black/20 p-1 rounded text-[8px] space-y-0.5 mb-1 border border-white/5"> <span className="text-gray-500 font-bold">{t.votesTitle}</span> <div className="flex flex-wrap gap-0.5 mt-0.5"> {Object.entries(room.votes || {}).map(([uid, target]) => { const voter = room.players.find(p => p.uid === uid); const targetName = room.players.find(p => p.uid === target)?.name; return (<span key={uid} className="bg-white/5 px-1 py-0.5 rounded text-[8px]">{voter?.name}: <span className="text-cyan-400">{targetName}</span></span>); })} </div> </div> {!hasVoted ? ( <div className="grid grid-cols-2 gap-1"> {room.players.filter(p => p.status === 'active').map(p => ( <button key={p.uid} onClick={() => submitVote(p.uid)} className="p-2 rounded border text-[10px] font-bold transition-all bg-white/5 border-white/10 hover:border-pink-400 hover:bg-pink-500/10">{p.name}</button> ))} </div> ) : (<div className="text-center space-y-2 py-2"><div className="text-green-400 font-bold text-xs">{t.confirm}</div></div>)} {room.admin === user?.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-1 rounded font-bold text-[8px] uppercase mt-1">{t.endVoting}</button>)} </div> )} </> )} </div> </> )} </main> </div>
+            {/* Room View */}
+            {room && (
+                <main className="w-full max-w-md flex-1 flex flex-col">
+                    {/* Room Header */}
+                    <div className="glass-panel rounded-lg p-2 mb-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => handleCopy()} className="bg-white/10 px-2 py-1 rounded text-xs font-mono">
+                                {copied ? t.copied : roomId}
+                            </button>
+                            {room.isPrivate && <span className="text-[10px] text-yellow-400">🔒</span>}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                            {t.roundsFormat(room.currentRound || 0, MAX_ROUNDS)}
+                        </div>
+                    </div>
+                    
+                    {/* Room Content Based on Status */}
+                    {room.status === 'waiting' && (
+                        <div className="glass-panel rounded-xl p-4 flex-1">
+                            <h3 className="text-sm font-bold mb-3 text-center">{t.lobbyTitle}</h3>
+                            <div className="grid grid-cols-2 gap-2 mb-4">
+                                {room.players.map(p => (
+                                    <div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg">
+                                        <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
+                                        <span className="text-xs truncate">{p.name}</span>
+                                        {p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded">HOST</span>}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex gap-2">
+                                {room.admin === user?.uid ? (
+                                    <button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>
+                                ) : (
+                                    <p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>
+                                )}
+                                <button onClick={() => handleLeaveRoom()} className="btn-danger px-4 py-2 rounded-lg text-sm">{t.leaveRoom}</button>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Word Selection Phase */}
+                    {room.status === 'word_selection' && !isSpectator && (
+                        <div className="glass-panel rounded-xl p-4 flex-1">
+                            <h3 className="text-sm font-bold mb-2 text-center">{t.wordSelectionTitle}</h3>
+                            <p className="text-xs text-gray-400 text-center mb-3">{t.wordSelectionDesc}</p>
+                            <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {wordSelTimer}s</div>
+                            <div className="grid grid-cols-2 gap-2">
+                                {(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => (
+                                    <button 
+                                        key={i}
+                                        onClick={() => submitWordVote(word)}
+                                        className={`word-vote-card ${hasVotedWord === word ? 'selected' : ''}`}
+                                    >
+                                        <span className="font-bold">{word}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Discussion Phase */}
+                    {room.status === 'discussing' && (
+                        <div className="flex-1 flex flex-col gap-2">
+                            {/* Player Cards */}
+                            <div className="glass-panel rounded-xl p-3">
+                                <div className="grid grid-cols-3 gap-2">
+                                    {room.players.filter(p => p.status === 'active').map(p => (
+                                        <div 
+                                            key={p.uid}
+                                            className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === user?.uid ? 'border-primary' : ''}`}
+                                        >
+                                            <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
+                                            <span className="text-[10px] truncate mt-1">{p.name}</span>
+                                            {room.currentTurnUID === p.uid && <span className="text-[8px] text-primary">Speaking</span>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Identity Card */}
+                            {!isSpectator && me && (
+                                <div className={`identity-square identity-${myRole === 'spy' ? 'spy' : myRole === 'mrwhite' ? 'mrwhite' : myRole === 'informant' ? 'informant' : 'agent'}`}>
+                                    <div className="text-4xl mb-2">
+                                        {myRole === 'spy' ? '🕵️' : myRole === 'mrwhite' ? '👻' : myRole === 'informant' ? '👁️' : '🤵'}
+                                    </div>
+                                    <div className="text-lg font-bold">
+                                        {myRole === 'spy' ? t.statusSpy : myRole === 'mrwhite' ? t.statusMrWhite : myRole === 'informant' ? t.statusInformant : t.statusAgent}
+                                    </div>
+                                    {myRole === 'spy' && (
+                                        <div className="text-xs text-gray-300 mt-1">
+                                            {t.location}: {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}
+                                        </div>
+                                    )}
+                                    {myRole !== 'spy' && room.chosenWord && (
+                                        <div className="text-xs text-gray-300 mt-1">
+                                            {t.selectedWord}: {room.chosenWord}
+                                        </div>
+                                    )}
+                                    {myRole === 'mrwhite' && <p className="text-[10px] text-yellow-400 mt-2">{t.mrWhiteInstruction}</p>}
+                                    {myRole === 'informant' && <p className="text-[10px] text-blue-400 mt-2">{t.informantInstruction}</p>}
+                                </div>
+                            )}
+                            
+                            {/* Timer & Actions */}
+                            <div className="glass-panel rounded-lg p-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="timer-bar-container">
+                                        <div className="timer-bar-fill" style={{ width: `${(turnTimer / 30) * 100}%` }}></div>
+                                    </div>
+                                    <span className="text-xs text-gray-400">{turnTimer}s</span>
+                                </div>
+                                
+                                <div className="flex gap-2">
+                                    {isMyTurn && (
+                                        <button onClick={() => handleSkipTurn()} className="btn-ghost flex-1 py-2 rounded-lg text-xs">{t.skip}</button>
+                                    )}
+                                    <button onClick={requestVoting} className="btn-vote flex-1 py-2 rounded-lg text-xs font-bold">{t.vote}</button>
+                                </div>
+                            </div>
+                            
+                            {/* Vote Request Banner */}
+                            {voteReq && (
+                                <div className="vote-request-banner glass-panel rounded-lg p-3">
+                                    <p className="text-xs text-center mb-2">
+                                        <span className="font-bold">{room.players.find(p => p.uid === voteReq.requestedBy)?.name}</span> {t.voteRequestDesc}
+                                    </p>
+                                    {!hasIAgreed && !hasIDeclined && (
+                                        <div className="flex gap-2">
+                                            <button onClick={agreeToVote} className="btn-success flex-1 py-2 rounded-lg text-xs">{t.agree}</button>
+                                            <button onClick={declineVote} className="btn-danger flex-1 py-2 rounded-lg text-xs">{t.decline}</button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    {/* Voting Phase */}
+                    {room.status === 'voting' && (
+                        <div className="glass-panel rounded-xl p-4 flex-1">
+                            <h3 className="text-sm font-bold mb-2 text-center">{t.vote}</h3>
+                            <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {votingTimer}s</div>
+                            
+                            <div className="grid grid-cols-2 gap-2 mb-4">
+                                {room.players.filter(p => p.status === 'active').map(p => (
+                                    <button 
+                                        key={p.uid}
+                                        onClick={() => submitVote(p.uid)}
+                                        disabled={hasVoted}
+                                        className={`player-card ${hasVoted === p.uid ? 'border-primary bg-primary/10' : ''}`}
+                                    >
+                                        <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
+                                        <span className="text-xs truncate mt-1">{p.name}</span>
+                                        {room.votes && Object.values(room.votes).filter(v => v === p.uid).length > 0 && (
+                                            <span className="text-[10px] text-red-400">{room.votes && Object.values(room.votes).filter(v => v === p.uid).length} votes</span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                            
+                            {room.admin === user?.uid && (
+                                <button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg text-xs">{t.endVoting}</button>
+                            )}
+                        </div>
+                    )}
+                    
+                    {/* Game Over */}
+                    {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_mrwhite_wins') && (
+                        <div className="glass-panel rounded-xl p-4 flex-1 text-center">
+                            <div className="text-4xl mb-4">
+                                {room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'}
+                            </div>
+                            <h2 className="text-xl font-bold mb-4">
+                                {room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin}
+                            </h2>
+                            
+                            {room.admin === user?.uid && (
+                                <button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{t.playAgain}</button>
+                            )}
+                            <button onClick={() => handleLeaveRoom()} className="btn-ghost w-full py-2 rounded-lg text-sm mt-2">{t.leaveRoom}</button>
+                        </div>
+                    )}
+                    
+                    {/* Spectator View */}
+                    {isSpectator && room.status !== 'waiting' && !room.status.includes('finished') && (
+                        <div className="glass-panel rounded-xl p-4 flex-1 text-center">
+                            <div className="text-4xl mb-2">👻</div>
+                            <p className="text-sm text-gray-400">{t.spectator}</p>
+                            <p className="text-xs text-gray-500 mt-2">
+                                {me?.status === 'ghost' ? t.ghostInstruction : t.playerLeft}
+                            </p>
+                        </div>
+                    )}
+                </main>
+            )}
+            
+            {/* Click outside to close dropdowns */}
+            {showDropdown && <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)}></div>}
+            {showNotifications && <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>}
+        </div>
     );
 }
-
-// ==========================================
-// RENDER APP
-// ==========================================
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
-
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
