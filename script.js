@@ -1481,23 +1481,17 @@ function App() {
     useEffect(() => { if (!user) return; const interval = setInterval(() => { usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 60000); return () => clearInterval(interval); }, [user]);
 
     // ==========================================
-    // NOTIFICATIONS LISTENER - FIXED (No Index Required)
+    // NOTIFICATIONS LISTENER
     // ==========================================
     useEffect(() => {
         if (!user || isGuest) return;
         
-        // Removed orderBy to avoid index requirement - sorting in client side
         const unsub = notificationsCollection
             .where('toUserId', '==', user.uid)
+            .orderBy('timestamp', 'desc')
             .limit(50)
             .onSnapshot(snap => {
-                let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                // Sort by timestamp in client side (newest first)
-                notifs.sort((a, b) => {
-                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
-                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
-                    return timeB - timeA;
-                });
+                const notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 setNotifications(notifs);
                 setUnreadNotifications(notifs.filter(n => !n.read).length);
             });
@@ -2453,3 +2447,7 @@ function App() {
 // Render App
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
+// ==========================================
+// END OF PART 2
+// ==========================================
