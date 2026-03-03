@@ -18,7 +18,7 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const appId = 'pro_spy_v26_new_features';
+const appId = 'pro_spy_v25_final_fix_complete';
 const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
 const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
 const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
@@ -2798,3 +2798,4 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
