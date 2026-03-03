@@ -1,6 +1,7 @@
 /* ==========================================
-   PRO SPY - UPDATED STYLE V2
+   PRO SPY - UPDATED STYLE V3 - FRAME FIX
    All improvements for UI, Charisma, Notifications
+   Frame now properly surrounds avatar (ring style)
    ========================================== */
 
 :root {
@@ -166,70 +167,95 @@ body {
 .player-card.eliminated, .player-card.ghost { opacity: 0.6; filter: grayscale(80%); }
 
 /* ==========================================
-   AVATAR FRAME - FIXED WITH CLIP-PATH
+   AVATAR FRAME - FIXED (Ring Style)
+   The frame now properly surrounds the avatar
    ========================================== */
 .avatar-wrapper {
     position: relative;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
-.avatar-wrapper.size-sm { width: 32px; height: 32px; }
-.avatar-wrapper.size-md { width: 48px; height: 48px; }
-.avatar-wrapper.size-lg { width: 80px; height: 80px; }
-.avatar-wrapper.size-xl { width: 100px; height: 100px; }
+/* Size variants - wrapper is the total size including frame */
+.avatar-wrapper.size-sm { width: 48px; height: 48px; }
+.avatar-wrapper.size-md { width: 64px; height: 64px; }
+.avatar-wrapper.size-lg { width: 96px; height: 96px; }
+.avatar-wrapper.size-xl { width: 128px; height: 128px; }
+
+/* Avatar image - smaller than wrapper, centered */
+.avatar-wrapper.size-sm .avatar-image { width: 36px; height: 36px; }
+.avatar-wrapper.size-md .avatar-image { width: 48px; height: 48px; }
+.avatar-wrapper.size-lg .avatar-image { width: 72px; height: 72px; }
+.avatar-wrapper.size-xl .avatar-image { width: 96px; height: 96px; }
 
 .avatar-image {
-    width: 100%;
-    height: 100%;
     border-radius: 50%;
     object-fit: cover;
     position: relative;
     z-index: 1;
+    border: 2px solid rgba(0, 0, 0, 0.3);
 }
 
+/* Frame - full size of wrapper, with cutout for avatar */
 .avatar-frame {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 118%;
-    height: 118%;
-    pointer-events: none;
-    z-index: 2;
-}
-
-.avatar-frame img,
-.avatar-frame-image {
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    pointer-events: none;
+    z-index: 2;
+    object-fit: cover;
 }
 
-/* For gradient frames */
+/* Gradient frames - ring style using mask */
 .avatar-frame-gradient {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 118%;
-    height: 118%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    padding: 4px;
-    z-index: 2;
     pointer-events: none;
+    z-index: 2;
 }
 
-.avatar-frame-gradient::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: inherit;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    padding: 3px;
+/* Ring mask for different sizes - creates the ring effect */
+.avatar-wrapper.size-sm .avatar-frame-gradient {
+    -webkit-mask: radial-gradient(transparent 16px, black 18px);
+    mask: radial-gradient(transparent 16px, black 18px);
+}
+.avatar-wrapper.size-md .avatar-frame-gradient {
+    -webkit-mask: radial-gradient(transparent 22px, black 24px);
+    mask: radial-gradient(transparent 22px, black 24px);
+}
+.avatar-wrapper.size-lg .avatar-frame-gradient {
+    -webkit-mask: radial-gradient(transparent 34px, black 36px);
+    mask: radial-gradient(transparent 34px, black 36px);
+}
+.avatar-wrapper.size-xl .avatar-frame-gradient {
+    -webkit-mask: radial-gradient(transparent 46px, black 48px);
+    mask: radial-gradient(transparent 46px, black 48px);
+}
+
+/* For image frames - also apply ring mask */
+.avatar-wrapper.size-sm .avatar-frame {
+    -webkit-mask: radial-gradient(transparent 16px, black 18px);
+    mask: radial-gradient(transparent 16px, black 18px);
+}
+.avatar-wrapper.size-md .avatar-frame {
+    -webkit-mask: radial-gradient(transparent 22px, black 24px);
+    mask: radial-gradient(transparent 22px, black 24px);
+}
+.avatar-wrapper.size-lg .avatar-frame {
+    -webkit-mask: radial-gradient(transparent 34px, black 36px);
+    mask: radial-gradient(transparent 34px, black 36px);
+}
+.avatar-wrapper.size-xl .avatar-frame {
+    -webkit-mask: radial-gradient(transparent 46px, black 48px);
+    mask: radial-gradient(transparent 46px, black 48px);
 }
 
 /* ==========================================
@@ -710,12 +736,14 @@ body {
 
 .profile-frame {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 118%;
-    height: 118%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
+    z-index: 2;
+    -webkit-mask: radial-gradient(transparent 36px, black 38px);
+    mask: radial-gradient(transparent 36px, black 38px);
 }
 
 .profile-name {
@@ -800,7 +828,6 @@ body {
 .invite-bubble { background: linear-gradient(135deg, rgba(112, 0, 255, 0.2), rgba(0, 242, 255, 0.2)); border: 1px solid var(--primary); border-radius: 12px; padding: 10px; text-align: center; margin: 5px 0; }
 .ach-tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--primary); padding: 8px; border-radius: 8px; width: 150px; font-size: 10px; text-align: center; z-index: 10; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
 .achievement-card:hover .ach-tooltip { opacity: 1; }
-.notification-badge { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 2px solid var(--bg-dark); }
 
 /* ==========================================
    CHAT
@@ -974,4 +1001,33 @@ body {
 
 .message-sound-indicator.muted {
     opacity: 0.5;
+}
+
+/* ==========================================
+   PASSWORD INPUT WITH TOGGLE
+   ========================================== */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    padding-right: 40px;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 16px;
+    transition: color 0.2s;
+}
+
+.password-toggle-btn:hover {
+    color: var(--primary);
 }
