@@ -1,7 +1,6 @@
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT PART 1 V2
-// Constants, Translations, Components
-// FIXED: MyAccount Modal, Browse Rooms, Profile Modal, Gift System
+// PRO SPY - COMPLETE SCRIPT PART 1 - FIXED
+// All Issues Resolved
 // ==========================================
 
 const { useState, useEffect, useRef } = React;
@@ -33,30 +32,31 @@ const CURRENCY_ICON = "🧠";
 const MAX_ROUNDS = 3;
 
 // ==========================================
-// CHARISMA LEVELS CONFIGURATION
+// CHARISMA LEVELS - FIXED (Last level open, icon can be image or emoji)
 // ==========================================
 const CHARISMA_LEVELS = [
-    { level: 1, threshold: 1000, icon: '⭐', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
-    { level: 2, threshold: 4000, icon: '⭐', name_en: 'Shining Star', name_ar: 'نجم ساطع', color: '#ffd700', badge_class: 'level-1-3' },
-    { level: 3, threshold: 12000, icon: '⭐', name_en: 'Bright Star', name_ar: 'نجم مضيء', color: '#ffd700', badge_class: 'level-1-3' },
-    { level: 4, threshold: 30000, icon: '💎', name_en: 'Diamond I', name_ar: 'ماسة 1', color: '#3b82f6', badge_class: 'level-4-6' },
-    { level: 5, threshold: 80000, icon: '💎', name_en: 'Diamond II', name_ar: 'ماسة 2', color: '#3b82f6', badge_class: 'level-4-6' },
-    { level: 6, threshold: 160000, icon: '💎', name_en: 'Diamond III', name_ar: 'ماسة 3', color: '#3b82f6', badge_class: 'level-4-6' },
-    { level: 7, threshold: 300000, icon: '👑', name_en: 'Crown I', name_ar: 'تاج 1', color: '#ffd700', badge_class: 'level-7-9' },
-    { level: 8, threshold: 500000, icon: '👑', name_en: 'Crown II', name_ar: 'تاج 2', color: '#ffd700', badge_class: 'level-7-9' },
-    { level: 9, threshold: 1000000, icon: '👑', name_en: 'Crown III', name_ar: 'تاج 3', color: '#ffd700', badge_class: 'level-7-9' },
-    { level: 10, threshold: 2000000, icon: '👑', name_en: 'Royal Crown I', name_ar: 'تاج ملكي 1', color: '#f97316', badge_class: 'level-10-12' },
-    { level: 11, threshold: 3500000, icon: '👑', name_en: 'Royal Crown II', name_ar: 'تاج ملكي 2', color: '#f97316', badge_class: 'level-10-12' },
-    { level: 12, threshold: 6000000, icon: '👑', name_en: 'Royal Crown III', name_ar: 'تاج ملكي 3', color: '#f97316', badge_class: 'level-10-12' },
-    { level: 13, threshold: 8500000, icon: '👑', name_en: 'Purple Crown I', name_ar: 'تاج بنفسجي 1', color: '#8b5cf6', badge_class: 'level-13-15' },
-    { level: 14, threshold: 12000000, icon: '👑', name_en: 'Purple Crown II', name_ar: 'تاج بنفسجي 2', color: '#8b5cf6', badge_class: 'level-13-15' },
-    { level: 15, threshold: 16000000, icon: '👑', name_en: 'Purple Crown III', name_ar: 'تاج بنفسجي 3', color: '#8b5cf6', badge_class: 'level-13-15' },
-    { level: 16, threshold: 26000000, icon: '🌟', name_en: 'Legend I', name_ar: 'أسطورة 1', color: '#f97316', badge_class: 'level-16-21' },
-    { level: 17, threshold: 48000000, icon: '🌟', name_en: 'Legend II', name_ar: 'أسطورة 2', color: '#f97316', badge_class: 'level-16-21' },
-    { level: 18, threshold: 86000000, icon: '🌟', name_en: 'Legend III', name_ar: 'أسطورة 3', color: '#f97316', badge_class: 'level-16-21' },
-    { level: 19, threshold: 120000000, icon: '🌟', name_en: 'Legend IV', name_ar: 'أسطورة 4', color: '#f97316', badge_class: 'level-16-21' },
-    { level: 20, threshold: 240000000, icon: '🌟', name_en: 'Legend V', name_ar: 'أسطورة 5', color: '#f97316', badge_class: 'level-16-21' },
-    { level: 21, threshold: 360000000, icon: '🌟', name_en: 'Ultimate Legend', name_ar: 'الأسطورة المطلقة', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 1, threshold: 0, icon: '⭐', iconType: 'emoji', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 2, threshold: 4000, icon: '⭐', iconType: 'emoji', name_en: 'Shining Star', name_ar: 'نجم ساطع', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 3, threshold: 12000, icon: '⭐', iconType: 'emoji', name_en: 'Bright Star', name_ar: 'نجم مضيء', color: '#ffd700', badge_class: 'level-1-3' },
+    { level: 4, threshold: 30000, icon: '💎', iconType: 'emoji', name_en: 'Diamond I', name_ar: 'ماسة 1', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 5, threshold: 80000, icon: '💎', iconType: 'emoji', name_en: 'Diamond II', name_ar: 'ماسة 2', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 6, threshold: 160000, icon: '💎', iconType: 'emoji', name_en: 'Diamond III', name_ar: 'ماسة 3', color: '#3b82f6', badge_class: 'level-4-6' },
+    { level: 7, threshold: 300000, icon: '👑', iconType: 'emoji', name_en: 'Crown I', name_ar: 'تاج 1', color: '#ffd700', badge_class: 'level-7-9' },
+    { level: 8, threshold: 500000, icon: '👑', iconType: 'emoji', name_en: 'Crown II', name_ar: 'تاج 2', color: '#ffd700', badge_class: 'level-7-9' },
+    { level: 9, threshold: 1000000, icon: '👑', iconType: 'emoji', name_en: 'Crown III', name_ar: 'تاج 3', color: '#ffd700', badge_class: 'level-7-9' },
+    { level: 10, threshold: 2000000, icon: '👑', iconType: 'emoji', name_en: 'Royal Crown I', name_ar: 'تاج ملكي 1', color: '#f97316', badge_class: 'level-10-12' },
+    { level: 11, threshold: 3500000, icon: '👑', iconType: 'emoji', name_en: 'Royal Crown II', name_ar: 'تاج ملكي 2', color: '#f97316', badge_class: 'level-10-12' },
+    { level: 12, threshold: 6000000, icon: '👑', iconType: 'emoji', name_en: 'Royal Crown III', name_ar: 'تاج ملكي 3', color: '#f97316', badge_class: 'level-10-12' },
+    { level: 13, threshold: 8500000, icon: '👑', iconType: 'emoji', name_en: 'Purple Crown I', name_ar: 'تاج بنفسجي 1', color: '#8b5cf6', badge_class: 'level-13-15' },
+    { level: 14, threshold: 12000000, icon: '👑', iconType: 'emoji', name_en: 'Purple Crown II', name_ar: 'تاج بنفسجي 2', color: '#8b5cf6', badge_class: 'level-13-15' },
+    { level: 15, threshold: 16000000, icon: '👑', iconType: 'emoji', name_en: 'Purple Crown III', name_ar: 'تاج بنفسجي 3', color: '#8b5cf6', badge_class: 'level-13-15' },
+    { level: 16, threshold: 26000000, icon: '🌟', iconType: 'emoji', name_en: 'Legend I', name_ar: 'أسطورة 1', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 17, threshold: 48000000, icon: '🌟', iconType: 'emoji', name_en: 'Legend II', name_ar: 'أسطورة 2', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 18, threshold: 86000000, icon: '🌟', iconType: 'emoji', name_en: 'Legend III', name_ar: 'أسطورة 3', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 19, threshold: 120000000, icon: '🌟', iconType: 'emoji', name_en: 'Legend IV', name_ar: 'أسطورة 4', color: '#f97316', badge_class: 'level-16-21' },
+    { level: 20, threshold: 240000000, icon: '🌟', iconType: 'emoji', name_en: 'Legend V', name_ar: 'أسطورة 5', color: '#f97316', badge_class: 'level-16-21' },
+    // Last level - Open ended (no next level, always shows progress to max)
+    { level: 21, threshold: 360000000, icon: '🌟', iconType: 'emoji', name_en: 'Ultimate Legend', name_ar: 'الأسطورة المطلقة', color: '#f97316', badge_class: 'level-16-21', isMaxLevel: true },
 ];
 
 // Get charisma level info
@@ -78,14 +78,15 @@ const getCharismaLevel = (charisma) => {
 // Calculate progress to next level
 const getCharismaProgress = (charisma) => {
     const { currentLevel, nextLevel } = getCharismaLevel(charisma);
-    if (!nextLevel) return 100;
+    // If max level, always show 100% or keep progressing
+    if (!nextLevel || currentLevel.isMaxLevel) return 100;
     const currentThreshold = currentLevel.threshold;
     const nextThreshold = nextLevel.threshold;
     const progress = ((charisma - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
     return Math.min(100, Math.max(0, progress));
 };
 
-// --- Shop Items (Frames, Titles, Themes, Gifts) ---
+// --- Shop Items ---
 const SHOP_ITEMS = {
     frames: [
         { id: 'frame_gold', name_en: "Gold Frame", name_ar: "إطار ذهبي", cost: 500, type: 'frames', preview: 'linear-gradient(45deg, #f7ff00, #db9700)' },
@@ -157,7 +158,7 @@ const getTimeRemaining = (lastChanged) => { if (!lastChanged) return "0d 0h"; co
 const formatDuration = (ms) => { const totalSeconds = Math.floor(ms / 1000); const minutes = Math.floor(totalSeconds / 60); const seconds = totalSeconds % 60; return `${minutes}m ${seconds}s`; };
 const formatCharisma = (num) => { if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
 
-// --- Audio System with Message Sound ---
+// --- Audio System ---
 const AudioCtx = window.AudioContext || window.webkitAudioContext; let audioCtx = null;
 const initAudio = () => { if (!audioCtx) audioCtx = new AudioCtx(); };
 const playSound = (type) => { 
@@ -227,7 +228,8 @@ const TRANSLATIONS = {
         notifTitle: "Notification", achUnlock: "Achievement Unlocked!", newFriend: "New Friend Added!", hiddenAch: "Hidden Achievement", tabMain: "Main", tabInv: "Inventory", tabAch: "Achievements",
         charisma: "Charisma", charismaDesc: "Your influence in the arena", gifts: "Gifts", sendGift: "Send Gift", giftSent: "Gift Sent!", giftReceived: "You received a gift!", selectGift: "Select a Gift", giftPreview: "Gift Preview", cashback: "Cashback", willReceive: "You'll receive", charismaGain: "Charisma Gain", playerLeft: "Player Left", spyLeftAgentsWin: "Spy left! Agents Win!", agentLeftSpyWins: "Agent left! Spy Wins!", myGifts: "My Gifts", receivedGifts: "Received Gifts", noGifts: "No gifts yet.", fromPlayer: "From", toPlayer: "To", buyGift: "Buy Gift", sendToFriend: "Send to Friend",
         notifications: "Notifications", clearAll: "Clear All", noNotifications: "No notifications", friendRequest: "sent you a friend request", giftNotification: "sent you a gift", messageNotification: "sent you a message", nextLevel: "Next level", close: "Close",
-        sendTo: "Send to", noFriendsToSend: "No friends to send gifts to.", selectFriend: "Select a friend", myInventory: "My Inventory",
+        sendTo: "Send to", noFriendsToSend: "No friends to send gifts to.", selectFriend: "Select a friend", myInventory: "My Inventory", maxLevel: "MAX LEVEL",
+        privateChat: "Private Chat", typeMessage: "Type a message...", noMessages: "No messages yet.",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "دخول", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
@@ -237,7 +239,8 @@ const TRANSLATIONS = {
         notifTitle: "إشعار", achUnlock: "تم فتح إنجاز!", newFriend: "صديق جديد!", hiddenAch: "إنجاز سري", tabMain: "الرئيسية", tabInv: "المخزون", tabAch: "الإنجازات",
         charisma: "الكاريزما", charismaDesc: "تأثيرك في الساحة", gifts: "الهدايا", sendGift: "إرسال هدية", giftSent: "تم إرسال الهدية!", giftReceived: "لقد استلمت هدية!", selectGift: "اختر هدية", giftPreview: "معاينة الهدية", cashback: "استرداد", willReceive: "ستستلم", charismaGain: "زيادة الكاريزما", playerLeft: "لاعب غادر", spyLeftAgentsWin: "الجاسوس غادر! فاز العملاء!", agentLeftSpyWins: "عميل غادر! فاز الجاسوس!", myGifts: "هداياي", receivedGifts: "الهدايا المستلمة", noGifts: "لا توجد هدايا بعد.", fromPlayer: "من", toPlayer: "إلى", buyGift: "شراء هدية", sendToFriend: "إرسال لصديق",
         notifications: "الإشعارات", clearAll: "حذف الكل", noNotifications: "لا توجد إشعارات", friendRequest: "أرسل لك طلب صداقة", giftNotification: "أرسل لك هدية", messageNotification: "أرسل لك رسالة", nextLevel: "المستوى التالي", close: "إغلاق",
-        sendTo: "إرسال إلى", noFriendsToSend: "لا يوجد أصدقاء لإرسال الهدايا.", selectFriend: "اختر صديق", myInventory: "مخزوني",
+        sendTo: "إرسال إلى", noFriendsToSend: "لا يوجد أصدقاء لإرسال الهدايا.", selectFriend: "اختر صديق", myInventory: "مخزوني", maxLevel: "المستوى الأقصى",
+        privateChat: "محادثة خاصة", typeMessage: "اكتب رسالة...", noMessages: "لا توجد رسائل بعد.",
     } 
 };
 
@@ -251,19 +254,15 @@ const GuestBanner = ({ lang }) => {
     return ( <div className="guest-banner"> <h3 className="text-sm font-bold text-yellow-400">{t.guestTitle}</h3> <p className="text-[10px] text-gray-400">{t.guestDesc}</p> </div> ); 
 };
 
-// Notification Toast - Auto Dismiss
+// Notification Toast
 const NotificationToast = ({ message, onClose }) => {
     useEffect(() => {
         if (message) {
-            const timer = setTimeout(() => {
-                onClose();
-            }, 2000);
+            const timer = setTimeout(() => { onClose(); }, 2000);
             return () => clearTimeout(timer);
         }
     }, [message, onClose]);
-    
     if(!message) return null;
-    
     return (
         <div className="notification-toast">
             <div className="notification-content">
@@ -275,29 +274,36 @@ const NotificationToast = ({ message, onClose }) => {
     );
 };
 
-// Modal Close Button Component
+// Modal Close Button
 const ModalCloseBtn = ({ onClose }) => (
-    <button onClick={onClose} className="modal-close-btn" aria-label="Close">
-        &times;
-    </button>
+    <button onClick={onClose} className="modal-close-btn" aria-label="Close">&times;</button>
 );
 
-// Charisma Display Component
+// Charisma Display Component - FIXED (supports image or emoji icons)
 const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
     const t = TRANSLATIONS[lang];
     const { currentLevel, nextLevel } = getCharismaLevel(charisma || 0);
     const progress = getCharismaProgress(charisma || 0);
     const neededForNext = nextLevel ? nextLevel.threshold - (charisma || 0) : 0;
+    const isMaxLevel = currentLevel.isMaxLevel;
+    
+    // Render icon (image or emoji)
+    const renderIcon = () => {
+        if (currentLevel.iconType === 'image' && currentLevel.iconUrl) {
+            return <img src={currentLevel.iconUrl} alt="level" className="w-5 h-5" />;
+        }
+        return <span className="charisma-icon">{currentLevel.icon}</span>;
+    };
     
     return (
         <div className="charisma-container">
             <div className="charisma-header">
                 <span className="charisma-label">
-                    <span className="charisma-icon">{currentLevel.icon}</span>
+                    {renderIcon()}
                     {t.charisma}
                 </span>
                 <span className={`charisma-level-badge ${currentLevel.badge_class}`}>
-                    {currentLevel.icon} Lv.{currentLevel.level}
+                    {renderIcon()} Lv.{currentLevel.level}
                 </span>
             </div>
             <div className="charisma-bar-bg">
@@ -305,10 +311,10 @@ const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
             </div>
             <div className="charisma-info">
                 <span className="charisma-current">{formatCharisma(charisma || 0)}</span>
-                {nextLevel && showDetails && (
-                    <span className="charisma-next">
-                        {t.nextLevel}: {formatCharisma(neededForNext)}
-                    </span>
+                {isMaxLevel ? (
+                    <span className="charisma-next text-yellow-400 font-bold">{t.maxLevel}</span>
+                ) : nextLevel && showDetails && (
+                    <span className="charisma-next">{t.nextLevel}: {formatCharisma(neededForNext)}</span>
                 )}
             </div>
         </div>
@@ -323,29 +329,17 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
         lg: 'avatar-wrapper size-lg',
         xl: 'avatar-wrapper size-xl'
     };
-    
     const frameStyle = equipped?.frames || null;
     const frameItem = SHOP_ITEMS.frames.find(f => f.id === frameStyle);
     
     return (
         <div className={sizeClasses[size]} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
-            <img 
-                src={photoURL || `https://ui-avatars.com/api/?name=User&background=random`} 
-                className="avatar-image" 
-                alt="avatar" 
-            />
+            <img src={photoURL || `https://ui-avatars.com/api/?name=User&background=random`} className="avatar-image" alt="avatar" />
             {frameItem && (
                 frameItem.preview.startsWith('http') ? (
-                    <img 
-                        src={frameItem.preview} 
-                        className="avatar-frame"
-                        alt="frame"
-                    />
+                    <img src={frameItem.preview} className="avatar-frame" alt="frame" />
                 ) : (
-                    <div 
-                        className="avatar-frame-gradient"
-                        style={{ background: frameItem.preview }}
-                    />
+                    <div className="avatar-frame-gradient" style={{ background: frameItem.preview }} />
                 )
             )}
         </div>
@@ -383,8 +377,142 @@ const TutorialModal = ({ show, onClose, lang }) => {
 };
 
 // ==========================================
-// NEW: MY ACCOUNT MODAL - FIXED
+// PRIVATE CHAT MODAL - FIXED
 // ==========================================
+const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang }) => {
+    const t = TRANSLATIONS[lang];
+    const [messages, setMessages] = useState([]);
+    const [newMsg, setNewMsg] = useState('');
+    const [sending, setSending] = useState(false);
+    const messagesEndRef = useRef(null);
+    
+    const chatId = friend && user ? getChatId(user.uid, friend.uid) : null;
+    
+    // Listen to messages
+    useEffect(() => {
+        if (!show || !chatId) return;
+        
+        const unsub = chatsCollection.doc(chatId).collection('messages')
+            .onSnapshot(snap => {
+                let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Sort by timestamp in client side
+                msgs.sort((a, b) => {
+                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
+                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
+                    return timeA - timeB;
+                });
+                setMessages(msgs);
+                
+                // Mark as read
+                chatsCollection.doc(chatId).update({
+                    [`unread.${user.uid}`]: 0
+                }).catch(() => {});
+            });
+        
+        return unsub;
+    }, [show, chatId, user?.uid]);
+    
+    // Auto scroll to bottom
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+    
+    // Send message
+    const handleSend = async () => {
+        if (!newMsg.trim() || sending) return;
+        setSending(true);
+        
+        try {
+            const msgData = {
+                senderId: user.uid,
+                senderName: currentUser?.displayName || 'User',
+                text: newMsg.trim(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            await chatsCollection.doc(chatId).collection('messages').add(msgData);
+            
+            await chatsCollection.doc(chatId).set({
+                members: [user.uid, friend.uid],
+                lastMessage: newMsg.trim(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1)
+            }, { merge: true });
+            
+            // Create notification
+            await notificationsCollection.add({
+                toUserId: friend.uid,
+                fromUserId: user.uid,
+                fromName: currentUser?.displayName,
+                type: 'message',
+                message: `${currentUser?.displayName} ${t.messageNotification}`,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            });
+            
+            setNewMsg('');
+            playSound('message');
+        } catch (e) {
+            console.error('Send message error:', e);
+        }
+        
+        setSending(false);
+    };
+    
+    if (!show || !friend) return null;
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', height: '80vh' }}>
+                <div className="modal-header">
+                    <div className="flex items-center gap-2">
+                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                        <div>
+                            <h2 className="modal-title text-sm">{friend.displayName}</h2>
+                            <span className="text-[10px] text-gray-400">{t.privateChat}</span>
+                        </div>
+                    </div>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body flex-1 overflow-y-auto p-3" style={{ maxHeight: 'calc(80vh - 140px)' }}>
+                    {messages.length === 0 ? (
+                        <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div>
+                    ) : (
+                        messages.map(msg => {
+                            const isMine = msg.senderId === user?.uid;
+                            return (
+                                <div key={msg.id} className={`flex mb-3 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[80%] ${isMine ? 'chat-bubble-me' : 'chat-bubble-other'}`}>
+                                        <p className="text-sm">{msg.text}</p>
+                                        <span className="text-[10px] text-gray-400 block mt-1">{formatTime(msg.timestamp)}</span>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+                <div className="modal-footer p-3 border-t border-white/10">
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            className="input-dark flex-1 p-2 rounded-lg text-sm"
+                            placeholder={t.typeMessage}
+                            value={newMsg}
+                            onChange={e => setNewMsg(e.target.value)}
+                            onKeyPress={e => e.key === 'Enter' && handleSend()}
+                        />
+                        <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="btn-neon px-4 py-2 rounded-lg text-sm">
+                            {t.send}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// My Account Modal
 const MyAccountModal = ({ show, onClose, userData, user, lang, onLogout, onOpenShop }) => {
     const t = TRANSLATIONS[lang];
     const [newName, setNewName] = useState('');
@@ -396,35 +524,22 @@ const MyAccountModal = ({ show, onClose, userData, user, lang, onLogout, onOpenS
     const stats = userData.stats || { wins: 0, losses: 0, xp: 0 };
     const level = calculateLevel(stats.xp || 0);
     const xpProgress = calculateXPProgress(stats.xp || 0);
-    const totalGames = (stats.wins || 0) + (stats.losses || 0);
     
     const handleChangeName = async () => {
         if (!newName.trim()) return;
-        
-        // Check if can change name (once per month)
         const lastChanged = userData.lastChangedName?.toDate ? userData.lastChangedName.toDate() : null;
         const now = new Date();
-        
         if (lastChanged) {
             const oneMonthLater = new Date(lastChanged);
             oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
-            if (now < oneMonthLater) {
-                setNameMsg(t.nameChangeLimit);
-                return;
-            }
+            if (now < oneMonthLater) { setNameMsg(t.nameChangeLimit); return; }
         }
-        
         try {
-            await usersCollection.doc(user.uid).update({
-                displayName: newName.trim(),
-                lastChangedName: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await usersCollection.doc(user.uid).update({ displayName: newName.trim(), lastChangedName: firebase.firestore.FieldValue.serverTimestamp() });
             localStorage.setItem('pro_spy_nick', newName.trim());
             setNameMsg(t.copied);
             setNewName('');
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e) { console.error(e); }
     };
     
     return (
@@ -435,7 +550,6 @@ const MyAccountModal = ({ show, onClose, userData, user, lang, onLogout, onOpenS
                     <ModalCloseBtn onClose={onClose} />
                 </div>
                 <div className="modal-body">
-                    {/* Profile Header */}
                     <div className="profile-header">
                         <div className="profile-avatar-container">
                             <AvatarWithFrame photoURL={userData.photoURL} equipped={userData.equipped} size="lg" />
@@ -451,11 +565,7 @@ const MyAccountModal = ({ show, onClose, userData, user, lang, onLogout, onOpenS
                             <span className="text-[10px]">📋</span>
                         </div>
                     </div>
-                    
-                    {/* Charisma in Profile */}
                     <CharismaDisplay charisma={userData.charisma} lang={lang} />
-                    
-                    {/* Stats */}
                     <div className="profile-stats">
                         <div className="profile-stat">
                             <div className="profile-stat-value">{stats.wins || 0}</div>
@@ -470,71 +580,39 @@ const MyAccountModal = ({ show, onClose, userData, user, lang, onLogout, onOpenS
                             <div className="profile-stat-label">{t.level}</div>
                         </div>
                     </div>
-                    
-                    {/* KD Circle */}
                     <KDCircle wins={stats.wins || 0} losses={stats.losses || 0} lang={lang} />
-                    
-                    {/* XP Bar */}
                     <div className="mb-4">
-                        <div className="flex justify-between text-[10px] text-gray-400 mb-1">
-                            <span>XP</span>
-                            <span>{xpProgress}/100</span>
-                        </div>
+                        <div className="flex justify-between text-[10px] text-gray-400 mb-1"><span>XP</span><span>{xpProgress}/100</span></div>
                         <div className="xp-bar-bg h-2 rounded-full overflow-hidden">
                             <div className="xp-bar-fill h-full rounded-full" style={{ width: `${xpProgress}%` }}></div>
                         </div>
                     </div>
-                    
-                    {/* Currency */}
                     <div className="flex items-center justify-center gap-2 mb-4 p-2 bg-yellow-500/10 rounded-lg">
                         <span className="text-2xl">{CURRENCY_ICON}</span>
                         <span className="text-lg font-bold text-yellow-400">{userData.currency || 0} {CURRENCY_NAME}</span>
                     </div>
-                    
-                    {/* Account Info */}
                     {!isGuest && (
                         <div className="text-xs text-gray-400 mb-4">
-                            <div className="flex justify-between mb-1">
-                                <span>{t.email}:</span>
-                                <span>{userData.email || 'N/A'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>{t.memberSince}:</span>
-                                <span>{formatDate(userData.createdAt)}</span>
-                            </div>
+                            <div className="flex justify-between mb-1"><span>{t.email}:</span><span>{userData.email || 'N/A'}</span></div>
+                            <div className="flex justify-between"><span>{t.memberSince}:</span><span>{formatDate(userData.createdAt)}</span></div>
                         </div>
                     )}
-                    
-                    {/* Change Name */}
                     {!isGuest && (
                         <div className="mb-4">
                             <label className="text-[10px] text-gray-400 block mb-1">{t.changeName} ({t.nameChangeLimit})</label>
                             <div className="flex gap-2">
-                                <input
-                                    className="input-dark flex-1 p-2 rounded text-sm"
-                                    value={newName}
-                                    onChange={e => setNewName(e.target.value)}
-                                    placeholder={t.changeName}
-                                />
+                                <input className="input-dark flex-1 p-2 rounded text-sm" value={newName} onChange={e => setNewName(e.target.value)} placeholder={t.changeName} />
                                 <button onClick={handleChangeName} className="btn-ghost px-3 py-2 rounded text-sm">{t.save}</button>
                             </div>
                             {nameMsg && <p className="text-[10px] text-cyan-400 mt-1">{nameMsg}</p>}
                         </div>
                     )}
-                    
-                    {/* Guest Banner */}
                     {isGuest && <GuestBanner lang={lang} />}
                 </div>
                 <div className="modal-footer">
                     <div className="flex gap-2">
-                        <button onClick={onOpenShop} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">
-                            🛒 {t.shop}
-                        </button>
-                        {!isGuest && (
-                            <button onClick={onLogout} className="btn-danger flex-1 py-2 rounded-lg text-sm">
-                                {t.logout}
-                            </button>
-                        )}
+                        <button onClick={onOpenShop} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {t.shop}</button>
+                        {!isGuest && <button onClick={onLogout} className="btn-danger flex-1 py-2 rounded-lg text-sm">{t.logout}</button>}
                     </div>
                 </div>
             </div>
@@ -542,9 +620,7 @@ const MyAccountModal = ({ show, onClose, userData, user, lang, onLogout, onOpenS
     );
 };
 
-// ==========================================
-// NEW: BROWSE ROOMS MODAL - FIXED
-// ==========================================
+// Browse Rooms Modal
 const BrowseRoomsModal = ({ show, onClose, nickname, userData, lang, onJoin, isGuest }) => {
     const t = TRANSLATIONS[lang];
     const [rooms, setRooms] = useState([]);
@@ -555,13 +631,11 @@ const BrowseRoomsModal = ({ show, onClose, nickname, userData, lang, onJoin, isG
     useEffect(() => {
         if (show) {
             setLoading(true);
-            const unsub = roomsCollection
-                .where('status', '==', 'waiting')
-                .onSnapshot(snap => {
-                    const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    setRooms(data);
-                    setLoading(false);
-                });
+            const unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => {
+                const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setRooms(data);
+                setLoading(false);
+            });
             return unsub;
         }
     }, [show]);
@@ -571,34 +645,16 @@ const BrowseRoomsModal = ({ show, onClose, nickname, userData, lang, onJoin, isG
     const handleJoinRoom = async (room, pwd) => {
         if (!nickname.trim()) return;
         playSound('click');
-        
         let uid = auth.currentUser?.uid;
-        if (!uid) {
-            const anon = await auth.signInAnonymously();
-            uid = anon.user.uid;
-        }
-        
+        if (!uid) { const anon = await auth.signInAnonymously(); uid = anon.user.uid; }
         const ref = roomsCollection.doc(room.id);
         const snap = await ref.get();
-        
         if (snap.exists) {
             const data = snap.data();
-            if (data.isPrivate && data.password !== pwd) {
-                alert(t.privateRoomError);
-                return;
-            }
+            if (data.isPrivate && data.password !== pwd) { alert(t.privateRoomError); return; }
             const exists = data.players.find(p => p.uid === uid);
             if (!exists) {
-                await ref.update({
-                    players: [...data.players, {
-                        uid: uid,
-                        name: nickname,
-                        status: 'active',
-                        photo: userData?.photoURL || `https://ui-avatars.com/api/?name=${nickname}&background=random`,
-                        role: null,
-                        equipped: userData?.equipped || {}
-                    }]
-                });
+                await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: userData?.photoURL || `https://ui-avatars.com/api/?name=${nickname}&background=random`, role: null, equipped: userData?.equipped || {} }] });
             }
             onJoin(room.id);
             onClose();
@@ -614,15 +670,9 @@ const BrowseRoomsModal = ({ show, onClose, nickname, userData, lang, onJoin, isG
                 </div>
                 <div className="modal-body">
                     {loading ? (
-                        <div className="text-center py-8">
-                            <div className="animate-spin text-3xl mb-2">⏳</div>
-                            <p className="text-sm text-gray-400">{t.loading}</p>
-                        </div>
+                        <div className="text-center py-8"><div className="animate-spin text-3xl mb-2">⏳</div><p className="text-sm text-gray-400">{t.loading}</p></div>
                     ) : rooms.length === 0 ? (
-                        <div className="text-center py-8">
-                            <div className="text-4xl mb-2">🎮</div>
-                            <p className="text-sm text-gray-400">{t.noRooms}</p>
-                        </div>
+                        <div className="text-center py-8"><div className="text-4xl mb-2">🎮</div><p className="text-sm text-gray-400">{t.noRooms}</p></div>
                     ) : (
                         <div className="space-y-2 max-h-[50vh] overflow-y-auto">
                             {rooms.map(room => (
@@ -632,51 +682,20 @@ const BrowseRoomsModal = ({ show, onClose, nickname, userData, lang, onJoin, isG
                                             <span className="font-mono text-sm font-bold text-primary">{room.id}</span>
                                             {room.isPrivate && <span className="text-xs text-yellow-400">🔒</span>}
                                         </div>
-                                        <div className="text-xs text-gray-400">
-                                            {room.players?.length || 0}/10 {t.players}
-                                        </div>
+                                        <div className="text-xs text-gray-400">{room.players?.length || 0}/10 {t.players}</div>
                                     </div>
                                     <div className="flex items-center gap-1 mb-2">
-                                        {room.players?.slice(0, 5).map((p, i) => (
-                                            <AvatarWithFrame key={i} photoURL={p.photo} equipped={p.equipped} size="sm" />
-                                        ))}
-                                        {(room.players?.length || 0) > 5 && (
-                                            <span className="text-xs text-gray-400">+{(room.players?.length || 0) - 5}</span>
-                                        )}
+                                        {room.players?.slice(0, 5).map((p, i) => (<AvatarWithFrame key={i} photoURL={p.photo} equipped={p.equipped} size="sm" />))}
+                                        {(room.players?.length || 0) > 5 && (<span className="text-xs text-gray-400">+{(room.players?.length || 0) - 5}</span>)}
                                     </div>
-                                    <div className="text-[10px] text-gray-500 mb-2">
-                                        {room.mode === 'advanced' ? t.advancedMode : t.normalMode}
-                                    </div>
-                                    
+                                    <div className="text-[10px] text-gray-500 mb-2">{room.mode === 'advanced' ? t.advancedMode : t.normalMode}</div>
                                     {selectedRoom?.id === room.id && room.isPrivate ? (
                                         <div className="flex gap-2">
-                                            <input
-                                                type="password"
-                                                className="input-dark flex-1 p-2 rounded text-sm"
-                                                placeholder={t.password}
-                                                value={joinPwd}
-                                                onChange={e => setJoinPwd(e.target.value)}
-                                            />
-                                            <button
-                                                onClick={() => handleJoinRoom(room, joinPwd)}
-                                                className="btn-neon px-3 py-2 rounded text-xs"
-                                            >
-                                                {t.join}
-                                            </button>
+                                            <input type="password" className="input-dark flex-1 p-2 rounded text-sm" placeholder={t.password} value={joinPwd} onChange={e => setJoinPwd(e.target.value)} />
+                                            <button onClick={() => handleJoinRoom(room, joinPwd)} className="btn-neon px-3 py-2 rounded text-xs">{t.join}</button>
                                         </div>
                                     ) : (
-                                        <button
-                                            onClick={() => {
-                                                if (room.isPrivate) {
-                                                    setSelectedRoom(room);
-                                                } else {
-                                                    handleJoinRoom(room, '');
-                                                }
-                                            }}
-                                            className="btn-neon w-full py-2 rounded text-xs font-bold"
-                                        >
-                                            {t.join}
-                                        </button>
+                                        <button onClick={() => { if (room.isPrivate) { setSelectedRoom(room); } else { handleJoinRoom(room, ''); } }} className="btn-neon w-full py-2 rounded text-xs font-bold">{t.join}</button>
                                     )}
                                 </div>
                             ))}
@@ -688,9 +707,7 @@ const BrowseRoomsModal = ({ show, onClose, nickname, userData, lang, onJoin, isG
     );
 };
 
-// ==========================================
-// NEW: USER PROFILE MODAL - FIXED
-// ==========================================
+// User Profile Modal
 const UserProfileModal = ({ show, onClose, targetUID, currentUser, lang, onSendGift, onAddFriend }) => {
     const t = TRANSLATIONS[lang];
     const [targetData, setTargetData] = useState(null);
@@ -700,9 +717,7 @@ const UserProfileModal = ({ show, onClose, targetUID, currentUser, lang, onSendG
     useEffect(() => {
         if (targetUID && show) {
             usersCollection.doc(targetUID).get().then(doc => {
-                if (doc.exists) {
-                    setTargetData({ id: doc.id, ...doc.data() });
-                }
+                if (doc.exists) { setTargetData({ id: doc.id, ...doc.data() }); }
             });
         }
     }, [targetUID, show]);
@@ -724,7 +739,6 @@ const UserProfileModal = ({ show, onClose, targetUID, currentUser, lang, onSendG
                         <ModalCloseBtn onClose={onClose} />
                     </div>
                     <div className="modal-body">
-                        {/* Profile Header */}
                         <div className="profile-header">
                             <div className="profile-avatar-container">
                                 <AvatarWithFrame photoURL={targetData.photoURL} equipped={targetData.equipped} size="lg" />
@@ -735,109 +749,42 @@ const UserProfileModal = ({ show, onClose, targetUID, currentUser, lang, onSendG
                                     {SHOP_ITEMS.titles.find(t => t.id === targetData.equipped.titles)?.name_en || ''}
                                 </span>
                             )}
-                            <div className="profile-id">
-                                <span>ID: {targetData.customId}</span>
-                            </div>
+                            <div className="profile-id"><span>ID: {targetData.customId}</span></div>
                         </div>
-                        
-                        {/* Charisma */}
                         <CharismaDisplay charisma={targetData.charisma} lang={lang} />
-                        
-                        {/* Stats */}
                         <div className="profile-stats">
-                            <div className="profile-stat">
-                                <div className="profile-stat-value">{stats.wins || 0}</div>
-                                <div className="profile-stat-label">{t.wins}</div>
-                            </div>
-                            <div className="profile-stat">
-                                <div className="profile-stat-value">{stats.losses || 0}</div>
-                                <div className="profile-stat-label">{t.losses}</div>
-                            </div>
-                            <div className="profile-stat">
-                                <div className="profile-stat-value">{level}</div>
-                                <div className="profile-stat-label">{t.level}</div>
-                            </div>
+                            <div className="profile-stat"><div className="profile-stat-value">{stats.wins || 0}</div><div className="profile-stat-label">{t.wins}</div></div>
+                            <div className="profile-stat"><div className="profile-stat-value">{stats.losses || 0}</div><div className="profile-stat-label">{t.losses}</div></div>
+                            <div className="profile-stat"><div className="profile-stat-value">{level}</div><div className="profile-stat-label">{t.level}</div></div>
                         </div>
-                        
-                        {/* KD Circle */}
                         <KDCircle wins={stats.wins || 0} losses={stats.losses || 0} lang={lang} />
-                        
-                        {/* Achievements Preview */}
                         <div className="mb-4">
                             <h4 className="text-xs font-bold text-gray-400 mb-2">{t.achievements} ({targetData.achievements?.length || 0})</h4>
                             <div className="flex flex-wrap gap-1">
                                 {(targetData.achievements || []).slice(0, 6).map(achId => {
                                     const ach = ACHIEVEMENTS.find(a => a.id === achId);
                                     if (!ach) return null;
-                                    return (
-                                        <span key={achId} className="text-lg" title={ach.name_en}>{ach.icon}</span>
-                                    );
+                                    return (<span key={achId} className="text-lg" title={ach.name_en}>{ach.icon}</span>);
                                 })}
-                                {(targetData.achievements?.length || 0) > 6 && (
-                                    <span className="text-xs text-gray-400">+{(targetData.achievements?.length || 0) - 6}</span>
-                                )}
+                                {(targetData.achievements?.length || 0) > 6 && (<span className="text-xs text-gray-400">+{(targetData.achievements?.length || 0) - 6}</span>)}
                             </div>
                         </div>
-                        
-                        {/* Member Since */}
-                        <div className="text-xs text-gray-400 text-center mb-4">
-                            {t.memberSince}: {formatDate(targetData.createdAt)}
-                        </div>
+                        <div className="text-xs text-gray-400 text-center mb-4">{t.memberSince}: {formatDate(targetData.createdAt)}</div>
                     </div>
-                    
-                    {/* Action Buttons */}
                     {!isOwnProfile && !isGuest && (
                         <div className="modal-footer">
                             <div className="flex gap-2">
-                                <button
-                                    onClick={() => setShowSendGift(true)}
-                                    className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold"
-                                >
-                                    🎁 {t.sendGift}
-                                </button>
-                                {!isFriend && (
-                                    <button
-                                        onClick={() => onAddFriend(targetUID)}
-                                        className="btn-neon flex-1 py-2 rounded-lg text-sm"
-                                    >
-                                        👋 {t.addFriend}
-                                    </button>
-                                )}
+                                <button onClick={() => setShowSendGift(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🎁 {t.sendGift}</button>
+                                {!isFriend && (<button onClick={() => onAddFriend(targetUID)} className="btn-neon flex-1 py-2 rounded-lg text-sm">👋 {t.addFriend}</button>)}
                             </div>
-                            <button
-                                onClick={() => setShowReport(true)}
-                                className="btn-ghost w-full py-2 rounded-lg text-xs text-red-400 mt-2"
-                            >
-                                ⚠️ {t.reportUser}
-                            </button>
+                            <button onClick={() => setShowReport(true)} className="btn-ghost w-full py-2 rounded-lg text-xs text-red-400 mt-2">⚠️ {t.reportUser}</button>
                         </div>
                     )}
-                    
-                    {isGuest && !isOwnProfile && (
-                        <div className="modal-footer">
-                            <p className="text-xs text-gray-400 text-center">{t.noPermission}</p>
-                        </div>
-                    )}
+                    {isGuest && !isOwnProfile && (<div className="modal-footer"><p className="text-xs text-gray-400 text-center">{t.noPermission}</p></div>)}
                 </div>
             </div>
-            
-            <SendGiftModal
-                show={showSendGift}
-                onClose={() => setShowSendGift(false)}
-                targetUser={targetData}
-                currentUser={currentUser}
-                lang={lang}
-                onSendGift={onSendGift}
-                currency={currentUser?.currency || 0}
-            />
-            
-            <ReportModal
-                show={showReport}
-                onClose={() => setShowReport(false)}
-                targetUser={targetData}
-                currentUser={currentUser}
-                lang={lang}
-            />
+            <SendGiftModal show={showSendGift} onClose={() => setShowSendGift(false)} targetUser={targetData} currentUser={currentUser} lang={lang} onSendGift={onSendGift} currency={currentUser?.currency || 0} />
+            <ReportModal show={showReport} onClose={() => setShowReport(false)} targetUser={targetData} currentUser={currentUser} lang={lang} />
         </>
     );
 };
@@ -859,23 +806,15 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                     <h3 className="text-lg font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3> 
                     <p className="text-xs text-gray-400 mb-4">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p> 
                     <div className="grid grid-cols-2 gap-2 mb-4"> 
-                        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-2"> 
-                            <div className="text-[10px] text-gray-400">{t.charismaGain}</div> 
-                            <div className="text-lg font-bold text-purple-400">+{formatCharisma(gift.charisma)}</div> 
-                        </div> 
-                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-2"> 
-                            <div className="text-[10px] text-gray-400">{t.cashback}</div> 
-                            <div className="text-lg font-bold text-green-400">+{cashbackAmount} 🧠</div> 
-                        </div> 
+                        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-2"><div className="text-[10px] text-gray-400">{t.charismaGain}</div><div className="text-lg font-bold text-purple-400">+{formatCharisma(gift.charisma)}</div></div> 
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-2"><div className="text-[10px] text-gray-400">{t.cashback}</div><div className="text-lg font-bold text-green-400">+{cashbackAmount} 🧠</div></div> 
                     </div> 
                     <div className="text-sm text-yellow-400 mb-3">{t.willReceive}: {cashbackAmount} Intel ({gift.cashback}%)</div> 
                 </div>
                 <div className="modal-footer">
                     <div className="flex gap-2">
                         <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.reportCancel}</button> 
-                        <button onClick={() => onBuy(gift)} disabled={currency < gift.cost} className={`flex-1 py-2 rounded-lg text-sm font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>
-                            {isSending ? t.sendToFriend : t.buy} ({gift.cost} 🧠)
-                        </button> 
+                        <button onClick={() => onBuy(gift)} disabled={currency < gift.cost} className={`flex-1 py-2 rounded-lg text-sm font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>{isSending ? t.sendToFriend : t.buy} ({gift.cost} 🧠)</button> 
                     </div>
                 </div>
             </div>
@@ -883,55 +822,36 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     ); 
 };
 
-// Send Gift Modal - FIXED (No double charisma)
+// Send Gift Modal
 const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency }) => { 
     const t = TRANSLATIONS[lang]; 
     const [selectedGift, setSelectedGift] = useState(null); 
     const [showPreview, setShowPreview] = useState(false); 
     if(!show || !targetUser) return null; 
     const gifts = SHOP_ITEMS.gifts; 
-    
-    const handleSend = async (gift) => { 
-        if (onSendGift) { 
-            await onSendGift(gift, targetUser); 
-        } 
-        onClose(); 
-    }; 
-    
+    const handleSend = async (gift) => { if (onSendGift) { await onSendGift(gift, targetUser); } onClose(); }; 
     return ( 
         <> 
             <div className="modal-overlay" onClick={onClose}> 
                 <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header"> 
-                        <h2 className="modal-title">{t.sendGift}</h2> 
-                        <ModalCloseBtn onClose={onClose} />
-                    </div> 
+                    <div className="modal-header"><h2 className="modal-title">{t.sendGift}</h2><ModalCloseBtn onClose={onClose} /></div> 
                     <div className="modal-body">
                         <div className="flex items-center gap-2 mb-3 p-2 bg-white/5 rounded-lg"> 
                             <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
-                            <div> <div className="font-bold text-sm">{targetUser.displayName}</div> <div className="text-[10px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div> </div> 
+                            <div><div className="font-bold text-sm">{targetUser.displayName}</div><div className="text-[10px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div></div> 
                         </div> 
                         <div className="flex items-center gap-2 mb-3 text-xs text-yellow-400"><span>🧠 {currency} {CURRENCY_NAME}</span></div> 
                         <div className="grid grid-cols-5 gap-2"> 
                             {gifts.map(gift => ( 
                                 <button key={gift.id} onClick={() => { setSelectedGift(gift); setShowPreview(true); }} disabled={currency < gift.cost} className={`gift-card flex flex-col items-center justify-center p-2 rounded-lg transition ${currency >= gift.cost ? 'hover:border-yellow-400 hover:bg-yellow-500/10' : 'opacity-40 cursor-not-allowed'}`}> 
-                                    <span className="text-2xl">{gift.emoji}</span> 
-                                    <span className="text-[10px] font-bold text-yellow-400">{gift.cost}</span> 
+                                    <span className="text-2xl">{gift.emoji}</span><span className="text-[10px] font-bold text-yellow-400">{gift.cost}</span> 
                                 </button> 
                             ))} 
                         </div>
                     </div> 
                 </div> 
             </div> 
-            <GiftPreviewModal 
-                show={showPreview} 
-                onClose={() => setShowPreview(false)} 
-                gift={selectedGift} 
-                lang={lang} 
-                onBuy={(gift) => handleSend(gift)} 
-                currency={currency}
-                isSending={true}
-            /> 
+            <GiftPreviewModal show={showPreview} onClose={() => setShowPreview(false)} gift={selectedGift} lang={lang} onBuy={(gift) => handleSend(gift)} currency={currency} isSending={true} /> 
         </> 
     ); 
 };
@@ -958,9 +878,7 @@ const KDCircle = ({ wins, losses, lang }) => {
     ); 
 };
 
-// ==========================================
-// FIXED: SHOP MODAL - With Send Gift from Inventory
-// ==========================================
+// Shop Modal
 const ShopModal = ({ show, onClose, userData, lang, onUpdate, onSendInventoryGift, friendsData }) => { 
     const t = TRANSLATIONS[lang]; 
     const [tab, setTab] = useState('frames'); 
@@ -985,20 +903,14 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate, onSendInventoryGif
         setMsg(t.purchaseSuccess); setTimeout(() => setMsg(''), 2000); if(onUpdate) onUpdate(); 
     }; 
     
-    // FIXED: Buy gift for yourself - only you get charisma
     const handleBuyGiftForSelf = async (gift) => { 
         if(currency < gift.cost) { setMsg(t.purchaseFail); setTimeout(() => setMsg(''), 2000); return; } 
         const cashbackAmount = Math.floor(gift.cost * (gift.cashback / 100)); 
         const newCurrency = currency - gift.cost + cashbackAmount; 
         const newInventory = { ...inventory }; 
-        // Store as object with id and count
         const existingGiftIndex = (newInventory.gifts || []).findIndex(g => g.id === gift.id);
-        if (existingGiftIndex >= 0) {
-            newInventory.gifts[existingGiftIndex].count += 1;
-        } else {
-            newInventory.gifts = [...(newInventory.gifts || []), { id: gift.id, count: 1 }];
-        }
-        // ONLY the buyer gets charisma when buying for themselves
+        if (existingGiftIndex >= 0) { newInventory.gifts[existingGiftIndex].count += 1; }
+        else { newInventory.gifts = [...(newInventory.gifts || []), { id: gift.id, count: 1 }]; }
         const newCharisma = (userData.charisma || 0) + gift.charisma; 
         await usersCollection.doc(userData.uid).update({ currency: newCurrency, inventory: newInventory, charisma: newCharisma }); 
         setMsg(`${t.purchaseSuccess} +${formatCharisma(gift.charisma)} ✨`); setTimeout(() => setMsg(''), 2000); setShowGiftPreview(false); if(onUpdate) onUpdate(); 
@@ -1017,60 +929,31 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate, onSendInventoryGif
         if(onUpdate) onUpdate();
     };
     
-    // Open send to friend modal
-    const openSendToFriend = (gift) => {
-        setSelectedInventoryGift(gift);
-        setShowSendToFriend(true);
-    };
-    
+    const openSendToFriend = (gift) => { setSelectedInventoryGift(gift); setShowSendToFriend(true); };
     const items = SHOP_ITEMS[tab] || []; 
-    
-    // Get inventory gifts with details
-    const inventoryGifts = (inventory.gifts || []).map(g => {
-        const giftDetails = SHOP_ITEMS.gifts.find(gd => gd.id === g.id);
-        return { ...giftDetails, count: g.count };
-    }).filter(g => g.id);
+    const inventoryGifts = (inventory.gifts || []).map(g => { const giftDetails = SHOP_ITEMS.gifts.find(gd => gd.id === g.id); return { ...giftDetails, count: g.count }; }).filter(g => g.id);
     
     return ( 
         <> 
             <div className="modal-overlay" onClick={onClose}> 
                 <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header"> 
-                        <h2 className="modal-title">{t.shop}</h2> 
-                        <div className="flex items-center gap-2">
-                            <span className="text-yellow-400 font-bold text-sm">{CURRENCY_ICON} {currency}</span>
-                            <ModalCloseBtn onClose={onClose} />
-                        </div>
-                    </div> 
+                    <div className="modal-header"><h2 className="modal-title">{t.shop}</h2><div className="flex items-center gap-2"><span className="text-yellow-400 font-bold text-sm">{CURRENCY_ICON} {currency}</span><ModalCloseBtn onClose={onClose} /></div></div> 
                     <div className="modal-body">
-                        <div className="tab-container">
-                            {['frames', 'titles', 'themes', 'gifts'].map(k => ( 
-                                <button key={k} onClick={() => setTab(k)} className={`tab-button ${tab === k ? 'active' : ''}`}>{t[k]}</button> 
-                            ))} 
-                        </div>
+                        <div className="tab-container">{['frames', 'titles', 'themes', 'gifts'].map(k => (<button key={k} onClick={() => setTab(k)} className={`tab-button ${tab === k ? 'active' : ''}`}>{t[k]}</button>))}</div>
                         {msg && <div className="text-center text-xs text-cyan-400 mb-2 animate-pop">{msg}</div>} 
-                        
-                        {/* Show inventory gifts if on gifts tab */}
                         {tab === 'gifts' && inventoryGifts.length > 0 && (
                             <div className="mb-4">
                                 <h4 className="text-xs font-bold text-gray-400 mb-2">{t.myInventory} ({inventoryGifts.reduce((acc, g) => acc + g.count, 0)})</h4>
                                 <div className="grid grid-cols-4 gap-2">
                                     {inventoryGifts.map(gift => (
                                         <div key={gift.id} className="bg-white/5 border border-white/10 rounded-lg p-2 text-center">
-                                            <span className="text-2xl">{gift.emoji}</span>
-                                            <div className="text-[10px] text-gray-400">x{gift.count}</div>
-                                            <button
-                                                onClick={() => openSendToFriend(gift)}
-                                                className="btn-neon w-full py-1 rounded text-[10px] mt-1"
-                                            >
-                                                {t.sendToFriend}
-                                            </button>
+                                            <span className="text-2xl">{gift.emoji}</span><div className="text-[10px] text-gray-400">x{gift.count}</div>
+                                            <button onClick={() => openSendToFriend(gift)} className="btn-neon w-full py-1 rounded text-[10px] mt-1">{t.sendToFriend}</button>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
-                        
                         <div className="inventory-grid"> 
                             {items.map(item => { 
                                 const owned = item.type !== 'gifts' && inventory[item.type]?.includes(item.id); 
@@ -1078,48 +961,14 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate, onSendInventoryGif
                                 return ( 
                                     <div key={item.id} className={`inventory-item ${isEquipped ? 'equipped' : ''}`}> 
                                         <div className="inventory-item-preview">
-                                            {item.type === 'frames' && (
-                                                <div className="w-10 h-10 rounded-full relative">
-                                                    <div className="absolute inset-0 bg-gray-700 rounded-full"></div>
-                                                    {item.preview?.startsWith('http') ? (
-                                                        <img src={item.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt="frame" />
-                                                    ) : (
-                                                        <div className="absolute inset-0 rounded-full" style={{ background: item.preview, padding: '2px' }}>
-                                                            <div className="w-full h-full rounded-full bg-gray-800"></div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
+                                            {item.type === 'frames' && (<div className="w-10 h-10 rounded-full relative"><div className="absolute inset-0 bg-gray-700 rounded-full"></div>{item.preview?.startsWith('http') ? (<img src={item.preview} className="absolute inset-0 w-full h-full object-cover rounded-full" alt="frame" />) : (<div className="absolute inset-0 rounded-full" style={{ background: item.preview, padding: '2px' }}><div className="w-full h-full rounded-full bg-gray-800"></div></div>)}</div>)}
                                             {item.type === 'titles' && <span className="text-base font-bold text-primary">{item.name_en}</span>}
                                             {item.type === 'themes' && <span className="text-2xl">🎨</span>}
-                                            {item.type === 'gifts' && (
-                                                <>
-                                                    <span className="text-2xl">{item.emoji}</span>
-                                                    <span className="text-[10px] text-yellow-400">+{formatCharisma(item.charisma)} ✨</span>
-                                                </>
-                                            )}
+                                            {item.type === 'gifts' && (<><span className="text-2xl">{item.emoji}</span><span className="text-[10px] text-yellow-400">+{formatCharisma(item.charisma)} ✨</span></>)}
                                         </div>
                                         <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
                                         <div className="inventory-item-actions">
-                                            {item.type === 'gifts' ? (
-                                                <button onClick={() => { setSelectedGift(item); setShowGiftPreview(true); }} disabled={currency < item.cost} className={currency >= item.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}>
-                                                    {t.buy} ({item.cost})
-                                                </button>
-                                            ) : owned ? (
-                                                isEquipped ? (
-                                                    <button onClick={() => handleUnequip(item.type)} className="btn-unequip">
-                                                        {t.unequip}
-                                                    </button>
-                                                ) : (
-                                                    <button onClick={() => handleEquip(item.type, item.id)} className="btn-ghost border-white/20">
-                                                        {t.equip}
-                                                    </button>
-                                                )
-                                            ) : (
-                                                <button onClick={() => handleBuy(item)} className="btn-gold">
-                                                    {t.buy} ({item.cost})
-                                                </button>
-                                            )}
+                                            {item.type === 'gifts' ? (<button onClick={() => { setSelectedGift(item); setShowGiftPreview(true); }} disabled={currency < item.cost} className={currency >= item.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}>{t.buy} ({item.cost})</button>) : owned ? (isEquipped ? (<button onClick={() => handleUnequip(item.type)} className="btn-unequip">{t.unequip}</button>) : (<button onClick={() => handleEquip(item.type, item.id)} className="btn-ghost border-white/20">{t.equip}</button>)) : (<button onClick={() => handleBuy(item)} className="btn-gold">{t.buy} ({item.cost})</button>)}
                                         </div>
                                     </div> 
                                 ); 
@@ -1128,32 +977,13 @@ const ShopModal = ({ show, onClose, userData, lang, onUpdate, onSendInventoryGif
                     </div> 
                 </div> 
             </div> 
-            <GiftPreviewModal 
-                show={showGiftPreview} 
-                onClose={() => setShowGiftPreview(false)} 
-                gift={selectedGift} 
-                lang={lang} 
-                onBuy={handleBuyGiftForSelf} 
-                currency={currency}
-            />
-            {/* Send Inventory Gift to Friend Modal */}
-            <SendInventoryGiftModal
-                show={showSendToFriend}
-                onClose={() => setShowSendToFriend(false)}
-                gift={selectedInventoryGift}
-                friendsData={friendsData}
-                userData={userData}
-                lang={lang}
-                onSend={onSendInventoryGift}
-                onUpdate={onUpdate}
-            />
+            <GiftPreviewModal show={showGiftPreview} onClose={() => setShowGiftPreview(false)} gift={selectedGift} lang={lang} onBuy={handleBuyGiftForSelf} currency={currency} />
+            <SendInventoryGiftModal show={showSendToFriend} onClose={() => setShowSendToFriend(false)} gift={selectedInventoryGift} friendsData={friendsData} userData={userData} lang={lang} onSend={onSendInventoryGift} onUpdate={onUpdate} />
         </> 
     ); 
 };
 
-// ==========================================
-// NEW: SEND INVENTORY GIFT MODAL
-// ==========================================
+// Send Inventory Gift Modal
 const SendInventoryGiftModal = ({ show, onClose, gift, friendsData, userData, lang, onSend, onUpdate }) => {
     const t = TRANSLATIONS[lang];
     const [sending, setSending] = useState(false);
@@ -1162,86 +992,37 @@ const SendInventoryGiftModal = ({ show, onClose, gift, friendsData, userData, la
     
     const handleSend = async (friend) => {
         setSending(true);
-        
         try {
             const inventory = userData.inventory || { gifts: [] };
             const newInventory = { ...inventory };
-            
-            // Remove one gift from inventory
             const giftIndex = newInventory.gifts.findIndex(g => g.id === gift.id);
             if (giftIndex >= 0) {
-                if (newInventory.gifts[giftIndex].count > 1) {
-                    newInventory.gifts[giftIndex].count -= 1;
-                } else {
-                    newInventory.gifts.splice(giftIndex, 1);
-                }
+                if (newInventory.gifts[giftIndex].count > 1) { newInventory.gifts[giftIndex].count -= 1; }
+                else { newInventory.gifts.splice(giftIndex, 1); }
             }
-            
-            // Update sender inventory (NO charisma for sender when sending)
-            await usersCollection.doc(userData.uid).update({
-                inventory: newInventory
-            });
-            
-            // Update receiver charisma ONLY
-            await usersCollection.doc(friend.uid).update({
-                charisma: firebase.firestore.FieldValue.increment(gift.charisma)
-            });
-            
-            // Create notification for receiver
-            await notificationsCollection.add({
-                toUserId: friend.uid,
-                fromUserId: userData.uid,
-                fromName: userData.displayName,
-                type: 'gift',
-                message: `${userData.displayName} ${t.giftNotification}: ${gift.emoji}`,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                read: false
-            });
-            
+            await usersCollection.doc(userData.uid).update({ inventory: newInventory });
+            await usersCollection.doc(friend.uid).update({ charisma: firebase.firestore.FieldValue.increment(gift.charisma) });
+            await notificationsCollection.add({ toUserId: friend.uid, fromUserId: userData.uid, fromName: userData.displayName, type: 'gift', message: `${userData.displayName} ${t.giftNotification}: ${gift.emoji}`, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false });
             playSound('gift');
-            
             if (onUpdate) onUpdate();
             onClose();
-        } catch (e) {
-            console.error('Send gift error:', e);
-        }
-        
+        } catch (e) { console.error('Send gift error:', e); }
         setSending(false);
     };
     
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px' }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.sendToFriend}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
+                <div className="modal-header"><h2 className="modal-title">{t.sendToFriend}</h2><ModalCloseBtn onClose={onClose} /></div>
                 <div className="modal-body">
-                    {/* Gift Preview */}
-                    <div className="text-center mb-4 p-3 bg-white/5 rounded-lg">
-                        <span className="text-4xl">{gift.emoji}</span>
-                        <div className="text-sm font-bold mt-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</div>
-                        <div className="text-xs text-purple-400">+{formatCharisma(gift.charisma)} {t.charisma}</div>
-                    </div>
-                    
-                    {/* Friends List */}
+                    <div className="text-center mb-4 p-3 bg-white/5 rounded-lg"><span className="text-4xl">{gift.emoji}</span><div className="text-sm font-bold mt-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</div><div className="text-xs text-purple-400">+{formatCharisma(gift.charisma)} {t.charisma}</div></div>
                     <h4 className="text-xs font-bold text-gray-400 mb-2">{t.selectFriend}</h4>
-                    {!friendsData || friendsData.length === 0 ? (
-                        <p className="text-xs text-gray-500 text-center py-4">{t.noFriendsToSend}</p>
-                    ) : (
+                    {!friendsData || friendsData.length === 0 ? (<p className="text-xs text-gray-500 text-center py-4">{t.noFriendsToSend}</p>) : (
                         <div className="max-h-[200px] overflow-y-auto space-y-1">
                             {friendsData.map(friend => (
-                                <button
-                                    key={friend.uid}
-                                    onClick={() => handleSend(friend)}
-                                    disabled={sending}
-                                    className="w-full flex items-center gap-2 p-2 bg-white/5 rounded-lg hover:bg-white/10 transition"
-                                >
+                                <button key={friend.uid} onClick={() => handleSend(friend)} disabled={sending} className="w-full flex items-center gap-2 p-2 bg-white/5 rounded-lg hover:bg-white/10 transition">
                                     <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                                    <div className="flex-1 text-left">
-                                        <div className="text-sm font-medium">{friend.displayName}</div>
-                                        <div className="text-[10px] text-gray-400">✨ {formatCharisma(friend.charisma || 0)}</div>
-                                    </div>
+                                    <div className="flex-1 text-left"><div className="text-sm font-medium">{friend.displayName}</div><div className="text-[10px] text-gray-400">✨ {formatCharisma(friend.charisma || 0)}</div></div>
                                     <span className="text-lg">📤</span>
                                 </button>
                             ))}
@@ -1261,27 +1042,12 @@ const MatchSummaryModal = ({ show, onClose, room, players, lang }) => {
     return ( 
         <div className="modal-overlay" onClick={onClose}> 
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.summaryTitle}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
+                <div className="modal-header"><h2 className="modal-title">{t.summaryTitle}</h2><ModalCloseBtn onClose={onClose} /></div>
                 <div className="modal-body text-center">
-                    <div className="grid grid-cols-2 gap-3 mb-4"> 
-                        <div className="bg-black/30 p-2 rounded-lg"><span className="text-gray-400">{t.matchDuration}</span><div className="text-lg font-bold text-white">{duration}</div></div> 
-                        <div className="bg-black/30 p-2 rounded-lg"><span className="text-gray-400">{t.mvp}</span><div className="text-lg font-bold text-primary truncate">{room.status === 'finished_spy_caught' ? 'Agents' : 'Spy'}</div></div> 
-                    </div> 
-                    <div className="max-h-32 overflow-y-auto mb-4 space-y-1"> 
-                        {players && players.map(p => ( 
-                            <div key={p.uid} className="flex justify-between items-center bg-white/5 px-2 py-1 rounded text-xs">
-                                <span>{p.name}</span>
-                                <span className={p.status === 'active' ? 'text-green-400' : 'text-red-400'}>{p.status === 'active' ? 'Survived' : 'Out'}</span>
-                            </div> 
-                        ))} 
-                    </div>
+                    <div className="grid grid-cols-2 gap-3 mb-4"><div className="bg-black/30 p-2 rounded-lg"><span className="text-gray-400">{t.matchDuration}</span><div className="text-lg font-bold text-white">{duration}</div></div><div className="bg-black/30 p-2 rounded-lg"><span className="text-gray-400">{t.mvp}</span><div className="text-lg font-bold text-primary truncate">{room.status === 'finished_spy_caught' ? 'Agents' : 'Spy'}</div></div></div> 
+                    <div className="max-h-32 overflow-y-auto mb-4 space-y-1">{players && players.map(p => (<div key={p.uid} className="flex justify-between items-center bg-white/5 px-2 py-1 rounded text-xs"><span>{p.name}</span><span className={p.status === 'active' ? 'text-green-400' : 'text-red-400'}>{p.status === 'active' ? 'Survived' : 'Out'}</span></div>))}</div>
                 </div>
-                <div className="modal-footer">
-                    <button onClick={onClose} className="btn-neon w-full py-2 rounded-lg text-sm">{t.ok}</button>
-                </div>
+                <div className="modal-footer"><button onClick={onClose} className="btn-neon w-full py-2 rounded-lg text-sm">{t.ok}</button></div>
             </div>
         </div> 
     ); 
@@ -1303,25 +1069,16 @@ const ReportModal = ({ show, onClose, targetUser, currentUser, lang }) => {
             await reportsCollection.add({ reporterId: currentUser.uid, reporterName: currentUser.displayName, reportedId: targetUser.uid, reportedName: targetUser.displayName, reason: selectedReason, details: details, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             setMsg(t.reportSent);
             setTimeout(() => { setMsg(''); onClose(); }, 1500);
-        } catch (e) {
-            setMsg("Error submitting report");
-        }
+        } catch (e) { setMsg("Error submitting report"); }
         setSubmitting(false);
     };
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.reportTitle}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
+                <div className="modal-header"><h2 className="modal-title">{t.reportTitle}</h2><ModalCloseBtn onClose={onClose} /></div>
                 <div className="modal-body">
                     <p className="text-xs text-gray-400 mb-3">{t.reportDesc}</p>
-                    {reasons.map(r => (
-                        <div key={r.id} onClick={() => setSelectedReason(r.id)} className={`report-reason-option ${selectedReason === r.id ? 'selected' : ''}`}>
-                            <span>{r.label}</span>
-                        </div>
-                    ))}
+                    {reasons.map(r => (<div key={r.id} onClick={() => setSelectedReason(r.id)} className={`report-reason-option ${selectedReason === r.id ? 'selected' : ''}`}><span>{r.label}</span></div>))}
                     <textarea value={details} onChange={e => setDetails(e.target.value)} placeholder="Additional details (optional)" className="input-dark w-full mt-3 text-xs" rows={2} />
                 </div>
                 <div className="modal-footer">
@@ -1336,34 +1093,25 @@ const ReportModal = ({ show, onClose, targetUser, currentUser, lang }) => {
     );
 };
 
-// Notification Center Component
+// Notification Center Component - FIXED (shows all content)
 const NotificationCenter = ({ show, onClose, notifications, onClearAll, onMarkRead, lang }) => {
     const t = TRANSLATIONS[lang];
-    
     if (!show) return null;
     
     return (
         <div className="notification-dropdown animate-pop">
             <div className="notification-dropdown-header">
                 <span className="notification-dropdown-title">{t.notifications}</span>
-                {notifications.length > 0 && (
-                    <button onClick={onClearAll} className="notification-clear-all">{t.clearAll}</button>
-                )}
+                {notifications.length > 0 && (<button onClick={onClearAll} className="notification-clear-all">{t.clearAll}</button>)}
             </div>
             <div className="notification-list">
                 {notifications.length === 0 ? (
                     <div className="notification-empty">{t.noNotifications}</div>
                 ) : (
                     notifications.map(notif => (
-                        <div 
-                            key={notif.id} 
-                            className={`notification-item ${!notif.read ? 'unread' : ''}`}
-                            onClick={() => onMarkRead(notif.id)}
-                        >
+                        <div key={notif.id} className={`notification-item ${!notif.read ? 'unread' : ''}`} onClick={() => onMarkRead(notif.id)}>
                             <div className="flex items-center">
-                                <span className="notification-item-icon">
-                                    {notif.type === 'friend_request' ? '👋' : notif.type === 'gift' ? '🎁' : '💬'}
-                                </span>
+                                <span className="notification-item-icon">{notif.type === 'friend_request' ? '👋' : notif.type === 'gift' ? '🎁' : notif.type === 'message' ? '💬' : '🔔'}</span>
                                 <div className="notification-item-content">
                                     <div className="notification-item-title">{notif.message}</div>
                                     <div className="notification-item-time">{formatTime(notif.timestamp)}</div>
@@ -1378,9 +1126,8 @@ const NotificationCenter = ({ show, onClose, notifications, onClearAll, onMarkRe
 };
 
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT PART 2 V2
-// App Component with ALL Systems
-// FIXED: Profile Opening, Charisma Hidden, Gifts System
+// PRO SPY - COMPLETE SCRIPT PART 2 - FIXED
+// App Component with ALL Fixes
 // ==========================================
 
 function App() {
@@ -1392,7 +1139,6 @@ function App() {
     const [inputCode, setInputCode] = useState('');
     const [nickname, setNickname] = useState(() => localStorage.getItem('pro_spy_nick') || '');
     const [loading, setLoading] = useState(false);
-    const [chatMsg, setChatMsg] = useState('');
     const [turnTimer, setTurnTimer] = useState(30);
     const [votingTimer, setVotingTimer] = useState(30);
     const [wordSelTimer, setWordSelTimer] = useState(30);
@@ -1400,6 +1146,7 @@ function App() {
     const [setupMode, setSetupMode] = useState('normal');
     const [isPrivate, setIsPrivate] = useState(false);
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false); // NEW: Password visibility
     const [activeView, setActiveView] = useState('lobby');
     const [showDropdown, setShowDropdown] = useState(false);
     const [joinError, setJoinError] = useState('');
@@ -1409,8 +1156,6 @@ function App() {
     const [addFriendId, setAddFriendId] = useState('');
     const [friendSearchMsg, setFriendSearchMsg] = useState('');
     const [friendRequests, setFriendRequests] = useState([]);
-    const [showChat, setShowChat] = useState(false);
-    const [chatFriend, setChatFriend] = useState(null);
     const [showMyAccount, setShowMyAccount] = useState(false);
     const [showUserProfile, setShowUserProfile] = useState(false);
     const [targetProfileUID, setTargetProfileUID] = useState(null);
@@ -1419,16 +1164,17 @@ function App() {
     const [openChatId, setOpenChatId] = useState(null);
     const [showBrowseRooms, setShowBrowseRooms] = useState(false);
     const [copied, setCopied] = useState(false);
-    const [showPwd, setShowPwd] = useState(false);
     const [notification, setNotification] = useState(null);
     const [showTutorial, setShowTutorial] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
     const [showShop, setShowShop] = useState(false);
-    
-    // NEW: Notification System State
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadNotifications, setUnreadNotifications] = useState(0);
+    
+    // NEW: Private Chat Modal State
+    const [showPrivateChat, setShowPrivateChat] = useState(false);
+    const [chatFriend, setChatFriend] = useState(null);
     
     const t = TRANSLATIONS[lang];
     const isLoggedIn = user && !user.isAnonymous;
@@ -1481,17 +1227,22 @@ function App() {
     useEffect(() => { if (!user) return; const interval = setInterval(() => { usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 60000); return () => clearInterval(interval); }, [user]);
 
     // ==========================================
-    // NOTIFICATIONS LISTENER
+    // NOTIFICATIONS LISTENER - FIXED (No orderBy)
     // ==========================================
     useEffect(() => {
         if (!user || isGuest) return;
         
         const unsub = notificationsCollection
             .where('toUserId', '==', user.uid)
-            .orderBy('timestamp', 'desc')
             .limit(50)
             .onSnapshot(snap => {
-                const notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Sort in client side
+                notifs.sort((a, b) => {
+                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
+                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
+                    return timeB - timeA;
+                });
                 setNotifications(notifs);
                 setUnreadNotifications(notifs.filter(n => !n.read).length);
             });
@@ -1500,7 +1251,7 @@ function App() {
     }, [user, isGuest]);
 
     // ==========================================
-    // ROOM LISTENER WITH PLAYER LEAVE DETECTION
+    // ROOM LISTENER
     // ==========================================
     useEffect(() => { 
         if (!user || !roomId) return; 
@@ -1508,8 +1259,6 @@ function App() {
             if (doc.exists) { 
                 const data = doc.data(); 
                 setRoom(data);
-                
-                // PLAYER LEAVE DETECTION FOR NORMAL MODE
                 if (data.status !== 'waiting' && data.status !== 'finished_spy_caught' && data.status !== 'finished_spy_wins' && data.status !== 'finished_mrwhite_wins') {
                     const activePlayers = data.players.filter(p => p.status === 'active');
                     if (activePlayers.length <= 1 && data.mode === 'normal') {
@@ -1522,7 +1271,6 @@ function App() {
                         }
                     }
                 }
-                
                 if(data.status?.includes('finished') && !data.summaryShown) { 
                     setShowSummary(true); historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); 
                     roomsCollection.doc(roomId).update({summaryShown: true}); 
@@ -1532,7 +1280,6 @@ function App() {
         return unsub; 
     }, [user, roomId]);
 
-    // END GAME WHEN PLAYER LEAVES
     const endGameDueToLeave = async (agentsWin, roomData) => {
         if (!roomData) return;
         let status = agentsWin ? 'finished_spy_caught' : 'finished_spy_wins';
@@ -1555,11 +1302,70 @@ function App() {
     };
 
     // ==========================================
-    // OTHER LISTENERS
+    // OTHER LISTENERS - FIXED (Real-time friends, No orderBy)
     // ==========================================
-    useEffect(() => { if (activeView === 'leaderboard') { usersCollection.orderBy('stats.wins', 'desc').limit(100).get().then(snap => { const data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); setLeaderboardData(data); }); } }, [activeView]);
-    useEffect(() => { if (activeView === 'friends' && userData) { if (userData.friends?.length > 0) { usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).get().then(snap => { setFriendsData(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); } else { setFriendsData([]); } if (userData.friendRequests?.length > 0) { usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).get().then(snap => { setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); } else { setFriendRequests([]); } } }, [activeView, userData?.friends, userData?.friendRequests]);
-    useEffect(() => { if (!user) return; const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => { let total = 0; const meta = {}; snap.docs.forEach(doc => { const d = doc.data(); meta[doc.id] = d; const myUnread = d.unread?.[user.uid] || 0; total += myUnread; }); setChatsMeta(meta); setTotalUnread(total); }); return unsub; }, [user, openChatId]);
+    
+    // Leaderboard - Fixed (no orderBy on server, sort in client)
+    useEffect(() => { 
+        if (activeView === 'leaderboard') { 
+            usersCollection.limit(100).get().then(snap => { 
+                let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous);
+                // Sort by wins in client side
+                data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0));
+                setLeaderboardData(data); 
+            }); 
+        } 
+    }, [activeView]);
+    
+    // Friends & Requests - FIXED (Real-time listeners)
+    useEffect(() => { 
+        if (activeView === 'friends' && userData && user) { 
+            // Real-time listener for friends data
+            if (userData.friends?.length > 0) {
+                const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends)
+                    .onSnapshot(snap => {
+                        setFriendsData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                    });
+                return unsub;
+            } else { 
+                setFriendsData([]); 
+            }
+        } 
+    }, [activeView, userData?.friends, user]);
+    
+    // Friend Requests - FIXED (Real-time listener)
+    useEffect(() => { 
+        if (userData && user && !isGuest) {
+            if (userData.friendRequests?.length > 0) {
+                const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests)
+                    .onSnapshot(snap => {
+                        setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                    });
+                return unsub;
+            } else { 
+                setFriendRequests([]); 
+            }
+        } 
+    }, [userData?.friendRequests, user, isGuest]);
+    
+    // Chats Meta Listener
+    useEffect(() => { 
+        if (!user) return; 
+        const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => { 
+            let total = 0; 
+            const meta = {}; 
+            snap.docs.forEach(doc => { 
+                const d = doc.data(); 
+                meta[doc.id] = d; 
+                const myUnread = d.unread?.[user.uid] || 0; 
+                total += myUnread; 
+            }); 
+            setChatsMeta(meta); 
+            setTotalUnread(total); 
+        }); 
+        return unsub; 
+    }, [user, openChatId]);
+    
     useEffect(() => { if (room?.status === 'discussing' && room?.turnEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000)); setTurnTimer(remaining); if (remaining <= 0) { handleSkipTurn(true); clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setTurnTimer(30); }, [room?.status, room?.turnEndTime]);
     useEffect(() => { if (room?.status === 'voting' && room?.votingEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.votingEndTime - Date.now()) / 1000)); setVotingTimer(remaining); if (remaining <= 0) { resolveVotes(true); clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setVotingTimer(30); }, [room?.status, room?.votingEndTime]);
     useEffect(() => { if (room?.status === 'word_selection' && room?.wordSelEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.wordSelEndTime - Date.now()) / 1000)); setWordSelTimer(remaining); if (remaining <= 0) { finishWordSelection(); clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setWordSelTimer(30); }, [room?.status, room?.wordSelEndTime]);
@@ -1578,40 +1384,27 @@ function App() {
     const createNotification = async (toUserId, type, message, fromUserId, fromName) => {
         try {
             await notificationsCollection.add({
-                toUserId,
-                fromUserId,
-                fromName,
-                type,
-                message,
+                toUserId, fromUserId, fromName, type, message,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 read: false
             });
             playSound('message');
-        } catch (e) {
-            console.error('Notification error:', e);
-        }
+        } catch (e) { console.error('Notification error:', e); }
     };
 
     const markNotificationRead = async (notifId) => {
-        try {
-            await notificationsCollection.doc(notifId).update({ read: true });
-        } catch (e) {
-            console.error('Mark read error:', e);
-        }
+        try { await notificationsCollection.doc(notifId).update({ read: true }); } 
+        catch (e) { console.error('Mark read error:', e); }
     };
 
     const clearAllNotifications = async () => {
         try {
             const batch = db.batch();
-            notifications.forEach(n => {
-                batch.delete(notificationsCollection.doc(n.id));
-            });
+            notifications.forEach(n => { batch.delete(notificationsCollection.doc(n.id)); });
             await batch.commit();
             setNotifications([]);
             setUnreadNotifications(0);
-        } catch (e) {
-            console.error('Clear notifications error:', e);
-        }
+        } catch (e) { console.error('Clear notifications error:', e); }
     };
 
     // ==========================================
@@ -1645,29 +1438,16 @@ function App() {
         setLoading(false); 
     };
     
-    const handleJoinFromInvite = async (rId) => { 
-        setShowChat(false); setInputCode(rId); setLoading(true); 
-        let uid = user?.uid; 
-        if (!uid) { const anon = await auth.signInAnonymously(); uid = anon.user.uid; setUser(anon.user); } 
-        const ref = roomsCollection.doc(rId); 
-        const snap = await ref.get(); 
-        if (snap.exists) { const data = snap.data(); const exists = data.players.find(p => p.uid === uid); if (!exists) { await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(userData, nickname), role: null, equipped: userData?.equipped || {} }] }); } setRoomId(rId); setActiveView('lobby'); } 
-        setLoading(false); 
-    };
-
-    // LEAVE ROOM
     const handleLeaveRoom = async (isUnload = false) => { 
         if (!room || !user) return; 
         if (!isUnload) playSound('click'); 
         const isAdmin = room.admin === user.uid;
         const isActive = room.players.find(p => p.uid === user.uid)?.status === 'active';
-        
         if (room.status !== 'waiting' && room.status !== 'finished_spy_caught' && room.status !== 'finished_spy_wins' && room.status !== 'finished_mrwhite_wins' && isActive && room.mode === 'normal') {
             const newPlayers = room.players.map(p => { if (p.uid === user.uid) return { ...p, status: 'spectator' }; return p; });
             await roomsCollection.doc(roomId).update({ players: newPlayers });
         } else if (isAdmin) { await roomsCollection.doc(roomId).delete(); } 
         else { await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== user.uid) }); }
-        
         if (!isUnload) { setRoom(null); setRoomId(''); setShowSummary(false); } 
     };
 
@@ -1706,7 +1486,7 @@ function App() {
     const agreeToVote = async () => { if (!room || !room.votingRequest) return; playSound('click'); const currentVotes = room.votingRequest.votes || {}; const newVotes = { ...currentVotes, [user.uid]: true }; const activePlayers = room.players.filter(p => p.status === 'active'); if (user?.uid === room.admin) { await triggerVoting(); return; } const agreeCount = Object.values(newVotes).filter(v => v === true).length; const majorityCount = Math.floor(activePlayers.length / 2) + 1; if (agreeCount >= majorityCount) { await triggerVoting(); } else { await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); } };
     const declineVote = async () => { if (!room || !room.votingRequest) return; playSound('click'); const currentVotes = room.votingRequest.votes || {}; const newVotes = { ...currentVotes, [user.uid]: false }; const activePlayers = room.players.filter(p => p.status === 'active'); const declineCount = Object.values(newVotes).filter(v => v === false).length; const majorityCount = Math.floor(activePlayers.length / 2) + 1; if (declineCount >= majorityCount) { await roomsCollection.doc(roomId).update({ votingRequest: null }); } else { await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); } };
     const triggerVoting = async () => { playSound('click'); const sysMsg = { sender: 'system', name: 'SYSTEM', text: t.votingStarted, time: Date.now() }; await roomsCollection.doc(roomId).update({ status: 'voting', currentTurnUID: null, turnEndTime: null, votingEndTime: Date.now() + 30000, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg), votingRequest: null }); };
-    const sendMessage = async (text) => { if (!text.trim() || !user) return; playSound('click'); const msg = { sender: user.uid, name: nickname, text: text, time: Date.now() }; await roomsCollection.doc(roomId).update({ messages: firebase.firestore.FieldValue.arrayUnion(msg) }); setChatMsg(''); };
+    const sendMessage = async (text) => { if (!text.trim() || !user) return; playSound('click'); const msg = { sender: user.uid, name: nickname, text: text, time: Date.now() }; await roomsCollection.doc(roomId).update({ messages: firebase.firestore.FieldValue.arrayUnion(msg) }); };
     const submitVote = async (targetUID) => { if (!targetUID || !user || (room.votes && room.votes[user.uid])) return; playSound('click'); const voteUpdate = {}; voteUpdate[`votes.${user.uid}`] = targetUID; await roomsCollection.doc(roomId).update(voteUpdate); };
     const endVotingNow = async () => { if (room.admin !== user?.uid) return; await resolveVotes(true); };
     
@@ -1738,9 +1518,6 @@ function App() {
 
     const handleMrWhiteGuess = async (guess) => { if(!room || !user) return; const me = room.players.find(p => p.uid === user.uid); if(me.role !== 'mrwhite') return; const correct = (lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en); if(guess === correct) { playSound('success'); await endGame(false, true, true); } else { setAlertMessage("Wrong guess!"); } };
 
-    // ==========================================
-    // UPDATE GAME STATS WITH CHARISMA
-    // ==========================================
     const updateGameStats = async (players, spyId, agentsWin) => { 
         const batch = db.batch(); const spyWin = !agentsWin;
         players.forEach(p => { 
@@ -1781,8 +1558,24 @@ function App() {
     // FRIEND FUNCTIONS
     // ==========================================
     const openProfile = (uid) => { if(!uid) return; setTargetProfileUID(uid); setShowUserProfile(true); };
-    const openChat = (friend) => { setChatFriend(friend); setShowChat(true); const cId = getChatId(user.uid, friend.uid); setOpenChatId(cId); };
-    const closeChat = () => { setShowChat(false); setChatFriend(null); setOpenChatId(null); };
+    
+    // NEW: Open Private Chat
+    const openPrivateChat = (friend) => { 
+        setChatFriend(friend); 
+        setShowPrivateChat(true);
+        const cId = getChatId(user.uid, friend.uid);
+        setOpenChatId(cId);
+        // Mark as read
+        chatsCollection.doc(cId).update({
+            [`unread.${user.uid}`]: 0
+        }).catch(() => {});
+    };
+    
+    const closePrivateChat = () => { 
+        setShowPrivateChat(false); 
+        setChatFriend(null); 
+        setOpenChatId(null); 
+    };
     
     const handleSendRequest = async (targetUid) => { 
         if (!targetUid || targetUid === userData.customId || isGuest) return; 
@@ -1820,81 +1613,37 @@ function App() {
     const handleRejectRequest = async (fromUid) => { await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); };
 
     // ==========================================
-    // GIFT FUNCTIONS - FIXED (No double charisma)
+    // GIFT FUNCTIONS
     // ==========================================
     const handleSendGiftToUser = async (gift, targetUser) => {
         const currency = userData?.currency || 0;
         if (currency < gift.cost) return;
-        
         const cashbackAmount = Math.floor(gift.cost * (gift.cashback / 100));
         const newCurrency = currency - gift.cost + cashbackAmount;
-        const charismaGain = gift.charisma;
-        
         try {
-            // Update sender - NO charisma gain for sender when sending gift
-            await usersCollection.doc(user.uid).update({
-                currency: newCurrency
-                // REMOVED: charisma increment for sender
-            });
-            
-            // Update receiver charisma ONLY (not sender)
-            await usersCollection.doc(targetUser.uid).update({
-                charisma: firebase.firestore.FieldValue.increment(charismaGain)
-            });
-            
-            // Create notification for receiver
+            await usersCollection.doc(user.uid).update({ currency: newCurrency });
+            await usersCollection.doc(targetUser.uid).update({ charisma: firebase.firestore.FieldValue.increment(gift.charisma) });
             await createNotification(targetUser.uid, 'gift', `${userData.displayName} ${t.giftNotification}: ${gift.emoji}`, user.uid, userData.displayName);
-            
             playSound('gift');
             setNotification(`${t.giftSent}`);
-        } catch (error) {
-            console.error("Gift error:", error);
-            setNotification("Error sending gift");
-        }
+        } catch (error) { console.error("Gift error:", error); }
     };
 
-    // Send inventory gift to friend - FIXED
     const handleSendInventoryGift = async (gift, friend) => {
         try {
             const inventory = userData.inventory || { gifts: [] };
             const newInventory = { ...inventory };
-            
-            // Remove one gift from inventory
             const giftIndex = newInventory.gifts.findIndex(g => g.id === gift.id);
             if (giftIndex >= 0) {
-                if (newInventory.gifts[giftIndex].count > 1) {
-                    newInventory.gifts[giftIndex].count -= 1;
-                } else {
-                    newInventory.gifts.splice(giftIndex, 1);
-                }
+                if (newInventory.gifts[giftIndex].count > 1) { newInventory.gifts[giftIndex].count -= 1; }
+                else { newInventory.gifts.splice(giftIndex, 1); }
             }
-            
-            // Update sender inventory (NO charisma for sender when sending)
-            await usersCollection.doc(user.uid).update({
-                inventory: newInventory
-            });
-            
-            // Update receiver charisma ONLY
-            await usersCollection.doc(friend.uid).update({
-                charisma: firebase.firestore.FieldValue.increment(gift.charisma)
-            });
-            
-            // Create notification for receiver
-            await notificationsCollection.add({
-                toUserId: friend.uid,
-                fromUserId: user.uid,
-                fromName: userData.displayName,
-                type: 'gift',
-                message: `${userData.displayName} ${t.giftNotification}: ${gift.emoji}`,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                read: false
-            });
-            
+            await usersCollection.doc(user.uid).update({ inventory: newInventory });
+            await usersCollection.doc(friend.uid).update({ charisma: firebase.firestore.FieldValue.increment(gift.charisma) });
+            await notificationsCollection.add({ toUserId: friend.uid, fromUserId: user.uid, fromName: userData.displayName, type: 'gift', message: `${userData.displayName} ${t.giftNotification}: ${gift.emoji}`, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false });
             playSound('gift');
             setNotification(`${t.giftSent}`);
-        } catch (e) {
-            console.error('Send inventory gift error:', e);
-        }
+        } catch (e) { console.error('Send inventory gift error:', e); }
     };
 
     // ==========================================
@@ -1906,11 +1655,13 @@ function App() {
     const isSpectator = me?.status === 'spectator' || me?.status === 'ghost';
     const hasVoted = room?.votes?.[user?.uid];
     const hasVotedWord = room?.wordVotes?.[user?.uid];
-    const activePlayersCount = room?.players?.filter(p => p.status === 'active').length || 0;
     const voteReq = room?.votingRequest;
     const hasIAgreed = voteReq?.votes?.[user?.uid] === true;
     const hasIDeclined = voteReq?.votes?.[user?.uid] === false;
-    const sortedFriends = React.useMemo(() => { if (!friendsData) return []; const sorted = [...friendsData].sort((a, b) => { const chatA = chatsMeta[getChatId(user?.uid, a.uid)]; const chatB = chatsMeta[getChatId(user?.uid, b.uid)]; const timeA = chatA?.timestamp?.toMillis() || 0; const timeB = chatB?.timestamp?.toMillis() || 0; return timeB - timeA; }); return sorted; }, [friendsData, chatsMeta, user?.uid]);
+    
+    // Total unread = chat unread + friend requests + notifications
+    const totalFriendsUnread = totalUnread + (friendRequests?.length || 0);
+    
     const handleCopy = () => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
     // ==========================================
@@ -1921,63 +1672,19 @@ function App() {
             <NotificationToast message={notification} onClose={() => setNotification(null)} />
             <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
             <MatchSummaryModal show={showSummary} onClose={() => setShowSummary(false)} room={room} players={room?.players} lang={lang} />
+            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={userData} lang={lang} onUpdate={() => {}} onSendInventoryGift={handleSendInventoryGift} friendsData={friendsData} />
+            <MyAccountModal show={showMyAccount} onClose={() => setShowMyAccount(false)} userData={userData} user={user} lang={lang} onLogout={handleLogout} onOpenShop={() => { setShowMyAccount(false); setShowShop(true); }} />
+            <BrowseRoomsModal show={showBrowseRooms} onClose={() => setShowBrowseRooms(false)} nickname={nickname} userData={userData} lang={lang} onJoin={(id) => { setRoomId(id); }} isGuest={isGuest} />
+            <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} currentUser={userData} lang={lang} onSendGift={handleSendGiftToUser} onAddFriend={handleSendRequest} />
             
-            {/* FIXED: Pass friendsData to ShopModal */}
-            <ShopModal 
-                show={showShop} 
-                onClose={() => setShowShop(false)} 
-                userData={userData} 
-                lang={lang} 
-                onUpdate={() => {}} 
-                onSendInventoryGift={handleSendInventoryGift}
-                friendsData={friendsData}
-            />
-            
-            {/* NEW: My Account Modal */}
-            <MyAccountModal
-                show={showMyAccount}
-                onClose={() => setShowMyAccount(false)}
-                userData={userData}
-                user={user}
-                lang={lang}
-                onLogout={handleLogout}
-                onOpenShop={() => { setShowMyAccount(false); setShowShop(true); }}
-            />
-            
-            {/* NEW: Browse Rooms Modal */}
-            <BrowseRoomsModal
-                show={showBrowseRooms}
-                onClose={() => setShowBrowseRooms(false)}
-                nickname={nickname}
-                userData={userData}
-                lang={lang}
-                onJoin={(id) => { setRoomId(id); }}
-                isGuest={isGuest}
-            />
-            
-            {/* NEW: User Profile Modal */}
-            <UserProfileModal
-                show={showUserProfile}
-                onClose={() => setShowUserProfile(false)}
-                targetUID={targetProfileUID}
-                currentUser={userData}
-                lang={lang}
-                onSendGift={handleSendGiftToUser}
-                onAddFriend={handleSendRequest}
-            />
+            {/* NEW: Private Chat Modal */}
+            <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={userData} user={user} lang={lang} />
             
             {alertMessage && ( 
                 <div className="alert-modal" onClick={() => setAlertMessage(null)}> 
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <span></span>
-                            <ModalCloseBtn onClose={() => setAlertMessage(null)} />
-                        </div>
-                        <div className="modal-body text-center">
-                            <div className="text-2xl mb-2">🚫</div> 
-                            <p className="font-bold mb-4">{alertMessage}</p> 
-                            <button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button> 
-                        </div>
+                        <div className="modal-header"><span></span><ModalCloseBtn onClose={() => setAlertMessage(null)} /></div>
+                        <div className="modal-body text-center"><div className="text-2xl mb-2">🚫</div><p className="font-bold mb-4">{alertMessage}</p><button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button></div>
                     </div> 
                 </div> 
             )}
@@ -1986,16 +1693,10 @@ function App() {
             {showSetupModal && ( 
                 <div className="modal-overlay" onClick={()=>setShowSetupModal(false)}> 
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}> 
-                        <div className="modal-header">
-                            <h2 className="modal-title">{t.create}</h2>
-                            <ModalCloseBtn onClose={() => setShowSetupModal(false)} />
-                        </div>
+                        <div className="modal-header"><h2 className="modal-title">{t.create}</h2><ModalCloseBtn onClose={() => setShowSetupModal(false)} /></div>
                         <div className="modal-body">
                             <div className="space-y-3"> 
-                                <div> 
-                                    <label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label> 
-                                    <input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-2 rounded font-bold text-sm`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} /> 
-                                </div>
+                                <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-2 rounded font-bold text-sm`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} /></div>
                                 <div className="flex gap-2">
                                     <button onClick={() => setSetupMode('normal')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'normal' ? 'btn-neon' : 'btn-ghost'}`}>{t.normalMode}</button>
                                     <button onClick={() => setSetupMode('advanced')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'advanced' ? 'btn-neon' : 'btn-ghost'}`}>{t.advancedMode}</button>
@@ -2006,15 +1707,27 @@ function App() {
                                     <label htmlFor="privateCheck" className="text-xs">{t.privateRoom}</label>
                                 </div>
                                 {isPrivate && (
-                                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={t.password} className="input-dark w-full p-2 rounded text-sm" />
+                                    // NEW: Password field with eye icon
+                                    <div className="relative">
+                                        <input 
+                                            type={showPassword ? 'text' : 'password'} 
+                                            value={password} 
+                                            onChange={e => setPassword(e.target.value)} 
+                                            placeholder={t.password} 
+                                            className="input-dark w-full p-2 pr-10 rounded text-sm" 
+                                        />
+                                        <button 
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                                        >
+                                            {showPassword ? '🙈' : '👁️'}
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </div>
-                        <div className="modal-footer">
-                            <button onClick={handleCreateGame} disabled={loading || !nickname.trim()} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">
-                                {loading ? t.loading : t.create}
-                            </button>
-                        </div>
+                        <div className="modal-footer"><button onClick={handleCreateGame} disabled={loading || !nickname.trim()} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{loading ? t.loading : t.create}</button></div>
                     </div> 
                 </div> 
             )}
@@ -2022,68 +1735,35 @@ function App() {
             {/* Main Header */}
             <header className="w-full max-w-md flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center gap-2">
-                    <div className="logo-container">
-                        <div className="logo-border"></div>
-                        <span className="text-xl">🕵️</span>
-                    </div>
-                    <div>
-                        <h1 className="game-title text-lg font-tech">{t.appName}</h1>
-                        <p className="text-[8px] text-gray-500 uppercase tracking-wider">{t.tagline}</p>
-                    </div>
+                    <div className="logo-container"><div className="logo-border"></div><span className="text-xl">🕵️</span></div>
+                    <div><h1 className="game-title text-lg font-tech">{t.appName}</h1><p className="text-[8px] text-gray-500 uppercase tracking-wider">{t.tagline}</p></div>
                 </div>
-                
                 <div className="flex items-center gap-2">
-                    {/* Notification Bell */}
+                    {/* Notification Bell - FIXED with badge */}
                     {isLoggedIn && (
-                        <div className="notification-center">
+                        <div className="notification-center relative">
                             <button onClick={() => setShowNotifications(!showNotifications)} className="notification-bell">
                                 <span className="notification-bell-icon">🔔</span>
-                                {unreadNotifications > 0 && (
-                                    <span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
-                                )}
+                                {unreadNotifications > 0 && (<span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>)}
                             </button>
-                            <NotificationCenter 
-                                show={showNotifications}
-                                onClose={() => setShowNotifications(false)}
-                                notifications={notifications}
-                                onClearAll={clearAllNotifications}
-                                onMarkRead={markNotificationRead}
-                                lang={lang}
-                            />
+                            <NotificationCenter show={showNotifications} onClose={() => setShowNotifications(false)} notifications={notifications} onClearAll={clearAllNotifications} onMarkRead={markNotificationRead} lang={lang} />
                         </div>
                     )}
-                    
                     <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
-                    
-                    {/* User Dropdown */}
                     <div className="relative">
                         <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-1 bg-white/5 rounded-lg px-2 py-1">
-                            <AvatarWithFrame 
-                                photoURL={userData?.photoURL} 
-                                equipped={userData?.equipped} 
-                                size="sm"
-                                onClick={() => { setShowMyAccount(true); setShowDropdown(false); }}
-                            />
+                            <AvatarWithFrame photoURL={userData?.photoURL} equipped={userData?.equipped} size="sm" onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} />
                             <span className="text-[10px] text-gray-300 max-w-[60px] truncate">{userData?.displayName || t.guest}</span>
                         </button>
-                        
                         {showDropdown && (
                             <div className="dropdown-menu glass-panel rounded-lg p-1">
                                 {isGuest ? (
-                                    <button onClick={handleGoogleLogin} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2">
-                                        <span>🔑</span> {t.loginGoogle}
-                                    </button>
+                                    <button onClick={handleGoogleLogin} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🔑</span> {t.loginGoogle}</button>
                                 ) : (
                                     <>
-                                        <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2">
-                                            <span>👤</span> {t.myAccount}
-                                        </button>
-                                        <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2">
-                                            <span>🛒</span> {t.shop}
-                                        </button>
-                                        <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400">
-                                            <span>🚪</span> {t.logout}
-                                        </button>
+                                        <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>👤</span> {t.myAccount}</button>
+                                        <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🛒</span> {t.shop}</button>
+                                        <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400"><span>🚪</span> {t.logout}</button>
                                     </>
                                 )}
                             </div>
@@ -2095,13 +1775,13 @@ function App() {
             {/* Main Content - Not in Room */}
             {!room && (
                 <main className="w-full max-w-md flex-1 flex flex-col">
-                    {/* Tab Navigation */}
                     <div className="tab-container mb-3">
                         <button onClick={() => setActiveView('lobby')} className={`tab-button ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
                         <button onClick={() => setActiveView('leaderboard')} className={`tab-button ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
                         <button onClick={() => setActiveView('friends')} className={`tab-button relative ${activeView === 'friends' ? 'active' : ''}`}>
                             {t.tabFriends}
-                            {totalUnread > 0 && <span className="friends-tab-badge">{totalUnread > 9 ? '9+' : totalUnread}</span>}
+                            {/* FIXED: Badge shows chat unread + friend requests */}
+                            {totalFriendsUnread > 0 && <span className="friends-tab-badge">{totalFriendsUnread > 9 ? '9+' : totalFriendsUnread}</span>}
                         </button>
                     </div>
                     
@@ -2109,43 +1789,16 @@ function App() {
                     {activeView === 'lobby' && (
                         <div className="glass-panel rounded-xl p-4 flex-1">
                             <div className="space-y-3">
-                                <div>
-                                    <label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label>
-                                    <input 
-                                        className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg font-bold`}
-                                        value={nickname}
-                                        onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }}
-                                        disabled={isLoggedIn}
-                                        placeholder={t.nickname}
-                                    />
-                                </div>
-                                
+                                <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className={`${isLoggedIn ? 'input-locked' : 'input-dark'} w-full p-3 rounded-lg font-bold`} value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} disabled={isLoggedIn} placeholder={t.nickname} /></div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()} className="btn-neon flex-1 py-3 rounded-lg font-bold text-sm">
-                                        {t.create}
-                                    </button>
-                                    {/* FIXED: Browse Rooms Button */}
-                                    <button onClick={() => setShowBrowseRooms(true)} className="btn-ghost px-4 py-3 rounded-lg text-sm">
-                                        {t.browse}
-                                    </button>
+                                    <button onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()} className="btn-neon flex-1 py-3 rounded-lg font-bold text-sm">{t.create}</button>
+                                    <button onClick={() => setShowBrowseRooms(true)} className="btn-ghost px-4 py-3 rounded-lg text-sm">{t.browse}</button>
                                 </div>
-                                
                                 <div className="flex items-center gap-2">
-                                    <input 
-                                        className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase tracking-wider"
-                                        value={inputCode}
-                                        onChange={e => setInputCode(e.target.value.toUpperCase())}
-                                        placeholder={t.codePlaceholder}
-                                        maxLength={6}
-                                    />
-                                    <button onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()} className="btn-neon px-4 py-3 rounded-lg font-bold text-sm">
-                                        {loading ? '...' : t.join}
-                                    </button>
+                                    <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase tracking-wider" value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder={t.codePlaceholder} maxLength={6} />
+                                    <button onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()} className="btn-neon px-4 py-3 rounded-lg font-bold text-sm">{loading ? '...' : t.join}</button>
                                 </div>
-                                
                                 {joinError && <p className="text-xs text-red-400 text-center">{joinError}</p>}
-                                
-                                {/* REMOVED: Charisma from main lobby - now in profile only */}
                             </div>
                         </div>
                     )}
@@ -2159,10 +1812,7 @@ function App() {
                                         <span className="w-6 text-xs font-bold text-gray-500">{i + 1}</span>
                                         <AvatarWithFrame photoURL={player.photoURL} equipped={player.equipped} size="sm" onClick={() => openProfile(player.id)} />
                                         <span className="flex-1 text-sm font-medium truncate">{player.displayName}</span>
-                                        <div className="text-right">
-                                            <div className="text-xs font-bold text-primary">{player.stats?.wins || 0} {t.wins}</div>
-                                            <div className="text-[10px] text-gray-500">✨ {formatCharisma(player.charisma || 0)}</div>
-                                        </div>
+                                        <div className="text-right"><div className="text-xs font-bold text-primary">{player.stats?.wins || 0} {t.wins}</div><div className="text-[10px] text-gray-500">✨ {formatCharisma(player.charisma || 0)}</div></div>
                                     </div>
                                 ))}
                             </div>
@@ -2173,24 +1823,14 @@ function App() {
                     {activeView === 'friends' && (
                         <div className="glass-panel rounded-xl p-3 flex-1 overflow-hidden">
                             {isGuest ? (
-                                <div className="text-center py-8">
-                                    <p className="text-xs text-gray-400">{t.noPermission}</p>
-                                </div>
+                                <div className="text-center py-8"><p className="text-xs text-gray-400">{t.noPermission}</p></div>
                             ) : (
                                 <>
-                                    {/* Add Friend */}
                                     <div className="flex gap-2 mb-3">
-                                        <input 
-                                            className="input-dark flex-1 p-2 rounded text-xs"
-                                            value={addFriendId}
-                                            onChange={e => setAddFriendId(e.target.value)}
-                                            placeholder={t.friendIdPlaceholder}
-                                        />
+                                        <input className="input-dark flex-1 p-2 rounded text-xs" value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} />
                                         <button onClick={handleSearchRequest} className="btn-neon px-3 py-2 rounded text-xs">{t.addFriend}</button>
                                     </div>
                                     {friendSearchMsg && <p className="text-xs text-cyan-400 text-center mb-2">{friendSearchMsg}</p>}
-                                    
-                                    {/* Friend Requests */}
                                     {friendRequests.length > 0 && (
                                         <div className="mb-3">
                                             <h4 className="text-xs font-bold text-gray-400 mb-2">{t.incomingRequests}</h4>
@@ -2204,30 +1844,25 @@ function App() {
                                             ))}
                                         </div>
                                     )}
-                                    
-                                    {/* Friends List */}
                                     <h4 className="text-xs font-bold text-gray-400 mb-2">{t.tabFriends} ({friendsData.length})</h4>
                                     <div className="overflow-y-auto max-h-[40vh]">
                                         {friendsData.length === 0 ? (
                                             <p className="text-xs text-gray-500 text-center py-4">{t.noFriends}</p>
                                         ) : (
-                                            sortedFriends.map(friend => {
+                                            friendsData.map(friend => {
                                                 const chatMeta = chatsMeta[getChatId(user?.uid, friend.uid)];
                                                 const unreadCount = chatMeta?.unread?.[user.uid] || 0;
                                                 const isOnline = friend.lastActive && (Date.now() - friend.lastActive.toMillis() < 120000);
-                                                
                                                 return (
                                                     <div key={friend.id} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg mb-1">
                                                         <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" onClick={() => openProfile(friend.id)} />
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-1">
-                                                                <span className="text-xs font-medium truncate">{friend.displayName}</span>
-                                                                <span className={isOnline ? 'status-online' : 'status-offline'}></span>
-                                                            </div>
+                                                            <div className="flex items-center gap-1"><span className="text-xs font-medium truncate">{friend.displayName}</span><span className={isOnline ? 'status-online' : 'status-offline'}></span></div>
                                                             <div className="text-[10px] text-gray-500">✨ {formatCharisma(friend.charisma || 0)}</div>
                                                         </div>
                                                         {unreadCount > 0 && <span className="friend-unread-badge">{unreadCount}</span>}
-                                                        <button onClick={() => openChat(friend)} className="btn-ghost px-2 py-1 rounded text-[10px]">💬</button>
+                                                        {/* FIXED: Chat button opens PrivateChatModal */}
+                                                        <button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-[10px]">💬</button>
                                                     </div>
                                                 );
                                             })
@@ -2243,20 +1878,14 @@ function App() {
             {/* Room View */}
             {room && (
                 <main className="w-full max-w-md flex-1 flex flex-col">
-                    {/* Room Header */}
                     <div className="glass-panel rounded-lg p-2 mb-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <button onClick={() => handleCopy()} className="bg-white/10 px-2 py-1 rounded text-xs font-mono">
-                                {copied ? t.copied : roomId}
-                            </button>
+                            <button onClick={() => handleCopy()} className="bg-white/10 px-2 py-1 rounded text-xs font-mono">{copied ? t.copied : roomId}</button>
                             {room.isPrivate && <span className="text-[10px] text-yellow-400">🔒</span>}
                         </div>
-                        <div className="text-xs text-gray-400">
-                            {t.roundsFormat(room.currentRound || 0, MAX_ROUNDS)}
-                        </div>
+                        <div className="text-xs text-gray-400">{t.roundsFormat(room.currentRound || 0, MAX_ROUNDS)}</div>
                     </div>
                     
-                    {/* Room Content Based on Status */}
                     {room.status === 'waiting' && (
                         <div className="glass-panel rounded-xl p-4 flex-1">
                             <h3 className="text-sm font-bold mb-3 text-center">{t.lobbyTitle}</h3>
@@ -2270,17 +1899,24 @@ function App() {
                                 ))}
                             </div>
                             <div className="flex gap-2">
-                                {room.admin === user?.uid ? (
-                                    <button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>
-                                ) : (
-                                    <p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>
-                                )}
+                                {room.admin === user?.uid ? (<button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>) : (<p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>)}
                                 <button onClick={() => handleLeaveRoom()} className="btn-danger px-4 py-2 rounded-lg text-sm">{t.leaveRoom}</button>
                             </div>
+                            {/* NEW: Show password with eye icon */}
+                            {room.isPrivate && room.admin === user?.uid && (
+                                <div className="mt-3 p-2 bg-yellow-500/10 rounded-lg">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-400">{t.password}:</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-mono">{showPassword ? room.password : '••••••'}</span>
+                                            <button onClick={() => setShowPassword(!showPassword)} className="text-gray-400 hover:text-white">{showPassword ? '🙈' : '👁️'}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                     
-                    {/* Word Selection Phase */}
                     {room.status === 'word_selection' && !isSpectator && (
                         <div className="glass-panel rounded-xl p-4 flex-1">
                             <h3 className="text-sm font-bold mb-2 text-center">{t.wordSelectionTitle}</h3>
@@ -2288,30 +1924,18 @@ function App() {
                             <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {wordSelTimer}s</div>
                             <div className="grid grid-cols-2 gap-2">
                                 {(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => (
-                                    <button 
-                                        key={i}
-                                        onClick={() => submitWordVote(word)}
-                                        className={`word-vote-card ${hasVotedWord === word ? 'selected' : ''}`}
-                                    >
-                                        <span className="font-bold">{word}</span>
-                                    </button>
+                                    <button key={i} onClick={() => submitWordVote(word)} className={`word-vote-card ${hasVotedWord === word ? 'selected' : ''}`}><span className="font-bold">{word}</span></button>
                                 ))}
                             </div>
                         </div>
                     )}
                     
-                    {/* Discussion Phase */}
                     {room.status === 'discussing' && (
                         <div className="flex-1 flex flex-col gap-2">
-                            {/* Player Cards */}
                             <div className="glass-panel rounded-xl p-3">
                                 <div className="grid grid-cols-3 gap-2">
                                     {room.players.filter(p => p.status === 'active').map(p => (
-                                        <div 
-                                            key={p.uid}
-                                            className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === user?.uid ? 'border-primary' : ''}`}
-                                            onClick={() => openProfile(p.uid)}
-                                        >
+                                        <div key={p.uid} className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === user?.uid ? 'border-primary' : ''}`} onClick={() => openProfile(p.uid)}>
                                             <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
                                             <span className="text-[10px] truncate mt-1">{p.name}</span>
                                             {room.currentTurnUID === p.uid && <span className="text-[8px] text-primary">Speaking</span>}
@@ -2319,135 +1943,76 @@ function App() {
                                     ))}
                                 </div>
                             </div>
-                            
-                            {/* Identity Card */}
                             {!isSpectator && me && (
                                 <div className={`identity-square identity-${myRole === 'spy' ? 'spy' : myRole === 'mrwhite' ? 'mrwhite' : myRole === 'informant' ? 'informant' : 'agent'}`}>
-                                    <div className="text-4xl mb-2">
-                                        {myRole === 'spy' ? '🕵️' : myRole === 'mrwhite' ? '👻' : myRole === 'informant' ? '👁️' : '🤵'}
-                                    </div>
-                                    <div className="text-lg font-bold">
-                                        {myRole === 'spy' ? t.statusSpy : myRole === 'mrwhite' ? t.statusMrWhite : myRole === 'informant' ? t.statusInformant : t.statusAgent}
-                                    </div>
-                                    {myRole === 'spy' && (
-                                        <div className="text-xs text-gray-300 mt-1">
-                                            {t.location}: {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}
-                                        </div>
-                                    )}
-                                    {myRole !== 'spy' && room.chosenWord && (
-                                        <div className="text-xs text-gray-300 mt-1">
-                                            {t.selectedWord}: {room.chosenWord}
-                                        </div>
-                                    )}
+                                    <div className="text-4xl mb-2">{myRole === 'spy' ? '🕵️' : myRole === 'mrwhite' ? '👻' : myRole === 'informant' ? '👁️' : '🤵'}</div>
+                                    <div className="text-lg font-bold">{myRole === 'spy' ? t.statusSpy : myRole === 'mrwhite' ? t.statusMrWhite : myRole === 'informant' ? t.statusInformant : t.statusAgent}</div>
+                                    {myRole === 'spy' && (<div className="text-xs text-gray-300 mt-1">{t.location}: {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div>)}
+                                    {myRole !== 'spy' && room.chosenWord && (<div className="text-xs text-gray-300 mt-1">{t.selectedWord}: {room.chosenWord}</div>)}
                                     {myRole === 'mrwhite' && <p className="text-[10px] text-yellow-400 mt-2">{t.mrWhiteInstruction}</p>}
                                     {myRole === 'informant' && <p className="text-[10px] text-blue-400 mt-2">{t.informantInstruction}</p>}
                                 </div>
                             )}
-                            
-                            {/* Timer & Actions */}
                             <div className="glass-panel rounded-lg p-3">
                                 <div className="flex items-center justify-between mb-2">
-                                    <div className="timer-bar-container">
-                                        <div className="timer-bar-fill" style={{ width: `${(turnTimer / 30) * 100}%` }}></div>
-                                    </div>
+                                    <div className="timer-bar-container"><div className="timer-bar-fill" style={{ width: `${(turnTimer / 30) * 100}%` }}></div></div>
                                     <span className="text-xs text-gray-400">{turnTimer}s</span>
                                 </div>
-                                
                                 <div className="flex gap-2">
-                                    {isMyTurn && (
-                                        <button onClick={() => handleSkipTurn()} className="btn-ghost flex-1 py-2 rounded-lg text-xs">{t.skip}</button>
-                                    )}
+                                    {isMyTurn && (<button onClick={() => handleSkipTurn()} className="btn-ghost flex-1 py-2 rounded-lg text-xs">{t.skip}</button>)}
                                     <button onClick={requestVoting} className="btn-vote flex-1 py-2 rounded-lg text-xs font-bold">{t.vote}</button>
                                 </div>
                             </div>
-                            
-                            {/* Vote Request Banner */}
                             {voteReq && (
                                 <div className="vote-request-banner glass-panel rounded-lg p-3">
-                                    <p className="text-xs text-center mb-2">
-                                        <span className="font-bold">{room.players.find(p => p.uid === voteReq.requestedBy)?.name}</span> {t.voteRequestDesc}
-                                    </p>
-                                    {!hasIAgreed && !hasIDeclined && (
-                                        <div className="flex gap-2">
-                                            <button onClick={agreeToVote} className="btn-success flex-1 py-2 rounded-lg text-xs">{t.agree}</button>
-                                            <button onClick={declineVote} className="btn-danger flex-1 py-2 rounded-lg text-xs">{t.decline}</button>
-                                        </div>
-                                    )}
+                                    <p className="text-xs text-center mb-2"><span className="font-bold">{room.players.find(p => p.uid === voteReq.requestedBy)?.name}</span> {t.voteRequestDesc}</p>
+                                    {!hasIAgreed && !hasIDeclined && (<div className="flex gap-2"><button onClick={agreeToVote} className="btn-success flex-1 py-2 rounded-lg text-xs">{t.agree}</button><button onClick={declineVote} className="btn-danger flex-1 py-2 rounded-lg text-xs">{t.decline}</button></div>)}
                                 </div>
                             )}
                         </div>
                     )}
                     
-                    {/* Voting Phase */}
                     {room.status === 'voting' && (
                         <div className="glass-panel rounded-xl p-4 flex-1">
                             <h3 className="text-sm font-bold mb-2 text-center">{t.vote}</h3>
                             <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {votingTimer}s</div>
-                            
                             <div className="grid grid-cols-2 gap-2 mb-4">
                                 {room.players.filter(p => p.status === 'active').map(p => (
-                                    <button 
-                                        key={p.uid}
-                                        onClick={() => submitVote(p.uid)}
-                                        disabled={hasVoted}
-                                        className={`player-card ${hasVoted === p.uid ? 'border-primary bg-primary/10' : ''}`}
-                                    >
+                                    <button key={p.uid} onClick={() => submitVote(p.uid)} disabled={hasVoted} className={`player-card ${hasVoted === p.uid ? 'border-primary bg-primary/10' : ''}`}>
                                         <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
                                         <span className="text-xs truncate mt-1">{p.name}</span>
-                                        {room.votes && Object.values(room.votes).filter(v => v === p.uid).length > 0 && (
-                                            <span className="text-[10px] text-red-400">{room.votes && Object.values(room.votes).filter(v => v === p.uid).length} votes</span>
-                                        )}
+                                        {room.votes && Object.values(room.votes).filter(v => v === p.uid).length > 0 && (<span className="text-[10px] text-red-400">{room.votes && Object.values(room.votes).filter(v => v === p.uid).length} votes</span>)}
                                     </button>
                                 ))}
                             </div>
-                            
-                            {room.admin === user?.uid && (
-                                <button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg text-xs">{t.endVoting}</button>
-                            )}
+                            {room.admin === user?.uid && (<button onClick={endVotingNow} className="btn-danger w-full py-2 rounded-lg text-xs">{t.endVoting}</button>)}
                         </div>
                     )}
                     
-                    {/* Game Over */}
                     {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_mrwhite_wins') && (
                         <div className="glass-panel rounded-xl p-4 flex-1 text-center">
-                            <div className="text-4xl mb-4">
-                                {room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'}
-                            </div>
-                            <h2 className="text-xl font-bold mb-4">
-                                {room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin}
-                            </h2>
-                            
-                            {room.admin === user?.uid && (
-                                <button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{t.playAgain}</button>
-                            )}
+                            <div className="text-4xl mb-4">{room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'}</div>
+                            <h2 className="text-xl font-bold mb-4">{room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin}</h2>
+                            {room.admin === user?.uid && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{t.playAgain}</button>)}
                             <button onClick={() => handleLeaveRoom()} className="btn-ghost w-full py-2 rounded-lg text-sm mt-2">{t.leaveRoom}</button>
                         </div>
                     )}
                     
-                    {/* Spectator View */}
                     {isSpectator && room.status !== 'waiting' && !room.status.includes('finished') && (
                         <div className="glass-panel rounded-xl p-4 flex-1 text-center">
                             <div className="text-4xl mb-2">👻</div>
                             <p className="text-sm text-gray-400">{t.spectator}</p>
-                            <p className="text-xs text-gray-500 mt-2">
-                                {me?.status === 'ghost' ? t.ghostInstruction : t.playerLeft}
-                            </p>
+                            <p className="text-xs text-gray-500 mt-2">{me?.status === 'ghost' ? t.ghostInstruction : t.playerLeft}</p>
                         </div>
                     )}
                 </main>
             )}
             
-            {/* Click outside to close dropdowns */}
             {showDropdown && <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)}></div>}
             {showNotifications && <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>}
         </div>
     );
 }
 
-// Render App
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
-
-// ==========================================
-// END OF PART 2
-// ==========================================
