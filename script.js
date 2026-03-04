@@ -757,6 +757,7 @@ function App() {
     const [showPrivateChat, setShowPrivateChat] = useState(false);
     const [chatFriend, setChatFriend] = useState(null);
     const [showLoginAlert, setShowLoginAlert] = useState(false);
+    const [guestUID, setGuestUID] = useState(() => localStorage.getItem('pro_spy_guest_uid') || null);
     
     const t = TRANSLATIONS[lang];
     
@@ -770,6 +771,13 @@ function App() {
     const isLoggedIn = useMemo(() => user && !user.isAnonymous, [user]);
     const isGuest = useMemo(() => user && user.isAnonymous, [user]);
     const isNotLoggedIn = useMemo(() => user === null, [user]);
+    
+    // Current UID - works for both logged-in users and guests
+    const currentUID = useMemo(() => {
+        if (user && !user.isAnonymous) return user.uid; // Google account
+        if (user && user.isAnonymous) return user.uid; // Firebase anonymous
+        return guestUID; // Pure guest (no Firebase)
+    }, [user, guestUID]);
 
     // Background Canvas Animation
     useEffect(() => {
@@ -822,6 +830,11 @@ function App() {
                     setUserData(newUserData); 
                     if (u.displayName) setNickname(u.displayName); 
                 } else {
+                    // Get existing user data immediately
+                    const existingData = doc.data();
+                    setUserData(existingData);
+                    if (existingData.displayName) setNickname(existingData.displayName);
+                    
                     // Listen for user data changes
                     const unsubSnap = userRef.onSnapshot(snap => { 
                         if (snap.exists) { 
@@ -829,6 +842,7 @@ function App() {
                             if (snap.data().displayName) setNickname(snap.data().displayName); 
                         } 
                     });
+                    setAuthLoading(false);
                     return () => unsubSnap();
                 }
             } else { 
@@ -869,9 +883,9 @@ function App() {
         return unsub;
     }, [user, isGuest]);
 
-    // Room Listener
+    // Room Listener - Works for both guests and logged-in users
     useEffect(() => { 
-        if (!user || !roomId) return; 
+        if (!roomId) return; 
         const unsub = roomsCollection.doc(roomId).onSnapshot(async doc => { 
             if (doc.exists) { 
                 const data = doc.data(); 
@@ -884,7 +898,7 @@ function App() {
             } else { setRoom(null); setRoomId(''); } 
         }); 
         return unsub; 
-    }, [user, roomId]);
+    }, [roomId]);
 
     // Leaderboard
     useEffect(() => { 
@@ -992,12 +1006,14 @@ function App() {
         playSound('click'); 
         setLoading(true); 
         
-        let uid = user?.uid; 
+        let uid = currentUID; 
         let tempUserData = userData;
         
         // If not logged in at all, create temporary guest data (no Firebase Auth)
         if (!uid) { 
             uid = 'guest_' + generateUID(); 
+            setGuestUID(uid);
+            localStorage.setItem('pro_spy_guest_uid', uid);
             tempUserData = {
                 uid: uid,
                 displayName: nickname,
@@ -1020,9 +1036,9 @@ function App() {
                 uid: uid, 
                 name: nickname, 
                 status: 'active', 
-                photo: getDefaultPhoto(userData, nickname), 
+                photo: getDefaultPhoto(tempUserData, nickname), 
                 role: null, 
-                equipped: userData?.equipped || {} 
+                equipped: tempUserData?.equipped || {} 
             }], 
             scenario: null, 
             spyId: null, 
@@ -1047,7 +1063,7 @@ function App() {
         setLoading(false); 
         setShowSetupModal(false); 
         setActiveView('lobby'); 
-    }, [nickname, isPrivate, password, user, userData, setupMode, t, getDefaultPhoto]);
+    }, [nickname, isPrivate, password, currentUID, userData, setupMode, t, getDefaultPhoto]);
     
     const handleJoinGame = useCallback(async (id, pwd) => {
         if (!id || id.trim() === "") { setJoinError(t.enterCodeError); return; }
@@ -1056,13 +1072,25 @@ function App() {
         setLoading(true); 
         setJoinError(''); 
         
-        let uid = user?.uid; 
+        let uid = currentUID; 
+        let tempUserData = userData;
         
-        // If not logged in at all, create anonymous account for playing
+        // If not logged in at all, create temporary guest ID (no Firebase Auth)
         if (!uid) { 
-            const anon = await auth.signInAnonymously(); 
-            uid = anon.user.uid; 
-            setUser(anon.user); 
+            uid = 'guest_' + generateUID(); 
+            setGuestUID(uid);
+            localStorage.setItem('pro_spy_guest_uid', uid);
+            tempUserData = {
+                uid: uid,
+                displayName: nickname,
+                photoURL: null,
+                customId: generateUID(),
+                stats: { wins: 0, losses: 0, xp: 0 },
+                currency: 0,
+                charisma: 0,
+                equipped: {},
+                isAnonymous: true
+            };
         } 
         
         const ref = roomsCollection.doc(id.toUpperCase()); 
@@ -1077,9 +1105,9 @@ function App() {
                         uid: uid, 
                         name: nickname, 
                         status: 'active', 
-                        photo: getDefaultPhoto(userData, nickname), 
+                        photo: getDefaultPhoto(tempUserData, nickname), 
                         role: null, 
-                        equipped: userData?.equipped || {} 
+                        equipped: tempUserData?.equipped || {} 
                     }] 
                 }); 
             } 
@@ -1087,25 +1115,25 @@ function App() {
             setActiveView('lobby'); 
         } else { setJoinError("Room not found"); } 
         setLoading(false); 
-    }, [nickname, user, userData, t, getDefaultPhoto]);
+    }, [nickname, currentUID, userData, t, getDefaultPhoto]);
     
     const handleLeaveRoom = useCallback(async () => { 
-        if (!room || !user) return; 
+        if (!room || !currentUID) return; 
         playSound('click'); 
-        const isAdmin = room.admin === user.uid;
+        const isAdmin = room.admin === currentUID;
         if (isAdmin) { 
             await roomsCollection.doc(roomId).delete(); 
         } else { 
-            await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== user.uid) }); 
+            await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== currentUID) }); 
         }
         setRoom(null); 
         setRoomId(''); 
         setShowSummary(false); 
-    }, [room, user, roomId]);
+    }, [room, currentUID, roomId]);
 
     // Start Game
     const startGame = useCallback(async () => { 
-        if (room.admin !== user?.uid) return; 
+        if (room.admin !== currentUID) return; 
         playSound('success'); 
         const activePlayers = room.players.filter(p => p.status === 'active'); 
         const playerCount = activePlayers.length; 
@@ -1181,10 +1209,10 @@ function App() {
     
     const handleSkipTurn = useCallback(async (forced = false) => { 
         if (!room) return; 
-        if (!forced && room.currentTurnUID !== user?.uid) return; 
+        if (!forced && room.currentTurnUID !== currentUID) return; 
         if (forced && room.status !== 'discussing') return; 
         nextTurn(); 
-    }, [room, user]);
+    }, [room, currentUID]);
     
     const nextTurn = useCallback(async () => { 
         if (!room) return; 
@@ -1197,20 +1225,20 @@ function App() {
     const requestVoting = useCallback(async () => { 
         if (!room || room.status !== 'discussing') return; 
         playSound('click'); 
-        if (room.admin === user?.uid) { 
+        if (room.admin === currentUID) { 
             await triggerVoting(); 
             return; 
         } 
-        await roomsCollection.doc(roomId).update({ votingRequest: { requestedBy: user.uid, votes: { [user.uid]: true } } }); 
-    }, [room, user, roomId]);
+        await roomsCollection.doc(roomId).update({ votingRequest: { requestedBy: currentUID, votes: { [currentUID]: true } } }); 
+    }, [room, currentUID, roomId]);
     
     const agreeToVote = useCallback(async () => { 
         if (!room || !room.votingRequest) return; 
         playSound('click'); 
         const currentVotes = room.votingRequest.votes || {}; 
-        const newVotes = { ...currentVotes, [user.uid]: true }; 
+        const newVotes = { ...currentVotes, [currentUID]: true }; 
         const activePlayers = room.players.filter(p => p.status === 'active'); 
-        if (user?.uid === room.admin) { 
+        if (currentUID === room.admin) { 
             await triggerVoting(); 
             return; 
         } 
@@ -1221,13 +1249,13 @@ function App() {
         } else { 
             await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); 
         } 
-    }, [room, user, roomId]);
+    }, [room, currentUID, roomId]);
     
     const declineVote = useCallback(async () => { 
         if (!room || !room.votingRequest) return; 
         playSound('click'); 
         const currentVotes = room.votingRequest.votes || {}; 
-        const newVotes = { ...currentVotes, [user.uid]: false }; 
+        const newVotes = { ...currentVotes, [currentUID]: false }; 
         const activePlayers = room.players.filter(p => p.status === 'active'); 
         const declineCount = Object.values(newVotes).filter(v => v === false).length; 
         const majorityCount = Math.floor(activePlayers.length / 2) + 1; 
@@ -1236,7 +1264,7 @@ function App() {
         } else { 
             await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); 
         } 
-    }, [room, user, roomId]);
+    }, [room, currentUID, roomId]);
     
     const triggerVoting = useCallback(async () => { 
         playSound('click'); 
@@ -1252,12 +1280,12 @@ function App() {
     }, [roomId, t]);
     
     const submitVote = useCallback(async (targetUID) => { 
-        if (!targetUID || !user || (room.votes && room.votes[user.uid])) return; 
+        if (!targetUID || !currentUID || (room.votes && room.votes[currentUID])) return; 
         playSound('click'); 
         const voteUpdate = {}; 
-        voteUpdate[`votes.${user.uid}`] = targetUID; 
+        voteUpdate[`votes.${currentUID}`] = targetUID; 
         await roomsCollection.doc(roomId).update(voteUpdate); 
-    }, [room, user, roomId]);
+    }, [room, currentUID, roomId]);
 
     const resetGame = useCallback(async () => { 
         playSound('click'); 
@@ -1338,15 +1366,15 @@ function App() {
     }, [userData, user, t, createNotification]);
 
     // Computed Values
-    const isMyTurn = useMemo(() => room?.currentTurnUID === user?.uid, [room?.currentTurnUID, user?.uid]);
-    const me = useMemo(() => room?.players?.find(p => p.uid === user?.uid), [room?.players, user?.uid]);
+    const isMyTurn = useMemo(() => room?.currentTurnUID === currentUID, [room?.currentTurnUID, currentUID]);
+    const me = useMemo(() => room?.players?.find(p => p.uid === currentUID), [room?.players, currentUID]);
     const myRole = me?.role;
     const isSpectator = me?.status === 'spectator' || me?.status === 'ghost';
-    const hasVoted = room?.votes?.[user?.uid];
-    const hasVotedWord = room?.wordVotes?.[user?.uid];
+    const hasVoted = room?.votes?.[currentUID];
+    const hasVotedWord = room?.wordVotes?.[currentUID];
     const voteReq = room?.votingRequest;
-    const hasIAgreed = voteReq?.votes?.[user?.uid] === true;
-    const hasIDeclined = voteReq?.votes?.[user?.uid] === false;
+    const hasIAgreed = voteReq?.votes?.[currentUID] === true;
+    const hasIDeclined = voteReq?.votes?.[currentUID] === false;
     const totalFriendsUnread = useMemo(() => totalUnread + (friendRequests?.length || 0), [totalUnread, friendRequests]);
     
     const handleCopy = useCallback(() => { 
@@ -1409,7 +1437,7 @@ function App() {
                             <h2 className="text-xl font-bold mb-4">{room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}</h2>
                         </div>
                         <div className="modal-footer">
-                            {room.admin === user?.uid && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2">{t.playAgain}</button>)}
+                            {room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2">{t.playAgain}</button>)}
                             <button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm">{t.leaveRoom}</button>
                         </div>
                     </div>
@@ -1677,7 +1705,7 @@ function App() {
                                 ))}
                             </div>
                             <div className="flex gap-2">
-                                {room.admin === user?.uid ? (<button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>) : (<p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>)}
+                                {room.admin === currentUID ? (<button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>) : (<p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>)}
                                 <button onClick={handleLeaveRoom} className="btn-danger px-4 py-2 rounded-lg text-sm">{t.leaveRoom}</button>
                             </div>
                         </div>
@@ -1701,7 +1729,7 @@ function App() {
                             <div className="glass-panel rounded-xl p-3">
                                 <div className="grid grid-cols-3 gap-2">
                                     {room.players.filter(p => p.status === 'active').map(p => (
-                                        <div key={p.uid} className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === user?.uid ? 'border-primary' : ''}`} onClick={() => openProfile(p.uid)}>
+                                        <div key={p.uid} className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === currentUID ? 'border-primary' : ''}`} onClick={() => openProfile(p.uid)}>
                                             <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
                                             <span className="text-[10px] truncate mt-1">{p.name}</span>
                                             {room.currentTurnUID === p.uid && <span className="text-[8px] text-primary">Speaking</span>}
@@ -1749,7 +1777,7 @@ function App() {
                         <div className="glass-panel rounded-xl p-4 flex-1 text-center">
                             <div className="text-4xl mb-4">{room.status === 'finished_spy_caught' ? '🎉' : '🕵️'}</div>
                             <h2 className="text-xl font-bold mb-4">{room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}</h2>
-                            {room.admin === user?.uid && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{t.playAgain}</button>)}
+                            {room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{t.playAgain}</button>)}
                             <button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm mt-2">{t.leaveRoom}</button>
                         </div>
                     )}
