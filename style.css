@@ -1,6 +1,6 @@
 /* ==========================================
-   PRO SPY - COMPLETE STYLE - FIXED V5
-   All Issues Resolved
+   PRO SPY - COMPLETE STYLE - FIXED V6
+   All Issues Resolved + Avatar Frame Fix
    ========================================== */
 
 :root {
@@ -168,18 +168,21 @@ body {
 .avatar-wrapper.size-lg { width: 96px; height: 96px; }
 .avatar-wrapper.size-xl { width: 128px; height: 128px; }
 
+.avatar-image {
+    border-radius: 50%;
+    object-fit: cover;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+}
+
 .avatar-wrapper.size-sm .avatar-image { width: 36px; height: 36px; }
 .avatar-wrapper.size-md .avatar-image { width: 48px; height: 48px; }
 .avatar-wrapper.size-lg .avatar-image { width: 72px; height: 72px; }
 .avatar-wrapper.size-xl .avatar-image { width: 96px; height: 96px; }
-
-.avatar-image {
-    border-radius: 50%;
-    object-fit: cover;
-    position: relative;
-    z-index: 1;
-    border: 2px solid rgba(0, 0, 0, 0.3);
-}
 
 .avatar-frame-container {
     position: absolute;
@@ -189,25 +192,8 @@ body {
     height: 100%;
     border-radius: 50%;
     overflow: hidden;
-    z-index: 2;
+    z-index: 1;
     pointer-events: none;
-}
-
-.avatar-wrapper.size-sm .avatar-frame-container {
-    -webkit-mask: radial-gradient(transparent 18px, black 24px);
-    mask: radial-gradient(transparent 18px, black 24px);
-}
-.avatar-wrapper.size-md .avatar-frame-container {
-    -webkit-mask: radial-gradient(transparent 24px, black 32px);
-    mask: radial-gradient(transparent 24px, black 32px);
-}
-.avatar-wrapper.size-lg .avatar-frame-container {
-    -webkit-mask: radial-gradient(transparent 36px, black 48px);
-    mask: radial-gradient(transparent 36px, black 48px);
-}
-.avatar-wrapper.size-xl .avatar-frame-container {
-    -webkit-mask: radial-gradient(transparent 48px, black 64px);
-    mask: radial-gradient(transparent 48px, black 64px);
 }
 
 .avatar-frame-img {
