@@ -610,6 +610,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     ); 
 };
 
+// Continue in Part 2...
 // ==========================================
 // PRO SPY - COMPLETE SCRIPT PART 2
 // Components and Main App
@@ -1424,6 +1425,7 @@ const NotificationCenter = ({ show, onClose, notifications, onClearAll, onMarkRe
     );
 };
 
+// Continue in Part 3 - Main App Component...
 // ==========================================
 // PRO SPY - COMPLETE SCRIPT PART 3
 // Main App Component
