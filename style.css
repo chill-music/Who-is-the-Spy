@@ -1,6 +1,5 @@
 /* ==========================================
-   PRO SPY - FIXED STYLE V4 - COMPLETE
-   All Issues Fixed + Missing Styles Added
+   PRO SPY - FIXED STYLE V5 - ALL Issues Fixed
    ========================================== */
 
 :root {
@@ -19,7 +18,6 @@
 
 /* ==========================================
    CRITICAL FIX: Root Container Layout
-   This was MISSING - causing elements to cluster
    ========================================== */
 html, body { 
     height: 100%; 
@@ -205,7 +203,7 @@ body {
 .player-card.eliminated, .player-card.ghost { opacity: 0.6; filter: grayscale(80%); }
 
 /* ==========================================
-   AVATAR FRAME - FIXED (Ring Style)
+   AVATAR FRAME - FULLY FIXED (Ring Style)
    The frame now properly surrounds the avatar
    ========================================== */
 .avatar-wrapper {
@@ -222,7 +220,7 @@ body {
 .avatar-wrapper.size-lg { width: 96px; height: 96px; }
 .avatar-wrapper.size-xl { width: 128px; height: 128px; }
 
-/* Avatar image - smaller than wrapper, centered */
+/* Avatar image - centered within wrapper */
 .avatar-wrapper.size-sm .avatar-image { width: 36px; height: 36px; }
 .avatar-wrapper.size-md .avatar-image { width: 48px; height: 48px; }
 .avatar-wrapper.size-lg .avatar-image { width: 72px; height: 72px; }
@@ -232,11 +230,11 @@ body {
     border-radius: 50%;
     object-fit: cover;
     position: relative;
-    z-index: 1;
+    z-index: 2;
     border: 2px solid rgba(0, 0, 0, 0.3);
 }
 
-/* Frame - full size of wrapper, with cutout for avatar */
+/* Frame - full size of wrapper, with ring mask */
 .avatar-frame {
     position: absolute;
     top: 0;
@@ -244,12 +242,41 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 2;
+    z-index: 3;
     object-fit: cover;
 }
 
-/* Gradient frames - ring style using mask */
-.avatar-frame-gradient {
+/* Ring mask for different sizes - creates proper ring effect */
+/* sm: wrapper=48, avatar=36 -> avatar_radius=18, wrapper_radius=24 */
+.avatar-wrapper.size-sm .avatar-frame,
+.avatar-wrapper.size-sm .avatar-frame-gradient {
+    -webkit-mask: radial-gradient(transparent 18px, black 24px);
+    mask: radial-gradient(transparent 18px, black 24px);
+}
+
+/* md: wrapper=64, avatar=48 -> avatar_radius=24, wrapper_radius=32 */
+.avatar-wrapper.size-md .avatar-frame,
+.avatar-wrapper.size-md .avatar-frame-gradient{
+    -webkit-mask: radial-gradient(transparent 24px, black 32px);
+    mask: radial-gradient(transparent 24px, black 32px);
+}
+
+/* lg: wrapper=96, avatar=72 -> avatar_radius=36, wrapper_radius=48 */
+.avatar-wrapper.size-lg .avatar-frame,
+.avatar-wrapper.size-lg .avatar-frame-gradient{
+    -webkit-mask: radial-gradient(transparent 36px, black 48px);
+    mask: radial-gradient(transparent 36px, black 48px);
+}
+
+/* xl: wrapper=128, avatar=96 -> avatar_radius=48, wrapper_radius=64 */
+.avatar-wrapper.size-xl .avatar-frame,
+.avatar-wrapper.size-xl .avatar-frame-gradient{
+    -webkit-mask: radial-gradient(transparent 48px, black 64px);
+    mask: radial-gradient(transparent 48px, black 64px);
+}
+
+/* Gradient frame support */
+.avatar-frame-gradient{
     position: absolute;
     top: 0;
     left: 0;
@@ -257,43 +284,7 @@ body {
     height: 100%;
     border-radius: 50%;
     pointer-events: none;
-    z-index: 2;
-}
-
-/* Ring mask for different sizes - creates the ring effect */
-.avatar-wrapper.size-sm .avatar-frame-gradient {
-    -webkit-mask: radial-gradient(transparent 16px, black 18px);
-    mask: radial-gradient(transparent 16px, black 18px);
-}
-.avatar-wrapper.size-md .avatar-frame-gradient {
-    -webkit-mask: radial-gradient(transparent 22px, black 24px);
-    mask: radial-gradient(transparent 22px, black 24px);
-}
-.avatar-wrapper.size-lg .avatar-frame-gradient {
-    -webkit-mask: radial-gradient(transparent 34px, black 36px);
-    mask: radial-gradient(transparent 34px, black 36px);
-}
-.avatar-wrapper.size-xl .avatar-frame-gradient {
-    -webkit-mask: radial-gradient(transparent 46px, black 48px);
-    mask: radial-gradient(transparent 46px, black 48px);
-}
-
-/* For image frames - also apply ring mask */
-.avatar-wrapper.size-sm .avatar-frame {
-    -webkit-mask: radial-gradient(transparent 16px, black 18px);
-    mask: radial-gradient(transparent 16px, black 18px);
-}
-.avatar-wrapper.size-md .avatar-frame {
-    -webkit-mask: radial-gradient(transparent 22px, black 24px);
-    mask: radial-gradient(transparent 22px, black 24px);
-}
-.avatar-wrapper.size-lg .avatar-frame {
-    -webkit-mask: radial-gradient(transparent 34px, black 36px);
-    mask: radial-gradient(transparent 34px, black 36px);
-}
-.avatar-wrapper.size-xl .avatar-frame {
-    -webkit-mask: radial-gradient(transparent 46px, black 48px);
-    mask: radial-gradient(transparent 46px, black 48px);
+    z-index: 3;
 }
 
 /* ==========================================
@@ -314,7 +305,7 @@ body {
 /* ==========================================
    CHARISMA SYSTEM - WITH LEVELS
    ========================================== */
-.charisma-container {
+.charisma-container{
     background: rgba(255, 215, 0, 0.05);
     border: 1px solid rgba(255, 215, 0, 0.2);
     border-radius: 12px;
@@ -322,14 +313,14 @@ body {
     margin: 8px 0;
 }
 
-.charisma-header {
+.charisma-header{
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
 }
 
-.charisma-label {
+.charisma-label{
     font-size: 12px;
     font-weight: bold;
     color: var(--gold);
@@ -338,7 +329,7 @@ body {
     gap: 6px;
 }
 
-.charisma-level-badge {
+.charisma-level-badge{
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -356,7 +347,7 @@ body {
 .charisma-level-badge.level-13-15 { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: #fff; }
 .charisma-level-badge.level-16-21 { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; }
 
-.charisma-bar-bg {
+.charisma-bar-bg{
     width: 100%;
     height: 8px;
     background: rgba(255, 255, 255, 0.1);
@@ -364,7 +355,7 @@ body {
     overflow: hidden;
 }
 
-.charisma-bar-fill {
+.charisma-bar-fill{
     height: 100%;
     background: linear-gradient(90deg, var(--gold), #ff8800, var(--gold));
     background-size: 200% 100%;
@@ -372,26 +363,26 @@ body {
     transition: width 0.5s ease;
 }
 
-.charisma-info {
+.charisma-info{
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 6px;
 }
 
-.charisma-current {
+.charisma-current{
     font-size: 16px;
     font-weight: bold;
     color: var(--gold);
 }
 
-.charisma-next {
+.charisma-next{
     font-size: 10px;
     color: var(--text-muted);
 }
 
 /* Charisma Icon Display */
-.charisma-icon-display {
+.charisma-icon-display{
     width: 32px;
     height: 32px;
     display: flex;
@@ -399,14 +390,14 @@ body {
     justify-content: center;
 }
 
-.charisma-icon-display img {
+.charisma-icon-display img{
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
 /* Charisma Level Icons */
-.charisma-icon {
+.charisma-icon{
     font-size: 20px;
 }
 
@@ -431,7 +422,7 @@ body {
     background: rgba(255, 215, 0, 0.05);
     transform: scale(1.02);
 }
-.gift-card.selected {
+.gift-card.selected{
     border-color: var(--gold);
     background: rgba(255, 215, 0, 0.1);
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
@@ -441,7 +432,7 @@ body {
 /* ==========================================
    MODAL - IMPROVED WITH CLOSE BUTTON
    ========================================== */
-.modal-overlay {
+.modal-overlay{
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.85);
@@ -452,7 +443,7 @@ body {
     padding: 16px;
 }
 
-.modal-content {
+.modal-content{
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -465,7 +456,7 @@ body {
     position: relative;
 }
 
-.modal-header {
+.modal-header{
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -474,13 +465,13 @@ body {
     flex-shrink: 0;
 }
 
-.modal-title {
+.modal-title{
     font-size: 16px;
     font-weight: bold;
     color: var(--primary);
 }
 
-.modal-close-btn {
+.modal-close-btn{
     width: 32px;
     height: 32px;
     border-radius: 8px;
@@ -495,18 +486,18 @@ body {
     transition: all 0.2s;
 }
 
-.modal-close-btn:hover {
+.modal-close-btn:hover{
     background: rgba(255, 0, 85, 0.2);
     color: var(--accent);
 }
 
-.modal-body {
+.modal-body{
     padding: 16px;
     overflow-y: auto;
     flex: 1;
 }
 
-.modal-footer {
+.modal-footer{
     padding: 12px 16px;
     border-top: 1px solid var(--border);
     flex-shrink: 0;
@@ -515,7 +506,7 @@ body {
 /* ==========================================
    NOTIFICATION TOAST - AUTO DISMISS
    ========================================== */
-.notification-toast {
+.notification-toast{
     position: fixed;
     top: 70px;
     left: 50%;
@@ -526,7 +517,7 @@ body {
     width: 320px;
 }
 
-.notification-content {
+.notification-content{
     background: var(--bg-card);
     border: 1px solid var(--primary);
     border-radius: 12px;
@@ -537,17 +528,17 @@ body {
     box-shadow: 0 4px 20px rgba(0, 242, 255, 0.2);
 }
 
-.notification-icon {
+.notification-icon{
     font-size: 20px;
 }
 
-.notification-text {
+.notification-text{
     flex: 1;
     font-size: 13px;
     font-weight: 500;
 }
 
-.notification-close {
+.notification-close{
     background: transparent;
     border: none;
     color: var(--text-muted);
@@ -559,11 +550,11 @@ body {
 /* ==========================================
    NOTIFICATION CENTER
    ========================================== */
-.notification-center {
+.notification-center{
     position: relative;
 }
 
-.notification-bell {
+.notification-bell{
     position: relative;
     width: 40px;
     height: 40px;
@@ -577,16 +568,16 @@ body {
     transition: all 0.2s;
 }
 
-.notification-bell:hover {
+.notification-bell:hover{
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--primary);
 }
 
-.notification-bell-icon {
+.notification-bell-icon{
     font-size: 18px;
 }
 
-.notification-badge {
+.notification-badge{
     position: absolute;
     top: -4px;
     right: -4px;
@@ -604,7 +595,7 @@ body {
     animation: pulse-badge 2s infinite;
 }
 
-.notification-dropdown {
+.notification-dropdown{
     position: absolute;
     top: 100%;
     right: 0;
@@ -619,7 +610,7 @@ body {
     overflow: hidden;
 }
 
-.notification-dropdown-header {
+.notification-dropdown-header{
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -627,12 +618,12 @@ body {
     border-bottom: 1px solid var(--border);
 }
 
-.notification-dropdown-title {
+.notification-dropdown-title{
     font-size: 14px;
     font-weight: bold;
 }
 
-.notification-clear-all {
+.notification-clear-all{
     font-size: 11px;
     color: var(--accent);
     cursor: pointer;
@@ -640,48 +631,48 @@ body {
     border: none;
 }
 
-.notification-list {
+.notification-list{
     max-height: 320px;
     overflow-y: auto;
 }
 
-.notification-item {
+.notification-item{
     padding: 12px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     cursor: pointer;
     transition: background 0.2s;
 }
 
-.notification-item:hover {
+.notification-item:hover{
     background: rgba(255, 255, 255, 0.05);
 }
 
-.notification-item.unread {
+.notification-item.unread{
     background: rgba(0, 242, 255, 0.05);
     border-left: 3px solid var(--primary);
 }
 
-.notification-item-icon {
+.notification-item-icon{
     font-size: 16px;
     margin-right: 10px;
 }
 
-.notification-item-content {
+.notification-item-content{
     flex: 1;
 }
 
-.notification-item-title {
+.notification-item-title{
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 2px;
 }
 
-.notification-item-time {
+.notification-item-time{
     font-size: 10px;
     color: var(--text-muted);
 }
 
-.notification-empty {
+.notification-empty{
     padding: 24px;
     text-align: center;
     color: var(--text-muted);
@@ -691,13 +682,13 @@ body {
 /* ==========================================
    INVENTORY - IMPROVED
    ========================================== */
-.inventory-grid {
+.inventory-grid{
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
 }
 
-.inventory-item {
+.inventory-item{
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -708,17 +699,17 @@ body {
     transition: all 0.2s;
 }
 
-.inventory-item:hover {
+.inventory-item:hover{
     border-color: rgba(255, 255, 255, 0.2);
 }
 
-.inventory-item.equipped {
+.inventory-item.equipped{
     border-color: var(--primary);
     background: rgba(0, 242, 255, 0.1);
     box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
 }
 
-.inventory-item-preview {
+.inventory-item-preview{
     width: 48px;
     height: 48px;
     margin-bottom: 8px;
@@ -727,20 +718,20 @@ body {
     justify-content: center;
 }
 
-.inventory-item-name {
+.inventory-item-name{
     font-size: 11px;
     font-weight: 600;
     text-align: center;
     margin-bottom: 8px;
 }
 
-.inventory-item-actions {
+.inventory-item-actions{
     width: 100%;
     display: flex;
     gap: 6px;
 }
 
-.inventory-item-actions button {
+.inventory-item-actions button{
     flex: 1;
     padding: 6px 8px;
     font-size: 10px;
@@ -750,25 +741,25 @@ body {
 /* ==========================================
    PROFILE MODAL - IMPROVED
    ========================================== */
-.profile-modal-content {
+.profile-modal-content{
     padding: 0;
 }
 
-.profile-header {
+.profile-header{
     background: linear-gradient(135deg, rgba(112, 0, 255, 0.2), rgba(0, 242, 255, 0.2));
     padding: 20px;
     text-align: center;
     position: relative;
 }
 
-.profile-avatar-container {
+.profile-avatar-container{
     width: 80px;
     height: 80px;
     margin: 0 auto 12px;
     position: relative;
 }
 
-.profile-avatar {
+.profile-avatar{
     width: 100%;
     height: 100%;
     border-radius: 50%;
@@ -776,7 +767,7 @@ body {
     border: 3px solid var(--primary);
 }
 
-.profile-frame {
+.profile-frame{
     position: absolute;
     top: 0;
     left: 0;
@@ -788,13 +779,13 @@ body {
     mask: radial-gradient(transparent 36px, black 38px);
 }
 
-.profile-name {
+.profile-name{
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 4px;
 }
 
-.profile-title {
+.profile-title{
     display: inline-block;
     padding: 3px 10px;
     border-radius: 12px;
@@ -804,7 +795,7 @@ body {
     margin-bottom: 8px;
 }
 
-.profile-id {
+.profile-id{
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -815,27 +806,27 @@ body {
     cursor: pointer;
 }
 
-.profile-stats {
+.profile-stats{
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
     padding: 16px;
 }
 
-.profile-stat {
+.profile-stat{
     text-align: center;
     padding: 10px;
     background: rgba(255, 255, 255, 0.03);
     border-radius: 10px;
 }
 
-.profile-stat-value {
+.profile-stat-value{
     font-size: 18px;
     font-weight: bold;
     color: var(--primary);
 }
 
-.profile-stat-label {
+.profile-stat-label{
     font-size: 10px;
     color: var(--text-muted);
 }
@@ -892,7 +883,7 @@ body {
 /* ==========================================
    FRIENDS UNREAD BADGE
    ========================================== */
-.friends-tab-badge {
+.friends-tab-badge{
     position: absolute;
     top: 4px;
     right: 4px;
@@ -959,7 +950,7 @@ body {
 /* ==========================================
    GUEST BANNER
    ========================================== */
-.guest-banner {
+.guest-banner{
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.1));
     border: 1px solid rgba(255, 215, 0, 0.3);
     border-radius: 8px;
@@ -971,7 +962,7 @@ body {
 /* ==========================================
    CASHBACK INDICATOR
    ========================================== */
-.cashback-indicator {
+.cashback-indicator{
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -983,10 +974,29 @@ body {
     color: #10b981;
 }
 
+/* Lucky Cashback Label */
+.lucky-cashback-label{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.lucky-cashback-label .label{
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+.lucky-cashback-label .value{
+    font-size: 14px;
+    font-weight: bold;
+    color: #10b981;
+}
+
 /* ==========================================
    TABS - IMPROVED
    ========================================== */
-.tab-container {
+.tab-container{
     display: flex;
     gap: 4px;
     padding: 4px;
@@ -995,7 +1005,7 @@ body {
     margin-bottom: 12px;
 }
 
-.tab-button {
+.tab-button{
     flex: 1;
     padding: 10px 16px;
     border-radius: 8px;
@@ -1008,12 +1018,12 @@ body {
     transition: all 0.2s;
 }
 
-.tab-button.active {
+.tab-button.active{
     background: rgba(255, 255, 255, 0.1);
     color: white;
 }
 
-.tab-button:hover:not(.active) {
+.tab-button:hover:not(.active){
     color: white;
     background: rgba(255, 255, 255, 0.05);
 }
@@ -1021,7 +1031,7 @@ body {
 /* ==========================================
    MESSAGE SOUND INDICATOR
    ========================================== */
-.message-sound-indicator {
+.message-sound-indicator{
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -1038,28 +1048,28 @@ body {
     transition: all 0.2s;
 }
 
-.message-sound-indicator:hover {
+.message-sound-indicator:hover{
     border-color: var(--primary);
 }
 
-.message-sound-indicator.muted {
+.message-sound-indicator.muted{
     opacity: 0.5;
 }
 
 /* ==========================================
    PASSWORD INPUT WITH TOGGLE
    ========================================== */
-.password-input-wrapper {
+.password-input-wrapper{
     position: relative;
     display: flex;
     align-items: center;
 }
 
-.password-input-wrapper input {
+.password-input-wrapper input{
     padding-right: 40px;
 }
 
-.password-toggle-btn {
+.password-toggle-btn{
     position: absolute;
     right: 8px;
     background: transparent;
@@ -1071,14 +1081,14 @@ body {
     transition: color 0.2s;
 }
 
-.password-toggle-btn:hover {
+.password-toggle-btn:hover{
     color: var(--primary);
 }
 
 /* ==========================================
    CODE PLACEHOLDER FIX
    ========================================== */
-input::placeholder {
+input::placeholder{
     color: var(--text-muted);
     opacity: 0.7;
 }
@@ -1086,22 +1096,38 @@ input::placeholder {
 /* ==========================================
    RTL SUPPORT
    ========================================== */
-[dir="rtl"] .notification-dropdown {
+[dir="rtl"] .notification-dropdown{
     right: auto;
     left: 0;
 }
 
-[dir="rtl"] .dropdown-menu {
+[dir="rtl"] .dropdown-menu{
     right: auto;
     left: 0;
 }
 
-[dir="rtl"] .friends-tab-badge {
+[dir="rtl"] .friends-tab-badge{
     right: auto;
     left: 4px;
 }
 
-[dir="rtl"] .notification-badge {
+[dir="rtl"] .notification-badge{
     right: auto;
     left: -4px;
+}
+
+/* ==========================================
+   GLOW EFFECTS FOR LEGEND LEVELS
+   ========================================== */
+.charisma-container.has-glow{
+    box-shadow: 0 0 20px rgba(255, 136, 0, 0.3);
+}
+
+.glow-badge{
+    animation: glow-pulse 2s infinite;
+}
+
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 10px currentColor; }
+    50% { box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; }
 }
