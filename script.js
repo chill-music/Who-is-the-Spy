@@ -295,6 +295,12 @@ class ErrorBoundary extends React.Component {
         return this.props.children;
     }
 }
+
+// ==========================================
+// COMPONENTS
+// ==========================================
+
+// Continue in Part 2...
 // ==========================================
 // PRO SPY - COMPLETE SCRIPT PART 2
 // Components and Main App - FIXED Auth
@@ -700,6 +706,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang }) =>
     );
 };
 
+// Continue in Part 3...
 // ==========================================
 // PRO SPY - COMPLETE SCRIPT PART 3
 // Main App Component - FIXED Guest Auth
@@ -986,12 +993,22 @@ function App() {
         setLoading(true); 
         
         let uid = user?.uid; 
+        let tempUserData = userData;
         
-        // If not logged in at all, create anonymous account for playing
+        // If not logged in at all, create temporary guest data (no Firebase Auth)
         if (!uid) { 
-            const anon = await auth.signInAnonymously(); 
-            uid = anon.user.uid; 
-            setUser(anon.user); 
+            uid = 'guest_' + generateUID(); 
+            tempUserData = {
+                uid: uid,
+                displayName: nickname,
+                photoURL: null,
+                customId: generateUID(),
+                stats: { wins: 0, losses: 0, xp: 0 },
+                currency: 0,
+                charisma: 0,
+                equipped: {},
+                isAnonymous: true
+            };
         } 
         
         const id = Math.random().toString(36).substring(2, 7).toUpperCase(); 
