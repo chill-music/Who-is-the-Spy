@@ -88,8 +88,6 @@ const SHOP_ITEMS = {
         { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' },
         { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
         { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png' },
-        { id: 'test', name_en: "test1", name_ar: "إطار صورة", cost: 0, type: 'frames', preview: 'https://i.ibb.co/JwG3nhmZ/From-Klick-Pin-CF-Pin-on-artistic-cuts.gif' },
-
     ],
     titles: [
         { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles' },
@@ -107,14 +105,14 @@ const SHOP_ITEMS = {
         { id: 'theme_dark', name_en: "Midnight", name_ar: "منتصف الليل", cost: 200, type: 'themes' },
     ],
     gifts: [
-        { id: 'gift_rose', name_en: "Rose", name_ar: "وردة", cost: 1, type: 'gifts', charisma: 10, minCashback: 0, maxCashback: 0, desc_ar: "عبّر عن مشاعرك", desc_en: "Express your feelings", emoji: "🌹" },
-        { id: 'gift_candy', name_en: "Candy", name_ar: "حلوى", cost: 2, type: 'gifts', charisma: 20, minCashback: 0, maxCashback: 0, desc_ar: "حلاوة تُفرح القلب", desc_en: "Sweetness for the heart", emoji: "🍬" },
-        { id: 'gift_cookie', name_en: "Cookie", name_ar: "بسكويت", cost: 3, type: 'gifts', charisma: 30, minCashback: 0, maxCashback: 0, desc_ar: "بسكويت لذيذ", desc_en: "Delicious cookie", emoji: "🍪" },
-        { id: 'gift_chocolate', name_en: "Chocolate", name_ar: "شوكولاتة", cost: 5, type: 'gifts', charisma: 55, minCashback: 0, maxCashback: 0, desc_ar: "شوكولاتة فاخرة", desc_en: "Premium chocolate", emoji: "🍫" },
-        { id: 'gift_icecream', name_en: "Ice Cream", name_ar: "آيس كريم", cost: 5, type: 'gifts', charisma: 55, minCashback: 0, maxCashback: 0, desc_ar: "برّد على قلبك", desc_en: "Cool down your heart", emoji: "🍦" },
-        { id: 'gift_coffee', name_en: "Coffee", name_ar: "قهوة", cost: 8, type: 'gifts', charisma: 80, minCashback: 0, maxCashback: 0, desc_ar: "قهوة صباحية", desc_en: "Morning coffee", emoji: "☕" },
-        { id: 'gift_heart', name_en: "Heart", name_ar: "قلب", cost: 10, type: 'gifts', charisma: 120, minCashback: 0, maxCashback: 0, desc_ar: "نبض الحب", desc_en: "Pulse of love", emoji: "❤️" },
-        { id: 'gift_cake', name_en: "Cake", name_ar: "كيكة", cost: 15, type: 'gifts', charisma: 180, minCashback: 0, maxCashback: 0, desc_ar: "كيكة للاحتفال", desc_en: "Celebration cake", emoji: "🎂" },
+        { id: 'gift_rose', name_en: "Rose", name_ar: "وردة", cost: 1, type: 'gifts', charisma: 10, minCashback: 1, maxCashback: 50, desc_ar: "عبّر عن مشاعرك", desc_en: "Express your feelings", emoji: "🌹" },
+        { id: 'gift_candy', name_en: "Candy", name_ar: "حلوى", cost: 2, type: 'gifts', charisma: 20, minCashback: 1, maxCashback: 100, desc_ar: "حلاوة تُفرح القلب", desc_en: "Sweetness for the heart", emoji: "🍬" },
+        { id: 'gift_cookie', name_en: "Cookie", name_ar: "بسكويت", cost: 3, type: 'gifts', charisma: 30, minCashback: 1, maxCashback: 150, desc_ar: "بسكويت لذيذ", desc_en: "Delicious cookie", emoji: "🍪" },
+        { id: 'gift_chocolate', name_en: "Chocolate", name_ar: "شوكولاتة", cost: 5, type: 'gifts', charisma: 55, minCashback: 1, maxCashback: 250, desc_ar: "شوكولاتة فاخرة", desc_en: "Premium chocolate", emoji: "🍫" },
+        { id: 'gift_icecream', name_en: "Ice Cream", name_ar: "آيس كريم", cost: 5, type: 'gifts', charisma: 55, minCashback: 1, maxCashback: 250, desc_ar: "برّد على قلبك", desc_en: "Cool down your heart", emoji: "🍦" },
+        { id: 'gift_coffee', name_en: "Coffee", name_ar: "قهوة", cost: 8, type: 'gifts', charisma: 80, minCashback: 1, maxCashback: 400, desc_ar: "قهوة صباحية", desc_en: "Morning coffee", emoji: "☕" },
+        { id: 'gift_heart', name_en: "Heart", name_ar: "قلب", cost: 10, type: 'gifts', charisma: 120, minCashback: 1, maxCashback: 500, desc_ar: "نبض الحب", desc_en: "Pulse of love", emoji: "❤️" },
+        { id: 'gift_cake', name_en: "Cake", name_ar: "كيكة", cost: 15, type: 'gifts', charisma: 180, minCashback: 1, maxCashback: 750, desc_ar: "كيكة للاحتفال", desc_en: "Celebration cake", emoji: "🎂" },
         { id: 'gift_flower', name_en: "Bouquet", name_ar: "باقة ورد", cost: 20, type: 'gifts', charisma: 250, minCashback: 1, maxCashback: 1000, desc_ar: "باقة جميلة", desc_en: "Beautiful bouquet", emoji: "💐" },
         { id: 'gift_pizza', name_en: "Pizza", name_ar: "بيتزا", cost: 20, type: 'gifts', charisma: 250, minCashback: 1, maxCashback: 1000, desc_ar: "وليمة لذيذة", desc_en: "Delicious feast", emoji: "🍕" },
         { id: 'gift_burger', name_en: "Burger", name_ar: "برجر", cost: 25, type: 'gifts', charisma: 300, minCashback: 1, maxCashback: 1250, desc_ar: "برجر شهي", desc_en: "Juicy burger", emoji: "🍔" },
@@ -2092,5 +2090,3 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
-
-
