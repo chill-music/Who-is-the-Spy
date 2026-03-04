@@ -1,6 +1,6 @@
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT - FIXED V4
-// Guest Auth Fixed + All Issues Resolved
+// PRO SPY - COMPLETE SCRIPT - PART 1
+// Fixed Guest System + Profile + Auth
 // ==========================================
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
@@ -19,7 +19,12 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const appId = 'pro_spy_v25_final_fix_complete';
+
+// ==========================================
+// COLLECTIONS - SEPARATE GUEST COLLECTION
+// ==========================================
 const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
+const guestsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guests'); // NEW: Separate guests collection
 const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
 const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
 const roomsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms');
@@ -82,18 +87,25 @@ const getCharismaProgress = (charisma) => {
 // --- Random Cashback Generator ---
 const generateRandomCashback = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-// --- Shop Items ---
+// ==========================================
+// SHOP ITEMS - COMPLETE
+// ==========================================
 const SHOP_ITEMS = {
     frames: [
         { id: 'frame_gold', name_en: "Gold Frame", name_ar: "إطار ذهبي", cost: 500, type: 'frames', preview: 'linear-gradient(45deg, #f7ff00, #db9700)' },
         { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' },
         { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
         { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png' },
+        { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #8b00ff)' },
+        { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)' },
     ],
     titles: [
-        { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles' },
-        { id: 'title_hunter', name_en: "Hunter", name_ar: "صياد", cost: 450, type: 'titles' },
-        { id: 'title_ghost', name_en: "Ghost", name_ar: "شبح", cost: 800, type: 'titles' },
+        { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles', preview: '🕵️' },
+        { id: 'title_hunter', name_en: "Hunter", name_ar: "صياد", cost: 450, type: 'titles', preview: '🎯' },
+        { id: 'title_ghost', name_en: "Ghost", name_ar: "شبح", cost: 800, type: 'titles', preview: '👻' },
+        { id: 'title_legend', name_en: "Legend", name_ar: "أسطورة", cost: 1500, type: 'titles', preview: '👑' },
+        { id: 'title_pro', name_en: "Pro Player", name_ar: "محترف", cost: 1000, type: 'titles', preview: '⭐' },
+        { id: 'title_shadow', name_en: "Shadow", name_ar: "ظل", cost: 700, type: 'titles', preview: '🌑' },
     ],
     badges: [
         { id: 'badge_vip', name_en: "VIP Badge", name_ar: "شارة VIP", cost: 1000, type: 'badges', preview: '⭐' },
@@ -101,9 +113,14 @@ const SHOP_ITEMS = {
         { id: 'badge_pro', name_en: "Pro Badge", name_ar: "شارة محترف", cost: 1500, type: 'badges', preview: '🏆' },
         { id: 'badge_legend', name_en: "Legend Badge", name_ar: "شارة أسطورة", cost: 5000, type: 'badges', preview: '👑' },
         { id: 'badge_star', name_en: "Star Badge", name_ar: "شارة نجم", cost: 2000, type: 'badges', preview: '🌟' },
+        { id: 'badge_fire', name_en: "Fire Badge", name_ar: "شارة نار", cost: 1200, type: 'badges', preview: '🔥' },
+        { id: 'badge_ice', name_en: "Ice Badge", name_ar: "شارة جليد", cost: 1200, type: 'badges', preview: '❄️' },
+        { id: 'badge_diamond', name_en: "Diamond Badge", name_ar: "شارة ماسة", cost: 3000, type: 'badges', preview: '💎' },
     ],
     themes: [
         { id: 'theme_dark', name_en: "Midnight", name_ar: "منتصف الليل", cost: 200, type: 'themes' },
+        { id: 'theme_ocean', name_en: "Ocean Blue", name_ar: "أزرق محيطي", cost: 300, type: 'themes' },
+        { id: 'theme_forest', name_en: "Forest", name_ar: "غابة", cost: 300, type: 'themes' },
     ],
     gifts: [
         { id: 'gift_rose', name_en: "Rose", name_ar: "وردة", cost: 1, type: 'gifts', charisma: 10, minCashback: 1, maxCashback: 50, desc_ar: "عبّر عن مشاعرك", desc_en: "Express your feelings", emoji: "🌹", imageUrl: "" },
@@ -190,8 +207,21 @@ const formatDate = (timestamp) => { if (!timestamp) return 'N/A'; const date = t
 const formatDuration = (ms) => { const totalSeconds = Math.floor(ms / 1000); const minutes = Math.floor(totalSeconds / 60); const seconds = totalSeconds % 60; return `${minutes}m ${seconds}s`; };
 const formatCharisma = (num) => { if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
 
+// --- Email Masking Function ---
+const maskEmail = (email) => {
+    if (!email) return 'N/A';
+    const [localPart, domain] = email.split('@');
+    if (!domain) return email;
+    
+    const visibleChars = Math.min(2, localPart.length);
+    const maskedPart = localPart.substring(0, visibleChars) + '***';
+    return `${maskedPart}@${domain}`;
+};
+
 // --- Audio System ---
-const AudioCtx = window.AudioContext || window.webkitAudioContext; let audioCtx = null;
+const AudioCtx = window.AudioContext || window.webkitAudioContext; 
+let audioCtx = null;
+
 const initAudio = () => { if (!audioCtx) audioCtx = new AudioCtx(); };
 const playSound = (type) => { 
     if (!audioCtx) return; 
@@ -243,6 +273,8 @@ const TRANSLATIONS = {
         codePlaceholder: "CODE",
         luckyCashback: "Lucky Cashback", luckBonus: "Luck Bonus",
         loginRequired: "Login Required",
+        showEmail: "Show", hideEmail: "Hide", accountType: "Account Type", googleAccount: "Google Account", guestAccount: "Guest Account",
+        playAsGuest: "Play as Guest", continueAsGuest: "Continue as Guest",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
@@ -257,6 +289,8 @@ const TRANSLATIONS = {
         codePlaceholder: "كود",
         luckyCashback: "كاش باك محظوظ", luckBonus: "مكافأة الحظ",
         loginRequired: "تسجيل الدخول مطلوب",
+        showEmail: "إظهار", hideEmail: "إخفاء", accountType: "نوع الحساب", googleAccount: "حساب جوجل", guestAccount: "حساب زائر",
+        playAsGuest: "العب كزائر", continueAsGuest: "المتابعة كزائر",
     } 
 };
 
@@ -297,19 +331,18 @@ class ErrorBoundary extends React.Component {
 }
 
 // ==========================================
-// COMPONENTS
-// ==========================================
-
-// Continue in Part 2...
-// ==========================================
-// PRO SPY - COMPLETE SCRIPT PART 2
-// Components and Main App - FIXED Auth
+// COMPONENTS - PART 1
 // ==========================================
 
 // Guest Banner
 const GuestBanner = ({ lang }) => { 
     const t = TRANSLATIONS[lang]; 
-    return ( <div className="guest-banner"> <h3 className="text-sm font-bold text-yellow-400">{t.guestTitle}</h3> <p className="text-[10px] text-gray-400">{t.guestDesc}</p> </div> ); 
+    return ( 
+        <div className="guest-banner"> 
+            <h3 className="text-sm font-bold text-yellow-400">{t.guestTitle}</h3> 
+            <p className="text-[10px] text-gray-400">{t.guestDesc}</p> 
+        </div> 
+    ); 
 };
 
 // Notification Toast
@@ -401,7 +434,7 @@ const KDCircle = ({ wins, losses, lang }) => {
     ); 
 };
 
-// Avatar with Frame Component - FIXED
+// Avatar with Frame Component
 const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
     const sizeConfig = {
         sm: { wrapper: 48, avatar: 36 },
@@ -706,10 +739,459 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang }) =>
     );
 };
 
-// Continue in Part 3...
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT PART 3
-// Main App Component - FIXED Guest Auth
+// SHOP MODAL - COMPLETE IMPLEMENTATION
+// ==========================================
+const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip }) => {
+    const t = TRANSLATIONS[lang];
+    const [activeTab, setActiveTab] = useState('frames');
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [showPreview, setShowPreview] = useState(false);
+    
+    if (!show) return null;
+    
+    const currency = userData?.currency || 0;
+    const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
+    const equipped = userData?.equipped || {};
+    
+    const handlePurchase = (item) => {
+        if (currency >= item.cost) {
+            onPurchase(item);
+            setShowPreview(false);
+            setSelectedItem(null);
+        }
+    };
+    
+    const handleEquip = (item) => {
+        onEquip(item);
+    };
+    
+    const handleUnequip = (type) => {
+        onUnequip(type);
+    };
+    
+    const isOwned = (item) => {
+        return inventory[item.type]?.includes(item.id);
+    };
+    
+    const isEquipped = (item) => {
+        return equipped[item.type] === item.id;
+    };
+    
+    const renderPreview = (item) => {
+        if (item.type === 'frames') {
+            if (item.preview.startsWith('http')) {
+                return <img src={item.preview} alt={item.name_en} className="w-12 h-12 rounded-full object-cover" />;
+            }
+            return <div className="w-12 h-12 rounded-full" style={{ background: item.preview }}></div>;
+        } else if (item.type === 'badges') {
+            return <span className="text-3xl">{item.preview}</span>;
+        } else if (item.type === 'titles') {
+            return <span className="text-2xl">{item.preview}</span>;
+        }
+        return <span className="text-2xl">🎨</span>;
+    };
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', maxHeight: '90vh' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.shop}</h2>
+                    <div className="flex items-center gap-3">
+                        <span className="text-yellow-400 font-bold text-sm">🧠 {currency.toLocaleString()}</span>
+                        <ModalCloseBtn onClose={onClose} />
+                    </div>
+                </div>
+                
+                {/* Tabs */}
+                <div className="modal-body" style={{ padding: 0 }}>
+                    <div className="tab-container" style={{ margin: '12px', marginBottom: 0 }}>
+                        {['frames', 'titles', 'badges'].map(tab => (
+                            <button 
+                                key={tab} 
+                                onClick={() => setActiveTab(tab)} 
+                                className={`tab-button ${activeTab === tab ? 'active' : ''}`}
+                            >
+                                {t[tab]}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    {/* Items Grid */}
+                    <div className="p-3">
+                        <div className="inventory-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                            {SHOP_ITEMS[activeTab]?.map(item => {
+                                const owned = isOwned(item);
+                                const equippedItem = isEquipped(item);
+                                
+                                return (
+                                    <div 
+                                        key={item.id} 
+                                        className={`inventory-item ${equippedItem ? 'equipped' : ''}`}
+                                        onClick={() => { setSelectedItem(item); setShowPreview(true); }}
+                                    >
+                                        <div className="inventory-item-preview">
+                                            {renderPreview(item)}
+                                        </div>
+                                        <div className="inventory-item-name">
+                                            {lang === 'ar' ? item.name_ar : item.name_en}
+                                        </div>
+                                        
+                                        {owned ? (
+                                            equippedItem ? (
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); handleUnequip(item.type); }} 
+                                                    className="btn-unequip w-full"
+                                                >
+                                                    {t.unequip}
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); handleEquip(item); }} 
+                                                    className="btn-success w-full text-xs py-1 rounded"
+                                                >
+                                                    {t.equip}
+                                                </button>
+                                            )
+                                        ) : (
+                                            <div className="flex items-center justify-center gap-1 text-yellow-400 font-bold text-sm">
+                                                <span>{item.cost}</span>
+                                                <span>🧠</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Preview Modal */}
+                {showPreview && selectedItem && (
+                    <div className="modal-overlay" onClick={() => setShowPreview(false)} style={{ zIndex: 110 }}>
+                        <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+                            <div className="modal-header">
+                                <h2 className="modal-title">{lang === 'ar' ? selectedItem.name_ar : selectedItem.name_en}</h2>
+                                <ModalCloseBtn onClose={() => setShowPreview(false)} />
+                            </div>
+                            <div className="modal-body text-center">
+                                <div className="flex justify-center mb-4">
+                                    <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                        {renderPreview(selectedItem)}
+                                    </div>
+                                </div>
+                                <p className="text-gray-400 text-sm mb-4">
+                                    {lang === 'ar' ? selectedItem.name_ar : selectedItem.name_en}
+                                </p>
+                                
+                                {isOwned(selectedItem) ? (
+                                    isEquipped(selectedItem) ? (
+                                        <button 
+                                            onClick={() => { handleUnequip(selectedItem.type); setShowPreview(false); }} 
+                                            className="btn-unequip w-full py-2 rounded-lg"
+                                        >
+                                            {t.unequip}
+                                        </button>
+                                    ) : (
+                                        <button 
+                                            onClick={() => { handleEquip(selectedItem); setShowPreview(false); }} 
+                                            className="btn-success w-full py-2 rounded-lg"
+                                        >
+                                            {t.equip}
+                                        </button>
+                                    )
+                                ) : (
+                                    <button 
+                                        onClick={() => handlePurchase(selectedItem)} 
+                                        disabled={currency < selectedItem.cost}
+                                        className={`w-full py-2 rounded-lg font-bold ${currency >= selectedItem.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+                                    >
+                                        {t.buy} ({selectedItem.cost} 🧠)
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// INVENTORY MODAL
+// ==========================================
+const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip }) => {
+    const t = TRANSLATIONS[lang];
+    const [activeTab, setActiveTab] = useState('frames');
+    
+    if (!show) return null;
+    
+    const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
+    const equipped = userData?.equipped || {};
+    
+    const getOwnedItems = (type) => {
+        const ownedIds = inventory[type] || [];
+        return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || [];
+    };
+    
+    const isEquipped = (item) => {
+        return equipped[item.type] === item.id;
+    };
+    
+    const renderPreview = (item) => {
+        if (item.type === 'frames') {
+            if (item.preview.startsWith('http')) {
+                return <img src={item.preview} alt={item.name_en} className="w-12 h-12 rounded-full object-cover" />;
+            }
+            return <div className="w-12 h-12 rounded-full" style={{ background: item.preview }}></div>;
+        } else if (item.type === 'badges') {
+            return <span className="text-3xl">{item.preview}</span>;
+        } else if (item.type === 'titles') {
+            return <span className="text-2xl">{item.preview}</span>;
+        }
+        return <span className="text-2xl">🎨</span>;
+    };
+    
+    const ownedItems = getOwnedItems(activeTab);
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', maxHeight: '90vh' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.myInventory}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                
+                <div className="modal-body" style={{ padding: 0 }}>
+                    <div className="tab-container" style={{ margin: '12px', marginBottom: 0 }}>
+                        {['frames', 'titles', 'badges'].map(tab => (
+                            <button 
+                                key={tab} 
+                                onClick={() => setActiveTab(tab)} 
+                                className={`tab-button ${activeTab === tab ? 'active' : ''}`}
+                            >
+                                {t[tab]} ({getOwnedItems(tab).length})
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <div className="p-3">
+                        {ownedItems.length === 0 ? (
+                            <div className="text-center py-8 text-gray-400">
+                                <div className="text-4xl mb-2">📦</div>
+                                <p>{t.owned}: 0</p>
+                            </div>
+                        ) : (
+                            <div className="inventory-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                                {ownedItems.map(item => {
+                                    const equippedItem = isEquipped(item);
+                                    
+                                    return (
+                                        <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`}>
+                                            <div className="inventory-item-preview">
+                                                {renderPreview(item)}
+                                            </div>
+                                            <div className="inventory-item-name">
+                                                {lang === 'ar' ? item.name_ar : item.name_en}
+                                            </div>
+                                            
+                                            {equippedItem ? (
+                                                <button 
+                                                    onClick={() => onUnequip(item.type)} 
+                                                    className="btn-unequip w-full"
+                                                >
+                                                    {t.unequip}
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => onEquip(item)} 
+                                                    className="btn-success w-full text-xs py-1 rounded"
+                                                >
+                                                    {t.equip}
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// USER PROFILE MODAL - FIXED
+// ==========================================
+const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSendFriendRequest, onSendGift, userData }) => {
+    const t = TRANSLATIONS[lang];
+    const [targetData, setTargetData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [showGiftModal, setShowGiftModal] = useState(false);
+    
+    useEffect(() => {
+        if (!show || !targetUID) {
+            setLoading(true);
+            return;
+        }
+        
+        setLoading(true);
+        
+        // Try users collection first
+        usersCollection.doc(targetUID).get().then(doc => {
+            if (doc.exists) {
+                setTargetData({ id: doc.id, ...doc.data(), isGuest: false });
+                setLoading(false);
+            } else {
+                // Try guests collection
+                guestsCollection.doc(targetUID).get().then(guestDoc => {
+                    if (guestDoc.exists) {
+                        setTargetData({ id: guestDoc.id, ...guestDoc.data(), isGuest: true });
+                    } else {
+                        setTargetData(null);
+                    }
+                    setLoading(false);
+                }).catch(() => {
+                    setTargetData(null);
+                    setLoading(false);
+                });
+            }
+        }).catch(() => {
+            setLoading(false);
+            setTargetData(null);
+        });
+    }, [show, targetUID]);
+    
+    if (!show) return null;
+    
+    const isOwnProfile = targetUID === currentUserUID;
+    const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.profile}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                
+                <div className="modal-body">
+                    {loading ? (
+                        <div className="text-center py-8">
+                            <div className="text-2xl animate-pulse">⏳</div>
+                            <p className="text-gray-400 mt-2">{t.loading}</p>
+                        </div>
+                    ) : !targetData ? (
+                        <div className="text-center py-8">
+                            <div className="text-4xl mb-2">❌</div>
+                            <p className="text-gray-400">{t.friendNotFound}</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="profile-header">
+                                <div className="profile-avatar-container">
+                                    <AvatarWithFrame photoURL={targetData.photoURL} equipped={targetData.equipped} size="lg" />
+                                </div>
+                                <h3 className="profile-name">{targetData.displayName || 'Unknown'}</h3>
+                                
+                                {/* Show equipped title if exists */}
+                                {targetData.equipped?.titles && (() => {
+                                    const titleItem = SHOP_ITEMS.titles.find(t => t.id === targetData.equipped.titles);
+                                    return titleItem ? (
+                                        <div className="profile-title bg-gradient-to-r from-purple-500 to-pink-500">
+                                            {lang === 'ar' ? titleItem.name_ar : titleItem.name_en}
+                                        </div>
+                                    ) : null;
+                                })()}
+                                
+                                {/* Show equipped badge if exists */}
+                                {targetData.equipped?.badges && (() => {
+                                    const badgeItem = SHOP_ITEMS.badges.find(b => b.id === targetData.equipped.badges);
+                                    return badgeItem ? (
+                                        <div className="text-2xl mt-2">{badgeItem.preview}</div>
+                                    ) : null;
+                                })()}
+                                
+                                <div className="profile-id" onClick={() => { navigator.clipboard.writeText(targetData.customId || targetData.uid); }}>
+                                    <span>ID: {targetData.customId || targetData.uid?.substring(0, 8)}</span>
+                                    <span className="text-[10px]">📋</span>
+                                </div>
+                                
+                                {/* Account Type Badge */}
+                                <div className={`mt-2 text-[10px] px-3 py-1 rounded-full ${isTargetGuest ? 'bg-gray-600' : 'bg-green-600'}`}>
+                                    {isTargetGuest ? t.guestAccount : t.googleAccount}
+                                </div>
+                            </div>
+                            
+                            <CharismaDisplay charisma={targetData.charisma} lang={lang} />
+                            
+                            <div className="profile-stats">
+                                <div className="profile-stat">
+                                    <div className="profile-stat-value">{targetData.stats?.wins || 0}</div>
+                                    <div className="profile-stat-label">{t.wins}</div>
+                                </div>
+                                <div className="profile-stat">
+                                    <div className="profile-stat-value">{targetData.stats?.losses || 0}</div>
+                                    <div className="profile-stat-label">{t.losses}</div>
+                                </div>
+                                <div className="profile-stat">
+                                    <div className="profile-stat-value">{calculateLevel(targetData.stats?.xp || 0)}</div>
+                                    <div className="profile-stat-label">{t.level}</div>
+                                </div>
+                            </div>
+                            
+                            <KDCircle wins={targetData.stats?.wins || 0} losses={targetData.stats?.losses || 0} lang={lang} />
+                            
+                            {/* Action Buttons for other profiles */}
+                            {!isOwnProfile && !isTargetGuest && (
+                                <div className="flex gap-2 mt-4">
+                                    <button 
+                                        onClick={() => onSendFriendRequest(targetUID)} 
+                                        className="btn-neon flex-1 py-2 rounded-lg text-sm"
+                                    >
+                                        👥 {t.addFriend}
+                                    </button>
+                                    <button 
+                                        onClick={() => setShowGiftModal(true)} 
+                                        className="btn-gold flex-1 py-2 rounded-lg text-sm"
+                                    >
+                                        🎁 {t.sendGift}
+                                    </button>
+                                </div>
+                            )}
+                            
+                            {isTargetGuest && !isOwnProfile && (
+                                <div className="text-center text-gray-400 text-xs mt-4 p-2 bg-white/5 rounded-lg">
+                                    {t.guestProfileMsg}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+                
+                {/* Gift Modal */}
+                {showGiftModal && targetData && (
+                    <SendGiftModal 
+                        show={showGiftModal} 
+                        onClose={() => setShowGiftModal(false)} 
+                        targetUser={targetData} 
+                        currentUser={userData} 
+                        lang={lang} 
+                        onSendGift={onSendGift}
+                        currency={userData?.currency || 0}
+                    />
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// PRO SPY - COMPLETE SCRIPT - PART 2
+// Main App Component - FIXED Guest System
 // ==========================================
 
 function App() {
@@ -751,33 +1233,44 @@ function App() {
     const [showTutorial, setShowTutorial] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
     const [showShop, setShowShop] = useState(false);
+    const [showInventory, setShowInventory] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadNotifications, setUnreadNotifications] = useState(0);
     const [showPrivateChat, setShowPrivateChat] = useState(false);
     const [chatFriend, setChatFriend] = useState(null);
     const [showLoginAlert, setShowLoginAlert] = useState(false);
-    const [guestUID, setGuestUID] = useState(() => localStorage.getItem('pro_spy_guest_uid') || null);
+    
+    // NEW: Separate Guest State
+    const [guestData, setGuestData] = useState(null);
+    const [showEmail, setShowEmail] = useState(false);
     
     const t = TRANSLATIONS[lang];
     
     // ==========================================
-    // AUTH STATES - FIXED
+    // AUTH STATES - SIMPLIFIED
     // ==========================================
-    // user === null → Loading or not signed in at all
-    // user.isAnonymous === true → Guest account (can play but limited features)
-    // user && !user.isAnonymous → Full Google account (all features)
+    // isLoggedIn: Google account (full features)
+    // isGuest: Playing as guest (limited features)
+    // isNotLoggedIn: Not signed in at all
     
     const isLoggedIn = useMemo(() => user && !user.isAnonymous, [user]);
-    const isGuest = useMemo(() => user && user.isAnonymous, [user]);
-    const isNotLoggedIn = useMemo(() => user === null, [user]);
+    const isGuest = useMemo(() => guestData !== null, [guestData]);
+    const isNotLoggedIn = useMemo(() => user === null && guestData === null, [user, guestData]);
     
     // Current UID - works for both logged-in users and guests
     const currentUID = useMemo(() => {
         if (user && !user.isAnonymous) return user.uid; // Google account
-        if (user && user.isAnonymous) return user.uid; // Firebase anonymous
-        return guestUID; // Pure guest (no Firebase)
-    }, [user, guestUID]);
+        if (guestData) return guestData.uid; // Guest
+        return null;
+    }, [user, guestData]);
+    
+    // Current user data (either from Firebase or guest)
+    const currentUserData = useMemo(() => {
+        if (isLoggedIn) return userData;
+        if (isGuest) return guestData;
+        return null;
+    }, [isLoggedIn, userData, isGuest, guestData]);
 
     // Background Canvas Animation
     useEffect(() => {
@@ -796,17 +1289,24 @@ function App() {
         return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
     }, []);
 
-    // Auth State Listener - FIXED
+    // ==========================================
+    // AUTH STATE LISTENER - FIXED
+    // ==========================================
     useEffect(() => {
         setAuthLoading(true);
         const unsubAuth = auth.onAuthStateChanged(async (u) => {
-            console.log('Auth state changed:', u ? { uid: u.uid, isAnonymous: u.isAnonymous, displayName: u.displayName } : null);
+            console.log('Auth state changed:', u ? { uid: u.uid, isAnonymous: u.isAnonymous } : null);
             
-            if (u) { 
+            if (u && !u.isAnonymous) { 
+                // Google account logged in
                 setUser(u); 
+                setGuestData(null); // Clear guest data
+                
                 const userRef = usersCollection.doc(u.uid); 
                 const doc = await userRef.get();
+                
                 if (!doc.exists) { 
+                    // Create new user
                     const newUserData = { 
                         uid: u.uid, 
                         email: u.email || null, 
@@ -820,8 +1320,8 @@ function App() {
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(), 
                         lastChangedName: null, 
                         lastActive: firebase.firestore.FieldValue.serverTimestamp(), 
-                        isAnonymous: u.isAnonymous, 
-                        currency: u.isAnonymous ? 0 : 100, // Guests start with 0 currency
+                        isAnonymous: false, 
+                        currency: 100, 
                         inventory: {frames: [], titles: [], themes: [], gifts: [], badges: []}, 
                         equipped: {}, 
                         charisma: 0
@@ -830,7 +1330,7 @@ function App() {
                     setUserData(newUserData); 
                     if (u.displayName) setNickname(u.displayName); 
                 } else {
-                    // Get existing user data immediately
+                    // Get existing user data
                     const existingData = doc.data();
                     setUserData(existingData);
                     if (existingData.displayName) setNickname(existingData.displayName);
@@ -847,7 +1347,7 @@ function App() {
                 }
             } else { 
                 setUser(null); 
-                setUserData(null); 
+                setUserData(null);
             }
             setAuthLoading(false);
         }); 
@@ -867,9 +1367,9 @@ function App() {
         return () => clearInterval(interval); 
     }, [user, isGuest]);
 
-    // Notifications Listener
+    // Notifications Listener (only for logged-in users)
     useEffect(() => {
-        if (!user || isGuest) return;
+        if (!user || !isLoggedIn) return;
         const unsub = notificationsCollection.where('toUserId', '==', user.uid).limit(50).onSnapshot(snap => {
             let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             notifs.sort((a, b) => {
@@ -881,9 +1381,9 @@ function App() {
             setUnreadNotifications(notifs.filter(n => !n.read).length);
         });
         return unsub;
-    }, [user, isGuest]);
+    }, [user, isLoggedIn]);
 
-    // Room Listener - Works for both guests and logged-in users
+    // Room Listener
     useEffect(() => { 
         if (!roomId) return; 
         const unsub = roomsCollection.doc(roomId).onSnapshot(async doc => { 
@@ -935,7 +1435,7 @@ function App() {
     
     // Chats Meta
     useEffect(() => { 
-        if (!user || isGuest) return; 
+        if (!user || !isLoggedIn) return; 
         const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => { 
             let total = 0; const meta = {}; 
             snap.docs.forEach(doc => { 
@@ -947,7 +1447,7 @@ function App() {
             setChatsMeta(meta); setTotalUnread(total); 
         }); 
         return unsub; 
-    }, [user, isGuest]);
+    }, [user, isLoggedIn]);
     
     // Timers
     useEffect(() => { if (room?.status === 'discussing' && room?.turnEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000)); setTurnTimer(remaining); if (remaining <= 0) { handleSkipTurn(true); clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setTurnTimer(30); }, [room?.status, room?.turnEndTime]);
@@ -972,8 +1472,89 @@ function App() {
         await auth.signOut(); 
         setShowDropdown(false); 
         setNickname(''); 
-        localStorage.removeItem('pro_spy_nick'); 
+        setGuestData(null);
+        localStorage.removeItem('pro_spy_guest_uid');
+        localStorage.removeItem('pro_spy_nick');
     }, []);
+    
+    // ==========================================
+    // GUEST SYSTEM - NEW IMPROVED VERSION
+    // ==========================================
+    
+    const handlePlayAsGuest = useCallback(async () => {
+        if (!nickname.trim()) {
+            setAlertMessage(lang === 'ar' ? 'يرجى إدخال اسم أولاً' : 'Please enter a name first');
+            return;
+        }
+        
+        setLoading(true);
+        
+        try {
+            // Generate unique guest ID
+            const guestUID = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+            
+            // Create guest data (stored in SEPARATE guests collection)
+            const newGuestData = {
+                uid: guestUID,
+                displayName: nickname,
+                photoURL: null,
+                customId: generateUID(),
+                stats: { wins: 0, losses: 0, xp: 0 },
+                currency: 0,
+                charisma: 0,
+                equipped: {},
+                inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] },
+                isAnonymous: true,
+                isGuest: true,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Save to guests collection (SEPARATE from users)
+            await guestsCollection.doc(guestUID).set(newGuestData);
+            
+            // Set local state
+            setGuestData(newGuestData);
+            localStorage.setItem('pro_spy_guest_uid', guestUID);
+            localStorage.setItem('pro_spy_nick', nickname);
+            
+            console.log('Guest created:', guestUID);
+        } catch (e) {
+            console.error('Guest creation error:', e);
+            setAlertMessage(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, try again');
+        }
+        
+        setLoading(false);
+    }, [nickname, lang]);
+    
+    // Load existing guest on mount
+    useEffect(() => {
+        const savedGuestUID = localStorage.getItem('pro_spy_guest_uid');
+        if (savedGuestUID && !user) {
+            guestsCollection.doc(savedGuestUID).get().then(doc => {
+                if (doc.exists) {
+                    setGuestData({ id: doc.id, ...doc.data() });
+                    if (doc.data().displayName) setNickname(doc.data().displayName);
+                }
+                setAuthLoading(false);
+            }).catch(() => {
+                setAuthLoading(false);
+            });
+        }
+    }, [user]);
+    
+    // Listen to guest data changes
+    useEffect(() => {
+        if (!guestData?.uid) return;
+        
+        const unsub = guestsCollection.doc(guestData.uid).onSnapshot(snap => {
+            if (snap.exists) {
+                setGuestData({ id: snap.id, ...snap.data() });
+            }
+        });
+        
+        return unsub;
+    }, [guestData?.uid]);
     
     const getDefaultPhoto = useCallback((uData, name) => uData?.photoURL || `https://ui-avatars.com/api/?name=${name || 'Guest'}&background=random`, []);
 
@@ -999,32 +1580,23 @@ function App() {
         } catch (e) { console.error('Clear notifications error:', e); }
     }, [notifications]);
 
-    // Room Functions
+    // ==========================================
+    // ROOM FUNCTIONS
+    // ==========================================
+    
     const handleCreateGame = useCallback(async () => { 
         if (!nickname.trim()) return; 
         if (isPrivate && !password.trim()) { setAlertMessage(t.privateRoomError); return; }
         playSound('click'); 
         setLoading(true); 
         
-        let uid = currentUID; 
-        let tempUserData = userData;
+        const uid = currentUID;
+        const tempUserData = currentUserData;
         
-        // If not logged in at all, create temporary guest data (no Firebase Auth)
         if (!uid) { 
-            uid = 'guest_' + generateUID(); 
-            setGuestUID(uid);
-            localStorage.setItem('pro_spy_guest_uid', uid);
-            tempUserData = {
-                uid: uid,
-                displayName: nickname,
-                photoURL: null,
-                customId: generateUID(),
-                stats: { wins: 0, losses: 0, xp: 0 },
-                currency: 0,
-                charisma: 0,
-                equipped: {},
-                isAnonymous: true
-            };
+            setLoading(false);
+            setAlertMessage(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, try again');
+            return;
         } 
         
         const id = Math.random().toString(36).substring(2, 7).toUpperCase(); 
@@ -1063,7 +1635,7 @@ function App() {
         setLoading(false); 
         setShowSetupModal(false); 
         setActiveView('lobby'); 
-    }, [nickname, isPrivate, password, currentUID, userData, setupMode, t, getDefaultPhoto]);
+    }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, getDefaultPhoto]);
     
     const handleJoinGame = useCallback(async (id, pwd) => {
         if (!id || id.trim() === "") { setJoinError(t.enterCodeError); return; }
@@ -1072,25 +1644,13 @@ function App() {
         setLoading(true); 
         setJoinError(''); 
         
-        let uid = currentUID; 
-        let tempUserData = userData;
+        const uid = currentUID;
+        const tempUserData = currentUserData;
         
-        // If not logged in at all, create temporary guest ID (no Firebase Auth)
         if (!uid) { 
-            uid = 'guest_' + generateUID(); 
-            setGuestUID(uid);
-            localStorage.setItem('pro_spy_guest_uid', uid);
-            tempUserData = {
-                uid: uid,
-                displayName: nickname,
-                photoURL: null,
-                customId: generateUID(),
-                stats: { wins: 0, losses: 0, xp: 0 },
-                currency: 0,
-                charisma: 0,
-                equipped: {},
-                isAnonymous: true
-            };
+            setLoading(false);
+            setAlertMessage(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, try again');
+            return;
         } 
         
         const ref = roomsCollection.doc(id.toUpperCase()); 
@@ -1115,7 +1675,7 @@ function App() {
             setActiveView('lobby'); 
         } else { setJoinError("Room not found"); } 
         setLoading(false); 
-    }, [nickname, currentUID, userData, t, getDefaultPhoto]);
+    }, [nickname, currentUID, currentUserData, t, lang, getDefaultPhoto]);
     
     const handleLeaveRoom = useCallback(async () => { 
         if (!room || !currentUID) return; 
@@ -1185,15 +1745,15 @@ function App() {
             votingRequest: null, 
             startedAt: firebase.firestore.FieldValue.serverTimestamp() 
         }); 
-    }, [room, user, roomId, t]);
+    }, [room, currentUID, roomId, t]);
 
     const submitWordVote = useCallback(async (word) => { 
-        if (!user || !room || room.status !== 'word_selection') return; 
+        if (!currentUID || !room || room.status !== 'word_selection') return; 
         playSound('click'); 
         const voteUpdate = {}; 
-        voteUpdate[`wordVotes.${user.uid}`] = word; 
+        voteUpdate[`wordVotes.${currentUID}`] = word; 
         await roomsCollection.doc(roomId).update(voteUpdate); 
-    }, [user, room, roomId]);
+    }, [currentUID, room, roomId]);
     
     const finishWordSelection = useCallback(async () => { 
         if (!room || room.status !== 'word_selection') return; 
@@ -1321,9 +1881,11 @@ function App() {
     const openPrivateChat = useCallback((friend) => { 
         setChatFriend(friend); 
         setShowPrivateChat(true); 
-        const cId = getChatId(user.uid, friend.uid); 
-        setOpenChatId(cId); 
-        chatsCollection.doc(cId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {}); 
+        if (user) {
+            const cId = getChatId(user.uid, friend.uid); 
+            setOpenChatId(cId); 
+            chatsCollection.doc(cId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {}); 
+        }
     }, [user]);
     
     const closePrivateChat = useCallback(() => { 
@@ -1333,7 +1895,7 @@ function App() {
     }, []);
     
     const handleSendRequest = useCallback(async (targetUid) => { 
-        if (!targetUid || targetUid === userData.customId || !isLoggedIn) return; 
+        if (!targetUid || !isLoggedIn) return; 
         const friendUid = targetUid; 
         if (userData.friends?.includes(friendUid)) return; 
         if (userData.friendRequests?.includes(friendUid)) return; 
@@ -1364,6 +1926,78 @@ function App() {
             setNotification(`${t.giftSent} +${cashbackForSender.toLocaleString()} 💰`);
         } catch (error) { console.error("Gift error:", error); }
     }, [userData, user, t, createNotification]);
+
+    // ==========================================
+    // SHOP FUNCTIONS - NEW
+    // ==========================================
+    
+    const handlePurchase = useCallback(async (item) => {
+        if (!user || !isLoggedIn) {
+            setShowLoginAlert(true);
+            return;
+        }
+        
+        const currency = userData?.currency || 0;
+        if (currency < item.cost) {
+            setNotification(t.purchaseFail);
+            return;
+        }
+        
+        const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
+        
+        // Check if already owned
+        if (inventory[item.type]?.includes(item.id)) {
+            setNotification(t.alreadyOwned);
+            return;
+        }
+        
+        try {
+            const newCurrency = currency - item.cost;
+            const newInventory = { ...inventory };
+            newInventory[item.type] = [...(newInventory[item.type] || []), item.id];
+            
+            await usersCollection.doc(user.uid).update({ 
+                currency: newCurrency,
+                inventory: newInventory
+            });
+            
+            playSound('success');
+            setNotification(t.purchaseSuccess);
+        } catch (error) {
+            console.error('Purchase error:', error);
+        }
+    }, [user, userData, isLoggedIn, t]);
+    
+    const handleEquip = useCallback(async (item) => {
+        if (!user || !isLoggedIn) return;
+        
+        try {
+            const equipped = userData?.equipped || {};
+            const newEquipped = { ...equipped, [item.type]: item.id };
+            
+            await usersCollection.doc(user.uid).update({ equipped: newEquipped });
+            playSound('click');
+            setNotification(lang === 'ar' ? 'تم التزيين!' : 'Equipped!');
+        } catch (error) {
+            console.error('Equip error:', error);
+        }
+    }, [user, userData, isLoggedIn, lang]);
+    
+    const handleUnequip = useCallback(async (type) => {
+        if (!user || !isLoggedIn) return;
+        
+        try {
+            const equipped = userData?.equipped || {};
+            const newEquipped = { ...equipped };
+            delete newEquipped[type];
+            
+            await usersCollection.doc(user.uid).update({ equipped: newEquipped });
+            playSound('click');
+            setNotification(lang === 'ar' ? 'تمت الإزالة!' : 'Unequipped!');
+        } catch (error) {
+            console.error('Unequip error:', error);
+        }
+    }, [user, userData, isLoggedIn, lang]);
 
     // Computed Values
     const isMyTurn = useMemo(() => room?.currentTurnUID === currentUID, [room?.currentTurnUID, currentUID]);
@@ -1444,26 +2078,33 @@ function App() {
                 </div>
             )}
             
-            {/* Shop Modal - Only for logged in users */}
-            {isLoggedIn && showShop && (
-                <div className="modal-overlay" onClick={() => setShowShop(false)}>
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">{t.shop}</h2>
-                            <div className="flex items-center gap-2">
-                                <span className="text-yellow-400 font-bold text-sm">🧠 {userData?.currency || 0}</span>
-                                <ModalCloseBtn onClose={() => setShowShop(false)} />
-                            </div>
-                        </div>
-                        <div className="modal-body">
-                            <p className="text-center text-gray-400 py-8">{t.shop} - Coming Soon</p>
-                        </div>
-                    </div>
-                </div>
+            {/* Shop Modal */}
+            {showShop && (
+                <ShopModal 
+                    show={showShop} 
+                    onClose={() => setShowShop(false)} 
+                    userData={userData} 
+                    lang={lang}
+                    onPurchase={handlePurchase}
+                    onEquip={handleEquip}
+                    onUnequip={handleUnequip}
+                />
             )}
             
-            {/* My Account Modal */}
-            {isLoggedIn && showMyAccount && userData && (
+            {/* Inventory Modal */}
+            {showInventory && (
+                <InventoryModal 
+                    show={showInventory} 
+                    onClose={() => setShowInventory(false)} 
+                    userData={userData} 
+                    lang={lang}
+                    onEquip={handleEquip}
+                    onUnequip={handleUnequip}
+                />
+            )}
+            
+            {/* My Account Modal - FIXED WITH EMAIL MASKING */}
+            {showMyAccount && (
                 <div className="modal-overlay" onClick={() => setShowMyAccount(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
@@ -1471,36 +2112,131 @@ function App() {
                             <ModalCloseBtn onClose={() => setShowMyAccount(false)} />
                         </div>
                         <div className="modal-body">
+                            {/* Profile Header */}
                             <div className="profile-header">
                                 <div className="profile-avatar-container">
-                                    <AvatarWithFrame photoURL={userData.photoURL} equipped={userData.equipped} size="lg" />
+                                    <AvatarWithFrame photoURL={currentUserData?.photoURL} equipped={currentUserData?.equipped} size="lg" />
                                 </div>
-                                <h3 className="profile-name">{userData.displayName}</h3>
-                                <div className="profile-id" onClick={() => { navigator.clipboard.writeText(userData.customId); }}>
-                                    <span>ID: {userData.customId}</span>
+                                <h3 className="profile-name">{currentUserData?.displayName || 'User'}</h3>
+                                
+                                {/* Show equipped title */}
+                                {currentUserData?.equipped?.titles && (() => {
+                                    const titleItem = SHOP_ITEMS.titles.find(t => t.id === currentUserData.equipped.titles);
+                                    return titleItem ? (
+                                        <div className="profile-title bg-gradient-to-r from-purple-500 to-pink-500">
+                                            {lang === 'ar' ? titleItem.name_ar : titleItem.name_en}
+                                        </div>
+                                    ) : null;
+                                })()}
+                                
+                                {/* Show equipped badge */}
+                                {currentUserData?.equipped?.badges && (() => {
+                                    const badgeItem = SHOP_ITEMS.badges.find(b => b.id === currentUserData.equipped.badges);
+                                    return badgeItem ? (
+                                        <div className="text-2xl mt-2">{badgeItem.preview}</div>
+                                    ) : null;
+                                })()}
+                                
+                                <div className="profile-id" onClick={() => { navigator.clipboard.writeText(currentUserData?.customId || ''); }}>
+                                    <span>ID: {currentUserData?.customId || 'N/A'}</span>
                                     <span className="text-[10px]">📋</span>
                                 </div>
+                                
+                                {/* Account Type */}
+                                <div className={`mt-2 text-[10px] px-3 py-1 rounded-full ${isGuest ? 'bg-gray-600' : 'bg-green-600'}`}>
+                                    {isGuest ? t.guestAccount : t.googleAccount}
+                                </div>
                             </div>
-                            <CharismaDisplay charisma={userData.charisma} lang={lang} />
+                            
+                            {/* Account Info Section - NEW */}
+                            {isLoggedIn && (
+                                <div className="bg-white/5 rounded-lg p-3 mb-3">
+                                    <h4 className="text-xs font-bold text-gray-400 mb-2">{t.accountInfo}</h4>
+                                    
+                                    {/* Email with masking */}
+                                    <div className="flex items-center justify-between mb-2 p-2 bg-black/20 rounded-lg">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-gray-400">📧</span>
+                                            <span className="text-sm">
+                                                {showEmail ? (user?.email || 'N/A') : maskEmail(user?.email)}
+                                            </span>
+                                        </div>
+                                        <button 
+                                            onClick={() => setShowEmail(!showEmail)} 
+                                            className="text-xs bg-white/10 px-2 py-1 rounded hover:bg-white/20 transition"
+                                        >
+                                            {showEmail ? t.hideEmail : t.showEmail}
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Member Since */}
+                                    <div className="flex items-center justify-between p-2 bg-black/20 rounded-lg">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-gray-400">📅</span>
+                                            <span className="text-sm">{t.memberSince}</span>
+                                        </div>
+                                        <span className="text-xs text-gray-300">
+                                            {currentUserData?.createdAt?.toDate?.() ? 
+                                                currentUserData.createdAt.toDate().toLocaleDateString() : 
+                                                'N/A'
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* Charisma */}
+                            <CharismaDisplay charisma={currentUserData?.charisma} lang={lang} />
+                            
+                            {/* Stats */}
                             <div className="profile-stats">
-                                <div className="profile-stat"><div className="profile-stat-value">{userData.stats?.wins || 0}</div><div className="profile-stat-label">{t.wins}</div></div>
-                                <div className="profile-stat"><div className="profile-stat-value">{userData.stats?.losses || 0}</div><div className="profile-stat-label">{t.losses}</div></div>
-                                <div className="profile-stat"><div className="profile-stat-value">{calculateLevel(userData.stats?.xp || 0)}</div><div className="profile-stat-label">{t.level}</div></div>
+                                <div className="profile-stat"><div className="profile-stat-value">{currentUserData?.stats?.wins || 0}</div><div className="profile-stat-label">{t.wins}</div></div>
+                                <div className="profile-stat"><div className="profile-stat-value">{currentUserData?.stats?.losses || 0}</div><div className="profile-stat-label">{t.losses}</div></div>
+                                <div className="profile-stat"><div className="profile-stat-value">{calculateLevel(currentUserData?.stats?.xp || 0)}</div><div className="profile-stat-label">{t.level}</div></div>
                             </div>
-                            <KDCircle wins={userData.stats?.wins || 0} losses={userData.stats?.losses || 0} lang={lang} />
+                            
+                            <KDCircle wins={currentUserData?.stats?.wins || 0} losses={currentUserData?.stats?.losses || 0} lang={lang} />
+                            
+                            {/* Currency */}
                             <div className="flex items-center justify-center gap-2 mb-4 p-2 bg-yellow-500/10 rounded-lg">
                                 <span className="text-2xl">🧠</span>
-                                <span className="text-lg font-bold text-yellow-400">{userData.currency || 0} {CURRENCY_NAME}</span>
+                                <span className="text-lg font-bold text-yellow-400">{(currentUserData?.currency || 0).toLocaleString()} {CURRENCY_NAME}</span>
                             </div>
                         </div>
+                        
                         <div className="modal-footer">
-                            <div className="flex gap-2">
-                                <button onClick={() => { setShowMyAccount(false); setShowShop(true); }} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {t.shop}</button>
-                                <button onClick={handleLogout} className="btn-danger flex-1 py-2 rounded-lg text-sm">{t.logout}</button>
-                            </div>
+                            {isLoggedIn && (
+                                <div className="flex gap-2 mb-2">
+                                    <button onClick={() => { setShowMyAccount(false); setShowShop(true); }} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {t.shop}</button>
+                                    <button onClick={() => { setShowMyAccount(false); setShowInventory(true); }} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">📦 {t.inventory}</button>
+                                </div>
+                            )}
+                            
+                            {isLoggedIn ? (
+                                <button onClick={handleLogout} className="btn-danger w-full py-2 rounded-lg text-sm">{t.logout}</button>
+                            ) : isGuest ? (
+                                <div className="flex gap-2">
+                                    <button onClick={handleLogout} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.logout}</button>
+                                    <button onClick={() => { setShowMyAccount(false); handleGoogleLogin(); }} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.loginGoogle}</button>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 </div>
+            )}
+            
+            {/* User Profile Modal */}
+            {showUserProfile && (
+                <UserProfileModal 
+                    show={showUserProfile} 
+                    onClose={() => setShowUserProfile(false)} 
+                    targetUID={targetProfileUID} 
+                    lang={lang}
+                    currentUserUID={currentUID}
+                    onSendFriendRequest={handleSendRequest}
+                    onSendGift={handleSendGiftToUser}
+                    userData={currentUserData}
+                />
             )}
             
             {/* Browse Rooms Modal */}
@@ -1515,21 +2251,9 @@ function App() {
                 </div>
             )}
             
-            {/* User Profile Modal */}
-            {showUserProfile && targetProfileUID && (
-                <div className="modal-overlay" onClick={() => setShowUserProfile(false)}>
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><h2 className="modal-title">{t.profile}</h2><ModalCloseBtn onClose={() => setShowUserProfile(false)} /></div>
-                        <div className="modal-body text-center">
-                            <p className="text-gray-400 py-8">{t.loading}</p>
-                        </div>
-                    </div>
-                </div>
-            )}
-            
             {/* Private Chat Modal */}
             {showPrivateChat && chatFriend && user && (
-                <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={userData} user={user} lang={lang} />
+                <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={currentUserData} user={user} lang={lang} />
             )}
             
             {/* Alert Modal */}
@@ -1585,27 +2309,34 @@ function App() {
                     {/* User Menu */}
                     <div className="relative">
                         <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-1 bg-white/5 rounded-lg px-2 py-1">
-                            {isLoggedIn ? (
+                            {isLoggedIn || isGuest ? (
                                 <>
-                                    <AvatarWithFrame photoURL={userData?.photoURL} equipped={userData?.equipped} size="sm" />
-                                    <span className="text-[10px] text-gray-300 max-w-[60px] truncate">{userData?.displayName}</span>
+                                    <AvatarWithFrame photoURL={currentUserData?.photoURL} equipped={currentUserData?.equipped} size="sm" />
+                                    <span className="text-[10px] text-gray-300 max-w-[60px] truncate">{currentUserData?.displayName}</span>
                                 </>
                             ) : (
                                 <span className="text-xs px-2 py-1">{t.loginGoogle}</span>
                             )}
                         </button>
                         
-                        {/* Dropdown Menu - FIXED */}
+                        {/* Dropdown Menu */}
                         {showDropdown && (
                             <div className="dropdown-menu glass-panel rounded-lg p-1 min-w-[160px]">
-                                {isLoggedIn ? (
+                                {isLoggedIn || isGuest ? (
                                     <>
                                         <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2">
                                             <span>👤</span> {t.myAccount}
                                         </button>
-                                        <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2">
-                                            <span>🛒</span> {t.shop}
-                                        </button>
+                                        {isLoggedIn && (
+                                            <>
+                                                <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2">
+                                                    <span>🛒</span> {t.shop}
+                                                </button>
+                                                <button onClick={() => { setShowInventory(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2">
+                                                    <span>📦</span> {t.inventory}
+                                                </button>
+                                            </>
+                                        )}
                                         <button onClick={() => { handleLogout(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400">
                                             <span>🚪</span> {t.logout}
                                         </button>
@@ -1637,15 +2368,38 @@ function App() {
                         <div className="glass-panel rounded-xl p-4 flex-1">
                             <div className="space-y-3">
                                 <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className="input-dark w-full p-3 rounded-lg font-bold" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} /></div>
+                                
                                 <div className="flex gap-2">
                                     <button onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()} className="btn-neon flex-1 py-3 rounded-lg font-bold text-sm">{t.create}</button>
                                     <button onClick={() => setShowBrowseRooms(true)} className="btn-ghost px-4 py-3 rounded-lg text-sm">{t.browse}</button>
                                 </div>
+                                
                                 <div className="flex items-center gap-2">
                                     <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase tracking-wider" value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder={t.codePlaceholder} maxLength={6} />
                                     <button onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()} className="btn-neon px-4 py-3 rounded-lg font-bold text-sm">{loading ? '...' : t.join}</button>
                                 </div>
+                                
                                 {joinError && <p className="text-xs text-red-400 text-center">{joinError}</p>}
+                                
+                                {/* Guest Banner / Play as Guest Button */}
+                                {isNotLoggedIn && !user && (
+                                    <div className="mt-4 pt-4 border-t border-white/10">
+                                        {isGuest ? (
+                                            <GuestBanner lang={lang} />
+                                        ) : (
+                                            <div className="text-center">
+                                                <p className="text-xs text-gray-400 mb-2">{t.or}</p>
+                                                <button 
+                                                    onClick={handlePlayAsGuest} 
+                                                    disabled={loading || !nickname.trim()}
+                                                    className="btn-ghost w-full py-2 rounded-lg text-sm"
+                                                >
+                                                    {loading ? t.loading : t.playAsGuest}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
