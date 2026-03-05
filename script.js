@@ -208,7 +208,7 @@ const getChatId = (id1, id2) => [id1, id2].sort().join('_');
 const formatTime = (timestamp) => { if (!timestamp) return ''; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
 const formatDate = (timestamp) => { if (!timestamp) return 'N/A'; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleDateString() + ' ' + date.toLocaleTimeString(); };
 const formatDuration = (ms) => { const totalSeconds = Math.floor(ms / 1000); const minutes = Math.floor(totalSeconds / 60); const seconds = totalSeconds % 60; return `${minutes}m ${seconds}s`; };
-const formatCharisma = (num) => { if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
+const formatCharisma = (num) => { if (num === undefined || num === null) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
 
 // --- Email Masking Function ---
 const maskEmail = (email) => {
@@ -665,18 +665,40 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     const [showFriendSelect, setShowFriendSelect] = useState(false);
     const [selectedFriend, setSelectedFriend] = useState(null);
     
+    // Check if this is actually a gift item
+    const isGiftItem = gift?.type === 'gifts';
+    
     useEffect(() => {
-        if (gift && show) {
+        if (gift && show && isGiftItem) {
             const minBack = gift.minCashback || 1;
             const maxBack = gift.maxCashback || Math.floor(gift.cost * 0.1);
             const sample = generateRandomCashback(minBack, maxBack);
             setPreviewCashback(sample);
         }
-    }, [gift, show]);
+    }, [gift, show, isGiftItem]);
     
     if(!show || !gift) return null; 
     
     const renderGiftIcon = () => {
+        if (gift.type === 'frames') {
+            if (gift.preview && gift.preview.startsWith('http')) {
+                return <img src={gift.preview} alt={gift.name_en} className="w-20 h-20 rounded-full object-cover mx-auto" />;
+            }
+            return <div className="w-20 h-20 rounded-full mx-auto" style={{ background: gift.preview }}></div>;
+        }
+        if (gift.type === 'badges') {
+            if (gift.imageUrl && gift.imageUrl.trim() !== '') {
+                return <img src={gift.imageUrl} alt={gift.name_en} className="w-16 h-16 object-contain mx-auto" />;
+            }
+            return <div className="text-6xl mb-3">{gift.preview}</div>;
+        }
+        if (gift.type === 'titles') {
+            if (gift.imageUrl && gift.imageUrl.trim() !== '') {
+                return <img src={gift.imageUrl} alt={gift.name_en} className="h-10 object-contain mx-auto" />;
+            }
+            return <div className="text-4xl mb-3">{gift.preview}</div>;
+        }
+        // Gift type
         if (gift.imageUrl && gift.imageUrl.trim() !== '') {
             return <img src={gift.imageUrl} alt={gift.name_en} className="w-16 h-16 object-contain mx-auto" />;
         }
@@ -694,31 +716,37 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
         <div className="modal-overlay" onClick={onClose}> 
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px' }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">{t.giftPreview}</h2>
+                    <h2 className="modal-title">{isGiftItem ? t.giftPreview : (lang === 'ar' ? gift.name_ar : gift.name_en)}</h2>
                     <ModalCloseBtn onClose={onClose} />
                 </div>
                 <div className="modal-body text-center">
                     {renderGiftIcon()}
                     <h3 className="text-lg font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3> 
-                    <p className="text-xs text-gray-400 mb-4">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p>
+                    {isGiftItem && (gift.desc_ar || gift.desc_en) && (
+                        <p className="text-xs text-gray-400 mb-4">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p>
+                    )}
                     
-                    {/* Gift Details */}
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
-                            <div className="text-[10px] text-gray-400">{t.giftCharisma}</div>
-                            <div className="text-xl font-bold text-purple-400">+{formatCharisma(gift.charisma)}</div>
-                        </div>
-                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                            <div className="text-[10px] text-gray-400">{t.giftCashbackRange}</div>
-                            <div className="text-sm font-bold text-green-400">{gift.minCashback || 1} - {gift.maxCashback || gift.cost}</div>
-                        </div>
-                    </div>
-                    
-                    {!isFromInventory && (
-                        <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg p-2 mb-3">
-                            <div className="text-[10px] text-gray-400">{t.luckBonus}</div>
-                            <div className="text-xl font-bold text-yellow-400 animate-pulse">+{previewCashback?.toLocaleString() || 0} 🧠</div>
-                        </div>
+                    {/* Gift Details - Only for gifts */}
+                    {isGiftItem && (
+                        <>
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
+                                    <div className="text-[10px] text-gray-400">{t.giftCharisma}</div>
+                                    <div className="text-xl font-bold text-purple-400">+{formatCharisma(gift.charisma)}</div>
+                                </div>
+                                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                                    <div className="text-[10px] text-gray-400">{t.giftCashbackRange}</div>
+                                    <div className="text-sm font-bold text-green-400">{gift.minCashback || 1} - {gift.maxCashback || gift.cost}</div>
+                                </div>
+                            </div>
+                            
+                            {!isFromInventory && (
+                                <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg p-2 mb-3">
+                                    <div className="text-[10px] text-gray-400">{t.luckBonus}</div>
+                                    <div className="text-xl font-bold text-yellow-400 animate-pulse">+{previewCashback?.toLocaleString() || 0} 🧠</div>
+                                </div>
+                            )}
+                        </>
                     )}
                     
                     {showFriendSelect && friendsData && (
@@ -760,13 +788,14 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
 };
 
 // ==========================================
-// PRIVATE CHAT MODAL - IMPROVED WITH EMOJI
+// PRIVATE CHAT MODAL - IMPROVED WITH EMOJI & GIFTS
 // ==========================================
-const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSendNotification }) => {
+const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSendNotification, onSendGift, currency }) => {
     const t = TRANSLATIONS[lang];
     const [messages, setMessages] = useState([]);
     const [newMsg, setNewMsg] = useState('');
     const [sending, setSending] = useState(false);
+    const [showGiftModal, setShowGiftModal] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
     
@@ -807,6 +836,34 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
         setSending(false);
     };
     
+    const handleSendGiftToChat = async (gift, targetUser) => {
+        if (!onSendGift) return;
+        await onSendGift(gift, targetUser);
+        // Send gift message to chat
+        const giftMsgData = { 
+            senderId: user.uid, 
+            senderName: currentUser?.displayName || 'User', 
+            senderPhoto: currentUser?.photoURL || null, 
+            type: 'gift',
+            giftId: gift.id,
+            giftName: lang === 'ar' ? gift.name_ar : gift.name_en,
+            giftEmoji: gift.emoji,
+            giftCharisma: gift.charisma,
+            text: `🎁 ${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji} ${lang === 'ar' ? gift.name_ar : gift.name_en}`,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+        };
+        try {
+            await chatsCollection.doc(chatId).collection('messages').add(giftMsgData);
+            await chatsCollection.doc(chatId).set({ 
+                members: [user.uid, friend.uid], 
+                lastMessage: `🎁 ${lang === 'ar' ? 'هدية' : 'Gift'}`, 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
+                [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) 
+            }, { merge: true });
+        } catch (e) { console.error('Gift message error:', e); }
+        setShowGiftModal(false);
+    };
+    
     const addEmoji = (emoji) => {
         setNewMsg(prev => prev + emoji);
         inputRef.current?.focus();
@@ -817,71 +874,106 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
     // Show limited emojis
     const displayEmojis = EMOJI_LIST.slice(0, 30);
     
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="chat-modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                {/* Chat Header */}
-                <div className="chat-header-bar">
-                    <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                    <div className="chat-header-info">
-                        <div className="chat-header-name">{friend.displayName}</div>
-                        <div className="chat-header-status">{t.online}</div>
+    const renderMessageContent = (msg) => {
+        if (msg.type === 'gift') {
+            return (
+                <div className="gift-message-content">
+                    <div className="gift-message-icon text-4xl">{msg.giftEmoji || '🎁'}</div>
+                    <div className="gift-message-name">{msg.giftName || 'Gift'}</div>
+                    <div className="gift-message-details">
+                        <span className="gift-charisma-badge">+{formatCharisma(msg.giftCharisma)} {lang === 'ar' ? 'كاريزما' : 'Charisma'}</span>
                     </div>
-                    <ModalCloseBtn onClose={onClose} />
                 </div>
-                
-                {/* Messages */}
-                <div className="chat-messages-container">
-                    {messages.length === 0 ? (
-                        <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div>
-                    ) : (
-                        messages.map(msg => {
-                            const isMine = msg.senderId === user?.uid;
-                            return (
-                                <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''}`}>
-                                    {!isMine && (
-                                        <AvatarWithFrame 
-                                            photoURL={msg.senderPhoto || friend.photoURL} 
-                                            equipped={friend.equipped} 
-                                            size="sm" 
-                                        />
-                                    )}
-                                    <div className="chat-message-content">
-                                        <div className="chat-message-sender">{isMine ? (currentUser?.displayName || 'You') : msg.senderName}</div>
-                                        <div className="chat-message-bubble">{msg.text}</div>
-                                        <div className="chat-message-time">{formatTime(msg.timestamp)}</div>
-                                    </div>
-                                </div>
-                            );
-                        })
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
-                
-                {/* Input Area with Emoji */}
-                <div className="chat-input-container">
-                    {/* Emoji Picker */}
-                    <div className="emoji-picker-container">
-                        {displayEmojis.map((emoji, i) => (
-                            <button key={i} className="emoji-picker-btn" onClick={() => addEmoji(emoji)}>{emoji}</button>
-                        ))}
+            );
+        }
+        return <div className="chat-message-bubble">{msg.text}</div>;
+    };
+    
+    return (
+        <>
+            <div className="modal-overlay" onClick={onClose}>
+                <div className="chat-modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                    {/* Chat Header */}
+                    <div className="chat-header-bar">
+                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                        <div className="chat-header-info">
+                            <div className="chat-header-name">{friend.displayName}</div>
+                            <div className="chat-header-status">{t.online}</div>
+                        </div>
+                        {/* Gift Button */}
+                        <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" title={t.sendGift}>
+                            🎁
+                        </button>
+                        <ModalCloseBtn onClose={onClose} />
                     </div>
                     
-                    <div className="chat-input-row">
-                        <input 
-                            ref={inputRef}
-                            type="text" 
-                            className="chat-input" 
-                            placeholder={t.typeMessage} 
-                            value={newMsg} 
-                            onChange={e => setNewMsg(e.target.value)} 
-                            onKeyPress={e => e.key === 'Enter' && handleSend()} 
-                        />
-                        <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
+                    {/* Messages */}
+                    <div className="chat-messages-container">
+                        {messages.length === 0 ? (
+                            <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div>
+                        ) : (
+                            messages.map(msg => {
+                                const isMine = msg.senderId === user?.uid;
+                                const isGift = msg.type === 'gift';
+                                return (
+                                    <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''} ${isGift ? 'gift-message' : ''}`}>
+                                        {!isMine && (
+                                            <AvatarWithFrame 
+                                                photoURL={msg.senderPhoto || friend.photoURL} 
+                                                equipped={friend.equipped} 
+                                                size="sm" 
+                                            />
+                                        )}
+                                        <div className="chat-message-content">
+                                            <div className="chat-message-sender">{isMine ? (currentUser?.displayName || 'You') : msg.senderName}</div>
+                                            {renderMessageContent(msg)}
+                                            <div className="chat-message-time">{formatTime(msg.timestamp)}</div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
+                    
+                    {/* Input Area with Emoji */}
+                    <div className="chat-input-container">
+                        {/* Emoji Picker */}
+                        <div className="emoji-picker-container">
+                            {displayEmojis.map((emoji, i) => (
+                                <button key={i} className="emoji-picker-btn" onClick={() => addEmoji(emoji)}>{emoji}</button>
+                            ))}
+                        </div>
+                        
+                        <div className="chat-input-row">
+                            <input 
+                                ref={inputRef}
+                                type="text" 
+                                className="chat-input" 
+                                placeholder={t.typeMessage} 
+                                value={newMsg} 
+                                onChange={e => setNewMsg(e.target.value)} 
+                                onKeyPress={e => e.key === 'Enter' && handleSend()} 
+                            />
+                            <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+            
+            {/* Gift Modal */}
+            {showGiftModal && (
+                <SendGiftModal 
+                    show={showGiftModal} 
+                    onClose={() => setShowGiftModal(false)} 
+                    targetUser={friend} 
+                    currentUser={currentUser} 
+                    lang={lang} 
+                    onSendGift={handleSendGiftToChat} 
+                    currency={currency || 0} 
+                />
+            )}
+        </>
     );
 };
 
@@ -1164,9 +1256,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                 <div key={item.id} className="inventory-item">
                                                     <div className="inventory-item-preview">{renderPreview(item)}</div>
                                                     <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
-                                                    {isLoggedIn && friendsData && friendsData.length > 0 && (
-                                                        <button onClick={() => { setSelectedGift(item); setShowGiftPreview(true); }} className="btn-gold w-full text-xs py-1 rounded mt-1">{t.sendGiftToFriend}</button>
-                                                    )}
+                                                    <button onClick={() => { setSelectedGift(item); setShowGiftPreview(true); }} className="btn-gold w-full text-xs py-1 rounded mt-1">{t.sendGiftToFriend}</button>
                                                 </div>
                                             );
                                         }
@@ -1210,15 +1300,17 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
 // ==========================================
 // USER PROFILE MODAL - IMPROVED
 // ==========================================
-const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSendFriendRequest, onSendGift, userData }) => {
+const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSendFriendRequest, onSendGift, userData, currentUserFriends, currentUserFriendRequests }) => {
     const t = TRANSLATIONS[lang];
     const [targetData, setTargetData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showGiftModal, setShowGiftModal] = useState(false);
+    const [requestSent, setRequestSent] = useState(false);
     
     useEffect(() => {
         if (!show || !targetUID) { setLoading(true); return; }
         setLoading(true);
+        setRequestSent(false);
         
         usersCollection.doc(targetUID).get().then(doc => {
             if (doc.exists) {
@@ -1239,6 +1331,38 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     
     const isOwnProfile = targetUID === currentUserUID;
     const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
+    
+    // Check friend status
+    const isAlreadyFriend = currentUserFriends?.includes(targetUID);
+    const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
+    
+    const handleAddFriend = async () => {
+        if (isAlreadyFriend || hasPendingRequest) return;
+        await onSendFriendRequest(targetUID);
+        setRequestSent(true);
+    };
+    
+    const getFriendButton = () => {
+        if (isAlreadyFriend) {
+            return (
+                <button disabled className="btn-success flex-1 py-2 rounded-lg text-sm opacity-80">
+                    ✅ {lang === 'ar' ? 'أصدقاء بالفعل' : 'Already Friends'}
+                </button>
+            );
+        }
+        if (hasPendingRequest) {
+            return (
+                <button disabled className="btn-ghost flex-1 py-2 rounded-lg text-sm opacity-80">
+                    ⏳ {lang === 'ar' ? 'تم إرسال الطلب' : 'Request Sent'}
+                </button>
+            );
+        }
+        return (
+            <button onClick={handleAddFriend} className="btn-neon flex-1 py-2 rounded-lg text-sm">
+                👥 {t.addFriend}
+            </button>
+        );
+    };
     
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -1303,7 +1427,7 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                             
                             {!isOwnProfile && !isTargetGuest && (
                                 <div className="flex gap-2 mt-4">
-                                    <button onClick={() => onSendFriendRequest(targetUID)} className="btn-neon flex-1 py-2 rounded-lg text-sm">👥 {t.addFriend}</button>
+                                    {getFriendButton()}
                                     <button onClick={() => setShowGiftModal(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm">🎁 {t.sendGift}</button>
                                 </div>
                             )}
@@ -1450,78 +1574,48 @@ function App() {
     useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && isLoggedIn) setShowTutorial(true); }, [isLoggedIn]);
     useEffect(() => { if (!user || isGuest) return; const interval = setInterval(() => { usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 60000); return () => clearInterval(interval); }, [user, isGuest]);
 
-    // Notifications Listener with Sound
+    // Notifications Listener with Sound (Works without index)
     useEffect(() => {
         if (!user || !isLoggedIn) return;
         
         let previousCount = -1; // Start with -1 to detect first load
         
-        // First try with orderBy (requires index)
-        const setupListener = async () => {
-            try {
-                const unsub = notificationsCollection
-                    .where('toUserId', '==', user.uid)
-                    .orderBy('timestamp', 'desc')
-                    .limit(50)
-                    .onSnapshot(
-                        snap => {
-                            let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                            const newUnread = notifs.filter(n => !n.read).length;
-                            
-                            // Play sound if new notification arrived (not on first load)
-                            if (previousCount !== -1 && newUnread > previousCount) {
-                                playNotificationSound();
-                                // Ring the bell
-                                if (notificationBellRef.current) {
-                                    notificationBellRef.current.classList.add('ringing');
-                                    setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500);
-                                }
-                            }
-                            
-                            previousCount = newUnread;
-                            setNotifications(notifs);
-                            setUnreadNotifications(newUnread);
-                        },
-                        error => {
-                            console.error('Notifications listener error:', error);
-                        }
-                    );
-                return unsub;
-            } catch (e) {
-                console.log('Trying notifications without orderBy...');
-                // Fallback without orderBy
-                return notificationsCollection
-                    .where('toUserId', '==', user.uid)
-                    .limit(50)
-                    .onSnapshot(snap => {
-                        let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        // Sort manually
-                        notifs.sort((a, b) => {
-                            const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
-                            const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
-                            return timeB - timeA;
-                        });
-                        const newUnread = notifs.filter(n => !n.read).length;
-                        
-                        if (previousCount !== -1 && newUnread > previousCount) {
-                            playNotificationSound();
-                            if (notificationBellRef.current) {
-                                notificationBellRef.current.classList.add('ringing');
-                                setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500);
-                            }
-                        }
-                        
-                        previousCount = newUnread;
-                        setNotifications(notifs);
-                        setUnreadNotifications(newUnread);
+        // Use simple query without orderBy to avoid index requirement
+        const unsub = notificationsCollection
+            .where('toUserId', '==', user.uid)
+            .limit(50)
+            .onSnapshot(
+                snap => {
+                    let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    // Sort manually by timestamp
+                    notifs.sort((a, b) => {
+                        const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
+                        const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
+                        return timeB - timeA;
                     });
-            }
-        };
+                    
+                    const newUnread = notifs.filter(n => !n.read).length;
+                    
+                    // Play sound if new notification arrived (not on first load)
+                    if (previousCount !== -1 && newUnread > previousCount) {
+                        playNotificationSound();
+                        // Ring the bell
+                        if (notificationBellRef.current) {
+                            notificationBellRef.current.classList.add('ringing');
+                            setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500);
+                        }
+                    }
+                    
+                    previousCount = newUnread;
+                    setNotifications(notifs);
+                    setUnreadNotifications(newUnread);
+                },
+                error => {
+                    console.error('Notifications listener error:', error);
+                }
+            );
         
-        let unsubscribe = null;
-        setupListener().then(unsub => { unsubscribe = unsub; });
-        
-        return () => { if (unsubscribe) unsubscribe(); };
+        return () => unsub();
     }, [user, isLoggedIn]);
 
     // Room Listener
@@ -1987,7 +2081,7 @@ function App() {
             )}
             
             {/* User Profile */}
-            {showUserProfile && <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} lang={lang} currentUserUID={currentUID} onSendFriendRequest={handleSendRequest} onSendGift={handleSendGiftToUser} userData={currentUserData} />}
+            {showUserProfile && <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} lang={lang} currentUserUID={currentUID} onSendFriendRequest={handleSendRequest} onSendGift={handleSendGiftToUser} userData={currentUserData} currentUserFriends={userData?.friends} currentUserFriendRequests={userData?.friendRequests} />}
             
             {/* Browse Rooms */}
             {showBrowseRooms && (
@@ -2000,7 +2094,7 @@ function App() {
             )}
             
             {/* Private Chat */}
-            {showPrivateChat && chatFriend && user && <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={currentUserData} user={user} lang={lang} onSendNotification={createNotification} />}
+            {showPrivateChat && chatFriend && user && <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={currentUserData} user={user} lang={lang} onSendNotification={createNotification} onSendGift={handleSendGiftToUser} currency={userData?.currency || 0} />}
             
             {/* Alert */}
             {alertMessage && ( 
