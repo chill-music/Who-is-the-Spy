@@ -38,40 +38,40 @@ const COLLECTIONS = {
 // =====================================================
 const SHOP_ITEMS = {
     frames: [
-        { id: 'frame_gold', name: 'Gold Frame', price: 500, icon: '🥇', imageUrl: null },
-        { id: 'frame_diamond', name: 'Diamond Frame', price: 1000, icon: '💎', imageUrl: null },
-        { id: 'frame_fire', name: 'Fire Frame', price: 750, icon: '🔥', imageUrl: null },
-        { id: 'frame_crown', name: 'Crown Frame', price: 1500, icon: '👑', imageUrl: null },
-        { id: 'frame_rainbow', name: 'Rainbow Frame', price: 800, icon: '🌈', imageUrl: null },
-        { id: 'frame_star', name: 'Star Frame', price: 600, icon: '⭐', imageUrl: null },
-        { id: 'frame_galaxy', name: 'Galaxy Frame', price: 2000, icon: '🌌', imageUrl: null },
-        { id: 'frame_neon', name: 'Neon Frame', price: 900, icon: '💫', imageUrl: null }
+        { id: 'frame_gold', name: 'Gold Frame', price: 500, icon: '🥇', imageUrl: '' },
+        { id: 'frame_diamond', name: 'Diamond Frame', price: 1000, icon: '💎', imageUrl: '' },
+        { id: 'frame_fire', name: 'Fire Frame', price: 750, icon: '🔥', imageUrl: '' },
+        { id: 'frame_crown', name: 'Crown Frame', price: 1500, icon: '👑', imageUrl: '' },
+        { id: 'frame_rainbow', name: 'Rainbow Frame', price: 800, icon: '🌈', imageUrl: '' },
+        { id: 'frame_star', name: 'Star Frame', price: 600, icon: '⭐', imageUrl: '' },
+        { id: 'frame_galaxy', name: 'Galaxy Frame', price: 2000, icon: '🌌', imageUrl: '' },
+        { id: 'frame_neon', name: 'Neon Frame', price: 900, icon: '💫', imageUrl: '' }
     ],
     titles: [
-        { id: 'title_spy_master', name: 'Spy Master', price: 300, icon: '🕵️' },
-        { id: 'title_detective', name: 'Detective', price: 400, icon: '🔍' },
-        { id: 'title_champion', name: 'Champion', price: 600, icon: '🏆' },
-        { id: 'title_legend', name: 'Legend', price: 1000, icon: '⭐' },
-        { id: 'title_ghost', name: 'Ghost', price: 500, icon: '👻' },
-        { id: 'title_wizard', name: 'Wizard', price: 700, icon: '🧙' }
+        { id: 'title_spy_master', name: 'Spy Master', price: 300, icon: '🕵️', imageUrl: '' },
+        { id: 'title_detective', name: 'Detective', price: 400, icon: '🔍', imageUrl: '' },
+        { id: 'title_champion', name: 'Champion', price: 600, icon: '🏆', imageUrl: '' },
+        { id: 'title_legend', name: 'Legend', price: 1000, icon: '⭐', imageUrl: '' },
+        { id: 'title_ghost', name: 'Ghost', price: 500, icon: '👻', imageUrl: '' },
+        { id: 'title_wizard', name: 'Wizard', price: 700, icon: '🧙', imageUrl: '' }
     ],
     badges: [
-        { id: 'badge_winner', name: 'Winner Badge', price: 200, iconType: 'emoji', icon: '🏅', imageUrl: null },
-        { id: 'badge_pro', name: 'Pro Badge', price: 350, iconType: 'emoji', icon: '💪', imageUrl: null },
-        { id: 'badge_vip', name: 'VIP Badge', price: 800, iconType: 'emoji', icon: '⭐', imageUrl: null },
-        { id: 'badge_spy', name: 'Spy Badge', price: 250, iconType: 'emoji', icon: '🕵️', imageUrl: null },
-        { id: 'badge_love', name: 'Love Badge', price: 150, iconType: 'emoji', icon: '❤️', imageUrl: null },
-        { id: 'badge_fire', name: 'Fire Badge', price: 400, iconType: 'emoji', icon: '🔥', imageUrl: null }
+        { id: 'badge_winner', name: 'Winner Badge', price: 200, iconType: 'emoji', icon: '🏅', imageUrl: '' },
+        { id: 'badge_pro', name: 'Pro Badge', price: 350, iconType: 'emoji', icon: '💪', imageUrl: '' },
+        { id: 'badge_vip', name: 'VIP Badge', price: 800, iconType: 'emoji', icon: '⭐', imageUrl: '' },
+        { id: 'badge_spy', name: 'Spy Badge', price: 250, iconType: 'emoji', icon: '🕵️', imageUrl: '' },
+        { id: 'badge_love', name: 'Love Badge', price: 150, iconType: 'emoji', icon: '❤️', imageUrl: '' },
+        { id: 'badge_fire', name: 'Fire Badge', price: 400, iconType: 'emoji', icon: '🔥', imageUrl: '' }
     ],
     gifts: [
-        { id: 'gift_rose', name: 'Rose', price: 100, icon: '🌹' },
-        { id: 'gift_heart', name: 'Heart', price: 150, icon: '💖' },
-        { id: 'gift_star', name: 'Star', price: 200, icon: '⭐' },
-        { id: 'gift_cake', name: 'Cake', price: 250, icon: '🎂' },
-        { id: 'gift_box', name: 'Gift Box', price: 300, icon: '🎁' },
-        { id: 'gift_crown', name: 'Crown', price: 500, icon: '👑' },
-        { id: 'gift_diamond', name: 'Diamond', price: 1000, icon: '💎' },
-        { id: 'gift_rocket', name: 'Rocket', price: 400, icon: '🚀' }
+        { id: 'gift_rose', name: 'Rose', price: 100, icon: '🌹', charisma: 10, imageUrl: '' },
+        { id: 'gift_heart', name: 'Heart', price: 150, icon: '💖', charisma: 15, imageUrl: '' },
+        { id: 'gift_star', name: 'Star', price: 200, icon: '⭐', charisma: 20, imageUrl: '' },
+        { id: 'gift_cake', name: 'Cake', price: 250, icon: '🎂', charisma: 25, imageUrl: '' },
+        { id: 'gift_box', name: 'Gift Box', price: 300, icon: '🎁', charisma: 30, imageUrl: '' },
+        { id: 'gift_crown', name: 'Crown', price: 500, icon: '👑', charisma: 50, imageUrl: '' },
+        { id: 'gift_diamond', name: 'Diamond', price: 1000, icon: '💎', charisma: 100, imageUrl: '' },
+        { id: 'gift_rocket', name: 'Rocket', price: 400, icon: '🚀', charisma: 40, imageUrl: '' }
     ]
 };
 
@@ -708,6 +708,8 @@ const Shop = ({ user, userData, onUpdateUser }) => {
                 giftId: selectedGift.id,
                 giftName: selectedGift.name,
                 giftIcon: selectedGift.icon,
+                charisma: selectedGift.charisma || 0,
+                imageUrl: selectedGift.imageUrl || '',
                 fromId: user.uid,
                 fromName: userData.displayName,
                 toId: friend.id,
@@ -716,12 +718,16 @@ const Shop = ({ user, userData, onUpdateUser }) => {
                 read: false
             });
 
-            // Notify recipient
+            // Add charisma to recipient
+            const recipientDoc = await db.collection(COLLECTIONS.users).doc(friend.id).get();
+            const currentCharisma = recipientDoc.data()?.charisma || 0;
             await db.collection(COLLECTIONS.users).doc(friend.id).update({
+                charisma: currentCharisma + (selectedGift.charisma || 0),
                 notifications: firebase.firestore.FieldValue.arrayUnion({
                     type: 'gift',
                     from: userData.displayName,
                     gift: selectedGift.name,
+                    charisma: selectedGift.charisma || 0,
                     timestamp: Date.now()
                 })
             });
@@ -730,7 +736,7 @@ const Shop = ({ user, userData, onUpdateUser }) => {
             setSelectedGift(null);
             setFriendSearch('');
             setSearchResults([]);
-            alert(`Gift sent to ${friend.displayName}!`);
+            alert(`Gift sent to ${friend.displayName}! They received +${selectedGift.charisma || 0} Charisma!`);
         } catch (error) {
             console.error('Send gift error:', error);
             alert('Failed to send gift');
@@ -743,6 +749,22 @@ const Shop = ({ user, userData, onUpdateUser }) => {
         const isEquipped = category === 'badges' ? 
             equipped.badges?.some(b => b.id === item.id) : 
             equipped[category]?.id === item.id;
+
+        // Show image if imageUrl exists, otherwise show icon
+        const displayIcon = item.imageUrl && item.imageUrl.trim() !== '' ? 
+            React.createElement('img', {
+                src: item.imageUrl,
+                alt: item.name,
+                style: {
+                    width: '48px',
+                    height: '48px',
+                    objectFit: 'contain',
+                    borderRadius: '8px'
+                }
+            }) :
+            React.createElement('span', { 
+                style: { fontSize: '36px' } 
+            }, item.icon);
 
         return React.createElement('div', {
             key: item.id,
@@ -760,10 +782,7 @@ const Shop = ({ user, userData, onUpdateUser }) => {
                 border: isEquipped ? '2px solid rgba(102, 126, 234, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)'
             }
         }, [
-            React.createElement('span', { 
-                key: 'icon', 
-                style: { fontSize: '36px' } 
-            }, item.icon),
+            displayIcon,
 
             React.createElement('span', { 
                 key: 'name', 
@@ -798,7 +817,8 @@ const Shop = ({ user, userData, onUpdateUser }) => {
                     color: 'white',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    opacity: (!isOwned && coins < item.price) ? 0.5 : 1
+                    opacity: (!isOwned && coins < item.price) ? 0.5 : 1,
+                    width: '100%'
                 }
             }, isEquipped ? 'Unequip' : isOwned ? 'Equip' : 'Buy')
         ]);
@@ -951,9 +971,25 @@ const Shop = ({ user, userData, onUpdateUser }) => {
         }, SHOP_ITEMS[activeTab].map(item => {
             if (activeTab === 'gifts') {
                 const isSelected = selectedGift?.id === item.id;
+                
+                // Show image if imageUrl exists, otherwise show icon
+                const displayIcon = item.imageUrl && item.imageUrl.trim() !== '' ? 
+                    React.createElement('img', {
+                        src: item.imageUrl,
+                        alt: item.name,
+                        style: {
+                            width: '48px',
+                            height: '48px',
+                            objectFit: 'contain',
+                            borderRadius: '8px'
+                        }
+                    }) :
+                    React.createElement('span', { 
+                        style: { fontSize: '36px' } 
+                    }, item.icon);
+
                 return React.createElement('div', {
                     key: item.id,
-                    onClick: () => setSelectedGift(isSelected ? null : item),
                     style: {
                         background: isSelected ? 
                             'linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%)' :
@@ -964,14 +1000,10 @@ const Shop = ({ user, userData, onUpdateUser }) => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: '8px',
-                        cursor: 'pointer',
                         border: isSelected ? '2px solid rgba(102, 126, 234, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)'
                     }
                 }, [
-                    React.createElement('span', { 
-                        key: 'icon', 
-                        style: { fontSize: '36px' } 
-                    }, item.icon),
+                    displayIcon,
                     React.createElement('span', { 
                         key: 'name', 
                         style: { fontWeight: 'bold', textAlign: 'center' } 
@@ -982,7 +1014,32 @@ const Shop = ({ user, userData, onUpdateUser }) => {
                     }, [
                         React.createElement('span', { key: 'coin' }, '🪙'),
                         React.createElement('span', { key: 'amount' }, item.price)
-                    ])
+                    ]),
+                    React.createElement('div', {
+                        key: 'charisma',
+                        style: { display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }
+                    }, [
+                        React.createElement('span', { key: 'icon' }, '✨'),
+                        React.createElement('span', { key: 'amount' }, `+${item.charisma} Charisma`)
+                    ]),
+                    React.createElement('button', {
+                        key: 'select-btn',
+                        onClick: () => setSelectedGift(isSelected ? null : item),
+                        disabled: coins < item.price,
+                        style: {
+                            background: isSelected ? 
+                                'linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)' :
+                                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            border: 'none',
+                            padding: '10px 20px',
+                            borderRadius: '8px',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            opacity: coins < item.price ? 0.5 : 1,
+                            width: '100%'
+                        }
+                    }, isSelected ? 'Deselect' : 'Select')
                 ]);
             }
             return renderItem(item, activeTab);
@@ -1513,6 +1570,149 @@ const Friends = ({ user, userData }) => {
                     ])
                 ])
         )
+    ]);
+};
+
+// =====================================================
+// PROFILE COMPONENT
+// =====================================================
+const Profile = ({ user, userData, onClose }) => {
+    const equipped = userData?.equipped || { frame: null, title: null, badges: [] };
+    const badges = equipped.badges || [];
+
+    return React.createElement('div', {
+        className: 'profile-container',
+        style: { padding: '16px' }
+    }, [
+        // Avatar with Frame
+        React.createElement('div', {
+            key: 'avatar-section',
+            style: {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                marginBottom: '24px'
+            }
+        }, [
+            React.createElement(AvatarFrame, {
+                key: 'avatar',
+                photoURL: userData?.photoURL,
+                frame: equipped.frame,
+                size: 120
+            }),
+            
+            // Title
+            equipped.title && React.createElement('div', {
+                key: 'title',
+                style: {
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    padding: '6px 16px',
+                    borderRadius: '16px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    marginTop: '12px'
+                }
+            }, `${equipped.title.icon} ${equipped.title.name}`),
+
+            // Badges
+            badges.length > 0 && React.createElement('div', {
+                key: 'badges',
+                style: { marginTop: '12px' }
+            }, React.createElement(BadgeDisplay, { badges, size: 28 }))
+        ]),
+
+        // User Name
+        React.createElement('div', {
+            key: 'name',
+            style: {
+                textAlign: 'center',
+                marginBottom: '24px'
+            }
+        }, [
+            React.createElement('h2', {
+                key: 'display-name',
+                style: { fontSize: '28px', marginBottom: '8px' }
+            }, userData?.displayName || 'Player'),
+            React.createElement('p', {
+                key: 'id',
+                style: { opacity: 0.6, fontSize: '14px' }
+            }, `ID: ${user?.uid || 'N/A'}`)
+        ]),
+
+        // Stats
+        React.createElement('div', {
+            key: 'stats',
+            style: {
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '12px',
+                marginBottom: '24px'
+            }
+        }, [
+            React.createElement('div', {
+                key: 'coins',
+                style: {
+                    background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 165, 0, 0.2) 100%)',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    textAlign: 'center',
+                    border: '1px solid rgba(255, 215, 0, 0.3)'
+                }
+            }, [
+                React.createElement('div', { key: 'icon', style: { fontSize: '32px' } }, '🪙'),
+                React.createElement('div', { key: 'label', style: { opacity: 0.7, fontSize: '14px' } }, 'Coins'),
+                React.createElement('div', { key: 'value', style: { fontWeight: 'bold', fontSize: '24px' } }, 
+                    (userData?.coins || 0).toLocaleString())
+            ]),
+
+            React.createElement('div', {
+                key: 'charisma',
+                style: {
+                    background: 'linear-gradient(135deg, rgba(138, 43, 226, 0.2) 0%, rgba(75, 0, 130, 0.2) 100%)',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    textAlign: 'center',
+                    border: '1px solid rgba(138, 43, 226, 0.3)'
+                }
+            }, [
+                React.createElement('div', { key: 'icon', style: { fontSize: '32px' } }, '✨'),
+                React.createElement('div', { key: 'label', style: { opacity: 0.7, fontSize: '14px' } }, 'Charisma'),
+                React.createElement('div', { key: 'value', style: { fontWeight: 'bold', fontSize: '24px' } }, 
+                    (userData?.charisma || 0).toLocaleString())
+            ])
+        ]),
+
+        // Inventory Summary
+        React.createElement('div', {
+            key: 'inventory',
+            style: {
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '16px'
+            }
+        }, [
+            React.createElement('h3', {
+                key: 'title',
+                style: { marginBottom: '12px', fontSize: '18px' }
+            }, '📦 Inventory'),
+            React.createElement('div', {
+                key: 'items',
+                style: { display: 'flex', flexWrap: 'wrap', gap: '8px' }
+            }, [
+                React.createElement('span', { 
+                    key: 'frames',
+                    style: { background: 'rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: '8px' }
+                }, `🖼️ ${(userData?.inventory?.frames || []).length} Frames`),
+                React.createElement('span', { 
+                    key: 'titles',
+                    style: { background: 'rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: '8px' }
+                }, `🏷️ ${(userData?.inventory?.titles || []).length} Titles`),
+                React.createElement('span', { 
+                    key: 'badges',
+                    style: { background: 'rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: '8px' }
+                }, `🏅 ${(userData?.inventory?.badges || []).length} Badges`)
+            ])
+        ])
     ]);
 };
 
@@ -2195,15 +2395,34 @@ const MainMenu = ({ user, userData, isGuest, guestData, onCreateGuest, onJoinRoo
                 ])
             ]),
 
-            // Currency for registered users
+            // Currency and Charisma for registered users
             !isGuest && React.createElement('div', {
-                key: 'currency',
+                key: 'stats',
                 style: {
                     display: 'flex',
                     justifyContent: 'center',
+                    gap: '16px',
                     marginTop: '16px'
                 }
-            }, React.createElement(CurrencyDisplay, { coins: userData?.coins }))
+            }, [
+                React.createElement(CurrencyDisplay, { key: 'coins', coins: userData?.coins }),
+                React.createElement('div', {
+                    key: 'charisma',
+                    style: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: 'linear-gradient(135deg, rgba(138, 43, 226, 0.2) 0%, rgba(75, 0, 130, 0.2) 100%)',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        border: '1px solid rgba(138, 43, 226, 0.3)'
+                    }
+                }, [
+                    React.createElement('span', { key: 'icon', style: { fontSize: '20px' } }, '✨'),
+                    React.createElement('span', { key: 'amount', style: { fontWeight: 'bold', fontSize: '18px' } }, 
+                        (userData?.charisma || 0).toLocaleString())
+                ])
+            ])
         ]),
 
         // Action Buttons
@@ -2311,6 +2530,7 @@ const App = () => {
     const [currentView, setCurrentView] = React.useState('menu');
     const [showShop, setShowShop] = React.useState(false);
     const [showFriends, setShowFriends] = React.useState(false);
+    const [showProfile, setShowProfile] = React.useState(false);
 
     // Auth Listener
     React.useEffect(() => {
@@ -2330,6 +2550,7 @@ const App = () => {
                         photoURL: firebaseUser.photoURL,
                         email: firebaseUser.email,
                         coins: 500, // Starting coins
+                        charisma: 0, // Charisma points
                         inventory: { frames: [], titles: [], badges: [], gifts: [] },
                         equipped: { frame: null, title: null, badges: [] },
                         friends: [],
@@ -2593,6 +2814,21 @@ const App = () => {
                 key: 'actions',
                 style: { display: 'flex', gap: '12px' }
             }, [
+                // Profile (only for registered users)
+                !isGuest && React.createElement('button', {
+                    key: 'profile',
+                    onClick: () => setShowProfile(true),
+                    style: {
+                        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%)',
+                        border: '1px solid rgba(102, 126, 234, 0.5)',
+                        padding: '10px 16px',
+                        borderRadius: '8px',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                    }
+                }, '👤 Profile'),
+
                 // Shop (only for registered users)
                 !isGuest && React.createElement('button', {
                     key: 'shop',
@@ -2671,6 +2907,18 @@ const App = () => {
         }, React.createElement(Friends, {
             user,
             userData
+        })),
+
+        // Profile Modal
+        React.createElement(Modal, {
+            key: 'profile-modal',
+            isOpen: showProfile,
+            onClose: () => setShowProfile(false),
+            title: '👤 My Profile'
+        }, React.createElement(Profile, {
+            user,
+            userData,
+            onClose: () => setShowProfile(false)
         }))
     ]));
 };
