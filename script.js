@@ -24,7 +24,7 @@ const appId = 'pro_spy_v25_final_fix_complete';
 // COLLECTIONS - SEPARATE GUEST COLLECTION
 // ==========================================
 const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
-const guestsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guests'); // NEW: Separate guests collection
+const guestsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guests');
 const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
 const chatsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('private_chats');
 const roomsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('rooms');
@@ -88,7 +88,7 @@ const getCharismaProgress = (charisma) => {
 const generateRandomCashback = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 // ==========================================
-// SHOP ITEMS - COMPLETE
+// SHOP ITEMS - COMPLETE WITH IMAGE URL SUPPORT
 // ==========================================
 const SHOP_ITEMS = {
     frames: [
@@ -99,23 +99,25 @@ const SHOP_ITEMS = {
         { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #8b00ff)' },
         { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)' },
     ],
+    // Titles with imageUrl support - YOU CAN ADD imageUrl FOR EACH TITLE
     titles: [
-        { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles', preview: '🕵️' },
-        { id: 'title_hunter', name_en: "Hunter", name_ar: "صياد", cost: 450, type: 'titles', preview: '🎯' },
-        { id: 'title_ghost', name_en: "Ghost", name_ar: "شبح", cost: 800, type: 'titles', preview: '👻' },
-        { id: 'title_legend', name_en: "Legend", name_ar: "أسطورة", cost: 1500, type: 'titles', preview: '👑' },
-        { id: 'title_pro', name_en: "Pro Player", name_ar: "محترف", cost: 1000, type: 'titles', preview: '⭐' },
-        { id: 'title_shadow', name_en: "Shadow", name_ar: "ظل", cost: 700, type: 'titles', preview: '🌑' },
+        { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles', preview: '🕵️', imageUrl: '' },
+        { id: 'title_hunter', name_en: "Hunter", name_ar: "صياد", cost: 450, type: 'titles', preview: '🎯', imageUrl: '' },
+        { id: 'title_ghost', name_en: "Ghost", name_ar: "شبح", cost: 800, type: 'titles', preview: '👻', imageUrl: '' },
+        { id: 'title_legend', name_en: "Legend", name_ar: "أسطورة", cost: 1500, type: 'titles', preview: '👑', imageUrl: '' },
+        { id: 'title_pro', name_en: "Pro Player", name_ar: "محترف", cost: 1000, type: 'titles', preview: '⭐', imageUrl: '' },
+        { id: 'title_shadow', name_en: "Shadow", name_ar: "ظل", cost: 700, type: 'titles', preview: '🌑', imageUrl: '' },
     ],
+    // Badges with imageUrl support - YOU CAN ADD imageUrl FOR EACH BADGE
     badges: [
-        { id: 'badge_vip', name_en: "VIP Badge", name_ar: "شارة VIP", cost: 1000, type: 'badges', preview: '⭐' },
-        { id: 'badge_love', name_en: "Love Badge", name_ar: "شارة حب", cost: 800, type: 'badges', preview: '💕' },
-        { id: 'badge_pro', name_en: "Pro Badge", name_ar: "شارة محترف", cost: 1500, type: 'badges', preview: '🏆' },
-        { id: 'badge_legend', name_en: "Legend Badge", name_ar: "شارة أسطورة", cost: 5000, type: 'badges', preview: '👑' },
-        { id: 'badge_star', name_en: "Star Badge", name_ar: "شارة نجم", cost: 2000, type: 'badges', preview: '🌟' },
-        { id: 'badge_fire', name_en: "Fire Badge", name_ar: "شارة نار", cost: 1200, type: 'badges', preview: '🔥' },
-        { id: 'badge_ice', name_en: "Ice Badge", name_ar: "شارة جليد", cost: 1200, type: 'badges', preview: '❄️' },
-        { id: 'badge_diamond', name_en: "Diamond Badge", name_ar: "شارة ماسة", cost: 3000, type: 'badges', preview: '💎' },
+        { id: 'badge_vip', name_en: "VIP Badge", name_ar: "شارة VIP", cost: 1000, type: 'badges', preview: '⭐', imageUrl: '' },
+        { id: 'badge_love', name_en: "Love Badge", name_ar: "شارة حب", cost: 800, type: 'badges', preview: '💕', imageUrl: '' },
+        { id: 'badge_pro', name_en: "Pro Badge", name_ar: "شارة محترف", cost: 1500, type: 'badges', preview: '🏆', imageUrl: '' },
+        { id: 'badge_legend', name_en: "Legend Badge", name_ar: "شارة أسطورة", cost: 5000, type: 'badges', preview: '👑', imageUrl: '' },
+        { id: 'badge_star', name_en: "Star Badge", name_ar: "شارة نجم", cost: 2000, type: 'badges', preview: '🌟', imageUrl: '' },
+        { id: 'badge_fire', name_en: "Fire Badge", name_ar: "شارة نار", cost: 1200, type: 'badges', preview: '🔥', imageUrl: '' },
+        { id: 'badge_ice', name_en: "Ice Badge", name_ar: "شارة جليد", cost: 1200, type: 'badges', preview: '❄️', imageUrl: '' },
+        { id: 'badge_diamond', name_en: "Diamond Badge", name_ar: "شارة ماسة", cost: 3000, type: 'badges', preview: '💎', imageUrl: '' },
     ],
     themes: [
         { id: 'theme_dark', name_en: "Midnight", name_ar: "منتصف الليل", cost: 200, type: 'themes' },
@@ -331,7 +333,7 @@ class ErrorBoundary extends React.Component {
 }
 
 // ==========================================
-// COMPONENTS - PART 1
+// COMPONENTS - PART 1 (Basic Components)
 // ==========================================
 
 // Guest Banner
@@ -339,8 +341,8 @@ const GuestBanner = ({ lang }) => {
     const t = TRANSLATIONS[lang]; 
     return ( 
         <div className="guest-banner"> 
-            <h3 className="text-sm font-bold text-yellow-400">{t.guestTitle}</h3> 
-            <p className="text-[10px] text-gray-400">{t.guestDesc}</p> 
+            <h3 className="guest-banner-title">{t.guestTitle}</h3> 
+            <p className="guest-banner-desc">{t.guestDesc}</p> 
         </div> 
     ); 
 };
@@ -434,13 +436,15 @@ const KDCircle = ({ wins, losses, lang }) => {
     ); 
 };
 
-// Avatar with Frame Component
+// ==========================================
+// AVATAR WITH FRAME - FIXED
+// ==========================================
 const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
     const sizeConfig = {
-        sm: { wrapper: 48, avatar: 36 },
-        md: { wrapper: 64, avatar: 48 },
-        lg: { wrapper: 96, avatar: 72 },
-        xl: { wrapper: 128, avatar: 96 }
+        sm: { wrapper: 48, avatar: 32, mask: 34 },
+        md: { wrapper: 64, avatar: 44, mask: 46 },
+        lg: { wrapper: 96, avatar: 68, mask: 70 },
+        xl: { wrapper: 128, avatar: 92, mask: 94 }
     };
     const config = sizeConfig[size] || sizeConfig.md;
     const frameStyle = equipped?.frames || null;
@@ -466,51 +470,79 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        zIndex: 2,
-        border: '2px solid rgba(0,0,0,0.3)'
-    };
-    
-    const frameContainerStyle = {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: config.wrapper + 'px',
-        height: config.wrapper + 'px',
-        borderRadius: '50%',
-        overflow: 'hidden',
-        zIndex: 1
+        zIndex: 10,
+        border: '2px solid rgba(0,0,0,0.5)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
     };
     
     const renderFrame = () => {
         if (!frameItem) return null;
         
-        const maskRadius = config.avatar / 2 + 2;
-        const maskStyle = {
-            WebkitMask: `radial-gradient(transparent ${maskRadius}px, black ${maskRadius + 4}px)`,
-            mask: `radial-gradient(transparent ${maskRadius}px, black ${maskRadius + 4}px)`
-        };
+        // Calculate the ring thickness
+        const ringThickness = (config.wrapper - config.avatar) / 2;
         
         if (frameItem.preview.startsWith('http')) {
+            // Custom image frame - use mask to create ring effect
             return (
-                <img 
-                    src={frameItem.preview} 
-                    style={{
-                        ...frameContainerStyle,
-                        ...maskStyle,
-                        objectFit: 'cover'
-                    }}
-                    alt="frame" 
-                />
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: config.wrapper + 'px',
+                    height: config.wrapper + 'px',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    zIndex: 1
+                }}>
+                    <img 
+                        src={frameItem.preview} 
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                        }}
+                        alt="frame" 
+                    />
+                    {/* Inner mask to create ring */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: config.mask + 'px',
+                        height: config.mask + 'px',
+                        borderRadius: '50%',
+                        background: 'var(--bg-dark)'
+                    }} />
+                </div>
             );
         } else {
+            // Gradient frame
             return (
                 <div 
                     style={{
-                        ...frameContainerStyle,
-                        ...maskStyle,
-                        background: frameItem.preview
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: config.wrapper + 'px',
+                        height: config.wrapper + 'px',
+                        borderRadius: '50%',
+                        background: frameItem.preview,
+                        zIndex: 1
                     }} 
-                />
+                >
+                    {/* Inner mask to create ring */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: config.mask + 'px',
+                        height: config.mask + 'px',
+                        borderRadius: '50%',
+                        background: 'var(--bg-dark)'
+                    }} />
+                </div>
             );
         }
     };
@@ -526,6 +558,59 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
         </div>
     );
 };
+
+// ==========================================
+// RENDER BADGE/TITLE WITH IMAGE SUPPORT
+// ==========================================
+const renderTitle = (titleId, lang) => {
+    const titleItem = SHOP_ITEMS.titles.find(t => t.id === titleId);
+    if (!titleItem) return null;
+    
+    const name = lang === 'ar' ? titleItem.name_ar : titleItem.name_en;
+    
+    // Check if imageUrl exists and is not empty
+    if (titleItem.imageUrl && titleItem.imageUrl.trim() !== '') {
+        return (
+            <div className="profile-title bg-gradient-to-r from-purple-500 to-pink-500">
+                <img src={titleItem.imageUrl} alt={name} className="profile-title-img" />
+                <span>{name}</span>
+            </div>
+        );
+    }
+    
+    // Fallback to emoji/icon
+    return (
+        <div className="profile-title bg-gradient-to-r from-purple-500 to-pink-500">
+            <span>{titleItem.preview}</span>
+            <span>{name}</span>
+        </div>
+    );
+};
+
+const renderBadge = (badgeId, size = 24) => {
+    const badgeItem = SHOP_ITEMS.badges.find(b => b.id === badgeId);
+    if (!badgeItem) return null;
+    
+    // Check if imageUrl exists and is not empty
+    if (badgeItem.imageUrl && badgeItem.imageUrl.trim() !== '') {
+        return (
+            <img 
+                src={badgeItem.imageUrl} 
+                alt={badgeItem.name_en} 
+                className="profile-badge-img"
+                style={{ width: size + 'px', height: size + 'px' }}
+            />
+        );
+    }
+    
+    // Fallback to emoji
+    return <span className="profile-badge" style={{ fontSize: size + 'px' }}>{badgeItem.preview}</span>;
+};
+
+// ==========================================
+// PRO SPY - COMPLETE SCRIPT - PART 2
+// Main Components + Improved Profile + Friends
+// ==========================================
 
 // Tutorial Modal
 const TutorialModal = ({ show, onClose, lang }) => {
@@ -740,7 +825,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang }) =>
 };
 
 // ==========================================
-// SHOP MODAL - COMPLETE IMPLEMENTATION
+// SHOP MODAL - WITH GIFTS TAB
 // ==========================================
 const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip }) => {
     const t = TRANSLATIONS[lang];
@@ -785,12 +870,27 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
             }
             return <div className="w-12 h-12 rounded-full" style={{ background: item.preview }}></div>;
         } else if (item.type === 'badges') {
+            // Check for imageUrl first
+            if (item.imageUrl && item.imageUrl.trim() !== '') {
+                return <img src={item.imageUrl} alt={item.name_en} className="w-10 h-10 object-contain" />;
+            }
             return <span className="text-3xl">{item.preview}</span>;
         } else if (item.type === 'titles') {
+            // Check for imageUrl first
+            if (item.imageUrl && item.imageUrl.trim() !== '') {
+                return <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" />;
+            }
             return <span className="text-2xl">{item.preview}</span>;
+        } else if (item.type === 'gifts') {
+            if (item.imageUrl && item.imageUrl.trim() !== '') {
+                return <img src={item.imageUrl} alt={item.name_en} className="w-10 h-10 object-contain" />;
+            }
+            return <span className="text-3xl">{item.emoji}</span>;
         }
         return <span className="text-2xl">🎨</span>;
     };
+    
+    const tabs = ['frames', 'titles', 'badges', 'gifts'];
     
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -805,12 +905,12 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                 
                 {/* Tabs */}
                 <div className="modal-body" style={{ padding: 0 }}>
-                    <div className="tab-container" style={{ margin: '12px', marginBottom: 0 }}>
-                        {['frames', 'titles', 'badges'].map(tab => (
+                    <div className="shop-tabs-container" style={{ margin: '12px', marginBottom: 0 }}>
+                        {tabs.map(tab => (
                             <button 
                                 key={tab} 
                                 onClick={() => setActiveTab(tab)} 
-                                className={`tab-button ${activeTab === tab ? 'active' : ''}`}
+                                className={`shop-tab ${activeTab === tab ? 'active' : ''}`}
                             >
                                 {t[tab]}
                             </button>
@@ -823,6 +923,28 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                             {SHOP_ITEMS[activeTab]?.map(item => {
                                 const owned = isOwned(item);
                                 const equippedItem = isEquipped(item);
+                                
+                                // Gifts are not "equippable" - they go to inventory
+                                if (activeTab === 'gifts') {
+                                    return (
+                                        <div 
+                                            key={item.id} 
+                                            className="inventory-item"
+                                            onClick={() => { setSelectedItem(item); setShowPreview(true); }}
+                                        >
+                                            <div className="inventory-item-preview">
+                                                {renderPreview(item)}
+                                            </div>
+                                            <div className="inventory-item-name">
+                                                {lang === 'ar' ? item.name_ar : item.name_en}
+                                            </div>
+                                            <div className="flex items-center justify-center gap-1 text-yellow-400 font-bold text-sm">
+                                                <span>{item.cost}</span>
+                                                <span>🧠</span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
                                 
                                 return (
                                     <div 
@@ -884,7 +1006,15 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                     {lang === 'ar' ? selectedItem.name_ar : selectedItem.name_en}
                                 </p>
                                 
-                                {isOwned(selectedItem) ? (
+                                {selectedItem.type === 'gifts' ? (
+                                    <button 
+                                        onClick={() => handlePurchase(selectedItem)} 
+                                        disabled={currency < selectedItem.cost}
+                                        className={`w-full py-2 rounded-lg font-bold ${currency >= selectedItem.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+                                    >
+                                        {t.buy} ({selectedItem.cost} 🧠)
+                                    </button>
+                                ) : isOwned(selectedItem) ? (
                                     isEquipped(selectedItem) ? (
                                         <button 
                                             onClick={() => { handleUnequip(selectedItem.type); setShowPreview(false); }} 
@@ -946,13 +1076,25 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip }) =
             }
             return <div className="w-12 h-12 rounded-full" style={{ background: item.preview }}></div>;
         } else if (item.type === 'badges') {
+            if (item.imageUrl && item.imageUrl.trim() !== '') {
+                return <img src={item.imageUrl} alt={item.name_en} className="w-10 h-10 object-contain" />;
+            }
             return <span className="text-3xl">{item.preview}</span>;
         } else if (item.type === 'titles') {
+            if (item.imageUrl && item.imageUrl.trim() !== '') {
+                return <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" />;
+            }
             return <span className="text-2xl">{item.preview}</span>;
+        } else if (item.type === 'gifts') {
+            if (item.imageUrl && item.imageUrl.trim() !== '') {
+                return <img src={item.imageUrl} alt={item.name_en} className="w-10 h-10 object-contain" />;
+            }
+            return <span className="text-3xl">{item.emoji}</span>;
         }
         return <span className="text-2xl">🎨</span>;
     };
     
+    const tabs = ['frames', 'titles', 'badges', 'gifts'];
     const ownedItems = getOwnedItems(activeTab);
     
     return (
@@ -964,12 +1106,12 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip }) =
                 </div>
                 
                 <div className="modal-body" style={{ padding: 0 }}>
-                    <div className="tab-container" style={{ margin: '12px', marginBottom: 0 }}>
-                        {['frames', 'titles', 'badges'].map(tab => (
+                    <div className="shop-tabs-container" style={{ margin: '12px', marginBottom: 0 }}>
+                        {tabs.map(tab => (
                             <button 
                                 key={tab} 
                                 onClick={() => setActiveTab(tab)} 
-                                className={`tab-button ${activeTab === tab ? 'active' : ''}`}
+                                className={`shop-tab ${activeTab === tab ? 'active' : ''}`}
                             >
                                 {t[tab]} ({getOwnedItems(tab).length})
                             </button>
@@ -986,6 +1128,20 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip }) =
                             <div className="inventory-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
                                 {ownedItems.map(item => {
                                     const equippedItem = isEquipped(item);
+                                    
+                                    // Gifts are just stored, not equipped
+                                    if (activeTab === 'gifts') {
+                                        return (
+                                            <div key={item.id} className="inventory-item">
+                                                <div className="inventory-item-preview">
+                                                    {renderPreview(item)}
+                                                </div>
+                                                <div className="inventory-item-name">
+                                                    {lang === 'ar' ? item.name_ar : item.name_en}
+                                                </div>
+                                            </div>
+                                        );
+                                    }
                                     
                                     return (
                                         <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`}>
@@ -1024,7 +1180,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip }) =
 };
 
 // ==========================================
-// USER PROFILE MODAL - FIXED
+// USER PROFILE MODAL - IMPROVED PROFESSIONAL DESIGN
 // ==========================================
 const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSendFriendRequest, onSendGift, userData }) => {
     const t = TRANSLATIONS[lang];
@@ -1090,44 +1246,50 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                             <p className="text-gray-400">{t.friendNotFound}</p>
                         </div>
                     ) : (
-                        <>
+                        <div className="profile-container">
+                            {/* Profile Header - Professional Design */}
                             <div className="profile-header">
-                                <div className="profile-avatar-container">
-                                    <AvatarWithFrame photoURL={targetData.photoURL} equipped={targetData.equipped} size="lg" />
-                                </div>
-                                <h3 className="profile-name">{targetData.displayName || 'Unknown'}</h3>
-                                
-                                {/* Show equipped title if exists */}
-                                {targetData.equipped?.titles && (() => {
-                                    const titleItem = SHOP_ITEMS.titles.find(t => t.id === targetData.equipped.titles);
-                                    return titleItem ? (
-                                        <div className="profile-title bg-gradient-to-r from-purple-500 to-pink-500">
-                                            {lang === 'ar' ? titleItem.name_ar : titleItem.name_en}
+                                <div className="profile-avatar-section">
+                                    <div className="profile-avatar-container">
+                                        <AvatarWithFrame photoURL={targetData.photoURL} equipped={targetData.equipped} size="lg" />
+                                    </div>
+                                    
+                                    {/* Name */}
+                                    <h3 className="profile-name">{targetData.displayName || 'Unknown'}</h3>
+                                    
+                                    {/* Title - Using renderTitle function */}
+                                    {targetData.equipped?.titles && (
+                                        <div className="profile-title-container">
+                                            {renderTitle(targetData.equipped.titles, lang)}
                                         </div>
-                                    ) : null;
-                                })()}
-                                
-                                {/* Show equipped badge if exists */}
-                                {targetData.equipped?.badges && (() => {
-                                    const badgeItem = SHOP_ITEMS.badges.find(b => b.id === targetData.equipped.badges);
-                                    return badgeItem ? (
-                                        <div className="text-2xl mt-2">{badgeItem.preview}</div>
-                                    ) : null;
-                                })()}
-                                
-                                <div className="profile-id" onClick={() => { navigator.clipboard.writeText(targetData.customId || targetData.uid); }}>
-                                    <span>ID: {targetData.customId || targetData.uid?.substring(0, 8)}</span>
-                                    <span className="text-[10px]">📋</span>
-                                </div>
-                                
-                                {/* Account Type Badge */}
-                                <div className={`mt-2 text-[10px] px-3 py-1 rounded-full ${isTargetGuest ? 'bg-gray-600' : 'bg-green-600'}`}>
-                                    {isTargetGuest ? t.guestAccount : t.googleAccount}
+                                    )}
+                                    
+                                    {/* Badge - Using renderBadge function */}
+                                    {targetData.equipped?.badges && (
+                                        <div className="profile-badge-container">
+                                            {renderBadge(targetData.equipped.badges, 28)}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Account Type - Guest Only */}
+                                    {isTargetGuest && (
+                                        <div className="profile-account-type guest">
+                                            {t.guestAccount}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Profile ID */}
+                                    <div className="profile-id" onClick={() => { navigator.clipboard.writeText(targetData.customId || targetData.uid); }}>
+                                        <span>ID: {targetData.customId || targetData.uid?.substring(0, 8)}</span>
+                                        <span className="text-[10px]">📋</span>
+                                    </div>
                                 </div>
                             </div>
                             
+                            {/* Charisma */}
                             <CharismaDisplay charisma={targetData.charisma} lang={lang} />
                             
+                            {/* Stats */}
                             <div className="profile-stats">
                                 <div className="profile-stat">
                                     <div className="profile-stat-value">{targetData.stats?.wins || 0}</div>
@@ -1168,7 +1330,7 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                                     {t.guestProfileMsg}
                                 </div>
                             )}
-                        </>
+                        </div>
                     )}
                 </div>
                 
@@ -1189,10 +1351,9 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     );
 };
 
-// Continue in Part 2...
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 2
-// Main App Component - FIXED Guest System
+// PRO SPY - COMPLETE SCRIPT - PART 3
+// Main App Component - FIXED Guest System + Improved Friends
 // ==========================================
 
 function App() {
@@ -1251,10 +1412,6 @@ function App() {
     // ==========================================
     // AUTH STATES - SIMPLIFIED
     // ==========================================
-    // isLoggedIn: Google account (full features)
-    // isGuest: Playing as guest (limited features)
-    // isNotLoggedIn: Not signed in at all
-    
     const isLoggedIn = useMemo(() => user && !user.isAnonymous, [user]);
     const isGuest = useMemo(() => guestData !== null, [guestData]);
     const isNotLoggedIn = useMemo(() => user === null && guestData === null, [user, guestData]);
@@ -1456,7 +1613,7 @@ function App() {
     useEffect(() => { if (room?.status === 'word_selection' && room?.wordSelEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.wordSelEndTime - Date.now()) / 1000)); setWordSelTimer(remaining); if (remaining <= 0) { clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setWordSelTimer(30); }, [room?.status, room?.wordSelEndTime]);
 
     // ==========================================
-    // AUTH FUNCTIONS - FIXED
+    // AUTH FUNCTIONS
     // ==========================================
     
     const handleGoogleLogin = useCallback(async () => { 
@@ -1470,34 +1627,52 @@ function App() {
     }, []);
     
     const handleLogout = useCallback(async () => { 
-        await auth.signOut(); 
+        if (user) await auth.signOut(); 
         setShowDropdown(false); 
         setNickname(''); 
         setGuestData(null);
         localStorage.removeItem('pro_spy_guest_uid');
         localStorage.removeItem('pro_spy_nick');
-    }, []);
-    
+    }, [user]);
+
     // ==========================================
-    // GUEST SYSTEM - NEW IMPROVED VERSION
+    // GUEST SYSTEM - AUTOMATIC IMPROVED VERSION
     // ==========================================
     
-    const handlePlayAsGuest = useCallback(async () => {
-        if (!nickname.trim()) {
-            setAlertMessage(lang === 'ar' ? 'يرجى إدخال اسم أولاً' : 'Please enter a name first');
-            return;
-        }
-        
-        setLoading(true);
-        
-        try {
-            // Generate unique guest ID
+    // Auto-create guest on first visit if not logged in
+    useEffect(() => {
+        const initGuest = async () => {
+            // Wait for auth to finish
+            if (authLoading) return;
+            
+            // If user is logged in with Google, don't create guest
+            if (user && !user.isAnonymous) return;
+            
+            // Check if guest already exists
+            const savedGuestUID = localStorage.getItem('pro_spy_guest_uid');
+            if (savedGuestUID) {
+                // Load existing guest
+                try {
+                    const doc = await guestsCollection.doc(savedGuestUID).get();
+                    if (doc.exists) {
+                        setGuestData({ id: doc.id, ...doc.data() });
+                        if (doc.data().displayName) setNickname(doc.data().displayName);
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Error loading guest:', e);
+                }
+            }
+            
+            // Create new guest automatically with saved nickname or default
+            const savedNick = localStorage.getItem('pro_spy_nick');
+            const guestNick = savedNick || ('Player_' + Math.random().toString(36).substring(2, 6));
+            
             const guestUID = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
             
-            // Create guest data (stored in SEPARATE guests collection)
             const newGuestData = {
                 uid: guestUID,
-                displayName: nickname,
+                displayName: guestNick,
                 photoURL: null,
                 customId: generateUID(),
                 stats: { wins: 0, losses: 0, xp: 0 },
@@ -1511,38 +1686,20 @@ function App() {
                 lastActive: firebase.firestore.FieldValue.serverTimestamp()
             };
             
-            // Save to guests collection (SEPARATE from users)
-            await guestsCollection.doc(guestUID).set(newGuestData);
-            
-            // Set local state
-            setGuestData(newGuestData);
-            localStorage.setItem('pro_spy_guest_uid', guestUID);
-            localStorage.setItem('pro_spy_nick', nickname);
-            
-            console.log('Guest created:', guestUID);
-        } catch (e) {
-            console.error('Guest creation error:', e);
-            setAlertMessage(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, try again');
-        }
+            try {
+                await guestsCollection.doc(guestUID).set(newGuestData);
+                setGuestData(newGuestData);
+                setNickname(guestNick);
+                localStorage.setItem('pro_spy_guest_uid', guestUID);
+                localStorage.setItem('pro_spy_nick', guestNick);
+                console.log('Auto guest created:', guestUID);
+            } catch (e) {
+                console.error('Auto guest creation error:', e);
+            }
+        };
         
-        setLoading(false);
-    }, [nickname, lang]);
-    
-    // Load existing guest on mount
-    useEffect(() => {
-        const savedGuestUID = localStorage.getItem('pro_spy_guest_uid');
-        if (savedGuestUID && !user) {
-            guestsCollection.doc(savedGuestUID).get().then(doc => {
-                if (doc.exists) {
-                    setGuestData({ id: doc.id, ...doc.data() });
-                    if (doc.data().displayName) setNickname(doc.data().displayName);
-                }
-                setAuthLoading(false);
-            }).catch(() => {
-                setAuthLoading(false);
-            });
-        }
-    }, [user]);
+        initGuest();
+    }, [authLoading, user]);
     
     // Listen to guest data changes
     useEffect(() => {
@@ -1903,6 +2060,91 @@ function App() {
         await usersCollection.doc(friendUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) });
         await createNotification(friendUid, 'friend_request', `${userData.displayName} ${t.friendRequest}`, user.uid, userData.displayName);
     }, [userData, user, isLoggedIn, t, createNotification]);
+    
+    // Add Friend by ID - NEW IMPROVED FUNCTION
+    const handleAddFriendById = useCallback(async () => {
+        if (!addFriendId.trim() || !isLoggedIn) return;
+        
+        setFriendSearchMsg('');
+        
+        // Search in users collection
+        const userQuery = await usersCollection.where('customId', '==', addFriendId.trim()).get();
+        
+        if (userQuery.empty) {
+            // Try searching by uid prefix
+            const uidQuery = await usersCollection.where(firebase.firestore.FieldPath.documentId(), '>=', addFriendId.trim())
+                .where(firebase.firestore.FieldPath.documentId(), '<=', addFriendId.trim() + '\uf8ff').get();
+            
+            if (uidQuery.empty) {
+                setFriendSearchMsg(t.friendNotFound);
+                return;
+            }
+            
+            const targetDoc = uidQuery.docs[0];
+            const targetUid = targetDoc.id;
+            
+            if (targetUid === user.uid) {
+                setFriendSearchMsg(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself');
+                return;
+            }
+            
+            if (userData.friends?.includes(targetUid)) {
+                setFriendSearchMsg(lang === 'ar' ? 'صديق بالفعل' : 'Already a friend');
+                return;
+            }
+            
+            await handleSendRequest(targetUid);
+            setFriendSearchMsg(t.requestSent);
+            setAddFriendId('');
+            return;
+        }
+        
+        const targetDoc = userQuery.docs[0];
+        const targetUid = targetDoc.id;
+        
+        if (targetUid === user.uid) {
+            setFriendSearchMsg(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself');
+            return;
+        }
+        
+        if (userData.friends?.includes(targetUid)) {
+            setFriendSearchMsg(lang === 'ar' ? 'صديق بالفعل' : 'Already a friend');
+            return;
+        }
+        
+        if (userData.friendRequests?.includes(targetUid)) {
+            setFriendSearchMsg(lang === 'ar' ? 'لديك طلب من هذا المستخدم بالفعل' : 'You already have a request from this user');
+            return;
+        }
+        
+        await handleSendRequest(targetUid);
+        setFriendSearchMsg(t.requestSent);
+        setAddFriendId('');
+    }, [addFriendId, isLoggedIn, userData, user, t, lang, handleSendRequest]);
+    
+    // Accept/Reject Friend Request
+    const handleAcceptRequest = useCallback(async (fromUid) => {
+        if (!user || !isLoggedIn) return;
+        
+        await usersCollection.doc(user.uid).update({
+            friends: firebase.firestore.FieldValue.arrayUnion(fromUid),
+            friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
+        });
+        
+        await usersCollection.doc(fromUid).update({
+            friends: firebase.firestore.FieldValue.arrayUnion(user.uid)
+        });
+        
+        setNotification(t.friendAdded);
+    }, [user, isLoggedIn, t]);
+    
+    const handleRejectRequest = useCallback(async (fromUid) => {
+        if (!user || !isLoggedIn) return;
+        
+        await usersCollection.doc(user.uid).update({
+            friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
+        });
+    }, [user, isLoggedIn]);
 
     // Gift Functions
     const handleSendGiftToUser = useCallback(async (gift, targetUser) => {
@@ -1929,7 +2171,7 @@ function App() {
     }, [userData, user, t, createNotification]);
 
     // ==========================================
-    // SHOP FUNCTIONS - NEW
+    // SHOP FUNCTIONS
     // ==========================================
     
     const handlePurchase = useCallback(async (item) => {
@@ -2036,7 +2278,7 @@ function App() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center p-2 md:p-4" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+        <div className="main-wrapper" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
             <NotificationToast message={notification} onClose={() => setNotification(null)} />
             
             {/* Login Alert Modal */}
@@ -2084,7 +2326,7 @@ function App() {
                 <ShopModal 
                     show={showShop} 
                     onClose={() => setShowShop(false)} 
-                    userData={userData} 
+                    userData={isLoggedIn ? userData : guestData} 
                     lang={lang}
                     onPurchase={handlePurchase}
                     onEquip={handleEquip}
@@ -2097,14 +2339,14 @@ function App() {
                 <InventoryModal 
                     show={showInventory} 
                     onClose={() => setShowInventory(false)} 
-                    userData={userData} 
+                    userData={isLoggedIn ? userData : guestData} 
                     lang={lang}
                     onEquip={handleEquip}
                     onUnequip={handleUnequip}
                 />
             )}
             
-            {/* My Account Modal - FIXED WITH EMAIL MASKING */}
+            {/* My Account Modal - IMPROVED */}
             {showMyAccount && (
                 <div className="modal-overlay" onClick={() => setShowMyAccount(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
@@ -2115,41 +2357,44 @@ function App() {
                         <div className="modal-body">
                             {/* Profile Header */}
                             <div className="profile-header">
-                                <div className="profile-avatar-container">
-                                    <AvatarWithFrame photoURL={currentUserData?.photoURL} equipped={currentUserData?.equipped} size="lg" />
-                                </div>
-                                <h3 className="profile-name">{currentUserData?.displayName || 'User'}</h3>
-                                
-                                {/* Show equipped title */}
-                                {currentUserData?.equipped?.titles && (() => {
-                                    const titleItem = SHOP_ITEMS.titles.find(t => t.id === currentUserData.equipped.titles);
-                                    return titleItem ? (
-                                        <div className="profile-title bg-gradient-to-r from-purple-500 to-pink-500">
-                                            {lang === 'ar' ? titleItem.name_ar : titleItem.name_en}
+                                <div className="profile-avatar-section">
+                                    <div className="profile-avatar-container">
+                                        <AvatarWithFrame photoURL={currentUserData?.photoURL} equipped={currentUserData?.equipped} size="lg" />
+                                    </div>
+                                    
+                                    {/* Name */}
+                                    <h3 className="profile-name">{currentUserData?.displayName || 'User'}</h3>
+                                    
+                                    {/* Title */}
+                                    {currentUserData?.equipped?.titles && (
+                                        <div className="profile-title-container">
+                                            {renderTitle(currentUserData.equipped.titles, lang)}
                                         </div>
-                                    ) : null;
-                                })()}
-                                
-                                {/* Show equipped badge */}
-                                {currentUserData?.equipped?.badges && (() => {
-                                    const badgeItem = SHOP_ITEMS.badges.find(b => b.id === currentUserData.equipped.badges);
-                                    return badgeItem ? (
-                                        <div className="text-2xl mt-2">{badgeItem.preview}</div>
-                                    ) : null;
-                                })()}
-                                
-                                <div className="profile-id" onClick={() => { navigator.clipboard.writeText(currentUserData?.customId || ''); }}>
-                                    <span>ID: {currentUserData?.customId || 'N/A'}</span>
-                                    <span className="text-[10px]">📋</span>
-                                </div>
-                                
-                                {/* Account Type */}
-                                <div className={`mt-2 text-[10px] px-3 py-1 rounded-full ${isGuest ? 'bg-gray-600' : 'bg-green-600'}`}>
-                                    {isGuest ? t.guestAccount : t.googleAccount}
+                                    )}
+                                    
+                                    {/* Badge */}
+                                    {currentUserData?.equipped?.badges && (
+                                        <div className="profile-badge-container">
+                                            {renderBadge(currentUserData.equipped.badges, 28)}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Account Type - Guest Only */}
+                                    {isGuest && (
+                                        <div className="profile-account-type guest">
+                                            {t.guestAccount}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Profile ID */}
+                                    <div className="profile-id" onClick={() => { navigator.clipboard.writeText(currentUserData?.customId || ''); }}>
+                                        <span>ID: {currentUserData?.customId || 'N/A'}</span>
+                                        <span className="text-[10px]">📋</span>
+                                    </div>
                                 </div>
                             </div>
                             
-                            {/* Account Info Section - NEW */}
+                            {/* Account Info Section - Only for logged in users */}
                             {isLoggedIn && (
                                 <div className="bg-white/5 rounded-lg p-3 mb-3">
                                     <h4 className="text-xs font-bold text-gray-400 mb-2">{t.accountInfo}</h4>
@@ -2297,13 +2542,19 @@ function App() {
                 </div> 
             )}
             
-            {/* Main Header */}
-            <header className="w-full max-w-md flex items-center justify-between mb-3 px-1">
+            {/* Main Header - WITH CURRENCY */}
+            <header className="site-header">
                 <div className="flex items-center gap-2">
                     <div className="logo-container"><div className="logo-border"></div><span className="text-xl">🕵️</span></div>
                     <div><h1 className="game-title text-lg font-tech">{t.appName}</h1><p className="text-[8px] text-gray-500 uppercase tracking-wider">{t.tagline}</p></div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="header-actions">
+                    {/* Currency Display */}
+                    <div className="currency-display" onClick={() => { if(isLoggedIn) setShowShop(true); else setShowLoginAlert(true); }}>
+                        <span className="currency-icon">🧠</span>
+                        <span className="currency-value">{(currentUserData?.currency || 0).toLocaleString()}</span>
+                    </div>
+                    
                     {/* Language Toggle */}
                     <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
                     
@@ -2355,7 +2606,7 @@ function App() {
             
             {/* Main Content - Not in Room */}
             {!room && (
-                <main className="w-full max-w-md flex-1 flex flex-col">
+                <main className="main-content">
                     <div className="tab-container mb-3">
                         <button onClick={() => setActiveView('lobby')} className={`tab-button ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
                         <button onClick={() => setActiveView('leaderboard')} className={`tab-button ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
@@ -2366,7 +2617,10 @@ function App() {
                     </div>
                     
                     {activeView === 'lobby' && (
-                        <div className="glass-panel rounded-xl p-4 flex-1">
+                        <div className="card-container">
+                            {/* Guest Banner */}
+                            {isGuest && <GuestBanner lang={lang} />}
+                            
                             <div className="space-y-3">
                                 <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className="input-dark w-full p-3 rounded-lg font-bold" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} /></div>
                                 
@@ -2381,32 +2635,12 @@ function App() {
                                 </div>
                                 
                                 {joinError && <p className="text-xs text-red-400 text-center">{joinError}</p>}
-                                
-                                {/* Guest Banner / Play as Guest Button */}
-                                {isNotLoggedIn && !user && (
-                                    <div className="mt-4 pt-4 border-t border-white/10">
-                                        {isGuest ? (
-                                            <GuestBanner lang={lang} />
-                                        ) : (
-                                            <div className="text-center">
-                                                <p className="text-xs text-gray-400 mb-2">{t.or}</p>
-                                                <button 
-                                                    onClick={handlePlayAsGuest} 
-                                                    disabled={loading || !nickname.trim()}
-                                                    className="btn-ghost w-full py-2 rounded-lg text-sm"
-                                                >
-                                                    {loading ? t.loading : t.playAsGuest}
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
                             </div>
                         </div>
                     )}
                     
                     {activeView === 'leaderboard' && (
-                        <div className="glass-panel rounded-xl p-3 flex-1 overflow-hidden">
+                        <div className="card-container">
                             <div className="overflow-y-auto max-h-[60vh]">
                                 {leaderboardData.map((player, i) => (
                                     <div key={player.id} onClick={() => openProfile(player.id)} className="leaderboard-row cursor-pointer">
@@ -2421,16 +2655,82 @@ function App() {
                     )}
                     
                     {activeView === 'friends' && (
-                        <div className="glass-panel rounded-xl p-3 flex-1 overflow-hidden">
-                            {!isLoggedIn ? (
-                                <div className="text-center py-8">
-                                    <div className="text-4xl mb-4">🔐</div>
-                                    <p className="text-sm text-gray-400 mb-4">{t.noPermission}</p>
-                                    <button onClick={handleGoogleLogin} className="btn-neon px-6 py-2 rounded-lg text-sm">{t.loginGoogle}</button>
+                        <div className="card-container friends-container">
+                            {/* Add Friend Section */}
+                            <div className="add-friend-section">
+                                <div className="add-friend-title">{t.addFriend}</div>
+                                <div className="add-friend-input-row">
+                                    <input 
+                                        type="text" 
+                                        className="add-friend-input"
+                                        value={addFriendId} 
+                                        onChange={e => setAddFriendId(e.target.value)}
+                                        placeholder={t.friendIdPlaceholder}
+                                    />
+                                    <button 
+                                        onClick={handleAddFriendById}
+                                        disabled={!addFriendId.trim()}
+                                        className="btn-neon px-4 py-2 rounded-lg text-xs"
+                                    >
+                                        {t.addFriend}
+                                    </button>
                                 </div>
-                            ) : (
-                                <div className="text-center py-8 text-gray-400">{t.noFriends}</div>
+                                {friendSearchMsg && (
+                                    <p className={`text-xs mt-2 text-center ${friendSearchMsg.includes('تم') || friendSearchMsg.includes('Sent') ? 'text-green-400' : 'text-red-400'}`}>
+                                        {friendSearchMsg}
+                                    </p>
+                                )}
+                            </div>
+                            
+                            {/* Friend Requests Section */}
+                            {friendRequests.length > 0 && (
+                                <div className="friend-requests-section">
+                                    <div className="friend-requests-header">{t.incomingRequests}</div>
+                                    {friendRequests.map(req => (
+                                        <div key={req.id} className="friend-request-item">
+                                            <AvatarWithFrame photoURL={req.photoURL} equipped={req.equipped} size="sm" />
+                                            <div className="friend-request-info">
+                                                <div className="friend-request-name">{req.displayName}</div>
+                                            </div>
+                                            <div className="friend-request-actions">
+                                                <button onClick={() => handleAcceptRequest(req.id)} className="btn-success px-3 py-1 rounded text-xs">{t.accept}</button>
+                                                <button onClick={() => handleRejectRequest(req.id)} className="btn-danger px-3 py-1 rounded text-xs">{t.reject}</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             )}
+                            
+                            {/* Friends List Section */}
+                            <div className="friends-list-section">
+                                <div className="friends-list-header">{t.tabFriends} ({friendsData.length})</div>
+                                {friendsData.length === 0 ? (
+                                    <div className="no-friends-message">
+                                        <div className="text-4xl mb-2">👥</div>
+                                        <p>{t.noFriends}</p>
+                                    </div>
+                                ) : (
+                                    friendsData.map(friend => (
+                                        <div key={friend.id} className="friend-item">
+                                            <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                                            <div className="friend-info">
+                                                <div className="friend-name">{friend.displayName}</div>
+                                                <div className="friend-status">
+                                                    {friend.lastActive && (Date.now() - friend.lastActive.toDate?.() < 300000) ? (
+                                                        <span className="text-green-400">{t.online}</span>
+                                                    ) : (
+                                                        <span className="text-gray-500">{t.offline}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="friend-actions">
+                                                <button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-xs">💬</button>
+                                                <button onClick={() => openProfile(friend.id)} className="btn-ghost px-2 py-1 rounded text-xs">👤</button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
                     )}
                 </main>
@@ -2438,7 +2738,7 @@ function App() {
             
             {/* Room View */}
             {room && (
-                <main className="w-full max-w-md flex-1 flex flex-col">
+                <main className="main-content">
                     <div className="glass-panel rounded-lg p-2 mb-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <button onClick={handleCopy} className="bg-white/10 px-2 py-1 rounded text-xs font-mono">{copied ? t.copied : roomId}</button>
@@ -2448,7 +2748,7 @@ function App() {
                     </div>
                     
                     {room.status === 'waiting' && (
-                        <div className="glass-panel rounded-xl p-4 flex-1">
+                        <div className="card-container">
                             <h3 className="text-sm font-bold mb-3 text-center">{t.lobbyTitle}</h3>
                             <div className="grid grid-cols-2 gap-2 mb-4">
                                 {room.players.map(p => (
@@ -2467,7 +2767,7 @@ function App() {
                     )}
                     
                     {room.status === 'word_selection' && !isSpectator && (
-                        <div className="glass-panel rounded-xl p-4 flex-1">
+                        <div className="card-container">
                             <h3 className="text-sm font-bold mb-2 text-center">{t.wordSelectionTitle}</h3>
                             <p className="text-xs text-gray-400 text-center mb-3">{t.wordSelectionDesc}</p>
                             <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {wordSelTimer}s</div>
@@ -2481,7 +2781,7 @@ function App() {
                     
                     {room.status === 'discussing' && (
                         <div className="flex-1 flex flex-col gap-2">
-                            <div className="glass-panel rounded-xl p-3">
+                            <div className="card-container">
                                 <div className="grid grid-cols-3 gap-2">
                                     {room.players.filter(p => p.status === 'active').map(p => (
                                         <div key={p.uid} className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === currentUID ? 'border-primary' : ''}`} onClick={() => openProfile(p.uid)}>
@@ -2500,7 +2800,7 @@ function App() {
                                     {myRole !== 'spy' && room.chosenWord && (<div className="text-xs text-gray-300 mt-1">{t.selectedWord}: {room.chosenWord}</div>)}
                                 </div>
                             )}
-                            <div className="glass-panel rounded-lg p-3">
+                            <div className="card-container">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="timer-bar-container"><div className="timer-bar-fill" style={{ width: `${(turnTimer / 30) * 100}%` }}></div></div>
                                     <span className="text-xs text-gray-400">{turnTimer}s</span>
@@ -2514,7 +2814,7 @@ function App() {
                     )}
                     
                     {room.status === 'voting' && (
-                        <div className="glass-panel rounded-xl p-4 flex-1">
+                        <div className="card-container">
                             <h3 className="text-sm font-bold mb-2 text-center">{t.vote}</h3>
                             <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {votingTimer}s</div>
                             <div className="grid grid-cols-2 gap-2 mb-4">
@@ -2529,7 +2829,7 @@ function App() {
                     )}
                     
                     {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_mrwhite_wins') && (
-                        <div className="glass-panel rounded-xl p-4 flex-1 text-center">
+                        <div className="card-container text-center">
                             <div className="text-4xl mb-4">{room.status === 'finished_spy_caught' ? '🎉' : '🕵️'}</div>
                             <h2 className="text-xl font-bold mb-4">{room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}</h2>
                             {room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{t.playAgain}</button>)}
@@ -2553,3 +2853,4 @@ const AppWithErrorBoundary = () => (
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
+
