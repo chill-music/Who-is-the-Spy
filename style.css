@@ -1,6 +1,7 @@
 /* ==========================================
    PRO SPY - COMPLETE STYLE - V8
    All Fixes + Avatar Frame + Title + Notifications + Chat
+   + Animated Images Support + Multiple Badges
    ========================================== */
 
 :root {
@@ -390,6 +391,44 @@ body {
 .avatar-wrapper.size-xl .avatar-frame-mask { width: 82px; height: 82px; }
 
 /* ==========================================
+   ANIMATED FRAME (GIF) - NEW
+   ========================================== */
+.avatar-frame-animated {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.avatar-frame-animated img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Transparent center mask for animated frames - uses CSS mask instead of background */
+.avatar-frame-animated-mask {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Size-specific masks for animated frames */
+.avatar-wrapper.size-sm .avatar-frame-animated-mask { width: 34px; height: 34px; }
+.avatar-wrapper.size-md .avatar-frame-animated-mask { width: 44px; height: 44px; }
+.avatar-wrapper.size-lg .avatar-frame-animated-mask { width: 64px; height: 64px; }
+.avatar-wrapper.size-xl .avatar-frame-animated-mask { width: 84px; height: 84px; }
+
+/* ==========================================
    TIMER
    ========================================== */
 .timer-bar-container { 
@@ -625,16 +664,63 @@ body {
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
 }
 
-/* Badge Container */
+/* Animated Title */
+.profile-title-animated {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-title-animated img {
+    max-width: 140px;
+    max-height: 48px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* ==========================================
+   BADGE CONTAINER - MULTIPLE BADGES SUPPORT
+   ========================================== */
 .profile-badge-container {
     display: flex;
     justify-content: center;
     margin-bottom: var(--spacing-sm);
 }
 
+/* NEW: Multiple Badges Container */
+.profile-badges-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: var(--spacing-sm);
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.profile-badges-container .profile-badge,
+.profile-badges-container .profile-badge-animated {
+    flex-shrink: 0;
+}
+
 .profile-badge { font-size: 28px; }
 
 .profile-badge-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+/* Animated Badge */
+.profile-badge-animated {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-badge-animated img {
     width: 28px;
     height: 28px;
     object-fit: contain;
@@ -1278,6 +1364,7 @@ body {
     .profile-stats { grid-template-columns: repeat(3, 1fr); gap: 6px; padding: var(--spacing-sm); }
     .site-header { padding: var(--spacing-xs) 0; }
     .chat-modal-content { height: 85vh; }
+    .profile-badges-container { max-width: 200px; }
 }
 
 /* ==========================================
@@ -1287,3 +1374,87 @@ body {
 [dir="rtl"] .dropdown-menu { right: auto; left: 0; }
 [dir="rtl"] .friends-tab-badge { right: auto; left: 4px; }
 [dir="rtl"] .notification-badge { right: auto; left: -4px; }
+
+/* ==========================================
+   ANIMATED IMAGES (GIF) SUPPORT - NEW
+   ========================================== */
+
+/* --- Animated Gift Icon --- */
+.gift-icon-animated {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    margin-bottom: 4px;
+}
+
+/* --- Animated Gift Preview --- */
+.gift-preview-animated {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+/* --- Animated Inventory Item Preview --- */
+.inventory-item-preview-animated {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inventory-item-preview-animated img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* --- Badge Equipped State for Multiple --- */
+.badge-equipped {
+    position: relative;
+}
+
+.badge-equipped::after {
+    content: '✓';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    background: #10b981;
+    color: white;
+    font-size: 8px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Badge Remove Button --- */
+.badge-remove-btn {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: white;
+    border: none;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.profile-badges-container:hover .badge-remove-btn {
+    opacity: 1;
+}
+
+.badge-remove-btn:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
