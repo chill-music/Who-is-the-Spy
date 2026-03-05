@@ -96,7 +96,6 @@ const SHOP_ITEMS = {
         { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' },
         { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
         { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png' },
-        { id: 'frame_img1', name_en: "Image Frame1", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/N27qVLJp/123.png' },
         { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #8b00ff)' },
         { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)' },
     ],
@@ -108,7 +107,6 @@ const SHOP_ITEMS = {
         { id: 'title_legend', name_en: "Legend", name_ar: "أسطورة", cost: 1500, type: 'titles', preview: '👑', imageUrl: '' },
         { id: 'title_pro', name_en: "Pro Player", name_ar: "محترف", cost: 1000, type: 'titles', preview: '⭐', imageUrl: '' },
         { id: 'title_shadow', name_en: "Shadow", name_ar: "ظل", cost: 700, type: 'titles', preview: '🌑', imageUrl: '' },
-        { id: 'badge_custom', name_en: "Custom Badge", name_ar: "شارة مخصصة", cost: 2000, type: 'badges', preview: '', imageUrl: 'https://i.ibb.co/Fb4hx3Mz/Screenshot-2026-03-05-041026.png' }
     ],
     // Badges with imageUrl support
     badges: [
@@ -301,7 +299,7 @@ const TRANSLATIONS = {
         matchSummary: "Match Summary", matchDuration: "Duration", mvp: "MVP", correctVotes: "Correct Votes", summaryTitle: "Game Over!",
         notifTitle: "Notification", achUnlock: "Achievement Unlocked!", newFriend: "New Friend Added!", hiddenAch: "Hidden Achievement", tabMain: "Main", tabInv: "Inventory", tabAch: "Achievements",
         charisma: "Charisma", charismaDesc: "Your influence in the arena", gifts: "Gifts", sendGift: "Send Gift", giftSent: "Gift Sent!", giftReceived: "You received a gift!", selectGift: "Select a Gift", giftPreview: "Gift Preview", cashback: "Cashback", willReceive: "You'll receive", charismaGain: "Charisma Gain", playerLeft: "Player Left", spyLeftAgentsWin: "Spy left! Agents Win!", agentLeftSpyWins: "Agent left! Spy Wins!", myGifts: "My Gifts", receivedGifts: "Received Gifts", noGifts: "No gifts yet.", fromPlayer: "From", toPlayer: "To", buyGift: "Buy Gift", sendToFriend: "Send to Friend",
-        notifications: "Notifications", clearAll: "Clear All", noNotifications: "No notifications", friendRequest: "sent you a friend request", giftNotification: "sent you a gift", messageNotification: "sent you a message", nextLevel: "Next level", close: "Close",
+        notifications: "Notifications", clearAll: "Clear All", noNotifications: "No notifications", friendRequest: "sent you a friend request", friendRequestAccepted: "accepted your friend request", giftNotification: "sent you a gift", messageNotification: "sent you a message", nextLevel: "Next level", close: "Close",
         sendTo: "Send to", noFriendsToSend: "No friends to send gifts to.", selectFriend: "Select a friend", myInventory: "My Inventory", maxLevel: "MAX LEVEL",
         privateChat: "Private Chat", typeMessage: "Type a message...", noMessages: "No messages yet.",
         codePlaceholder: "CODE",
@@ -318,7 +316,7 @@ const TRANSLATIONS = {
         matchSummary: "ملخص المباراة", matchDuration: "المدة", mvp: "الأفضل", correctVotes: "أصوات صحيحة", summaryTitle: "انتهت اللعبة!",
         notifTitle: "إشعار", achUnlock: "تم فتح إنجاز!", newFriend: "صديق جديد!", hiddenAch: "إنجاز سري", tabMain: "الرئيسية", tabInv: "المخزون", tabAch: "الإنجازات",
         charisma: "الكاريزما", charismaDesc: "تأثيرك في الساحة", gifts: "الهدايا", sendGift: "إرسال هدية", giftSent: "تم إرسال الهدية!", giftReceived: "لقد استلمت هدية!", selectGift: "اختر هدية", giftPreview: "معاينة الهدية", cashback: "استرداد", willReceive: "ستستلم", charismaGain: "زيادة الكاريزما", playerLeft: "لاعب غادر", spyLeftAgentsWin: "الجاسوس غادر! فاز العملاء!", agentLeftSpyWins: "عميل غادر! فاز الجاسوس!", myGifts: "هداياي", receivedGifts: "الهدايا المستلمة", noGifts: "لا توجد هدايا بعد.", fromPlayer: "من", toPlayer: "إلى", buyGift: "شراء هدية", sendToFriend: "إرسال لصديق",
-        notifications: "الإشعارات", clearAll: "حذف الكل", noNotifications: "لا توجد إشعارات", friendRequest: "أرسل لك طلب صداقة", giftNotification: "أرسل لك هدية", messageNotification: "أرسل لك رسالة", nextLevel: "المستوى التالي", close: "إغلاق",
+        notifications: "الإشعارات", clearAll: "حذف الكل", noNotifications: "لا توجد إشعارات", friendRequest: "أرسل لك طلب صداقة", friendRequestAccepted: "قبل طلب صداقتك", giftNotification: "أرسل لك هدية", messageNotification: "أرسل لك رسالة", nextLevel: "المستوى التالي", close: "إغلاق",
         sendTo: "إرسال إلى", noFriendsToSend: "لا يوجد أصدقاء لإرسال الهدايا.", selectFriend: "اختر صديق", myInventory: "مخزوني", maxLevel: "المستوى الأقصى",
         privateChat: "محادثة خاصة", typeMessage: "اكتب رسالة...", noMessages: "لا توجد رسائل بعد.",
         codePlaceholder: "كود",
@@ -330,6 +328,7 @@ const TRANSLATIONS = {
     } 
 };
 
+// Continue in Part 2...
 // ==========================================
 // PRO SPY - COMPLETE SCRIPT - PART 2
 // Components + Notifications + Chat
@@ -610,6 +609,7 @@ const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClea
             case 'friend_request': return '👥';
             case 'gift': return '🎁';
             case 'message': return '💬';
+            case 'friend_request_accepted': return '✅';
             case 'achievement': return '🏆';
             default: return '🔔';
         }
@@ -762,7 +762,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
 // ==========================================
 // PRIVATE CHAT MODAL - IMPROVED WITH EMOJI
 // ==========================================
-const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang }) => {
+const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSendNotification }) => {
     const t = TRANSLATIONS[lang];
     const [messages, setMessages] = useState([]);
     const [newMsg, setNewMsg] = useState('');
@@ -797,6 +797,10 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang }) =>
             const msgData = { senderId: user.uid, senderName: currentUser?.displayName || 'User', senderPhoto: currentUser?.photoURL || null, text: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp() };
             await chatsCollection.doc(chatId).collection('messages').add(msgData);
             await chatsCollection.doc(chatId).set({ members: [user.uid, friend.uid], lastMessage: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
+            // Create notification for the receiver
+            if (onSendNotification) {
+                await onSendNotification(friend.uid, 'message', `${currentUser?.displayName || 'User'}: ${newMsg.trim().substring(0, 50)}${newMsg.trim().length > 50 ? '...' : ''}`, user.uid, currentUser?.displayName || 'User');
+            }
             setNewMsg('');
             playSound('click');
         } catch (e) { console.error('Send message error:', e); }
@@ -881,6 +885,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang }) =>
     );
 };
 
+// Continue in Part 3...
 // ==========================================
 // PRO SPY - COMPLETE SCRIPT - PART 3
 // Shop + Inventory + Profile + Main App
@@ -1319,6 +1324,10 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
 };
 
 // ==========================================
+// MAIN APP COMPONENT - SEE PART 4
+// ==========================================
+// Continue in Part 4...
+// ==========================================
 // PRO SPY - COMPLETE SCRIPT - PART 4
 // Main App Component with Notifications
 // ==========================================
@@ -1445,27 +1454,74 @@ function App() {
     useEffect(() => {
         if (!user || !isLoggedIn) return;
         
-        let previousCount = 0;
+        let previousCount = -1; // Start with -1 to detect first load
         
-        const unsub = notificationsCollection.where('toUserId', '==', user.uid).orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
-            let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            const newUnread = notifs.filter(n => !n.read).length;
-            
-            // Play sound if new notification arrived
-            if (newUnread > previousCount && previousCount > 0) {
-                playNotificationSound();
-                // Ring the bell
-                if (notificationBellRef.current) {
-                    notificationBellRef.current.classList.add('ringing');
-                    setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500);
-                }
+        // First try with orderBy (requires index)
+        const setupListener = async () => {
+            try {
+                const unsub = notificationsCollection
+                    .where('toUserId', '==', user.uid)
+                    .orderBy('timestamp', 'desc')
+                    .limit(50)
+                    .onSnapshot(
+                        snap => {
+                            let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            const newUnread = notifs.filter(n => !n.read).length;
+                            
+                            // Play sound if new notification arrived (not on first load)
+                            if (previousCount !== -1 && newUnread > previousCount) {
+                                playNotificationSound();
+                                // Ring the bell
+                                if (notificationBellRef.current) {
+                                    notificationBellRef.current.classList.add('ringing');
+                                    setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500);
+                                }
+                            }
+                            
+                            previousCount = newUnread;
+                            setNotifications(notifs);
+                            setUnreadNotifications(newUnread);
+                        },
+                        error => {
+                            console.error('Notifications listener error:', error);
+                        }
+                    );
+                return unsub;
+            } catch (e) {
+                console.log('Trying notifications without orderBy...');
+                // Fallback without orderBy
+                return notificationsCollection
+                    .where('toUserId', '==', user.uid)
+                    .limit(50)
+                    .onSnapshot(snap => {
+                        let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        // Sort manually
+                        notifs.sort((a, b) => {
+                            const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
+                            const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
+                            return timeB - timeA;
+                        });
+                        const newUnread = notifs.filter(n => !n.read).length;
+                        
+                        if (previousCount !== -1 && newUnread > previousCount) {
+                            playNotificationSound();
+                            if (notificationBellRef.current) {
+                                notificationBellRef.current.classList.add('ringing');
+                                setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500);
+                            }
+                        }
+                        
+                        previousCount = newUnread;
+                        setNotifications(notifs);
+                        setUnreadNotifications(newUnread);
+                    });
             }
-            
-            previousCount = newUnread;
-            setNotifications(notifs);
-            setUnreadNotifications(newUnread);
-        });
-        return unsub;
+        };
+        
+        let unsubscribe = null;
+        setupListener().then(unsub => { unsubscribe = unsub; });
+        
+        return () => { if (unsubscribe) unsubscribe(); };
     }, [user, isLoggedIn]);
 
     // Room Listener
@@ -1713,8 +1769,10 @@ function App() {
         if (!user || !isLoggedIn) return;
         await usersCollection.doc(user.uid).update({ friends: firebase.firestore.FieldValue.arrayUnion(fromUid), friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) });
         await usersCollection.doc(fromUid).update({ friends: firebase.firestore.FieldValue.arrayUnion(user.uid) });
+        // Send notification to the person who sent the request
+        await createNotification(fromUid, 'friend_request_accepted', `${userData.displayName} ${lang === 'ar' ? 'قبل طلب صداقتك!' : 'accepted your friend request!'}`, user.uid, userData.displayName);
         setNotification(t.friendAdded);
-    }, [user, isLoggedIn, t]);
+    }, [user, isLoggedIn, t, userData, createNotification, lang]);
     
     const handleRejectRequest = useCallback(async (fromUid) => {
         if (!user || !isLoggedIn) return;
@@ -1942,7 +2000,7 @@ function App() {
             )}
             
             {/* Private Chat */}
-            {showPrivateChat && chatFriend && user && <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={currentUserData} user={user} lang={lang} />}
+            {showPrivateChat && chatFriend && user && <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={currentUserData} user={user} lang={lang} onSendNotification={createNotification} />}
             
             {/* Alert */}
             {alertMessage && ( 
@@ -2262,9 +2320,3 @@ const AppWithErrorBoundary = () => (
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
-
-
-
-
-
-
