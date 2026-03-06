@@ -1,7 +1,7 @@
 // ==========================================
-// PRO SPY - SCRIPT V10 - PART 1
-// Constants + Config + Helper Functions + UI Components
-// Changes: Gift System (Bonus only), Gift Log, Improved Chat
+// PRO SPY - SCRIPT V10 - COMPLETE FILE
+// All-in-one: Config + Components + App
+// Changes: Gift System (Bonus only, NO Cashback), Gift Log, Improved Chat, Friend Selection Fix
 // ==========================================
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
@@ -733,91 +733,6 @@ const EmojiPicker = ({ show, onClose, onSelect, lang }) => {
     );
 };
 
-// Export for Part 2
-window.PRO_SPY = {
-    // Firebase
-    firebaseConfig,
-    auth,
-    db,
-    appId,
-    usersCollection,
-    guestsCollection,
-    reportsCollection,
-    chatsCollection,
-    roomsCollection,
-    historyCollection,
-    notificationsCollection,
-    giftsLogCollection,
-    
-    // Constants
-    CURRENCY_NAME,
-    CURRENCY_ICON,
-    MAX_ROUNDS,
-    MAX_BADGES,
-    MAX_GIFT_LOG_DISPLAY,
-    LOGIN_REWARDS,
-    LOGIN_REWARDS_CONFIG,
-    CHARISMA_LEVELS,
-    SHOP_ITEMS,
-    SCENARIOS,
-    EMOJI_CATEGORIES,
-    EMOJI_LIST,
-    TRANSLATIONS,
-    
-    // Functions
-    checkLoginRewardsCycle,
-    getCurrentCycleMonth,
-    getCharismaLevel,
-    getCharismaProgress,
-    generateUID,
-    calculateLevel,
-    getChatId,
-    formatTime,
-    formatDate,
-    formatCharisma,
-    maskEmail,
-    generateRandomBonus,
-    playSound,
-    playNotificationSound,
-    playRewardSound,
-    playMessageSound,
-    playGiftSound,
-    initAudioOnFirstInteraction,
-    
-    // Components
-    ErrorBoundary,
-    GuestBanner,
-    NotificationToast,
-    ModalCloseBtn,
-    CharismaDisplay,
-    KDCircle,
-    AvatarWithFrame,
-    renderTitle,
-    renderBadges,
-    NotificationDropdown,
-    GiftLog,
-    EmojiPicker,
-};
-// ==========================================
-// PRO SPY - SCRIPT V10 - PART 2
-// Components: Modals + Chat + Shop + Profile
-// Changes: Improved Chat with Profile Pics, Gift System, Friend Selection Fix
-// ==========================================
-
-// Get shared imports from Part 1
-const {
-    auth, db, usersCollection, guestsCollection, chatsCollection, roomsCollection,
-    notificationsCollection, giftsLogCollection, historyCollection, reportsCollection,
-    CURRENCY_NAME, CURRENCY_ICON, MAX_BADGES, MAX_GIFT_LOG_DISPLAY,
-    SHOP_ITEMS, TRANSLATIONS, EMOJI_LIST, EMOJI_CATEGORIES,
-    getCharismaLevel, getCharismaProgress, generateRandomBonus,
-    formatTime, formatDate, formatCharisma,
-    playSound, ModalCloseBtn, CharismaDisplay, KDCircle, AvatarWithFrame,
-    renderTitle, renderBadges, GiftLog, EmojiPicker
-} = window.PRO_SPY;
-
-const { useState, useEffect, useRef, useCallback, useMemo } = React;
-
 // ==========================================
 // 🎁 GIFT PREVIEW MODAL - IMPROVED
 // Shows details for both sender and receiver
@@ -1487,7 +1402,6 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
 const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     const t = TRANSLATIONS[lang];
     const [claiming, setClaiming] = useState(false);
-    const LOGIN_REWARDS = window.PRO_SPY.LOGIN_REWARDS;
     
     if (!show) return null;
     
@@ -1501,7 +1415,7 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     const handleClaim = async () => { 
         if (!canClaimToday || claiming) return; 
         setClaiming(true); 
-        window.PRO_SPY.playRewardSound(); 
+        playRewardSound(); 
         await onClaim(currentDay + 1); 
         setClaiming(false); 
     };
@@ -1700,47 +1614,6 @@ const TutorialModal = ({ show, onClose, lang }) => {
     );
 };
 
-// Export components for Part 3
-window.PRO_SPY_COMPONENTS = {
-    GiftPreviewModal,
-    SendGiftModal,
-    ShopModal,
-    InventoryModal,
-    UserProfileModal,
-    PrivateChatModal,
-    LoginRewards,
-    BrowseRoomsModal,
-    TutorialModal,
-};
-// ==========================================
-// PRO SPY - SCRIPT V10 - PART 3
-// Main App Component + Gift System
-// Changes: NO Cashback for sender, BONUS for receiver only, Friends fix
-// ==========================================
-
-// Get imports from Part 1 & 2
-const {
-    auth, db, usersCollection, guestsCollection, chatsCollection, roomsCollection,
-    notificationsCollection, giftsLogCollection, historyCollection,
-    CURRENCY_NAME, CURRENCY_ICON, MAX_BADGES, MAX_GIFT_LOG_DISPLAY,
-    SHOP_ITEMS, TRANSLATIONS, EMOJI_LIST,
-    getCharismaLevel, getCharismaProgress, generateRandomBonus,
-    formatTime, formatDate, formatCharisma,
-    playSound, playNotificationSound, playRewardSound, playMessageSound, playGiftSound,
-    ErrorBoundary, GuestBanner, NotificationToast, ModalCloseBtn,
-    CharismaDisplay, KDCircle, AvatarWithFrame,
-    renderTitle, renderBadges, NotificationDropdown,
-    checkLoginRewardsCycle, getCurrentCycleMonth,
-    LOGIN_REWARDS, CHARISMA_LEVELS
-} = window.PRO_SPY;
-
-const {
-    GiftPreviewModal, SendGiftModal, ShopModal, InventoryModal,
-    UserProfileModal, PrivateChatModal, LoginRewards,
-    BrowseRoomsModal, TutorialModal
-} = window.PRO_SPY_COMPONENTS;
-
-const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
 // ==========================================
 // 🎮 MAIN APP COMPONENT
