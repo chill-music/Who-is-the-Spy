@@ -1,7 +1,6 @@
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 1
-// All Improvements + Notifications + Chat + Gifts
-// + Login Rewards + Multi-Badges + Browse Rooms Fix
+// PRO SPY - FINAL SCRIPT - PART 1
+// Constants + Config + Helper Functions
 // ==========================================
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
@@ -37,302 +36,46 @@ const giftsLogCollection = db.collection('artifacts').doc(appId).collection('pub
 const CURRENCY_NAME = "Intel";
 const CURRENCY_ICON = "🧠";
 const MAX_ROUNDS = 3;
-const MAX_BADGES = 10; // NEW: Maximum badges a user can equip
+const MAX_BADGES = 10;
 
 // ==========================================
-// LOGIN REWARDS - 30 DAYS - FULLY CUSTOMIZABLE
-// Supports: currency, frames, badges, titles, gifts
+// LOGIN REWARDS - 30 DAYS - FIXED
 // ==========================================
-
 const LOGIN_REWARDS = [
-    // ============ WEEK 1 ============
-    { 
-        day: 1, 
-        type: 'currency', 
-        amount: 100, 
-        icon: '🧠',
-        iconUrl: '', // Optional: image URL instead of emoji
-        name_en: '100 Intel',
-        name_ar: '100 إنتل'
-    },
-    { 
-        day: 2, 
-        type: 'currency', 
-        amount: 150, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '150 Intel',
-        name_ar: '150 إنتل'
-    },
-    { 
-        day: 3, 
-        type: 'currency', 
-        amount: 200, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '200 Intel',
-        name_ar: '200 إنتل'
-    },
-    { 
-        day: 4, 
-        type: 'currency', 
-        amount: 250, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '250 Intel',
-        name_ar: '250 إنتل'
-    },
-    { 
-        day: 5, 
-        type: 'currency', 
-        amount: 300, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '300 Intel',
-        name_ar: '300 إنتل'
-    },
-    { 
-        day: 6, 
-        type: 'currency', 
-        amount: 400, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '400 Intel',
-        name_ar: '400 إنتل'
-    },
-    { 
-        day: 7, 
-        type: 'badge', 
-        itemId: 'badge_vip', // ID from SHOP_ITEMS.badges
-        icon: '⭐',
-        iconUrl: '', // Can use image URL
-        name_en: 'VIP Badge',
-        name_ar: 'شارة VIP',
-        special: true
-    },
-    
-    // ============ WEEK 2 ============
-    { 
-        day: 8, 
-        type: 'currency', 
-        amount: 350, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '350 Intel',
-        name_ar: '350 إنتل'
-    },
-    { 
-        day: 9, 
-        type: 'currency', 
-        amount: 400, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '400 Intel',
-        name_ar: '400 إنتل'
-    },
-    { 
-        day: 10, 
-        type: 'currency', 
-        amount: 450, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '450 Intel',
-        name_ar: '450 إنتل'
-    },
-    { 
-        day: 11, 
-        type: 'currency', 
-        amount: 500, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '500 Intel',
-        name_ar: '500 إنتل'
-    },
-    { 
-        day: 12, 
-        type: 'currency', 
-        amount: 550, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '550 Intel',
-        name_ar: '550 إنتل'
-    },
-    { 
-        day: 13, 
-        type: 'currency', 
-        amount: 600, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '600 Intel',
-        name_ar: '600 إنتل'
-    },
-    { 
-        day: 14, 
-        type: 'frame', 
-        itemId: 'frame_neon', // ID from SHOP_ITEMS.frames
-        icon: '🖼️',
-        iconUrl: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png', // Example image
-        name_en: 'Neon Frame',
-        name_ar: 'إطار نيون',
-        special: true
-    },
-    
-    // ============ WEEK 3 ============
-    { 
-        day: 15, 
-        type: 'currency', 
-        amount: 700, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '700 Intel',
-        name_ar: '700 إنتل'
-    },
-    { 
-        day: 16, 
-        type: 'currency', 
-        amount: 750, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '750 Intel',
-        name_ar: '750 إنتل'
-    },
-    { 
-        day: 17, 
-        type: 'currency', 
-        amount: 800, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '800 Intel',
-        name_ar: '800 إنتل'
-    },
-    { 
-        day: 18, 
-        type: 'currency', 
-        amount: 850, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '850 Intel',
-        name_ar: '850 إنتل'
-    },
-    { 
-        day: 19, 
-        type: 'currency', 
-        amount: 900, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '900 Intel',
-        name_ar: '900 إنتل'
-    },
-    { 
-        day: 20, 
-        type: 'currency', 
-        amount: 950, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '950 Intel',
-        name_ar: '950 إنتل'
-    },
-    { 
-        day: 21, 
-        type: 'title', 
-        itemId: 'title_spy', // ID from SHOP_ITEMS.titles
-        icon: '🕵️',
-        iconUrl: '', // Or use image URL
-        name_en: 'Mr. Spy Title',
-        name_ar: 'لقب سيد جاسوس',
-        special: true
-    },
-    
-    // ============ WEEK 4 ============
-    { 
-        day: 22, 
-        type: 'currency', 
-        amount: 1000, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '1000 Intel',
-        name_ar: '1000 إنتل'
-    },
-    { 
-        day: 23, 
-        type: 'currency', 
-        amount: 1100, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '1100 Intel',
-        name_ar: '1100 إنتل'
-    },
-    { 
-        day: 24, 
-        type: 'currency', 
-        amount: 1200, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '1200 Intel',
-        name_ar: '1200 إنتل'
-    },
-    { 
-        day: 25, 
-        type: 'currency', 
-        amount: 1300, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '1300 Intel',
-        name_ar: '1300 إنتل'
-    },
-    { 
-        day: 26, 
-        type: 'currency', 
-        amount: 1400, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '1400 Intel',
-        name_ar: '1400 إنتل'
-    },
-    { 
-        day: 27, 
-        type: 'currency', 
-        amount: 1500, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '1500 Intel',
-        name_ar: '1500 إنتل'
-    },
-    { 
-        day: 28, 
-        type: 'badge', 
-        itemId: 'badge_pro', // ID from SHOP_ITEMS.badges
-        icon: '🏆',
-        iconUrl: '',
-        name_en: 'Pro Badge',
-        name_ar: 'شارة محترف',
-        special: true
-    },
-    
-    // ============ FINAL DAYS ============
-    { 
-        day: 29, 
-        type: 'currency', 
-        amount: 2500, 
-        icon: '🧠',
-        iconUrl: '',
-        name_en: '2500 Intel',
-        name_ar: '2500 إنتل'
-    },
-    { 
-        day: 30, 
-        type: 'frame', 
-        itemId: 'frame_gold', // ID from SHOP_ITEMS.frames
-        icon: '👑',
-        iconUrl: '',
-        name_en: 'Gold Frame',
-        name_ar: 'إطار ذهبي',
-        special: true,
-        final: true
-    },
+    { day: 1, type: 'currency', amount: 100, icon: '🧠', iconUrl: '', name_en: '100 Intel', name_ar: '100 إنتل' },
+    { day: 2, type: 'currency', amount: 150, icon: '🧠', iconUrl: '', name_en: '150 Intel', name_ar: '150 إنتل' },
+    { day: 3, type: 'currency', amount: 200, icon: '🧠', iconUrl: '', name_en: '200 Intel', name_ar: '200 إنتل' },
+    { day: 4, type: 'currency', amount: 250, icon: '🧠', iconUrl: '', name_en: '250 Intel', name_ar: '250 إنتل' },
+    { day: 5, type: 'currency', amount: 300, icon: '🧠', iconUrl: '', name_en: '300 Intel', name_ar: '300 إنتل' },
+    { day: 6, type: 'currency', amount: 400, icon: '🧠', iconUrl: '', name_en: '400 Intel', name_ar: '400 إنتل' },
+    { day: 7, type: 'badge', itemId: 'badge_vip', icon: '⭐', iconUrl: '', name_en: 'VIP Badge', name_ar: 'شارة VIP', special: true },
+    { day: 8, type: 'currency', amount: 350, icon: '🧠', iconUrl: '', name_en: '350 Intel', name_ar: '350 إنتل' },
+    { day: 9, type: 'currency', amount: 400, icon: '🧠', iconUrl: '', name_en: '400 Intel', name_ar: '400 إنتل' },
+    { day: 10, type: 'currency', amount: 450, icon: '🧠', iconUrl: '', name_en: '450 Intel', name_ar: '450 إنتل' },
+    { day: 11, type: 'currency', amount: 500, icon: '🧠', iconUrl: '', name_en: '500 Intel', name_ar: '500 إنتل' },
+    { day: 12, type: 'currency', amount: 550, icon: '🧠', iconUrl: '', name_en: '550 Intel', name_ar: '550 إنتل' },
+    { day: 13, type: 'currency', amount: 600, icon: '🧠', iconUrl: '', name_en: '600 Intel', name_ar: '600 إنتل' },
+    { day: 14, type: 'frame', itemId: 'frame_neon', icon: '🖼️', iconUrl: '', name_en: 'Neon Frame', name_ar: 'إطار نيون', special: true },
+    { day: 15, type: 'currency', amount: 700, icon: '🧠', iconUrl: '', name_en: '700 Intel', name_ar: '700 إنتل' },
+    { day: 16, type: 'currency', amount: 750, icon: '🧠', iconUrl: '', name_en: '750 Intel', name_ar: '750 إنتل' },
+    { day: 17, type: 'currency', amount: 800, icon: '🧠', iconUrl: '', name_en: '800 Intel', name_ar: '800 إنتل' },
+    { day: 18, type: 'currency', amount: 850, icon: '🧠', iconUrl: '', name_en: '850 Intel', name_ar: '850 إنتل' },
+    { day: 19, type: 'currency', amount: 900, icon: '🧠', iconUrl: '', name_en: '900 Intel', name_ar: '900 إنتل' },
+    { day: 20, type: 'currency', amount: 950, icon: '🧠', iconUrl: '', name_en: '950 Intel', name_ar: '950 إنتل' },
+    { day: 21, type: 'title', itemId: 'title_spy', icon: '🕵️', iconUrl: '', name_en: 'Mr. Spy Title', name_ar: 'لقب سيد جاسوس', special: true },
+    { day: 22, type: 'currency', amount: 1000, icon: '🧠', iconUrl: '', name_en: '1000 Intel', name_ar: '1000 إنتل' },
+    { day: 23, type: 'currency', amount: 1100, icon: '🧠', iconUrl: '', name_en: '1100 Intel', name_ar: '1100 إنتل' },
+    { day: 24, type: 'currency', amount: 1200, icon: '🧠', iconUrl: '', name_en: '1200 Intel', name_ar: '1200 إنتل' },
+    { day: 25, type: 'currency', amount: 1300, icon: '🧠', iconUrl: '', name_en: '1300 Intel', name_ar: '1300 إنتل' },
+    { day: 26, type: 'currency', amount: 1400, icon: '🧠', iconUrl: '', name_en: '1400 Intel', name_ar: '1400 إنتل' },
+    { day: 27, type: 'currency', amount: 1500, icon: '🧠', iconUrl: '', name_en: '1500 Intel', name_ar: '1500 إنتل' },
+    { day: 28, type: 'badge', itemId: 'badge_pro', icon: '🏆', iconUrl: '', name_en: 'Pro Badge', name_ar: 'شارة محترف', special: true },
+    { day: 29, type: 'currency', amount: 2500, icon: '🧠', iconUrl: '', name_en: '2500 Intel', name_ar: '2500 إنتل' },
+    { day: 30, type: 'frame', itemId: 'frame_gold', icon: '👑', iconUrl: '', name_en: 'Gold Frame', name_ar: 'إطار ذهبي', special: true, final: true },
 ];
+
 // ==========================================
-// CHARISMA LEVELS - 21 Levels with Images
+// CHARISMA LEVELS - 21 Levels
 // ==========================================
 const CHARISMA_LEVELS = [
     { level: 1, threshold: 0, icon: '', iconType: 'image', iconUrl: 'https://i.ibb.co/3mhcggzc/star3.png', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
@@ -378,11 +121,10 @@ const getCharismaProgress = (charisma) => {
     return Math.min(100, Math.max(0, progress));
 };
 
-// --- Random Cashback Generator ---
 const generateRandomCashback = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 // ==========================================
-// SHOP ITEMS - WITH IMAGE URL SUPPORT
+// SHOP ITEMS
 // ==========================================
 const SHOP_ITEMS = {
     frames: [
@@ -390,8 +132,7 @@ const SHOP_ITEMS = {
         { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' },
         { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
         { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png' },
-        { id: 'frame_gif', name_en: "gif Frame", name_ar: "إطار صورة", cost: 0, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif' },
-        { id: 'shehab', name_en: "sh", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/n8Bj9dSk/ezgif-com-animated-gif-maker-1.gif' },
+        { id: 'frame_gif', name_en: "GIF Frame", name_ar: "إطار متحرك", cost: 0, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif' },
         { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif' },
         { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)' },
     ],
@@ -416,7 +157,6 @@ const SHOP_ITEMS = {
     themes: [
         { id: 'theme_dark', name_en: "Midnight", name_ar: "منتصف الليل", cost: 200, type: 'themes' },
         { id: 'theme_ocean', name_en: "Ocean Blue", name_ar: "أزرق محيطي", cost: 300, type: 'themes' },
-        { id: 'theme_forest', name_en: "Forest", name_ar: "غابة", cost: 300, type: 'themes' },
     ],
     gifts: [
         { id: 'gift_rose', name_en: "Rose", name_ar: "وردة", cost: 1, type: 'gifts', charisma: 10, minCashback: 1, maxCashback: 50, desc_ar: "عبّر عن مشاعرك", desc_en: "Express your feelings", emoji: "🌹", imageUrl: "" },
@@ -454,30 +194,12 @@ const SHOP_ITEMS = {
         { id: 'gift_dragon', name_en: "Dragon", name_ar: "تنين", cost: 10000, type: 'gifts', charisma: 210000, minCashback: 1, maxCashback: 120000, desc_ar: "تنين أسطوري", desc_en: "Legendary dragon", emoji: "🐉", imageUrl: "" },
         { id: 'gift_moon', name_en: "Moon", name_ar: "قمر", cost: 50000, type: 'gifts', charisma: 700000, minCashback: 1, maxCashback: 120000, desc_ar: "قمر خاص بك", desc_en: "Your own moon", emoji: "🌙", imageUrl: "" },
         { id: 'gift_sun', name_en: "Sun", name_ar: "شمس", cost: 50000, type: 'gifts', charisma: 750000, minCashback: 1, maxCashback: 120000, desc_ar: "شمس ساطعة", desc_en: "Shining sun", emoji: "☀️", imageUrl: "" },
-        { id: 'gift_ocean', name_en: "Ocean", name_ar: "محيط", cost: 80000, type: 'gifts', charisma: 1200000, minCashback: 1, maxCashback: 120000, desc_ar: "محيط واسع", desc_en: "Boundless ocean", emoji: "🌊", imageUrl: "" },
         { id: 'gift_world', name_en: "World", name_ar: "عالم", cost: 100000, type: 'gifts', charisma: 1700000, minCashback: 1, maxCashback: 120000, desc_ar: "عالم كامل ملكك", desc_en: "Your own world", emoji: "🌍", imageUrl: "" },
         { id: 'gift_universe', name_en: "Universe", name_ar: "كون", cost: 100000, type: 'gifts', charisma: 1900000, minCashback: 1, maxCashback: 120000, desc_ar: "كون كامل ملكك", desc_en: "Your own universe", emoji: "🌌", imageUrl: "" },
         { id: 'gift_multiverse', name_en: "Multiverse", name_ar: "متعدد أكوان", cost: 150000, type: 'gifts', charisma: 2500000, minCashback: 1, maxCashback: 120000, desc_ar: "متعدد أكوان خاص", desc_en: "Your multiverse", emoji: "🪐", imageUrl: "" },
         { id: 'gift_ultimate', name_en: "Ultimate Gift", name_ar: "الهدية المطلقة", cost: 150000, type: 'gifts', charisma: 3500000, minCashback: 1, maxCashback: 120000, desc_ar: "أعظم هدية", desc_en: "The ultimate gift", emoji: "🏆", imageUrl: "" },
     ]
 };
-
-// --- Achievements ---
-const ACHIEVEMENTS = [ 
-    { id: 'first_win', name_en: "First Blood", name_ar: "أول دم", icon: "🩸", desc_en: "Win your first game.", desc_ar: "افوز اول لعبة لك.", hidden: false }, 
-    { id: 'wins_5', name_en: "Rookie Spy", name_ar: "جاسوس مبتدئ", icon: "🔰", desc_en: "Win 5 games.", desc_ar: "افوز 5 مرات.", hidden: false },
-    { id: 'wins_10', name_en: "Field Agent", name_ar: "عميل ميداني", icon: "🔫", desc_en: "Win 10 games.", desc_ar: "افوز 10 مرات.", hidden: false }, 
-    { id: 'wins_20', name_en: "Master of Disguise", name_ar: "سيد التنكر", icon: "🎭", desc_en: "Win 20 games.", desc_ar: "افوز 20 مرة.", hidden: false }, 
-    { id: 'wins_50', name_en: "Shadow Legend", name_ar: "أسطورة الظل", icon: "👁️", desc_en: "Win 50 games.", desc_ar: "افوز 50 مرة.", hidden: false }, 
-    { id: 'wins_100', name_en: "Immortal", name_ar: "خالد", icon: "👑", special: true, desc_en: "Win 100 games.", desc_ar: "افوز 100 مرة.", hidden: false },
-    { id: 'level_5', name_en: "Rising Star", name_ar: "نجم صاعد", icon: "⭐", desc_en: "Reach Level 5.", desc_ar: "الوصول للمستوى 5.", hidden: false },
-    { id: 'level_10', name_en: "Veteran", name_ar: "محارب قديم", icon: "🛡️", desc_en: "Reach Level 10.", desc_ar: "الوصول للمستوى 10.", hidden: false },
-    { id: 'ghost_protocol', name_en: "Ghost Protocol", name_ar: "بروتوكول الشبح", icon: "👻", desc_en: "Win a game without anyone voting for you.", desc_ar: "اربح لعبة دون أن يصوت عليك أحد.", hidden: true },
-    { id: 'mr_white_lucky', name_en: "Lucky Guess", name_ar: "تخمين محظوظ", icon: "🎲", desc_en: "Win as Mr. White by guessing correctly.", desc_ar: "اربح كالسيد أبيض عن طريق التخمين الصحيح.", hidden: true },
-    { id: 'charisma_1000', name_en: "Charming", name_ar: "ساحر", icon: "✨", desc_en: "Reach 1000 Charisma.", desc_ar: "الوصول لـ 1000 كاريزما.", hidden: false },
-    { id: 'charisma_10000', name_en: "Celebrity", name_ar: "مشهور", icon: "🌟", desc_en: "Reach 10000 Charisma.", desc_ar: "الوصول لـ 10000 كاريزما.", hidden: false },
-    { id: 'charisma_100000', name_en: "Icon", name_ar: "أيقونة", icon: "💎", desc_en: "Reach 100000 Charisma.", desc_ar: "الوصول لـ 100000 كاريزما.", hidden: false },
-];
 
 // --- Scenarios ---
 const SCENARIOS = [ 
@@ -496,29 +218,15 @@ const EMOJI_LIST = ['😀', '😂', '😍', '🤔', '😎', '🤫', '😡', '�
 // --- Helper Functions ---
 const generateUID = () => Math.floor(100000 + Math.random() * 900000).toString();
 const calculateLevel = (xp) => Math.floor(xp / 100) + 1;
-const calculateXPProgress = (xp) => (xp % 100);
 const getChatId = (id1, id2) => [id1, id2].sort().join('_');
 const formatTime = (timestamp) => { if (!timestamp) return ''; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
-const formatDate = (timestamp) => { if (!timestamp) return 'N/A'; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleDateString() + ' ' + date.toLocaleTimeString(); };
-const formatDuration = (ms) => { const totalSeconds = Math.floor(ms / 1000); const minutes = Math.floor(totalSeconds / 60); const seconds = totalSeconds % 60; return `${minutes}m ${seconds}s`; };
 const formatCharisma = (num) => { if (num === undefined || num === null) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
-
-// --- Email Masking Function ---
-const maskEmail = (email) => {
-    if (!email) return 'N/A';
-    const [localPart, domain] = email.split('@');
-    if (!domain) return email;
-    const visibleChars = Math.min(2, localPart.length);
-    const maskedPart = localPart.substring(0, visibleChars) + '***';
-    return `${maskedPart}@${domain}`;
-};
+const maskEmail = (email) => { if (!email) return 'N/A'; const [localPart, domain] = email.split('@'); if (!domain) return email; const visibleChars = Math.min(2, localPart.length); return localPart.substring(0, visibleChars) + '***@' + domain; };
 
 // --- Audio System ---
 const AudioCtx = window.AudioContext || window.webkitAudioContext; 
 let audioCtx = null;
-
 const initAudio = () => { if (!audioCtx) audioCtx = new AudioCtx(); };
-
 const playSound = (type) => { 
     if (!audioCtx) return; 
     if (audioCtx.state === 'suspended') audioCtx.resume(); 
@@ -527,64 +235,14 @@ const playSound = (type) => {
     osc.connect(gainNode); 
     gainNode.connect(audioCtx.destination); 
     
-    if (type === 'click') { 
-        osc.frequency.value = 800; 
-        osc.type = 'sine'; 
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); 
-        osc.start(); 
-        osc.stop(audioCtx.currentTime + 0.1); 
-    } else if (type === 'success') { 
-        osc.frequency.value = 600; 
-        osc.type = 'sine'; 
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
-        osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15); 
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); 
-        osc.start(); 
-        osc.stop(audioCtx.currentTime + 0.3); 
-    } else if (type === 'gift') {
-        osc.frequency.value = 523;
-        osc.type = 'sine';
-        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(784, audioCtx.currentTime + 0.15);
-        osc.frequency.linearRampToValueAtTime(1047, audioCtx.currentTime + 0.3);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
-    } else if (type === 'notification') {
-        osc.frequency.value = 880;
-        osc.type = 'sine';
-        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(1100, audioCtx.currentTime + 0.1);
-        osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.2);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.3);
-    } else if (type === 'message') {
-        osc.frequency.value = 600;
-        osc.type = 'sine';
-        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.08);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.15);
-    } else if (type === 'reward') {
-        // Reward claim sound
-        osc.frequency.value = 440;
-        osc.type = 'sine';
-        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(554, audioCtx.currentTime + 0.1);
-        osc.frequency.linearRampToValueAtTime(659, audioCtx.currentTime + 0.2);
-        osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.3);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.5);
-    }
+    if (type === 'click') { osc.frequency.value = 800; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } 
+    else if (type === 'success') { osc.frequency.value = 600; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); } 
+    else if (type === 'gift') { osc.frequency.value = 523; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(784, audioCtx.currentTime + 0.15); osc.frequency.linearRampToValueAtTime(1047, audioCtx.currentTime + 0.3); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4); osc.start(); osc.stop(audioCtx.currentTime + 0.4); }
+    else if (type === 'notification') { osc.frequency.value = 880; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(1100, audioCtx.currentTime + 0.1); osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.2); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
+    else if (type === 'reward') { osc.frequency.value = 440; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(554, audioCtx.currentTime + 0.1); osc.frequency.linearRampToValueAtTime(659, audioCtx.currentTime + 0.2); osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.3); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5); osc.start(); osc.stop(audioCtx.currentTime + 0.5); }
 };
-
-const playNotificationSound = () => { playSound('notification'); };
-const playMessageSound = () => { playSound('message'); };
-const playRewardSound = () => { playSound('reward'); };
+const playNotificationSound = () => playSound('notification');
+const playRewardSound = () => playSound('reward');
 
 // --- Translations ---
 const TRANSLATIONS = { 
@@ -597,18 +255,12 @@ const TRANSLATIONS = {
         charisma: "Charisma", charismaDesc: "Your influence in the arena", gifts: "Gifts", sendGift: "Send Gift", giftSent: "Gift Sent!", giftReceived: "You received a gift!", selectGift: "Select a Gift", giftPreview: "Gift Preview", cashback: "Cashback", willReceive: "You'll receive", charismaGain: "Charisma Gain", playerLeft: "Player Left", spyLeftAgentsWin: "Spy left! Agents Win!", agentLeftSpyWins: "Agent left! Spy Wins!", myGifts: "My Gifts", receivedGifts: "Received Gifts", noGifts: "No gifts yet.", fromPlayer: "From", toPlayer: "To", buyGift: "Buy Gift", sendToFriend: "Send to Friend",
         notifications: "Notifications", clearAll: "Clear All", noNotifications: "No notifications", friendRequest: "sent you a friend request", friendRequestAccepted: "accepted your friend request", giftNotification: "sent you a gift", messageNotification: "sent you a message", nextLevel: "Next level", close: "Close",
         sendTo: "Send to", noFriendsToSend: "No friends to send gifts to.", selectFriend: "Select a friend", myInventory: "My Inventory", maxLevel: "MAX LEVEL",
-        privateChat: "Private Chat", typeMessage: "Type a message...", noMessages: "No messages yet.",
-        codePlaceholder: "CODE",
-        luckyCashback: "Lucky Cashback", luckBonus: "Luck Bonus",
-        loginRequired: "Login Required",
+        privateChat: "Private Chat", typeMessage: "Type a message...", noMessages: "No messages yet.", codePlaceholder: "CODE",
+        luckyCashback: "Lucky Cashback", luckBonus: "Luck Bonus", loginRequired: "Login Required",
         showEmail: "Show", hideEmail: "Hide", accountType: "Account Type", googleAccount: "Google Account", guestAccount: "Guest Account",
-        playAsGuest: "Play as Guest", continueAsGuest: "Continue as Guest",
-        sendGiftToFriend: "Send Gift", giftCharisma: "Charisma", giftCashbackRange: "Cashback",
-        // Login Rewards
+        playAsGuest: "Play as Guest", continueAsGuest: "Continue as Guest", sendGiftToFriend: "Send Gift", giftCharisma: "Charisma", giftCashbackRange: "Cashback",
         loginRewards: "Login Rewards", dailyStreak: "Day Streak", claimReward: "Claim Reward", alreadyClaimed: "Claimed Today", comeBackTomorrow: "Come back tomorrow!", days: "Days",
-        // Gift Options
         sendToSelf: "Send to Myself", sendToOthers: "Send to Others",
-        // Lobby
         copyCode: "Copy Code", codeCopied: "Code Copied!", showPasswordLabel: "Show Password", hidePasswordLabel: "Hide Password",
     }, 
     ar: { 
@@ -620,25 +272,19 @@ const TRANSLATIONS = {
         charisma: "الكاريزما", charismaDesc: "تأثيرك في الساحة", gifts: "الهدايا", sendGift: "إرسال هدية", giftSent: "تم إرسال الهدية!", giftReceived: "لقد استلمت هدية!", selectGift: "اختر هدية", giftPreview: "معاينة الهدية", cashback: "استرداد", willReceive: "ستستلم", charismaGain: "زيادة الكاريزما", playerLeft: "لاعب غادر", spyLeftAgentsWin: "الجاسوس غادر! فاز العملاء!", agentLeftSpyWins: "عميل غادر! فاز الجاسوس!", myGifts: "هداياي", receivedGifts: "الهدايا المستلمة", noGifts: "لا توجد هدايا بعد.", fromPlayer: "من", toPlayer: "إلى", buyGift: "شراء هدية", sendToFriend: "إرسال لصديق",
         notifications: "الإشعارات", clearAll: "حذف الكل", noNotifications: "لا توجد إشعارات", friendRequest: "أرسل لك طلب صداقة", friendRequestAccepted: "قبل طلب صداقتك", giftNotification: "أرسل لك هدية", messageNotification: "أرسل لك رسالة", nextLevel: "المستوى التالي", close: "إغلاق",
         sendTo: "إرسال إلى", noFriendsToSend: "لا يوجد أصدقاء لإرسال الهدايا.", selectFriend: "اختر صديق", myInventory: "مخزوني", maxLevel: "المستوى الأقصى",
-        privateChat: "محادثة خاصة", typeMessage: "اكتب رسالة...", noMessages: "لا توجد رسائل بعد.",
-        codePlaceholder: "كود",
-        luckyCashback: "كاش باك محظوظ", luckBonus: "مكافأة الحظ",
-        loginRequired: "تسجيل الدخول مطلوب",
+        privateChat: "محادثة خاصة", typeMessage: "اكتب رسالة...", noMessages: "لا توجد رسائل بعد.", codePlaceholder: "كود",
+        luckyCashback: "كاش باك محظوظ", luckBonus: "مكافأة الحظ", loginRequired: "تسجيل الدخول مطلوب",
         showEmail: "إظهار", hideEmail: "إخفاء", accountType: "نوع الحساب", googleAccount: "حساب جوجل", guestAccount: "حساب زائر",
-        playAsGuest: "العب كزائر", continueAsGuest: "المتابعة كزائر",
-        sendGiftToFriend: "إرسال هدية", giftCharisma: "كاريزما", giftCashbackRange: "كاش باك",
-        // Login Rewards
+        playAsGuest: "العب كزائر", continueAsGuest: "المتابعة كزائر", sendGiftToFriend: "إرسال هدية", giftCharisma: "كاريزما", giftCashbackRange: "كاش باك",
         loginRewards: "مكافآت تسجيل الدخول", dailyStreak: "يوم متتالي", claimReward: "الحصول على المكافأة", alreadyClaimed: "تم الاستلام اليوم", comeBackTomorrow: "عد غداً!", days: "أيام",
-        // Gift Options
         sendToSelf: "إرسال لنفسي", sendToOthers: "إرسال للآخرين",
-        // Lobby
         copyCode: "نسخ الكود", codeCopied: "تم نسخ الكود!", showPasswordLabel: "إظهار كلمة السر", hidePasswordLabel: "إخفاء كلمة السر",
     } 
 };
 
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 2
-// Components + Main App with All Fixes
+// PRO SPY - FINAL SCRIPT - PART 2
+// Components
 // ==========================================
 
 // Error Boundary
@@ -666,19 +312,12 @@ class ErrorBoundary extends React.Component {
 // Guest Banner
 const GuestBanner = ({ lang }) => { 
     const t = TRANSLATIONS[lang]; 
-    return ( 
-        <div className="guest-banner"> 
-            <h3 className="guest-banner-title">{t.guestTitle}</h3> 
-            <p className="guest-banner-desc">{t.guestDesc}</p> 
-        </div> 
-    ); 
+    return ( <div className="guest-banner"> <h3 className="guest-banner-title">{t.guestTitle}</h3> <p className="guest-banner-desc">{t.guestDesc}</p> </div> ); 
 };
 
 // Notification Toast
 const NotificationToast = ({ message, onClose }) => {
-    useEffect(() => {
-        if (message) { const timer = setTimeout(() => { onClose(); }, 2500); return () => clearTimeout(timer); }
-    }, [message, onClose]);
+    useEffect(() => { if (message) { const timer = setTimeout(() => { onClose(); }, 2500); return () => clearTimeout(timer); } }, [message, onClose]);
     if(!message) return null;
     return (
         <div className="notification-toast">
@@ -692,9 +331,7 @@ const NotificationToast = ({ message, onClose }) => {
 };
 
 // Modal Close Button
-const ModalCloseBtn = ({ onClose }) => (
-    <button onClick={onClose} className="modal-close-btn" aria-label="Close">&times;</button>
-);
+const ModalCloseBtn = ({ onClose }) => (<button onClick={onClose} className="modal-close-btn" aria-label="Close">&times;</button>);
 
 // Charisma Display
 const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
@@ -716,13 +353,9 @@ const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
         <div className={`charisma-container ${hasGlow ? 'has-glow' : ''}`}>
             <div className="charisma-header">
                 <span className="charisma-label">{renderIcon()}{t.charisma}</span>
-                <span className={`charisma-level-badge ${currentLevel.badge_class} ${hasGlow ? 'glow-badge' : ''}`} style={hasGlow ? {boxShadow: '0 0 15px ' + currentLevel.color} : {}}>
-                    {renderIcon()} Lv.{currentLevel.level}
-                </span>
+                <span className={`charisma-level-badge ${currentLevel.badge_class} ${hasGlow ? 'glow-badge' : ''}`} style={hasGlow ? {boxShadow: '0 0 15px ' + currentLevel.color} : {}}>{renderIcon()} Lv.{currentLevel.level}</span>
             </div>
-            <div className="charisma-bar-bg">
-                <div className="charisma-bar-fill" style={{ width: `${progress}%` }}></div>
-            </div>
+            <div className="charisma-bar-bg"><div className="charisma-bar-fill" style={{ width: `${progress}%` }}></div></div>
             <div className="charisma-info">
                 <span className="charisma-current">{formatCharisma(charisma || 0)}</span>
                 {isMaxLevel ? <span className="charisma-next text-yellow-400 font-bold">{t.maxLevel}</span> : nextLevel && showDetails && <span className="charisma-next">{t.nextLevel}: {formatCharisma(neededForNext)}</span>}
@@ -753,638 +386,148 @@ const KDCircle = ({ wins, losses, lang }) => {
     ); 
 };
 
-// ==========================================
-// AVATAR WITH FRAME
-// ==========================================
+// Avatar With Frame
 const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
-    const sizeConfig = {
-        sm: { wrapper: 52, avatar: 30, mask: 32 },
-        md: { wrapper: 72, avatar: 40, mask: 42 },
-        lg: { wrapper: 110, avatar: 60, mask: 62 },
-        xl: { wrapper: 140, avatar: 80, mask: 82 }
-    };
+    const sizeConfig = { sm: { wrapper: 52, avatar: 30, mask: 32 }, md: { wrapper: 72, avatar: 40, mask: 42 }, lg: { wrapper: 110, avatar: 60, mask: 62 }, xl: { wrapper: 140, avatar: 80, mask: 82 } };
     const config = sizeConfig[size] || sizeConfig.md;
-    const frameStyle = equipped?.frames || null;
-    const frameItem = SHOP_ITEMS.frames.find(f => f.id === frameStyle);
-    
-    const wrapperStyle = {
-        position: 'relative',
-        width: config.wrapper + 'px',
-        height: config.wrapper + 'px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: onClick ? 'pointer' : 'default',
-        flexShrink: 0
-    };
-    
-    const avatarStyle = {
-        width: config.avatar + 'px',
-        height: config.avatar + 'px',
-        borderRadius: '50%',
-        objectFit: 'cover',
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 10,
-        border: '2px solid rgba(0,0,0,0.5)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-    };
+    const frameItem = SHOP_ITEMS.frames.find(f => f.id === equipped?.frames);
     
     const renderFrame = () => {
         if (!frameItem) return null;
-        
         if (frameItem.preview.startsWith('http')) {
-            return (
-                <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: config.wrapper + 'px',
-                    height: config.wrapper + 'px',
-                    borderRadius: '50%',
-                    overflow: 'hidden',
-                    zIndex: 1
-                }}>
-                    <img 
-                        src={frameItem.preview} 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        alt="frame" 
-                    />
-                    <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: config.mask + 'px',
-                        height: config.mask + 'px',
-                        borderRadius: '50%',
-                        background: 'var(--bg-dark)'
-                    }} />
-                </div>
-            );
-        } else {
-            return (
-                <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: config.wrapper + 'px',
-                    height: config.wrapper + 'px',
-                    borderRadius: '50%',
-                    background: frameItem.preview,
-                    zIndex: 1
-                }}>
-                    <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: config.mask + 'px',
-                        height: config.mask + 'px',
-                        borderRadius: '50%',
-                        background: 'var(--bg-dark)'
-                    }} />
-                </div>
-            );
+            return (<div style={{ position: 'absolute', top: 0, left: 0, width: config.wrapper + 'px', height: config.wrapper + 'px', borderRadius: '50%', overflow: 'hidden', zIndex: 1 }}><img src={frameItem.preview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="frame" /><div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: config.mask + 'px', height: config.mask + 'px', borderRadius: '50%', background: 'var(--bg-dark)' }} /></div>);
         }
+        return (<div style={{ position: 'absolute', top: 0, left: 0, width: config.wrapper + 'px', height: config.wrapper + 'px', borderRadius: '50%', background: frameItem.preview, zIndex: 1 }}><div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: config.mask + 'px', height: config.mask + 'px', borderRadius: '50%', background: 'var(--bg-dark)' }} /></div>);
     };
     
     return (
-        <div style={wrapperStyle} onClick={onClick}>
+        <div style={{ position: 'relative', width: config.wrapper + 'px', height: config.wrapper + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: onClick ? 'pointer' : 'default', flexShrink: 0 }} onClick={onClick}>
             {renderFrame()}
-            <img 
-                src={photoURL || `https://ui-avatars.com/api/?name=User&background=random`} 
-                style={avatarStyle} 
-                alt="avatar" 
-            />
+            <img src={photoURL || `https://ui-avatars.com/api/?name=User&background=random`} style={{ width: config.avatar + 'px', height: config.avatar + 'px', borderRadius: '50%', objectFit: 'cover', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, border: '2px solid rgba(0,0,0,0.5)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }} alt="avatar" />
         </div>
     );
 };
 
-// ==========================================
-// RENDER TITLE
-// ==========================================
+// Render Title
 const renderTitle = (titleId, lang) => {
     const titleItem = SHOP_ITEMS.titles.find(t => t.id === titleId);
     if (!titleItem) return null;
-    
-    if (titleItem.imageUrl && titleItem.imageUrl.trim() !== '') {
-        return (
-            <div className="profile-title-image">
-                <img src={titleItem.imageUrl} alt={titleItem.name_en} />
-            </div>
-        );
-    }
-    
+    if (titleItem.imageUrl && titleItem.imageUrl.trim() !== '') return <div className="profile-title-image"><img src={titleItem.imageUrl} alt={titleItem.name_en} /></div>;
     const name = lang === 'ar' ? titleItem.name_ar : titleItem.name_en;
-    return (
-        <div className="profile-title-text">
-            <span>{titleItem.preview}</span>
-            <span>{name}</span>
-        </div>
-    );
+    return <div className="profile-title-text"><span>{titleItem.preview}</span><span>{name}</span></div>;
 };
 
-// ==========================================
-// RENDER BADGES - MULTI-BADGE SUPPORT (UP TO 10)
-// ==========================================
+// Render Badges (Multi-badge support)
 const renderBadges = (badgeIds, size = 28) => {
     if (!badgeIds) return null;
-    
-    // Convert to array if it's a single string (backward compatibility)
     const badgeArray = Array.isArray(badgeIds) ? badgeIds : [badgeIds];
-    
     return (
         <div className="profile-badge-container">
             {badgeArray.slice(0, MAX_BADGES).map((badgeId, index) => {
                 const badgeItem = SHOP_ITEMS.badges.find(b => b.id === badgeId);
                 if (!badgeItem) return null;
-                
-                if (badgeItem.imageUrl && badgeItem.imageUrl.trim() !== '') {
-                    return <img key={index} src={badgeItem.imageUrl} alt={badgeItem.name_en} className="profile-badge-img" style={{ width: size + 'px', height: size + 'px' }} />;
-                }
+                if (badgeItem.imageUrl && badgeItem.imageUrl.trim() !== '') return <img key={index} src={badgeItem.imageUrl} alt={badgeItem.name_en} className="profile-badge-img" style={{ width: size + 'px', height: size + 'px' }} />;
                 return <span key={index} className="profile-badge" style={{ fontSize: size + 'px' }}>{badgeItem.preview}</span>;
             })}
         </div>
     );
 };
 
-// ==========================================
-// NOTIFICATION DROPDOWN
-// ==========================================
+// Notification Dropdown
 const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClearAll, onNotificationClick, lang }) => {
     const t = TRANSLATIONS[lang];
-    
     if (!show) return null;
-    
     const unreadCount = notifications.filter(n => !n.read).length;
-    
-    const getNotificationIcon = (type) => {
-        switch(type) {
-            case 'friend_request': return '👥';
-            case 'gift': return '🎁';
-            case 'message': return '💬';
-            case 'friend_request_accepted': return '✅';
-            case 'achievement': return '🏆';
-            default: return '🔔';
-        }
-    };
-    
-    const handleNotificationClick = (notif) => {
-        onMarkRead(notif.id);
-        onNotificationClick(notif);
-        onClose();
-    };
+    const getNotificationIcon = (type) => { switch(type) { case 'friend_request': return '👥'; case 'gift': return '🎁'; case 'message': return '💬'; case 'friend_request_accepted': return '✅'; case 'achievement': return '🏆'; default: return '🔔'; } };
     
     return (
         <div className="notification-dropdown animate-pop">
             <div className="notification-dropdown-header">
                 <span className="notification-dropdown-title">{t.notifications} {unreadCount > 0 && `(${unreadCount})`}</span>
-                {notifications.length > 0 && (
-                    <button onClick={onClearAll} className="notification-clear-all">{t.clearAll}</button>
-                )}
+                {notifications.length > 0 && <button onClick={onClearAll} className="notification-clear-all">{t.clearAll}</button>}
             </div>
             <div className="notification-list">
-                {notifications.length === 0 ? (
-                    <div className="notification-empty">
-                        <div className="text-3xl mb-2">🔔</div>
-                        <p>{t.noNotifications}</p>
-                    </div>
-                ) : (
-                    notifications.map(notif => (
-                        <div 
-                            key={notif.id} 
-                            className={`notification-item ${!notif.read ? 'unread' : ''}`}
-                            onClick={() => handleNotificationClick(notif)}
-                        >
-                            <span className="notification-item-icon">{getNotificationIcon(notif.type)}</span>
-                            <div className="notification-item-content">
-                                <div className="notification-item-title">{notif.fromName || 'System'}</div>
-                                <div className="notification-item-message">{notif.message}</div>
-                                <div className="notification-item-time">{formatTime(notif.timestamp)}</div>
-                            </div>
+                {notifications.length === 0 ? <div className="notification-empty"><div className="text-3xl mb-2">🔔</div><p>{t.noNotifications}</p></div> : notifications.map(notif => (
+                    <div key={notif.id} className={`notification-item ${!notif.read ? 'unread' : ''}`} onClick={() => { onMarkRead(notif.id); onNotificationClick(notif); onClose(); }}>
+                        <span className="notification-item-icon">{getNotificationIcon(notif.type)}</span>
+                        <div className="notification-item-content">
+                            <div className="notification-item-title">{notif.fromName || 'System'}</div>
+                            <div className="notification-item-message">{notif.message}</div>
+                            <div className="notification-item-time">{formatTime(notif.timestamp)}</div>
                         </div>
-                    ))
-                )}
+                    </div>
+                ))}
             </div>
         </div>
     );
 };
 
 // ==========================================
-// LOGIN REWARDS COMPONENT - UPDATED
-// Supports: currency, frames, badges, titles, gifts with images
+// LOGIN REWARDS COMPONENT - FIXED SIZE
 // ==========================================
-
 const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     const t = TRANSLATIONS[lang];
     const [claiming, setClaiming] = useState(false);
     
     if (!show) return null;
     
-    const loginData = userData?.loginRewards || { 
-        currentDay: 0, 
-        lastClaimDate: null, 
-        streak: 0, 
-        totalClaims: 0 
-    };
-    
+    const loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
     const today = new Date().toDateString();
     const lastClaim = loginData.lastClaimDate?.toDate?.()?.toDateString() || loginData.lastClaimDate;
     const canClaimToday = lastClaim !== today;
     const currentDay = loginData.currentDay || 0;
-    
-    const handleClaim = async () => {
-        if (!canClaimToday || claiming) return;
-        setClaiming(true);
-        playRewardSound();
-        await onClaim(currentDay + 1);
-        setClaiming(false);
-    };
-    
-    // Get current reward
     const currentReward = LOGIN_REWARDS[currentDay];
     
-    // Render reward icon (emoji or image)
-    const renderRewardIcon = (reward, size = 24) => {
-        if (!reward) return <span style={{ fontSize: size + 'px' }}>❓</span>;
-        
-        // If iconUrl exists, show image
-        if (reward.iconUrl && reward.iconUrl.trim() !== '') {
-            return (
-                <img 
-                    src={reward.iconUrl} 
-                    alt={reward.name_en} 
-                    style={{ width: size + 'px', height: size + 'px', objectFit: 'contain' }}
-                />
-            );
-        }
-        
-        // If type is not currency, try to get item from SHOP_ITEMS
-        if (reward.type !== 'currency') {
-            const collectionMap = {
-                frame: 'frames',
-                badge: 'badges',
-                title: 'titles',
-                gift: 'gifts'
-            };
-            
-            const collection = collectionMap[reward.type];
-            const item = SHOP_ITEMS[collection]?.find(i => i.id === reward.itemId);
-            
-            if (item) {
-                // Check if item has imageUrl
-                if (item.imageUrl && item.imageUrl.trim() !== '') {
-                    return (
-                        <img 
-                            src={item.imageUrl} 
-                            alt={item.name_en} 
-                            style={{ width: size + 'px', height: size + 'px', objectFit: 'contain' }}
-                        />
-                    );
-                }
-                // Check if preview is a URL (for frames)
-                if (item.preview && item.preview.startsWith('http')) {
-                    return (
-                        <img 
-                            src={item.preview} 
-                            alt={item.name_en} 
-                            style={{ width: size + 'px', height: size + 'px', objectFit: 'cover', borderRadius: '50%' }}
-                        />
-                    );
-                }
-                // Use item preview as emoji
-                if (item.preview && !item.preview.startsWith('http')) {
-                    return <span style={{ fontSize: size + 'px' }}>{item.preview}</span>;
-                }
-            }
-        }
-        
-        // Default: show emoji icon
-        return <span style={{ fontSize: size + 'px' }}>{reward.icon || '🎁'}</span>;
-    };
+    const handleClaim = async () => { if (!canClaimToday || claiming) return; setClaiming(true); playRewardSound(); await onClaim(currentDay + 1); setClaiming(false); };
     
-    // Get reward display name
-    const getRewardName = (reward) => {
-        if (!reward) return '?';
-        return lang === 'ar' ? reward.name_ar : reward.name_en;
+    const renderRewardIcon = (reward, size = 20) => {
+        if (!reward) return <span style={{ fontSize: size + 'px' }}>❓</span>;
+        if (reward.iconUrl && reward.iconUrl.trim() !== '') return <img src={reward.iconUrl} alt={reward.name_en} style={{ width: size + 'px', height: size + 'px', objectFit: 'contain' }} />;
+        if (reward.type !== 'currency') {
+            const collectionMap = { frame: 'frames', badge: 'badges', title: 'titles', gift: 'gifts' };
+            const item = SHOP_ITEMS[collectionMap[reward.type]]?.find(i => i.id === reward.itemId);
+            if (item?.imageUrl) return <img src={item.imageUrl} alt={item.name_en} style={{ width: size + 'px', height: size + 'px', objectFit: 'contain' }} />;
+            if (item?.preview?.startsWith('http')) return <img src={item.preview} alt={item.name_en} style={{ width: size + 'px', height: size + 'px', objectFit: 'cover', borderRadius: '50%' }} />;
+            if (item?.preview && !item.preview.startsWith('http')) return <span style={{ fontSize: size + 'px' }}>{item.preview}</span>;
+        }
+        return <span style={{ fontSize: size + 'px' }}>{reward.icon || '🎁'}</span>;
     };
     
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">🎁 {t.loginRewards}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px' }}>
+                <div className="modal-header"><h2 className="modal-title">🎁 {t.loginRewards}</h2><ModalCloseBtn onClose={onClose} /></div>
                 <div className="modal-body">
-                    {/* Streak Display */}
                     <div className="login-rewards-container">
                         <div className="login-rewards-header">
                             <span className="login-rewards-title">🔥 {t.dailyStreak}</span>
-                            <span className="login-rewards-streak">{currentDay} / 30 {t.days}</span>
+                            <span className="login-rewards-streak">{currentDay}/30</span>
                         </div>
-                        
-                        {/* Days Grid */}
                         <div className="login-rewards-grid">
                             {LOGIN_REWARDS.map((reward, index) => {
                                 const dayNum = index + 1;
                                 const isClaimed = dayNum <= currentDay;
                                 const isCurrent = dayNum === currentDay + 1 && canClaimToday;
-                                
-                                return (
-                                    <div 
-                                        key={dayNum}
-                                        className={`login-reward-day ${isClaimed ? 'claimed' : isCurrent ? 'current' : 'future'} ${reward.special ? 'special' : ''}`}
-                                        title={getRewardName(reward)}
-                                    >
-                                        <span className="day-num">{dayNum}</span>
-                                        <span className="day-reward">{renderRewardIcon(reward, 14)}</span>
-                                    </div>
-                                );
+                                return (<div key={dayNum} className={`login-reward-day ${isClaimed ? 'claimed' : isCurrent ? 'current' : 'future'} ${reward.special ? 'special' : ''}`} title={lang === 'ar' ? reward.name_ar : reward.name_en}><span className="day-num">{dayNum}</span><span className="day-reward">{renderRewardIcon(reward, 12)}</span></div>);
                             })}
                         </div>
-                        
-                        {/* Today's Reward Details */}
                         {canClaimToday && currentReward && (
-                            <div className="mt-4 p-3 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg">
-                                <div className="text-center">
-                                    <div className="text-xs text-gray-400 mb-2">
-                                        {lang === 'ar' ? 'مكافأة اليوم' : "Today's Reward"}
-                                    </div>
-                                    
-                                    {/* Reward Icon Large */}
-                                    <div className="flex justify-center mb-2">
-                                        <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center">
-                                            {renderRewardIcon(currentReward, 40)}
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Reward Name */}
-                                    <div className="text-lg font-bold text-white mb-1">
-                                        {getRewardName(currentReward)}
-                                    </div>
-                                    
-                                    {/* Reward Type Badge */}
-                                    <div className="flex justify-center">
-                                        <span className={`text-xs px-3 py-1 rounded-full ${
-                                            currentReward.type === 'currency' ? 'bg-yellow-500/20 text-yellow-400' :
-                                            currentReward.type === 'frame' ? 'bg-purple-500/20 text-purple-400' :
-                                            currentReward.type === 'badge' ? 'bg-blue-500/20 text-blue-400' :
-                                            currentReward.type === 'title' ? 'bg-green-500/20 text-green-400' :
-                                            'bg-pink-500/20 text-pink-400'
-                                        }`}>
-                                            {currentReward.type === 'currency' ? (lang === 'ar' ? 'عملة' : 'Currency') :
-                                             currentReward.type === 'frame' ? (lang === 'ar' ? 'إطار' : 'Frame') :
-                                             currentReward.type === 'badge' ? (lang === 'ar' ? 'شارة' : 'Badge') :
-                                             currentReward.type === 'title' ? (lang === 'ar' ? 'لقب' : 'Title') :
-                                             (lang === 'ar' ? 'هدية' : 'Gift')}
-                                        </span>
-                                    </div>
-                                    
-                                    {/* Special indicator */}
-                                    {currentReward.special && (
-                                        <div className="mt-2 text-xs text-yellow-400">
-                                            ⭐ {lang === 'ar' ? 'مكافأة خاصة!' : 'Special Reward!'}
-                                        </div>
-                                    )}
-                                </div>
+                            <div className="mt-3 p-2 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg text-center">
+                                <div className="text-[10px] text-gray-400 mb-1">{lang === 'ar' ? 'مكافأة اليوم' : "Today's Reward"}</div>
+                                <div className="text-base font-bold text-white">{lang === 'ar' ? currentReward.name_ar : currentReward.name_en}</div>
+                                {currentReward.special && <div className="text-[10px] text-yellow-400 mt-1">⭐ {lang === 'ar' ? 'مكافأة خاصة!' : 'Special Reward!'}</div>}
                             </div>
                         )}
-                        
-                        {/* Claim Button */}
-                        <button 
-                            onClick={handleClaim}
-                            disabled={!canClaimToday || claiming}
-                            className="login-reward-claim-btn mt-3"
-                        >
-                            {claiming ? t.loading : 
-                             canClaimToday ? 
-                             `${t.claimReward}` : 
-                             t.alreadyClaimed}
-                        </button>
-                    </div>
-                    
-                    {/* Progress Bar */}
-                    <div className="mt-3 p-3 bg-white/5 rounded-lg">
-                        <div className="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>{lang === 'ar' ? 'التقدم' : 'Progress'}</span>
-                            <span>{Math.round((currentDay / 30) * 100)}%</span>
-                        </div>
-                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div 
-                                className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-500"
-                                style={{ width: `${(currentDay / 30) * 100}%` }}
-                            />
-                        </div>
+                        <button onClick={handleClaim} disabled={!canClaimToday || claiming} className="login-reward-claim-btn mt-2">{claiming ? t.loading : canClaimToday ? t.claimReward : t.alreadyClaimed}</button>
                     </div>
                 </div>
             </div>
         </div>
     );
 };
-// ==========================================
-// GIFT PREVIEW MODAL - FIXED: Bonus shown only on actual send
-// ==========================================
-const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const [showFriendSelect, setShowFriendSelect] = useState(false);
-    const [selectedFriend, setSelectedFriend] = useState(null);
-    const [sendMode, setSendMode] = useState('others'); // 'self' or 'others'
-    
-    const isGiftItem = gift?.type === 'gifts';
-    
-    if(!show || !gift) return null; 
-    
-    const renderGiftIcon = () => {
-        if (gift.type === 'frames') {
-            if (gift.preview && gift.preview.startsWith('http')) {
-                return <img src={gift.preview} alt={gift.name_en} className="w-20 h-20 rounded-full object-cover mx-auto" />;
-            }
-            return <div className="w-20 h-20 rounded-full mx-auto" style={{ background: gift.preview }}></div>;
-        }
-        if (gift.type === 'badges') {
-            if (gift.imageUrl && gift.imageUrl.trim() !== '') {
-                return <img src={gift.imageUrl} alt={gift.name_en} className="w-16 h-16 object-contain mx-auto" />;
-            }
-            return <div className="text-6xl mb-3">{gift.preview}</div>;
-        }
-        if (gift.type === 'titles') {
-            if (gift.imageUrl && gift.imageUrl.trim() !== '') {
-                return <img src={gift.imageUrl} alt={gift.name_en} className="h-10 object-contain mx-auto" />;
-            }
-            return <div className="text-4xl mb-3">{gift.preview}</div>;
-        }
-        if (gift.imageUrl && gift.imageUrl.trim() !== '') {
-            return <img src={gift.imageUrl} alt={gift.name_en} className="w-16 h-16 object-contain mx-auto" />;
-        }
-        return <div className="text-6xl mb-3">{gift.emoji}</div>;
-    };
-    
-    const handleSendFromInventory = () => {
-        if (sendMode === 'self') {
-            // Send to self
-            onSendFromInventory(gift, { uid: 'self', displayName: currentUserData?.displayName || 'Me' });
-            onClose();
-        } else if (selectedFriend && onSendFromInventory) {
-            onSendFromInventory(gift, selectedFriend);
-            onClose();
-        }
-    };
-    
-    const handleBuy = () => {
-        if (sendMode === 'self') {
-            onBuy(gift, { uid: 'self', displayName: currentUserData?.displayName || 'Me' });
-        } else {
-            onBuy(gift, selectedFriend);
-        }
-    };
-    
-    return ( 
-        <div className="modal-overlay" onClick={onClose}> 
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px' }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{isGiftItem ? t.giftPreview : (lang === 'ar' ? gift.name_ar : gift.name_en)}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
-                <div className="modal-body text-center">
-                    {renderGiftIcon()}
-                    <h3 className="text-lg font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3> 
-                    {isGiftItem && (gift.desc_ar || gift.desc_en) && (
-                        <p className="text-xs text-gray-400 mb-4">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p>
-                    )}
-                    
-                    {/* Gift Details - Only for gifts, NO preview cashback */}
-                    {isGiftItem && (
-                        <>
-                            <div className="grid grid-cols-2 gap-3 mb-4">
-                                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
-                                    <div className="text-[10px] text-gray-400">{t.giftCharisma}</div>
-                                    <div className="text-xl font-bold text-purple-400">+{formatCharisma(gift.charisma)}</div>
-                                </div>
-                                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                                    <div className="text-[10px] text-gray-400">{t.giftCashbackRange}</div>
-                                    <div className="text-sm font-bold text-green-400">{gift.minCashback || 1} - {gift.maxCashback || gift.cost}</div>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                    
-                    {/* Send Mode Selection */}
-                    {isGiftItem && !isFromInventory && (
-                        <div className="flex gap-2 mb-3">
-                            <button 
-                                onClick={() => setSendMode('self')}
-                                className={`flex-1 py-2 rounded-lg text-xs font-bold transition ${sendMode === 'self' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
-                            >
-                                🎁 {t.sendToSelf}
-                            </button>
-                            <button 
-                                onClick={() => setSendMode('others')}
-                                className={`flex-1 py-2 rounded-lg text-xs font-bold transition ${sendMode === 'others' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
-                            >
-                                👥 {t.sendToOthers}
-                            </button>
-                        </div>
-                    )}
-                    
-                    {/* Friend Selection */}
-                    {sendMode === 'others' && showFriendSelect && friendsData && (
-                        <div className="mb-4 p-2 bg-white/5 rounded-lg max-h-32 overflow-y-auto">
-                            <div className="text-xs text-gray-400 mb-2">{t.selectFriend}</div>
-                            {friendsData.map(friend => (
-                                <div 
-                                    key={friend.id}
-                                    onClick={() => setSelectedFriend(friend)}
-                                    className={`flex items-center gap-2 p-2 rounded cursor-pointer transition ${selectedFriend?.id === friend.id ? 'bg-primary/20 border border-primary' : 'hover:bg-white/5'}`}
-                                >
-                                    <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                                    <span className="text-sm">{friend.displayName}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                <div className="modal-footer">
-                    {isFromInventory ? (
-                        <div className="flex gap-2">
-                            <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.close}</button>
-                            <button onClick={handleSendFromInventory} disabled={sendMode === 'others' && !selectedFriend} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">{t.sendGift}</button>
-                        </div>
-                    ) : (
-                        <div className="flex gap-2">
-                            <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.reportCancel}</button> 
-                            <button 
-                                onClick={handleBuy} 
-                                disabled={currency < gift.cost || (sendMode === 'others' && !selectedFriend && isGiftItem)} 
-                                className={`flex-1 py-2 rounded-lg text-sm font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
-                            >{isSending ? t.sendToFriend : t.buy} ({gift.cost} 🧠)</button> 
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div> 
-    ); 
-};
 
 // ==========================================
-// SEND GIFT MODAL
-// ==========================================
-const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const [selectedGift, setSelectedGift] = useState(null); 
-    const [showPreview, setShowPreview] = useState(false); 
-    
-    if(!show) return null; 
-    
-    const gifts = SHOP_ITEMS.gifts; 
-    
-    const handleSend = async (gift) => { 
-        if (onSendGift) { await onSendGift(gift, targetUser); } 
-        onClose(); 
-    }; 
-    
-    const renderGiftIcon = (gift) => {
-        if (gift.imageUrl && gift.imageUrl.trim() !== '') {
-            return <img src={gift.imageUrl} alt={gift.name_en} className="gift-icon-img" />;
-        }
-        return <span className="gift-icon">{gift.emoji}</span>;
-    };
-    
-    return ( 
-        <> 
-            <div className="modal-overlay" onClick={onClose}> 
-                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header"><h2 className="modal-title">{t.sendGift}</h2><ModalCloseBtn onClose={onClose} /></div> 
-                    <div className="modal-body">
-                        {targetUser && targetUser.uid !== 'self' && (
-                            <div className="flex items-center gap-2 mb-3 p-2 bg-white/5 rounded-lg"> 
-                                <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
-                                <div><div className="font-bold text-sm">{targetUser.displayName}</div><div className="text-[10px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div></div> 
-                            </div> 
-                        )}
-                        <div className="flex items-center gap-2 mb-3 text-xs text-yellow-400"><span>🧠 {currency} {CURRENCY_NAME}</span></div> 
-                        <div className="grid grid-cols-4 gap-2 max-h-[250px] overflow-y-auto"> 
-                            {gifts.map(gift => ( 
-                                <button key={gift.id} onClick={() => { setSelectedGift(gift); setShowPreview(true); }} disabled={currency < gift.cost} className={`gift-card flex flex-col items-center justify-center p-2 rounded-lg transition ${currency >= gift.cost ? 'hover:border-yellow-400 hover:bg-yellow-500/10' : 'opacity-40 cursor-not-allowed'}`}> 
-                                    {renderGiftIcon(gift)}
-                                    <span className="text-[10px] font-bold text-yellow-400">{gift.cost}</span>
-                                    <span className="text-[8px] text-gray-400">+{gift.charisma}</span>
-                                </button> 
-                            ))} 
-                        </div>
-                    </div> 
-                </div> 
-            </div> 
-            <GiftPreviewModal show={showPreview} onClose={() => setShowPreview(false)} gift={selectedGift} lang={lang} onBuy={(gift) => handleSend(gift)} currency={currency} isSending={true} /> 
-        </> 
-    ); 
-};
-
-// ==========================================
-// BROWSE ROOMS MODAL - FIXED: Real-time rooms display
+// BROWSE ROOMS MODAL
 // ==========================================
 const BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUserData, lang }) => {
     const t = TRANSLATIONS[lang];
@@ -1394,121 +537,168 @@ const BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, current
     const [selectedRoom, setSelectedRoom] = useState(null);
     const [showPasswordInput, setShowPasswordInput] = useState(false);
     
-    // Real-time listener for active rooms
     useEffect(() => {
         if (!show) return;
-        
         setLoading(true);
-        const unsub = roomsCollection
-            .where('status', '==', 'waiting')
-            .onSnapshot(snap => {
-                const roomsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Filter out full rooms (10 players max)
-                const availableRooms = roomsData.filter(room => room.players?.length < 10);
-                setRooms(availableRooms);
-                setLoading(false);
-            }, error => {
-                console.error('Browse rooms error:', error);
-                setLoading(false);
-            });
-        
+        const unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => {
+            const roomsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(room => room.players?.length < 10);
+            setRooms(roomsData);
+            setLoading(false);
+        }, error => { console.error('Browse rooms error:', error); setLoading(false); });
         return unsub;
     }, [show]);
     
     if (!show) return null;
     
-    const handleJoinClick = (room) => {
-        if (room.isPrivate) {
-            setSelectedRoom(room);
-            setShowPasswordInput(true);
-        } else {
-            onJoin(room.id, '');
-        }
-    };
-    
-    const handlePasswordJoin = () => {
-        if (selectedRoom && joinPassword) {
-            onJoin(selectedRoom.id, joinPassword);
-            setShowPasswordInput(false);
-            setSelectedRoom(null);
-            setJoinPassword('');
-        }
-    };
-    
-    const getDefaultPhoto = (uData, name) => uData?.photoURL || `https://ui-avatars.com/api/?name=${name || 'Guest'}&background=random`;
+    const handleJoinClick = (room) => { if (room.isPrivate) { setSelectedRoom(room); setShowPasswordInput(true); } else { onJoin(room.id, ''); } };
+    const handlePasswordJoin = () => { if (selectedRoom && joinPassword) { onJoin(selectedRoom.id, joinPassword); setShowPasswordInput(false); setSelectedRoom(null); setJoinPassword(''); } };
     
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.browse}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
+                <div className="modal-header"><h2 className="modal-title">{t.browse}</h2><ModalCloseBtn onClose={onClose} /></div>
                 <div className="modal-body">
-                    {loading ? (
-                        <div className="text-center py-8">
-                            <div className="text-2xl animate-pulse">⏳</div>
-                            <p className="text-gray-400 mt-2">{t.loading}</p>
-                        </div>
-                    ) : rooms.length === 0 ? (
-                        <div className="text-center py-8 text-gray-400">
-                            <div className="text-4xl mb-2">🔍</div>
-                            <p>{t.noRooms}</p>
-                        </div>
-                    ) : (
+                    {loading ? <div className="text-center py-8"><div className="text-2xl animate-pulse">⏳</div><p className="text-gray-400 mt-2">{t.loading}</p></div> : rooms.length === 0 ? <div className="text-center py-8 text-gray-400"><div className="text-4xl mb-2">🔍</div><p>{t.noRooms}</p></div> : (
                         <div className="browse-rooms-container">
                             {rooms.map(room => (
                                 <div key={room.id} className="room-card">
-                                    <div className="room-card-header">
-                                        <span className="room-card-code">{room.id}</span>
-                                        <span className="room-card-mode">
-                                            {room.mode === 'advanced' ? (lang === 'ar' ? 'متقدم' : 'Advanced') : (lang === 'ar' ? 'عادي' : 'Normal')}
-                                        </span>
-                                    </div>
+                                    <div className="room-card-header"><span className="room-card-code">{room.id}</span><span className="room-card-mode">{room.mode === 'advanced' ? (lang === 'ar' ? 'متقدم' : 'Advanced') : (lang === 'ar' ? 'عادي' : 'Normal')}</span></div>
                                     <div className="room-card-info">
-                                        <div className="room-card-players">
-                                            <span>👥 {room.players?.length || 0}/10</span>
-                                            {room.isPrivate && <span className="room-card-private ml-2">🔒</span>}
-                                        </div>
-                                        <button 
-                                            onClick={() => handleJoinClick(room)}
-                                            className="room-card-join-btn"
-                                        >
-                                            {t.join}
-                                        </button>
+                                        <div className="room-card-players"><span>👥 {room.players?.length || 0}/10</span>{room.isPrivate && <span className="room-card-private ml-2">🔒</span>}</div>
+                                        <button onClick={() => handleJoinClick(room)} className="room-card-join-btn">{t.join}</button>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
-                
-                {/* Password Input Modal */}
                 {showPasswordInput && selectedRoom && (
                     <div className="p-3 bg-white/5 border-t border-white/10">
-                        <div className="text-xs text-gray-400 mb-2">
-                            🔒 {lang === 'ar' ? 'أدخل كلمة السر' : 'Enter password'} - Room: {selectedRoom.id}
-                        </div>
+                        <div className="text-xs text-gray-400 mb-2">🔒 {lang === 'ar' ? 'أدخل كلمة السر' : 'Enter password'} - Room: {selectedRoom.id}</div>
                         <div className="flex gap-2">
-                            <input 
-                                type="password" 
-                                value={joinPassword}
-                                onChange={e => setJoinPassword(e.target.value)}
-                                placeholder={t.password}
-                                className="input-dark flex-1 p-2 rounded text-sm"
-                            />
-                            <button onClick={handlePasswordJoin} className="btn-neon px-4 py-2 rounded text-sm">
-                                {t.join}
-                            </button>
-                            <button onClick={() => { setShowPasswordInput(false); setSelectedRoom(null); }} className="btn-ghost px-3 py-2 rounded text-sm">
-                                ✕
-                            </button>
+                            <input type="password" value={joinPassword} onChange={e => setJoinPassword(e.target.value)} placeholder={t.password} className="input-dark flex-1 p-2 rounded text-sm" />
+                            <button onClick={handlePasswordJoin} className="btn-neon px-4 py-2 rounded text-sm">{t.join}</button>
+                            <button onClick={() => { setShowPasswordInput(false); setSelectedRoom(null); }} className="btn-ghost px-3 py-2 rounded text-sm">✕</button>
                         </div>
                     </div>
                 )}
             </div>
         </div>
     );
+};
+
+// ==========================================
+// GIFT PREVIEW MODAL - COMPACT SIZE
+// ==========================================
+const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData }) => { 
+    const t = TRANSLATIONS[lang]; 
+    const [showFriendSelect, setShowFriendSelect] = useState(false);
+    const [selectedFriend, setSelectedFriend] = useState(null);
+    const [sendMode, setSendMode] = useState('others');
+    const isGiftItem = gift?.type === 'gifts';
+    
+    if(!show || !gift) return null; 
+    
+    const renderGiftIcon = () => {
+        if (gift.type === 'frames') { return gift.preview.startsWith('http') ? <img src={gift.preview} alt={gift.name_en} className="w-14 h-14 rounded-full object-cover mx-auto" /> : <div className="w-14 h-14 rounded-full mx-auto" style={{ background: gift.preview }}></div>; }
+        if (gift.type === 'badges') { return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="w-12 h-12 object-contain mx-auto" /> : <div className="text-4xl mb-2">{gift.preview}</div>; }
+        if (gift.type === 'titles') { return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="h-8 object-contain mx-auto" /> : <div className="text-3xl mb-2">{gift.preview}</div>; }
+        return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="w-12 h-12 object-contain mx-auto" /> : <div className="text-4xl mb-2">{gift.emoji}</div>;
+    };
+    
+    const handleSendFromInventory = () => {
+        if (sendMode === 'self') { onSendFromInventory(gift, { uid: 'self', displayName: currentUserData?.displayName || 'Me' }); onClose(); }
+        else if (selectedFriend && onSendFromInventory) { onSendFromInventory(gift, selectedFriend); onClose(); }
+    };
+    
+    const handleBuy = () => { onBuy(gift, sendMode === 'self' ? { uid: 'self' } : selectedFriend); };
+    
+    return ( 
+        <div className="modal-overlay" onClick={onClose}> 
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+                <div className="modal-header"><h2 className="modal-title">{isGiftItem ? t.giftPreview : (lang === 'ar' ? gift.name_ar : gift.name_en)}</h2><ModalCloseBtn onClose={onClose} /></div>
+                <div className="modal-body text-center py-3">
+                    {renderGiftIcon()}
+                    <h3 className="text-base font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3> 
+                    {isGiftItem && (gift.desc_ar || gift.desc_en) && <p className="text-[10px] text-gray-400 mb-2">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p>}
+                    {isGiftItem && (
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                            <div className="bg-purple-500/10 border border-purple-500/30 rounded p-2"><div className="text-[9px] text-gray-400">{t.giftCharisma}</div><div className="text-base font-bold text-purple-400">+{formatCharisma(gift.charisma)}</div></div>
+                            <div className="bg-green-500/10 border border-green-500/30 rounded p-2"><div className="text-[9px] text-gray-400">{t.giftCashbackRange}</div><div className="text-xs font-bold text-green-400">{gift.minCashback}-{gift.maxCashback}</div></div>
+                        </div>
+                    )}
+                    {isGiftItem && !isFromInventory && (
+                        <div className="flex gap-1 mb-2">
+                            <button onClick={() => setSendMode('self')} className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'self' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}>🎁 {t.sendToSelf}</button>
+                            <button onClick={() => setSendMode('others')} className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'others' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}>👥 {t.sendToOthers}</button>
+                        </div>
+                    )}
+                    {sendMode === 'others' && showFriendSelect && friendsData && (
+                        <div className="mb-2 p-1.5 bg-white/5 rounded max-h-24 overflow-y-auto">
+                            <div className="text-[10px] text-gray-400 mb-1">{t.selectFriend}</div>
+                            {friendsData.map(friend => (
+                                <div key={friend.id} onClick={() => setSelectedFriend(friend)} className={`flex items-center gap-1.5 p-1.5 rounded cursor-pointer transition ${selectedFriend?.id === friend.id ? 'bg-primary/20 border border-primary' : 'hover:bg-white/5'}`}>
+                                    <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                                    <span className="text-[11px]">{friend.displayName}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="modal-footer py-2">
+                    {isFromInventory ? (
+                        <div className="flex gap-2">
+                            <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.close}</button>
+                            <button onClick={handleSendFromInventory} disabled={sendMode === 'others' && !selectedFriend} className="btn-gold flex-1 py-1.5 rounded text-xs font-bold">{t.sendGift}</button>
+                        </div>
+                    ) : (
+                        <div className="flex gap-2">
+                            <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.reportCancel}</button> 
+                            <button onClick={handleBuy} disabled={currency < gift.cost || (sendMode === 'others' && !selectedFriend && isGiftItem)} className={`flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>{isSending ? t.sendToFriend : t.buy} ({gift.cost}🧠)</button> 
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div> 
+    ); 
+};
+
+// ==========================================
+// SEND GIFT MODAL - COMPACT
+// ==========================================
+const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency }) => { 
+    const t = TRANSLATIONS[lang]; 
+    const [selectedGift, setSelectedGift] = useState(null); 
+    const [showPreview, setShowPreview] = useState(false); 
+    if(!show) return null; 
+    
+    return ( 
+        <> 
+            <div className="modal-overlay" onClick={onClose}> 
+                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header"><h2 className="modal-title">{t.sendGift}</h2><ModalCloseBtn onClose={onClose} /></div> 
+                    <div className="modal-body py-3">
+                        {targetUser && targetUser.uid !== 'self' && (
+                            <div className="flex items-center gap-2 mb-2 p-1.5 bg-white/5 rounded"> 
+                                <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
+                                <div><div className="font-bold text-xs">{targetUser.displayName}</div><div className="text-[9px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div></div> 
+                            </div> 
+                        )}
+                        <div className="flex items-center gap-2 mb-2 text-[10px] text-yellow-400"><span>🧠 {currency} {CURRENCY_NAME}</span></div> 
+                        <div className="grid grid-cols-5 gap-1 max-h-[180px] overflow-y-auto"> 
+                            {SHOP_ITEMS.gifts.map(gift => ( 
+                                <button key={gift.id} onClick={() => { setSelectedGift(gift); setShowPreview(true); }} disabled={currency < gift.cost} className={`flex flex-col items-center p-1.5 rounded transition ${currency >= gift.cost ? 'hover:bg-yellow-500/10 border border-transparent hover:border-yellow-500/50' : 'opacity-40 cursor-not-allowed'}`}> 
+                                    <span className="text-lg">{gift.emoji}</span>
+                                    <span className="text-[9px] font-bold text-yellow-400">{gift.cost}</span>
+                                </button> 
+                            ))} 
+                        </div>
+                    </div> 
+                </div> 
+            </div> 
+            <GiftPreviewModal show={showPreview} onClose={() => setShowPreview(false)} gift={selectedGift} lang={lang} onBuy={(gift) => { onSendGift(gift, targetUser); onClose(); }} currency={currency} isSending={true} /> 
+        </> 
+    ); 
 };
 
 // ==========================================
@@ -1526,122 +716,54 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
     const equipped = userData?.equipped || {};
     
-    const handlePurchase = (item) => {
-        if (currency >= item.cost) {
-            onPurchase(item);
-            setShowPreview(false);
-            setSelectedItem(null);
-        }
-    };
-    
     const isOwned = (item) => inventory[item.type]?.includes(item.id);
-    const isEquipped = (item) => {
-        // For badges, check if it's in the equipped badges array
-        if (item.type === 'badges') {
-            const equippedBadges = equipped.badges || [];
-            return Array.isArray(equippedBadges) ? equippedBadges.includes(item.id) : equipped.badges === item.id;
-        }
-        return equipped[item.type] === item.id;
-    };
+    const isEquipped = (item) => { if (item.type === 'badges') { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.includes(item.id) : equipped.badges === item.id; } return equipped[item.type] === item.id; };
+    const getEquippedBadgeCount = () => { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.length : (equipped.badges ? 1 : 0); };
     
     const renderPreview = (item) => {
-        if (item.type === 'frames') {
-            if (item.preview.startsWith('http')) {
-                return <img src={item.preview} alt={item.name_en} className="w-12 h-12 rounded-full object-cover" />;
-            }
-            return <div className="w-12 h-12 rounded-full" style={{ background: item.preview }}></div>;
-        } else if (item.type === 'badges') {
-            if (item.imageUrl && item.imageUrl.trim() !== '') {
-                return <img src={item.imageUrl} alt={item.name_en} className="w-10 h-10 object-contain" />;
-            }
-            return <span className="text-3xl">{item.preview}</span>;
-        } else if (item.type === 'titles') {
-            if (item.imageUrl && item.imageUrl.trim() !== '') {
-                return <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" />;
-            }
-            return <span className="text-2xl">{item.preview}</span>;
-        } else if (item.type === 'gifts') {
-            if (item.imageUrl && item.imageUrl.trim() !== '') {
-                return <img src={item.imageUrl} alt={item.name_en} className="w-10 h-10 object-contain" />;
-            }
-            return <span className="text-3xl">{item.emoji}</span>;
-        }
-        return <span className="text-2xl">🎨</span>;
+        if (item.type === 'frames') return item.preview.startsWith('http') ? <img src={item.preview} alt={item.name_en} className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full" style={{ background: item.preview }}></div>;
+        if (item.type === 'badges') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.preview}</span>;
+        if (item.type === 'titles') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-6 h-6 object-contain" /> : <span className="text-xl">{item.preview}</span>;
+        if (item.type === 'gifts') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.emoji}</span>;
+        return <span className="text-xl">🎨</span>;
     };
     
     const tabs = ['frames', 'titles', 'badges', 'gifts'];
     
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', maxHeight: '90vh' }}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', maxHeight: '85vh' }}>
                 <div className="modal-header">
                     <h2 className="modal-title">{t.shop}</h2>
-                    <div className="flex items-center gap-3">
-                        <span className="text-yellow-400 font-bold text-sm">🧠 {currency.toLocaleString()}</span>
-                        <ModalCloseBtn onClose={onClose} />
-                    </div>
+                    <div className="flex items-center gap-2"><span className="text-yellow-400 font-bold text-xs">🧠 {currency.toLocaleString()}</span><ModalCloseBtn onClose={onClose} /></div>
                 </div>
-                
-                <div className="modal-body" style={{ padding: 0 }}>
-                    <div className="shop-tabs-container" style={{ margin: '12px', marginBottom: 0 }}>
-                        {tabs.map(tab => (
-                            <button key={tab} onClick={() => setActiveTab(tab)} className={`shop-tab ${activeTab === tab ? 'active' : ''}`}>{t[tab]}</button>
-                        ))}
-                    </div>
-                    
-                    <div className="p-3">
+                <div className="modal-body" style={{ padding: '8px' }}>
+                    <div className="shop-tabs-container" style={{ margin: '4px', marginBottom: 0 }}>{tabs.map(tab => <button key={tab} onClick={() => setActiveTab(tab)} className={`shop-tab ${activeTab === tab ? 'active' : ''}`}>{t[tab]}</button>)}</div>
+                    <div className="p-2">
                         <div className="inventory-grid">
                             {SHOP_ITEMS[activeTab]?.map(item => {
                                 const owned = isOwned(item);
                                 const equippedItem = isEquipped(item);
-                                
-                                if (activeTab === 'gifts') {
-                                    return (
-                                        <div key={item.id} className="gift-card" onClick={() => { setSelectedItem(item); setShowPreview(true); }}>
-                                            <div className="inventory-item-preview">{renderPreview(item)}</div>
-                                            <div className="gift-details">
-                                                <span className="gift-charisma">+{item.charisma} {t.giftCharisma}</span>
-                                                <span className="gift-cashback">{item.minCashback}-{item.maxCashback} {t.giftCashbackRange}</span>
-                                            </div>
-                                            <div className="flex items-center justify-center gap-1 text-yellow-400 font-bold text-sm mt-1">
-                                                <span>{item.cost}</span><span>🧠</span>
-                                            </div>
-                                        </div>
-                                    );
-                                }
-                                
+                                if (activeTab === 'gifts') return (<div key={item.id} className="gift-card" onClick={() => { setSelectedItem(item); setShowPreview(true); }}><div className="text-xl mb-1">{item.emoji}</div><div className="text-[10px] font-bold text-yellow-400">{item.cost}🧠</div></div>);
                                 return (
                                     <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`} onClick={() => { setSelectedItem(item); setShowPreview(true); }}>
                                         <div className="inventory-item-preview">{renderPreview(item)}</div>
                                         <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
-                                        {owned ? (
-                                            equippedItem ? (
-                                                <button onClick={(e) => { e.stopPropagation(); onUnequip(item.type, item.id); }} className="btn-unequip w-full">{t.unequip}</button>
-                                            ) : (
-                                                <button onClick={(e) => { e.stopPropagation(); onEquip(item); }} className="btn-success w-full text-xs py-1 rounded">{t.equip}</button>
-                                            )
-                                        ) : (
-                                            <div className="flex items-center justify-center gap-1 text-yellow-400 font-bold text-sm">
-                                                <span>{item.cost}</span><span>🧠</span>
-                                            </div>
-                                        )}
+                                        {owned ? (equippedItem ? <button onClick={(e) => { e.stopPropagation(); onUnequip(item.type, item.id); }} className="btn-unequip w-full">{t.unequip}</button> : <button onClick={(e) => { e.stopPropagation(); onEquip(item); }} className="btn-success w-full text-[10px] py-0.5 rounded">{t.equip}</button>) : (<div className="text-yellow-400 font-bold text-xs">{item.cost}🧠</div>)}
                                     </div>
                                 );
                             })}
                         </div>
                     </div>
                 </div>
-                
-                {showPreview && selectedItem && (
-                    <GiftPreviewModal show={showPreview} onClose={() => setShowPreview(false)} gift={selectedItem} lang={lang} onBuy={handlePurchase} currency={currency} />
-                )}
+                {showPreview && selectedItem && <GiftPreviewModal show={showPreview} onClose={() => setShowPreview(false)} gift={selectedItem} lang={lang} onBuy={(item) => { if (currency >= item.cost) { onPurchase(item); setShowPreview(false); }}} currency={currency} />}
             </div>
         </div>
     );
 };
 
 // ==========================================
-// INVENTORY MODAL - MULTI-BADGE SUPPORT
+// INVENTORY MODAL
 // ==========================================
 const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData }) => {
     const t = TRANSLATIONS[lang];
@@ -1653,42 +775,16 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     
     const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
     const equipped = userData?.equipped || {};
-    
-    const getOwnedItems = (type) => {
-        const ownedIds = inventory[type] || [];
-        return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || [];
-    };
-    
-    // Check if badge is equipped (supports both single and multiple badges)
-    const isEquipped = (item) => {
-        if (item.type === 'badges') {
-            const equippedBadges = equipped.badges || [];
-            return Array.isArray(equippedBadges) ? equippedBadges.includes(item.id) : equipped.badges === item.id;
-        }
-        return equipped[item.type] === item.id;
-    };
-    
-    // Get count of equipped badges
-    const getEquippedBadgeCount = () => {
-        const equippedBadges = equipped.badges || [];
-        return Array.isArray(equippedBadges) ? equippedBadges.length : (equippedBadges ? 1 : 0);
-    };
+    const getOwnedItems = (type) => { const ownedIds = inventory[type] || []; return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || []; };
+    const isEquipped = (item) => { if (item.type === 'badges') { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.includes(item.id) : equipped.badges === item.id; } return equipped[item.type] === item.id; };
+    const getEquippedBadgeCount = () => { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.length : (equipped.badges ? 1 : 0); };
     
     const renderPreview = (item) => {
-        if (item.type === 'frames') {
-            if (item.preview.startsWith('http')) return <img src={item.preview} alt={item.name_en} className="w-12 h-12 rounded-full object-cover" />;
-            return <div className="w-12 h-12 rounded-full" style={{ background: item.preview }}></div>;
-        } else if (item.type === 'badges') {
-            if (item.imageUrl && item.imageUrl.trim() !== '') return <img src={item.imageUrl} alt={item.name_en} className="w-10 h-10 object-contain" />;
-            return <span className="text-3xl">{item.preview}</span>;
-        } else if (item.type === 'titles') {
-            if (item.imageUrl && item.imageUrl.trim() !== '') return <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" />;
-            return <span className="text-2xl">{item.preview}</span>;
-        } else if (item.type === 'gifts') {
-            if (item.imageUrl && item.imageUrl.trim() !== '') return <img src={item.imageUrl} alt={item.name_en} className="w-10 h-10 object-contain" />;
-            return <span className="text-3xl">{item.emoji}</span>;
-        }
-        return <span className="text-2xl">🎨</span>;
+        if (item.type === 'frames') return item.preview.startsWith('http') ? <img src={item.preview} alt={item.name_en} className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full" style={{ background: item.preview }}></div>;
+        if (item.type === 'badges') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.preview}</span>;
+        if (item.type === 'titles') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-6 h-6 object-contain" /> : <span className="text-xl">{item.preview}</span>;
+        if (item.type === 'gifts') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.emoji}</span>;
+        return <span className="text-xl">🎨</span>;
     };
     
     const tabs = ['frames', 'titles', 'badges', 'gifts'];
@@ -1697,63 +793,21 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     return (
         <>
             <div className="modal-overlay" onClick={onClose}>
-                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', maxHeight: '90vh' }}>
+                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', maxHeight: '85vh' }}>
                     <div className="modal-header">
                         <h2 className="modal-title">{t.myInventory}</h2>
-                        {activeTab === 'badges' && (
-                            <span className="text-xs text-gray-400">{getEquippedBadgeCount()}/{MAX_BADGES}</span>
-                        )}
+                        {activeTab === 'badges' && <span className="text-[10px] text-gray-400">{getEquippedBadgeCount()}/{MAX_BADGES}</span>}
                         <ModalCloseBtn onClose={onClose} />
                     </div>
-                    
-                    <div className="modal-body" style={{ padding: 0 }}>
-                        <div className="shop-tabs-container" style={{ margin: '12px', marginBottom: 0 }}>
-                            {tabs.map(tab => (
-                                <button key={tab} onClick={() => setActiveTab(tab)} className={`shop-tab ${activeTab === tab ? 'active' : ''}`}>{t[tab]} ({getOwnedItems(tab).length})</button>
-                            ))}
-                        </div>
-                        
-                        <div className="p-3">
-                            {ownedItems.length === 0 ? (
-                                <div className="text-center py-8 text-gray-400">
-                                    <div className="text-4xl mb-2">📦</div>
-                                    <p>{t.owned}: 0</p>
-                                </div>
-                            ) : (
+                    <div className="modal-body" style={{ padding: '8px' }}>
+                        <div className="shop-tabs-container" style={{ margin: '4px', marginBottom: 0 }}>{tabs.map(tab => <button key={tab} onClick={() => setActiveTab(tab)} className={`shop-tab ${activeTab === tab ? 'active' : ''}`}>{t[tab]} ({getOwnedItems(tab).length})</button>)}</div>
+                        <div className="p-2">
+                            {ownedItems.length === 0 ? <div className="text-center py-6 text-gray-400"><div className="text-3xl mb-2">📦</div><p>{t.owned}: 0</p></div> : (
                                 <div className="inventory-grid">
                                     {ownedItems.map(item => {
                                         const equippedItem = isEquipped(item);
-                                        
-                                        if (activeTab === 'gifts') {
-                                            return (
-                                                <div key={item.id} className="inventory-item">
-                                                    <div className="inventory-item-preview">{renderPreview(item)}</div>
-                                                    <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
-                                                    <button onClick={() => { setSelectedGift(item); setShowGiftPreview(true); }} className="btn-gold w-full text-xs py-1 rounded mt-1">{t.sendGiftToFriend}</button>
-                                                </div>
-                                            );
-                                        }
-                                        
-                                        // For badges, check if we can equip more
-                                        const canEquipBadge = activeTab === 'badges' && !equippedItem && getEquippedBadgeCount() < MAX_BADGES;
-                                        
-                                        return (
-                                            <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`}>
-                                                <div className="inventory-item-preview">{renderPreview(item)}</div>
-                                                <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
-                                                {equippedItem ? (
-                                                    <button onClick={() => onUnequip(item.type, item.id)} className="btn-unequip w-full">{t.unequip}</button>
-                                                ) : (
-                                                    <button 
-                                                        onClick={() => onEquip(item)} 
-                                                        disabled={activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES && !equippedItem}
-                                                        className={`btn-success w-full text-xs py-1 rounded ${(activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES && !equippedItem) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    >
-                                                        {t.equip}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        );
+                                        if (activeTab === 'gifts') return (<div key={item.id} className="inventory-item"><div className="inventory-item-preview">{renderPreview(item)}</div><div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div><button onClick={() => { setSelectedGift(item); setShowGiftPreview(true); }} className="btn-gold w-full text-[10px] py-0.5 rounded mt-1">{t.sendGiftToFriend}</button></div>);
+                                        return (<div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`}><div className="inventory-item-preview">{renderPreview(item)}</div><div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>{equippedItem ? <button onClick={() => onUnequip(item.type, item.id)} className="btn-unequip w-full">{t.unequip}</button> : <button onClick={() => onEquip(item)} disabled={activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES} className={`btn-success w-full text-[10px] py-0.5 rounded ${(activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES) ? 'opacity-50 cursor-not-allowed' : ''}`}>{t.equip}</button>}</div>);
                                     })}
                                 </div>
                             )}
@@ -1761,27 +815,13 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                     </div>
                 </div>
             </div>
-            
-            {showGiftPreview && selectedGift && (
-                <GiftPreviewModal 
-                    show={showGiftPreview} 
-                    onClose={() => setShowGiftPreview(false)} 
-                    gift={selectedGift} 
-                    lang={lang} 
-                    onBuy={() => {}} 
-                    currency={userData?.currency || 0}
-                    isFromInventory={true}
-                    onSendFromInventory={onSendGift}
-                    friendsData={friendsData}
-                    currentUserData={currentUserData}
-                />
-            )}
+            {showGiftPreview && selectedGift && <GiftPreviewModal show={showGiftPreview} onClose={() => setShowGiftPreview(false)} gift={selectedGift} lang={lang} onBuy={() => {}} currency={userData?.currency || 0} isFromInventory={true} onSendFromInventory={onSendGift} friendsData={friendsData} currentUserData={currentUserData} />}
         </>
     );
 };
 
 // ==========================================
-// USER PROFILE MODAL - MULTI-BADGE SUPPORT
+// USER PROFILE MODAL
 // ==========================================
 const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSendFriendRequest, onSendGift, userData, currentUserFriends, currentUserFriendRequests }) => {
     const t = TRANSLATIONS[lang];
@@ -1792,21 +832,10 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     
     useEffect(() => {
         if (!show || !targetUID) { setLoading(true); return; }
-        setLoading(true);
-        setRequestSent(false);
-        
+        setLoading(true); setRequestSent(false);
         usersCollection.doc(targetUID).get().then(doc => {
-            if (doc.exists) {
-                setTargetData({ id: doc.id, ...doc.data(), isGuest: false });
-                setLoading(false);
-            } else {
-                guestsCollection.doc(targetUID).get().then(guestDoc => {
-                    if (guestDoc.exists) {
-                        setTargetData({ id: guestDoc.id, ...guestDoc.data(), isGuest: true });
-                    } else { setTargetData(null); }
-                    setLoading(false);
-                }).catch(() => { setTargetData(null); setLoading(false); });
-            }
+            if (doc.exists) { setTargetData({ id: doc.id, ...doc.data(), isGuest: false }); setLoading(false); }
+            else { guestsCollection.doc(targetUID).get().then(guestDoc => { if (guestDoc.exists) { setTargetData({ id: guestDoc.id, ...guestDoc.data(), isGuest: true }); } else { setTargetData(null); } setLoading(false); }).catch(() => { setTargetData(null); setLoading(false); }); }
         }).catch(() => { setLoading(false); setTargetData(null); });
     }, [show, targetUID]);
     
@@ -1814,112 +843,46 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     
     const isOwnProfile = targetUID === currentUserUID;
     const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
-    
     const isAlreadyFriend = currentUserFriends?.includes(targetUID);
     const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
     
-    const handleAddFriend = async () => {
-        if (isAlreadyFriend || hasPendingRequest) return;
-        await onSendFriendRequest(targetUID);
-        setRequestSent(true);
-    };
-    
-    const getFriendButton = () => {
-        if (isAlreadyFriend) {
-            return (
-                <button disabled className="btn-success flex-1 py-2 rounded-lg text-sm opacity-80">
-                    ✅ {lang === 'ar' ? 'أصدقاء بالفعل' : 'Already Friends'}
-                </button>
-            );
-        }
-        if (hasPendingRequest) {
-            return (
-                <button disabled className="btn-ghost flex-1 py-2 rounded-lg text-sm opacity-80">
-                    ⏳ {lang === 'ar' ? 'تم إرسال الطلب' : 'Request Sent'}
-                </button>
-            );
-        }
-        return (
-            <button onClick={handleAddFriend} className="btn-neon flex-1 py-2 rounded-lg text-sm">
-                👥 {t.addFriend}
-            </button>
-        );
-    };
+    const handleAddFriend = async () => { if (isAlreadyFriend || hasPendingRequest) return; await onSendFriendRequest(targetUID); setRequestSent(true); };
     
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.profile}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
-                
+                <div className="modal-header"><h2 className="modal-title">{t.profile}</h2><ModalCloseBtn onClose={onClose} /></div>
                 <div className="modal-body">
-                    {loading ? (
-                        <div className="text-center py-8">
-                            <div className="text-2xl animate-pulse">⏳</div>
-                            <p className="text-gray-400 mt-2">{t.loading}</p>
-                        </div>
-                    ) : !targetData ? (
-                        <div className="text-center py-8">
-                            <div className="text-4xl mb-2">❌</div>
-                            <p className="text-gray-400">{t.friendNotFound}</p>
-                        </div>
-                    ) : (
+                    {loading ? <div className="text-center py-8"><div className="text-2xl animate-pulse">⏳</div><p className="text-gray-400 mt-2">{t.loading}</p></div> : !targetData ? <div className="text-center py-8"><div className="text-4xl mb-2">❌</div><p className="text-gray-400">{t.friendNotFound}</p></div> : (
                         <div className="profile-container">
                             <div className="profile-header">
                                 <div className="profile-avatar-section">
-                                    <div className="profile-avatar-container">
-                                        <AvatarWithFrame photoURL={targetData.photoURL} equipped={targetData.equipped} size="lg" />
-                                    </div>
+                                    <div className="profile-avatar-container"><AvatarWithFrame photoURL={targetData.photoURL} equipped={targetData.equipped} size="lg" /></div>
                                     <h3 className="profile-name">{targetData.displayName || 'Unknown'}</h3>
-                                    
-                                    {/* Title */}
-                                    {targetData.equipped?.titles && (
-                                        <div className="profile-title-container">
-                                            {renderTitle(targetData.equipped.titles, lang)}
-                                        </div>
-                                    )}
-                                    
-                                    {/* Badges - Multi-badge support */}
+                                    {targetData.equipped?.titles && <div className="profile-title-container">{renderTitle(targetData.equipped.titles, lang)}</div>}
                                     {targetData.equipped?.badges && renderBadges(targetData.equipped.badges, 28)}
-                                    
                                     {isTargetGuest && <div className="profile-account-type guest">{t.guestAccount}</div>}
-                                    
-                                    <div className="profile-id" onClick={() => { navigator.clipboard.writeText(targetData.customId || targetData.uid); }}>
-                                        <span>ID: {targetData.customId || targetData.uid?.substring(0, 8)}</span>
-                                        <span className="text-[10px]">📋</span>
-                                    </div>
+                                    <div className="profile-id" onClick={() => { navigator.clipboard.writeText(targetData.customId || targetData.uid); }}><span>ID: {targetData.customId || targetData.uid?.substring(0, 8)}</span><span className="text-[10px]">📋</span></div>
                                 </div>
                             </div>
-                            
                             <CharismaDisplay charisma={targetData.charisma} lang={lang} />
-                            
                             <div className="profile-stats">
                                 <div className="profile-stat"><div className="profile-stat-value">{targetData.stats?.wins || 0}</div><div className="profile-stat-label">{t.wins}</div></div>
                                 <div className="profile-stat"><div className="profile-stat-value">{targetData.stats?.losses || 0}</div><div className="profile-stat-label">{t.losses}</div></div>
                                 <div className="profile-stat"><div className="profile-stat-value">{calculateLevel(targetData.stats?.xp || 0)}</div><div className="profile-stat-label">{t.level}</div></div>
                             </div>
-                            
                             <KDCircle wins={targetData.stats?.wins || 0} losses={targetData.stats?.losses || 0} lang={lang} />
-                            
                             {!isOwnProfile && !isTargetGuest && (
                                 <div className="flex gap-2 mt-4">
-                                    {getFriendButton()}
+                                    {isAlreadyFriend ? <button disabled className="btn-success flex-1 py-2 rounded-lg text-sm opacity-80">✅ {lang === 'ar' ? 'أصدقاء' : 'Friends'}</button> : hasPendingRequest ? <button disabled className="btn-ghost flex-1 py-2 rounded-lg text-sm opacity-80">⏳ {lang === 'ar' ? 'تم الإرسال' : 'Sent'}</button> : <button onClick={handleAddFriend} className="btn-neon flex-1 py-2 rounded-lg text-sm">👥 {t.addFriend}</button>}
                                     <button onClick={() => setShowGiftModal(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm">🎁 {t.sendGift}</button>
                                 </div>
                             )}
-                            
-                            {isTargetGuest && !isOwnProfile && (
-                                <div className="text-center text-gray-400 text-xs mt-4 p-2 bg-white/5 rounded-lg">{t.guestProfileMsg}</div>
-                            )}
+                            {isTargetGuest && !isOwnProfile && <div className="text-center text-gray-400 text-xs mt-4 p-2 bg-white/5 rounded-lg">{t.guestProfileMsg}</div>}
                         </div>
                     )}
                 </div>
-                
-                {showGiftModal && targetData && (
-                    <SendGiftModal show={showGiftModal} onClose={() => setShowGiftModal(false)} targetUser={targetData} currentUser={userData} lang={lang} onSendGift={onSendGift} currency={userData?.currency || 0} />
-                )}
+                {showGiftModal && targetData && <SendGiftModal show={showGiftModal} onClose={() => setShowGiftModal(false)} targetUser={targetData} currentUser={userData} lang={lang} onSendGift={onSendGift} currency={userData?.currency || 0} />}
             </div>
         </div>
     );
@@ -1936,22 +899,16 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
     const [showGiftModal, setShowGiftModal] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
-    
     const chatId = friend && user ? getChatId(user.uid, friend.uid) : null;
     
     useEffect(() => {
         if (!show || !chatId) return;
-        const unsub = chatsCollection.doc(chatId).collection('messages')
-            .onSnapshot(snap => {
-                let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                msgs.sort((a, b) => {
-                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
-                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
-                    return timeA - timeB;
-                });
-                setMessages(msgs);
-                chatsCollection.doc(chatId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {});
-            });
+        const unsub = chatsCollection.doc(chatId).collection('messages').onSnapshot(snap => {
+            let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            msgs.sort((a, b) => { const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0; const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0; return timeA - timeB; });
+            setMessages(msgs);
+            chatsCollection.doc(chatId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {});
+        });
         return unsub;
     }, [show, chatId, user?.uid]);
     
@@ -1961,68 +918,26 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
         if (!newMsg.trim() || sending) return;
         setSending(true);
         try {
-            const msgData = { senderId: user.uid, senderName: currentUser?.displayName || 'User', senderPhoto: currentUser?.photoURL || null, text: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp() };
-            await chatsCollection.doc(chatId).collection('messages').add(msgData);
+            await chatsCollection.doc(chatId).collection('messages').add({ senderId: user.uid, senderName: currentUser?.displayName || 'User', senderPhoto: currentUser?.photoURL || null, text: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             await chatsCollection.doc(chatId).set({ members: [user.uid, friend.uid], lastMessage: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
-            if (onSendNotification) {
-                await onSendNotification(friend.uid, 'message', `${currentUser?.displayName || 'User'}: ${newMsg.trim().substring(0, 50)}${newMsg.trim().length > 50 ? '...' : ''}`, user.uid, currentUser?.displayName || 'User');
-            }
+            if (onSendNotification) await onSendNotification(friend.uid, 'message', `${currentUser?.displayName || 'User'}: ${newMsg.trim().substring(0, 50)}`, user.uid, currentUser?.displayName || 'User');
             setNewMsg('');
             playSound('click');
-        } catch (e) { console.error('Send message error:', e); }
+        } catch (e) { console.error('Send error:', e); }
         setSending(false);
     };
     
     const handleSendGiftToChat = async (gift, targetUser) => {
         if (!onSendGift) return;
         await onSendGift(gift, targetUser);
-        const giftMsgData = { 
-            senderId: user.uid, 
-            senderName: currentUser?.displayName || 'User', 
-            senderPhoto: currentUser?.photoURL || null, 
-            type: 'gift',
-            giftId: gift.id,
-            giftName: lang === 'ar' ? gift.name_ar : gift.name_en,
-            giftEmoji: gift.emoji,
-            giftCharisma: gift.charisma,
-            text: `🎁 ${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji} ${lang === 'ar' ? gift.name_ar : gift.name_en}`,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-        };
         try {
-            await chatsCollection.doc(chatId).collection('messages').add(giftMsgData);
-            await chatsCollection.doc(chatId).set({ 
-                members: [user.uid, friend.uid], 
-                lastMessage: `🎁 ${lang === 'ar' ? 'هدية' : 'Gift'}`, 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
-                [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) 
-            }, { merge: true });
-        } catch (e) { console.error('Gift message error:', e); }
+            await chatsCollection.doc(chatId).collection('messages').add({ senderId: user.uid, senderName: currentUser?.displayName || 'User', senderPhoto: currentUser?.photoURL || null, type: 'gift', giftId: gift.id, giftName: lang === 'ar' ? gift.name_ar : gift.name_en, giftEmoji: gift.emoji, giftCharisma: gift.charisma, text: `🎁 ${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji}`, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            await chatsCollection.doc(chatId).set({ members: [user.uid, friend.uid], lastMessage: `🎁 ${lang === 'ar' ? 'هدية' : 'Gift'}`, timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
+        } catch (e) { console.error('Gift error:', e); }
         setShowGiftModal(false);
     };
     
-    const addEmoji = (emoji) => {
-        setNewMsg(prev => prev + emoji);
-        inputRef.current?.focus();
-    };
-    
     if (!show || !friend) return null;
-    
-    const displayEmojis = EMOJI_LIST.slice(0, 30);
-    
-    const renderMessageContent = (msg) => {
-        if (msg.type === 'gift') {
-            return (
-                <div className="gift-message-content">
-                    <div className="gift-message-icon text-4xl">{msg.giftEmoji || '🎁'}</div>
-                    <div className="gift-message-name">{msg.giftName || 'Gift'}</div>
-                    <div className="gift-message-details">
-                        <span className="gift-charisma-badge">+{formatCharisma(msg.giftCharisma)} {lang === 'ar' ? 'كاريزما' : 'Charisma'}</span>
-                    </div>
-                </div>
-            );
-        }
-        return <div className="chat-message-bubble">{msg.text}</div>;
-    };
     
     return (
         <>
@@ -2030,78 +945,37 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                 <div className="chat-modal-content animate-pop" onClick={e => e.stopPropagation()}>
                     <div className="chat-header-bar">
                         <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                        <div className="chat-header-info">
-                            <div className="chat-header-name">{friend.displayName}</div>
-                            <div className="chat-header-status">{t.online}</div>
-                        </div>
-                        <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" title={t.sendGift}>
-                            🎁
-                        </button>
+                        <div className="chat-header-info"><div className="chat-header-name">{friend.displayName}</div><div className="chat-header-status">{t.online}</div></div>
+                        <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" title={t.sendGift}>🎁</button>
                         <ModalCloseBtn onClose={onClose} />
                     </div>
-                    
                     <div className="chat-messages-container">
-                        {messages.length === 0 ? (
-                            <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div>
-                        ) : (
-                            messages.map(msg => {
-                                const isMine = msg.senderId === user?.uid;
-                                const isGift = msg.type === 'gift';
-                                return (
-                                    <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''} ${isGift ? 'gift-message' : ''}`}>
-                                        {!isMine && (
-                                            <AvatarWithFrame 
-                                                photoURL={msg.senderPhoto || friend.photoURL} 
-                                                equipped={friend.equipped} 
-                                                size="sm" 
-                                            />
-                                        )}
-                                        <div className="chat-message-content">
-                                            <div className="chat-message-sender">{isMine ? (currentUser?.displayName || 'You') : msg.senderName}</div>
-                                            {renderMessageContent(msg)}
-                                            <div className="chat-message-time">{formatTime(msg.timestamp)}</div>
-                                        </div>
+                        {messages.length === 0 ? <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div> : messages.map(msg => {
+                            const isMine = msg.senderId === user?.uid;
+                            const isGift = msg.type === 'gift';
+                            return (
+                                <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''} ${isGift ? 'gift-message' : ''}`}>
+                                    {!isMine && <AvatarWithFrame photoURL={msg.senderPhoto || friend.photoURL} equipped={friend.equipped} size="sm" />}
+                                    <div className="chat-message-content">
+                                        <div className="chat-message-sender">{isMine ? (currentUser?.displayName || 'You') : msg.senderName}</div>
+                                        {isGift ? <div className="gift-message-content"><div className="text-3xl mb-1">{msg.giftEmoji || '🎁'}</div><div className="gift-message-name">{msg.giftName || 'Gift'}</div><span className="gift-charisma-badge">+{formatCharisma(msg.giftCharisma)}</span></div> : <div className="chat-message-bubble">{msg.text}</div>}
+                                        <div className="chat-message-time">{formatTime(msg.timestamp)}</div>
                                     </div>
-                                );
-                            })
-                        )}
+                                </div>
+                            );
+                        })}
                         <div ref={messagesEndRef} />
                     </div>
-                    
                     <div className="chat-input-container">
-                        <div className="emoji-picker-container">
-                            {displayEmojis.map((emoji, i) => (
-                                <button key={i} className="emoji-picker-btn" onClick={() => addEmoji(emoji)}>{emoji}</button>
-                            ))}
-                        </div>
-                        
+                        <div className="emoji-picker-container">{EMOJI_LIST.slice(0, 20).map((emoji, i) => <button key={i} className="emoji-picker-btn" onClick={() => setNewMsg(prev => prev + emoji)}>{emoji}</button>)}</div>
                         <div className="chat-input-row">
-                            <input 
-                                ref={inputRef}
-                                type="text" 
-                                className="chat-input" 
-                                placeholder={t.typeMessage} 
-                                value={newMsg} 
-                                onChange={e => setNewMsg(e.target.value)} 
-                                onKeyPress={e => e.key === 'Enter' && handleSend()} 
-                            />
+                            <input ref={inputRef} type="text" className="chat-input" placeholder={t.typeMessage} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} />
                             <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            {showGiftModal && (
-                <SendGiftModal 
-                    show={showGiftModal} 
-                    onClose={() => setShowGiftModal(false)} 
-                    targetUser={friend} 
-                    currentUser={currentUser} 
-                    lang={lang} 
-                    onSendGift={handleSendGiftToChat} 
-                    currency={currency || 0} 
-                />
-            )}
+            {showGiftModal && <SendGiftModal show={showGiftModal} onClose={() => setShowGiftModal(false)} targetUser={friend} currentUser={currentUser} lang={lang} onSendGift={handleSendGiftToChat} currency={currency || 0} />}
         </>
     );
 };
@@ -2116,22 +990,17 @@ const TutorialModal = ({ show, onClose, lang }) => {
     const steps = [ { text: t.tutorialStep1, img: "🕵️" }, { text: t.tutorialStep2, img: "🗳️" }, { text: t.tutorialStep3, img: "🛒" } ];
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.tutorialTitle}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>
+                <div className="modal-header"><h2 className="modal-title">{t.tutorialTitle}</h2><ModalCloseBtn onClose={onClose} /></div>
                 <div className="modal-body text-center">
-                    <div className="text-6xl mb-6 animate-bounce">{steps[step].img}</div>
-                    <p className="text-base mb-6 text-gray-200">{steps[step].text}</p>
-                    <div className="flex justify-center gap-2 mb-4"> 
-                        {steps.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === step ? 'bg-cyan-400 w-4' : 'bg-gray-600'}`}></div>)} 
-                    </div>
-                    <div className="flex gap-3">
+                    <div className="text-5xl mb-4 animate-bounce">{steps[step].img}</div>
+                    <p className="text-sm mb-4 text-gray-200">{steps[step].text}</p>
+                    <div className="flex justify-center gap-2 mb-3">{steps.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === step ? 'bg-cyan-400 w-4' : 'bg-gray-600'}`}></div>)}</div>
+                    <div className="flex gap-2">
                         {step > 0 && <button onClick={() => setStep(s => s-1)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">Back</button>}
-                        {step < steps.length - 1 ? ( <button onClick={() => setStep(s => s+1)} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.next}</button> ) : ( <button onClick={onClose} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.startGame}</button> )}
+                        {step < steps.length - 1 ? <button onClick={() => setStep(s => s+1)} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.next}</button> : <button onClick={onClose} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.startGame}</button>}
                     </div>
-                    <button onClick={onClose} className="text-xs text-gray-500 mt-4 hover:text-white">{t.skipTutorial}</button>
+                    <button onClick={onClose} className="text-xs text-gray-500 mt-3 hover:text-white">{t.skipTutorial}</button>
                 </div>
             </div>
         </div>
@@ -2139,7 +1008,7 @@ const TutorialModal = ({ show, onClose, lang }) => {
 };
 
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 3
+// PRO SPY - FINAL SCRIPT - PART 3
 // Main App Component
 // ==========================================
 
@@ -2188,36 +1057,19 @@ function App() {
     const [showLoginAlert, setShowLoginAlert] = useState(false);
     const [guestData, setGuestData] = useState(null);
     const [showEmail, setShowEmail] = useState(false);
-    
-    // NEW: Login Rewards
     const [showLoginRewards, setShowLoginRewards] = useState(false);
-    
-    // NEW: Lobby password visibility
     const [showLobbyPassword, setShowLobbyPassword] = useState(false);
-    
-    // Notification System
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadNotifications, setUnreadNotifications] = useState(0);
     const notificationBellRef = useRef(null);
     
     const t = TRANSLATIONS[lang];
-    
     const isLoggedIn = useMemo(() => user && !user.isAnonymous, [user]);
     const isGuest = useMemo(() => guestData !== null, [guestData]);
     const isNotLoggedIn = useMemo(() => user === null && guestData === null, [user, guestData]);
-    
-    const currentUID = useMemo(() => {
-        if (user && !user.isAnonymous) return user.uid;
-        if (guestData) return guestData.uid;
-        return null;
-    }, [user, guestData]);
-    
-    const currentUserData = useMemo(() => {
-        if (isLoggedIn) return userData;
-        if (isGuest) return guestData;
-        return null;
-    }, [isLoggedIn, userData, isGuest, guestData]);
+    const currentUID = useMemo(() => { if (user && !user.isAnonymous) return user.uid; if (guestData) return guestData.uid; return null; }, [user, guestData]);
+    const currentUserData = useMemo(() => { if (isLoggedIn) return userData; if (isGuest) return guestData; return null; }, [isLoggedIn, userData, isGuest, guestData]);
 
     // Background Animation
     useEffect(() => {
@@ -2241,34 +1093,12 @@ function App() {
         setAuthLoading(true);
         const unsubAuth = auth.onAuthStateChanged(async (u) => {
             if (u && !u.isAnonymous) { 
-                setUser(u); 
-                setGuestData(null);
+                setUser(u); setGuestData(null);
                 const userRef = usersCollection.doc(u.uid); 
                 const doc = await userRef.get();
                 if (!doc.exists) { 
-                    const newUserData = { 
-                        uid: u.uid, 
-                        email: u.email || null, 
-                        displayName: u.displayName || u.uid.substring(0,5), 
-                        photoURL: u.photoURL || null, 
-                        customId: generateUID(), 
-                        stats: { wins: 0, losses: 0, xp: 0 }, 
-                        achievements: [], 
-                        friends: [], 
-                        friendRequests: [], 
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(), 
-                        lastChangedName: null, 
-                        lastActive: firebase.firestore.FieldValue.serverTimestamp(), 
-                        isAnonymous: false, 
-                        currency: 100, 
-                        inventory: {frames: [], titles: [], themes: [], gifts: [], badges: []}, 
-                        equipped: { badges: [] }, // Initialize badges as array
-                        charisma: 0,
-                        loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 }
-                    }; 
-                    await userRef.set(newUserData); 
-                    setUserData(newUserData); 
-                    if (u.displayName) setNickname(u.displayName); 
+                    const newUserData = { uid: u.uid, email: u.email || null, displayName: u.displayName || u.uid.substring(0,5), photoURL: u.photoURL || null, customId: generateUID(), stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [], friendRequests: [], createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastChangedName: null, lastActive: firebase.firestore.FieldValue.serverTimestamp(), isAnonymous: false, currency: 100, inventory: {frames: [], titles: [], themes: [], badges: [], gifts: []}, equipped: { badges: [] }, charisma: 0, loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 } }; 
+                    await userRef.set(newUserData); setUserData(newUserData); if (u.displayName) setNickname(u.displayName); 
                 } else {
                     const existingData = doc.data();
                     setUserData(existingData);
@@ -2286,55 +1116,29 @@ function App() {
     useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && isLoggedIn) setShowTutorial(true); }, [isLoggedIn]);
     useEffect(() => { if (!user || isGuest) return; const interval = setInterval(() => { usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 60000); return () => clearInterval(interval); }, [user, isGuest]);
 
-    // Check for login rewards on login
+    // Check for login rewards
     useEffect(() => {
         if (isLoggedIn && userData) {
             const loginData = userData.loginRewards || { currentDay: 0, lastClaimDate: null };
             const today = new Date().toDateString();
             const lastClaim = loginData.lastClaimDate?.toDate?.()?.toDateString() || loginData.lastClaimDate;
-            
-            // Show login rewards if can claim today
-            if (lastClaim !== today && loginData.currentDay < 30) {
-                setShowLoginRewards(true);
-            }
+            if (lastClaim !== today && loginData.currentDay < 30) setShowLoginRewards(true);
         }
     }, [isLoggedIn, userData?.loginRewards?.lastClaimDate]);
 
-    // Notifications Listener with Sound
+    // Notifications Listener
     useEffect(() => {
         if (!user || !isLoggedIn) return;
-        
         let previousCount = -1;
-        
-        const unsub = notificationsCollection
-            .where('toUserId', '==', user.uid)
-            .limit(50)
-            .onSnapshot(
-                snap => {
-                    let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    notifs.sort((a, b) => {
-                        const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
-                        const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
-                        return timeB - timeA;
-                    });
-                    
-                    const newUnread = notifs.filter(n => !n.read).length;
-                    
-                    if (previousCount !== -1 && newUnread > previousCount) {
-                        playNotificationSound();
-                        if (notificationBellRef.current) {
-                            notificationBellRef.current.classList.add('ringing');
-                            setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500);
-                        }
-                    }
-                    
-                    previousCount = newUnread;
-                    setNotifications(notifs);
-                    setUnreadNotifications(newUnread);
-                },
-                error => { console.error('Notifications listener error:', error); }
-            );
-        
+        const unsub = notificationsCollection.where('toUserId', '==', user.uid).limit(50).onSnapshot(snap => {
+            let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            notifs.sort((a, b) => { const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0; const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0; return timeB - timeA; });
+            const newUnread = notifs.filter(n => !n.read).length;
+            if (previousCount !== -1 && newUnread > previousCount) { playNotificationSound(); if (notificationBellRef.current) { notificationBellRef.current.classList.add('ringing'); setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500); } }
+            previousCount = newUnread;
+            setNotifications(notifs);
+            setUnreadNotifications(newUnread);
+        }, error => { console.error('Notifications error:', error); });
         return () => unsub();
     }, [user, isLoggedIn]);
 
@@ -2342,49 +1146,13 @@ function App() {
     useEffect(() => { if (!roomId) return; const unsub = roomsCollection.doc(roomId).onSnapshot(async doc => { if (doc.exists) { const data = doc.data(); setRoom(data); if(data.status?.includes('finished') && !data.summaryShown) { setShowSummary(true); historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); roomsCollection.doc(roomId).update({summaryShown: true}); } } else { setRoom(null); setRoomId(''); } }); return unsub; }, [roomId]);
 
     // Leaderboard - Real-time
-    useEffect(() => { 
-        if (activeView === 'leaderboard') { 
-            const unsub = usersCollection
-                .orderBy('stats.wins', 'desc')
-                .limit(100)
-                .onSnapshot(snap => { 
-                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); 
-                    setLeaderboardData(data); 
-                }, error => {
-                    // Fallback without orderBy if index doesn't exist
-                    usersCollection.limit(100).get().then(snap => {
-                        let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous);
-                        data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0));
-                        setLeaderboardData(data);
-                    });
-                });
-            return unsub;
-        } 
-    }, [activeView]);
+    useEffect(() => { if (activeView === 'leaderboard') { const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); setLeaderboardData(data); }, error => { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); }); return unsub; } }, [activeView]);
     
     // Friends - Real-time
-    useEffect(() => { 
-        if (activeView === 'friends' && userData && user && isLoggedIn) { 
-            if (userData.friends?.length > 0) { 
-                const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).onSnapshot(snap => { 
-                    setFriendsData(snap.docs.map(d => ({ id: d.id, ...d.data() }))); 
-                }); 
-                return unsub; 
-            } else { setFriendsData([]); } 
-        } 
-    }, [activeView, userData?.friends, user, isLoggedIn]);
+    useEffect(() => { if (activeView === 'friends' && userData && user && isLoggedIn) { if (userData.friends?.length > 0) { const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).onSnapshot(snap => { setFriendsData(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); return unsub; } else { setFriendsData([]); } } }, [activeView, userData?.friends, user, isLoggedIn]);
     
     // Friend Requests - Real-time
-    useEffect(() => { 
-        if (userData && user && isLoggedIn) { 
-            if (userData.friendRequests?.length > 0) { 
-                const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).onSnapshot(snap => { 
-                    setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() }))); 
-                }); 
-                return unsub; 
-            } else { setFriendRequests([]); } 
-        } 
-    }, [userData?.friendRequests, user, isLoggedIn]);
+    useEffect(() => { if (userData && user && isLoggedIn) { if (userData.friendRequests?.length > 0) { const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).onSnapshot(snap => { setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); return unsub; } else { setFriendRequests([]); } } }, [userData?.friendRequests, user, isLoggedIn]);
     
     // Chats Meta - Real-time
     useEffect(() => { if (!user || !isLoggedIn) return; const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => { let total = 0; const meta = {}; snap.docs.forEach(doc => { const d = doc.data(); meta[doc.id] = d; const myUnread = d.unread?.[user.uid] || 0; total += myUnread; }); setChatsMeta(meta); setTotalUnread(total); }); return unsub; }, [user, isLoggedIn]);
@@ -2396,264 +1164,139 @@ function App() {
 
     // Auth Functions
     const handleGoogleLogin = useCallback(async () => { const provider = new firebase.auth.GoogleAuthProvider(); try { await auth.signInWithPopup(provider); setShowDropdown(false); } catch (e) { console.error('Google login error:', e); } }, []);
-    
     const handleLogout = useCallback(async () => { if (user) await auth.signOut(); setShowDropdown(false); setNickname(''); setGuestData(null); localStorage.removeItem('pro_spy_guest_uid'); localStorage.removeItem('pro_spy_nick'); }, [user]);
 
     // Guest System
     useEffect(() => {
         const initGuest = async () => {
-            if (authLoading) return;
-            if (user && !user.isAnonymous) return;
-            
+            if (authLoading) return; if (user && !user.isAnonymous) return;
             const savedGuestUID = localStorage.getItem('pro_spy_guest_uid');
-            if (savedGuestUID) {
-                try {
-                    const doc = await guestsCollection.doc(savedGuestUID).get();
-                    if (doc.exists) {
-                        setGuestData({ id: doc.id, ...doc.data() });
-                        if (doc.data().displayName) setNickname(doc.data().displayName);
-                        return;
-                    }
-                } catch (e) { console.error('Error loading guest:', e); }
-            }
-            
+            if (savedGuestUID) { try { const doc = await guestsCollection.doc(savedGuestUID).get(); if (doc.exists) { setGuestData({ id: doc.id, ...doc.data() }); if (doc.data().displayName) setNickname(doc.data().displayName); return; } } catch (e) { console.error('Error loading guest:', e); } }
             const savedNick = localStorage.getItem('pro_spy_nick');
             const guestNick = savedNick || ('Player_' + Math.random().toString(36).substring(2, 6));
             const guestUID = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-            
-            const newGuestData = {
-                uid: guestUID, displayName: guestNick, photoURL: null, customId: generateUID(),
-                stats: { wins: 0, losses: 0, xp: 0 }, currency: 0, charisma: 0, equipped: { badges: [] },
-                inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] },
-                isAnonymous: true, isGuest: true,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            try {
-                await guestsCollection.doc(guestUID).set(newGuestData);
-                setGuestData(newGuestData);
-                setNickname(guestNick);
-                localStorage.setItem('pro_spy_guest_uid', guestUID);
-                localStorage.setItem('pro_spy_nick', guestNick);
-            } catch (e) { console.error('Auto guest creation error:', e); }
+            const newGuestData = { uid: guestUID, displayName: guestNick, photoURL: null, customId: generateUID(), stats: { wins: 0, losses: 0, xp: 0 }, currency: 0, charisma: 0, equipped: { badges: [] }, inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] }, isAnonymous: true, isGuest: true, createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastActive: firebase.firestore.FieldValue.serverTimestamp() };
+            try { await guestsCollection.doc(guestUID).set(newGuestData); setGuestData(newGuestData); setNickname(guestNick); localStorage.setItem('pro_spy_guest_uid', guestUID); localStorage.setItem('pro_spy_nick', guestNick); } catch (e) { console.error('Auto guest creation error:', e); }
         };
-        
         initGuest();
     }, [authLoading, user]);
     
-    useEffect(() => {
-        if (!guestData?.uid) return;
-        const unsub = guestsCollection.doc(guestData.uid).onSnapshot(snap => { if (snap.exists) setGuestData({ id: snap.id, ...snap.data() }); });
-        return unsub;
-    }, [guestData?.uid]);
+    useEffect(() => { if (!guestData?.uid) return; const unsub = guestsCollection.doc(guestData.uid).onSnapshot(snap => { if (snap.exists) setGuestData({ id: snap.id, ...snap.data() }); }); return unsub; }, [guestData?.uid]);
     
     const getDefaultPhoto = useCallback((uData, name) => uData?.photoURL || `https://ui-avatars.com/api/?name=${name || 'Guest'}&background=random`, []);
 
     // Notification Functions
-    const createNotification = useCallback(async (toUserId, type, message, fromUserId, fromName, giftData = null) => {
-        try {
-            await notificationsCollection.add({ 
-                toUserId, fromUserId, fromName, type, message, giftData,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
-                read: false 
-            });
-        } catch (e) { console.error('Notification error:', e); }
-    }, []);
-
+    const createNotification = useCallback(async (toUserId, type, message, fromUserId, fromName, giftData = null) => { try { await notificationsCollection.add({ toUserId, fromUserId, fromName, type, message, giftData, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false }); } catch (e) { console.error('Notification error:', e); } }, []);
     const markNotificationRead = useCallback(async (notifId) => { try { await notificationsCollection.doc(notifId).update({ read: true }); } catch (e) { console.error('Mark read error:', e); } }, []);
+    const clearAllNotifications = useCallback(async () => { try { const batch = db.batch(); notifications.forEach(n => { batch.delete(notificationsCollection.doc(n.id)); }); await batch.commit(); setNotifications([]); setUnreadNotifications(0); } catch (e) { console.error('Clear notifications error:', e); } }, [notifications]);
+    const handleNotificationClick = useCallback((notif) => { if (notif.type === 'friend_request') { setActiveView('friends'); } else if (notif.type === 'gift') { setNotification(notif.message); } else if (notif.type === 'message') { if (notif.fromUserId && notif.fromName) { const friend = { uid: notif.fromUserId, displayName: notif.fromName, photoURL: notif.fromPhoto }; setChatFriend(friend); setShowPrivateChat(true); } } }, []);
 
-    const clearAllNotifications = useCallback(async () => {
+    // ==========================================
+    // CLAIM LOGIN REWARD - FIXED VERSION
+    // ==========================================
+    const handleClaimLoginReward = useCallback(async (day) => {
+        if (!user || !isLoggedIn) return;
+        
+        const reward = LOGIN_REWARDS[day - 1];
+        if (!reward) return;
+        
         try {
-            const batch = db.batch();
-            notifications.forEach(n => { batch.delete(notificationsCollection.doc(n.id)); });
-            await batch.commit();
-            setNotifications([]);
-            setUnreadNotifications(0);
-        } catch (e) { console.error('Clear notifications error:', e); }
-    }, [notifications]);
-
-    const handleNotificationClick = useCallback((notif) => {
-        if (notif.type === 'friend_request') {
-            setActiveView('friends');
-        } else if (notif.type === 'gift') {
-            setNotification(notif.message);
-        } else if (notif.type === 'message') {
-            if (notif.fromUserId && notif.fromName) {
-                const friend = { uid: notif.fromUserId, displayName: notif.fromName, photoURL: notif.fromPhoto };
-                setChatFriend(friend);
-                setShowPrivateChat(true);
+            const userRef = usersCollection.doc(user.uid);
+            const userDoc = await userRef.get();
+            const userData = userDoc.data();
+            
+            const inventory = userData?.inventory || { frames: [], titles: [], badges: [], gifts: [] };
+            const updates = {};
+            
+            switch (reward.type) {
+                case 'currency':
+                    updates.currency = firebase.firestore.FieldValue.increment(reward.amount);
+                    setNotification(`${lang === 'ar' ? 'حصلت على' : 'You received'} +${reward.amount} 🧠!`);
+                    break;
+                    
+                case 'frame':
+                    if (!inventory.frames?.includes(reward.itemId)) {
+                        updates.inventory = { ...inventory, frames: [...(inventory.frames || []), reward.itemId] };
+                        setNotification(`${lang === 'ar' ? '🎉 حصلت على إطار!' : '🎉 You received a frame!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                    } else {
+                        updates.currency = firebase.firestore.FieldValue.increment(500);
+                        setNotification(`${lang === 'ar' ? 'الإطار مملوك! +500 إنتل' : 'Frame owned! +500 Intel'}! 🧠`);
+                    }
+                    break;
+                    
+                case 'badge':
+                    if (!inventory.badges?.includes(reward.itemId)) {
+                        updates.inventory = { ...inventory, badges: [...(inventory.badges || []), reward.itemId] };
+                        setNotification(`${lang === 'ar' ? '🎉 حصلت على شارة!' : '🎉 You received a badge!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                    } else {
+                        updates.currency = firebase.firestore.FieldValue.increment(500);
+                        setNotification(`${lang === 'ar' ? 'الشارة مملوكة! +500 إنتل' : 'Badge owned! +500 Intel'}! 🧠`);
+                    }
+                    break;
+                    
+                case 'title':
+                    if (!inventory.titles?.includes(reward.itemId)) {
+                        updates.inventory = { ...inventory, titles: [...(inventory.titles || []), reward.itemId] };
+                        setNotification(`${lang === 'ar' ? '🎉 حصلت على لقب!' : '🎉 You received a title!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                    } else {
+                        updates.currency = firebase.firestore.FieldValue.increment(500);
+                        setNotification(`${lang === 'ar' ? 'اللقب مملوك! +500 إنتل' : 'Title owned! +500 Intel'}! 🧠`);
+                    }
+                    break;
+                    
+                case 'gift':
+                    if (!inventory.gifts?.includes(reward.itemId)) {
+                        updates.inventory = { ...inventory, gifts: [...(inventory.gifts || []), reward.itemId] };
+                        setNotification(`${lang === 'ar' ? '🎉 حصلت على هدية!' : '🎉 You received a gift!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                    } else {
+                        updates.currency = firebase.firestore.FieldValue.increment(500);
+                        setNotification(`${lang === 'ar' ? 'الهدية مملوكة! +500 إنتل' : 'Gift owned! +500 Intel'}! 🧠`);
+                    }
+                    break;
             }
+            
+            updates['loginRewards.currentDay'] = day;
+            updates['loginRewards.lastClaimDate'] = firebase.firestore.FieldValue.serverTimestamp();
+            updates['loginRewards.streak'] = firebase.firestore.FieldValue.increment(1);
+            updates['loginRewards.totalClaims'] = firebase.firestore.FieldValue.increment(1);
+            
+            await userRef.update(updates);
+            playRewardSound();
+            setShowLoginRewards(false);
+            
+        } catch (error) {
+            console.error('Claim reward error:', error);
+            setNotification(lang === 'ar' ? 'حدث خطأ!' : 'An error occurred!');
         }
-    }, []);
-
-// ==========================================
-// CLAIM LOGIN REWARD HANDLER - ADD TO APP COMPONENT
-// Put this inside the App component
-// ==========================================
-
-// Add this function inside App component, after handleUnequip
-const handleClaimLoginReward = useCallback(async (day) => {
-    if (!user || !isLoggedIn) return;
-    
-    const reward = LOGIN_REWARDS[day - 1];
-    if (!reward) return;
-    
-    try {
-        const userRef = usersCollection.doc(user.uid);
-        const userDoc = await userRef.get();
-        const userData = userDoc.data();
-        
-        const inventory = userData?.inventory || { frames: [], titles: [], badges: [], gifts: [] };
-        const updates = {};
-        
-        switch (reward.type) {
-            case 'currency':
-                // Add currency (Intel)
-                updates.currency = firebase.firestore.FieldValue.increment(reward.amount);
-                setNotification(`${lang === 'ar' ? 'حصلت على' : 'You received'} +${reward.amount} 🧠!`);
-                break;
-                
-            case 'frame':
-                // Add frame to inventory
-                if (!inventory.frames?.includes(reward.itemId)) {
-                    const newInventory = {
-                        ...inventory,
-                        frames: [...(inventory.frames || []), reward.itemId]
-                    };
-                    updates.inventory = newInventory;
-                    setNotification(`${lang === 'ar' ? '🎉 حصلت على إطار جديد!' : '🎉 You received a new frame!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
-                } else {
-                    // Already owned - give currency compensation
-                    updates.currency = firebase.firestore.FieldValue.increment(500);
-                    setNotification(`${lang === 'ar' ? 'الإطار مملوك مسبقاً! حصلت على 500 إنتل بدلاً منه' : 'Frame already owned! Got 500 Intel instead'}! 🧠`);
-                }
-                break;
-                
-            case 'badge':
-                // Add badge to inventory
-                if (!inventory.badges?.includes(reward.itemId)) {
-                    const newInventory = {
-                        ...inventory,
-                        badges: [...(inventory.badges || []), reward.itemId]
-                    };
-                    updates.inventory = newInventory;
-                    setNotification(`${lang === 'ar' ? '🎉 حصلت على شارة جديدة!' : '🎉 You received a new badge!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
-                } else {
-                    updates.currency = firebase.firestore.FieldValue.increment(500);
-                    setNotification(`${lang === 'ar' ? 'الشارة مملوكة مسبقاً! حصلت على 500 إنتل بدلاً منه' : 'Badge already owned! Got 500 Intel instead'}! 🧠`);
-                }
-                break;
-                
-            case 'title':
-                // Add title to inventory
-                if (!inventory.titles?.includes(reward.itemId)) {
-                    const newInventory = {
-                        ...inventory,
-                        titles: [...(inventory.titles || []), reward.itemId]
-                    };
-                    updates.inventory = newInventory;
-                    setNotification(`${lang === 'ar' ? '🎉 حصلت على لقب جديد!' : '🎉 You received a new title!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
-                } else {
-                    updates.currency = firebase.firestore.FieldValue.increment(500);
-                    setNotification(`${lang === 'ar' ? 'اللقب مملوك مسبقاً! حصلت على 500 إنتل بدلاً منه' : 'Title already owned! Got 500 Intel instead'}! 🧠`);
-                }
-                break;
-                
-            case 'gift':
-                // Add gift to inventory
-                if (!inventory.gifts?.includes(reward.itemId)) {
-                    const newInventory = {
-                        ...inventory,
-                        gifts: [...(inventory.gifts || []), reward.itemId]
-                    };
-                    updates.inventory = newInventory;
-                    setNotification(`${lang === 'ar' ? '🎉 حصلت على هدية جديدة!' : '🎉 You received a new gift!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
-                } else {
-                    updates.currency = firebase.firestore.FieldValue.increment(500);
-                    setNotification(`${lang === 'ar' ? 'الهدية مملوكة مسبقاً! حصلت على 500 إنتل بدلاً منه' : 'Gift already owned! Got 500 Intel instead'}! 🧠`);
-                }
-                break;
-        }
-        
-        // Update login rewards tracking
-        const today = new Date().toDateString();
-        const loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
-        
-        updates['loginRewards.currentDay'] = day;
-        updates['loginRewards.lastClaimDate'] = firebase.firestore.FieldValue.serverTimestamp();
-        updates['loginRewards.streak'] = firebase.firestore.FieldValue.increment(1);
-        updates['loginRewards.totalClaims'] = firebase.firestore.FieldValue.increment(1);
-        
-        // Apply updates
-        await userRef.update(updates);
-        
-        playRewardSound();
-        setShowLoginRewards(false);
-        
-    } catch (error) {
-        console.error('Claim reward error:', error);
-        setNotification(lang === 'ar' ? 'حدث خطأ!' : 'An error occurred!');
-    }
-}, [user, isLoggedIn, lang]);
-
+    }, [user, isLoggedIn, lang]);
 
     // Room Functions
     const handleCreateGame = useCallback(async () => { 
         if (!nickname.trim()) return; 
         if (isPrivate && !password.trim()) { setAlertMessage(t.privateRoomError); return; }
-        playSound('click'); 
-        setLoading(true); 
-        
-        const uid = currentUID;
-        const tempUserData = currentUserData;
-        
-        if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, try again'); return; } 
-        
+        playSound('click'); setLoading(true); 
+        const uid = currentUID; const tempUserData = currentUserData;
+        if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; } 
         const id = Math.random().toString(36).substring(2, 7).toUpperCase(); 
-        await roomsCollection.doc(id).set({ 
-            id, admin: uid, status: 'waiting', 
-            players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {} }], 
-            scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, 
-            messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, 
-            mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null, summaryShown: false 
-        }); 
-        setRoomId(id); 
-        setLoading(false); 
-        setShowSetupModal(false); 
-        setActiveView('lobby');
-        // Auto copy room code
-        navigator.clipboard.writeText(id);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        await roomsCollection.doc(id).set({ id, admin: uid, status: 'waiting', players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {} }], scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null, summaryShown: false }); 
+        setRoomId(id); setLoading(false); setShowSetupModal(false); setActiveView('lobby');
+        navigator.clipboard.writeText(id); setCopied(true); setTimeout(() => setCopied(false), 2000);
     }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, getDefaultPhoto]);
     
     const handleJoinGame = useCallback(async (id, pwd) => {
         if (!id || id.trim() === "") { setJoinError(t.enterCodeError); return; }
         if (!nickname.trim()) return;
-        playSound('click'); 
-        setLoading(true); 
-        setJoinError(''); 
-        
-        const uid = currentUID;
-        const tempUserData = currentUserData;
-        
-        if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, try again'); return; } 
-        
+        playSound('click'); setLoading(true); setJoinError(''); 
+        const uid = currentUID; const tempUserData = currentUserData;
+        if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; } 
         const ref = roomsCollection.doc(id.toUpperCase()); 
         const snap = await ref.get(); 
         if (snap.exists) { 
             const data = snap.data(); 
             if(data.isPrivate && data.password !== pwd) { setJoinError(lang === 'ar' ? 'كلمة السر غير صحيحة' : "Incorrect Password"); setLoading(false); return; } 
             const exists = data.players.find(p => p.uid === uid); 
-            if (!exists) { 
-                await ref.update({ 
-                    players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {} }] 
-                }); 
-            } 
-            setRoomId(id.toUpperCase()); 
-            setActiveView('lobby'); 
-            setShowBrowseRooms(false);
+            if (!exists) { await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {} }] }); } 
+            setRoomId(id.toUpperCase()); setActiveView('lobby'); setShowBrowseRooms(false);
         } else { setJoinError(lang === 'ar' ? 'الغرفة غير موجودة' : "Room not found"); } 
         setLoading(false); 
     }, [nickname, currentUID, currentUserData, t, lang, getDefaultPhoto]);
@@ -2662,73 +1305,41 @@ const handleClaimLoginReward = useCallback(async (day) => {
         if (!room || !currentUID) return; 
         playSound('click'); 
         const isAdmin = room.admin === currentUID;
-        if (isAdmin) { await roomsCollection.doc(roomId).delete(); } 
-        else { await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== currentUID) }); }
-        setRoom(null); 
-        setRoomId(''); 
-        setShowSummary(false); 
+        if (isAdmin) { await roomsCollection.doc(roomId).delete(); } else { await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== currentUID) }); }
+        setRoom(null); setRoomId(''); setShowSummary(false); 
     }, [room, currentUID, roomId]);
 
     // Game Logic Functions
-    const startGame = useCallback(async () => { if (room.admin !== currentUID) return; playSound('success'); const activePlayers = room.players.filter(p => p.status === 'active'); const playerCount = activePlayers.length; if (room.mode === 'advanced' && playerCount < 6) { setAlertMessage("Advanced mode requires 6+ players!"); return; } if (playerCount < 3) { setAlertMessage(t.needPlayers); return; } if (playerCount > 10) { setAlertMessage("Max 10 players allowed."); return; } const used = room.usedLocations || []; const avail = SCENARIOS.filter(s => !used.includes(s.loc_en)); const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))]; const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)]; let roles = {}; if (room.mode === 'advanced') { roles[spy.uid] = 'spy'; let potentialWhites = activePlayers.filter(p => p.uid !== spy.uid); if(potentialWhites.length > 0) { const mrWhite = potentialWhites[Math.floor(Math.random() * potentialWhites.length)]; roles[mrWhite.uid] = 'mrwhite'; potentialWhites = potentialWhites.filter(p => p.uid !== mrWhite.uid); } if(potentialWhites.length > 0) { const informant = potentialWhites[Math.floor(Math.random() * potentialWhites.length)]; roles[informant.uid] = 'informant'; } activePlayers.forEach(p => { if(!roles[p.uid]) roles[p.uid] = 'agent'; }); } else { activePlayers.forEach(p => roles[p.uid] = p.uid === spy.uid ? 'spy' : 'agent'); } let potentialStarters = activePlayers.filter(p => roles[p.uid] !== 'spy'); if (potentialStarters.length === 0) potentialStarters = activePlayers; const firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)]; await roomsCollection.doc(roomId).update({ status: 'word_selection', scenario, spyId: spy.uid, currentTurnUID: firstPlayer.uid, turnEndTime: null, currentRound: 1, players: room.players.map(p => ({ ...p, vote: null, role: roles[p.uid] || 'agent' })), usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en), messages: [], votes: {}, wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000, votingRequest: null, startedAt: firebase.firestore.FieldValue.serverTimestamp() }); }, [room, currentUID, roomId, t]);
+    const startGame = useCallback(async () => { if (room.admin !== currentUID) return; playSound('success'); const activePlayers = room.players.filter(p => p.status === 'active'); const playerCount = activePlayers.length; if (room.mode === 'advanced' && playerCount < 6) { setAlertMessage("Advanced mode requires 6+ players!"); return; } if (playerCount < 3) { setAlertMessage(t.needPlayers); return; } if (playerCount > 10) { setAlertMessage("Max 10 players."); return; } const used = room.usedLocations || []; const avail = SCENARIOS.filter(s => !used.includes(s.loc_en)); const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))]; const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)]; let roles = {}; if (room.mode === 'advanced') { roles[spy.uid] = 'spy'; let potentialWhites = activePlayers.filter(p => p.uid !== spy.uid); if(potentialWhites.length > 0) { const mrWhite = potentialWhites[Math.floor(Math.random() * potentialWhites.length)]; roles[mrWhite.uid] = 'mrwhite'; potentialWhites = potentialWhites.filter(p => p.uid !== mrWhite.uid); } if(potentialWhites.length > 0) { const informant = potentialWhites[Math.floor(Math.random() * potentialWhites.length)]; roles[informant.uid] = 'informant'; } activePlayers.forEach(p => { if(!roles[p.uid]) roles[p.uid] = 'agent'; }); } else { activePlayers.forEach(p => roles[p.uid] = p.uid === spy.uid ? 'spy' : 'agent'); } let potentialStarters = activePlayers.filter(p => roles[p.uid] !== 'spy'); if (potentialStarters.length === 0) potentialStarters = activePlayers; const firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)]; await roomsCollection.doc(roomId).update({ status: 'word_selection', scenario, spyId: spy.uid, currentTurnUID: firstPlayer.uid, turnEndTime: null, currentRound: 1, players: room.players.map(p => ({ ...p, vote: null, role: roles[p.uid] || 'agent' })), usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en), messages: [], votes: {}, wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000, votingRequest: null, startedAt: firebase.firestore.FieldValue.serverTimestamp() }); }, [room, currentUID, roomId, t]);
 
     const submitWordVote = useCallback(async (word) => { if (!currentUID || !room || room.status !== 'word_selection') return; playSound('click'); const voteUpdate = {}; voteUpdate[`wordVotes.${currentUID}`] = word; await roomsCollection.doc(roomId).update(voteUpdate); }, [currentUID, room, roomId]);
-    
-    const finishWordSelection = useCallback(async () => { if (!room || room.status !== 'word_selection') return; const freshSnap = await roomsCollection.doc(roomId).get(); const freshData = freshSnap.data(); const counts = {}; Object.values(freshData.wordVotes || {}).forEach(v => counts[v] = (counts[v] || 0) + 1); let maxCount = 0; let chosenWord = (lang === 'ar' ? freshData.scenario.words_ar[0] : freshData.scenario.words_en[0]); for (const w in counts) { if (counts[w] > maxCount) { maxCount = counts[w]; chosenWord = w; } } await roomsCollection.doc(roomId).update({ status: 'discussing', turnEndTime: Date.now() + 30000, chosenWord: chosenWord, wordSelEndTime: null }); }, [room, roomId, lang]);
-    
     const handleSkipTurn = useCallback(async (forced = false) => { if (!room) return; if (!forced && room.currentTurnUID !== currentUID) return; if (forced && room.status !== 'discussing') return; nextTurn(); }, [room, currentUID]);
-    
     const nextTurn = useCallback(async () => { if (!room) return; const activePlayers = room.players.filter(p => p.status === 'active'); const currentIndex = activePlayers.findIndex(p => p.uid === room.currentTurnUID); const nextIndex = (currentIndex + 1) % activePlayers.length; await roomsCollection.doc(roomId).update({ currentTurnUID: activePlayers[nextIndex].uid, turnEndTime: Date.now() + 30000 }); }, [room, roomId]);
-    
     const requestVoting = useCallback(async () => { if (!room || room.status !== 'discussing') return; playSound('click'); if (room.admin === currentUID) { await triggerVoting(); return; } await roomsCollection.doc(roomId).update({ votingRequest: { requestedBy: currentUID, votes: { [currentUID]: true } } }); }, [room, currentUID, roomId]);
-    
     const agreeToVote = useCallback(async () => { if (!room || !room.votingRequest) return; playSound('click'); const currentVotes = room.votingRequest.votes || {}; const newVotes = { ...currentVotes, [currentUID]: true }; const activePlayers = room.players.filter(p => p.status === 'active'); if (currentUID === room.admin) { await triggerVoting(); return; } const agreeCount = Object.values(newVotes).filter(v => v === true).length; const majorityCount = Math.floor(activePlayers.length / 2) + 1; if (agreeCount >= majorityCount) { await triggerVoting(); } else { await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); } }, [room, currentUID, roomId]);
-    
     const declineVote = useCallback(async () => { if (!room || !room.votingRequest) return; playSound('click'); const currentVotes = room.votingRequest.votes || {}; const newVotes = { ...currentVotes, [currentUID]: false }; const activePlayers = room.players.filter(p => p.status === 'active'); const declineCount = Object.values(newVotes).filter(v => v === false).length; const majorityCount = Math.floor(activePlayers.length / 2) + 1; if (declineCount >= majorityCount) { await roomsCollection.doc(roomId).update({ votingRequest: null }); } else { await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); } }, [room, currentUID, roomId]);
-    
     const triggerVoting = useCallback(async () => { playSound('click'); const sysMsg = { sender: 'system', name: 'SYSTEM', text: t.votingStarted, time: Date.now() }; await roomsCollection.doc(roomId).update({ status: 'voting', currentTurnUID: null, turnEndTime: null, votingEndTime: Date.now() + 30000, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg), votingRequest: null }); }, [roomId, t]);
-    
     const submitVote = useCallback(async (targetUID) => { if (!targetUID || !currentUID || (room.votes && room.votes[currentUID])) return; playSound('click'); const voteUpdate = {}; voteUpdate[`votes.${currentUID}`] = targetUID; await roomsCollection.doc(roomId).update(voteUpdate); }, [room, currentUID, roomId]);
-
     const resetGame = useCallback(async () => { playSound('click'); await roomsCollection.doc(roomId).update({ status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0, votes: {}, messages: [], votingEndTime: null, turnEndTime: null, players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo, role: null })), wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, startedAt: null, finishedAt: null, summaryShown: false }); setShowSummary(false); }, [room, roomId]);
 
     // Friend Functions
     const openProfile = useCallback((uid) => { if(!uid) return; setTargetProfileUID(uid); setShowUserProfile(true); }, []);
-    
     const openPrivateChat = useCallback((friend) => { setChatFriend(friend); setShowPrivateChat(true); if (user) { const cId = getChatId(user.uid, friend.uid); setOpenChatId(cId); chatsCollection.doc(cId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {}); } }, [user]);
-    
     const closePrivateChat = useCallback(() => { setShowPrivateChat(false); setChatFriend(null); setOpenChatId(null); }, []);
-    
-    const handleSendRequest = useCallback(async (targetUid) => { if (!targetUid || !isLoggedIn) return; const friendUid = targetUid; if (userData.friends?.includes(friendUid)) return; if (userData.friendRequests?.includes(friendUid)) return; await usersCollection.doc(friendUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) });
-        await createNotification(friendUid, 'friend_request', `${userData.displayName} ${t.friendRequest}`, user.uid, userData.displayName);
-    }, [userData, user, isLoggedIn, t, createNotification]);
-    
+    const handleSendRequest = useCallback(async (targetUid) => { if (!targetUid || !isLoggedIn) return; if (userData.friends?.includes(targetUid)) return; if (userData.friendRequests?.includes(targetUid)) return; await usersCollection.doc(targetUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) }); await createNotification(targetUid, 'friend_request', `${userData.displayName} ${t.friendRequest}`, user.uid, userData.displayName); }, [userData, user, isLoggedIn, t, createNotification]);
     const handleAddFriendById = useCallback(async () => {
         if (!addFriendId.trim() || !isLoggedIn) return;
         setFriendSearchMsg('');
         const userQuery = await usersCollection.where('customId', '==', addFriendId.trim()).get();
-        if (userQuery.empty) {
-            const uidQuery = await usersCollection.where(firebase.firestore.FieldPath.documentId(), '>=', addFriendId.trim()).where(firebase.firestore.FieldPath.documentId(), '<=', addFriendId.trim() + '\uf8ff').get();
-            if (uidQuery.empty) { setFriendSearchMsg(t.friendNotFound); return; }
-            const targetDoc = uidQuery.docs[0];
-            const targetUid = targetDoc.id;
-            if (targetUid === user.uid) { setFriendSearchMsg(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself'); return; }
-            if (userData.friends?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'صديق بالفعل' : 'Already a friend'); return; }
-            await handleSendRequest(targetUid);
-            setFriendSearchMsg(t.requestSent);
-            setAddFriendId('');
-            return;
-        }
-        const targetDoc = userQuery.docs[0];
-        const targetUid = targetDoc.id;
+        if (userQuery.empty) { const uidQuery = await usersCollection.where(firebase.firestore.FieldPath.documentId(), '>=', addFriendId.trim()).where(firebase.firestore.FieldPath.documentId(), '<=', addFriendId.trim() + '\uf8ff').get(); if (uidQuery.empty) { setFriendSearchMsg(t.friendNotFound); return; } const targetUid = uidQuery.docs[0].id; if (targetUid === user.uid) { setFriendSearchMsg(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself'); return; } if (userData.friends?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'صديق بالفعل' : 'Already a friend'); return; } await handleSendRequest(targetUid); setFriendSearchMsg(t.requestSent); setAddFriendId(''); return; }
+        const targetUid = userQuery.docs[0].id;
         if (targetUid === user.uid) { setFriendSearchMsg(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself'); return; }
         if (userData.friends?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'صديق بالفعل' : 'Already a friend'); return; }
-        if (userData.friendRequests?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'لديك طلب من هذا المستخدم بالفعل' : 'You already have a request from this user'); return; }
+        if (userData.friendRequests?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'لديك طلب من هذا المستخدم' : 'You have a request from this user'); return; }
         await handleSendRequest(targetUid);
         setFriendSearchMsg(t.requestSent);
         setAddFriendId('');
     }, [addFriendId, isLoggedIn, userData, user, t, lang, handleSendRequest]);
-    
     const handleAcceptRequest = useCallback(async (fromUid) => {
         if (!user || !isLoggedIn) return;
         await usersCollection.doc(user.uid).update({ friends: firebase.firestore.FieldValue.arrayUnion(fromUid), friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) });
@@ -2736,92 +1347,46 @@ const handleClaimLoginReward = useCallback(async (day) => {
         await createNotification(fromUid, 'friend_request_accepted', `${userData.displayName} ${lang === 'ar' ? 'قبل طلب صداقتك!' : 'accepted your friend request!'}`, user.uid, userData.displayName);
         setNotification(t.friendAdded);
     }, [user, isLoggedIn, t, userData, createNotification, lang]);
-    
-    const handleRejectRequest = useCallback(async (fromUid) => {
-        if (!user || !isLoggedIn) return;
-        await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) });
-    }, [user, isLoggedIn]);
+    const handleRejectRequest = useCallback(async (fromUid) => { if (!user || !isLoggedIn) return; await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); }, [user, isLoggedIn]);
 
-    // Gift Functions - FIXED: Bonus calculated at actual send time
+    // Gift Functions
     const handleSendGiftToUser = useCallback(async (gift, targetUser) => {
         const currency = userData?.currency || 0;
         if (currency < gift.cost) return;
-        
-        // Calculate cashback at the moment of sending (NOT preview)
-        const minBack = gift.minCashback || 1;
-        const maxBack = gift.maxCashback || Math.floor(gift.cost * 0.1);
+        const minBack = gift.minCashback || 1; const maxBack = gift.maxCashback || Math.floor(gift.cost * 0.1);
         const cashbackForSender = generateRandomCashback(minBack, maxBack);
         const cashbackForReceiver = generateRandomCashback(minBack, maxBack);
-        
         const newCurrency = currency - gift.cost + cashbackForSender;
-        
         try {
             await usersCollection.doc(user.uid).update({ currency: newCurrency });
-            
-            // If sending to self
-            if (targetUser?.uid === 'self' || targetUser?.uid === user.uid) {
-                await usersCollection.doc(user.uid).update({ 
-                    charisma: firebase.firestore.FieldValue.increment(gift.charisma),
-                    currency: firebase.firestore.FieldValue.increment(cashbackForSender)
-                });
-            } else {
-                await usersCollection.doc(targetUser.uid).update({ 
-                    charisma: firebase.firestore.FieldValue.increment(gift.charisma),
-                    currency: firebase.firestore.FieldValue.increment(cashbackForReceiver)
-                });
-                await createNotification(targetUser.uid, 'gift', `${userData.displayName} ${t.giftNotification}: ${gift.emoji} (+${cashbackForReceiver.toLocaleString()} 💰)`, user.uid, userData.displayName, { giftId: gift.id, giftName: lang === 'ar' ? gift.name_ar : gift.name_en, charisma: gift.charisma, cashback: cashbackForReceiver });
-            }
-            
+            if (targetUser?.uid === 'self' || targetUser?.uid === user.uid) { await usersCollection.doc(user.uid).update({ charisma: firebase.firestore.FieldValue.increment(gift.charisma), currency: firebase.firestore.FieldValue.increment(cashbackForSender) }); }
+            else { await usersCollection.doc(targetUser.uid).update({ charisma: firebase.firestore.FieldValue.increment(gift.charisma), currency: firebase.firestore.FieldValue.increment(cashbackForReceiver) }); await createNotification(targetUser.uid, 'gift', `${userData.displayName} ${t.giftNotification}: ${gift.emoji} (+${cashbackForReceiver})`, user.uid, userData.displayName, { giftId: gift.id, charisma: gift.charisma, cashback: cashbackForReceiver }); }
             playSound('gift');
-            setNotification(`${t.giftSent} +${cashbackForSender.toLocaleString()} 💰`);
+            setNotification(`${t.giftSent} +${cashbackForSender} 💰`);
         } catch (error) { console.error("Gift error:", error); }
-    }, [userData, user, t, lang, createNotification]);
+    }, [userData, user, t, createNotification]);
 
-    // Shop Functions - MULTI-BADGE SUPPORT
+    // Shop Functions
     const handlePurchase = useCallback(async (item) => {
         if (!user || !isLoggedIn) { setShowLoginAlert(true); return; }
         const currency = userData?.currency || 0;
         if (currency < item.cost) { setNotification(t.purchaseFail); return; }
         const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
         if (inventory[item.type]?.includes(item.id)) { setNotification(t.alreadyOwned); return; }
-        try {
-            const newCurrency = currency - item.cost;
-            const newInventory = { ...inventory };
-            newInventory[item.type] = [...(newInventory[item.type] || []), item.id];
-            await usersCollection.doc(user.uid).update({ currency: newCurrency, inventory: newInventory });
-            playSound('success');
-            setNotification(t.purchaseSuccess);
-        } catch (error) { console.error('Purchase error:', error); }
+        try { const newInventory = { ...inventory, [item.type]: [...(inventory[item.type] || []), item.id] }; await usersCollection.doc(user.uid).update({ currency: currency - item.cost, inventory: newInventory }); playSound('success'); setNotification(t.purchaseSuccess); } catch (error) { console.error('Purchase error:', error); }
     }, [user, userData, isLoggedIn, t]);
     
     const handleEquip = useCallback(async (item) => {
         if (!user || !isLoggedIn) return;
         try {
             const equipped = userData?.equipped || { badges: [] };
-            
             if (item.type === 'badges') {
-                // For badges, add to array (up to MAX_BADGES)
-                let currentBadges = equipped.badges || [];
-                if (!Array.isArray(currentBadges)) currentBadges = currentBadges ? [currentBadges] : [];
-                
-                if (currentBadges.length >= MAX_BADGES) {
-                    setNotification(lang === 'ar' ? `الحد الأقصى ${MAX_BADGES} شارات` : `Maximum ${MAX_BADGES} badges allowed`);
-                    return;
-                }
-                
-                if (!currentBadges.includes(item.id)) {
-                    currentBadges.push(item.id);
-                }
-                
+                let currentBadges = equipped.badges || []; if (!Array.isArray(currentBadges)) currentBadges = currentBadges ? [currentBadges] : [];
+                if (currentBadges.length >= MAX_BADGES) { setNotification(lang === 'ar' ? `الحد الأقصى ${MAX_BADGES} شارات` : `Maximum ${MAX_BADGES} badges`); return; }
+                if (!currentBadges.includes(item.id)) currentBadges.push(item.id);
                 await usersCollection.doc(user.uid).update({ equipped: { ...equipped, badges: currentBadges } });
-            } else {
-                // For other items, single equip
-                const newEquipped = { ...equipped, [item.type]: item.id };
-                await usersCollection.doc(user.uid).update({ equipped: newEquipped });
-            }
-            
-            playSound('click');
-            setNotification(lang === 'ar' ? 'تم التزيين!' : 'Equipped!');
+            } else { await usersCollection.doc(user.uid).update({ equipped: { ...equipped, [item.type]: item.id } }); }
+            playSound('click'); setNotification(lang === 'ar' ? 'تم التزيين!' : 'Equipped!');
         } catch (error) { console.error('Equip error:', error); }
     }, [user, userData, isLoggedIn, lang]);
     
@@ -2829,25 +1394,15 @@ const handleClaimLoginReward = useCallback(async (day) => {
         if (!user || !isLoggedIn) return;
         try {
             const equipped = userData?.equipped || { badges: [] };
-            
             if (type === 'badges') {
-                // For badges, remove from array
-                let currentBadges = equipped.badges || [];
-                if (!Array.isArray(currentBadges)) currentBadges = currentBadges ? [currentBadges] : [];
-                
+                let currentBadges = equipped.badges || []; if (!Array.isArray(currentBadges)) currentBadges = currentBadges ? [currentBadges] : [];
                 currentBadges = currentBadges.filter(id => id !== itemId);
-                
-                const newEquipped = { ...equipped, badges: currentBadges };
-                await usersCollection.doc(user.uid).update({ equipped: newEquipped });
+                await usersCollection.doc(user.uid).update({ equipped: { ...equipped, badges: currentBadges } });
             } else {
-                // For other items, remove the key
-                const newEquipped = { ...equipped };
-                delete newEquipped[type];
+                const newEquipped = { ...equipped }; delete newEquipped[type];
                 await usersCollection.doc(user.uid).update({ equipped: newEquipped });
             }
-            
-            playSound('click');
-            setNotification(lang === 'ar' ? 'تمت الإزالة!' : 'Unequipped!');
+            playSound('click'); setNotification(lang === 'ar' ? 'تمت الإزالة!' : 'Unequipped!');
         } catch (error) { console.error('Unequip error:', error); }
     }, [user, userData, isLoggedIn, lang]);
 
@@ -2862,28 +1417,16 @@ const handleClaimLoginReward = useCallback(async (day) => {
     const hasIAgreed = voteReq?.votes?.[currentUID] === true;
     const hasIDeclined = voteReq?.votes?.[currentUID] === false;
     const totalFriendsUnread = useMemo(() => totalUnread + (friendRequests?.length || 0), [totalUnread, friendRequests]);
-    
     const handleCopy = useCallback(() => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 2000); }, [roomId]);
-
     const requireLogin = useCallback(() => { setShowLoginAlert(true); }, []);
 
     // RENDER
-    if (authLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="text-4xl animate-bounce mb-4">🕵️</div>
-                    <div className="text-lg font-bold">{t.loading}</div>
-                </div>
-            </div>
-        );
-    }
+    if (authLoading) { return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl animate-bounce mb-4">🕵️</div><div className="text-lg font-bold">{t.loading}</div></div></div>; }
 
     return (
         <div className="main-wrapper" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
             <NotificationToast message={notification} onClose={() => setNotification(null)} />
             
-            {/* Login Alert */}
             {showLoginAlert && (
                 <div className="modal-overlay" onClick={() => setShowLoginAlert(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
@@ -2891,44 +1434,28 @@ const handleClaimLoginReward = useCallback(async (day) => {
                         <div className="modal-body text-center">
                             <div className="text-4xl mb-4">🔐</div>
                             <p className="text-sm text-gray-300 mb-4">{t.guestDesc}</p>
-                            <button onClick={() => { setShowLoginAlert(false); handleGoogleLogin(); }} className="btn-google w-full py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
-                                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-                                {t.loginGoogle}
-                            </button>
+                            <button onClick={() => { setShowLoginAlert(false); handleGoogleLogin(); }} className="btn-google w-full py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2"><img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />{t.loginGoogle}</button>
                         </div>
                     </div>
                 </div>
             )}
             
             <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
-            
-            {/* Login Rewards */}
             <LoginRewards show={showLoginRewards} onClose={() => setShowLoginRewards(false)} userData={userData} onClaim={handleClaimLoginReward} lang={lang} />
             
-            {/* Match Summary */}
             {showSummary && room && (
                 <div className="modal-overlay" onClick={() => setShowSummary(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
                         <div className="modal-header"><h2 className="modal-title">{t.summaryTitle}</h2><ModalCloseBtn onClose={() => setShowSummary(false)} /></div>
-                        <div className="modal-body text-center">
-                            <div className="text-4xl mb-4">{room.status === 'finished_spy_caught' ? '🎉' : '🕵️'}</div>
-                            <h2 className="text-xl font-bold mb-4">{room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}</h2>
-                        </div>
-                        <div className="modal-footer">
-                            {room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2">{t.playAgain}</button>)}
-                            <button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm">{t.leaveRoom}</button>
-                        </div>
+                        <div className="modal-body text-center"><div className="text-4xl mb-4">{room.status === 'finished_spy_caught' ? '🎉' : '🕵️'}</div><h2 className="text-xl font-bold mb-4">{room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}</h2></div>
+                        <div className="modal-footer">{room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2">{t.playAgain}</button>)}<button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm">{t.leaveRoom}</button></div>
                     </div>
                 </div>
             )}
             
-            {/* Shop */}
-            {showShop && <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} />}
+            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} />
+            <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} />
             
-            {/* Inventory */}
-            {showInventory && <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} />}
-            
-            {/* My Account */}
             {showMyAccount && (
                 <div className="modal-overlay" onClick={() => setShowMyAccount(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
@@ -2936,35 +1463,15 @@ const handleClaimLoginReward = useCallback(async (day) => {
                         <div className="modal-body">
                             <div className="profile-header">
                                 <div className="profile-avatar-section">
-                                    <div className="profile-avatar-container">
-                                        <AvatarWithFrame photoURL={currentUserData?.photoURL} equipped={currentUserData?.equipped} size="lg" />
-                                    </div>
+                                    <div className="profile-avatar-container"><AvatarWithFrame photoURL={currentUserData?.photoURL} equipped={currentUserData?.equipped} size="lg" /></div>
                                     <h3 className="profile-name">{currentUserData?.displayName || 'User'}</h3>
                                     {currentUserData?.equipped?.titles && <div className="profile-title-container">{renderTitle(currentUserData.equipped.titles, lang)}</div>}
                                     {currentUserData?.equipped?.badges && renderBadges(currentUserData.equipped.badges, 28)}
                                     {isGuest && <div className="profile-account-type guest">{t.guestAccount}</div>}
-                                    <div className="profile-id" onClick={() => { navigator.clipboard.writeText(currentUserData?.customId || ''); }}>
-                                        <span>ID: {currentUserData?.customId || 'N/A'}</span>
-                                        <span className="text-[10px]">📋</span>
-                                    </div>
+                                    <div className="profile-id" onClick={() => { navigator.clipboard.writeText(currentUserData?.customId || ''); }}><span>ID: {currentUserData?.customId || 'N/A'}</span><span className="text-[10px]">📋</span></div>
                                 </div>
                             </div>
-                            {isLoggedIn && (
-                                <div className="bg-white/5 rounded-lg p-3 mb-3">
-                                    <h4 className="text-xs font-bold text-gray-400 mb-2">{t.accountInfo}</h4>
-                                    <div className="flex items-center justify-between mb-2 p-2 bg-black/20 rounded-lg">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-gray-400">📧</span>
-                                            <span className="text-sm">{showEmail ? (user?.email || 'N/A') : maskEmail(user?.email)}</span>
-                                        </div>
-                                        <button onClick={() => setShowEmail(!showEmail)} className="text-xs bg-white/10 px-2 py-1 rounded hover:bg-white/20 transition">{showEmail ? t.hideEmail : t.showEmail}</button>
-                                    </div>
-                                    <div className="flex items-center justify-between p-2 bg-black/20 rounded-lg">
-                                        <div className="flex items-center gap-2"><span className="text-gray-400">📅</span><span className="text-sm">{t.memberSince}</span></div>
-                                        <span className="text-xs text-gray-300">{currentUserData?.createdAt?.toDate?.() ? currentUserData.createdAt.toDate().toLocaleDateString() : 'N/A'}</span>
-                                    </div>
-                                </div>
-                            )}
+                            {isLoggedIn && (<div className="bg-white/5 rounded-lg p-3 mb-3"><div className="text-xs font-bold text-gray-400 mb-2">{t.accountInfo}</div><div className="flex items-center justify-between mb-2 p-2 bg-black/20 rounded-lg"><div className="flex items-center gap-2"><span className="text-gray-400">📧</span><span className="text-sm">{showEmail ? (user?.email || 'N/A') : maskEmail(user?.email)}</span></div><button onClick={() => setShowEmail(!showEmail)} className="text-xs bg-white/10 px-2 py-1 rounded">{showEmail ? t.hideEmail : t.showEmail}</button></div><div className="flex items-center justify-between p-2 bg-black/20 rounded-lg"><span className="text-sm">{t.memberSince}</span><span className="text-xs text-gray-300">{currentUserData?.createdAt?.toDate?.() ? currentUserData.createdAt.toDate().toLocaleDateString() : 'N/A'}</span></div></div>)}
                             <CharismaDisplay charisma={currentUserData?.charisma} lang={lang} />
                             <div className="profile-stats">
                                 <div className="profile-stat"><div className="profile-stat-value">{currentUserData?.stats?.wins || 0}</div><div className="profile-stat-label">{t.wins}</div></div>
@@ -2972,92 +1479,39 @@ const handleClaimLoginReward = useCallback(async (day) => {
                                 <div className="profile-stat"><div className="profile-stat-value">{calculateLevel(currentUserData?.stats?.xp || 0)}</div><div className="profile-stat-label">{t.level}</div></div>
                             </div>
                             <KDCircle wins={currentUserData?.stats?.wins || 0} losses={currentUserData?.stats?.losses || 0} lang={lang} />
-                            <div className="flex items-center justify-center gap-2 mb-4 p-2 bg-yellow-500/10 rounded-lg">
-                                <span className="text-2xl">🧠</span>
-                                <span className="text-lg font-bold text-yellow-400">{(currentUserData?.currency || 0).toLocaleString()} {CURRENCY_NAME}</span>
-                            </div>
-                            {/* Login Rewards Button */}
-                            {isLoggedIn && (
-                                <button onClick={() => setShowLoginRewards(true)} className="btn-gold w-full py-2 rounded-lg text-sm font-bold mb-2">
-                                    🎁 {t.loginRewards}
-                                </button>
-                            )}
+                            <div className="flex items-center justify-center gap-2 mb-4 p-2 bg-yellow-500/10 rounded-lg"><span className="text-2xl">🧠</span><span className="text-lg font-bold text-yellow-400">{(currentUserData?.currency || 0).toLocaleString()} {CURRENCY_NAME}</span></div>
+                            {isLoggedIn && (<button onClick={() => setShowLoginRewards(true)} className="btn-gold w-full py-2 rounded-lg text-sm font-bold mb-2">🎁 {t.loginRewards}</button>)}
                         </div>
                         <div className="modal-footer">
-                            {isLoggedIn && (
-                                <div className="flex gap-2 mb-2">
-                                    <button onClick={() => { setShowMyAccount(false); setShowShop(true); }} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {t.shop}</button>
-                                    <button onClick={() => { setShowMyAccount(false); setShowInventory(true); }} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">📦 {t.inventory}</button>
-                                </div>
-                            )}
-                            {isLoggedIn ? (
-                                <button onClick={handleLogout} className="btn-danger w-full py-2 rounded-lg text-sm">{t.logout}</button>
-                            ) : isGuest ? (
-                                <div className="flex gap-2">
-                                    <button onClick={handleLogout} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.logout}</button>
-                                    <button onClick={() => { setShowMyAccount(false); handleGoogleLogin(); }} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.loginGoogle}</button>
-                                </div>
-                            ) : null}
+                            {isLoggedIn && (<div className="flex gap-2 mb-2"><button onClick={() => { setShowMyAccount(false); setShowShop(true); }} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {t.shop}</button><button onClick={() => { setShowMyAccount(false); setShowInventory(true); }} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">📦 {t.inventory}</button></div>)}
+                            {isLoggedIn ? (<button onClick={handleLogout} className="btn-danger w-full py-2 rounded-lg text-sm">{t.logout}</button>) : isGuest ? (<div className="flex gap-2"><button onClick={handleLogout} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.logout}</button><button onClick={() => { setShowMyAccount(false); handleGoogleLogin(); }} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.loginGoogle}</button></div>) : null}
                         </div>
                     </div>
                 </div>
             )}
             
-            {/* User Profile */}
-            {showUserProfile && <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} lang={lang} currentUserUID={currentUID} onSendFriendRequest={handleSendRequest} onSendGift={handleSendGiftToUser} userData={currentUserData} currentUserFriends={userData?.friends} currentUserFriendRequests={userData?.friendRequests} />}
-            
-            {/* Browse Rooms */}
-            <BrowseRoomsModal 
-                show={showBrowseRooms} 
-                onClose={() => setShowBrowseRooms(false)} 
-                onJoin={handleJoinGame}
-                nickname={nickname}
-                currentUID={currentUID}
-                currentUserData={currentUserData}
-                lang={lang}
-            />
-            
-            {/* Private Chat */}
+            <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} lang={lang} currentUserUID={currentUID} onSendFriendRequest={handleSendRequest} onSendGift={handleSendGiftToUser} userData={currentUserData} currentUserFriends={userData?.friends} currentUserFriendRequests={userData?.friendRequests} />
+            <BrowseRoomsModal show={showBrowseRooms} onClose={() => setShowBrowseRooms(false)} onJoin={handleJoinGame} nickname={nickname} currentUID={currentUID} currentUserData={currentUserData} lang={lang} />
             {showPrivateChat && chatFriend && user && <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={currentUserData} user={user} lang={lang} onSendNotification={createNotification} onSendGift={handleSendGiftToUser} currency={userData?.currency || 0} />}
             
-            {/* Alert */}
-            {alertMessage && ( 
-                <div className="alert-modal" onClick={() => setAlertMessage(null)}> 
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><span></span><ModalCloseBtn onClose={() => setAlertMessage(null)} /></div>
-                        <div className="modal-body text-center"><div className="text-2xl mb-2">🚫</div><p className="font-bold mb-4">{alertMessage}</p><button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button></div>
-                    </div> 
-                </div> 
-            )}
+            {alertMessage && (<div className="alert-modal" onClick={() => setAlertMessage(null)}><div className="modal-content animate-pop" onClick={e => e.stopPropagation()}><div className="modal-header"><span></span><ModalCloseBtn onClose={() => setAlertMessage(null)} /></div><div className="modal-body text-center"><div className="text-2xl mb-2">🚫</div><p className="font-bold mb-4">{alertMessage}</p><button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button></div></div></div>)}
             
-            {/* Setup Modal */}
-            {showSetupModal && ( 
-                <div className="modal-overlay" onClick={()=>setShowSetupModal(false)}> 
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}> 
+            {showSetupModal && (
+                <div className="modal-overlay" onClick={()=>setShowSetupModal(false)}>
+                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
                         <div className="modal-header"><h2 className="modal-title">{t.create}</h2><ModalCloseBtn onClose={() => setShowSetupModal(false)} /></div>
                         <div className="modal-body">
-                            <div className="space-y-3"> 
+                            <div className="space-y-3">
                                 <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className="input-dark w-full p-2 rounded font-bold text-sm" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} /></div>
-                                <div className="flex gap-2">
-                                    <button onClick={() => setSetupMode('normal')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'normal' ? 'btn-neon' : 'btn-ghost'}`}>{t.normalMode}</button>
-                                    <button onClick={() => setSetupMode('advanced')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'advanced' ? 'btn-neon' : 'btn-ghost'}`}>{t.advancedMode}</button>
-                                </div>
+                                <div className="flex gap-2"><button onClick={() => setSetupMode('normal')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'normal' ? 'btn-neon' : 'btn-ghost'}`}>{t.normalMode}</button><button onClick={() => setSetupMode('advanced')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'advanced' ? 'btn-neon' : 'btn-ghost'}`}>{t.advancedMode}</button></div>
                                 <p className="text-[10px] text-gray-400 text-center">{setupMode === 'normal' ? t.modeNormalDesc : t.modeAdvDesc}</p>
-                                <div className="flex items-center gap-2">
-                                    <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} id="privateCheck" />
-                                    <label htmlFor="privateCheck" className="text-xs">{t.privateRoom}</label>
-                                </div>
-                                {isPrivate && (
-                                    <div className="relative">
-                                        <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t.password} className="input-dark w-full p-2 pr-10 rounded text-sm" />
-                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">{showPassword ? '🙈' : '👁️'}</button>
-                                    </div>
-                                )}
+                                <div className="flex items-center gap-2"><input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} id="privateCheck" /><label htmlFor="privateCheck" className="text-xs">{t.privateRoom}</label></div>
+                                {isPrivate && (<div className="relative"><input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t.password} className="input-dark w-full p-2 pr-10 rounded text-sm" /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? '🙈' : '👁️'}</button></div>)}
                             </div>
                         </div>
                         <div className="modal-footer"><button onClick={handleCreateGame} disabled={loading || !nickname.trim()} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{loading ? t.loading : t.create}</button></div>
-                    </div> 
-                </div> 
+                    </div>
+                </div>
             )}
             
             {/* Header */}
@@ -3067,60 +1521,29 @@ const handleClaimLoginReward = useCallback(async (day) => {
                     <div><h1 className="game-title text-lg font-tech">{t.appName}</h1><p className="text-[8px] text-gray-500 uppercase tracking-wider">{t.tagline}</p></div>
                 </div>
                 <div className="header-actions">
-                    <div className="currency-display" onClick={() => { if(isLoggedIn) setShowShop(true); else setShowLoginAlert(true); }}>
-                        <span className="currency-icon">🧠</span>
-                        <span className="currency-value">{(currentUserData?.currency || 0).toLocaleString()}</span>
-                    </div>
+                    <div className="currency-display" onClick={() => { if(isLoggedIn) setShowShop(true); else setShowLoginAlert(true); }}><span className="currency-icon">🧠</span><span className="currency-value">{(currentUserData?.currency || 0).toLocaleString()}</span></div>
                     <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
-                    
-                    {/* Notification Bell */}
                     {isLoggedIn && (
                         <div className="notification-center">
-                            <div ref={notificationBellRef} className="notification-bell" onClick={() => setShowNotifications(!showNotifications)}>
-                                <span className="notification-bell-icon">🔔</span>
-                                {unreadNotifications > 0 && <span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>}
-                            </div>
-                            <NotificationDropdown 
-                                show={showNotifications} 
-                                onClose={() => setShowNotifications(false)}
-                                notifications={notifications}
-                                onMarkRead={markNotificationRead}
-                                onClearAll={clearAllNotifications}
-                                onNotificationClick={handleNotificationClick}
-                                lang={lang}
-                            />
+                            <div ref={notificationBellRef} className="notification-bell" onClick={() => setShowNotifications(!showNotifications)}><span className="notification-bell-icon">🔔</span>{unreadNotifications > 0 && <span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>}</div>
+                            <NotificationDropdown show={showNotifications} onClose={() => setShowNotifications(false)} notifications={notifications} onMarkRead={markNotificationRead} onClearAll={clearAllNotifications} onNotificationClick={handleNotificationClick} lang={lang} />
                         </div>
                     )}
-                    
-                    {/* User Menu */}
                     <div className="relative">
                         <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-1 bg-white/5 rounded-lg px-2 py-1">
-                            {isLoggedIn || isGuest ? (
-                                <>
-                                    <AvatarWithFrame photoURL={currentUserData?.photoURL} equipped={currentUserData?.equipped} size="sm" />
-                                    <span className="text-[10px] text-gray-300 max-w-[60px] truncate">{currentUserData?.displayName}</span>
-                                </>
-                            ) : (
-                                <span className="text-xs px-2 py-1">{t.loginGoogle}</span>
-                            )}
+                            {isLoggedIn || isGuest ? (<><AvatarWithFrame photoURL={currentUserData?.photoURL} equipped={currentUserData?.equipped} size="sm" /><span className="text-[10px] text-gray-300 max-w-[60px] truncate">{currentUserData?.displayName}</span></>) : (<span className="text-xs px-2 py-1">{t.loginGoogle}</span>)}
                         </button>
                         {showDropdown && (
                             <div className="dropdown-menu glass-panel rounded-lg p-1 min-w-[160px]">
-                                {isLoggedIn || isGuest ? (
-                                    <>
-                                        <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>👤</span> {t.myAccount}</button>
-                                        {isLoggedIn && (
-                                            <>
-                                                <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🛒</span> {t.shop}</button>
-                                                <button onClick={() => { setShowInventory(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>📦</span> {t.inventory}</button>
-                                                <button onClick={() => { setShowLoginRewards(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🎁</span> {t.loginRewards}</button>
-                                            </>
-                                        )}
-                                        <button onClick={() => { handleLogout(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400"><span>🚪</span> {t.logout}</button>
-                                    </>
-                                ) : (
-                                    <button onClick={() => { handleGoogleLogin(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🔑</span> {t.loginGoogle}</button>
-                                )}
+                                {isLoggedIn || isGuest ? (<>
+                                    <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>👤</span> {t.myAccount}</button>
+                                    {isLoggedIn && (<>
+                                        <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🛒</span> {t.shop}</button>
+                                        <button onClick={() => { setShowInventory(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>📦</span> {t.inventory}</button>
+                                        <button onClick={() => { setShowLoginRewards(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🎁</span> {t.loginRewards}</button>
+                                    </>)}
+                                    <button onClick={() => { handleLogout(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400"><span>🚪</span> {t.logout}</button>
+                                </>) : (<button onClick={() => { handleGoogleLogin(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🔑</span> {t.loginGoogle}</button>)}
                             </div>
                         )}
                     </div>
@@ -3133,10 +1556,7 @@ const handleClaimLoginReward = useCallback(async (day) => {
                     <div className="tab-container mb-3">
                         <button onClick={() => setActiveView('lobby')} className={`tab-button ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
                         <button onClick={() => setActiveView('leaderboard')} className={`tab-button ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
-                        <button onClick={() => { if(isLoggedIn) setActiveView('friends'); else requireLogin(); }} className={`tab-button relative ${activeView === 'friends' ? 'active' : ''}`}>
-                            {t.tabFriends}
-                            {totalFriendsUnread > 0 && <span className="friends-tab-badge">{totalFriendsUnread > 9 ? '9+' : totalFriendsUnread}</span>}
-                        </button>
+                        <button onClick={() => { if(isLoggedIn) setActiveView('friends'); else requireLogin(); }} className={`tab-button relative ${activeView === 'friends' ? 'active' : ''}`}>{t.tabFriends}{totalFriendsUnread > 0 && <span className="friends-tab-badge">{totalFriendsUnread > 9 ? '9+' : totalFriendsUnread}</span>}</button>
                     </div>
                     
                     {activeView === 'lobby' && (
@@ -3144,14 +1564,8 @@ const handleClaimLoginReward = useCallback(async (day) => {
                             {isGuest && <GuestBanner lang={lang} />}
                             <div className="space-y-3">
                                 <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className="input-dark w-full p-3 rounded-lg font-bold" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} /></div>
-                                <div className="flex gap-2">
-                                    <button onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()} className="btn-neon flex-1 py-3 rounded-lg font-bold text-sm">{t.create}</button>
-                                    <button onClick={() => setShowBrowseRooms(true)} className="btn-ghost px-4 py-3 rounded-lg text-sm">{t.browse}</button>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase tracking-wider" value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder={t.codePlaceholder} maxLength={6} />
-                                    <button onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()} className="btn-neon px-4 py-3 rounded-lg font-bold text-sm">{loading ? '...' : t.join}</button>
-                                </div>
+                                <div className="flex gap-2"><button onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()} className="btn-neon flex-1 py-3 rounded-lg font-bold text-sm">{t.create}</button><button onClick={() => setShowBrowseRooms(true)} className="btn-ghost px-4 py-3 rounded-lg text-sm">{t.browse}</button></div>
+                                <div className="flex items-center gap-2"><input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase tracking-wider" value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder={t.codePlaceholder} maxLength={6} /><button onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()} className="btn-neon px-4 py-3 rounded-lg font-bold text-sm">{loading ? '...' : t.join}</button></div>
                                 {joinError && <p className="text-xs text-red-400 text-center">{joinError}</p>}
                             </div>
                         </div>
@@ -3176,10 +1590,7 @@ const handleClaimLoginReward = useCallback(async (day) => {
                         <div className="card-container friends-container">
                             <div className="add-friend-section">
                                 <div className="add-friend-title">{t.addFriend}</div>
-                                <div className="add-friend-input-row">
-                                    <input type="text" className="add-friend-input" value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} />
-                                    <button onClick={handleAddFriendById} disabled={!addFriendId.trim()} className="btn-neon px-4 py-2 rounded-lg text-xs">{t.addFriend}</button>
-                                </div>
+                                <div className="add-friend-input-row"><input type="text" className="add-friend-input" value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} /><button onClick={handleAddFriendById} disabled={!addFriendId.trim()} className="btn-neon px-4 py-2 rounded-lg text-xs">{t.addFriend}</button></div>
                                 {friendSearchMsg && <p className={`text-xs mt-2 text-center ${friendSearchMsg.includes('تم') || friendSearchMsg.includes('Sent') ? 'text-green-400' : 'text-red-400'}`}>{friendSearchMsg}</p>}
                             </div>
                             {friendRequests.length > 0 && (
@@ -3189,33 +1600,20 @@ const handleClaimLoginReward = useCallback(async (day) => {
                                         <div key={req.id} className="friend-request-item">
                                             <AvatarWithFrame photoURL={req.photoURL} equipped={req.equipped} size="sm" />
                                             <div className="friend-request-info"><div className="friend-request-name">{req.displayName}</div></div>
-                                            <div className="friend-request-actions">
-                                                <button onClick={() => handleAcceptRequest(req.id)} className="btn-success px-3 py-1 rounded text-xs">{t.accept}</button>
-                                                <button onClick={() => handleRejectRequest(req.id)} className="btn-danger px-3 py-1 rounded text-xs">{t.reject}</button>
-                                            </div>
+                                            <div className="friend-request-actions"><button onClick={() => handleAcceptRequest(req.id)} className="btn-success px-3 py-1 rounded text-xs">{t.accept}</button><button onClick={() => handleRejectRequest(req.id)} className="btn-danger px-3 py-1 rounded text-xs">{t.reject}</button></div>
                                         </div>
                                     ))}
                                 </div>
                             )}
                             <div className="friends-list-section">
                                 <div className="friends-list-header">{t.tabFriends} ({friendsData.length})</div>
-                                {friendsData.length === 0 ? (
-                                    <div className="no-friends-message"><div className="text-4xl mb-2">👥</div><p>{t.noFriends}</p></div>
-                                ) : (
-                                    friendsData.map(friend => (
-                                        <div key={friend.id} className="friend-item">
-                                            <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                                            <div className="friend-info">
-                                                <div className="friend-name">{friend.displayName}</div>
-                                                <div className="friend-status">{friend.lastActive && (Date.now() - friend.lastActive.toDate?.() < 300000) ? <span className="text-green-400">{t.online}</span> : <span className="text-gray-500">{t.offline}</span>}</div>
-                                            </div>
-                                            <div className="friend-actions">
-                                                <button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-xs">💬</button>
-                                                <button onClick={() => openProfile(friend.id)} className="btn-ghost px-2 py-1 rounded text-xs">👤</button>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
+                                {friendsData.length === 0 ? <div className="text-center py-6"><div className="text-4xl mb-2">👥</div><p className="text-gray-400">{t.noFriends}</p></div> : friendsData.map(friend => (
+                                    <div key={friend.id} className="friend-item">
+                                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                                        <div className="friend-info"><div className="friend-name">{friend.displayName}</div><div className="friend-status">{friend.lastActive && (Date.now() - friend.lastActive.toDate?.() < 300000) ? <span className="text-green-400">{t.online}</span> : <span className="text-gray-500">{t.offline}</span>}</div></div>
+                                        <div className="friend-actions"><button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-xs">💬</button><button onClick={() => openProfile(friend.id)} className="btn-ghost px-2 py-1 rounded text-xs">👤</button></div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
@@ -3225,28 +1623,14 @@ const handleClaimLoginReward = useCallback(async (day) => {
             {/* Room View */}
             {room && (
                 <main className="main-content">
-                    {/* Lobby Code with Copy + Password Toggle */}
                     <div className="glass-panel rounded-lg p-2 mb-2 flex items-center justify-between">
                         <div className="lobby-code-container">
-                            <button onClick={handleCopy} className={`lobby-code-btn ${copied ? 'copied' : ''}`}>
-                                <span className="font-mono">{roomId}</span>
-                                <span>{copied ? '✓' : '📋'}</span>
-                            </button>
+                            <button onClick={handleCopy} className={`lobby-code-btn ${copied ? 'copied' : ''}`}><span className="font-mono">{roomId}</span><span>{copied ? '✓' : '📋'}</span></button>
                             {copied && <span className="text-[10px] text-green-400 ml-1">{t.codeCopied}</span>}
                         </div>
                         <div className="flex items-center gap-2">
-                            {room.isPrivate && (
-                                <button 
-                                    onClick={() => setShowLobbyPassword(!showLobbyPassword)}
-                                    className="lobby-password-toggle"
-                                    title={showLobbyPassword ? t.hidePasswordLabel : t.showPasswordLabel}
-                                >
-                                    {showLobbyPassword ? '🙈' : '👁️'}
-                                </button>
-                            )}
-                            {room.isPrivate && showLobbyPassword && (
-                                <span className="text-xs text-yellow-400 font-mono">{room.password}</span>
-                            )}
+                            {room.isPrivate && (<button onClick={() => setShowLobbyPassword(!showLobbyPassword)} className="lobby-password-toggle">{showLobbyPassword ? '🙈' : '👁️'}</button>)}
+                            {room.isPrivate && showLobbyPassword && <span className="text-xs text-yellow-400 font-mono">{room.password}</span>}
                             <div className="text-xs text-gray-400">{t.roundsFormat(room.currentRound || 0, MAX_ROUNDS)}</div>
                         </div>
                     </div>
@@ -3254,19 +1638,8 @@ const handleClaimLoginReward = useCallback(async (day) => {
                     {room.status === 'waiting' && (
                         <div className="card-container">
                             <h3 className="text-sm font-bold mb-3 text-center">{t.lobbyTitle}</h3>
-                            <div className="grid grid-cols-2 gap-2 mb-4">
-                                {room.players.map(p => (
-                                    <div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10" onClick={() => openProfile(p.uid)}>
-                                        <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
-                                        <span className="text-xs truncate">{p.name}</span>
-                                        {p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded">HOST</span>}
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex gap-2">
-                                {room.admin === currentUID ? (<button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>) : (<p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>)}
-                                <button onClick={handleLeaveRoom} className="btn-danger px-4 py-2 rounded-lg text-sm">{t.leaveRoom}</button>
-                            </div>
+                            <div className="grid grid-cols-2 gap-2 mb-4">{room.players.map(p => (<div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10" onClick={() => openProfile(p.uid)}><AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" /><span className="text-xs truncate">{p.name}</span>{p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded">HOST</span>}</div>))}</div>
+                            <div className="flex gap-2">{room.admin === currentUID ? (<button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>) : (<p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>)}<button onClick={handleLeaveRoom} className="btn-danger px-4 py-2 rounded-lg text-sm">{t.leaveRoom}</button></div>
                         </div>
                     )}
                     
@@ -3275,27 +1648,13 @@ const handleClaimLoginReward = useCallback(async (day) => {
                             <h3 className="text-sm font-bold mb-2 text-center">{t.wordSelectionTitle}</h3>
                             <p className="text-xs text-gray-400 text-center mb-3">{t.wordSelectionDesc}</p>
                             <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {wordSelTimer}s</div>
-                            <div className="grid grid-cols-2 gap-2">
-                                {(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => (
-                                    <button key={i} onClick={() => submitWordVote(word)} className={`word-vote-card ${hasVotedWord === word ? 'selected' : ''}`}><span className="font-bold">{word}</span></button>
-                                ))}
-                            </div>
+                            <div className="grid grid-cols-2 gap-2">{(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => (<button key={i} onClick={() => submitWordVote(word)} className={`word-vote-card ${hasVotedWord === word ? 'selected' : ''}`}><span className="font-bold">{word}</span></button>))}</div>
                         </div>
                     )}
                     
                     {room.status === 'discussing' && (
                         <div className="flex-1 flex flex-col gap-2">
-                            <div className="card-container">
-                                <div className="grid grid-cols-3 gap-2">
-                                    {room.players.filter(p => p.status === 'active').map(p => (
-                                        <div key={p.uid} className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === currentUID ? 'border-primary' : ''}`} onClick={() => openProfile(p.uid)}>
-                                            <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
-                                            <span className="text-[10px] truncate mt-1">{p.name}</span>
-                                            {room.currentTurnUID === p.uid && <span className="text-[8px] text-primary">Speaking</span>}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                            <div className="card-container"><div className="grid grid-cols-3 gap-2">{room.players.filter(p => p.status === 'active').map(p => (<div key={p.uid} className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === currentUID ? 'border-primary' : ''}`} onClick={() => openProfile(p.uid)}><AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" /><span className="text-[10px] truncate mt-1">{p.name}</span>{room.currentTurnUID === p.uid && <span className="text-[8px] text-primary">Speaking</span>}</div>))}</div></div>
                             {!isSpectator && me && (
                                 <div className={`identity-square identity-${myRole === 'spy' ? 'spy' : myRole === 'mrwhite' ? 'mrwhite' : myRole === 'informant' ? 'informant' : 'agent'}`}>
                                     <div className="text-4xl mb-2">{myRole === 'spy' ? '🕵️' : myRole === 'mrwhite' ? '👻' : myRole === 'informant' ? '👁️' : '🤵'}</div>
@@ -3305,14 +1664,8 @@ const handleClaimLoginReward = useCallback(async (day) => {
                                 </div>
                             )}
                             <div className="card-container">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="timer-bar-container"><div className="timer-bar-fill" style={{ width: `${(turnTimer / 30) * 100}%` }}></div></div>
-                                    <span className="text-xs text-gray-400">{turnTimer}s</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    {isMyTurn && (<button onClick={() => handleSkipTurn()} className="btn-ghost flex-1 py-2 rounded-lg text-xs">{t.skip}</button>)}
-                                    <button onClick={requestVoting} className="btn-vote flex-1 py-2 rounded-lg text-xs font-bold">{t.vote}</button>
-                                </div>
+                                <div className="flex items-center justify-between mb-2"><div className="timer-bar-container"><div className="timer-bar-fill" style={{ width: `${(turnTimer / 30) * 100}%` }}></div></div><span className="text-xs text-gray-400">{turnTimer}s</span></div>
+                                <div className="flex gap-2">{isMyTurn && (<button onClick={() => handleSkipTurn()} className="btn-ghost flex-1 py-2 rounded-lg text-xs">{t.skip}</button>)}<button onClick={requestVoting} className="btn-vote flex-1 py-2 rounded-lg text-xs font-bold">{t.vote}</button></div>
                             </div>
                         </div>
                     )}
@@ -3321,14 +1674,7 @@ const handleClaimLoginReward = useCallback(async (day) => {
                         <div className="card-container">
                             <h3 className="text-sm font-bold mb-2 text-center">{t.vote}</h3>
                             <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {votingTimer}s</div>
-                            <div className="grid grid-cols-2 gap-2 mb-4">
-                                {room.players.filter(p => p.status === 'active').map(p => (
-                                    <button key={p.uid} onClick={() => submitVote(p.uid)} disabled={hasVoted} className={`player-card ${hasVoted === p.uid ? 'border-primary bg-primary/10' : ''}`}>
-                                        <AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" />
-                                        <span className="text-xs truncate mt-1">{p.name}</span>
-                                    </button>
-                                ))}
-                            </div>
+                            <div className="grid grid-cols-2 gap-2 mb-4">{room.players.filter(p => p.status === 'active').map(p => (<button key={p.uid} onClick={() => submitVote(p.uid)} disabled={hasVoted} className={`player-card ${hasVoted === p.uid ? 'border-primary bg-primary/10' : ''}`}><AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" /><span className="text-xs truncate mt-1">{p.name}</span></button>))}</div>
                         </div>
                     )}
                     
@@ -3349,12 +1695,7 @@ const handleClaimLoginReward = useCallback(async (day) => {
 }
 
 // Wrap with ErrorBoundary
-const AppWithErrorBoundary = () => (
-    <ErrorBoundary>
-        <App />
-    </ErrorBoundary>
-);
+const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
-
