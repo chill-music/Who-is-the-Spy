@@ -1598,14 +1598,14 @@ const PhaseIndicator = ({ phase, timeLeft, lang }) => {
             <span className="phase-icon">{info.icon}</span>
             <span className="phase-label">{info.label}</span>
             {timeLeft !== null && timeLeft !== undefined && (
-                <span className="phase-timer">{formatTime(timeLeft)}</span>
+                <span className="phase-timer">{formatSeconds(timeLeft)}</span>
             )}
         </div>
     );
 };
 
-// Format Time (seconds to mm:ss)
-const formatTime = (seconds) => {
+// Format Seconds (seconds to mm:ss) - renamed to avoid conflict with formatTime
+const formatSeconds = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
