@@ -40,41 +40,297 @@ const MAX_ROUNDS = 3;
 const MAX_BADGES = 10; // NEW: Maximum badges a user can equip
 
 // ==========================================
-// LOGIN REWARDS - 30 DAYS CONFIGURATION
+// LOGIN REWARDS - 30 DAYS - FULLY CUSTOMIZABLE
+// Supports: currency, frames, badges, titles, gifts
 // ==========================================
-const LOGIN_REWARDS = [
-    { day: 1, reward: 100, type: 'currency', icon: '🧠' },
-    { day: 2, reward: 150, type: 'currency', icon: '🧠' },
-    { day: 3, reward: 200, type: 'currency', icon: '🧠' },
-    { day: 4, reward: 250, type: 'currency', icon: '🧠' },
-    { day: 5, reward: 300, type: 'currency', icon: '🧠' },
-    { day: 6, reward: 400, type: 'currency', icon: '🧠' },
-    { day: 7, reward: 500, type: 'currency', icon: '🧠', special: true },
-    { day: 8, reward: 350, type: 'currency', icon: '🧠' },
-    { day: 9, reward: 400, type: 'currency', icon: '🧠' },
-    { day: 10, reward: 450, type: 'currency', icon: '🧠' },
-    { day: 11, reward: 500, type: 'currency', icon: '🧠' },
-    { day: 12, reward: 550, type: 'currency', icon: '🧠' },
-    { day: 13, reward: 600, type: 'currency', icon: '🧠' },
-    { day: 14, reward: 1000, type: 'currency', icon: '🧠', special: true },
-    { day: 15, reward: 700, type: 'currency', icon: '🧠' },
-    { day: 16, reward: 750, type: 'currency', icon: '🧠' },
-    { day: 17, reward: 800, type: 'currency', icon: '🧠' },
-    { day: 18, reward: 850, type: 'currency', icon: '🧠' },
-    { day: 19, reward: 900, type: 'currency', icon: '🧠' },
-    { day: 20, reward: 950, type: 'currency', icon: '🧠' },
-    { day: 21, reward: 1500, type: 'currency', icon: '🧠', special: true },
-    { day: 22, reward: 1000, type: 'currency', icon: '🧠' },
-    { day: 23, reward: 1100, type: 'currency', icon: '🧠' },
-    { day: 24, reward: 1200, type: 'currency', icon: '🧠' },
-    { day: 25, reward: 1300, type: 'currency', icon: '🧠' },
-    { day: 26, reward: 1400, type: 'currency', icon: '🧠' },
-    { day: 27, reward: 1500, type: 'currency', icon: '🧠' },
-    { day: 28, reward: 2000, type: 'currency', icon: '🧠', special: true },
-    { day: 29, reward: 2500, type: 'currency', icon: '🧠' },
-    { day: 30, reward: 5000, type: 'currency', icon: '👑', special: true, final: true },
-];
 
+const LOGIN_REWARDS = [
+    // ============ WEEK 1 ============
+    { 
+        day: 1, 
+        type: 'currency', 
+        amount: 100, 
+        icon: '🧠',
+        iconUrl: '', // Optional: image URL instead of emoji
+        name_en: '100 Intel',
+        name_ar: '100 إنتل'
+    },
+    { 
+        day: 2, 
+        type: 'currency', 
+        amount: 150, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '150 Intel',
+        name_ar: '150 إنتل'
+    },
+    { 
+        day: 3, 
+        type: 'currency', 
+        amount: 200, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '200 Intel',
+        name_ar: '200 إنتل'
+    },
+    { 
+        day: 4, 
+        type: 'currency', 
+        amount: 250, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '250 Intel',
+        name_ar: '250 إنتل'
+    },
+    { 
+        day: 5, 
+        type: 'currency', 
+        amount: 300, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '300 Intel',
+        name_ar: '300 إنتل'
+    },
+    { 
+        day: 6, 
+        type: 'currency', 
+        amount: 400, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '400 Intel',
+        name_ar: '400 إنتل'
+    },
+    { 
+        day: 7, 
+        type: 'badge', 
+        itemId: 'badge_vip', // ID from SHOP_ITEMS.badges
+        icon: '⭐',
+        iconUrl: '', // Can use image URL
+        name_en: 'VIP Badge',
+        name_ar: 'شارة VIP',
+        special: true
+    },
+    
+    // ============ WEEK 2 ============
+    { 
+        day: 8, 
+        type: 'currency', 
+        amount: 350, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '350 Intel',
+        name_ar: '350 إنتل'
+    },
+    { 
+        day: 9, 
+        type: 'currency', 
+        amount: 400, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '400 Intel',
+        name_ar: '400 إنتل'
+    },
+    { 
+        day: 10, 
+        type: 'currency', 
+        amount: 450, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '450 Intel',
+        name_ar: '450 إنتل'
+    },
+    { 
+        day: 11, 
+        type: 'currency', 
+        amount: 500, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '500 Intel',
+        name_ar: '500 إنتل'
+    },
+    { 
+        day: 12, 
+        type: 'currency', 
+        amount: 550, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '550 Intel',
+        name_ar: '550 إنتل'
+    },
+    { 
+        day: 13, 
+        type: 'currency', 
+        amount: 600, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '600 Intel',
+        name_ar: '600 إنتل'
+    },
+    { 
+        day: 14, 
+        type: 'frame', 
+        itemId: 'frame_neon', // ID from SHOP_ITEMS.frames
+        icon: '🖼️',
+        iconUrl: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png', // Example image
+        name_en: 'Neon Frame',
+        name_ar: 'إطار نيون',
+        special: true
+    },
+    
+    // ============ WEEK 3 ============
+    { 
+        day: 15, 
+        type: 'currency', 
+        amount: 700, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '700 Intel',
+        name_ar: '700 إنتل'
+    },
+    { 
+        day: 16, 
+        type: 'currency', 
+        amount: 750, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '750 Intel',
+        name_ar: '750 إنتل'
+    },
+    { 
+        day: 17, 
+        type: 'currency', 
+        amount: 800, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '800 Intel',
+        name_ar: '800 إنتل'
+    },
+    { 
+        day: 18, 
+        type: 'currency', 
+        amount: 850, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '850 Intel',
+        name_ar: '850 إنتل'
+    },
+    { 
+        day: 19, 
+        type: 'currency', 
+        amount: 900, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '900 Intel',
+        name_ar: '900 إنتل'
+    },
+    { 
+        day: 20, 
+        type: 'currency', 
+        amount: 950, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '950 Intel',
+        name_ar: '950 إنتل'
+    },
+    { 
+        day: 21, 
+        type: 'title', 
+        itemId: 'title_spy', // ID from SHOP_ITEMS.titles
+        icon: '🕵️',
+        iconUrl: '', // Or use image URL
+        name_en: 'Mr. Spy Title',
+        name_ar: 'لقب سيد جاسوس',
+        special: true
+    },
+    
+    // ============ WEEK 4 ============
+    { 
+        day: 22, 
+        type: 'currency', 
+        amount: 1000, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '1000 Intel',
+        name_ar: '1000 إنتل'
+    },
+    { 
+        day: 23, 
+        type: 'currency', 
+        amount: 1100, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '1100 Intel',
+        name_ar: '1100 إنتل'
+    },
+    { 
+        day: 24, 
+        type: 'currency', 
+        amount: 1200, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '1200 Intel',
+        name_ar: '1200 إنتل'
+    },
+    { 
+        day: 25, 
+        type: 'currency', 
+        amount: 1300, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '1300 Intel',
+        name_ar: '1300 إنتل'
+    },
+    { 
+        day: 26, 
+        type: 'currency', 
+        amount: 1400, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '1400 Intel',
+        name_ar: '1400 إنتل'
+    },
+    { 
+        day: 27, 
+        type: 'currency', 
+        amount: 1500, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '1500 Intel',
+        name_ar: '1500 إنتل'
+    },
+    { 
+        day: 28, 
+        type: 'badge', 
+        itemId: 'badge_pro', // ID from SHOP_ITEMS.badges
+        icon: '🏆',
+        iconUrl: '',
+        name_en: 'Pro Badge',
+        name_ar: 'شارة محترف',
+        special: true
+    },
+    
+    // ============ FINAL DAYS ============
+    { 
+        day: 29, 
+        type: 'currency', 
+        amount: 2500, 
+        icon: '🧠',
+        iconUrl: '',
+        name_en: '2500 Intel',
+        name_ar: '2500 إنتل'
+    },
+    { 
+        day: 30, 
+        type: 'frame', 
+        itemId: 'frame_gold', // ID from SHOP_ITEMS.frames
+        icon: '👑',
+        iconUrl: '',
+        name_en: 'Gold Frame',
+        name_ar: 'إطار ذهبي',
+        special: true,
+        final: true
+    },
+];
 // ==========================================
 // CHARISMA LEVELS - 21 Levels with Images
 // ==========================================
@@ -718,8 +974,10 @@ const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClea
 };
 
 // ==========================================
-// LOGIN REWARDS COMPONENT - 30 DAYS
+// LOGIN REWARDS COMPONENT - UPDATED
+// Supports: currency, frames, badges, titles, gifts with images
 // ==========================================
+
 const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     const t = TRANSLATIONS[lang];
     const [claiming, setClaiming] = useState(false);
@@ -746,20 +1004,90 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
         setClaiming(false);
     };
     
+    // Get current reward
+    const currentReward = LOGIN_REWARDS[currentDay];
+    
+    // Render reward icon (emoji or image)
+    const renderRewardIcon = (reward, size = 24) => {
+        if (!reward) return <span style={{ fontSize: size + 'px' }}>❓</span>;
+        
+        // If iconUrl exists, show image
+        if (reward.iconUrl && reward.iconUrl.trim() !== '') {
+            return (
+                <img 
+                    src={reward.iconUrl} 
+                    alt={reward.name_en} 
+                    style={{ width: size + 'px', height: size + 'px', objectFit: 'contain' }}
+                />
+            );
+        }
+        
+        // If type is not currency, try to get item from SHOP_ITEMS
+        if (reward.type !== 'currency') {
+            const collectionMap = {
+                frame: 'frames',
+                badge: 'badges',
+                title: 'titles',
+                gift: 'gifts'
+            };
+            
+            const collection = collectionMap[reward.type];
+            const item = SHOP_ITEMS[collection]?.find(i => i.id === reward.itemId);
+            
+            if (item) {
+                // Check if item has imageUrl
+                if (item.imageUrl && item.imageUrl.trim() !== '') {
+                    return (
+                        <img 
+                            src={item.imageUrl} 
+                            alt={item.name_en} 
+                            style={{ width: size + 'px', height: size + 'px', objectFit: 'contain' }}
+                        />
+                    );
+                }
+                // Check if preview is a URL (for frames)
+                if (item.preview && item.preview.startsWith('http')) {
+                    return (
+                        <img 
+                            src={item.preview} 
+                            alt={item.name_en} 
+                            style={{ width: size + 'px', height: size + 'px', objectFit: 'cover', borderRadius: '50%' }}
+                        />
+                    );
+                }
+                // Use item preview as emoji
+                if (item.preview && !item.preview.startsWith('http')) {
+                    return <span style={{ fontSize: size + 'px' }}>{item.preview}</span>;
+                }
+            }
+        }
+        
+        // Default: show emoji icon
+        return <span style={{ fontSize: size + 'px' }}>{reward.icon || '🎁'}</span>;
+    };
+    
+    // Get reward display name
+    const getRewardName = (reward) => {
+        if (!reward) return '?';
+        return lang === 'ar' ? reward.name_ar : reward.name_en;
+    };
+    
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
                 <div className="modal-header">
                     <h2 className="modal-title">🎁 {t.loginRewards}</h2>
                     <ModalCloseBtn onClose={onClose} />
                 </div>
                 <div className="modal-body">
+                    {/* Streak Display */}
                     <div className="login-rewards-container">
                         <div className="login-rewards-header">
                             <span className="login-rewards-title">🔥 {t.dailyStreak}</span>
                             <span className="login-rewards-streak">{currentDay} / 30 {t.days}</span>
                         </div>
                         
+                        {/* Days Grid */}
                         <div className="login-rewards-grid">
                             {LOGIN_REWARDS.map((reward, index) => {
                                 const dayNum = index + 1;
@@ -770,38 +1098,93 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
                                     <div 
                                         key={dayNum}
                                         className={`login-reward-day ${isClaimed ? 'claimed' : isCurrent ? 'current' : 'future'} ${reward.special ? 'special' : ''}`}
+                                        title={getRewardName(reward)}
                                     >
                                         <span className="day-num">{dayNum}</span>
-                                        <span className="day-reward">{reward.icon}</span>
+                                        <span className="day-reward">{renderRewardIcon(reward, 14)}</span>
                                     </div>
                                 );
                             })}
                         </div>
                         
+                        {/* Today's Reward Details */}
+                        {canClaimToday && currentReward && (
+                            <div className="mt-4 p-3 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg">
+                                <div className="text-center">
+                                    <div className="text-xs text-gray-400 mb-2">
+                                        {lang === 'ar' ? 'مكافأة اليوم' : "Today's Reward"}
+                                    </div>
+                                    
+                                    {/* Reward Icon Large */}
+                                    <div className="flex justify-center mb-2">
+                                        <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center">
+                                            {renderRewardIcon(currentReward, 40)}
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Reward Name */}
+                                    <div className="text-lg font-bold text-white mb-1">
+                                        {getRewardName(currentReward)}
+                                    </div>
+                                    
+                                    {/* Reward Type Badge */}
+                                    <div className="flex justify-center">
+                                        <span className={`text-xs px-3 py-1 rounded-full ${
+                                            currentReward.type === 'currency' ? 'bg-yellow-500/20 text-yellow-400' :
+                                            currentReward.type === 'frame' ? 'bg-purple-500/20 text-purple-400' :
+                                            currentReward.type === 'badge' ? 'bg-blue-500/20 text-blue-400' :
+                                            currentReward.type === 'title' ? 'bg-green-500/20 text-green-400' :
+                                            'bg-pink-500/20 text-pink-400'
+                                        }`}>
+                                            {currentReward.type === 'currency' ? (lang === 'ar' ? 'عملة' : 'Currency') :
+                                             currentReward.type === 'frame' ? (lang === 'ar' ? 'إطار' : 'Frame') :
+                                             currentReward.type === 'badge' ? (lang === 'ar' ? 'شارة' : 'Badge') :
+                                             currentReward.type === 'title' ? (lang === 'ar' ? 'لقب' : 'Title') :
+                                             (lang === 'ar' ? 'هدية' : 'Gift')}
+                                        </span>
+                                    </div>
+                                    
+                                    {/* Special indicator */}
+                                    {currentReward.special && (
+                                        <div className="mt-2 text-xs text-yellow-400">
+                                            ⭐ {lang === 'ar' ? 'مكافأة خاصة!' : 'Special Reward!'}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Claim Button */}
                         <button 
                             onClick={handleClaim}
                             disabled={!canClaimToday || claiming}
-                            className="login-reward-claim-btn"
+                            className="login-reward-claim-btn mt-3"
                         >
-                            {claiming ? t.loading : (canClaimToday ? `${t.claimReward} - ${LOGIN_REWARDS[currentDay]?.reward || 0} 🧠` : t.alreadyClaimed)}
+                            {claiming ? t.loading : 
+                             canClaimToday ? 
+                             `${t.claimReward}` : 
+                             t.alreadyClaimed}
                         </button>
                     </div>
                     
-                    {/* Show today's reward details */}
-                    {canClaimToday && currentDay < 30 && (
-                        <div className="mt-3 p-3 bg-white/5 rounded-lg text-center">
-                            <div className="text-xs text-gray-400 mb-1">{lang === 'ar' ? 'مكافأة اليوم' : "Today's Reward"}</div>
-                            <div className="text-xl font-bold text-yellow-400">
-                                +{LOGIN_REWARDS[currentDay]?.reward || 0} 🧠
-                            </div>
+                    {/* Progress Bar */}
+                    <div className="mt-3 p-3 bg-white/5 rounded-lg">
+                        <div className="flex justify-between text-xs text-gray-400 mb-1">
+                            <span>{lang === 'ar' ? 'التقدم' : 'Progress'}</span>
+                            <span>{Math.round((currentDay / 30) * 100)}%</span>
                         </div>
-                    )}
+                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-500"
+                                style={{ width: `${(currentDay / 30) * 100}%` }}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
-
 // ==========================================
 // GIFT PREVIEW MODAL - FIXED: Bonus shown only on actual send
 // ==========================================
@@ -2104,32 +2487,116 @@ function App() {
         }
     }, []);
 
-    // Login Reward Claim Function
-    const handleClaimLoginReward = useCallback(async (day) => {
-        if (!user || !isLoggedIn) return;
+// ==========================================
+// CLAIM LOGIN REWARD HANDLER - ADD TO APP COMPONENT
+// Put this inside the App component
+// ==========================================
+
+// Add this function inside App component, after handleUnequip
+const handleClaimLoginReward = useCallback(async (day) => {
+    if (!user || !isLoggedIn) return;
+    
+    const reward = LOGIN_REWARDS[day - 1];
+    if (!reward) return;
+    
+    try {
+        const userRef = usersCollection.doc(user.uid);
+        const userDoc = await userRef.get();
+        const userData = userDoc.data();
         
-        const reward = LOGIN_REWARDS[day - 1];
-        if (!reward) return;
+        const inventory = userData?.inventory || { frames: [], titles: [], badges: [], gifts: [] };
+        const updates = {};
         
-        const today = new Date().toDateString();
-        
-        try {
-            // Update user data
-            await usersCollection.doc(user.uid).update({
-                currency: firebase.firestore.FieldValue.increment(reward.reward),
-                'loginRewards.currentDay': day,
-                'loginRewards.lastClaimDate': firebase.firestore.FieldValue.serverTimestamp(),
-                'loginRewards.streak': firebase.firestore.FieldValue.increment(1),
-                'loginRewards.totalClaims': firebase.firestore.FieldValue.increment(1)
-            });
-            
-            setNotification(`${lang === 'ar' ? 'حصلت على' : 'You received'} +${reward.reward} 🧠!`);
-            playRewardSound();
-            setShowLoginRewards(false);
-        } catch (e) {
-            console.error('Claim reward error:', e);
+        switch (reward.type) {
+            case 'currency':
+                // Add currency (Intel)
+                updates.currency = firebase.firestore.FieldValue.increment(reward.amount);
+                setNotification(`${lang === 'ar' ? 'حصلت على' : 'You received'} +${reward.amount} 🧠!`);
+                break;
+                
+            case 'frame':
+                // Add frame to inventory
+                if (!inventory.frames?.includes(reward.itemId)) {
+                    const newInventory = {
+                        ...inventory,
+                        frames: [...(inventory.frames || []), reward.itemId]
+                    };
+                    updates.inventory = newInventory;
+                    setNotification(`${lang === 'ar' ? '🎉 حصلت على إطار جديد!' : '🎉 You received a new frame!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                } else {
+                    // Already owned - give currency compensation
+                    updates.currency = firebase.firestore.FieldValue.increment(500);
+                    setNotification(`${lang === 'ar' ? 'الإطار مملوك مسبقاً! حصلت على 500 إنتل بدلاً منه' : 'Frame already owned! Got 500 Intel instead'}! 🧠`);
+                }
+                break;
+                
+            case 'badge':
+                // Add badge to inventory
+                if (!inventory.badges?.includes(reward.itemId)) {
+                    const newInventory = {
+                        ...inventory,
+                        badges: [...(inventory.badges || []), reward.itemId]
+                    };
+                    updates.inventory = newInventory;
+                    setNotification(`${lang === 'ar' ? '🎉 حصلت على شارة جديدة!' : '🎉 You received a new badge!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                } else {
+                    updates.currency = firebase.firestore.FieldValue.increment(500);
+                    setNotification(`${lang === 'ar' ? 'الشارة مملوكة مسبقاً! حصلت على 500 إنتل بدلاً منه' : 'Badge already owned! Got 500 Intel instead'}! 🧠`);
+                }
+                break;
+                
+            case 'title':
+                // Add title to inventory
+                if (!inventory.titles?.includes(reward.itemId)) {
+                    const newInventory = {
+                        ...inventory,
+                        titles: [...(inventory.titles || []), reward.itemId]
+                    };
+                    updates.inventory = newInventory;
+                    setNotification(`${lang === 'ar' ? '🎉 حصلت على لقب جديد!' : '🎉 You received a new title!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                } else {
+                    updates.currency = firebase.firestore.FieldValue.increment(500);
+                    setNotification(`${lang === 'ar' ? 'اللقب مملوك مسبقاً! حصلت على 500 إنتل بدلاً منه' : 'Title already owned! Got 500 Intel instead'}! 🧠`);
+                }
+                break;
+                
+            case 'gift':
+                // Add gift to inventory
+                if (!inventory.gifts?.includes(reward.itemId)) {
+                    const newInventory = {
+                        ...inventory,
+                        gifts: [...(inventory.gifts || []), reward.itemId]
+                    };
+                    updates.inventory = newInventory;
+                    setNotification(`${lang === 'ar' ? '🎉 حصلت على هدية جديدة!' : '🎉 You received a new gift!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                } else {
+                    updates.currency = firebase.firestore.FieldValue.increment(500);
+                    setNotification(`${lang === 'ar' ? 'الهدية مملوكة مسبقاً! حصلت على 500 إنتل بدلاً منه' : 'Gift already owned! Got 500 Intel instead'}! 🧠`);
+                }
+                break;
         }
-    }, [user, isLoggedIn, lang]);
+        
+        // Update login rewards tracking
+        const today = new Date().toDateString();
+        const loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
+        
+        updates['loginRewards.currentDay'] = day;
+        updates['loginRewards.lastClaimDate'] = firebase.firestore.FieldValue.serverTimestamp();
+        updates['loginRewards.streak'] = firebase.firestore.FieldValue.increment(1);
+        updates['loginRewards.totalClaims'] = firebase.firestore.FieldValue.increment(1);
+        
+        // Apply updates
+        await userRef.update(updates);
+        
+        playRewardSound();
+        setShowLoginRewards(false);
+        
+    } catch (error) {
+        console.error('Claim reward error:', error);
+        setNotification(lang === 'ar' ? 'حدث خطأ!' : 'An error occurred!');
+    }
+}, [user, isLoggedIn, lang]);
+
 
     // Room Functions
     const handleCreateGame = useCallback(async () => { 
@@ -2890,3 +3357,4 @@ const AppWithErrorBoundary = () => (
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
+
