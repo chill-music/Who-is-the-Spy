@@ -733,71 +733,6 @@ const EmojiPicker = ({ show, onClose, onSelect, lang }) => {
     );
 };
 
-// Export for Part 2
-window.PRO_SPY = {
-    // Firebase
-    firebaseConfig,
-    auth,
-    db,
-    appId,
-    usersCollection,
-    guestsCollection,
-    reportsCollection,
-    chatsCollection,
-    roomsCollection,
-    historyCollection,
-    notificationsCollection,
-    giftsLogCollection,
-    
-    // Constants
-    CURRENCY_NAME,
-    CURRENCY_ICON,
-    MAX_ROUNDS,
-    MAX_BADGES,
-    MAX_GIFT_LOG_DISPLAY,
-    LOGIN_REWARDS,
-    LOGIN_REWARDS_CONFIG,
-    CHARISMA_LEVELS,
-    SHOP_ITEMS,
-    SCENARIOS,
-    EMOJI_CATEGORIES,
-    EMOJI_LIST,
-    TRANSLATIONS,
-    
-    // Functions
-    checkLoginRewardsCycle,
-    getCurrentCycleMonth,
-    getCharismaLevel,
-    getCharismaProgress,
-    generateUID,
-    calculateLevel,
-    getChatId,
-    formatTime,
-    formatDate,
-    formatCharisma,
-    maskEmail,
-    generateRandomBonus,
-    playSound,
-    playNotificationSound,
-    playRewardSound,
-    playMessageSound,
-    playGiftSound,
-    initAudioOnFirstInteraction,
-    
-    // Components
-    ErrorBoundary,
-    GuestBanner,
-    NotificationToast,
-    ModalCloseBtn,
-    CharismaDisplay,
-    KDCircle,
-    AvatarWithFrame,
-    renderTitle,
-    renderBadges,
-    NotificationDropdown,
-    GiftLog,
-    EmojiPicker,
-};
 // ==========================================
 // PRO SPY - SCRIPT V10 - PART 2
 // Components: Modals + Chat + Shop + Profile
@@ -1700,18 +1635,6 @@ const TutorialModal = ({ show, onClose, lang }) => {
     );
 };
 
-// Export components for Part 3
-window.PRO_SPY_COMPONENTS = {
-    GiftPreviewModal,
-    SendGiftModal,
-    ShopModal,
-    InventoryModal,
-    UserProfileModal,
-    PrivateChatModal,
-    LoginRewards,
-    BrowseRoomsModal,
-    TutorialModal,
-};
 // ==========================================
 // PRO SPY - SCRIPT V10 - PART 3
 // Main App Component + Gift System
