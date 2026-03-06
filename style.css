@@ -1350,14 +1350,12 @@ body {
 }
 
 /* ==========================================
-   LOGIN REWARDS - NEW
+   LOGIN REWARDS - FIXED VERSION
+   Grid: 5 columns x 6 rows = 30 days
    ========================================== */
 .login-rewards-container {
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.05));
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
+    width: 100%;
+    padding: var(--spacing-sm);
 }
 
 .login-rewards-header {
@@ -1365,98 +1363,196 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: rgba(255, 136, 0, 0.1);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 136, 0, 0.3);
 }
 
 .login-rewards-title {
     font-size: 14px;
-    font-weight: bold;
-    color: var(--gold);
+    font-weight: 700;
+    color: #ff8800;
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
 .login-rewards-streak {
-    font-size: 11px;
-    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    background: rgba(255, 215, 0, 0.15);
+    padding: 4px 10px;
+    border-radius: 12px;
 }
 
+/* Grid: 5 columns x 6 rows */
 .login-rewards-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-    margin-bottom: var(--spacing-sm);
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 6px;
+    width: 100%;
 }
 
+/* Each day tile */
 .login-reward-day {
-    aspect-ratio: 1;
-    border-radius: var(--radius-sm);
+    aspect-ratio: 1 / 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 9px;
-    transition: all 0.2s;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.2s ease;
     cursor: pointer;
+    position: relative;
+    padding: 4px;
+    gap: 2px;
 }
 
+.login-reward-day:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(1.05);
+}
+
+/* Day number */
+.login-reward-day .day-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+/* Reward icon */
+.login-reward-day .day-reward {
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-reward-day .day-reward img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+/* Claimed state */
 .login-reward-day.claimed {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(34, 197, 94, 0.2));
-    border: 1px solid rgba(16, 185, 129, 0.5);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1));
+    border-color: #10b981;
+}
+
+.login-reward-day.claimed .day-num {
     color: #10b981;
 }
 
-.login-reward-day.current {
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 136, 0, 0.2));
-    border: 2px solid var(--gold);
-    color: var(--gold);
-    animation: pulse-badge 2s infinite;
-}
-
-.login-reward-day.future {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-}
-
-.login-reward-day.special {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(168, 85, 247, 0.2));
-    border: 1px solid rgba(139, 92, 246, 0.5);
-}
-
-.login-reward-day .day-num {
+.login-reward-day.claimed::after {
+    content: '✓';
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    font-size: 8px;
+    color: #10b981;
     font-weight: bold;
-    font-size: 10px;
 }
 
-.login-reward-day .day-reward {
-    font-size: 14px;
+/* Current/claimable state */
+.login-reward-day.current {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 136, 0, 0.1));
+    border-color: var(--gold);
+    animation: pulse-badge 2s infinite;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
+.login-reward-day.current .day-num {
+    color: var(--gold);
+    font-weight: 800;
+}
+
+/* Future state */
+.login-reward-day.future {
+    opacity: 0.6;
+}
+
+/* Special reward (day 7, 14, 21, 28) */
+.login-reward-day.special {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1));
+    border-color: #8b5cf6;
+}
+
+.login-reward-day.special .day-num {
+    color: #a855f7;
+}
+
+/* Final reward (day 30) */
+.login-reward-day.final {
+    background: linear-gradient(135deg, rgba(255, 0, 85, 0.2), rgba(255, 51, 102, 0.1));
+    border-color: var(--accent);
+    animation: glow-pulse 2s infinite;
+}
+
+.login-reward-day.final .day-num {
+    color: var(--accent);
+}
+
+/* Claim button */
 .login-reward-claim-btn {
     width: 100%;
-    background: linear-gradient(90deg, var(--gold), #ff8800);
-    color: #000;
-    border: none;
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--radius-sm);
-    font-size: 12px;
-    font-weight: bold;
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, var(--gold), #ff8800);
+    color: #000;
 }
 
-.login-reward-claim-btn:hover {
+.login-reward-claim-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
 }
 
 .login-reward-claim-btn:disabled {
-    background: #4a4a4a;
-    color: #888;
+    background: rgba(107, 114, 128, 0.5);
+    color: rgba(255, 255, 255, 0.5);
     cursor: not-allowed;
     transform: none;
-    box-shadow: none;
+}
+
+/* Today's reward display */
+.today-reward-display {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.05));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.today-reward-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.today-reward-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+}
+
+.today-reward-special {
+    font-size: 10px;
+    color: var(--gold);
+    margin-top: 4px;
 }
 
 /* ==========================================
@@ -1519,7 +1615,7 @@ body {
     .profile-stats { grid-template-columns: repeat(3, 1fr); gap: 6px; padding: var(--spacing-sm); }
     .site-header { padding: var(--spacing-xs) 0; }
     .chat-modal-content { height: 85vh; }
-    .login-rewards-grid { grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .login-rewards-grid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
 }
 
 /* ==========================================
