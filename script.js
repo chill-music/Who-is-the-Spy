@@ -463,7 +463,8 @@ const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClea
 };
 
 // ==========================================
-// LOGIN REWARDS COMPONENT - FIXED SIZE
+// LOGIN REWARDS COMPONENT - FIXED VERSION
+// Grid: 5 columns x 6 rows = 30 days
 // ==========================================
 const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     const t = TRANSLATIONS[lang];
@@ -478,47 +479,97 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     const currentDay = loginData.currentDay || 0;
     const currentReward = LOGIN_REWARDS[currentDay];
     
-    const handleClaim = async () => { if (!canClaimToday || claiming) return; setClaiming(true); playRewardSound(); await onClaim(currentDay + 1); setClaiming(false); };
+    const handleClaim = async () => { 
+        if (!canClaimToday || claiming) return; 
+        setClaiming(true); 
+        playRewardSound(); 
+        await onClaim(currentDay + 1); 
+        setClaiming(false); 
+    };
     
-    const renderRewardIcon = (reward, size = 20) => {
+    // Simple render reward icon - no complex gradients shown
+    const renderRewardIcon = (reward, size = 14) => {
         if (!reward) return <span style={{ fontSize: size + 'px' }}>❓</span>;
-        if (reward.iconUrl && reward.iconUrl.trim() !== '') return <img src={reward.iconUrl} alt={reward.name_en} style={{ width: size + 'px', height: size + 'px', objectFit: 'contain' }} />;
-        if (reward.type !== 'currency') {
-            const collectionMap = { frame: 'frames', badge: 'badges', title: 'titles', gift: 'gifts' };
-            const item = SHOP_ITEMS[collectionMap[reward.type]]?.find(i => i.id === reward.itemId);
-            if (item?.imageUrl) return <img src={item.imageUrl} alt={item.name_en} style={{ width: size + 'px', height: size + 'px', objectFit: 'contain' }} />;
-            if (item?.preview?.startsWith('http')) return <img src={item.preview} alt={item.name_en} style={{ width: size + 'px', height: size + 'px', objectFit: 'cover', borderRadius: '50%' }} />;
-            if (item?.preview && !item.preview.startsWith('http')) return <span style={{ fontSize: size + 'px' }}>{item.preview}</span>;
-        }
+        // Just show the emoji icon, no gradient code
         return <span style={{ fontSize: size + 'px' }}>{reward.icon || '🎁'}</span>;
+    };
+    
+    // Get reward name
+    const getRewardName = (reward) => {
+        if (!reward) return '';
+        return lang === 'ar' ? reward.name_ar : reward.name_en;
     };
     
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px' }}>
-                <div className="modal-header"><h2 className="modal-title">🎁 {t.loginRewards}</h2><ModalCloseBtn onClose={onClose} /></div>
-                <div className="modal-body">
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px', maxHeight: '90vh' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">🎁 {t.loginRewards}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body" style={{ padding: '12px' }}>
                     <div className="login-rewards-container">
+                        {/* Header with streak */}
                         <div className="login-rewards-header">
                             <span className="login-rewards-title">🔥 {t.dailyStreak}</span>
                             <span className="login-rewards-streak">{currentDay}/30</span>
                         </div>
+                        
+                        {/* Days Grid - 5 columns x 6 rows */}
                         <div className="login-rewards-grid">
                             {LOGIN_REWARDS.map((reward, index) => {
                                 const dayNum = index + 1;
                                 const isClaimed = dayNum <= currentDay;
                                 const isCurrent = dayNum === currentDay + 1 && canClaimToday;
-                                return (<div key={dayNum} className={`login-reward-day ${isClaimed ? 'claimed' : isCurrent ? 'current' : 'future'} ${reward.special ? 'special' : ''}`} title={lang === 'ar' ? reward.name_ar : reward.name_en}><span className="day-num">{dayNum}</span><span className="day-reward">{renderRewardIcon(reward, 12)}</span></div>);
+                                const isFuture = !isClaimed && !isCurrent;
+                                const isSpecial = reward.special === true;
+                                const isFinal = reward.final === true;
+                                
+                                let className = 'login-reward-day';
+                                if (isClaimed) className += ' claimed';
+                                if (isCurrent) className += ' current';
+                                if (isFuture) className += ' future';
+                                if (isSpecial) className += ' special';
+                                if (isFinal) className += ' final';
+                                
+                                return (
+                                    <div 
+                                        key={dayNum} 
+                                        className={className}
+                                        title={getRewardName(reward)}
+                                    >
+                                        <span className="day-num">{dayNum}</span>
+                                        <span className="day-reward">{renderRewardIcon(reward, 14)}</span>
+                                    </div>
+                                );
                             })}
                         </div>
+                        
+                        {/* Today's reward display */}
                         {canClaimToday && currentReward && (
-                            <div className="mt-3 p-2 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg text-center">
-                                <div className="text-[10px] text-gray-400 mb-1">{lang === 'ar' ? 'مكافأة اليوم' : "Today's Reward"}</div>
-                                <div className="text-base font-bold text-white">{lang === 'ar' ? currentReward.name_ar : currentReward.name_en}</div>
-                                {currentReward.special && <div className="text-[10px] text-yellow-400 mt-1">⭐ {lang === 'ar' ? 'مكافأة خاصة!' : 'Special Reward!'}</div>}
+                            <div className="today-reward-display">
+                                <div className="today-reward-label">
+                                    {lang === 'ar' ? 'مكافأة اليوم' : "Today's Reward"}
+                                </div>
+                                <div className="today-reward-name">
+                                    {renderRewardIcon(currentReward, 18)} {getRewardName(currentReward)}
+                                </div>
+                                {currentReward.special && (
+                                    <div className="today-reward-special">
+                                        ⭐ {lang === 'ar' ? 'مكافأة خاصة!' : 'Special Reward!'}
+                                    </div>
+                                )}
                             </div>
                         )}
-                        <button onClick={handleClaim} disabled={!canClaimToday || claiming} className="login-reward-claim-btn mt-2">{claiming ? t.loading : canClaimToday ? t.claimReward : t.alreadyClaimed}</button>
+                        
+                        {/* Claim button */}
+                        <button 
+                            onClick={handleClaim} 
+                            disabled={!canClaimToday || claiming} 
+                            className="login-reward-claim-btn mt-3"
+                        >
+                            {claiming ? t.loading : canClaimToday ? t.claimReward : t.alreadyClaimed}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1699,3 +1750,4 @@ const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
+
