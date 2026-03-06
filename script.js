@@ -1953,7 +1953,202 @@ const JoinRoomModal = ({ show, onClose, onJoin, lang, rooms }) => {
     );
 };
 
-// Continue in Part 6...
+// ==========================================
+// SETTINGS MODAL
+// ==========================================
+const SettingsModal = ({ show, onClose, lang, onLanguageChange, onThemeChange, onLogout, theme }) => {
+    const t = TRANSLATIONS[lang];
+    
+    if (!show) return null;
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">⚙️ {t.settings || 'Settings'}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body">
+                    <div className="settings-section mb-4">
+                        <h3 className="text-sm font-bold text-gray-400 mb-2">🌐 {t.language || 'Language'}</h3>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => onLanguageChange('en')} 
+                                className={`flex-1 py-2 rounded-lg transition ${lang === 'en' ? 'bg-cyan-500 text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                            >
+                                English
+                            </button>
+                            <button 
+                                onClick={() => onLanguageChange('ar')} 
+                                className={`flex-1 py-2 rounded-lg transition ${lang === 'ar' ? 'bg-cyan-500 text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                            >
+                                العربية
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="settings-section mb-4">
+                        <h3 className="text-sm font-bold text-gray-400 mb-2">🎨 {t.theme || 'Theme'}</h3>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => onThemeChange('dark')} 
+                                className={`flex-1 py-2 rounded-lg transition ${theme === 'dark' ? 'bg-purple-500 text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                            >
+                                🌙 Dark
+                            </button>
+                            <button 
+                                onClick={() => onThemeChange('light')} 
+                                className={`flex-1 py-2 rounded-lg transition ${theme === 'light' ? 'bg-yellow-500 text-black' : 'bg-white/10 hover:bg-white/20'}`}
+                            >
+                                ☀️ Light
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button 
+                        onClick={onLogout} 
+                        className="btn-danger w-full py-3 rounded-lg mt-4"
+                    >
+                        🚪 {t.logout}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// FRIENDS MODAL
+// ==========================================
+const FriendsModal = ({ show, onClose, lang, friends, friendRequests, onAcceptFriend, onDeclineFriend, onProfileClick }) => {
+    const t = TRANSLATIONS[lang];
+    const [friendIdInput, setFriendIdInput] = useState('');
+    const [searchResult, setSearchResult] = useState(null);
+    const [searching, setSearching] = useState(false);
+    
+    if (!show) return null;
+    
+    const handleSearchFriend = async () => {
+        if (!friendIdInput.trim()) return;
+        setSearching(true);
+        setSearchResult(null);
+        
+        try {
+            // Search by customId or uid
+            const snapshot = await usersCollection.where('customId', '==', friendIdInput.trim()).limit(1).get();
+            if (!snapshot.empty) {
+                const doc = snapshot.docs[0];
+                setSearchResult({ id: doc.id, ...doc.data() });
+            } else {
+                // Try searching by uid prefix
+                const uidSnapshot = await usersCollection.doc(friendIdInput.trim()).get();
+                if (uidSnapshot.exists) {
+                    setSearchResult({ id: uidSnapshot.id, ...uidSnapshot.data() });
+                }
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+        }
+        setSearching(false);
+    };
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', maxHeight: '90vh' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">👥 {t.friends}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body" style={{ overflowY: 'auto', maxHeight: '70vh' }}>
+                    {/* Add Friend Section */}
+                    <div className="mb-4 p-3 bg-white/5 rounded-lg">
+                        <h3 className="text-sm font-bold mb-2">{t.addFriend}</h3>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={friendIdInput}
+                                onChange={(e) => setFriendIdInput(e.target.value)}
+                                placeholder={t.friendIdPlaceholder}
+                                className="form-input flex-1 text-sm py-2"
+                            />
+                            <button 
+                                onClick={handleSearchFriend} 
+                                disabled={!friendIdInput.trim() || searching}
+                                className="btn-neon px-4 py-2 rounded-lg text-sm"
+                            >
+                                {searching ? '⏳' : '🔍'}
+                            </button>
+                        </div>
+                        {searchResult && (
+                            <div 
+                                className="mt-2 p-2 bg-cyan-500/20 rounded-lg flex items-center justify-between cursor-pointer hover:bg-cyan-500/30"
+                                onClick={() => onProfileClick && onProfileClick(searchResult.id)}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <AvatarWithFrame photoURL={searchResult.photoURL} equipped={searchResult.equipped} size="sm" />
+                                    <span className="text-sm">{searchResult.displayName}</span>
+                                </div>
+                                <span className="text-cyan-400 text-xs">→</span>
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Friend Requests */}
+                    {friendRequests && friendRequests.length > 0 && (
+                        <div className="mb-4">
+                            <h3 className="text-sm font-bold text-yellow-400 mb-2">{t.incomingRequests} ({friendRequests.length})</h3>
+                            <div className="space-y-2">
+                                {friendRequests.map(request => (
+                                    <div key={request.id} className="flex items-center justify-between p-2 bg-yellow-500/10 rounded-lg">
+                                        <div 
+                                            className="flex items-center gap-2 cursor-pointer flex-1"
+                                            onClick={() => onProfileClick && onProfileClick(request.id)}
+                                        >
+                                            <AvatarWithFrame photoURL={request.photoURL} equipped={request.equipped} size="sm" />
+                                            <span className="text-sm">{request.displayName}</span>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <button onClick={() => onAcceptFriend(request.id)} className="btn-success px-3 py-1 rounded text-xs">✓</button>
+                                            <button onClick={() => onDeclineFriend(request.id)} className="btn-danger px-3 py-1 rounded text-xs">✗</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Friends List */}
+                    <div>
+                        <h3 className="text-sm font-bold text-gray-400 mb-2">{t.friends} ({friends?.length || 0})</h3>
+                        {friends && friends.length > 0 ? (
+                            <div className="space-y-2">
+                                {friends.map(friend => (
+                                    <div 
+                                        key={friend.id} 
+                                        className="flex items-center gap-2 p-2 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition"
+                                        onClick={() => onProfileClick && onProfileClick(friend.id)}
+                                    >
+                                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                                        <div className="flex-1">
+                                            <div className="text-sm font-bold">{friend.displayName}</div>
+                                            <div className="text-xs text-gray-400">{friend.isOnline ? '🟢 ' + t.online : '⚫ ' + t.offline}</div>
+                                        </div>
+                                        <span className="text-gray-400">→</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-4 text-gray-400">
+                                <div className="text-3xl mb-2">👥</div>
+                                <p>{t.noFriends}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 // ==========================================
 // PART 6 - MAIN APP
