@@ -1,6 +1,7 @@
 // ==========================================
 // PRO SPY - COMPLETE SCRIPT - PART 1
 // All Improvements + Notifications + Chat + Gifts
+// + Login Rewards + Multi-Badges + Browse Rooms Fix
 // ==========================================
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
@@ -36,6 +37,43 @@ const giftsLogCollection = db.collection('artifacts').doc(appId).collection('pub
 const CURRENCY_NAME = "Intel";
 const CURRENCY_ICON = "🧠";
 const MAX_ROUNDS = 3;
+const MAX_BADGES = 10; // NEW: Maximum badges a user can equip
+
+// ==========================================
+// LOGIN REWARDS - 30 DAYS CONFIGURATION
+// ==========================================
+const LOGIN_REWARDS = [
+    { day: 1, reward: 100, type: 'currency', icon: '🧠' },
+    { day: 2, reward: 150, type: 'currency', icon: '🧠' },
+    { day: 3, reward: 200, type: 'currency', icon: '🧠' },
+    { day: 4, reward: 250, type: 'currency', icon: '🧠' },
+    { day: 5, reward: 300, type: 'currency', icon: '🧠' },
+    { day: 6, reward: 400, type: 'currency', icon: '🧠' },
+    { day: 7, reward: 500, type: 'currency', icon: '🧠', special: true },
+    { day: 8, reward: 350, type: 'currency', icon: '🧠' },
+    { day: 9, reward: 400, type: 'currency', icon: '🧠' },
+    { day: 10, reward: 450, type: 'currency', icon: '🧠' },
+    { day: 11, reward: 500, type: 'currency', icon: '🧠' },
+    { day: 12, reward: 550, type: 'currency', icon: '🧠' },
+    { day: 13, reward: 600, type: 'currency', icon: '🧠' },
+    { day: 14, reward: 1000, type: 'currency', icon: '🧠', special: true },
+    { day: 15, reward: 700, type: 'currency', icon: '🧠' },
+    { day: 16, reward: 750, type: 'currency', icon: '🧠' },
+    { day: 17, reward: 800, type: 'currency', icon: '🧠' },
+    { day: 18, reward: 850, type: 'currency', icon: '🧠' },
+    { day: 19, reward: 900, type: 'currency', icon: '🧠' },
+    { day: 20, reward: 950, type: 'currency', icon: '🧠' },
+    { day: 21, reward: 1500, type: 'currency', icon: '🧠', special: true },
+    { day: 22, reward: 1000, type: 'currency', icon: '🧠' },
+    { day: 23, reward: 1100, type: 'currency', icon: '🧠' },
+    { day: 24, reward: 1200, type: 'currency', icon: '🧠' },
+    { day: 25, reward: 1300, type: 'currency', icon: '🧠' },
+    { day: 26, reward: 1400, type: 'currency', icon: '🧠' },
+    { day: 27, reward: 1500, type: 'currency', icon: '🧠' },
+    { day: 28, reward: 2000, type: 'currency', icon: '🧠', special: true },
+    { day: 29, reward: 2500, type: 'currency', icon: '🧠' },
+    { day: 30, reward: 5000, type: 'currency', icon: '👑', special: true, final: true },
+];
 
 // ==========================================
 // CHARISMA LEVELS - 21 Levels with Images
@@ -101,7 +139,6 @@ const SHOP_ITEMS = {
         { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif' },
         { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)' },
     ],
-    // Titles with imageUrl support - if imageUrl exists, show as image; otherwise show as text with background
     titles: [
         { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles', preview: '🕵️', imageUrl: '' },
         { id: 'title_hunter', name_en: "Hunter", name_ar: "صياد", cost: 450, type: 'titles', preview: '🎯', imageUrl: '' },
@@ -110,7 +147,6 @@ const SHOP_ITEMS = {
         { id: 'title_pro', name_en: "Pro Player", name_ar: "محترف", cost: 1000, type: 'titles', preview: '⭐', imageUrl: '' },
         { id: 'title_shadow', name_en: "Shadow", name_ar: "ظل", cost: 700, type: 'titles', preview: '', imageUrl: 'https://i.ibb.co/xqk8md71/122222.png' },
     ],
-    // Badges with imageUrl support
     badges: [
         { id: 'badge_vip', name_en: "VIP Badge", name_ar: "شارة VIP", cost: 1000, type: 'badges', preview: '⭐', imageUrl: '' },
         { id: 'badge_love', name_en: "Love Badge", name_ar: "شارة حب", cost: 800, type: 'badges', preview: '💕', imageUrl: '' },
@@ -126,7 +162,6 @@ const SHOP_ITEMS = {
         { id: 'theme_ocean', name_en: "Ocean Blue", name_ar: "أزرق محيطي", cost: 300, type: 'themes' },
         { id: 'theme_forest', name_en: "Forest", name_ar: "غابة", cost: 300, type: 'themes' },
     ],
-    // Gifts with full details
     gifts: [
         { id: 'gift_rose', name_en: "Rose", name_ar: "وردة", cost: 1, type: 'gifts', charisma: 10, minCashback: 1, maxCashback: 50, desc_ar: "عبّر عن مشاعرك", desc_en: "Express your feelings", emoji: "🌹", imageUrl: "" },
         { id: 'gift_candy', name_en: "Candy", name_ar: "حلوى", cost: 2, type: 'gifts', charisma: 20, minCashback: 1, maxCashback: 100, desc_ar: "حلاوة تُفرح القلب", desc_en: "Sweetness for the heart", emoji: "🍬", imageUrl: "" },
@@ -261,7 +296,6 @@ const playSound = (type) => {
         osc.start();
         osc.stop(audioCtx.currentTime + 0.4);
     } else if (type === 'notification') {
-        // Notification sound - pleasant chime
         osc.frequency.value = 880;
         osc.type = 'sine';
         gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
@@ -271,7 +305,6 @@ const playSound = (type) => {
         osc.start();
         osc.stop(audioCtx.currentTime + 0.3);
     } else if (type === 'message') {
-        // Message sound - soft ping
         osc.frequency.value = 600;
         osc.type = 'sine';
         gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
@@ -279,18 +312,23 @@ const playSound = (type) => {
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.15);
+    } else if (type === 'reward') {
+        // Reward claim sound
+        osc.frequency.value = 440;
+        osc.type = 'sine';
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(554, audioCtx.currentTime + 0.1);
+        osc.frequency.linearRampToValueAtTime(659, audioCtx.currentTime + 0.2);
+        osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.3);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
     }
 };
 
-// Play notification sound for new notifications
-const playNotificationSound = () => {
-    playSound('notification');
-};
-
-// Play message sound for new messages
-const playMessageSound = () => {
-    playSound('message');
-};
+const playNotificationSound = () => { playSound('notification'); };
+const playMessageSound = () => { playSound('message'); };
+const playRewardSound = () => { playSound('reward'); };
 
 // --- Translations ---
 const TRANSLATIONS = { 
@@ -310,6 +348,12 @@ const TRANSLATIONS = {
         showEmail: "Show", hideEmail: "Hide", accountType: "Account Type", googleAccount: "Google Account", guestAccount: "Guest Account",
         playAsGuest: "Play as Guest", continueAsGuest: "Continue as Guest",
         sendGiftToFriend: "Send Gift", giftCharisma: "Charisma", giftCashbackRange: "Cashback",
+        // Login Rewards
+        loginRewards: "Login Rewards", dailyStreak: "Day Streak", claimReward: "Claim Reward", alreadyClaimed: "Claimed Today", comeBackTomorrow: "Come back tomorrow!", days: "Days",
+        // Gift Options
+        sendToSelf: "Send to Myself", sendToOthers: "Send to Others",
+        // Lobby
+        copyCode: "Copy Code", codeCopied: "Code Copied!", showPasswordLabel: "Show Password", hidePasswordLabel: "Hide Password",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
@@ -327,13 +371,18 @@ const TRANSLATIONS = {
         showEmail: "إظهار", hideEmail: "إخفاء", accountType: "نوع الحساب", googleAccount: "حساب جوجل", guestAccount: "حساب زائر",
         playAsGuest: "العب كزائر", continueAsGuest: "المتابعة كزائر",
         sendGiftToFriend: "إرسال هدية", giftCharisma: "كاريزما", giftCashbackRange: "كاش باك",
+        // Login Rewards
+        loginRewards: "مكافآت تسجيل الدخول", dailyStreak: "يوم متتالي", claimReward: "الحصول على المكافأة", alreadyClaimed: "تم الاستلام اليوم", comeBackTomorrow: "عد غداً!", days: "أيام",
+        // Gift Options
+        sendToSelf: "إرسال لنفسي", sendToOthers: "إرسال للآخرين",
+        // Lobby
+        copyCode: "نسخ الكود", codeCopied: "تم نسخ الكود!", showPasswordLabel: "إظهار كلمة السر", hidePasswordLabel: "إخفاء كلمة السر",
     } 
 };
 
-// Continue in Part 2...
 // ==========================================
 // PRO SPY - COMPLETE SCRIPT - PART 2
-// Components + Notifications + Chat
+// Components + Main App with All Fixes
 // ==========================================
 
 // Error Boundary
@@ -449,7 +498,7 @@ const KDCircle = ({ wins, losses, lang }) => {
 };
 
 // ==========================================
-// AVATAR WITH FRAME - FIXED (BIGGER FRAME)
+// AVATAR WITH FRAME
 // ==========================================
 const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
     const sizeConfig = {
@@ -559,13 +608,12 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
 };
 
 // ==========================================
-// RENDER TITLE - IMAGE OR TEXT WITH BACKGROUND
+// RENDER TITLE
 // ==========================================
 const renderTitle = (titleId, lang) => {
     const titleItem = SHOP_ITEMS.titles.find(t => t.id === titleId);
     if (!titleItem) return null;
     
-    // If imageUrl exists and is not empty - show as image WITHOUT background
     if (titleItem.imageUrl && titleItem.imageUrl.trim() !== '') {
         return (
             <div className="profile-title-image">
@@ -574,7 +622,6 @@ const renderTitle = (titleId, lang) => {
         );
     }
     
-    // Otherwise show as text WITH purple background
     const name = lang === 'ar' ? titleItem.name_ar : titleItem.name_en;
     return (
         <div className="profile-title-text">
@@ -584,23 +631,35 @@ const renderTitle = (titleId, lang) => {
     );
 };
 
-// Render Badge with imageUrl support
-const renderBadge = (badgeId, size = 28) => {
-    const badgeItem = SHOP_ITEMS.badges.find(b => b.id === badgeId);
-    if (!badgeItem) return null;
+// ==========================================
+// RENDER BADGES - MULTI-BADGE SUPPORT (UP TO 10)
+// ==========================================
+const renderBadges = (badgeIds, size = 28) => {
+    if (!badgeIds) return null;
     
-    if (badgeItem.imageUrl && badgeItem.imageUrl.trim() !== '') {
-        return <img src={badgeItem.imageUrl} alt={badgeItem.name_en} className="profile-badge-img" style={{ width: size + 'px', height: size + 'px' }} />;
-    }
-    return <span className="profile-badge" style={{ fontSize: size + 'px' }}>{badgeItem.preview}</span>;
+    // Convert to array if it's a single string (backward compatibility)
+    const badgeArray = Array.isArray(badgeIds) ? badgeIds : [badgeIds];
+    
+    return (
+        <div className="profile-badge-container">
+            {badgeArray.slice(0, MAX_BADGES).map((badgeId, index) => {
+                const badgeItem = SHOP_ITEMS.badges.find(b => b.id === badgeId);
+                if (!badgeItem) return null;
+                
+                if (badgeItem.imageUrl && badgeItem.imageUrl.trim() !== '') {
+                    return <img key={index} src={badgeItem.imageUrl} alt={badgeItem.name_en} className="profile-badge-img" style={{ width: size + 'px', height: size + 'px' }} />;
+                }
+                return <span key={index} className="profile-badge" style={{ fontSize: size + 'px' }}>{badgeItem.preview}</span>;
+            })}
+        </div>
+    );
 };
 
 // ==========================================
-// NOTIFICATION DROPDOWN - NEW
+// NOTIFICATION DROPDOWN
 // ==========================================
 const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClearAll, onNotificationClick, lang }) => {
     const t = TRANSLATIONS[lang];
-    const bellRef = useRef(null);
     
     if (!show) return null;
     
@@ -659,25 +718,100 @@ const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClea
 };
 
 // ==========================================
-// GIFT PREVIEW MODAL - WITH DETAILS
+// LOGIN REWARDS COMPONENT - 30 DAYS
 // ==========================================
-const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData }) => { 
+const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
+    const t = TRANSLATIONS[lang];
+    const [claiming, setClaiming] = useState(false);
+    
+    if (!show) return null;
+    
+    const loginData = userData?.loginRewards || { 
+        currentDay: 0, 
+        lastClaimDate: null, 
+        streak: 0, 
+        totalClaims: 0 
+    };
+    
+    const today = new Date().toDateString();
+    const lastClaim = loginData.lastClaimDate?.toDate?.()?.toDateString() || loginData.lastClaimDate;
+    const canClaimToday = lastClaim !== today;
+    const currentDay = loginData.currentDay || 0;
+    
+    const handleClaim = async () => {
+        if (!canClaimToday || claiming) return;
+        setClaiming(true);
+        playRewardSound();
+        await onClaim(currentDay + 1);
+        setClaiming(false);
+    };
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">🎁 {t.loginRewards}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body">
+                    <div className="login-rewards-container">
+                        <div className="login-rewards-header">
+                            <span className="login-rewards-title">🔥 {t.dailyStreak}</span>
+                            <span className="login-rewards-streak">{currentDay} / 30 {t.days}</span>
+                        </div>
+                        
+                        <div className="login-rewards-grid">
+                            {LOGIN_REWARDS.map((reward, index) => {
+                                const dayNum = index + 1;
+                                const isClaimed = dayNum <= currentDay;
+                                const isCurrent = dayNum === currentDay + 1 && canClaimToday;
+                                
+                                return (
+                                    <div 
+                                        key={dayNum}
+                                        className={`login-reward-day ${isClaimed ? 'claimed' : isCurrent ? 'current' : 'future'} ${reward.special ? 'special' : ''}`}
+                                    >
+                                        <span className="day-num">{dayNum}</span>
+                                        <span className="day-reward">{reward.icon}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        
+                        <button 
+                            onClick={handleClaim}
+                            disabled={!canClaimToday || claiming}
+                            className="login-reward-claim-btn"
+                        >
+                            {claiming ? t.loading : (canClaimToday ? `${t.claimReward} - ${LOGIN_REWARDS[currentDay]?.reward || 0} 🧠` : t.alreadyClaimed)}
+                        </button>
+                    </div>
+                    
+                    {/* Show today's reward details */}
+                    {canClaimToday && currentDay < 30 && (
+                        <div className="mt-3 p-3 bg-white/5 rounded-lg text-center">
+                            <div className="text-xs text-gray-400 mb-1">{lang === 'ar' ? 'مكافأة اليوم' : "Today's Reward"}</div>
+                            <div className="text-xl font-bold text-yellow-400">
+                                +{LOGIN_REWARDS[currentDay]?.reward || 0} 🧠
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// GIFT PREVIEW MODAL - FIXED: Bonus shown only on actual send
+// ==========================================
+const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData }) => { 
     const t = TRANSLATIONS[lang]; 
-    const [previewCashback, setPreviewCashback] = useState(null);
     const [showFriendSelect, setShowFriendSelect] = useState(false);
     const [selectedFriend, setSelectedFriend] = useState(null);
+    const [sendMode, setSendMode] = useState('others'); // 'self' or 'others'
     
-    // Check if this is actually a gift item
     const isGiftItem = gift?.type === 'gifts';
-    
-    useEffect(() => {
-        if (gift && show && isGiftItem) {
-            const minBack = gift.minCashback || 1;
-            const maxBack = gift.maxCashback || Math.floor(gift.cost * 0.1);
-            const sample = generateRandomCashback(minBack, maxBack);
-            setPreviewCashback(sample);
-        }
-    }, [gift, show, isGiftItem]);
     
     if(!show || !gift) return null; 
     
@@ -700,7 +834,6 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
             }
             return <div className="text-4xl mb-3">{gift.preview}</div>;
         }
-        // Gift type
         if (gift.imageUrl && gift.imageUrl.trim() !== '') {
             return <img src={gift.imageUrl} alt={gift.name_en} className="w-16 h-16 object-contain mx-auto" />;
         }
@@ -708,9 +841,21 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     };
     
     const handleSendFromInventory = () => {
-        if (selectedFriend && onSendFromInventory) {
+        if (sendMode === 'self') {
+            // Send to self
+            onSendFromInventory(gift, { uid: 'self', displayName: currentUserData?.displayName || 'Me' });
+            onClose();
+        } else if (selectedFriend && onSendFromInventory) {
             onSendFromInventory(gift, selectedFriend);
             onClose();
+        }
+    };
+    
+    const handleBuy = () => {
+        if (sendMode === 'self') {
+            onBuy(gift, { uid: 'self', displayName: currentUserData?.displayName || 'Me' });
+        } else {
+            onBuy(gift, selectedFriend);
         }
     };
     
@@ -728,7 +873,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         <p className="text-xs text-gray-400 mb-4">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p>
                     )}
                     
-                    {/* Gift Details - Only for gifts */}
+                    {/* Gift Details - Only for gifts, NO preview cashback */}
                     {isGiftItem && (
                         <>
                             <div className="grid grid-cols-2 gap-3 mb-4">
@@ -741,17 +886,29 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                                     <div className="text-sm font-bold text-green-400">{gift.minCashback || 1} - {gift.maxCashback || gift.cost}</div>
                                 </div>
                             </div>
-                            
-                            {!isFromInventory && (
-                                <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg p-2 mb-3">
-                                    <div className="text-[10px] text-gray-400">{t.luckBonus}</div>
-                                    <div className="text-xl font-bold text-yellow-400 animate-pulse">+{previewCashback?.toLocaleString() || 0} 🧠</div>
-                                </div>
-                            )}
                         </>
                     )}
                     
-                    {showFriendSelect && friendsData && (
+                    {/* Send Mode Selection */}
+                    {isGiftItem && !isFromInventory && (
+                        <div className="flex gap-2 mb-3">
+                            <button 
+                                onClick={() => setSendMode('self')}
+                                className={`flex-1 py-2 rounded-lg text-xs font-bold transition ${sendMode === 'self' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
+                            >
+                                🎁 {t.sendToSelf}
+                            </button>
+                            <button 
+                                onClick={() => setSendMode('others')}
+                                className={`flex-1 py-2 rounded-lg text-xs font-bold transition ${sendMode === 'others' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
+                            >
+                                👥 {t.sendToOthers}
+                            </button>
+                        </div>
+                    )}
+                    
+                    {/* Friend Selection */}
+                    {sendMode === 'others' && showFriendSelect && friendsData && (
                         <div className="mb-4 p-2 bg-white/5 rounded-lg max-h-32 overflow-y-auto">
                             <div className="text-xs text-gray-400 mb-2">{t.selectFriend}</div>
                             {friendsData.map(friend => (
@@ -769,18 +926,18 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                 </div>
                 <div className="modal-footer">
                     {isFromInventory ? (
-                        showFriendSelect ? (
-                            <div className="flex gap-2">
-                                <button onClick={() => setShowFriendSelect(false)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.close}</button>
-                                <button onClick={handleSendFromInventory} disabled={!selectedFriend} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">{t.sendGift}</button>
-                            </div>
-                        ) : (
-                            <button onClick={() => setShowFriendSelect(true)} className="btn-gold w-full py-2 rounded-lg text-sm font-bold">{t.sendGiftToFriend}</button>
-                        )
+                        <div className="flex gap-2">
+                            <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.close}</button>
+                            <button onClick={handleSendFromInventory} disabled={sendMode === 'others' && !selectedFriend} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">{t.sendGift}</button>
+                        </div>
                     ) : (
                         <div className="flex gap-2">
                             <button onClick={onClose} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.reportCancel}</button> 
-                            <button onClick={() => onBuy(gift)} disabled={currency < gift.cost} className={`flex-1 py-2 rounded-lg text-sm font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>{isSending ? t.sendToFriend : t.buy} ({gift.cost} 🧠)</button> 
+                            <button 
+                                onClick={handleBuy} 
+                                disabled={currency < gift.cost || (sendMode === 'others' && !selectedFriend && isGiftItem)} 
+                                className={`flex-1 py-2 rounded-lg text-sm font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+                            >{isSending ? t.sendToFriend : t.buy} ({gift.cost} 🧠)</button> 
                         </div>
                     )}
                 </div>
@@ -790,237 +947,15 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
 };
 
 // ==========================================
-// PRIVATE CHAT MODAL - IMPROVED WITH EMOJI & GIFTS
+// SEND GIFT MODAL
 // ==========================================
-const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSendNotification, onSendGift, currency }) => {
-    const t = TRANSLATIONS[lang];
-    const [messages, setMessages] = useState([]);
-    const [newMsg, setNewMsg] = useState('');
-    const [sending, setSending] = useState(false);
-    const [showGiftModal, setShowGiftModal] = useState(false);
-    const messagesEndRef = useRef(null);
-    const inputRef = useRef(null);
-    
-    const chatId = friend && user ? getChatId(user.uid, friend.uid) : null;
-    
-    useEffect(() => {
-        if (!show || !chatId) return;
-        const unsub = chatsCollection.doc(chatId).collection('messages')
-            .onSnapshot(snap => {
-                let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                msgs.sort((a, b) => {
-                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
-                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
-                    return timeA - timeB;
-                });
-                setMessages(msgs);
-                chatsCollection.doc(chatId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {});
-            });
-        return unsub;
-    }, [show, chatId, user?.uid]);
-    
-    useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-    
-    const handleSend = async () => {
-        if (!newMsg.trim() || sending) return;
-        setSending(true);
-        try {
-            const msgData = { senderId: user.uid, senderName: currentUser?.displayName || 'User', senderPhoto: currentUser?.photoURL || null, text: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp() };
-            await chatsCollection.doc(chatId).collection('messages').add(msgData);
-            await chatsCollection.doc(chatId).set({ members: [user.uid, friend.uid], lastMessage: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
-            // Create notification for the receiver
-            if (onSendNotification) {
-                await onSendNotification(friend.uid, 'message', `${currentUser?.displayName || 'User'}: ${newMsg.trim().substring(0, 50)}${newMsg.trim().length > 50 ? '...' : ''}`, user.uid, currentUser?.displayName || 'User');
-            }
-            setNewMsg('');
-            playSound('click');
-        } catch (e) { console.error('Send message error:', e); }
-        setSending(false);
-    };
-    
-    const handleSendGiftToChat = async (gift, targetUser) => {
-        if (!onSendGift) return;
-        await onSendGift(gift, targetUser);
-        // Send gift message to chat
-        const giftMsgData = { 
-            senderId: user.uid, 
-            senderName: currentUser?.displayName || 'User', 
-            senderPhoto: currentUser?.photoURL || null, 
-            type: 'gift',
-            giftId: gift.id,
-            giftName: lang === 'ar' ? gift.name_ar : gift.name_en,
-            giftEmoji: gift.emoji,
-            giftCharisma: gift.charisma,
-            text: `🎁 ${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji} ${lang === 'ar' ? gift.name_ar : gift.name_en}`,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-        };
-        try {
-            await chatsCollection.doc(chatId).collection('messages').add(giftMsgData);
-            await chatsCollection.doc(chatId).set({ 
-                members: [user.uid, friend.uid], 
-                lastMessage: `🎁 ${lang === 'ar' ? 'هدية' : 'Gift'}`, 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
-                [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) 
-            }, { merge: true });
-        } catch (e) { console.error('Gift message error:', e); }
-        setShowGiftModal(false);
-    };
-    
-    const addEmoji = (emoji) => {
-        setNewMsg(prev => prev + emoji);
-        inputRef.current?.focus();
-    };
-    
-    if (!show || !friend) return null;
-    
-    // Show limited emojis
-    const displayEmojis = EMOJI_LIST.slice(0, 30);
-    
-    const renderMessageContent = (msg) => {
-        if (msg.type === 'gift') {
-            return (
-                <div className="gift-message-content">
-                    <div className="gift-message-icon text-4xl">{msg.giftEmoji || '🎁'}</div>
-                    <div className="gift-message-name">{msg.giftName || 'Gift'}</div>
-                    <div className="gift-message-details">
-                        <span className="gift-charisma-badge">+{formatCharisma(msg.giftCharisma)} {lang === 'ar' ? 'كاريزما' : 'Charisma'}</span>
-                    </div>
-                </div>
-            );
-        }
-        return <div className="chat-message-bubble">{msg.text}</div>;
-    };
-    
-    return (
-        <>
-            <div className="modal-overlay" onClick={onClose}>
-                <div className="chat-modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    {/* Chat Header */}
-                    <div className="chat-header-bar">
-                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                        <div className="chat-header-info">
-                            <div className="chat-header-name">{friend.displayName}</div>
-                            <div className="chat-header-status">{t.online}</div>
-                        </div>
-                        {/* Gift Button */}
-                        <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" title={t.sendGift}>
-                            🎁
-                        </button>
-                        <ModalCloseBtn onClose={onClose} />
-                    </div>
-                    
-                    {/* Messages */}
-                    <div className="chat-messages-container">
-                        {messages.length === 0 ? (
-                            <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div>
-                        ) : (
-                            messages.map(msg => {
-                                const isMine = msg.senderId === user?.uid;
-                                const isGift = msg.type === 'gift';
-                                return (
-                                    <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''} ${isGift ? 'gift-message' : ''}`}>
-                                        {!isMine && (
-                                            <AvatarWithFrame 
-                                                photoURL={msg.senderPhoto || friend.photoURL} 
-                                                equipped={friend.equipped} 
-                                                size="sm" 
-                                            />
-                                        )}
-                                        <div className="chat-message-content">
-                                            <div className="chat-message-sender">{isMine ? (currentUser?.displayName || 'You') : msg.senderName}</div>
-                                            {renderMessageContent(msg)}
-                                            <div className="chat-message-time">{formatTime(msg.timestamp)}</div>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
-                    
-                    {/* Input Area with Emoji */}
-                    <div className="chat-input-container">
-                        {/* Emoji Picker */}
-                        <div className="emoji-picker-container">
-                            {displayEmojis.map((emoji, i) => (
-                                <button key={i} className="emoji-picker-btn" onClick={() => addEmoji(emoji)}>{emoji}</button>
-                            ))}
-                        </div>
-                        
-                        <div className="chat-input-row">
-                            <input 
-                                ref={inputRef}
-                                type="text" 
-                                className="chat-input" 
-                                placeholder={t.typeMessage} 
-                                value={newMsg} 
-                                onChange={e => setNewMsg(e.target.value)} 
-                                onKeyPress={e => e.key === 'Enter' && handleSend()} 
-                            />
-                            <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            {/* Gift Modal */}
-            {showGiftModal && (
-                <SendGiftModal 
-                    show={showGiftModal} 
-                    onClose={() => setShowGiftModal(false)} 
-                    targetUser={friend} 
-                    currentUser={currentUser} 
-                    lang={lang} 
-                    onSendGift={handleSendGiftToChat} 
-                    currency={currency || 0} 
-                />
-            )}
-        </>
-    );
-};
-
-// Continue in Part 3...
-// ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 3
-// Shop + Inventory + Profile + Main App
-// ==========================================
-
-// Tutorial Modal
-const TutorialModal = ({ show, onClose, lang }) => {
-    const t = TRANSLATIONS[lang];
-    const [step, setStep] = useState(0);
-    if(!show) return null;
-    const steps = [ { text: t.tutorialStep1, img: "🕵️" }, { text: t.tutorialStep2, img: "🗳️" }, { text: t.tutorialStep3, img: "🛒" } ];
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.tutorialTitle}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
-                <div className="modal-body text-center">
-                    <div className="text-6xl mb-6 animate-bounce">{steps[step].img}</div>
-                    <p className="text-base mb-6 text-gray-200">{steps[step].text}</p>
-                    <div className="flex justify-center gap-2 mb-4"> 
-                        {steps.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === step ? 'bg-cyan-400 w-4' : 'bg-gray-600'}`}></div>)} 
-                    </div>
-                    <div className="flex gap-3">
-                        {step > 0 && <button onClick={() => setStep(s => s-1)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">Back</button>}
-                        {step < steps.length - 1 ? ( <button onClick={() => setStep(s => s+1)} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.next}</button> ) : ( <button onClick={onClose} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.startGame}</button> )}
-                    </div>
-                    <button onClick={onClose} className="text-xs text-gray-500 mt-4 hover:text-white">{t.skipTutorial}</button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// Send Gift Modal
 const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency }) => { 
     const t = TRANSLATIONS[lang]; 
     const [selectedGift, setSelectedGift] = useState(null); 
     const [showPreview, setShowPreview] = useState(false); 
-    if(!show || !targetUser) return null; 
+    
+    if(!show) return null; 
+    
     const gifts = SHOP_ITEMS.gifts; 
     
     const handleSend = async (gift) => { 
@@ -1041,10 +976,12 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                 <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
                     <div className="modal-header"><h2 className="modal-title">{t.sendGift}</h2><ModalCloseBtn onClose={onClose} /></div> 
                     <div className="modal-body">
-                        <div className="flex items-center gap-2 mb-3 p-2 bg-white/5 rounded-lg"> 
-                            <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
-                            <div><div className="font-bold text-sm">{targetUser.displayName}</div><div className="text-[10px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div></div> 
-                        </div> 
+                        {targetUser && targetUser.uid !== 'self' && (
+                            <div className="flex items-center gap-2 mb-3 p-2 bg-white/5 rounded-lg"> 
+                                <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
+                                <div><div className="font-bold text-sm">{targetUser.displayName}</div><div className="text-[10px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div></div> 
+                            </div> 
+                        )}
                         <div className="flex items-center gap-2 mb-3 text-xs text-yellow-400"><span>🧠 {currency} {CURRENCY_NAME}</span></div> 
                         <div className="grid grid-cols-4 gap-2 max-h-[250px] overflow-y-auto"> 
                             {gifts.map(gift => ( 
@@ -1064,7 +1001,135 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
 };
 
 // ==========================================
-// SHOP MODAL - WITH GIFT DETAILS
+// BROWSE ROOMS MODAL - FIXED: Real-time rooms display
+// ==========================================
+const BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUserData, lang }) => {
+    const t = TRANSLATIONS[lang];
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [joinPassword, setJoinPassword] = useState('');
+    const [selectedRoom, setSelectedRoom] = useState(null);
+    const [showPasswordInput, setShowPasswordInput] = useState(false);
+    
+    // Real-time listener for active rooms
+    useEffect(() => {
+        if (!show) return;
+        
+        setLoading(true);
+        const unsub = roomsCollection
+            .where('status', '==', 'waiting')
+            .onSnapshot(snap => {
+                const roomsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Filter out full rooms (10 players max)
+                const availableRooms = roomsData.filter(room => room.players?.length < 10);
+                setRooms(availableRooms);
+                setLoading(false);
+            }, error => {
+                console.error('Browse rooms error:', error);
+                setLoading(false);
+            });
+        
+        return unsub;
+    }, [show]);
+    
+    if (!show) return null;
+    
+    const handleJoinClick = (room) => {
+        if (room.isPrivate) {
+            setSelectedRoom(room);
+            setShowPasswordInput(true);
+        } else {
+            onJoin(room.id, '');
+        }
+    };
+    
+    const handlePasswordJoin = () => {
+        if (selectedRoom && joinPassword) {
+            onJoin(selectedRoom.id, joinPassword);
+            setShowPasswordInput(false);
+            setSelectedRoom(null);
+            setJoinPassword('');
+        }
+    };
+    
+    const getDefaultPhoto = (uData, name) => uData?.photoURL || `https://ui-avatars.com/api/?name=${name || 'Guest'}&background=random`;
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.browse}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body">
+                    {loading ? (
+                        <div className="text-center py-8">
+                            <div className="text-2xl animate-pulse">⏳</div>
+                            <p className="text-gray-400 mt-2">{t.loading}</p>
+                        </div>
+                    ) : rooms.length === 0 ? (
+                        <div className="text-center py-8 text-gray-400">
+                            <div className="text-4xl mb-2">🔍</div>
+                            <p>{t.noRooms}</p>
+                        </div>
+                    ) : (
+                        <div className="browse-rooms-container">
+                            {rooms.map(room => (
+                                <div key={room.id} className="room-card">
+                                    <div className="room-card-header">
+                                        <span className="room-card-code">{room.id}</span>
+                                        <span className="room-card-mode">
+                                            {room.mode === 'advanced' ? (lang === 'ar' ? 'متقدم' : 'Advanced') : (lang === 'ar' ? 'عادي' : 'Normal')}
+                                        </span>
+                                    </div>
+                                    <div className="room-card-info">
+                                        <div className="room-card-players">
+                                            <span>👥 {room.players?.length || 0}/10</span>
+                                            {room.isPrivate && <span className="room-card-private ml-2">🔒</span>}
+                                        </div>
+                                        <button 
+                                            onClick={() => handleJoinClick(room)}
+                                            className="room-card-join-btn"
+                                        >
+                                            {t.join}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                
+                {/* Password Input Modal */}
+                {showPasswordInput && selectedRoom && (
+                    <div className="p-3 bg-white/5 border-t border-white/10">
+                        <div className="text-xs text-gray-400 mb-2">
+                            🔒 {lang === 'ar' ? 'أدخل كلمة السر' : 'Enter password'} - Room: {selectedRoom.id}
+                        </div>
+                        <div className="flex gap-2">
+                            <input 
+                                type="password" 
+                                value={joinPassword}
+                                onChange={e => setJoinPassword(e.target.value)}
+                                placeholder={t.password}
+                                className="input-dark flex-1 p-2 rounded text-sm"
+                            />
+                            <button onClick={handlePasswordJoin} className="btn-neon px-4 py-2 rounded text-sm">
+                                {t.join}
+                            </button>
+                            <button onClick={() => { setShowPasswordInput(false); setSelectedRoom(null); }} className="btn-ghost px-3 py-2 rounded text-sm">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// SHOP MODAL
 // ==========================================
 const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip }) => {
     const t = TRANSLATIONS[lang];
@@ -1087,7 +1152,14 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     };
     
     const isOwned = (item) => inventory[item.type]?.includes(item.id);
-    const isEquipped = (item) => equipped[item.type] === item.id;
+    const isEquipped = (item) => {
+        // For badges, check if it's in the equipped badges array
+        if (item.type === 'badges') {
+            const equippedBadges = equipped.badges || [];
+            return Array.isArray(equippedBadges) ? equippedBadges.includes(item.id) : equipped.badges === item.id;
+        }
+        return equipped[item.type] === item.id;
+    };
     
     const renderPreview = (item) => {
         if (item.type === 'frames') {
@@ -1161,7 +1233,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                         <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
                                         {owned ? (
                                             equippedItem ? (
-                                                <button onClick={(e) => { e.stopPropagation(); handleUnequip(item.type); }} className="btn-unequip w-full">{t.unequip}</button>
+                                                <button onClick={(e) => { e.stopPropagation(); onUnequip(item.type, item.id); }} className="btn-unequip w-full">{t.unequip}</button>
                                             ) : (
                                                 <button onClick={(e) => { e.stopPropagation(); onEquip(item); }} className="btn-success w-full text-xs py-1 rounded">{t.equip}</button>
                                             )
@@ -1186,9 +1258,9 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 };
 
 // ==========================================
-// INVENTORY MODAL - WITH SEND GIFT BUTTON
+// INVENTORY MODAL - MULTI-BADGE SUPPORT
 // ==========================================
-const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn }) => {
+const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedGift, setSelectedGift] = useState(null);
@@ -1204,7 +1276,20 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
         return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || [];
     };
     
-    const isEquipped = (item) => equipped[item.type] === item.id;
+    // Check if badge is equipped (supports both single and multiple badges)
+    const isEquipped = (item) => {
+        if (item.type === 'badges') {
+            const equippedBadges = equipped.badges || [];
+            return Array.isArray(equippedBadges) ? equippedBadges.includes(item.id) : equipped.badges === item.id;
+        }
+        return equipped[item.type] === item.id;
+    };
+    
+    // Get count of equipped badges
+    const getEquippedBadgeCount = () => {
+        const equippedBadges = equipped.badges || [];
+        return Array.isArray(equippedBadges) ? equippedBadges.length : (equippedBadges ? 1 : 0);
+    };
     
     const renderPreview = (item) => {
         if (item.type === 'frames') {
@@ -1232,6 +1317,9 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                 <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', maxHeight: '90vh' }}>
                     <div className="modal-header">
                         <h2 className="modal-title">{t.myInventory}</h2>
+                        {activeTab === 'badges' && (
+                            <span className="text-xs text-gray-400">{getEquippedBadgeCount()}/{MAX_BADGES}</span>
+                        )}
                         <ModalCloseBtn onClose={onClose} />
                     </div>
                     
@@ -1263,14 +1351,23 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                             );
                                         }
                                         
+                                        // For badges, check if we can equip more
+                                        const canEquipBadge = activeTab === 'badges' && !equippedItem && getEquippedBadgeCount() < MAX_BADGES;
+                                        
                                         return (
                                             <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`}>
                                                 <div className="inventory-item-preview">{renderPreview(item)}</div>
                                                 <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
                                                 {equippedItem ? (
-                                                    <button onClick={() => onUnequip(item.type)} className="btn-unequip w-full">{t.unequip}</button>
+                                                    <button onClick={() => onUnequip(item.type, item.id)} className="btn-unequip w-full">{t.unequip}</button>
                                                 ) : (
-                                                    <button onClick={() => onEquip(item)} className="btn-success w-full text-xs py-1 rounded">{t.equip}</button>
+                                                    <button 
+                                                        onClick={() => onEquip(item)} 
+                                                        disabled={activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES && !equippedItem}
+                                                        className={`btn-success w-full text-xs py-1 rounded ${(activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES && !equippedItem) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    >
+                                                        {t.equip}
+                                                    </button>
                                                 )}
                                             </div>
                                         );
@@ -1293,6 +1390,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                     isFromInventory={true}
                     onSendFromInventory={onSendGift}
                     friendsData={friendsData}
+                    currentUserData={currentUserData}
                 />
             )}
         </>
@@ -1300,7 +1398,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
 };
 
 // ==========================================
-// USER PROFILE MODAL - IMPROVED
+// USER PROFILE MODAL - MULTI-BADGE SUPPORT
 // ==========================================
 const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSendFriendRequest, onSendGift, userData, currentUserFriends, currentUserFriendRequests }) => {
     const t = TRANSLATIONS[lang];
@@ -1334,7 +1432,6 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     const isOwnProfile = targetUID === currentUserUID;
     const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
     
-    // Check friend status
     const isAlreadyFriend = currentUserFriends?.includes(targetUID);
     const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
     
@@ -1394,19 +1491,15 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                                     </div>
                                     <h3 className="profile-name">{targetData.displayName || 'Unknown'}</h3>
                                     
-                                    {/* Title - using renderTitle function */}
+                                    {/* Title */}
                                     {targetData.equipped?.titles && (
                                         <div className="profile-title-container">
                                             {renderTitle(targetData.equipped.titles, lang)}
                                         </div>
                                     )}
                                     
-                                    {/* Badge */}
-                                    {targetData.equipped?.badges && (
-                                        <div className="profile-badge-container">
-                                            {renderBadge(targetData.equipped.badges, 28)}
-                                        </div>
-                                    )}
+                                    {/* Badges - Multi-badge support */}
+                                    {targetData.equipped?.badges && renderBadges(targetData.equipped.badges, 28)}
                                     
                                     {isTargetGuest && <div className="profile-account-type guest">{t.guestAccount}</div>}
                                     
@@ -1450,12 +1543,221 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
 };
 
 // ==========================================
-// MAIN APP COMPONENT - SEE PART 4
+// PRIVATE CHAT MODAL
 // ==========================================
-// Continue in Part 4...
+const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSendNotification, onSendGift, currency }) => {
+    const t = TRANSLATIONS[lang];
+    const [messages, setMessages] = useState([]);
+    const [newMsg, setNewMsg] = useState('');
+    const [sending, setSending] = useState(false);
+    const [showGiftModal, setShowGiftModal] = useState(false);
+    const messagesEndRef = useRef(null);
+    const inputRef = useRef(null);
+    
+    const chatId = friend && user ? getChatId(user.uid, friend.uid) : null;
+    
+    useEffect(() => {
+        if (!show || !chatId) return;
+        const unsub = chatsCollection.doc(chatId).collection('messages')
+            .onSnapshot(snap => {
+                let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                msgs.sort((a, b) => {
+                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
+                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
+                    return timeA - timeB;
+                });
+                setMessages(msgs);
+                chatsCollection.doc(chatId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {});
+            });
+        return unsub;
+    }, [show, chatId, user?.uid]);
+    
+    useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+    
+    const handleSend = async () => {
+        if (!newMsg.trim() || sending) return;
+        setSending(true);
+        try {
+            const msgData = { senderId: user.uid, senderName: currentUser?.displayName || 'User', senderPhoto: currentUser?.photoURL || null, text: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp() };
+            await chatsCollection.doc(chatId).collection('messages').add(msgData);
+            await chatsCollection.doc(chatId).set({ members: [user.uid, friend.uid], lastMessage: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
+            if (onSendNotification) {
+                await onSendNotification(friend.uid, 'message', `${currentUser?.displayName || 'User'}: ${newMsg.trim().substring(0, 50)}${newMsg.trim().length > 50 ? '...' : ''}`, user.uid, currentUser?.displayName || 'User');
+            }
+            setNewMsg('');
+            playSound('click');
+        } catch (e) { console.error('Send message error:', e); }
+        setSending(false);
+    };
+    
+    const handleSendGiftToChat = async (gift, targetUser) => {
+        if (!onSendGift) return;
+        await onSendGift(gift, targetUser);
+        const giftMsgData = { 
+            senderId: user.uid, 
+            senderName: currentUser?.displayName || 'User', 
+            senderPhoto: currentUser?.photoURL || null, 
+            type: 'gift',
+            giftId: gift.id,
+            giftName: lang === 'ar' ? gift.name_ar : gift.name_en,
+            giftEmoji: gift.emoji,
+            giftCharisma: gift.charisma,
+            text: `🎁 ${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji} ${lang === 'ar' ? gift.name_ar : gift.name_en}`,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+        };
+        try {
+            await chatsCollection.doc(chatId).collection('messages').add(giftMsgData);
+            await chatsCollection.doc(chatId).set({ 
+                members: [user.uid, friend.uid], 
+                lastMessage: `🎁 ${lang === 'ar' ? 'هدية' : 'Gift'}`, 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
+                [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) 
+            }, { merge: true });
+        } catch (e) { console.error('Gift message error:', e); }
+        setShowGiftModal(false);
+    };
+    
+    const addEmoji = (emoji) => {
+        setNewMsg(prev => prev + emoji);
+        inputRef.current?.focus();
+    };
+    
+    if (!show || !friend) return null;
+    
+    const displayEmojis = EMOJI_LIST.slice(0, 30);
+    
+    const renderMessageContent = (msg) => {
+        if (msg.type === 'gift') {
+            return (
+                <div className="gift-message-content">
+                    <div className="gift-message-icon text-4xl">{msg.giftEmoji || '🎁'}</div>
+                    <div className="gift-message-name">{msg.giftName || 'Gift'}</div>
+                    <div className="gift-message-details">
+                        <span className="gift-charisma-badge">+{formatCharisma(msg.giftCharisma)} {lang === 'ar' ? 'كاريزما' : 'Charisma'}</span>
+                    </div>
+                </div>
+            );
+        }
+        return <div className="chat-message-bubble">{msg.text}</div>;
+    };
+    
+    return (
+        <>
+            <div className="modal-overlay" onClick={onClose}>
+                <div className="chat-modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="chat-header-bar">
+                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                        <div className="chat-header-info">
+                            <div className="chat-header-name">{friend.displayName}</div>
+                            <div className="chat-header-status">{t.online}</div>
+                        </div>
+                        <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" title={t.sendGift}>
+                            🎁
+                        </button>
+                        <ModalCloseBtn onClose={onClose} />
+                    </div>
+                    
+                    <div className="chat-messages-container">
+                        {messages.length === 0 ? (
+                            <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div>
+                        ) : (
+                            messages.map(msg => {
+                                const isMine = msg.senderId === user?.uid;
+                                const isGift = msg.type === 'gift';
+                                return (
+                                    <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''} ${isGift ? 'gift-message' : ''}`}>
+                                        {!isMine && (
+                                            <AvatarWithFrame 
+                                                photoURL={msg.senderPhoto || friend.photoURL} 
+                                                equipped={friend.equipped} 
+                                                size="sm" 
+                                            />
+                                        )}
+                                        <div className="chat-message-content">
+                                            <div className="chat-message-sender">{isMine ? (currentUser?.displayName || 'You') : msg.senderName}</div>
+                                            {renderMessageContent(msg)}
+                                            <div className="chat-message-time">{formatTime(msg.timestamp)}</div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
+                    
+                    <div className="chat-input-container">
+                        <div className="emoji-picker-container">
+                            {displayEmojis.map((emoji, i) => (
+                                <button key={i} className="emoji-picker-btn" onClick={() => addEmoji(emoji)}>{emoji}</button>
+                            ))}
+                        </div>
+                        
+                        <div className="chat-input-row">
+                            <input 
+                                ref={inputRef}
+                                type="text" 
+                                className="chat-input" 
+                                placeholder={t.typeMessage} 
+                                value={newMsg} 
+                                onChange={e => setNewMsg(e.target.value)} 
+                                onKeyPress={e => e.key === 'Enter' && handleSend()} 
+                            />
+                            <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {showGiftModal && (
+                <SendGiftModal 
+                    show={showGiftModal} 
+                    onClose={() => setShowGiftModal(false)} 
+                    targetUser={friend} 
+                    currentUser={currentUser} 
+                    lang={lang} 
+                    onSendGift={handleSendGiftToChat} 
+                    currency={currency || 0} 
+                />
+            )}
+        </>
+    );
+};
+
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 4
-// Main App Component with Notifications
+// TUTORIAL MODAL
+// ==========================================
+const TutorialModal = ({ show, onClose, lang }) => {
+    const t = TRANSLATIONS[lang];
+    const [step, setStep] = useState(0);
+    if(!show) return null;
+    const steps = [ { text: t.tutorialStep1, img: "🕵️" }, { text: t.tutorialStep2, img: "🗳️" }, { text: t.tutorialStep3, img: "🛒" } ];
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.tutorialTitle}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body text-center">
+                    <div className="text-6xl mb-6 animate-bounce">{steps[step].img}</div>
+                    <p className="text-base mb-6 text-gray-200">{steps[step].text}</p>
+                    <div className="flex justify-center gap-2 mb-4"> 
+                        {steps.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === step ? 'bg-cyan-400 w-4' : 'bg-gray-600'}`}></div>)} 
+                    </div>
+                    <div className="flex gap-3">
+                        {step > 0 && <button onClick={() => setStep(s => s-1)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">Back</button>}
+                        {step < steps.length - 1 ? ( <button onClick={() => setStep(s => s+1)} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.next}</button> ) : ( <button onClick={onClose} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.startGame}</button> )}
+                    </div>
+                    <button onClick={onClose} className="text-xs text-gray-500 mt-4 hover:text-white">{t.skipTutorial}</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// PRO SPY - COMPLETE SCRIPT - PART 3
+// Main App Component
 // ==========================================
 
 function App() {
@@ -1504,7 +1806,13 @@ function App() {
     const [guestData, setGuestData] = useState(null);
     const [showEmail, setShowEmail] = useState(false);
     
-    // NEW: Notification System
+    // NEW: Login Rewards
+    const [showLoginRewards, setShowLoginRewards] = useState(false);
+    
+    // NEW: Lobby password visibility
+    const [showLobbyPassword, setShowLobbyPassword] = useState(false);
+    
+    // Notification System
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -1555,7 +1863,26 @@ function App() {
                 const userRef = usersCollection.doc(u.uid); 
                 const doc = await userRef.get();
                 if (!doc.exists) { 
-                    const newUserData = { uid: u.uid, email: u.email || null, displayName: u.displayName || u.uid.substring(0,5), photoURL: u.photoURL || null, customId: generateUID(), stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [], friendRequests: [], createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastChangedName: null, lastActive: firebase.firestore.FieldValue.serverTimestamp(), isAnonymous: false, currency: 100, inventory: {frames: [], titles: [], themes: [], gifts: [], badges: []}, equipped: {}, charisma: 0 }; 
+                    const newUserData = { 
+                        uid: u.uid, 
+                        email: u.email || null, 
+                        displayName: u.displayName || u.uid.substring(0,5), 
+                        photoURL: u.photoURL || null, 
+                        customId: generateUID(), 
+                        stats: { wins: 0, losses: 0, xp: 0 }, 
+                        achievements: [], 
+                        friends: [], 
+                        friendRequests: [], 
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(), 
+                        lastChangedName: null, 
+                        lastActive: firebase.firestore.FieldValue.serverTimestamp(), 
+                        isAnonymous: false, 
+                        currency: 100, 
+                        inventory: {frames: [], titles: [], themes: [], gifts: [], badges: []}, 
+                        equipped: { badges: [] }, // Initialize badges as array
+                        charisma: 0,
+                        loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 }
+                    }; 
                     await userRef.set(newUserData); 
                     setUserData(newUserData); 
                     if (u.displayName) setNickname(u.displayName); 
@@ -1576,20 +1903,32 @@ function App() {
     useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && isLoggedIn) setShowTutorial(true); }, [isLoggedIn]);
     useEffect(() => { if (!user || isGuest) return; const interval = setInterval(() => { usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 60000); return () => clearInterval(interval); }, [user, isGuest]);
 
-    // Notifications Listener with Sound (Works without index)
+    // Check for login rewards on login
+    useEffect(() => {
+        if (isLoggedIn && userData) {
+            const loginData = userData.loginRewards || { currentDay: 0, lastClaimDate: null };
+            const today = new Date().toDateString();
+            const lastClaim = loginData.lastClaimDate?.toDate?.()?.toDateString() || loginData.lastClaimDate;
+            
+            // Show login rewards if can claim today
+            if (lastClaim !== today && loginData.currentDay < 30) {
+                setShowLoginRewards(true);
+            }
+        }
+    }, [isLoggedIn, userData?.loginRewards?.lastClaimDate]);
+
+    // Notifications Listener with Sound
     useEffect(() => {
         if (!user || !isLoggedIn) return;
         
-        let previousCount = -1; // Start with -1 to detect first load
+        let previousCount = -1;
         
-        // Use simple query without orderBy to avoid index requirement
         const unsub = notificationsCollection
             .where('toUserId', '==', user.uid)
             .limit(50)
             .onSnapshot(
                 snap => {
                     let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    // Sort manually by timestamp
                     notifs.sort((a, b) => {
                         const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
                         const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
@@ -1598,10 +1937,8 @@ function App() {
                     
                     const newUnread = notifs.filter(n => !n.read).length;
                     
-                    // Play sound if new notification arrived (not on first load)
                     if (previousCount !== -1 && newUnread > previousCount) {
                         playNotificationSound();
-                        // Ring the bell
                         if (notificationBellRef.current) {
                             notificationBellRef.current.classList.add('ringing');
                             setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500);
@@ -1612,9 +1949,7 @@ function App() {
                     setNotifications(notifs);
                     setUnreadNotifications(newUnread);
                 },
-                error => {
-                    console.error('Notifications listener error:', error);
-                }
+                error => { console.error('Notifications listener error:', error); }
             );
         
         return () => unsub();
@@ -1623,16 +1958,52 @@ function App() {
     // Room Listener
     useEffect(() => { if (!roomId) return; const unsub = roomsCollection.doc(roomId).onSnapshot(async doc => { if (doc.exists) { const data = doc.data(); setRoom(data); if(data.status?.includes('finished') && !data.summaryShown) { setShowSummary(true); historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); roomsCollection.doc(roomId).update({summaryShown: true}); } } else { setRoom(null); setRoomId(''); } }); return unsub; }, [roomId]);
 
-    // Leaderboard
-    useEffect(() => { if (activeView === 'leaderboard') { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); } }, [activeView]);
+    // Leaderboard - Real-time
+    useEffect(() => { 
+        if (activeView === 'leaderboard') { 
+            const unsub = usersCollection
+                .orderBy('stats.wins', 'desc')
+                .limit(100)
+                .onSnapshot(snap => { 
+                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); 
+                    setLeaderboardData(data); 
+                }, error => {
+                    // Fallback without orderBy if index doesn't exist
+                    usersCollection.limit(100).get().then(snap => {
+                        let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous);
+                        data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0));
+                        setLeaderboardData(data);
+                    });
+                });
+            return unsub;
+        } 
+    }, [activeView]);
     
-    // Friends
-    useEffect(() => { if (activeView === 'friends' && userData && user && isLoggedIn) { if (userData.friends?.length > 0) { const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).onSnapshot(snap => { setFriendsData(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); return unsub; } else { setFriendsData([]); } } }, [activeView, userData?.friends, user, isLoggedIn]);
+    // Friends - Real-time
+    useEffect(() => { 
+        if (activeView === 'friends' && userData && user && isLoggedIn) { 
+            if (userData.friends?.length > 0) { 
+                const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).onSnapshot(snap => { 
+                    setFriendsData(snap.docs.map(d => ({ id: d.id, ...d.data() }))); 
+                }); 
+                return unsub; 
+            } else { setFriendsData([]); } 
+        } 
+    }, [activeView, userData?.friends, user, isLoggedIn]);
     
-    // Friend Requests
-    useEffect(() => { if (userData && user && isLoggedIn) { if (userData.friendRequests?.length > 0) { const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).onSnapshot(snap => { setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); return unsub; } else { setFriendRequests([]); } } }, [userData?.friendRequests, user, isLoggedIn]);
+    // Friend Requests - Real-time
+    useEffect(() => { 
+        if (userData && user && isLoggedIn) { 
+            if (userData.friendRequests?.length > 0) { 
+                const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).onSnapshot(snap => { 
+                    setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() }))); 
+                }); 
+                return unsub; 
+            } else { setFriendRequests([]); } 
+        } 
+    }, [userData?.friendRequests, user, isLoggedIn]);
     
-    // Chats Meta
+    // Chats Meta - Real-time
     useEffect(() => { if (!user || !isLoggedIn) return; const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => { let total = 0; const meta = {}; snap.docs.forEach(doc => { const d = doc.data(); meta[doc.id] = d; const myUnread = d.unread?.[user.uid] || 0; total += myUnread; }); setChatsMeta(meta); setTotalUnread(total); }); return unsub; }, [user, isLoggedIn]);
     
     // Timers
@@ -1645,7 +2016,7 @@ function App() {
     
     const handleLogout = useCallback(async () => { if (user) await auth.signOut(); setShowDropdown(false); setNickname(''); setGuestData(null); localStorage.removeItem('pro_spy_guest_uid'); localStorage.removeItem('pro_spy_nick'); }, [user]);
 
-    // Guest System - Auto Create
+    // Guest System
     useEffect(() => {
         const initGuest = async () => {
             if (authLoading) return;
@@ -1669,7 +2040,7 @@ function App() {
             
             const newGuestData = {
                 uid: guestUID, displayName: guestNick, photoURL: null, customId: generateUID(),
-                stats: { wins: 0, losses: 0, xp: 0 }, currency: 0, charisma: 0, equipped: {},
+                stats: { wins: 0, losses: 0, xp: 0 }, currency: 0, charisma: 0, equipped: { badges: [] },
                 inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] },
                 isAnonymous: true, isGuest: true,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1719,14 +2090,12 @@ function App() {
         } catch (e) { console.error('Clear notifications error:', e); }
     }, [notifications]);
 
-    // Handle notification click
     const handleNotificationClick = useCallback((notif) => {
         if (notif.type === 'friend_request') {
             setActiveView('friends');
         } else if (notif.type === 'gift') {
             setNotification(notif.message);
         } else if (notif.type === 'message') {
-            // Open chat with sender
             if (notif.fromUserId && notif.fromName) {
                 const friend = { uid: notif.fromUserId, displayName: notif.fromName, photoURL: notif.fromPhoto };
                 setChatFriend(friend);
@@ -1734,6 +2103,33 @@ function App() {
             }
         }
     }, []);
+
+    // Login Reward Claim Function
+    const handleClaimLoginReward = useCallback(async (day) => {
+        if (!user || !isLoggedIn) return;
+        
+        const reward = LOGIN_REWARDS[day - 1];
+        if (!reward) return;
+        
+        const today = new Date().toDateString();
+        
+        try {
+            // Update user data
+            await usersCollection.doc(user.uid).update({
+                currency: firebase.firestore.FieldValue.increment(reward.reward),
+                'loginRewards.currentDay': day,
+                'loginRewards.lastClaimDate': firebase.firestore.FieldValue.serverTimestamp(),
+                'loginRewards.streak': firebase.firestore.FieldValue.increment(1),
+                'loginRewards.totalClaims': firebase.firestore.FieldValue.increment(1)
+            });
+            
+            setNotification(`${lang === 'ar' ? 'حصلت على' : 'You received'} +${reward.reward} 🧠!`);
+            playRewardSound();
+            setShowLoginRewards(false);
+        } catch (e) {
+            console.error('Claim reward error:', e);
+        }
+    }, [user, isLoggedIn, lang]);
 
     // Room Functions
     const handleCreateGame = useCallback(async () => { 
@@ -1758,7 +2154,11 @@ function App() {
         setRoomId(id); 
         setLoading(false); 
         setShowSetupModal(false); 
-        setActiveView('lobby'); 
+        setActiveView('lobby');
+        // Auto copy room code
+        navigator.clipboard.writeText(id);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, getDefaultPhoto]);
     
     const handleJoinGame = useCallback(async (id, pwd) => {
@@ -1777,7 +2177,7 @@ function App() {
         const snap = await ref.get(); 
         if (snap.exists) { 
             const data = snap.data(); 
-            if(data.isPrivate && data.password !== pwd) { setJoinError("Incorrect Password"); setLoading(false); return; } 
+            if(data.isPrivate && data.password !== pwd) { setJoinError(lang === 'ar' ? 'كلمة السر غير صحيحة' : "Incorrect Password"); setLoading(false); return; } 
             const exists = data.players.find(p => p.uid === uid); 
             if (!exists) { 
                 await ref.update({ 
@@ -1786,7 +2186,8 @@ function App() {
             } 
             setRoomId(id.toUpperCase()); 
             setActiveView('lobby'); 
-        } else { setJoinError("Room not found"); } 
+            setShowBrowseRooms(false);
+        } else { setJoinError(lang === 'ar' ? 'الغرفة غير موجودة' : "Room not found"); } 
         setLoading(false); 
     }, [nickname, currentUID, currentUserData, t, lang, getDefaultPhoto]);
     
@@ -1801,7 +2202,7 @@ function App() {
         setShowSummary(false); 
     }, [room, currentUID, roomId]);
 
-    // Game Logic Functions (abbreviated for space - same as before)
+    // Game Logic Functions
     const startGame = useCallback(async () => { if (room.admin !== currentUID) return; playSound('success'); const activePlayers = room.players.filter(p => p.status === 'active'); const playerCount = activePlayers.length; if (room.mode === 'advanced' && playerCount < 6) { setAlertMessage("Advanced mode requires 6+ players!"); return; } if (playerCount < 3) { setAlertMessage(t.needPlayers); return; } if (playerCount > 10) { setAlertMessage("Max 10 players allowed."); return; } const used = room.usedLocations || []; const avail = SCENARIOS.filter(s => !used.includes(s.loc_en)); const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))]; const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)]; let roles = {}; if (room.mode === 'advanced') { roles[spy.uid] = 'spy'; let potentialWhites = activePlayers.filter(p => p.uid !== spy.uid); if(potentialWhites.length > 0) { const mrWhite = potentialWhites[Math.floor(Math.random() * potentialWhites.length)]; roles[mrWhite.uid] = 'mrwhite'; potentialWhites = potentialWhites.filter(p => p.uid !== mrWhite.uid); } if(potentialWhites.length > 0) { const informant = potentialWhites[Math.floor(Math.random() * potentialWhites.length)]; roles[informant.uid] = 'informant'; } activePlayers.forEach(p => { if(!roles[p.uid]) roles[p.uid] = 'agent'; }); } else { activePlayers.forEach(p => roles[p.uid] = p.uid === spy.uid ? 'spy' : 'agent'); } let potentialStarters = activePlayers.filter(p => roles[p.uid] !== 'spy'); if (potentialStarters.length === 0) potentialStarters = activePlayers; const firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)]; await roomsCollection.doc(roomId).update({ status: 'word_selection', scenario, spyId: spy.uid, currentTurnUID: firstPlayer.uid, turnEndTime: null, currentRound: 1, players: room.players.map(p => ({ ...p, vote: null, role: roles[p.uid] || 'agent' })), usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en), messages: [], votes: {}, wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000, votingRequest: null, startedAt: firebase.firestore.FieldValue.serverTimestamp() }); }, [room, currentUID, roomId, t]);
 
     const submitWordVote = useCallback(async (word) => { if (!currentUID || !room || room.status !== 'word_selection') return; playSound('click'); const voteUpdate = {}; voteUpdate[`wordVotes.${currentUID}`] = word; await roomsCollection.doc(roomId).update(voteUpdate); }, [currentUID, room, roomId]);
@@ -1865,7 +2266,6 @@ function App() {
         if (!user || !isLoggedIn) return;
         await usersCollection.doc(user.uid).update({ friends: firebase.firestore.FieldValue.arrayUnion(fromUid), friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) });
         await usersCollection.doc(fromUid).update({ friends: firebase.firestore.FieldValue.arrayUnion(user.uid) });
-        // Send notification to the person who sent the request
         await createNotification(fromUid, 'friend_request_accepted', `${userData.displayName} ${lang === 'ar' ? 'قبل طلب صداقتك!' : 'accepted your friend request!'}`, user.uid, userData.displayName);
         setNotification(t.friendAdded);
     }, [user, isLoggedIn, t, userData, createNotification, lang]);
@@ -1875,11 +2275,12 @@ function App() {
         await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) });
     }, [user, isLoggedIn]);
 
-    // Gift Functions
+    // Gift Functions - FIXED: Bonus calculated at actual send time
     const handleSendGiftToUser = useCallback(async (gift, targetUser) => {
         const currency = userData?.currency || 0;
         if (currency < gift.cost) return;
         
+        // Calculate cashback at the moment of sending (NOT preview)
         const minBack = gift.minCashback || 1;
         const maxBack = gift.maxCashback || Math.floor(gift.cost * 0.1);
         const cashbackForSender = generateRandomCashback(minBack, maxBack);
@@ -1889,17 +2290,27 @@ function App() {
         
         try {
             await usersCollection.doc(user.uid).update({ currency: newCurrency });
-            await usersCollection.doc(targetUser.uid).update({ 
-                charisma: firebase.firestore.FieldValue.increment(gift.charisma),
-                currency: firebase.firestore.FieldValue.increment(cashbackForReceiver)
-            });
-            await createNotification(targetUser.uid, 'gift', `${userData.displayName} ${t.giftNotification}: ${gift.emoji} (+${cashbackForReceiver.toLocaleString()} 💰)`, user.uid, userData.displayName, { giftId: gift.id, giftName: lang === 'ar' ? gift.name_ar : gift.name_en, charisma: gift.charisma, cashback: cashbackForReceiver });
+            
+            // If sending to self
+            if (targetUser?.uid === 'self' || targetUser?.uid === user.uid) {
+                await usersCollection.doc(user.uid).update({ 
+                    charisma: firebase.firestore.FieldValue.increment(gift.charisma),
+                    currency: firebase.firestore.FieldValue.increment(cashbackForSender)
+                });
+            } else {
+                await usersCollection.doc(targetUser.uid).update({ 
+                    charisma: firebase.firestore.FieldValue.increment(gift.charisma),
+                    currency: firebase.firestore.FieldValue.increment(cashbackForReceiver)
+                });
+                await createNotification(targetUser.uid, 'gift', `${userData.displayName} ${t.giftNotification}: ${gift.emoji} (+${cashbackForReceiver.toLocaleString()} 💰)`, user.uid, userData.displayName, { giftId: gift.id, giftName: lang === 'ar' ? gift.name_ar : gift.name_en, charisma: gift.charisma, cashback: cashbackForReceiver });
+            }
+            
             playSound('gift');
             setNotification(`${t.giftSent} +${cashbackForSender.toLocaleString()} 💰`);
         } catch (error) { console.error("Gift error:", error); }
     }, [userData, user, t, lang, createNotification]);
 
-    // Shop Functions
+    // Shop Functions - MULTI-BADGE SUPPORT
     const handlePurchase = useCallback(async (item) => {
         if (!user || !isLoggedIn) { setShowLoginAlert(true); return; }
         const currency = userData?.currency || 0;
@@ -1919,21 +2330,55 @@ function App() {
     const handleEquip = useCallback(async (item) => {
         if (!user || !isLoggedIn) return;
         try {
-            const equipped = userData?.equipped || {};
-            const newEquipped = { ...equipped, [item.type]: item.id };
-            await usersCollection.doc(user.uid).update({ equipped: newEquipped });
+            const equipped = userData?.equipped || { badges: [] };
+            
+            if (item.type === 'badges') {
+                // For badges, add to array (up to MAX_BADGES)
+                let currentBadges = equipped.badges || [];
+                if (!Array.isArray(currentBadges)) currentBadges = currentBadges ? [currentBadges] : [];
+                
+                if (currentBadges.length >= MAX_BADGES) {
+                    setNotification(lang === 'ar' ? `الحد الأقصى ${MAX_BADGES} شارات` : `Maximum ${MAX_BADGES} badges allowed`);
+                    return;
+                }
+                
+                if (!currentBadges.includes(item.id)) {
+                    currentBadges.push(item.id);
+                }
+                
+                await usersCollection.doc(user.uid).update({ equipped: { ...equipped, badges: currentBadges } });
+            } else {
+                // For other items, single equip
+                const newEquipped = { ...equipped, [item.type]: item.id };
+                await usersCollection.doc(user.uid).update({ equipped: newEquipped });
+            }
+            
             playSound('click');
             setNotification(lang === 'ar' ? 'تم التزيين!' : 'Equipped!');
         } catch (error) { console.error('Equip error:', error); }
     }, [user, userData, isLoggedIn, lang]);
     
-    const handleUnequip = useCallback(async (type) => {
+    const handleUnequip = useCallback(async (type, itemId) => {
         if (!user || !isLoggedIn) return;
         try {
-            const equipped = userData?.equipped || {};
-            const newEquipped = { ...equipped };
-            delete newEquipped[type];
-            await usersCollection.doc(user.uid).update({ equipped: newEquipped });
+            const equipped = userData?.equipped || { badges: [] };
+            
+            if (type === 'badges') {
+                // For badges, remove from array
+                let currentBadges = equipped.badges || [];
+                if (!Array.isArray(currentBadges)) currentBadges = currentBadges ? [currentBadges] : [];
+                
+                currentBadges = currentBadges.filter(id => id !== itemId);
+                
+                const newEquipped = { ...equipped, badges: currentBadges };
+                await usersCollection.doc(user.uid).update({ equipped: newEquipped });
+            } else {
+                // For other items, remove the key
+                const newEquipped = { ...equipped };
+                delete newEquipped[type];
+                await usersCollection.doc(user.uid).update({ equipped: newEquipped });
+            }
+            
             playSound('click');
             setNotification(lang === 'ar' ? 'تمت الإزالة!' : 'Unequipped!');
         } catch (error) { console.error('Unequip error:', error); }
@@ -1990,6 +2435,9 @@ function App() {
             
             <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
             
+            {/* Login Rewards */}
+            <LoginRewards show={showLoginRewards} onClose={() => setShowLoginRewards(false)} userData={userData} onClaim={handleClaimLoginReward} lang={lang} />
+            
             {/* Match Summary */}
             {showSummary && room && (
                 <div className="modal-overlay" onClick={() => setShowSummary(false)}>
@@ -2011,7 +2459,7 @@ function App() {
             {showShop && <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} />}
             
             {/* Inventory */}
-            {showInventory && <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} />}
+            {showInventory && <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} />}
             
             {/* My Account */}
             {showMyAccount && (
@@ -2026,7 +2474,7 @@ function App() {
                                     </div>
                                     <h3 className="profile-name">{currentUserData?.displayName || 'User'}</h3>
                                     {currentUserData?.equipped?.titles && <div className="profile-title-container">{renderTitle(currentUserData.equipped.titles, lang)}</div>}
-                                    {currentUserData?.equipped?.badges && <div className="profile-badge-container">{renderBadge(currentUserData.equipped.badges, 28)}</div>}
+                                    {currentUserData?.equipped?.badges && renderBadges(currentUserData.equipped.badges, 28)}
                                     {isGuest && <div className="profile-account-type guest">{t.guestAccount}</div>}
                                     <div className="profile-id" onClick={() => { navigator.clipboard.writeText(currentUserData?.customId || ''); }}>
                                         <span>ID: {currentUserData?.customId || 'N/A'}</span>
@@ -2061,6 +2509,12 @@ function App() {
                                 <span className="text-2xl">🧠</span>
                                 <span className="text-lg font-bold text-yellow-400">{(currentUserData?.currency || 0).toLocaleString()} {CURRENCY_NAME}</span>
                             </div>
+                            {/* Login Rewards Button */}
+                            {isLoggedIn && (
+                                <button onClick={() => setShowLoginRewards(true)} className="btn-gold w-full py-2 rounded-lg text-sm font-bold mb-2">
+                                    🎁 {t.loginRewards}
+                                </button>
+                            )}
                         </div>
                         <div className="modal-footer">
                             {isLoggedIn && (
@@ -2086,14 +2540,15 @@ function App() {
             {showUserProfile && <UserProfileModal show={showUserProfile} onClose={() => setShowUserProfile(false)} targetUID={targetProfileUID} lang={lang} currentUserUID={currentUID} onSendFriendRequest={handleSendRequest} onSendGift={handleSendGiftToUser} userData={currentUserData} currentUserFriends={userData?.friends} currentUserFriendRequests={userData?.friendRequests} />}
             
             {/* Browse Rooms */}
-            {showBrowseRooms && (
-                <div className="modal-overlay" onClick={() => setShowBrowseRooms(false)}>
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-                        <div className="modal-header"><h2 className="modal-title">{t.browse}</h2><ModalCloseBtn onClose={() => setShowBrowseRooms(false)} /></div>
-                        <div className="modal-body"><div className="text-center py-8 text-gray-400">{t.noRooms}</div></div>
-                    </div>
-                </div>
-            )}
+            <BrowseRoomsModal 
+                show={showBrowseRooms} 
+                onClose={() => setShowBrowseRooms(false)} 
+                onJoin={handleJoinGame}
+                nickname={nickname}
+                currentUID={currentUID}
+                currentUserData={currentUserData}
+                lang={lang}
+            />
             
             {/* Private Chat */}
             {showPrivateChat && chatFriend && user && <PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUser={currentUserData} user={user} lang={lang} onSendNotification={createNotification} onSendGift={handleSendGiftToUser} currency={userData?.currency || 0} />}
@@ -2191,6 +2646,7 @@ function App() {
                                             <>
                                                 <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🛒</span> {t.shop}</button>
                                                 <button onClick={() => { setShowInventory(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>📦</span> {t.inventory}</button>
+                                                <button onClick={() => { setShowLoginRewards(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🎁</span> {t.loginRewards}</button>
                                             </>
                                         )}
                                         <button onClick={() => { handleLogout(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400"><span>🚪</span> {t.logout}</button>
@@ -2302,12 +2758,30 @@ function App() {
             {/* Room View */}
             {room && (
                 <main className="main-content">
+                    {/* Lobby Code with Copy + Password Toggle */}
                     <div className="glass-panel rounded-lg p-2 mb-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <button onClick={handleCopy} className="bg-white/10 px-2 py-1 rounded text-xs font-mono">{copied ? t.copied : roomId}</button>
-                            {room.isPrivate && <span className="text-[10px] text-yellow-400">🔒</span>}
+                        <div className="lobby-code-container">
+                            <button onClick={handleCopy} className={`lobby-code-btn ${copied ? 'copied' : ''}`}>
+                                <span className="font-mono">{roomId}</span>
+                                <span>{copied ? '✓' : '📋'}</span>
+                            </button>
+                            {copied && <span className="text-[10px] text-green-400 ml-1">{t.codeCopied}</span>}
                         </div>
-                        <div className="text-xs text-gray-400">{t.roundsFormat(room.currentRound || 0, MAX_ROUNDS)}</div>
+                        <div className="flex items-center gap-2">
+                            {room.isPrivate && (
+                                <button 
+                                    onClick={() => setShowLobbyPassword(!showLobbyPassword)}
+                                    className="lobby-password-toggle"
+                                    title={showLobbyPassword ? t.hidePasswordLabel : t.showPasswordLabel}
+                                >
+                                    {showLobbyPassword ? '🙈' : '👁️'}
+                                </button>
+                            )}
+                            {room.isPrivate && showLobbyPassword && (
+                                <span className="text-xs text-yellow-400 font-mono">{room.password}</span>
+                            )}
+                            <div className="text-xs text-gray-400">{t.roundsFormat(room.currentRound || 0, MAX_ROUNDS)}</div>
+                        </div>
                     </div>
                     
                     {room.status === 'waiting' && (
@@ -2416,10 +2890,3 @@ const AppWithErrorBoundary = () => (
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
-
-
-
-
-
-
-
