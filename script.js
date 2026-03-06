@@ -1,7 +1,7 @@
 // ==========================================
 // PRO SPY - COMPLETE SCRIPT - PART 1
 // All Improvements + Notifications + Chat + Gifts
-// + MULTIPLE BADGES SUPPORT (UP TO 10)
+// + Animated Images Support + Multiple Badges
 // ==========================================
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
@@ -37,7 +37,28 @@ const giftsLogCollection = db.collection('artifacts').doc(appId).collection('pub
 const CURRENCY_NAME = "Intel";
 const CURRENCY_ICON = "🧠";
 const MAX_ROUNDS = 3;
-const MAX_BADGES = 10; // NEW: Maximum badges a user can equip
+const MAX_BADGES = 10; // NEW: Maximum number of badges
+
+// ==========================================
+// NEW: ANIMATED IMAGE DETECTION
+// ==========================================
+const isAnimatedImage = (item) => {
+    // 1. If manually specified
+    if (item?.isAnimated === true) return true;
+    if (item?.isAnimated === false) return false;
+    
+    // 2. Check preview URL for GIF
+    if (item?.preview && typeof item.preview === 'string') {
+        return item.preview.toLowerCase().endsWith('.gif');
+    }
+    
+    // 3. Check imageUrl for GIF
+    if (item?.imageUrl && typeof item.imageUrl === 'string') {
+        return item.imageUrl.toLowerCase().endsWith('.gif');
+    }
+    
+    return false;
+};
 
 // ==========================================
 // CHARISMA LEVELS - 21 Levels with Images
@@ -98,9 +119,9 @@ const SHOP_ITEMS = {
         { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' },
         { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' },
         { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png' },
-        { id: 'frame_gif', name_en: "gif Frame", name_ar: "إطار صورة", cost: 0, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif' },
-        { id: 'shehab', name_en: "sh", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/n8Bj9dSk/ezgif-com-animated-gif-maker-1.gif' },
-        { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif' },
+        { id: 'frame_gif', name_en: "GIF Frame", name_ar: "إطار متحرك", cost: 0, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif', isAnimated: true },
+        { id: 'shehab', name_en: "Shehab Frame", name_ar: "إطار شهاب", cost: 100, type: 'frames', preview: 'https://i.ibb.co/n8Bj9dSk/ezgif-com-animated-gif-maker-1.gif', isAnimated: true },
+        { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif', isAnimated: true },
         { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)' },
     ],
     // Titles with imageUrl support - if imageUrl exists, show as image; otherwise show as text with background
@@ -303,7 +324,7 @@ const TRANSLATIONS = {
         showEmail: "Show", hideEmail: "Hide", accountType: "Account Type", googleAccount: "Google Account", guestAccount: "Guest Account",
         playAsGuest: "Play as Guest", continueAsGuest: "Continue as Guest",
         sendGiftToFriend: "Send Gift", giftCharisma: "Charisma", giftCashbackRange: "Cashback",
-        maxBadgesReached: "Max badges reached",
+        maxBadgesReached: "Maximum 10 badges equipped", removeBadgeFirst: "Remove a badge first",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
@@ -321,16 +342,15 @@ const TRANSLATIONS = {
         showEmail: "إظهار", hideEmail: "إخفاء", accountType: "نوع الحساب", googleAccount: "حساب جوجل", guestAccount: "حساب زائر",
         playAsGuest: "العب كزائر", continueAsGuest: "المتابعة كزائر",
         sendGiftToFriend: "إرسال هدية", giftCharisma: "كاريزما", giftCashbackRange: "كاش باك",
-        maxBadgesReached: "تم الوصول للحد الأقصى",
+        maxBadgesReached: "تم الوصول للحد الأقصى (10 شارات)", removeBadgeFirst: "أزل شارة أولاً",
     } 
 };
 
-// ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 2
-// Components + Notifications + Chat
-// + MULTIPLE BADGES SUPPORT
-// ==========================================
+// Continue in Part 2...
 
+// ==========================================
+// PART 2 - COMPONENTS
+// ==========================================
 // Error Boundary
 class ErrorBoundary extends React.Component {
     constructor(props) { super(props); this.state = { hasError: false, error: null }; }
@@ -444,18 +464,21 @@ const KDCircle = ({ wins, losses, lang }) => {
 };
 
 // ==========================================
-// AVATAR WITH FRAME - ORIGINAL (UNCHANGED)
+// AVATAR WITH FRAME - UPDATED FOR ANIMATED GIF
 // ==========================================
 const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
     const sizeConfig = {
-        sm: { wrapper: 52, avatar: 30, mask: 32 },
-        md: { wrapper: 72, avatar: 40, mask: 42 },
-        lg: { wrapper: 110, avatar: 60, mask: 62 },
-        xl: { wrapper: 140, avatar: 80, mask: 82 }
+        sm: { wrapper: 52, avatar: 30, mask: 34 },
+        md: { wrapper: 72, avatar: 40, mask: 44 },
+        lg: { wrapper: 110, avatar: 60, mask: 64 },
+        xl: { wrapper: 140, avatar: 80, mask: 84 }
     };
     const config = sizeConfig[size] || sizeConfig.md;
     const frameStyle = equipped?.frames || null;
     const frameItem = SHOP_ITEMS.frames.find(f => f.id === frameStyle);
+    
+    // Check if frame is animated (GIF)
+    const isAnimated = frameItem ? isAnimatedImage(frameItem) : false;
     
     const wrapperStyle = {
         position: 'relative',
@@ -485,6 +508,34 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
     const renderFrame = () => {
         if (!frameItem) return null;
         
+        // For animated GIF frames - render with transparent mask
+        if (isAnimated && frameItem.preview.startsWith('http')) {
+            return (
+                <div className="avatar-frame-animated">
+                    <img 
+                        src={frameItem.preview} 
+                        alt="frame" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    {/* Transparent center mask */}
+                    <div 
+                        className="avatar-frame-animated-mask"
+                        style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: config.mask + 'px',
+                            height: config.mask + 'px',
+                            borderRadius: '50%',
+                            background: 'var(--bg-dark)'
+                        }}
+                    />
+                </div>
+            );
+        }
+        
+        // For regular image frames (PNG/JPG)
         if (frameItem.preview.startsWith('http')) {
             return (
                 <div style={{
@@ -514,31 +565,32 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
                     }} />
                 </div>
             );
-        } else {
-            return (
+        }
+        
+        // For gradient frames
+        return (
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: config.wrapper + 'px',
+                height: config.wrapper + 'px',
+                borderRadius: '50%',
+                background: frameItem.preview,
+                zIndex: 1
+            }}>
                 <div style={{
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: config.wrapper + 'px',
-                    height: config.wrapper + 'px',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: config.mask + 'px',
+                    height: config.mask + 'px',
                     borderRadius: '50%',
-                    background: frameItem.preview,
-                    zIndex: 1
-                }}>
-                    <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: config.mask + 'px',
-                        height: config.mask + 'px',
-                        borderRadius: '50%',
-                        background: 'var(--bg-dark)'
-                    }} />
-                </div>
-            );
-        }
+                    background: 'var(--bg-dark)'
+                }} />
+            </div>
+        );
     };
     
     return (
@@ -554,20 +606,25 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
 };
 
 // ==========================================
-// RENDER TITLE - IMAGE OR TEXT WITH BACKGROUND
+// RENDER TITLE - UPDATED FOR ANIMATED
 // ==========================================
 const renderTitle = (titleId, lang) => {
     const titleItem = SHOP_ITEMS.titles.find(t => t.id === titleId);
     if (!titleItem) return null;
     
+    // Check if animated
+    const isAnimated = isAnimatedImage(titleItem);
+    
+    // If imageUrl exists and is not empty
     if (titleItem.imageUrl && titleItem.imageUrl.trim() !== '') {
         return (
-            <div className="profile-title-image">
+            <div className={isAnimated ? "profile-title-animated" : "profile-title-image"}>
                 <img src={titleItem.imageUrl} alt={titleItem.name_en} />
             </div>
         );
     }
     
+    // Otherwise show as text WITH purple background
     const name = lang === 'ar' ? titleItem.name_ar : titleItem.name_en;
     return (
         <div className="profile-title-text">
@@ -578,81 +635,58 @@ const renderTitle = (titleId, lang) => {
 };
 
 // ==========================================
-// RENDER BADGE - SINGLE BADGE
+// RENDER BADGE - UPDATED FOR ANIMATED (SINGLE)
 // ==========================================
 const renderBadge = (badgeId, size = 28) => {
     const badgeItem = SHOP_ITEMS.badges.find(b => b.id === badgeId);
     if (!badgeItem) return null;
     
+    const isAnimated = isAnimatedImage(badgeItem);
+    
     if (badgeItem.imageUrl && badgeItem.imageUrl.trim() !== '') {
-        return <img src={badgeItem.imageUrl} alt={badgeItem.name_en} className="profile-badge-img" style={{ width: size + 'px', height: size + 'px' }} />;
+        return (
+            <span className={isAnimated ? "profile-badge-animated" : ""}>
+                <img 
+                    src={badgeItem.imageUrl} 
+                    alt={badgeItem.name_en} 
+                    className="profile-badge-img" 
+                    style={{ width: size + 'px', height: size + 'px' }} 
+                />
+            </span>
+        );
     }
     return <span className="profile-badge" style={{ fontSize: size + 'px' }}>{badgeItem.preview}</span>;
 };
 
 // ==========================================
-// RENDER MULTIPLE BADGES - NEW FUNCTION
+// NEW: RENDER MULTIPLE BADGES (UP TO 10)
 // ==========================================
-const renderBadges = (badges, lang) => {
-    if (!badges) return null;
+const renderBadges = (badges, lang, maxDisplay = 10) => {
+    if (!badges || badges.length === 0) return null;
     
-    // Handle both old format (single string) and new format (array)
-    let badgeIds = [];
-    if (Array.isArray(badges)) {
-        badgeIds = badges;
-    } else if (typeof badges === 'string') {
-        badgeIds = [badges];
-    }
+    // Handle both array and single string
+    const badgeArray = Array.isArray(badges) ? badges : [badges];
+    const displayBadges = badgeArray.slice(0, maxDisplay);
     
-    if (badgeIds.length === 0) return null;
+    if (displayBadges.length === 0) return null;
     
-    // If only one badge, use the simple container
-    if (badgeIds.length === 1) {
+    if (displayBadges.length === 1) {
         return (
             <div className="profile-badge-container">
-                {renderBadge(badgeIds[0], 28)}
+                {renderBadge(displayBadges[0], 28)}
             </div>
         );
     }
     
-    // Multiple badges - use the container for multiple
     return (
         <div className="profile-badges-container">
-            {badgeIds.map((badgeId, index) => (
-                <div key={badgeId + index} className="profile-badge-item">
+            {displayBadges.map((badgeId, index) => (
+                <span key={badgeId || index} className="profile-badge-animated">
                     {renderBadge(badgeId, 24)}
-                </div>
+                </span>
             ))}
         </div>
     );
-};
-
-// ==========================================
-// CHECK IF BADGE IS EQUIPPED - NEW HELPER
-// ==========================================
-const isBadgeEquipped = (equippedBadges, badgeId) => {
-    if (!equippedBadges) return false;
-    
-    if (Array.isArray(equippedBadges)) {
-        return equippedBadges.includes(badgeId);
-    }
-    
-    // Old format - single string
-    return equippedBadges === badgeId;
-};
-
-// ==========================================
-// GET EQUIPPED BADGES COUNT - NEW HELPER
-// ==========================================
-const getEquippedBadgesCount = (equippedBadges) => {
-    if (!equippedBadges) return 0;
-    
-    if (Array.isArray(equippedBadges)) {
-        return equippedBadges.length;
-    }
-    
-    // Old format - single string
-    return equippedBadges ? 1 : 0;
 };
 
 // ==========================================
@@ -660,7 +694,6 @@ const getEquippedBadgesCount = (equippedBadges) => {
 // ==========================================
 const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClearAll, onNotificationClick, lang }) => {
     const t = TRANSLATIONS[lang];
-    const bellRef = useRef(null);
     
     if (!show) return null;
     
@@ -719,7 +752,7 @@ const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClea
 };
 
 // ==========================================
-// GIFT PREVIEW MODAL - WITH DETAILS
+// GIFT PREVIEW MODAL - UPDATED FOR ANIMATED
 // ==========================================
 const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData }) => { 
     const t = TRANSLATIONS[lang]; 
@@ -728,6 +761,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     const [selectedFriend, setSelectedFriend] = useState(null);
     
     const isGiftItem = gift?.type === 'gifts';
+    const isAnimated = gift ? isAnimatedImage(gift) : false;
     
     useEffect(() => {
         if (gift && show && isGiftItem) {
@@ -743,24 +777,25 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     const renderGiftIcon = () => {
         if (gift.type === 'frames') {
             if (gift.preview && gift.preview.startsWith('http')) {
-                return <img src={gift.preview} alt={gift.name_en} className="w-20 h-20 rounded-full object-cover mx-auto" />;
+                return <img src={gift.preview} alt={gift.name_en} className={`w-20 h-20 rounded-full object-cover mx-auto ${isAnimated ? 'animate-float' : ''}`} />;
             }
             return <div className="w-20 h-20 rounded-full mx-auto" style={{ background: gift.preview }}></div>;
         }
         if (gift.type === 'badges') {
             if (gift.imageUrl && gift.imageUrl.trim() !== '') {
-                return <img src={gift.imageUrl} alt={gift.name_en} className="w-16 h-16 object-contain mx-auto" />;
+                return <img src={gift.imageUrl} alt={gift.name_en} className={`w-16 h-16 object-contain mx-auto ${isAnimated ? 'animate-pulse' : ''}`} />;
             }
             return <div className="text-6xl mb-3">{gift.preview}</div>;
         }
         if (gift.type === 'titles') {
             if (gift.imageUrl && gift.imageUrl.trim() !== '') {
-                return <img src={gift.imageUrl} alt={gift.name_en} className="h-10 object-contain mx-auto" />;
+                return <img src={gift.imageUrl} alt={gift.name_en} className={`h-10 object-contain mx-auto ${isAnimated ? 'animate-float' : ''}`} />;
             }
             return <div className="text-4xl mb-3">{gift.preview}</div>;
         }
+        // Gift type
         if (gift.imageUrl && gift.imageUrl.trim() !== '') {
-            return <img src={gift.imageUrl} alt={gift.name_en} className="w-16 h-16 object-contain mx-auto" />;
+            return <img src={gift.imageUrl} alt={gift.name_en} className={`w-16 h-16 object-contain mx-auto ${isAnimated ? 'animate-pulse' : ''}`} />;
         }
         return <div className="text-6xl mb-3">{gift.emoji}</div>;
     };
@@ -846,192 +881,11 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     ); 
 };
 
-// ==========================================
-// PRIVATE CHAT MODAL
-// ==========================================
-const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSendNotification, onSendGift, currency }) => {
-    const t = TRANSLATIONS[lang];
-    const [messages, setMessages] = useState([]);
-    const [newMsg, setNewMsg] = useState('');
-    const [sending, setSending] = useState(false);
-    const [showGiftModal, setShowGiftModal] = useState(false);
-    const messagesEndRef = useRef(null);
-    const inputRef = useRef(null);
-    
-    const chatId = friend && user ? getChatId(user.uid, friend.uid) : null;
-    
-    useEffect(() => {
-        if (!show || !chatId) return;
-        const unsub = chatsCollection.doc(chatId).collection('messages')
-            .onSnapshot(snap => {
-                let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                msgs.sort((a, b) => {
-                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
-                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
-                    return timeA - timeB;
-                });
-                setMessages(msgs);
-                chatsCollection.doc(chatId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {});
-            });
-        return unsub;
-    }, [show, chatId, user?.uid]);
-    
-    useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-    
-    const handleSend = async () => {
-        if (!newMsg.trim() || sending) return;
-        setSending(true);
-        try {
-            const msgData = { senderId: user.uid, senderName: currentUser?.displayName || 'User', senderPhoto: currentUser?.photoURL || null, text: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp() };
-            await chatsCollection.doc(chatId).collection('messages').add(msgData);
-            await chatsCollection.doc(chatId).set({ members: [user.uid, friend.uid], lastMessage: newMsg.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp(), [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
-            if (onSendNotification) {
-                await onSendNotification(friend.uid, 'message', `${currentUser?.displayName || 'User'}: ${newMsg.trim().substring(0, 50)}${newMsg.trim().length > 50 ? '...' : ''}`, user.uid, currentUser?.displayName || 'User');
-            }
-            setNewMsg('');
-            playSound('click');
-        } catch (e) { console.error('Send message error:', e); }
-        setSending(false);
-    };
-    
-    const handleSendGiftToChat = async (gift, targetUser) => {
-        if (!onSendGift) return;
-        await onSendGift(gift, targetUser);
-        const giftMsgData = { 
-            senderId: user.uid, 
-            senderName: currentUser?.displayName || 'User', 
-            senderPhoto: currentUser?.photoURL || null, 
-            type: 'gift',
-            giftId: gift.id,
-            giftName: lang === 'ar' ? gift.name_ar : gift.name_en,
-            giftEmoji: gift.emoji,
-            giftCharisma: gift.charisma,
-            text: `🎁 ${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji} ${lang === 'ar' ? gift.name_ar : gift.name_en}`,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-        };
-        try {
-            await chatsCollection.doc(chatId).collection('messages').add(giftMsgData);
-            await chatsCollection.doc(chatId).set({ 
-                members: [user.uid, friend.uid], 
-                lastMessage: `🎁 ${lang === 'ar' ? 'هدية' : 'Gift'}`, 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
-                [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) 
-            }, { merge: true });
-        } catch (e) { console.error('Gift message error:', e); }
-        setShowGiftModal(false);
-    };
-    
-    const addEmoji = (emoji) => {
-        setNewMsg(prev => prev + emoji);
-        inputRef.current?.focus();
-    };
-    
-    if (!show || !friend) return null;
-    
-    const displayEmojis = EMOJI_LIST.slice(0, 30);
-    
-    const renderMessageContent = (msg) => {
-        if (msg.type === 'gift') {
-            return (
-                <div className="gift-message-content">
-                    <div className="gift-message-icon text-4xl">{msg.giftEmoji || '🎁'}</div>
-                    <div className="gift-message-name">{msg.giftName || 'Gift'}</div>
-                    <div className="gift-message-details">
-                        <span className="gift-charisma-badge">+{formatCharisma(msg.giftCharisma)} {lang === 'ar' ? 'كاريزما' : 'Charisma'}</span>
-                    </div>
-                </div>
-            );
-        }
-        return <div className="chat-message-bubble">{msg.text}</div>;
-    };
-    
-    return (
-        <>
-            <div className="modal-overlay" onClick={onClose}>
-                <div className="chat-modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    <div className="chat-header-bar">
-                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                        <div className="chat-header-info">
-                            <div className="chat-header-name">{friend.displayName}</div>
-                            <div className="chat-header-status">{t.online}</div>
-                        </div>
-                        <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" title={t.sendGift}>
-                            🎁
-                        </button>
-                        <ModalCloseBtn onClose={onClose} />
-                    </div>
-                    
-                    <div className="chat-messages-container">
-                        {messages.length === 0 ? (
-                            <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div>
-                        ) : (
-                            messages.map(msg => {
-                                const isMine = msg.senderId === user?.uid;
-                                const isGift = msg.type === 'gift';
-                                return (
-                                    <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''} ${isGift ? 'gift-message' : ''}`}>
-                                        {!isMine && (
-                                            <AvatarWithFrame 
-                                                photoURL={msg.senderPhoto || friend.photoURL} 
-                                                equipped={friend.equipped} 
-                                                size="sm" 
-                                            />
-                                        )}
-                                        <div className="chat-message-content">
-                                            <div className="chat-message-sender">{isMine ? (currentUser?.displayName || 'You') : msg.senderName}</div>
-                                            {renderMessageContent(msg)}
-                                            <div className="chat-message-time">{formatTime(msg.timestamp)}</div>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
-                    
-                    <div className="chat-input-container">
-                        <div className="emoji-picker-container">
-                            {displayEmojis.map((emoji, i) => (
-                                <button key={i} className="emoji-picker-btn" onClick={() => addEmoji(emoji)}>{emoji}</button>
-                            ))}
-                        </div>
-                        
-                        <div className="chat-input-row">
-                            <input 
-                                ref={inputRef}
-                                type="text" 
-                                className="chat-input" 
-                                placeholder={t.typeMessage} 
-                                value={newMsg} 
-                                onChange={e => setNewMsg(e.target.value)} 
-                                onKeyPress={e => e.key === 'Enter' && handleSend()} 
-                            />
-                            <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            {showGiftModal && (
-                <SendGiftModal 
-                    show={showGiftModal} 
-                    onClose={() => setShowGiftModal(false)} 
-                    targetUser={friend} 
-                    currentUser={currentUser} 
-                    lang={lang} 
-                    onSendGift={handleSendGiftToChat} 
-                    currency={currency || 0} 
-                />
-            )}
-        </>
-    );
-};
+// Continue in Part 3...
 
 // ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 3
-// Shop + Inventory + Profile + Multiple Badges Support
+// PART 3 - SHOP & INVENTORY
 // ==========================================
-
 // Tutorial Modal
 const TutorialModal = ({ show, onClose, lang }) => {
     const t = TRANSLATIONS[lang];
@@ -1608,288 +1462,11 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     );
 };
 
-// ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 4 (FIXED)
-// Game Logic Helpers - NO DUPLICATE GiftPreviewModal
-// ==========================================
+// Continue in Part 4...
 
 // ==========================================
-// GAME LOGIC HELPERS
+// PART 5 - GAME ROOM COMPONENTS
 // ==========================================
-
-// Calculate Level from XP
-const calculateLevel = (xp) => {
-    if (xp < 100) return 1;
-    if (xp < 300) return 2;
-    if (xp < 600) return 3;
-    if (xp < 1000) return 4;
-    if (xp < 1500) return 5;
-    if (xp < 2200) return 6;
-    if (xp < 3000) return 7;
-    if (xp < 4000) return 8;
-    if (xp < 5200) return 9;
-    if (xp < 6500) return 10;
-    return Math.floor((xp - 6500) / 1500) + 11;
-};
-
-// Format Charisma Number
-const formatCharisma = (num) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
-};
-
-// Format Date
-const formatDate = (timestamp) => {
-    if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString();
-};
-
-// Generate Random Room Code
-const generateRoomCode = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
-};
-
-// Shuffle Array (Fisher-Yates)
-const shuffleArray = (array) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-};
-
-// Get Role Name
-const getRoleName = (role, lang) => {
-    const t = TRANSLATIONS[lang];
-    const roleNames = {
-        'spy': t.spy,
-        'citizen': t.citizen,
-        'detective': t.detective,
-        'doctor': t.doctor,
-        'mafia': t.mafia,
-        'godfather': t.godfather
-    };
-    return roleNames[role] || role;
-};
-
-// Get Role Color
-const getRoleColor = (role) => {
-    const colors = {
-        'spy': '#00d4ff',
-        'citizen': '#22c55e',
-        'detective': '#a855f7',
-        'doctor': '#ec4899',
-        'mafia': '#ef4444',
-        'godfather': '#dc2626'
-    };
-    return colors[role] || '#ffffff';
-};
-
-// Get Location Name
-const getLocationName = (locationId, lang) => {
-    const t = TRANSLATIONS[lang];
-    const location = LOCATIONS.find(l => l.id === locationId);
-    return location ? (lang === 'ar' ? location.name_ar : location.name_en) : locationId;
-};
-
-// ==========================================
-// GAME LOCATIONS DATA
-// ==========================================
-const LOCATIONS = [
-    { id: 'city', name_en: 'City', name_ar: 'المدينة' },
-    { id: 'mansion', name_en: 'Mansion', name_ar: 'القصر' },
-    { id: 'hospital', name_en: 'Hospital', name_ar: 'المستشفى' },
-    { id: 'bank', name_en: 'Bank', name_ar: 'البنك' },
-    { id: 'restaurant', name_en: 'Restaurant', name_ar: 'مطعم' },
-    { id: 'hotel', name_en: 'Hotel', name_ar: 'فندق' },
-    { id: 'airport', name_en: 'Airport', name_ar: 'مطار' },
-    { id: 'museum', name_en: 'Museum', name_ar: 'متحف' },
-    { id: 'school', name_en: 'School', name_ar: 'مدرسة' },
-    { id: 'beach', name_en: 'Beach', name_ar: 'شاطئ' },
-    { id: 'casino', name_en: 'Casino', name_ar: 'كازينو' },
-    { id: 'prison', name_en: 'Prison', name_ar: 'سجن' },
-    { id: 'space_station', name_en: 'Space Station', name_ar: 'محطة فضائية' },
-    { id: 'submarine', name_en: 'Submarine', name_ar: 'غواصة' },
-    { id: 'castle', name_en: 'Castle', name_ar: 'قلعة' }
-];
-
-// ==========================================
-// GAME ROLES CONFIGURATION
-// ==========================================
-const ROLES_CONFIG = {
-    minPlayers: 4,
-    maxPlayers: 16,
-    
-    // Role distribution based on player count
-    getRoleDistribution: (playerCount) => {
-        const distribution = {
-            mafia: Math.floor(playerCount / 4),
-            spy: 1,
-            detective: playerCount >= 6 ? 1 : 0,
-            doctor: playerCount >= 8 ? 1 : 0,
-            godfather: playerCount >= 10 ? 1 : 0
-        };
-        
-        const totalSpecialRoles = Object.values(distribution).reduce((a, b) => a + b, 0);
-        distribution.citizen = playerCount - totalSpecialRoles;
-        
-        return distribution;
-    },
-    
-    // Assign roles to players
-    assignRoles: (players) => {
-        const count = players.length;
-        const distribution = ROLES_CONFIG.getRoleDistribution(count);
-        
-        let roles = [];
-        for (let i = 0; i < distribution.mafia; i++) roles.push('mafia');
-        for (let i = 0; i < distribution.spy; i++) roles.push('spy');
-        for (let i = 0; i < distribution.detective; i++) roles.push('detective');
-        for (let i = 0; i < distribution.doctor; i++) roles.push('doctor');
-        for (let i = 0; i < distribution.godfather; i++) roles.push('godfather');
-        for (let i = 0; i < distribution.citizen; i++) roles.push('citizen');
-        
-        roles = shuffleArray(roles);
-        
-        return players.map((player, index) => ({
-            ...player,
-            role: roles[index] || 'citizen',
-            isAlive: true,
-            hasVoted: false,
-            votes: 0
-        }));
-    }
-};
-
-// ==========================================
-// VOTING SYSTEM HELPERS
-// ==========================================
-
-// Calculate Vote Results
-const calculateVoteResults = (votes, players) => {
-    const voteCounts = {};
-    
-    votes.forEach(vote => {
-        const targetId = vote.targetId;
-        voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
-    });
-    
-    // Find player with most votes
-    let maxVotes = 0;
-    let eliminatedId = null;
-    let isTie = false;
-    
-    Object.entries(voteCounts).forEach(([playerId, count]) => {
-        if (count > maxVotes) {
-            maxVotes = count;
-            eliminatedId = playerId;
-            isTie = false;
-        } else if (count === maxVotes) {
-            isTie = true;
-        }
-    });
-    
-    return {
-        voteCounts,
-        eliminatedId: isTie ? null : eliminatedId,
-        maxVotes,
-        isTie,
-        totalVotes: votes.length
-    };
-};
-
-// Check if all players have voted
-const allPlayersVoted = (players, votes) => {
-    const alivePlayers = players.filter(p => p.isAlive);
-    return votes.length >= alivePlayers.length;
-};
-
-// ==========================================
-// NIGHT PHASE HELPERS
-// ==========================================
-
-// Process Night Actions
-const processNightActions = (actions, players) => {
-    const results = {
-        killed: null,
-        saved: null,
-        investigated: null
-    };
-    
-    actions.forEach(action => {
-        switch (action.type) {
-            case 'kill':
-                results.killed = action.targetId;
-                break;
-            case 'save':
-                results.saved = action.targetId;
-                break;
-            case 'investigate':
-                results.investigated = {
-                    playerId: action.targetId,
-                    isMafia: ['mafia', 'godfather'].includes(
-                        players.find(p => p.id === action.targetId)?.role
-                    )
-                };
-                break;
-        }
-    });
-    
-    // Check if killed player was saved
-    if (results.killed && results.killed === results.saved) {
-        results.killed = null; // Player was saved
-    }
-    
-    return results;
-};
-
-// ==========================================
-// WIN CONDITION CHECKER
-// ==========================================
-
-const checkWinCondition = (players) => {
-    const alivePlayers = players.filter(p => p.isAlive);
-    const aliveMafia = alivePlayers.filter(p => ['mafia', 'godfather'].includes(p.role));
-    const aliveCitizens = alivePlayers.filter(p => !['mafia', 'godfather'].includes(p.role));
-    
-    // Mafia wins if they equal or outnumber citizens
-    if (aliveMafia.length >= aliveCitizens.length) {
-        return {
-            gameOver: true,
-            winner: 'mafia',
-            message: 'Mafia Wins!'
-        };
-    }
-    
-    // Citizens win if all mafia are dead
-    if (aliveMafia.length === 0) {
-        return {
-            gameOver: true,
-            winner: 'citizens',
-            message: 'Citizens Win!'
-        };
-    }
-    
-    return {
-        gameOver: false,
-        winner: null,
-        message: null
-    };
-};
-
-// ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 5
-// Game Room Components + Chat System
-// ==========================================
-
 // Player Card Component
 const PlayerCard = ({ player, isCurrentPlayer, showRole, onVote, hasVoted, voteCount, lang, currentUserUID, onProfileClick }) => {
     const t = TRANSLATIONS[lang];
@@ -2376,11 +1953,11 @@ const JoinRoomModal = ({ show, onClose, onJoin, lang, rooms }) => {
     );
 };
 
-// ==========================================
-// PRO SPY - COMPLETE SCRIPT - PART 6 (FINAL)
-// Main App Component + Render
-// ==========================================
+// Continue in Part 6...
 
+// ==========================================
+// PART 6 - MAIN APP
+// ==========================================
 // Main App Component
 const App = () => {
     // Auth State
