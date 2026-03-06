@@ -39,7 +39,151 @@ const MAX_ROUNDS = 3;
 const MAX_BADGES = 10;
 
 // ==========================================
-// LOGIN REWARDS - 30 DAYS - FIXED
+// 🔊 AUDIO SYSTEM - FIXED
+// ==========================================
+// متغيرات عامة للصوت
+let audioContext = null;
+let isAudioInitialized = false;
+
+// تهيئة AudioContext عند أول تفاعل من المستخدم
+const initAudioContext = () => {
+    if (audioContext) return audioContext;
+    
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioContext();
+        isAudioInitialized = true;
+        console.log('🔊 Audio system initialized');
+        return audioContext;
+    } catch (e) {
+        console.error('Audio initialization failed:', e);
+        return null;
+    }
+};
+
+// تشغيل الصوت
+const playSound = (type) => {
+    try {
+        // تهيئة AudioContext إذا لم يكن مهيأ
+        if (!audioContext) {
+            audioContext = initAudioContext();
+        }
+        
+        if (!audioContext) return;
+        
+        // استئناف AudioContext إذا كان متوقف
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        const now = audioContext.currentTime;
+        
+        switch(type) {
+            case 'click':
+                oscillator.frequency.setValueAtTime(800, now);
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.15, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
+                break;
+                
+            case 'success':
+                oscillator.frequency.setValueAtTime(600, now);
+                oscillator.type = 'sine';
+                oscillator.frequency.linearRampToValueAtTime(1200, now + 0.15);
+                gainNode.gain.setValueAtTime(0.15, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                oscillator.start(now);
+                oscillator.stop(now + 0.3);
+                break;
+                
+            case 'gift':
+                // نغمة صاعدة للحصول على هدية
+                oscillator.frequency.setValueAtTime(523, now);
+                oscillator.type = 'sine';
+                oscillator.frequency.linearRampToValueAtTime(784, now + 0.15);
+                oscillator.frequency.linearRampToValueAtTime(1047, now + 0.3);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                oscillator.start(now);
+                oscillator.stop(now + 0.4);
+                break;
+                
+            case 'notification':
+                // نغمة الإشعارات
+                oscillator.frequency.setValueAtTime(880, now);
+                oscillator.type = 'sine';
+                oscillator.frequency.linearRampToValueAtTime(1100, now + 0.1);
+                oscillator.frequency.linearRampToValueAtTime(880, now + 0.2);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                oscillator.start(now);
+                oscillator.stop(now + 0.3);
+                break;
+                
+            case 'reward':
+                // نغمة المكافآت
+                oscillator.frequency.setValueAtTime(440, now);
+                oscillator.type = 'sine';
+                oscillator.frequency.linearRampToValueAtTime(554, now + 0.1);
+                oscillator.frequency.linearRampToValueAtTime(659, now + 0.2);
+                oscillator.frequency.linearRampToValueAtTime(880, now + 0.3);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                oscillator.start(now);
+                oscillator.stop(now + 0.5);
+                break;
+                
+            case 'message':
+                // نغمة الرسائل
+                oscillator.frequency.setValueAtTime(660, now);
+                oscillator.type = 'triangle';
+                oscillator.frequency.linearRampToValueAtTime(880, now + 0.08);
+                gainNode.gain.setValueAtTime(0.15, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                oscillator.start(now);
+                oscillator.stop(now + 0.15);
+                break;
+        }
+    } catch (e) {
+        console.error('Sound play error:', e);
+    }
+};
+
+// دالة للتهيئة عند أول تفاعل
+const initAudioOnFirstInteraction = () => {
+    if (!isAudioInitialized) {
+        initAudioContext();
+        // تشغيل صوت صامت لتفعيل AudioContext
+        playSound('click');
+    }
+};
+
+// إضافة event listeners للتفاعل الأول
+if (typeof window !== 'undefined') {
+    const initEvents = ['click', 'touchstart', 'keydown'];
+    const initHandler = () => {
+        initAudioOnFirstInteraction();
+        initEvents.forEach(event => document.removeEventListener(event, initHandler));
+    };
+    initEvents.forEach(event => document.addEventListener(event, initHandler, { once: true }));
+}
+
+// دوال مختصرة
+const playNotificationSound = () => playSound('notification');
+const playRewardSound = () => playSound('reward');
+const playMessageSound = () => playSound('message');
+const playGiftSound = () => playSound('gift');
+
+// ==========================================
+// LOGIN REWARDS - 30 DAYS
 // ==========================================
 const LOGIN_REWARDS = [
     { day: 1, type: 'currency', amount: 100, icon: '🧠', iconUrl: '', name_en: '100 Intel', name_ar: '100 إنتل' },
@@ -73,6 +217,53 @@ const LOGIN_REWARDS = [
     { day: 29, type: 'currency', amount: 2500, icon: '🧠', iconUrl: '', name_en: '2500 Intel', name_ar: '2500 إنتل' },
     { day: 30, type: 'frame', itemId: 'frame_gold', icon: '👑', iconUrl: '', name_en: 'Gold Frame', name_ar: 'إطار ذهبي', special: true, final: true },
 ];
+
+// ==========================================
+// 🔄 LOGIN REWARDS RESET CONFIG
+// تغيير القيمة أدناه لتحديد شهر بداية الدورة الجديدة
+// مثال: '2025-01' يعني أن الدورة تبدأ من يناير 2025
+// ==========================================
+const LOGIN_REWARDS_CONFIG = {
+    // ⬇️ غيّر هذا التاريخ لبدء شهر جديد ⬇️
+    // الصيغة: 'YYYY-MM' (سنة-شهر)
+    currentCycleStart: '2025-01',
+    
+    // هل تريد Reset تلقائي كل شهر؟ (true/false)
+    autoResetMonthly: true,
+};
+
+// دالة للتحقق من دورة المكافآت
+const checkLoginRewardsCycle = (userData) => {
+    const config = LOGIN_REWARDS_CONFIG;
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    
+    // إذا كان Auto Reset مفعل والشهر الحالي مختلف عن شهر بداية الدورة
+    if (config.autoResetMonthly) {
+        const cycleStartMonth = config.currentCycleStart;
+        if (currentMonth !== cycleStartMonth) {
+            // تحديث config للشهر الجديد
+            LOGIN_REWARDS_CONFIG.currentCycleStart = currentMonth;
+            return true; // يحتاج Reset
+        }
+    }
+    
+    // التحقق من آخر استلام
+    const lastClaimDate = userData?.loginRewards?.lastClaimDate?.toDate?.() || 
+                          new Date(userData?.loginRewards?.lastClaimDate || 0);
+    const lastClaimMonth = `${lastClaimDate.getFullYear()}-${String(lastClaimDate.getMonth() + 1).padStart(2, '0')}`;
+    
+    if (currentMonth !== lastClaimMonth && config.autoResetMonthly) {
+        return true;
+    }
+    
+    return false;
+};
+
+// دالة للحصول على شهر الدورة الحالية
+const getCurrentCycleMonth = () => {
+    return LOGIN_REWARDS_CONFIG.currentCycleStart;
+};
 
 // ==========================================
 // CHARISMA LEVELS - 21 Levels
@@ -223,27 +414,6 @@ const formatTime = (timestamp) => { if (!timestamp) return ''; const date = time
 const formatCharisma = (num) => { if (num === undefined || num === null) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
 const maskEmail = (email) => { if (!email) return 'N/A'; const [localPart, domain] = email.split('@'); if (!domain) return email; const visibleChars = Math.min(2, localPart.length); return localPart.substring(0, visibleChars) + '***@' + domain; };
 
-// --- Audio System ---
-const AudioCtx = window.AudioContext || window.webkitAudioContext; 
-let audioCtx = null;
-const initAudio = () => { if (!audioCtx) audioCtx = new AudioCtx(); };
-const playSound = (type) => { 
-    if (!audioCtx) return; 
-    if (audioCtx.state === 'suspended') audioCtx.resume(); 
-    const osc = audioCtx.createOscillator(); 
-    const gainNode = audioCtx.createGain(); 
-    osc.connect(gainNode); 
-    gainNode.connect(audioCtx.destination); 
-    
-    if (type === 'click') { osc.frequency.value = 800; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } 
-    else if (type === 'success') { osc.frequency.value = 600; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.15); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); } 
-    else if (type === 'gift') { osc.frequency.value = 523; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(784, audioCtx.currentTime + 0.15); osc.frequency.linearRampToValueAtTime(1047, audioCtx.currentTime + 0.3); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4); osc.start(); osc.stop(audioCtx.currentTime + 0.4); }
-    else if (type === 'notification') { osc.frequency.value = 880; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(1100, audioCtx.currentTime + 0.1); osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.2); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
-    else if (type === 'reward') { osc.frequency.value = 440; osc.type = 'sine'; gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(554, audioCtx.currentTime + 0.1); osc.frequency.linearRampToValueAtTime(659, audioCtx.currentTime + 0.2); osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.3); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5); osc.start(); osc.stop(audioCtx.currentTime + 0.5); }
-};
-const playNotificationSound = () => playSound('notification');
-const playRewardSound = () => playSound('reward');
-
 // --- Translations ---
 const TRANSLATIONS = { 
     en: { 
@@ -262,6 +432,7 @@ const TRANSLATIONS = {
         loginRewards: "Login Rewards", dailyStreak: "Day Streak", claimReward: "Claim Reward", alreadyClaimed: "Claimed Today", comeBackTomorrow: "Come back tomorrow!", days: "Days",
         sendToSelf: "Send to Myself", sendToOthers: "Send to Others",
         copyCode: "Copy Code", codeCopied: "Code Copied!", showPasswordLabel: "Show Password", hidePasswordLabel: "Hide Password",
+        newCycleStarted: "New monthly cycle started!",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
@@ -279,12 +450,13 @@ const TRANSLATIONS = {
         loginRewards: "مكافآت تسجيل الدخول", dailyStreak: "يوم متتالي", claimReward: "الحصول على المكافأة", alreadyClaimed: "تم الاستلام اليوم", comeBackTomorrow: "عد غداً!", days: "أيام",
         sendToSelf: "إرسال لنفسي", sendToOthers: "إرسال للآخرين",
         copyCode: "نسخ الكود", codeCopied: "تم نسخ الكود!", showPasswordLabel: "إظهار كلمة السر", hidePasswordLabel: "إخفاء كلمة السر",
+        newCycleStarted: "بدأت دورة شهرية جديدة!",
     } 
 };
 
 // ==========================================
 // PRO SPY - FINAL SCRIPT - PART 2
-// Components
+// Components - FIXED: Login Rewards UI + Gift System
 // ==========================================
 
 // Error Boundary
@@ -463,8 +635,8 @@ const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClea
 };
 
 // ==========================================
-// LOGIN REWARDS COMPONENT - FIXED VERSION
-// Grid: 5 columns x 6 rows = 30 days
+// 🎁 LOGIN REWARDS COMPONENT - FIXED UI
+// الأيام ظاهرة بالكامل بشكل جميل
 // ==========================================
 const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     const t = TRANSLATIONS[lang];
@@ -487,14 +659,11 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
         setClaiming(false); 
     };
     
-    // Simple render reward icon - no complex gradients shown
-    const renderRewardIcon = (reward, size = 14) => {
+    const renderRewardIcon = (reward, size = 16) => {
         if (!reward) return <span style={{ fontSize: size + 'px' }}>❓</span>;
-        // Just show the emoji icon, no gradient code
         return <span style={{ fontSize: size + 'px' }}>{reward.icon || '🎁'}</span>;
     };
     
-    // Get reward name
     const getRewardName = (reward) => {
         if (!reward) return '';
         return lang === 'ar' ? reward.name_ar : reward.name_en;
@@ -502,7 +671,11 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px', maxHeight: '90vh' }}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ 
+                maxWidth: '380px', 
+                maxHeight: '90vh',
+                width: '95%'
+            }}>
                 <div className="modal-header">
                     <h2 className="modal-title">🎁 {t.loginRewards}</h2>
                     <ModalCloseBtn onClose={onClose} />
@@ -515,8 +688,14 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
                             <span className="login-rewards-streak">{currentDay}/30</span>
                         </div>
                         
-                        {/* Days Grid - 5 columns x 6 rows */}
-                        <div className="login-rewards-grid">
+                        {/* Days Grid - FIXED: 6 columns x 5 rows for better visibility */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(6, 1fr)',
+                            gap: '6px',
+                            width: '100%',
+                            padding: '8px 0'
+                        }}>
                             {LOGIN_REWARDS.map((reward, index) => {
                                 const dayNum = index + 1;
                                 const isClaimed = dayNum <= currentDay;
@@ -525,21 +704,86 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
                                 const isSpecial = reward.special === true;
                                 const isFinal = reward.final === true;
                                 
-                                let className = 'login-reward-day';
-                                if (isClaimed) className += ' claimed';
-                                if (isCurrent) className += ' current';
-                                if (isFuture) className += ' future';
-                                if (isSpecial) className += ' special';
-                                if (isFinal) className += ' final';
+                                // تحديد الأنماط
+                                let bgColor = 'rgba(255, 255, 255, 0.03)';
+                                let borderColor = 'rgba(255, 255, 255, 0.1)';
+                                let textColor = 'rgba(255, 255, 255, 0.5)';
+                                let extraStyles = {};
+                                
+                                if (isClaimed) {
+                                    bgColor = 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1))';
+                                    borderColor = '#10b981';
+                                    textColor = '#10b981';
+                                } else if (isCurrent) {
+                                    bgColor = 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 136, 0, 0.1))';
+                                    borderColor = '#ffd700';
+                                    textColor = '#ffd700';
+                                    extraStyles = {
+                                        animation: 'pulse-badge 2s infinite',
+                                        boxShadow: '0 0 10px rgba(255, 215, 0, 0.3)'
+                                    };
+                                } else if (isSpecial) {
+                                    bgColor = 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1))';
+                                    borderColor = '#8b5cf6';
+                                    textColor = '#a855f7';
+                                } else if (isFinal) {
+                                    bgColor = 'linear-gradient(135deg, rgba(255, 0, 85, 0.2), rgba(255, 51, 102, 0.1))';
+                                    borderColor = '#ff0055';
+                                    textColor = '#ff0055';
+                                    extraStyles = {
+                                        animation: 'glow-pulse 2s infinite'
+                                    };
+                                }
                                 
                                 return (
                                     <div 
                                         key={dayNum} 
-                                        className={className}
                                         title={getRewardName(reward)}
+                                        style={{
+                                            aspectRatio: '1',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            borderRadius: '8px',
+                                            border: `2px solid ${borderColor}`,
+                                            background: bgColor,
+                                            padding: '4px',
+                                            gap: '2px',
+                                            position: 'relative',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            ...extraStyles
+                                        }}
                                     >
-                                        <span className="day-num">{dayNum}</span>
-                                        <span className="day-reward">{renderRewardIcon(reward, 14)}</span>
+                                        {/* Day number */}
+                                        <span style={{
+                                            fontSize: '11px',
+                                            fontWeight: '700',
+                                            color: textColor,
+                                            lineHeight: 1
+                                        }}>
+                                            {dayNum}
+                                        </span>
+                                        
+                                        {/* Reward icon */}
+                                        <span style={{
+                                            fontSize: '14px',
+                                            lineHeight: 1
+                                        }}>
+                                            {renderRewardIcon(reward, 14)}
+                                        </span>
+                                        
+                                        {/* Claimed check mark */}
+                                        {isClaimed && (
+                                            <span style={{
+                                                position: 'absolute',
+                                                top: '1px',
+                                                right: '2px',
+                                                fontSize: '8px',
+                                                color: '#10b981'
+                                            }}>✓</span>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -547,15 +791,34 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
                         
                         {/* Today's reward display */}
                         {canClaimToday && currentReward && (
-                            <div className="today-reward-display">
-                                <div className="today-reward-label">
+                            <div style={{
+                                marginTop: '12px',
+                                padding: '12px',
+                                background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.05))',
+                                border: '1px solid rgba(255, 215, 0, 0.3)',
+                                borderRadius: '12px',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{
+                                    fontSize: '10px',
+                                    color: 'rgba(255, 255, 255, 0.5)',
+                                    marginBottom: '4px'
+                                }}>
                                     {lang === 'ar' ? 'مكافأة اليوم' : "Today's Reward"}
                                 </div>
-                                <div className="today-reward-name">
+                                <div style={{
+                                    fontSize: '14px',
+                                    fontWeight: '700',
+                                    color: 'white'
+                                }}>
                                     {renderRewardIcon(currentReward, 18)} {getRewardName(currentReward)}
                                 </div>
                                 {currentReward.special && (
-                                    <div className="today-reward-special">
+                                    <div style={{
+                                        fontSize: '10px',
+                                        color: '#ffd700',
+                                        marginTop: '4px'
+                                    }}>
                                         ⭐ {lang === 'ar' ? 'مكافأة خاصة!' : 'Special Reward!'}
                                     </div>
                                 )}
@@ -566,7 +829,21 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
                         <button 
                             onClick={handleClaim} 
                             disabled={!canClaimToday || claiming} 
-                            className="login-reward-claim-btn mt-3"
+                            style={{
+                                width: '100%',
+                                padding: '10px 16px',
+                                borderRadius: '8px',
+                                border: 'none',
+                                fontSize: '13px',
+                                fontWeight: '700',
+                                cursor: canClaimToday && !claiming ? 'pointer' : 'not-allowed',
+                                transition: 'all 0.2s ease',
+                                background: canClaimToday 
+                                    ? 'linear-gradient(135deg, #ffd700, #ff8800)' 
+                                    : 'rgba(107, 114, 128, 0.5)',
+                                color: canClaimToday ? '#000' : 'rgba(255, 255, 255, 0.5)',
+                                marginTop: '12px'
+                            }}
                         >
                             {claiming ? t.loading : canClaimToday ? t.claimReward : t.alreadyClaimed}
                         </button>
@@ -639,14 +916,24 @@ const BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, current
 };
 
 // ==========================================
-// GIFT PREVIEW MODAL - COMPACT SIZE
+// 🎁 GIFT PREVIEW MODAL - FIXED
+// إصلاح مشكلة إرسال الهدايا من Inventory
 // ==========================================
-const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData }) => { 
+const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData, user }) => { 
     const t = TRANSLATIONS[lang]; 
     const [showFriendSelect, setShowFriendSelect] = useState(false);
     const [selectedFriend, setSelectedFriend] = useState(null);
-    const [sendMode, setSendMode] = useState('others');
+    const [sendMode, setSendMode] = useState('self');
     const isGiftItem = gift?.type === 'gifts';
+    
+    // Reset state when modal opens
+    useEffect(() => {
+        if (show) {
+            setSelectedFriend(null);
+            setSendMode('self');
+            setShowFriendSelect(false);
+        }
+    }, [show]);
     
     if(!show || !gift) return null; 
     
@@ -657,12 +944,31 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
         return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="w-12 h-12 object-contain mx-auto" /> : <div className="text-4xl mb-2">{gift.emoji}</div>;
     };
     
+    // 🔧 FIXED: دالة الإرسال من Inventory
     const handleSendFromInventory = () => {
-        if (sendMode === 'self') { onSendFromInventory(gift, { uid: 'self', displayName: currentUserData?.displayName || 'Me' }); onClose(); }
-        else if (selectedFriend && onSendFromInventory) { onSendFromInventory(gift, selectedFriend); onClose(); }
+        if (!onSendFromInventory) return;
+        
+        if (sendMode === 'self') {
+            // إرسال لنفسه
+            onSendFromInventory(gift, { uid: user?.uid || 'self', displayName: currentUserData?.displayName || 'Me' });
+            onClose();
+        } else if (selectedFriend) {
+            // إرسال لصديق
+            onSendFromInventory(gift, selectedFriend);
+            onClose();
+        }
     };
     
-    const handleBuy = () => { onBuy(gift, sendMode === 'self' ? { uid: 'self' } : selectedFriend); };
+    // 🔧 FIXED: دالة الشراء من Shop
+    const handleBuy = () => {
+        if (!onBuy) return;
+        
+        if (sendMode === 'self') {
+            onBuy(gift, { uid: 'self' });
+        } else if (selectedFriend) {
+            onBuy(gift, selectedFriend);
+        }
+    };
     
     return ( 
         <div className="modal-overlay" onClick={onClose}> 
@@ -678,21 +984,45 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             <div className="bg-green-500/10 border border-green-500/30 rounded p-2"><div className="text-[9px] text-gray-400">{t.giftCashbackRange}</div><div className="text-xs font-bold text-green-400">{gift.minCashback}-{gift.maxCashback}</div></div>
                         </div>
                     )}
-                    {isGiftItem && !isFromInventory && (
+                    
+                    {/* 🔧 FIXED: خيار الإرسال - يعمل في كلتا الحالتين */}
+                    {isGiftItem && (
                         <div className="flex gap-1 mb-2">
-                            <button onClick={() => setSendMode('self')} className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'self' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}>🎁 {t.sendToSelf}</button>
-                            <button onClick={() => setSendMode('others')} className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'others' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}>👥 {t.sendToOthers}</button>
+                            <button 
+                                onClick={() => setSendMode('self')} 
+                                className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'self' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
+                            >
+                                🎁 {t.sendToSelf}
+                            </button>
+                            <button 
+                                onClick={() => { setSendMode('others'); setShowFriendSelect(true); }} 
+                                className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'others' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
+                            >
+                                👥 {t.sendToOthers}
+                            </button>
                         </div>
                     )}
-                    {sendMode === 'others' && showFriendSelect && friendsData && (
+                    
+                    {/* قائمة الأصدقاء */}
+                    {sendMode === 'others' && showFriendSelect && friendsData && friendsData.length > 0 && (
                         <div className="mb-2 p-1.5 bg-white/5 rounded max-h-24 overflow-y-auto">
                             <div className="text-[10px] text-gray-400 mb-1">{t.selectFriend}</div>
                             {friendsData.map(friend => (
-                                <div key={friend.id} onClick={() => setSelectedFriend(friend)} className={`flex items-center gap-1.5 p-1.5 rounded cursor-pointer transition ${selectedFriend?.id === friend.id ? 'bg-primary/20 border border-primary' : 'hover:bg-white/5'}`}>
+                                <div 
+                                    key={friend.id} 
+                                    onClick={() => setSelectedFriend(friend)} 
+                                    className={`flex items-center gap-1.5 p-1.5 rounded cursor-pointer transition ${selectedFriend?.id === friend.id ? 'bg-primary/20 border border-primary' : 'hover:bg-white/5'}`}
+                                >
                                     <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
                                     <span className="text-[11px]">{friend.displayName}</span>
                                 </div>
                             ))}
+                        </div>
+                    )}
+                    
+                    {sendMode === 'others' && showFriendSelect && (!friendsData || friendsData.length === 0) && (
+                        <div className="text-[10px] text-gray-400 mb-2 p-2 bg-white/5 rounded">
+                            {t.noFriendsToSend}
                         </div>
                     )}
                 </div>
@@ -700,12 +1030,25 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                     {isFromInventory ? (
                         <div className="flex gap-2">
                             <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.close}</button>
-                            <button onClick={handleSendFromInventory} disabled={sendMode === 'others' && !selectedFriend} className="btn-gold flex-1 py-1.5 rounded text-xs font-bold">{t.sendGift}</button>
+                            {/* 🔧 FIXED: الزر يعمل الآن بشكل صحيح */}
+                            <button 
+                                onClick={handleSendFromInventory} 
+                                disabled={sendMode === 'others' && !selectedFriend}
+                                className={`flex-1 py-1.5 rounded text-xs font-bold ${sendMode === 'others' && !selectedFriend ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'btn-gold'}`}
+                            >
+                                {t.sendGift}
+                            </button>
                         </div>
                     ) : (
                         <div className="flex gap-2">
                             <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.reportCancel}</button> 
-                            <button onClick={handleBuy} disabled={currency < gift.cost || (sendMode === 'others' && !selectedFriend && isGiftItem)} className={`flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>{isSending ? t.sendToFriend : t.buy} ({gift.cost}🧠)</button> 
+                            <button 
+                                onClick={handleBuy} 
+                                disabled={currency < gift.cost || (sendMode === 'others' && !selectedFriend && isGiftItem)} 
+                                className={`flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+                            >
+                                {isSending ? t.sendToFriend : t.buy} ({gift.cost}🧠)
+                            </button> 
                         </div>
                     )}
                 </div>
@@ -715,7 +1058,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
 };
 
 // ==========================================
-// SEND GIFT MODAL - COMPACT
+// SEND GIFT MODAL
 // ==========================================
 const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency }) => { 
     const t = TRANSLATIONS[lang]; 
@@ -747,7 +1090,18 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                     </div> 
                 </div> 
             </div> 
-            <GiftPreviewModal show={showPreview} onClose={() => setShowPreview(false)} gift={selectedGift} lang={lang} onBuy={(gift) => { onSendGift(gift, targetUser); onClose(); }} currency={currency} isSending={true} /> 
+            <GiftPreviewModal 
+                show={showPreview} 
+                onClose={() => setShowPreview(false)} 
+                gift={selectedGift} 
+                lang={lang} 
+                onBuy={(gift, target) => { onSendGift(gift, target); onClose(); }} 
+                currency={currency} 
+                isSending={true} 
+                friendsData={[]}
+                user={{ uid: currentUser?.uid }}
+                currentUserData={currentUser}
+            /> 
         </> 
     ); 
 };
@@ -807,16 +1161,34 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                         </div>
                     </div>
                 </div>
-                {showPreview && selectedItem && <GiftPreviewModal show={showPreview} onClose={() => setShowPreview(false)} gift={selectedItem} lang={lang} onBuy={(item) => { if (currency >= item.cost) { onPurchase(item); setShowPreview(false); }}} currency={currency} />}
+                {showPreview && selectedItem && (
+                    <GiftPreviewModal 
+                        show={showPreview} 
+                        onClose={() => setShowPreview(false)} 
+                        gift={selectedItem} 
+                        lang={lang} 
+                        onBuy={(item, target) => { 
+                            if (currency >= item.cost) { 
+                                onPurchase(item, target); 
+                                setShowPreview(false); 
+                            }
+                        }} 
+                        currency={currency} 
+                        friendsData={[]}
+                        user={{ uid: userData?.uid }}
+                        currentUserData={userData}
+                    />
+                )}
             </div>
         </div>
     );
 };
 
 // ==========================================
-// INVENTORY MODAL
+// 📦 INVENTORY MODAL - FIXED
+// إصلاح مشكلة إرسال الهدايا من Inventory
 // ==========================================
-const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData }) => {
+const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData, user }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedGift, setSelectedGift] = useState(null);
@@ -857,8 +1229,38 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                 <div className="inventory-grid">
                                     {ownedItems.map(item => {
                                         const equippedItem = isEquipped(item);
-                                        if (activeTab === 'gifts') return (<div key={item.id} className="inventory-item"><div className="inventory-item-preview">{renderPreview(item)}</div><div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div><button onClick={() => { setSelectedGift(item); setShowGiftPreview(true); }} className="btn-gold w-full text-[10px] py-0.5 rounded mt-1">{t.sendGiftToFriend}</button></div>);
-                                        return (<div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`}><div className="inventory-item-preview">{renderPreview(item)}</div><div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>{equippedItem ? <button onClick={() => onUnequip(item.type, item.id)} className="btn-unequip w-full">{t.unequip}</button> : <button onClick={() => onEquip(item)} disabled={activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES} className={`btn-success w-full text-[10px] py-0.5 rounded ${(activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES) ? 'opacity-50 cursor-not-allowed' : ''}`}>{t.equip}</button>}</div>);
+                                        if (activeTab === 'gifts') return (
+                                            <div key={item.id} className="inventory-item">
+                                                <div className="inventory-item-preview">{renderPreview(item)}</div>
+                                                <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
+                                                {/* 🔧 FIXED: الزر يعمل الآن */}
+                                                <button 
+                                                    onClick={() => { 
+                                                        setSelectedGift(item); 
+                                                        setShowGiftPreview(true); 
+                                                    }} 
+                                                    className="btn-gold w-full text-[10px] py-0.5 rounded mt-1"
+                                                >
+                                                    {t.sendGiftToFriend}
+                                                </button>
+                                            </div>
+                                        );
+                                        return (
+                                            <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`}>
+                                                <div className="inventory-item-preview">{renderPreview(item)}</div>
+                                                <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
+                                                {equippedItem ? 
+                                                    <button onClick={() => onUnequip(item.type, item.id)} className="btn-unequip w-full">{t.unequip}</button> : 
+                                                    <button 
+                                                        onClick={() => onEquip(item)} 
+                                                        disabled={activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES} 
+                                                        className={`btn-success w-full text-[10px] py-0.5 rounded ${(activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    >
+                                                        {t.equip}
+                                                    </button>
+                                                }
+                                            </div>
+                                        );
                                     })}
                                 </div>
                             )}
@@ -866,7 +1268,22 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                     </div>
                 </div>
             </div>
-            {showGiftPreview && selectedGift && <GiftPreviewModal show={showGiftPreview} onClose={() => setShowGiftPreview(false)} gift={selectedGift} lang={lang} onBuy={() => {}} currency={userData?.currency || 0} isFromInventory={true} onSendFromInventory={onSendGift} friendsData={friendsData} currentUserData={currentUserData} />}
+            {/* 🔧 FIXED: تمرير البيانات الصحيحة للـ GiftPreviewModal */}
+            {showGiftPreview && selectedGift && (
+                <GiftPreviewModal 
+                    show={showGiftPreview} 
+                    onClose={() => setShowGiftPreview(false)} 
+                    gift={selectedGift} 
+                    lang={lang} 
+                    onBuy={() => {}} 
+                    currency={userData?.currency || 0} 
+                    isFromInventory={true} 
+                    onSendFromInventory={onSendGift} 
+                    friendsData={friendsData} 
+                    currentUserData={currentUserData}
+                    user={user}
+                />
+            )}
         </>
     );
 };
@@ -1060,7 +1477,7 @@ const TutorialModal = ({ show, onClose, lang }) => {
 
 // ==========================================
 // PRO SPY - FINAL SCRIPT - PART 3
-// Main App Component
+// Main App Component - FIXED: Audio + Monthly Reset + Gift Purchase
 // ==========================================
 
 function App() {
@@ -1148,12 +1565,23 @@ function App() {
                 const userRef = usersCollection.doc(u.uid); 
                 const doc = await userRef.get();
                 if (!doc.exists) { 
-                    const newUserData = { uid: u.uid, email: u.email || null, displayName: u.displayName || u.uid.substring(0,5), photoURL: u.photoURL || null, customId: generateUID(), stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [], friendRequests: [], createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastChangedName: null, lastActive: firebase.firestore.FieldValue.serverTimestamp(), isAnonymous: false, currency: 100, inventory: {frames: [], titles: [], themes: [], badges: [], gifts: []}, equipped: { badges: [] }, charisma: 0, loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 } }; 
+                    const newUserData = { uid: u.uid, email: u.email || null, displayName: u.displayName || u.uid.substring(0,5), photoURL: u.photoURL || null, customId: generateUID(), stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [], friendRequests: [], createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastChangedName: null, lastActive: firebase.firestore.FieldValue.serverTimestamp(), isAnonymous: false, currency: 100, inventory: {frames: [], titles: [], themes: [], badges: [], gifts: []}, equipped: { badges: [] }, charisma: 0, loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: getCurrentCycleMonth() } }; 
                     await userRef.set(newUserData); setUserData(newUserData); if (u.displayName) setNickname(u.displayName); 
                 } else {
                     const existingData = doc.data();
                     setUserData(existingData);
                     if (existingData.displayName) setNickname(existingData.displayName);
+                    
+                    // 🔧 FIXED: التحقق من Reset شهري
+                    if (checkLoginRewardsCycle(existingData)) {
+                        await userRef.update({
+                            'loginRewards.currentDay': 0,
+                            'loginRewards.streak': 0,
+                            'loginRewards.cycleMonth': getCurrentCycleMonth()
+                        });
+                        console.log('🔄 Login rewards cycle reset');
+                    }
+                    
                     const unsubSnap = userRef.onSnapshot(snap => { if (snap.exists) { setUserData(snap.data()); if (snap.data().displayName) setNickname(snap.data().displayName); } });
                     setAuthLoading(false);
                     return () => unsubSnap();
@@ -1177,7 +1605,7 @@ function App() {
         }
     }, [isLoggedIn, userData?.loginRewards?.lastClaimDate]);
 
-    // Notifications Listener
+    // 🔊 FIXED: Notifications Listener مع تشغيل الصوت
     useEffect(() => {
         if (!user || !isLoggedIn) return;
         let previousCount = -1;
@@ -1185,7 +1613,16 @@ function App() {
             let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             notifs.sort((a, b) => { const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0; const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0; return timeB - timeA; });
             const newUnread = notifs.filter(n => !n.read).length;
-            if (previousCount !== -1 && newUnread > previousCount) { playNotificationSound(); if (notificationBellRef.current) { notificationBellRef.current.classList.add('ringing'); setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500); } }
+            
+            // 🔊 تشغيل صوت عند إشعار جديد
+            if (previousCount !== -1 && newUnread > previousCount) {
+                playNotificationSound();
+                if (notificationBellRef.current) {
+                    notificationBellRef.current.classList.add('ringing');
+                    setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500);
+                }
+            }
+            
             previousCount = newUnread;
             setNotifications(notifs);
             setUnreadNotifications(newUnread);
@@ -1243,7 +1680,7 @@ function App() {
     const handleNotificationClick = useCallback((notif) => { if (notif.type === 'friend_request') { setActiveView('friends'); } else if (notif.type === 'gift') { setNotification(notif.message); } else if (notif.type === 'message') { if (notif.fromUserId && notif.fromName) { const friend = { uid: notif.fromUserId, displayName: notif.fromName, photoURL: notif.fromPhoto }; setChatFriend(friend); setShowPrivateChat(true); } } }, []);
 
     // ==========================================
-    // CLAIM LOGIN REWARD - FIXED VERSION
+    // 🎁 CLAIM LOGIN REWARD - FIXED WITH MONTHLY RESET
     // ==========================================
     const handleClaimLoginReward = useCallback(async (day) => {
         if (!user || !isLoggedIn) return;
@@ -1267,7 +1704,7 @@ function App() {
                     
                 case 'frame':
                     if (!inventory.frames?.includes(reward.itemId)) {
-                        updates.inventory = { ...inventory, frames: [...(inventory.frames || []), reward.itemId] };
+                        updates['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
                         setNotification(`${lang === 'ar' ? '🎉 حصلت على إطار!' : '🎉 You received a frame!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
                     } else {
                         updates.currency = firebase.firestore.FieldValue.increment(500);
@@ -1277,7 +1714,7 @@ function App() {
                     
                 case 'badge':
                     if (!inventory.badges?.includes(reward.itemId)) {
-                        updates.inventory = { ...inventory, badges: [...(inventory.badges || []), reward.itemId] };
+                        updates['inventory.badges'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
                         setNotification(`${lang === 'ar' ? '🎉 حصلت على شارة!' : '🎉 You received a badge!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
                     } else {
                         updates.currency = firebase.firestore.FieldValue.increment(500);
@@ -1287,7 +1724,7 @@ function App() {
                     
                 case 'title':
                     if (!inventory.titles?.includes(reward.itemId)) {
-                        updates.inventory = { ...inventory, titles: [...(inventory.titles || []), reward.itemId] };
+                        updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
                         setNotification(`${lang === 'ar' ? '🎉 حصلت على لقب!' : '🎉 You received a title!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
                     } else {
                         updates.currency = firebase.firestore.FieldValue.increment(500);
@@ -1297,7 +1734,7 @@ function App() {
                     
                 case 'gift':
                     if (!inventory.gifts?.includes(reward.itemId)) {
-                        updates.inventory = { ...inventory, gifts: [...(inventory.gifts || []), reward.itemId] };
+                        updates['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
                         setNotification(`${lang === 'ar' ? '🎉 حصلت على هدية!' : '🎉 You received a gift!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
                     } else {
                         updates.currency = firebase.firestore.FieldValue.increment(500);
@@ -1310,6 +1747,7 @@ function App() {
             updates['loginRewards.lastClaimDate'] = firebase.firestore.FieldValue.serverTimestamp();
             updates['loginRewards.streak'] = firebase.firestore.FieldValue.increment(1);
             updates['loginRewards.totalClaims'] = firebase.firestore.FieldValue.increment(1);
+            updates['loginRewards.cycleMonth'] = getCurrentCycleMonth();
             
             await userRef.update(updates);
             playRewardSound();
@@ -1400,32 +1838,78 @@ function App() {
     }, [user, isLoggedIn, t, userData, createNotification, lang]);
     const handleRejectRequest = useCallback(async (fromUid) => { if (!user || !isLoggedIn) return; await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); }, [user, isLoggedIn]);
 
-    // Gift Functions
+    // ==========================================
+    // 🎁 GIFT FUNCTIONS - FIXED
+    // ==========================================
     const handleSendGiftToUser = useCallback(async (gift, targetUser) => {
         const currency = userData?.currency || 0;
         if (currency < gift.cost) return;
-        const minBack = gift.minCashback || 1; const maxBack = gift.maxCashback || Math.floor(gift.cost * 0.1);
+        
+        const minBack = gift.minCashback || 1;
+        const maxBack = gift.maxCashback || Math.floor(gift.cost * 0.1);
         const cashbackForSender = generateRandomCashback(minBack, maxBack);
         const cashbackForReceiver = generateRandomCashback(minBack, maxBack);
-        const newCurrency = currency - gift.cost + cashbackForSender;
+        
         try {
-            await usersCollection.doc(user.uid).update({ currency: newCurrency });
-            if (targetUser?.uid === 'self' || targetUser?.uid === user.uid) { await usersCollection.doc(user.uid).update({ charisma: firebase.firestore.FieldValue.increment(gift.charisma), currency: firebase.firestore.FieldValue.increment(cashbackForSender) }); }
-            else { await usersCollection.doc(targetUser.uid).update({ charisma: firebase.firestore.FieldValue.increment(gift.charisma), currency: firebase.firestore.FieldValue.increment(cashbackForReceiver) }); await createNotification(targetUser.uid, 'gift', `${userData.displayName} ${t.giftNotification}: ${gift.emoji} (+${cashbackForReceiver})`, user.uid, userData.displayName, { giftId: gift.id, charisma: gift.charisma, cashback: cashbackForReceiver }); }
+            // خصم من المرسل وإضافة Cashback
+            await usersCollection.doc(user.uid).update({ 
+                currency: firebase.firestore.FieldValue.increment(-gift.cost + cashbackForSender)
+            });
+            
+            if (targetUser?.uid === 'self' || targetUser?.uid === user.uid) {
+                // إرسال لنفسه
+                await usersCollection.doc(user.uid).update({ 
+                    charisma: firebase.firestore.FieldValue.increment(gift.charisma),
+                    currency: firebase.firestore.FieldValue.increment(cashbackForSender)
+                });
+            } else {
+                // إرسال لشخص آخر
+                await usersCollection.doc(targetUser.uid).update({ 
+                    charisma: firebase.firestore.FieldValue.increment(gift.charisma),
+                    currency: firebase.firestore.FieldValue.increment(cashbackForReceiver)
+                });
+                
+                await createNotification(
+                    targetUser.uid, 
+                    'gift', 
+                    `${userData.displayName} ${t.giftNotification}: ${gift.emoji} (+${cashbackForReceiver})`, 
+                    user.uid, 
+                    userData.displayName, 
+                    { giftId: gift.id, charisma: gift.charisma, cashback: cashbackForReceiver }
+                );
+            }
+            
             playSound('gift');
             setNotification(`${t.giftSent} +${cashbackForSender} 💰`);
-        } catch (error) { console.error("Gift error:", error); }
+        } catch (error) { 
+            console.error("Gift error:", error); 
+        }
     }, [userData, user, t, createNotification]);
 
-    // Shop Functions
-    const handlePurchase = useCallback(async (item) => {
+    // ==========================================
+    // 🛒 SHOP FUNCTIONS - FIXED PURCHASE FOR GIFTS
+    // ==========================================
+    const handlePurchase = useCallback(async (item, targetUser = null) => {
         if (!user || !isLoggedIn) { setShowLoginAlert(true); return; }
         const currency = userData?.currency || 0;
         if (currency < item.cost) { setNotification(t.purchaseFail); return; }
         const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
+        
+        // 🔧 FIXED: للهدايا - شراء وإرسال في نفس الوقت
+        if (item.type === 'gifts') {
+            await handleSendGiftToUser(item, targetUser || { uid: 'self' });
+            return;
+        }
+        
+        // للعناصر الأخرى
         if (inventory[item.type]?.includes(item.id)) { setNotification(t.alreadyOwned); return; }
-        try { const newInventory = { ...inventory, [item.type]: [...(inventory[item.type] || []), item.id] }; await usersCollection.doc(user.uid).update({ currency: currency - item.cost, inventory: newInventory }); playSound('success'); setNotification(t.purchaseSuccess); } catch (error) { console.error('Purchase error:', error); }
-    }, [user, userData, isLoggedIn, t]);
+        try { 
+            const newInventory = { ...inventory, [item.type]: [...(inventory[item.type] || []), item.id] }; 
+            await usersCollection.doc(user.uid).update({ currency: currency - item.cost, inventory: newInventory }); 
+            playSound('success'); 
+            setNotification(t.purchaseSuccess); 
+        } catch (error) { console.error('Purchase error:', error); }
+    }, [user, userData, isLoggedIn, t, handleSendGiftToUser]);
     
     const handleEquip = useCallback(async (item) => {
         if (!user || !isLoggedIn) return;
@@ -1504,8 +1988,28 @@ function App() {
                 </div>
             )}
             
-            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} />
-            <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} />
+            <ShopModal 
+                show={showShop} 
+                onClose={() => setShowShop(false)} 
+                userData={isLoggedIn ? userData : guestData} 
+                lang={lang} 
+                onPurchase={handlePurchase} 
+                onEquip={handleEquip} 
+                onUnequip={handleUnequip} 
+            />
+            <InventoryModal 
+                show={showInventory} 
+                onClose={() => setShowInventory(false)} 
+                userData={isLoggedIn ? userData : guestData} 
+                lang={lang} 
+                onEquip={handleEquip} 
+                onUnequip={handleUnequip} 
+                onSendGift={handleSendGiftToUser} 
+                friendsData={friendsData} 
+                isLoggedIn={isLoggedIn} 
+                currentUserData={currentUserData}
+                user={user}
+            />
             
             {showMyAccount && (
                 <div className="modal-overlay" onClick={() => setShowMyAccount(false)}>
@@ -1750,4 +2254,3 @@ const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
-
