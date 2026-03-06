@@ -400,6 +400,7 @@ const TRANSLATIONS = {
         giftLog: "Received Gifts", giftLogEmpty: "No gifts received yet.", viewAll: "View All", collapse: "Collapse",
         selectEmojis: "Select Emoji", recentEmojis: "Recent", allEmojis: "All",
         sentAGift: "sent a gift",
+        giftWall: "Gift Wall", giftBadge: "Gift Badge", comingSoon: "Coming Soon", receivedGiftsCount: "received gifts",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
@@ -421,6 +422,7 @@ const TRANSLATIONS = {
         giftLog: "الهدايا المستلمة", giftLogEmpty: "لا توجد هدايا مستلمة بعد.", viewAll: "عرض الكل", collapse: "طي",
         selectEmojis: "اختر إيموجي", recentEmojis: "الأخيرة", allEmojis: "الكل",
         sentAGift: "أرسل هدية",
+        giftWall: "جدار الهدايا", giftBadge: "شارة الهدايا", comingSoon: "قريباً", receivedGiftsCount: "هدية مستلمة",
     } 
 };
 
@@ -604,25 +606,53 @@ const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClea
 };
 
 // ==========================================
-// 🎁 GIFT LOG COMPONENT - NEW
+// 🎁 GIFT LOG COMPONENT - REDESIGNED WITH 3 TABS
 // ==========================================
-const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile }) => {
+const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }) => {
     const t = TRANSLATIONS[lang];
     const [gifts, setGifts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [expanded, setExpanded] = useState(false);
+    const [activeTab, setActiveTab] = useState('wall'); // 'wall', 'badge', 'received'
+    const [giftCounts, setGiftCounts] = useState({});
+    const [lastSenders, setLastSenders] = useState({});
+    const [totalGifts, setTotalGifts] = useState(0);
+    const [rotatingGiftIndex, setRotatingGiftIndex] = useState(0);
     
+    // Fetch gifts without orderBy to avoid index requirement
     useEffect(() => {
         if (!show || !targetUID) return;
         setLoading(true);
         
         const unsub = giftsLogCollection
             .where('receiverId', '==', targetUID)
-            .orderBy('timestamp', 'desc')
-            .limit(MAX_GIFT_LOG_DISPLAY)
+            .limit(50)
             .onSnapshot(snap => {
                 const giftsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Sort in memory instead of query
+                giftsData.sort((a, b) => {
+                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
+                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
+                    return timeB - timeA;
+                });
                 setGifts(giftsData);
+                setTotalGifts(giftsData.length);
+                
+                // Calculate gift counts and last senders
+                const counts = {};
+                const senders = {};
+                giftsData.forEach(gift => {
+                    const giftId = gift.giftId;
+                    counts[giftId] = (counts[giftId] || 0) + 1;
+                    if (!senders[giftId]) {
+                        senders[giftId] = {
+                            name: gift.senderName,
+                            photo: gift.senderPhoto,
+                            uid: gift.senderId
+                        };
+                    }
+                });
+                setGiftCounts(counts);
+                setLastSenders(senders);
                 setLoading(false);
             }, error => {
                 console.error('Gift log error:', error);
@@ -632,53 +662,146 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile }) => {
         return unsub;
     }, [show, targetUID]);
     
+    // Auto-rotate gifts in the mini display
+    useEffect(() => {
+        if (gifts.length === 0) return;
+        const interval = setInterval(() => {
+            setRotatingGiftIndex(prev => (prev + 1) % Math.min(3, gifts.length));
+        }, 2000);
+        return () => clearInterval(interval);
+    }, [gifts.length]);
+    
     if (!show) return null;
     
+    // Get last 3 gifts for mini display
+    const lastThreeGifts = gifts.slice(0, 3);
+    
+    // Get unique gifts for Gift Wall
+    const uniqueGifts = SHOP_ITEMS.gifts.map(gift => ({
+        ...gift,
+        count: giftCounts[gift.id] || 0,
+        lastSender: lastSenders[gift.id] || null,
+        received: giftCounts[gift.id] > 0
+    }));
+    
     return (
-        <div className="gift-log-container">
-            <div className="gift-log-header" onClick={() => setExpanded(!expanded)}>
-                <span className="gift-log-title">🎁 {t.giftLog}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="gift-log-count">{gifts.length}</span>
-                    <span className="gift-log-toggle">{expanded ? '▲' : '▼'}</span>
+        <div className="gift-log-container-v2">
+            {/* Mini Gift Display - Shows rotating gifts */}
+            <div className="gift-mini-display" onClick={() => setActiveTab('wall')}>
+                <div className="gift-mini-images">
+                    {lastThreeGifts.length > 0 ? (
+                        lastThreeGifts.map((gift, idx) => (
+                            <div 
+                                key={gift.id} 
+                                className={`gift-mini-item ${idx === rotatingGiftIndex && lastThreeGifts.length > 1 ? 'active' : ''}`}
+                            >
+                                <span className="gift-mini-emoji">{gift.giftEmoji}</span>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="gift-mini-empty">🎁</div>
+                    )}
+                </div>
+                <div className="gift-mini-info">
+                    <span className="gift-mini-count">{totalGifts}</span>
+                    <span className="gift-mini-label">{t.receivedGiftsCount}</span>
                 </div>
             </div>
             
-            {expanded && (
-                <div className="gift-log-list">
-                    {loading ? (
-                        <div className="gift-log-empty">{t.loading}</div>
-                    ) : gifts.length === 0 ? (
-                        <div className="gift-log-empty">{t.giftLogEmpty}</div>
-                    ) : (
-                        gifts.map(gift => (
+            {/* Tab Buttons */}
+            <div className="gift-log-tabs">
+                <button 
+                    className={`gift-log-tab ${activeTab === 'wall' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('wall')}
+                >
+                    🎁 {t.giftWall}
+                </button>
+                <button 
+                    className={`gift-log-tab ${activeTab === 'badge' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('badge')}
+                >
+                    🏅 {t.giftBadge}
+                </button>
+                <button 
+                    className={`gift-log-tab ${activeTab === 'received' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('received')}
+                >
+                    📬 {t.giftLog}
+                </button>
+            </div>
+            
+            {/* Tab Content */}
+            <div className="gift-log-content">
+                {loading ? (
+                    <div className="gift-log-loading">{t.loading}</div>
+                ) : activeTab === 'wall' ? (
+                    /* GIFT WALL - All gifts with received indicator */
+                    <div className="gift-wall-grid">
+                        {uniqueGifts.map(gift => (
                             <div 
                                 key={gift.id} 
-                                className="gift-log-item"
-                                onClick={() => onOpenProfile && onOpenProfile(gift.senderId)}
+                                className={`gift-wall-item ${gift.received ? 'received' : 'not-received'}`}
+                                onClick={() => gift.lastSender && onOpenProfile && onOpenProfile(gift.lastSender.uid)}
                             >
-                                <img 
-                                    src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${gift.senderName}&background=random`} 
-                                    alt={gift.senderName} 
-                                    className="gift-log-item-avatar"
-                                />
-                                <div className="gift-log-item-content">
-                                    <div className="gift-log-item-sender">{gift.senderName}</div>
-                                    <div className="gift-log-item-details">
-                                        <span className="gift-log-item-emoji">{gift.giftEmoji}</span>
-                                        <span className="gift-log-item-name">{lang === 'ar' ? gift.giftNameAr : gift.giftNameEn}</span>
+                                <span className="gift-wall-emoji">{gift.emoji}</span>
+                                {gift.received && (
+                                    <>
+                                        <span className="gift-wall-count">×{gift.count}</span>
+                                        {gift.lastSender && (
+                                            <img 
+                                                src={gift.lastSender.photo || `https://ui-avatars.com/api/?name=${gift.lastSender.name}&background=random`}
+                                                alt={gift.lastSender.name}
+                                                className="gift-wall-sender"
+                                            />
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                ) : activeTab === 'badge' ? (
+                    /* GIFT BADGE - Coming Soon */
+                    <div className="gift-badge-section">
+                        <div className="coming-soon-badge">
+                            <span className="coming-soon-icon">🏅</span>
+                            <span className="coming-soon-text">{t.comingSoon}</span>
+                        </div>
+                    </div>
+                ) : (
+                    /* RECEIVED GIFTS - Last 10 */
+                    <div className="gift-log-list">
+                        {gifts.length === 0 ? (
+                            <div className="gift-log-empty">{t.giftLogEmpty}</div>
+                        ) : (
+                            gifts.slice(0, 10).map(gift => (
+                                <div 
+                                    key={gift.id} 
+                                    className="gift-log-item"
+                                    onClick={() => onOpenProfile && onOpenProfile(gift.senderId)}
+                                >
+                                    <img 
+                                        src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${gift.senderName}&background=random`} 
+                                        alt={gift.senderName} 
+                                        className="gift-log-item-avatar"
+                                    />
+                                    <div className="gift-log-item-content">
+                                        <div className="gift-log-item-sender">{gift.senderName}</div>
+                                        <div className="gift-log-item-details">
+                                            <span className="gift-log-item-emoji">{gift.giftEmoji}</span>
+                                            <span className="gift-log-item-name">{lang === 'ar' ? gift.giftNameAr : gift.giftNameEn}</span>
+                                        </div>
+                                    </div>
+                                    <div className="gift-log-item-stats">
+                                        <span className="gift-log-item-charisma">+{formatCharisma(gift.charisma)}</span>
+                                        {gift.bonus > 0 && <span className="gift-log-item-bonus">+{gift.bonus} 💰</span>}
+                                        <span className="gift-log-item-time">{formatTime(gift.timestamp)}</span>
                                     </div>
                                 </div>
-                                <div className="gift-log-item-stats">
-                                    <span className="gift-log-item-charisma">+{formatCharisma(gift.charisma)}</span>
-                                    {gift.bonus > 0 && <span className="gift-log-item-bonus">+{gift.bonus} 💰</span>}
-                                    <span className="gift-log-item-time">{formatTime(gift.timestamp)}</span>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
+                            ))
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -737,25 +860,25 @@ const EmojiPicker = ({ show, onClose, onSelect, lang }) => {
 // 🎁 GIFT PREVIEW MODAL - IMPROVED
 // Shows details for both sender and receiver
 // ==========================================
-const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData, user }) => { 
+const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData, user, directTarget = null }) => { 
     const t = TRANSLATIONS[lang]; 
     const [showFriendSelect, setShowFriendSelect] = useState(false);
     const [selectedFriend, setSelectedFriend] = useState(null);
-    const [sendMode, setSendMode] = useState('self');
+    const [sendMode, setSendMode] = useState(directTarget ? 'direct' : 'self');
     const [previewBonus, setPreviewBonus] = useState(0);
     const isGiftItem = gift?.type === 'gifts';
     
     useEffect(() => {
         if (show && gift) {
-            setSelectedFriend(null);
-            setSendMode('self');
+            setSelectedFriend(directTarget || null);
+            setSendMode(directTarget ? 'direct' : 'self');
             setShowFriendSelect(false);
             // Generate preview bonus
             if (gift.minBonus && gift.maxBonus) {
                 setPreviewBonus(generateRandomBonus(gift.minBonus, gift.maxBonus));
             }
         }
-    }, [show, gift]);
+    }, [show, gift, directTarget]);
     
     if(!show || !gift) return null; 
     
@@ -768,7 +891,10 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     
     const handleSendFromInventory = () => {
         if (!onSendFromInventory) return;
-        if (sendMode === 'self') {
+        if (directTarget) {
+            onSendFromInventory(gift, directTarget);
+            onClose();
+        } else if (sendMode === 'self') {
             onSendFromInventory(gift, { uid: user?.uid || 'self', displayName: currentUserData?.displayName || 'Me', photoURL: currentUserData?.photoURL });
             onClose();
         } else if (selectedFriend) {
@@ -779,7 +905,9 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     
     const handleBuy = () => {
         if (!onBuy) return;
-        if (sendMode === 'self') {
+        if (directTarget) {
+            onBuy(gift, directTarget);
+        } else if (sendMode === 'self') {
             onBuy(gift, { uid: 'self', displayName: currentUserData?.displayName || 'Me' });
         } else if (selectedFriend) {
             onBuy(gift, selectedFriend);
@@ -808,7 +936,19 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         </div>
                     )}
                     
-                    {isGiftItem && (
+                    {/* Show target info if direct target */}
+                    {directTarget && (
+                        <div className="flex items-center gap-2 mb-2 p-2 bg-yellow-500/10 rounded-lg">
+                            <AvatarWithFrame photoURL={directTarget.photoURL} equipped={directTarget.equipped} size="sm" />
+                            <div className="text-left">
+                                <div className="font-bold text-xs">{lang === 'ar' ? 'إرسال إلى' : 'Sending to'}</div>
+                                <div className="text-[10px] text-primary">{directTarget.displayName}</div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Only show self/others toggle if no direct target */}
+                    {isGiftItem && !directTarget && (
                         <div className="flex gap-1 mb-2">
                             <button 
                                 onClick={() => setSendMode('self')} 
@@ -825,7 +965,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         </div>
                     )}
                     
-                    {sendMode === 'others' && showFriendSelect && (
+                    {sendMode === 'others' && showFriendSelect && !directTarget && (
                         <div className="friend-select-list">
                             <div className="text-[10px] text-gray-400 p-2 border-b border-white/5">{t.selectFriend}</div>
                             {friendsData && friendsData.length > 0 ? (
@@ -857,8 +997,8 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.close}</button>
                             <button 
                                 onClick={handleSendFromInventory} 
-                                disabled={sendMode === 'others' && !selectedFriend}
-                                className={`flex-1 py-1.5 rounded text-xs font-bold ${sendMode === 'others' && !selectedFriend ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'btn-gold'}`}
+                                disabled={!directTarget && sendMode === 'others' && !selectedFriend}
+                                className={`flex-1 py-1.5 rounded text-xs font-bold ${!directTarget && sendMode === 'others' && !selectedFriend ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'btn-gold'}`}
                             >
                                 {t.sendGift}
                             </button>
@@ -868,10 +1008,10 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.reportCancel}</button> 
                             <button 
                                 onClick={handleBuy} 
-                                disabled={currency < gift.cost || (sendMode === 'others' && !selectedFriend && isGiftItem)} 
+                                disabled={currency < gift.cost || (!directTarget && sendMode === 'others' && !selectedFriend && isGiftItem)} 
                                 className={`flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
                             >
-                                {isSending ? t.sendToFriend : t.buy} ({gift.cost}🧠)
+                                {isSending || directTarget ? t.sendGift : t.buy} ({gift.cost}🧠)
                             </button> 
                         </div>
                     )}
@@ -882,7 +1022,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
 };
 
 // ==========================================
-// 🎁 SEND GIFT MODAL - IMPROVED WITH FRIEND LIST
+// 🎁 SEND GIFT MODAL - IMPROVED WITH DIRECT TARGET
 // ==========================================
 const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency, friendsData }) => { 
     const t = TRANSLATIONS[lang]; 
@@ -891,8 +1031,8 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
     
     if(!show) return null; 
     
-    // Use friendsData prop for friend selection
-    const availableFriends = friendsData || [];
+    // Determine if we have a direct target (from profile)
+    const hasDirectTarget = targetUser && targetUser.uid !== 'self';
     
     return ( 
         <> 
@@ -900,7 +1040,7 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                 <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
                     <div className="modal-header"><h2 className="modal-title">{t.sendGift}</h2><ModalCloseBtn onClose={onClose} /></div> 
                     <div className="modal-body py-3">
-                        {targetUser && targetUser.uid !== 'self' && (
+                        {hasDirectTarget && (
                             <div className="flex items-center gap-2 mb-2 p-1.5 bg-white/5 rounded"> 
                                 <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
                                 <div><div className="font-bold text-xs">{targetUser.displayName}</div><div className="text-[9px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div></div> 
@@ -926,7 +1066,8 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                 onBuy={(gift, target) => { onSendGift(gift, target); onClose(); }} 
                 currency={currency} 
                 isSending={true} 
-                friendsData={availableFriends}
+                directTarget={hasDirectTarget ? targetUser : null}
+                friendsData={friendsData}
                 user={{ uid: currentUser?.uid }}
                 currentUserData={currentUser}
             /> 
@@ -1166,7 +1307,7 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                             </div>
                             <KDCircle wins={targetData.stats?.wins || 0} losses={targetData.stats?.losses || 0} lang={lang} />
                             
-                            {/* Gift Log - NEW */}
+                            {/* Gift Log - REDESIGNED */}
                             <GiftLog 
                                 show={true} 
                                 targetUID={targetUID} 
@@ -1174,6 +1315,7 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                                 onOpenProfile={(uid) => {
                                     // Could open another profile modal
                                 }}
+                                isOwnProfile={isOwnProfile}
                             />
                             
                             {!isOwnProfile && !isTargetGuest && (
