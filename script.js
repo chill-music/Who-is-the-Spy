@@ -1510,16 +1510,24 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     const [requestSent, setRequestSent] = useState(false);
     const [showOptionsMenu, setShowOptionsMenu] = useState(false);
     const [isBlocked, setIsBlocked] = useState(false);
+    const [blockedByTarget, setBlockedByTarget] = useState(false);
     const [showBlockConfirm, setShowBlockConfirm] = useState(false);
     
     useEffect(() => {
         if (!show || !targetUID) { setLoading(true); return; }
         setLoading(true); setRequestSent(false); setShowOptionsMenu(false);
         usersCollection.doc(targetUID).get().then(doc => {
-            if (doc.exists) { setTargetData({ id: doc.id, ...doc.data(), isGuest: false }); setLoading(false); }
+            if (doc.exists) { 
+                const data = doc.data();
+                setTargetData({ id: doc.id, ...data, isGuest: false });
+                // Check if target has blocked current user
+                const theirBlockedUsers = data.blockedUsers || [];
+                setBlockedByTarget(theirBlockedUsers.includes(currentUserUID));
+                setLoading(false); 
+            }
             else { guestsCollection.doc(targetUID).get().then(guestDoc => { if (guestDoc.exists) { setTargetData({ id: guestDoc.id, ...guestDoc.data(), isGuest: true }); } else { setTargetData(null); } setLoading(false); }).catch(() => { setTargetData(null); setLoading(false); }); }
         }).catch(() => { setLoading(false); setTargetData(null); });
-    }, [show, targetUID]);
+    }, [show, targetUID, currentUserUID]);
 
     // Check if user is blocked
     useEffect(() => {
@@ -1642,7 +1650,15 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                                 </div>
                             )}
                             
-                            {!isOwnProfile && !isTargetGuest && !isBlocked && (
+                            {/* Blocked By Target Notice */}
+                            {blockedByTarget && !isOwnProfile && (
+                                <div className="blocked-notice blocked-by-other">
+                                    <span>🚫</span>
+                                    <span>{lang === 'ar' ? 'هذا المستخدم قد حظرك. لا يمكنك إرسال هدايا أو طلبات صداقة.' : 'This user has blocked you. You cannot send gifts or friend requests.'}</span>
+                                </div>
+                            )}
+                            
+                            {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && (
                                 <div className="flex gap-2 mt-4">
                                     {isAlreadyFriend ? <button disabled className="btn-success flex-1 py-2 rounded-lg text-sm opacity-80">✅ {lang === 'ar' ? 'أصدقاء' : 'Friends'}</button> : hasPendingRequest ? <button disabled className="btn-ghost flex-1 py-2 rounded-lg text-sm opacity-80">⏳ {lang === 'ar' ? 'تم الإرسال' : 'Sent'}</button> : <button onClick={handleAddFriend} className="btn-neon flex-1 py-2 rounded-lg text-sm">👥 {t.addFriend}</button>}
                                     <button onClick={() => setShowGiftModal(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm">🎁 {t.sendGift}</button>
@@ -2363,6 +2379,24 @@ function App() {
     const notificationBellRef = useRef(null);
     const [showSettings, setShowSettings] = useState(false);
     const [soundMuted, setSoundMuted] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
+    
+    // Click outside handler for notification dropdown
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (showNotifications && notificationBellRef.current && !notificationBellRef.current.contains(e.target)) {
+                const dropdown = document.querySelector('.notification-dropdown');
+                if (dropdown && !dropdown.contains(e.target)) {
+                    setShowNotifications(false);
+                }
+            }
+        };
+        if (showNotifications) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showNotifications]);
     
     const t = TRANSLATIONS[lang];
     const isLoggedIn = useMemo(() => user && !user.isAnonymous, [user]);
