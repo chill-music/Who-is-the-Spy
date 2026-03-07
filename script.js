@@ -3243,20 +3243,32 @@ const WinRateCircleV11 = ({ wins, losses, lang }) => {
     );
 };
 
-// 🎁 GIFT WALL COMPONENT V11
+// 🎁 GIFT WALL COMPONENT V11 - IMPROVED WITH SENDER PHOTOS
 const GiftWallV11 = ({ gifts, lang }) => {
     const [activeTab, setActiveTab] = useState('wall');
     const totalGifts = gifts?.length || 0;
 
-    const giftCounts = useMemo(() => {
+    // Calculate gift counts and last sender info
+    const giftData = useMemo(() => {
         const counts = {};
+        const lastSenders = {};
+        
         gifts?.forEach(g => {
             counts[g.giftId] = (counts[g.giftId] || 0) + 1;
+            // Keep track of the most recent sender for each gift type
+            if (!lastSenders[g.giftId]) {
+                lastSenders[g.giftId] = {
+                    name: g.senderName,
+                    photo: g.senderPhoto,
+                    uid: g.senderId
+                };
+            }
         });
-        return counts;
+        
+        return { counts, lastSenders };
     }, [gifts]);
 
-    const displayGifts = SHOP_ITEMS.gifts.slice(0, 16);
+    const displayGifts = SHOP_ITEMS.gifts.slice(0, 20);
 
     return (
         <div className="profile-gift-section">
@@ -3266,39 +3278,52 @@ const GiftWallV11 = ({ gifts, lang }) => {
                         className={`profile-gift-tab ${activeTab === 'wall' ? 'active' : ''}`}
                         onClick={() => setActiveTab('wall')}
                     >
-                        {lang === 'ar' ? 'الجدار' : 'Wall'}
+                        {lang === 'ar' ? '🎁 الجدار' : '🎁 Wall'}
                     </button>
                     <button 
                         className={`profile-gift-tab ${activeTab === 'log' ? 'active' : ''}`}
                         onClick={() => setActiveTab('log')}
                     >
-                        {lang === 'ar' ? 'السجل' : 'Log'}
+                        {lang === 'ar' ? '📬 السجل' : '📬 Log'}
                     </button>
                 </div>
-                <span className="profile-gift-count">{totalGifts} {lang === 'ar' ? 'هدية' : 'GIFTS'}</span>
+                <span className="profile-gift-count">{totalGifts} {lang === 'ar' ? 'هدية' : 'gifts'}</span>
             </div>
 
             {activeTab === 'wall' && (
                 <div className="profile-gift-grid">
-                    {displayGifts.map((gift, idx) => {
-                        const count = giftCounts[gift.id] || 0;
+                    {displayGifts.map((gift) => {
+                        const count = giftData.counts[gift.id] || 0;
                         const unlocked = count > 0;
+                        const lastSender = giftData.lastSenders[gift.id];
 
                         return (
                             <div 
                                 key={gift.id} 
                                 className={`profile-gift-slot ${unlocked ? 'unlocked' : 'locked'}`}
+                                title={unlocked ? `${lang === 'ar' ? gift.name_ar : gift.name_en} x${count}` : (lang === 'ar' ? 'لم تُستلم بعد' : 'Not received')}
                             >
-                                {gift.emoji ? (
-                                    <span>{gift.emoji}</span>
-                                ) : gift.imageUrl ? (
-                                    <img src={gift.imageUrl} alt={gift.name_en} />
-                                ) : (
-                                    <span>🎁</span>
+                                {/* Show sender photo if received */}
+                                {unlocked && lastSender && (
+                                    <img 
+                                        src={lastSender.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(lastSender.name || 'User')}&background=ffd700&color=000&size=24`}
+                                        alt=""
+                                        className="profile-gift-sender-avatar"
+                                    />
                                 )}
-                                {count > 1 && (
-                                    <span className="profile-gift-count-badge">x{count}</span>
+                                
+                                {/* Gift icon/emoji */}
+                                <span className="profile-gift-icon">
+                                    {gift.emoji || '🎁'}
+                                </span>
+                                
+                                {/* Count badge */}
+                                {count > 0 && (
+                                    <span className="profile-gift-count-badge">×{count}</span>
                                 )}
+                                
+                                {/* Glow effect for unlocked gifts */}
+                                {unlocked && <div className="profile-gift-glow"></div>}
                             </div>
                         );
                     })}
@@ -3311,16 +3336,16 @@ const GiftWallV11 = ({ gifts, lang }) => {
                         gifts.slice(0, 10).map((gift, idx) => (
                             <div key={idx} className="profile-gift-log-item">
                                 <img 
-                                    src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(gift.senderName)}&background=6366f1&color=fff`} 
+                                    src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(gift.senderName || 'User')}&background=6366f1&color=fff`} 
                                     alt="" 
                                     className="profile-gift-log-avatar"
                                 />
                                 <div className="profile-gift-log-content">
-                                    <div className="profile-gift-log-sender">{gift.senderName}</div>
+                                    <div className="profile-gift-log-sender">{gift.senderName || 'Unknown'}</div>
                                     <div className="profile-gift-log-details">
                                         <span className="profile-gift-log-emoji">{gift.giftEmoji || '🎁'}</span>
                                         <span className="profile-gift-log-name">
-                                            {lang === 'ar' ? gift.giftNameAr : gift.giftNameEn}
+                                            {lang === 'ar' ? (gift.giftNameAr || 'هدية') : (gift.giftNameEn || 'Gift')}
                                         </span>
                                     </div>
                                 </div>
@@ -3333,8 +3358,9 @@ const GiftWallV11 = ({ gifts, lang }) => {
                             </div>
                         ))
                     ) : (
-                        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '12px' }}>
-                            {lang === 'ar' ? 'لا توجد هدايا بعد' : 'No gifts yet'}
+                        <div className="profile-gift-empty">
+                            <span style={{ fontSize: '32px' }}>🎁</span>
+                            <span>{lang === 'ar' ? 'لا توجد هدايا بعد' : 'No gifts yet'}</span>
                         </div>
                     )}
                 </div>
@@ -3343,10 +3369,12 @@ const GiftWallV11 = ({ gifts, lang }) => {
     );
 };
 
-// 🏆 ACHIEVEMENTS DISPLAY V11
+// 🏆 ACHIEVEMENTS DISPLAY V11 - IMPROVED WITH SCROLLING
 const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
     const unlockedAchievements = userData?.achievements || [];
-    const maxDisplay = showAll ? 20 : 8;
+    const scrollRef = useRef(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
 
     const getProgress = (achievement) => {
         const stats = userData?.stats || {};
@@ -3367,52 +3395,99 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
         return Math.min(100, (current / condition.value) * 100);
     };
 
-    const displayAchievements = ACHIEVEMENTS.slice(0, maxDisplay);
+    const checkScroll = () => {
+        if (scrollRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+            setCanScrollLeft(scrollLeft > 0);
+            setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5);
+        }
+    };
+
+    useEffect(() => {
+        checkScroll();
+        const ref = scrollRef.current;
+        if (ref) {
+            ref.addEventListener('scroll', checkScroll);
+            return () => ref.removeEventListener('scroll', checkScroll);
+        }
+    }, []);
+
+    const scroll = (direction) => {
+        if (scrollRef.current) {
+            const scrollAmount = 200;
+            scrollRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+        }
+    };
+
+    // Show unlocked achievements first, then locked ones
+    const sortedAchievements = [...ACHIEVEMENTS].sort((a, b) => {
+        const aUnlocked = unlockedAchievements.includes(a.id);
+        const bUnlocked = unlockedAchievements.includes(b.id);
+        if (aUnlocked && !bUnlocked) return -1;
+        if (!aUnlocked && bUnlocked) return 1;
+        return 0;
+    });
+
+    const displayAchievements = showAll ? sortedAchievements : sortedAchievements.slice(0, 12);
 
     return (
         <div className="profile-achievements-section">
             <div className="profile-achievements-header">
                 <span className="profile-achievements-title">
-                    <i className="fas fa-trophy" style={{ marginRight: '4px', color: '#facc15' }}></i>
-                    {lang === 'ar' ? 'الإنجازات' : 'Achievements'}
+                    🏆 {lang === 'ar' ? 'الإنجازات' : 'Achievements'}
                 </span>
                 <span className="profile-achievements-count">{unlockedAchievements.length}/{ACHIEVEMENTS.length}</span>
             </div>
-            <div className="profile-achievements-grid">
-                {displayAchievements.map((ach, idx) => {
-                    const isUnlocked = unlockedAchievements.includes(ach.id);
-                    const progress = getProgress(ach);
+            
+            <div className="profile-achievements-scroll-container">
+                {canScrollLeft && (
+                    <button className="profile-achievements-scroll-btn left" onClick={() => scroll('left')}>
+                        ◀
+                    </button>
+                )}
+                
+                <div className="profile-achievements-grid" ref={scrollRef}>
+                    {displayAchievements.map((ach) => {
+                        const isUnlocked = unlockedAchievements.includes(ach.id);
+                        const progress = getProgress(ach);
 
-                    return (
-                        <div 
-                            key={ach.id} 
-                            className={`profile-achievement-item ${isUnlocked ? 'unlocked' : 'locked'}`}
-                            title={TRANSLATIONS[lang]?.[ach.nameKey] || ach.id}
-                        >
-                            {ach.imageUrl ? (
-                                <img src={ach.imageUrl} alt="" />
-                            ) : (
-                                <i className={ach.icon} style={{ color: isUnlocked ? '#facc15' : undefined }}></i>
-                            )}
-                            {isUnlocked && (
-                                <span className="profile-achievement-badge">
-                                    <i className="fas fa-check" style={{ fontSize: '6px' }}></i>
+                        return (
+                            <div 
+                                key={ach.id} 
+                                className={`profile-achievement-item ${isUnlocked ? 'unlocked' : 'locked'}`}
+                                title={TRANSLATIONS[lang]?.[ach.nameKey] || ach.id}
+                            >
+                                <span className="profile-achievement-icon" style={{ 
+                                    fontSize: '20px',
+                                    filter: isUnlocked ? 'none' : 'grayscale(100%)',
+                                    opacity: isUnlocked ? 1 : 0.4
+                                }}>
+                                    {ach.icon || '🏅'}
                                 </span>
-                            )}
-                            {!isUnlocked && progress > 0 && (
-                                <div className="profile-achievement-progress">
-                                    <div className="profile-achievement-progress-fill" style={{ width: `${progress}%` }}></div>
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
+                                {isUnlocked && (
+                                    <span className="profile-achievement-badge">✓</span>
+                                )}
+                                {!isUnlocked && progress > 0 && (
+                                    <div className="profile-achievement-progress">
+                                        <div className="profile-achievement-progress-fill" style={{ width: `${progress}%` }}></div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+                
+                {canScrollRight && (
+                    <button className="profile-achievements-scroll-btn right" onClick={() => scroll('right')}>
+                        ▶
+                    </button>
+                )}
             </div>
         </div>
     );
 };
 
-// 👤 USER TITLE COMPONENT V11
+// 👤 USER TITLE COMPONENT V11 - FIXED VISIBILITY
 const UserTitleV11 = ({ equipped, lang }) => {
     const titleId = equipped?.titles;
     if (!titleId) return null;
@@ -3420,7 +3495,8 @@ const UserTitleV11 = ({ equipped, lang }) => {
     const title = SHOP_ITEMS.titles.find(t => t.id === titleId);
     if (!title) return null;
 
-    if (title.imageUrl) {
+    // If title has an image URL, show the image
+    if (title.imageUrl && title.imageUrl.trim() !== '') {
         return (
             <div className="profile-user-title has-image">
                 <img src={title.imageUrl} alt={title.name_en} />
@@ -3428,9 +3504,10 @@ const UserTitleV11 = ({ equipped, lang }) => {
         );
     }
 
+    // Otherwise show text with emoji/preview
     return (
         <span className="profile-user-title">
-            {lang === 'ar' ? title.name_ar : title.name_en}
+            {title.preview} {lang === 'ar' ? title.name_ar : title.name_en}
         </span>
     );
 };
@@ -3461,13 +3538,13 @@ const UserBadgesV11 = ({ equipped, lang }) => {
     );
 };
 
-// 👤 AVATAR WITH FRAME V11
+// 👤 AVATAR WITH FRAME V11 - FIXED
 const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
     const sizeMap = {
         sm: { wrapper: 52, avatar: 30, mask: 32 },
         md: { wrapper: 72, avatar: 40, mask: 42 },
-        lg: { wrapper: 96, avatar: 64, mask: 68 },
-        xl: { wrapper: 140, avatar: 96, mask: 100 }
+        lg: { wrapper: 96, avatar: 56, mask: 60 },
+        xl: { wrapper: 140, avatar: 80, mask: 88 }
     };
 
     const s = sizeMap[size] || sizeMap.lg;
@@ -3476,36 +3553,48 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
 
     return (
         <div className="profile-avatar-container" style={{ position: 'relative' }}>
-            <div 
-                className="avatar-wrapper"
-                style={{ width: s.wrapper, height: s.wrapper }}
-            >
-                <img 
-                    src={photoURL || `https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&size=${s.avatar * 2}`}
-                    alt=""
-                    className="profile-avatar"
+            {/* Frame layer - rendered first (below avatar) */}
+            {frameStyle && frameStyle.preview && (
+                <div 
+                    className="avatar-frame-ring" 
                     style={{ 
-                        width: s.avatar, 
-                        height: s.avatar,
-                        borderRadius: size === 'lg' ? 20 : '50%'
+                        borderRadius: size === 'lg' ? 24 : '50%',
+                        position: 'absolute',
+                        top: -4,
+                        left: -4,
+                        right: -4,
+                        bottom: -4,
+                        zIndex: 1
                     }}
-                />
-                
-                {frameStyle && frameStyle.preview && (
-                    <div className="avatar-frame-ring" style={{ borderRadius: size === 'lg' ? 24 : '50%' }}>
-                        {frameStyle.preview.startsWith('http') ? (
-                            <img src={frameStyle.preview} alt="" />
-                        ) : (
-                            <div style={{
-                                width: '100%',
-                                height: '100%',
-                                background: frameStyle.preview,
-                                borderRadius: 'inherit'
-                            }} />
-                        )}
-                    </div>
-                )}
-            </div>
+                >
+                    {frameStyle.preview.startsWith('http') ? (
+                        <img src={frameStyle.preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                    ) : (
+                        <div style={{
+                            width: '100%',
+                            height: '100%',
+                            background: frameStyle.preview,
+                            borderRadius: 'inherit'
+                        }} />
+                    )}
+                </div>
+            )}
+            
+            {/* Avatar image - rendered second (above frame) */}
+            <img 
+                src={photoURL || `https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&size=${s.avatar * 2}`}
+                alt=""
+                className="profile-avatar"
+                style={{ 
+                    width: s.avatar, 
+                    height: s.avatar,
+                    borderRadius: size === 'lg' ? 16 : '50%',
+                    position: 'relative',
+                    zIndex: 10,
+                    border: '3px solid var(--bg-dark)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
+                }}
+            />
             
             {isOnline !== undefined && (
                 <div className={`profile-status-dot ${isOnline ? '' : 'offline'}`}></div>
@@ -3587,16 +3676,24 @@ const ProfileV11 = ({
         }
     }, [userData, targetUID]);
 
+    // Fetch gifts without orderBy to avoid Firebase index requirement
     useEffect(() => {
         if (!show || !targetUID) return;
         
         const unsub = giftsLogCollection
             .where('receiverId', '==', targetUID)
-            .orderBy('timestamp', 'desc')
             .limit(50)
             .onSnapshot(snap => {
                 const giftData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Sort in memory instead of query
+                giftData.sort((a, b) => {
+                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
+                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
+                    return timeB - timeA;
+                });
                 setGifts(giftData);
+            }, error => {
+                console.error('Gifts fetch error:', error);
             });
         
         return unsub;
@@ -3657,35 +3754,59 @@ const ProfileV11 = ({
     const losses = targetData?.stats?.losses || 0;
     const level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
 
+    // Calculate charisma rank
+    const [charismaRank, setCharismaRank] = useState(null);
+    useEffect(() => {
+        if (!show || !targetUID || !targetData) return;
+        // Get rank from charisma leaderboard
+        usersCollection.orderBy('charisma', 'desc').limit(1000).get().then(snap => {
+            const users = snap.docs.map((doc, idx) => ({ id: doc.id, rank: idx + 1 }));
+            const userRank = users.find(u => u.id === targetUID);
+            setCharismaRank(userRank ? userRank.rank : '--');
+        }).catch(() => {
+            setCharismaRank('--');
+        });
+    }, [show, targetUID, targetData]);
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
                 
-                {!isOwnProfile && !isTargetGuest && (
-                    <div className="profile-options-container" ref={optionsRef}>
-                        <button 
-                            className="profile-options-btn"
-                            onClick={() => setShowOptionsMenu(!showOptionsMenu)}
-                        >
-                            ⋮
-                        </button>
-                        {showOptionsMenu && (
-                            <div className="profile-options-menu">
-                                {isBlocked ? (
-                                    <button onClick={handleUnblockUser} className="profile-options-item unblock">
-                                        <span>🔓</span>
-                                        <span>{lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}</span>
-                                    </button>
-                                ) : (
-                                    <button onClick={() => setShowBlockConfirm(true)} className="profile-options-item block">
-                                        <span>🚫</span>
-                                        <span>{lang === 'ar' ? 'حظر' : 'Block'}</span>
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )}
+                {/* Profile Header Bar - Contains X and Three Dots */}
+                <div className="profile-header-bar">
+                    <button 
+                        onClick={onClose}
+                        className="profile-close-btn"
+                    >
+                        ✕
+                    </button>
+                    
+                    {!isOwnProfile && !isTargetGuest && (
+                        <div className="profile-options-container" ref={optionsRef}>
+                            <button 
+                                className="profile-options-btn"
+                                onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                            >
+                                ⋮
+                            </button>
+                            {showOptionsMenu && (
+                                <div className="profile-options-menu">
+                                    {isBlocked ? (
+                                        <button onClick={handleUnblockUser} className="profile-options-item unblock">
+                                            <span>🔓</span>
+                                            <span>{lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}</span>
+                                        </button>
+                                    ) : (
+                                        <button onClick={() => setShowBlockConfirm(true)} className="profile-options-item block">
+                                            <span>🚫</span>
+                                            <span>{lang === 'ar' ? 'حظر' : 'Block'}</span>
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
 
                 <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
 
@@ -3746,7 +3867,7 @@ const ProfileV11 = ({
                             
                             <div className="profile-stats-grid">
                                 <div className="profile-stat-box">
-                                    <span className="profile-stat-value rank">#{targetData?.globalRank || '--'}</span>
+                                    <span className="profile-stat-value rank">#{charismaRank || '--'}</span>
                                     <span className="profile-stat-label">{lang === 'ar' ? 'الترتيب' : 'Rank'}</span>
                                 </div>
                                 <div className="profile-stat-box">
@@ -3830,28 +3951,6 @@ const ProfileV11 = ({
                         </div>
                     </div>
                 )}
-
-                <button 
-                    onClick={onClose}
-                    style={{
-                        position: 'absolute',
-                        top: '16px',
-                        right: '60px',
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '8px',
-                        background: 'rgba(255,255,255,0.1)',
-                        border: 'none',
-                        color: '#94a3b8',
-                        fontSize: '20px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                >
-                    ✕
-                </button>
             </div>
 
             {showGiftModal && targetData && (
