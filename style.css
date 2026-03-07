@@ -553,6 +553,12 @@ body {
     font-size: 20px;
 }
 
+.gift-mini-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
 .gift-mini-empty {
     width: 36px;
     height: 36px;
@@ -662,6 +668,12 @@ body {
 
 .gift-wall-emoji {
     font-size: 20px;
+}
+
+.gift-wall-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
 }
 
 .gift-wall-count {
@@ -811,6 +823,12 @@ body {
 
 .gift-log-item-emoji {
     font-size: 14px;
+}
+
+.gift-log-item-img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
 }
 
 .gift-log-item-name {
