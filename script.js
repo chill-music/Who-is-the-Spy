@@ -274,6 +274,48 @@ const getCharismaProgress = (charisma) => {
 };
 
 // ==========================================
+// 🎨 RARITY SYSTEM - EPIC / LEGENDARY / MYTHIC
+// ==========================================
+const RARITY = {
+    COMMON: 'common',
+    EPIC: 'epic',
+    LEGENDARY: 'legendary',
+    MYTHIC: 'mythic'
+};
+
+const RARITY_CONFIG = {
+    [RARITY.COMMON]: {
+        name: 'Common',
+        nameAr: 'عادي',
+        color: '#6b7280',
+        gradient: 'rgba(107, 114, 128, 0.3)',
+        glow: 'none'
+    },
+    [RARITY.EPIC]: {
+        name: 'Epic',
+        nameAr: 'ملحمي',
+        color: '#8b5cf6',
+        gradient: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(168, 85, 247, 0.2))',
+        glow: '0 0 20px rgba(139, 92, 246, 0.5)'
+    },
+    [RARITY.LEGENDARY]: {
+        name: 'Legendary',
+        nameAr: 'أسطوري',
+        color: '#f97316',
+        gradient: 'linear-gradient(135deg, rgba(255, 136, 0, 0.3), rgba(255, 193, 7, 0.2))',
+        glow: '0 0 25px rgba(255, 136, 0, 0.5)'
+    },
+    [RARITY.MYTHIC]: {
+        name: 'Mythic',
+        nameAr: 'خرافي',
+        color: '#ff0080',
+        gradient: 'linear-gradient(45deg, rgba(255, 0, 128, 0.3), rgba(128, 0, 255, 0.3), rgba(0, 242, 255, 0.3))',
+        glow: '0 0 30px rgba(255, 0, 128, 0.5)',
+        animated: true
+    }
+};
+
+// ==========================================
 // SHOP ITEMS - GIFTS WITH BONUS (NO CASHBACK)
 // ==========================================
 const SHOP_ITEMS = {
@@ -4033,8 +4075,303 @@ const ProfileV11 = ({
     );
 };
 
-// Make ProfileV11 available globally
+// ==========================================
+// 🚻 GENDER ICON COMPONENT
+// ==========================================
+const GenderIcon = ({ gender }) => {
+    if (!gender || gender === 'none') return null;
+    return (
+        <span className={`profile-gender-icon ${gender}`}>
+            {gender === 'male' ? '♂' : '♀'}
+        </span>
+    );
+};
+
+// ==========================================
+// 👤 GUEST BADGE COMPONENT
+// ==========================================
+const GuestBadge = ({ lang }) => {
+    return (
+        <span className="profile-guest-badge">
+            {lang === 'ar' ? 'ضيف' : 'Guest'}
+        </span>
+    );
+};
+
+// ==========================================
+// 🖼️ PROFILE BANNER COMPONENT
+// ==========================================
+const ProfileBanner = ({ bannerUrl, isOwnProfile, onEdit, lang }) => {
+    return (
+        <div className="profile-banner-container">
+            {bannerUrl ? (
+                <img src={bannerUrl} alt="" className="profile-banner-image" />
+            ) : (
+                <div className="profile-banner-placeholder" style={{
+                    width: '100%',
+                    height: '100%',
+                    background: 'linear-gradient(135deg, rgba(112, 0, 255, 0.3), rgba(0, 242, 255, 0.3))'
+                }} />
+            )}
+            {isOwnProfile && (
+                <button className="profile-banner-edit-btn" onClick={onEdit}>
+                    📷
+                </button>
+            )}
+        </div>
+    );
+};
+
+// ==========================================
+// 🎁 SEND GIFT TO SELF BUTTON
+// ==========================================
+const SendGiftToSelfButton = ({ onClick, lang }) => {
+    return (
+        <button className="profile-send-gift-self" onClick={onClick}>
+            <span className="profile-send-gift-self-icon">🎁</span>
+            <span>{lang === 'ar' ? 'أرسل هدية لنفسك' : 'Send Gift to Yourself'}</span>
+        </button>
+    );
+};
+
+// ==========================================
+// 📝 REGISTRATION POPUP COMPONENT
+// ==========================================
+const RegistrationPopup = ({ show, onComplete, lang }) => {
+    const [name, setName] = useState('');
+    const [gender, setGender] = useState('none');
+    const [loading, setLoading] = useState(false);
+
+    if (!show) return null;
+
+    const handleSubmit = async () => {
+        if (!name.trim()) return;
+        setLoading(true);
+        try {
+            await onComplete({
+                displayName: name.trim(),
+                gender: gender
+            });
+        } catch (error) {
+            console.error('Registration error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="registration-popup-overlay">
+            <div className="registration-popup-content">
+                <div className="registration-popup-header">
+                    <h2 className="registration-popup-title">
+                        {lang === 'ar' ? 'مرحباً!' : 'Welcome!'}
+                    </h2>
+                    <p className="registration-popup-subtitle">
+                        {lang === 'ar' ? 'أكمل بياناتك للبدء' : 'Complete your profile to get started'}
+                    </p>
+                </div>
+                <div className="registration-input-group">
+                    <label className="registration-input-label">
+                        {lang === 'ar' ? 'اسمك' : 'Your Name'}
+                    </label>
+                    <input 
+                        className="registration-input"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder={lang === 'ar' ? 'اكتب اسمك...' : 'Enter your name...'}
+                        maxLength={20}
+                    />
+                </div>
+                <div className="registration-input-group">
+                    <label className="registration-input-label">
+                        {lang === 'ar' ? 'الجنس' : 'Gender'}
+                    </label>
+                    <div className="gender-selection-container">
+                        <div 
+                            className={`gender-option ${gender === 'male' ? 'selected male' : ''}`}
+                            onClick={() => setGender('male')}
+                        >
+                            <span className="gender-option-icon">♂</span>
+                            <span className="gender-option-label">{lang === 'ar' ? 'ذكر' : 'Male'}</span>
+                        </div>
+                        <div 
+                            className={`gender-option ${gender === 'female' ? 'selected female' : ''}`}
+                            onClick={() => setGender('female')}
+                        >
+                            <span className="gender-option-icon">♀</span>
+                            <span className="gender-option-label">{lang === 'ar' ? 'أنثى' : 'Female'}</span>
+                        </div>
+                    </div>
+                </div>
+                <button 
+                    className="registration-submit-btn"
+                    onClick={handleSubmit}
+                    disabled={!name.trim() || loading}
+                >
+                    {loading ? (
+                        <span>⏳ {lang === 'ar' ? 'جاري الحفظ...' : 'Saving...'}</span>
+                    ) : (
+                        <span>{lang === 'ar' ? 'حفظ' : 'Save'}</span>
+                    )}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// 📋 ACCOUNT DETAILS SECTION
+// ==========================================
+const AccountDetailsSection = ({ userData, lang }) => {
+    if (!userData) return null;
+
+    const formatDate = (timestamp) => {
+        if (!timestamp) return '--';
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return date.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    return (
+        <div className="account-details-section">
+            <h3 className="account-details-title">
+                <span>📋</span>
+                <span>{lang === 'ar' ? 'تفاصيل الحساب' : 'Account Details'}</span>
+            </h3>
+            <div className="account-details-item">
+                <span className="account-details-label">
+                    {lang === 'ar' ? 'تاريخ الإنشاء' : 'Created At'}
+                </span>
+                <span className="account-details-value">
+                    {formatDate(userData.createdAt)}
+                </span>
+            </div>
+            <div className="account-details-item">
+                <span className="account-details-label">
+                    {lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}
+                </span>
+                <span className="account-details-value">
+                    {userData.email || '--'}
+                </span>
+            </div>
+            <div className="account-details-item">
+                <span className="account-details-label">
+                    {lang === 'ar' ? 'نوع الحساب' : 'Account Type'}
+                </span>
+                <span className="account-details-value">
+                    {userData.isGuest 
+                        ? (lang === 'ar' ? 'ضيف' : 'Guest') 
+                        : (lang === 'ar' ? 'مسجل' : 'Registered')}
+                </span>
+            </div>
+            {userData.gender && userData.gender !== 'none' && (
+                <div className="account-details-item">
+                    <span className="account-details-label">
+                        {lang === 'ar' ? 'الجنس' : 'Gender'}
+                    </span>
+                    <span className="account-details-value">
+                        {userData.gender === 'male' 
+                            ? (lang === 'ar' ? 'ذكر' : 'Male')
+                            : (lang === 'ar' ? 'أنثى' : 'Female')}
+                    </span>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ==========================================
+// 🏆 ACHIEVEMENT DETAIL MODAL - X AT BOTTOM
+// ==========================================
+const AchievementDetailModal = ({ achievement, isUnlocked, progress, lang, onClose }) => {
+    if (!achievement) return null;
+
+    const rarityConfig = RARITY_CONFIG[achievement.rarity || RARITY.COMMON];
+
+    return (
+        <div className="achievement-detail-overlay" onClick={onClose}>
+            <div className="achievement-detail-modal animate-pop" onClick={e => e.stopPropagation()}>
+                <div className="achievement-detail-header">
+                    <div 
+                        className="achievement-detail-icon"
+                        style={{ 
+                            background: rarityConfig.gradient,
+                            boxShadow: rarityConfig.glow
+                        }}
+                    >
+                        {achievement.imageUrl ? (
+                            <img src={achievement.imageUrl} alt="" />
+                        ) : (
+                            <i className={achievement.icon} style={{ fontSize: '32px' }}></i>
+                        )}
+                    </div>
+                    <h3 className="achievement-detail-name">
+                        {TRANSLATIONS[lang]?.[achievement.nameKey] || achievement.id}
+                    </h3>
+                    {achievement.rarity && (
+                        <span className={`rarity-badge ${achievement.rarity}`}>
+                            {RARITY_CONFIG[achievement.rarity]?.[lang === 'ar' ? 'nameAr' : 'name'] || achievement.rarity}
+                        </span>
+                    )}
+                </div>
+                <div className="achievement-detail-body">
+                    <p className="achievement-detail-description">
+                        {TRANSLATIONS[lang]?.[achievement.descKey] || ''}
+                    </p>
+                    <div className={`achievement-detail-status ${isUnlocked ? 'unlocked' : 'locked'}`}>
+                        {isUnlocked ? (
+                            <>
+                                <span>✓</span>
+                                <span>{lang === 'ar' ? 'تم فتحه' : 'Unlocked'}</span>
+                            </>
+                        ) : (
+                            <>
+                                <span>🔒</span>
+                                <span>{lang === 'ar' ? 'مقفل' : 'Locked'}</span>
+                            </>
+                        )}
+                    </div>
+                    {!isUnlocked && (
+                        <div className="achievement-detail-progress">
+                            <div className="achievement-detail-progress-header">
+                                <span>{lang === 'ar' ? 'التقدم' : 'Progress'}</span>
+                                <span>{Math.round(progress)}%</span>
+                            </div>
+                            <div className="achievement-detail-progress-bar">
+                                <div 
+                                    className="achievement-detail-progress-fill" 
+                                    style={{ width: `${progress}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <div className="achievement-detail-footer">
+                    <button className="achievement-detail-close-btn" onClick={onClose}>
+                        <span>✕</span>
+                        <span>{lang === 'ar' ? 'إغلاق' : 'Close'}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Make components available globally
 window.ProfileV11 = ProfileV11;
+window.GenderIcon = GenderIcon;
+window.GuestBadge = GuestBadge;
+window.ProfileBanner = ProfileBanner;
+window.SendGiftToSelfButton = SendGiftToSelfButton;
+window.RegistrationPopup = RegistrationPopup;
+window.AccountDetailsSection = AccountDetailsSection;
+window.AchievementDetailModal = AchievementDetailModal;
+window.RARITY = RARITY;
+window.RARITY_CONFIG = RARITY_CONFIG;
 
 // Wrap with ErrorBoundary
 const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
