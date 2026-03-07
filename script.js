@@ -3865,9 +3865,6 @@ const ProfileV11 = ({
                     </button>
                 </div>
 
-                {/* Charisma Display */}
-                <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
-
                 {/* Cover with centered Avatar */}
                 <div className="profile-cover">
                     <div className="profile-avatar-wrapper">
@@ -3913,6 +3910,9 @@ const ProfileV11 = ({
                                     : `ID: ${targetData?.customId || targetData?.uid?.substring(0, 8)} 📋`
                                 }
                             </span>
+                            
+                            {/* Charisma Display Under ID */}
+                            <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
                         </div>
 
                         <div className="profile-stats-dashboard">
