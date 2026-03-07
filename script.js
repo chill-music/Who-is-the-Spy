@@ -361,25 +361,39 @@ const ACHIEVEMENTS = [
     { id: 'ach_gift_collector', nameKey: 'achGiftCollector', descKey: 'achGiftCollectorDesc', icon: '💝', imageUrl: '', condition: { type: 'gifts_received', value: 10 } },
     { id: 'ach_gift_master', nameKey: 'achGiftMaster', descKey: 'achGiftMasterDesc', icon: '💎', imageUrl: '', condition: { type: 'gifts_received', value: 50 } },
     { id: 'ach_gift_legend', nameKey: 'achGiftLegend', descKey: 'achGiftLegendDesc', icon: '👑', imageUrl: '', condition: { type: 'gifts_received', value: 100 } },
+    { id: 'ach_gift_king', nameKey: 'achGiftKing', descKey: 'achGiftKingDesc', icon: '🏆', imageUrl: '', condition: { type: 'gifts_received', value: 500 } },
     
     // Game Achievements
     { id: 'ach_first_win', nameKey: 'achFirstWin', descKey: 'achFirstWinDesc', icon: '🏆', imageUrl: '', condition: { type: 'wins', value: 1 } },
     { id: 'ach_veteran', nameKey: 'achVeteran', descKey: 'achVeteranDesc', icon: '🎖️', imageUrl: '', condition: { type: 'games_played', value: 10 } },
     { id: 'ach_pro', nameKey: 'achPro', descKey: 'achProDesc', icon: '⭐', imageUrl: '', condition: { type: 'games_played', value: 25 } },
     { id: 'ach_master', nameKey: 'achMaster', descKey: 'achMasterDesc', icon: '🌟', imageUrl: '', condition: { type: 'games_played', value: 50 } },
+    { id: 'ach_legend_player', nameKey: 'achLegendPlayer', descKey: 'achLegendPlayerDesc', icon: '🏅', imageUrl: '', condition: { type: 'games_played', value: 100 } },
+    { id: 'ach_win_streak_5', nameKey: 'achWinStreak5', descKey: 'achWinStreak5Desc', icon: '🔥', imageUrl: '', condition: { type: 'win_streak', value: 5 } },
+    { id: 'ach_win_streak_10', nameKey: 'achWinStreak10', descKey: 'achWinStreak10Desc', icon: '💥', imageUrl: '', condition: { type: 'win_streak', value: 10 } },
     
     // Login Achievements
     { id: 'ach_week_streak', nameKey: 'achWeekStreak', descKey: 'achWeekStreakDesc', icon: '🔥', imageUrl: '', condition: { type: 'login_streak', value: 7 } },
     { id: 'ach_month_streak', nameKey: 'achMonthStreak', descKey: 'achMonthStreakDesc', icon: '📅', imageUrl: '', condition: { type: 'total_logins', value: 30 } },
+    { id: 'ach_dedicated', nameKey: 'achDedicated', descKey: 'achDedicatedDesc', icon: '💎', imageUrl: '', condition: { type: 'total_logins', value: 100 } },
     
     // Role Achievements
     { id: 'ach_first_spy', nameKey: 'achFirstSpy', descKey: 'achFirstSpyDesc', icon: '🕵️', imageUrl: '', condition: { type: 'spy_wins', value: 1 } },
     { id: 'ach_spy_master', nameKey: 'achSpyMaster', descKey: 'achSpyMasterDesc', icon: '🥷', imageUrl: '', condition: { type: 'spy_wins', value: 10 } },
+    { id: 'ach_spy_legend', nameKey: 'achSpyLegend', descKey: 'achSpyLegendDesc', icon: '👤', imageUrl: '', condition: { type: 'spy_wins', value: 25 } },
     { id: 'ach_agent_pro', nameKey: 'achAgentPro', descKey: 'achAgentProDesc', icon: '🤵', imageUrl: '', condition: { type: 'agent_wins', value: 10 } },
+    { id: 'ach_agent_legend', nameKey: 'achAgentLegend', descKey: 'achAgentLegendDesc', icon: '🛡️', imageUrl: '', condition: { type: 'agent_wins', value: 25 } },
     
     // Social Achievements
     { id: 'ach_social', nameKey: 'achSocial', descKey: 'achSocialDesc', icon: '🦋', imageUrl: '', condition: { type: 'friends', value: 10 } },
+    { id: 'ach_popular', nameKey: 'achPopular', descKey: 'achPopularDesc', icon: '⭐', imageUrl: '', condition: { type: 'friends', value: 25 } },
     { id: 'ach_generous', nameKey: 'achGenerous', descKey: 'achGenerousDesc', icon: '💌', imageUrl: '', condition: { type: 'gifts_sent', value: 10 } },
+    { id: 'ach_santa', nameKey: 'achSanta', descKey: 'achSantaDesc', icon: '🎅', imageUrl: '', condition: { type: 'gifts_sent', value: 50 } },
+    
+    // Charisma Achievements
+    { id: 'ach_charisma_10k', nameKey: 'achCharisma10k', descKey: 'achCharisma10kDesc', icon: '✨', imageUrl: '', condition: { type: 'charisma', value: 10000 } },
+    { id: 'ach_charisma_100k', nameKey: 'achCharisma100k', descKey: 'achCharisma100kDesc', icon: '🌟', imageUrl: '', condition: { type: 'charisma', value: 100000 } },
+    { id: 'ach_charisma_1m', nameKey: 'achCharisma1m', descKey: 'achCharisma1mDesc', icon: '💫', imageUrl: '', condition: { type: 'charisma', value: 1000000 } },
 ];
 
 // --- Scenarios ---
@@ -463,6 +477,19 @@ const TRANSLATIONS = {
         achAgentPro: "Agent Pro", achAgentProDesc: "Win 10 times as Agent",
         achSocial: "Social Butterfly", achSocialDesc: "Add 10 friends",
         achGenerous: "Generous", achGenerousDesc: "Send 10 gifts",
+        // New Achievements
+        achGiftKing: "Gift King", achGiftKingDesc: "Receive 500 gifts",
+        achLegendPlayer: "Legend Player", achLegendPlayerDesc: "Play 100 games",
+        achWinStreak5: "Hot Streak", achWinStreak5Desc: "Win 5 games in a row",
+        achWinStreak10: "Unstoppable", achWinStreak10Desc: "Win 10 games in a row",
+        achDedicated: "Dedicated", achDedicatedDesc: "Login 100 days total",
+        achSpyLegend: "Spy Legend", achSpyLegendDesc: "Win 25 times as Spy",
+        achAgentLegend: "Agent Legend", achAgentLegendDesc: "Win 25 times as Agent",
+        achPopular: "Popular", achPopularDesc: "Add 25 friends",
+        achSanta: "Santa", achSantaDesc: "Send 50 gifts",
+        achCharisma10k: "Rising Star", achCharisma10kDesc: "Reach 10,000 charisma",
+        achCharisma100k: "Charisma Master", achCharisma100kDesc: "Reach 100,000 charisma",
+        achCharisma1m: "Charisma Legend", achCharisma1mDesc: "Reach 1,000,000 charisma",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
@@ -489,10 +516,6 @@ const TRANSLATIONS = {
         settings: "الإعدادات", blockUser: "حظر المستخدم", unblock: "إلغاء الحظر", blockedUsers: "المحظورين", noBlockedUsers: "لا يوجد مستخدمين محظورين.", blockSuccess: "تم حظر المستخدم!", unblockSuccess: "تم إلغاء الحظر!",
         // Sound
         sound: "الصوت", soundOn: "تشغيل", soundOff: "كتم",
-        // Charisma Rank
-        charismaRank: "ترتيب الكاريزما", topCharisma: "أعلى كاريزما", rank: "الترتيب", firstPlace: "الأول", secondPlace: "الثاني", thirdPlace: "الثالث",
-        // Achievements
-        achievementUnlocked: "تم فتح إنجاز!", achievementProgress: "التقدم", howToUnlock: "كيفية الفتح", achievementsList: "الإنجازات",
         achFirstGift: "أول هدية", achFirstGiftDesc: "استقبل هديتك الأولى",
         achGiftCollector: "جامع الهدايا", achGiftCollectorDesc: "استقبل 10 هدايا",
         achGiftMaster: "سيد الهدايا", achGiftMasterDesc: "استقبل 50 هدية",
@@ -508,6 +531,19 @@ const TRANSLATIONS = {
         achAgentPro: "عميل محترف", achAgentProDesc: "افوز 10 مرات كعميل",
         achSocial: "فراشة اجتماعية", achSocialDesc: "أضف 10 أصدقاء",
         achGenerous: "كريم", achGenerousDesc: "أرسل 10 هدايا",
+        // New Achievements Arabic
+        achGiftKing: "ملك الهدايا", achGiftKingDesc: "استقبل 500 هدية",
+        achLegendPlayer: "لاعب أسطورة", achLegendPlayerDesc: "العب 100 لعبة",
+        achWinStreak5: "سلسلة حارة", achWinStreak5Desc: "افوز 5 ألعاب متتالية",
+        achWinStreak10: "لا يُقهر", achWinStreak10Desc: "افوز 10 ألعاب متتالية",
+        achDedicated: "مخلص", achDedicatedDesc: "سجل دخول 100 يوم",
+        achSpyLegend: "أسطورة الجاسوسية", achSpyLegendDesc: "افوز 25 مرة كجاسوس",
+        achAgentLegend: "أسطورة العملاء", achAgentLegendDesc: "افوز 25 مرة كعميل",
+        achPopular: "مشهور", achPopularDesc: "أضف 25 صديق",
+        achSanta: "بابا نويل", achSantaDesc: "أرسل 50 هدية",
+        achCharisma10k: "نجم صاعد", achCharisma10kDesc: "اصل إلى 10,000 كاريزما",
+        achCharisma100k: "سيد الكاريزما", achCharisma100kDesc: "اصل إلى 100,000 كاريزما",
+        achCharisma1m: "أسطورة الكاريزما", achCharisma1mDesc: "اصل إلى 1,000,000 كاريزما",
     } 
 };
 
@@ -1472,15 +1508,26 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     const [loading, setLoading] = useState(true);
     const [showGiftModal, setShowGiftModal] = useState(false);
     const [requestSent, setRequestSent] = useState(false);
+    const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [showBlockConfirm, setShowBlockConfirm] = useState(false);
     
     useEffect(() => {
         if (!show || !targetUID) { setLoading(true); return; }
-        setLoading(true); setRequestSent(false);
+        setLoading(true); setRequestSent(false); setShowOptionsMenu(false);
         usersCollection.doc(targetUID).get().then(doc => {
             if (doc.exists) { setTargetData({ id: doc.id, ...doc.data(), isGuest: false }); setLoading(false); }
             else { guestsCollection.doc(targetUID).get().then(guestDoc => { if (guestDoc.exists) { setTargetData({ id: guestDoc.id, ...guestDoc.data(), isGuest: true }); } else { setTargetData(null); } setLoading(false); }).catch(() => { setTargetData(null); setLoading(false); }); }
         }).catch(() => { setLoading(false); setTargetData(null); });
     }, [show, targetUID]);
+
+    // Check if user is blocked
+    useEffect(() => {
+        if (userData && targetUID) {
+            const blocked = userData.blockedUsers || [];
+            setIsBlocked(blocked.includes(targetUID));
+        }
+    }, [userData, targetUID]);
     
     if (!show) return null;
     
@@ -1490,11 +1537,68 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
     
     const handleAddFriend = async () => { if (isAlreadyFriend || hasPendingRequest) return; await onSendFriendRequest(targetUID); setRequestSent(true); };
+
+    const handleBlockUser = async () => {
+        if (!userData || !targetUID) return;
+        try {
+            await usersCollection.doc(currentUserUID).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayUnion(targetUID)
+            });
+            setIsBlocked(true);
+            setShowBlockConfirm(false);
+            setShowOptionsMenu(false);
+        } catch (error) {
+            console.error('Block error:', error);
+        }
+    };
+
+    const handleUnblockUser = async () => {
+        if (!userData || !targetUID) return;
+        try {
+            await usersCollection.doc(currentUserUID).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayRemove(targetUID)
+            });
+            setIsBlocked(false);
+            setShowOptionsMenu(false);
+        } catch (error) {
+            console.error('Unblock error:', error);
+        }
+    };
     
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                <div className="modal-header"><h2 className="modal-title">{t.profile}</h2><ModalCloseBtn onClose={onClose} /></div>
+                <div className="modal-header">
+                    <h2 className="modal-title">{t.profile}</h2>
+                    <div className="flex items-center gap-2">
+                        {!isOwnProfile && !isTargetGuest && (
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                                    className="profile-options-btn"
+                                >
+                                    ⋮
+                                </button>
+                                {showOptionsMenu && (
+                                    <div className="profile-options-menu">
+                                        {isBlocked ? (
+                                            <button onClick={handleUnblockUser} className="option-item unblock">
+                                                <span>🔓</span>
+                                                <span>{t.unblock}</span>
+                                            </button>
+                                        ) : (
+                                            <button onClick={() => setShowBlockConfirm(true)} className="option-item block">
+                                                <span>🚫</span>
+                                                <span>{t.blockUser}</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <ModalCloseBtn onClose={onClose} />
+                    </div>
+                </div>
                 <div className="modal-body">
                     {loading ? <div className="text-center py-8"><div className="text-2xl animate-pulse">⏳</div><p className="text-gray-400 mt-2">{t.loading}</p></div> : !targetData ? <div className="text-center py-8"><div className="text-4xl mb-2">❌</div><p className="text-gray-400">{t.friendNotFound}</p></div> : (
                         <div className="profile-container">
@@ -1516,6 +1620,9 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                             </div>
                             <KDCircle wins={targetData.stats?.wins || 0} losses={targetData.stats?.losses || 0} lang={lang} />
                             
+                            {/* Achievements Display */}
+                            <AchievementsDisplay userData={targetData} lang={lang} showAll={false} />
+                            
                             {/* Gift Log - REDESIGNED */}
                             <GiftLog 
                                 show={true} 
@@ -1527,7 +1634,15 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                                 isOwnProfile={isOwnProfile}
                             />
                             
-                            {!isOwnProfile && !isTargetGuest && (
+                            {/* Blocked User Notice */}
+                            {isBlocked && !isOwnProfile && (
+                                <div className="blocked-notice">
+                                    <span>🚫</span>
+                                    <span>{lang === 'ar' ? 'لقد حظرت هذا المستخدم' : 'You have blocked this user'}</span>
+                                </div>
+                            )}
+                            
+                            {!isOwnProfile && !isTargetGuest && !isBlocked && (
                                 <div className="flex gap-2 mt-4">
                                     {isAlreadyFriend ? <button disabled className="btn-success flex-1 py-2 rounded-lg text-sm opacity-80">✅ {lang === 'ar' ? 'أصدقاء' : 'Friends'}</button> : hasPendingRequest ? <button disabled className="btn-ghost flex-1 py-2 rounded-lg text-sm opacity-80">⏳ {lang === 'ar' ? 'تم الإرسال' : 'Sent'}</button> : <button onClick={handleAddFriend} className="btn-neon flex-1 py-2 rounded-lg text-sm">👥 {t.addFriend}</button>}
                                     <button onClick={() => setShowGiftModal(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm">🎁 {t.sendGift}</button>
@@ -1537,6 +1652,27 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                         </div>
                     )}
                 </div>
+
+                {/* Block Confirmation Modal */}
+                {showBlockConfirm && (
+                    <div className="confirm-overlay" onClick={() => setShowBlockConfirm(false)}>
+                        <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+                            <div className="confirm-icon">🚫</div>
+                            <div className="confirm-title">{t.blockUser}</div>
+                            <div className="confirm-message">
+                                {lang === 'ar' 
+                                    ? `هل أنت متأكد من حظر ${targetData?.displayName || 'هذا المستخدم'}؟ لن يتمكن من إرسال رسائل أو هدايا لك.`
+                                    : `Are you sure you want to block ${targetData?.displayName || 'this user'}? They won't be able to send you messages or gifts.`
+                                }
+                            </div>
+                            <div className="confirm-actions">
+                                <button onClick={() => setShowBlockConfirm(false)} className="btn-ghost">{t.reportCancel}</button>
+                                <button onClick={handleBlockUser} className="btn-danger">{t.blockUser}</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {showGiftModal && targetData && (
                     <SendGiftModal 
                         show={showGiftModal} 
@@ -1564,9 +1700,27 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
     const [sending, setSending] = useState(false);
     const [showGiftModal, setShowGiftModal] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [blockedByTarget, setBlockedByTarget] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
     const chatId = friend && user ? [user.uid, friend.uid].sort().join('_') : null;
+    
+    // Check if blocked
+    useEffect(() => {
+        if (!show || !friend || !currentUser) return;
+        // Check if current user blocked this friend
+        const myBlocked = currentUser.blockedUsers || [];
+        setIsBlocked(myBlocked.includes(friend.uid));
+        
+        // Check if friend blocked current user
+        usersCollection.doc(friend.uid).get().then(doc => {
+            if (doc.exists) {
+                const theirBlocked = doc.data().blockedUsers || [];
+                setBlockedByTarget(theirBlocked.includes(user.uid));
+            }
+        });
+    }, [show, friend, currentUser, user?.uid]);
     
     useEffect(() => {
         if (!show || !chatId) return;
@@ -1582,7 +1736,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
     useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
     
     const handleSend = async () => {
-        if (!newMsg.trim() || sending) return;
+        if (!newMsg.trim() || sending || isBlocked || blockedByTarget) return;
         setSending(true);
         try {
             await chatsCollection.doc(chatId).collection('messages').add({ 
@@ -1612,7 +1766,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
     };
     
     const handleSendGiftToChat = async (gift, targetUser) => {
-        if (!onSendGift) return;
+        if (!onSendGift || isBlocked || blockedByTarget) return;
         await onSendGift(gift, targetUser);
         setShowGiftModal(false);
     };
@@ -1631,7 +1785,6 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
             <div className="modal-overlay" onClick={onClose}>
                 <div className="chat-modal-content animate-pop" onClick={e => e.stopPropagation()}>
                     <div className="chat-header-bar">
-                        {/* Clickable Avatar */}
                         <div 
                             onClick={() => handleOpenProfile(friend.uid)}
                             style={{ cursor: 'pointer' }}
@@ -1642,25 +1795,37 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                                 size="sm" 
                             />
                         </div>
-                        {/* Clickable Name */}
                         <div 
                             className="chat-header-info"
                             onClick={() => handleOpenProfile(friend.uid)}
                             style={{ cursor: 'pointer' }}
                         >
                             <div className="chat-header-name">{friend.displayName}</div>
-                            <div className="chat-header-status">{t.online}</div>
+                            <div className="chat-header-status">
+                                {isBlocked ? (lang === 'ar' ? 'محظور' : 'Blocked') : blockedByTarget ? (lang === 'ar' ? 'تم حظرك' : 'You are blocked') : t.online}
+                            </div>
                         </div>
-                        <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" title={t.sendGift}>🎁</button>
+                        <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" disabled={isBlocked || blockedByTarget} title={t.sendGift}>🎁</button>
                         <ModalCloseBtn onClose={onClose} />
                     </div>
+                    
+                    {/* Blocked Notice */}
+                    {(isBlocked || blockedByTarget) && (
+                        <div className="chat-blocked-notice">
+                            <span>🚫</span>
+                            <span>{isBlocked 
+                                ? (lang === 'ar' ? 'لقد حظرت هذا المستخدم. إلغاء الحظر للمراسلة.' : 'You have blocked this user. Unblock to message.')
+                                : (lang === 'ar' ? 'هذا المستخدم حظرك. لا يمكنك إرسال رسائل.' : 'This user has blocked you. You cannot send messages.')
+                            }</span>
+                        </div>
+                    )}
+                    
                     <div className="chat-messages-container">
                         {messages.length === 0 ? <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div> : messages.map(msg => {
                             const isMine = msg.senderId === user?.uid;
                             const isGift = msg.type === 'gift';
                             return (
                                 <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''} ${isGift ? 'gift-message' : ''}`}>
-                                    {/* Avatar in message */}
                                     {!isMine && (
                                         <div 
                                             onClick={() => handleOpenProfile(msg.senderId || friend.uid)}
@@ -1674,7 +1839,6 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                                         </div>
                                     )}
                                     <div className="chat-message-content">
-                                        {/* Clickable sender name */}
                                         <div 
                                             className="chat-message-sender"
                                             onClick={() => handleOpenProfile(isMine ? user.uid : (msg.senderId || friend.uid))}
@@ -1700,34 +1864,31 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                         <div ref={messagesEndRef} />
                     </div>
                     <div className="chat-input-container">
-                        {/* Professional Emoji Picker */}
-                        <div style={{ position: 'relative' }}>
-                            <EmojiPicker 
-                                show={showEmojiPicker}
-                                onClose={() => setShowEmojiPicker(false)}
-                                onSelect={handleEmojiSelect}
-                                lang={lang}
-                            />
-                            <button 
-                                className="emoji-picker-btn"
-                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                style={{ fontSize: '24px' }}
-                            >
-                                😀
-                            </button>
-                        </div>
-                        <div className="chat-input-row">
-                            <input 
-                                ref={inputRef} 
-                                type="text" 
-                                className="chat-input" 
-                                placeholder={t.typeMessage} 
-                                value={newMsg} 
-                                onChange={e => setNewMsg(e.target.value)} 
-                                onKeyPress={e => e.key === 'Enter' && handleSend()} 
-                            />
-                            <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
-                        </div>
+                        {!(isBlocked || blockedByTarget) && (
+                            <>
+                                <div style={{ position: 'relative' }}>
+                                    <button 
+                                        className="emoji-picker-btn"
+                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                        style={{ fontSize: '24px' }}
+                                    >
+                                        😀
+                                    </button>
+                                </div>
+                                <div className="chat-input-row">
+                                    <input 
+                                        ref={inputRef} 
+                                        type="text" 
+                                        className="chat-input" 
+                                        placeholder={t.typeMessage} 
+                                        value={newMsg} 
+                                        onChange={e => setNewMsg(e.target.value)} 
+                                        onKeyPress={e => e.key === 'Enter' && handleSend()} 
+                                    />
+                                    <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
@@ -2066,6 +2227,15 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
                                 {soundMutedLocal ? t.soundOff : t.soundOn}
                             </button>
                         </div>
+                    </div>
+
+                    {/* Achievements Section */}
+                    <div className="settings-section">
+                        <div className="settings-section-title">
+                            <span>🏆</span>
+                            <span>{t.achievements}</span>
+                        </div>
+                        <AchievementsDisplay userData={userData} lang={lang} showAll={true} />
                     </div>
 
                     {/* Block Users Section */}
