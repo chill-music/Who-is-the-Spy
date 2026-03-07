@@ -2844,3 +2844,316 @@ body {
     color: var(--text-muted);
     font-size: 12px;
 }
+
+/* ==========================================
+   ⋮ PROFILE OPTIONS MENU
+   ========================================== */
+.profile-options-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.profile-options-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+}
+
+.profile-options-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    min-width: 140px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.profile-options-menu .option-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    background: transparent;
+    color: var(--text-main);
+}
+
+.profile-options-menu .option-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.profile-options-menu .option-item.block {
+    color: #ef4444;
+}
+
+.profile-options-menu .option-item.unblock {
+    color: #10b981;
+}
+
+/* ==========================================
+   🚫 BLOCKED NOTICE & CONFIRM MODAL
+   ========================================== */
+.blocked-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-md);
+    color: #f87171;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.chat-blocked-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: rgba(239, 68, 68, 0.08);
+    border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    font-size: 11px;
+    text-align: center;
+}
+
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.confirm-modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    max-width: 320px;
+    width: 90%;
+    text-align: center;
+}
+
+.confirm-icon {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+}
+
+.confirm-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+}
+
+.confirm-message {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.5;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.confirm-actions button {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ==========================================
+   🏆 ACHIEVEMENTS DISPLAY
+   ========================================== */
+.achievements-container {
+    margin-top: var(--spacing-md);
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+}
+
+.achievement-item {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.achievement-item.unlocked {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1));
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.achievement-item.locked {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    opacity: 0.6;
+}
+
+.achievement-item:hover {
+    transform: scale(1.1);
+    z-index: 10;
+}
+
+.achievement-icon {
+    font-size: 20px;
+}
+
+.achievement-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.achievement-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: #10b981;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: white;
+}
+
+.achievement-progress-mini {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    overflow: hidden;
+}
+
+.achievement-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    transition: width 0.3s;
+}
+
+/* Achievement Detail Modal */
+.achievement-detail-icon {
+    font-size: 64px;
+    margin-bottom: var(--spacing-md);
+}
+
+.achievement-detail-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: var(--spacing-xs);
+}
+
+.achievement-detail-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-md);
+}
+
+.achievement-detail-progress {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-xs);
+}
+
+.achievement-detail-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #ff8800);
+    transition: width 0.3s;
+}
+
+.achievement-detail-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ==========================================
+   🎖️ ACHIEVEMENTS SECTION IN SETTINGS
+   ========================================== */
+.achievements-section {
+    margin-top: var(--spacing-md);
+}
+
+.achievements-section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-sm);
+}
+
+.achievements-section-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+}
+
+.gift-chat-btn {
+    padding: 6px 10px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 136, 0, 0.1));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gift-chat-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 136, 0, 0.2));
+    transform: scale(1.05);
+}
+
+.gift-chat-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
