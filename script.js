@@ -2999,9 +2999,12 @@ function App() {
             
             {/* Header */}
             <header className="site-header">
-                <div className="flex items-center gap-2">
-                    <div className="logo-container"><div className="logo-border"></div><span className="text-xl">🕵️</span></div>
-                    <div><h1 className="game-title text-lg font-tech">{t.appName}</h1><p className="text-[8px] text-gray-500 uppercase tracking-wider">{t.tagline}</p></div>
+                <div className="logo-container">
+                    <div className="logo-icon">🕵️</div>
+                    <div>
+                        <h1 className="game-title">{t.appName}</h1>
+                        <p className="text-[8px] text-gray-400 uppercase tracking-widest">{t.tagline}</p>
+                    </div>
                 </div>
                 <div className="header-actions">
                     <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
