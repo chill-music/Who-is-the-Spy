@@ -338,7 +338,7 @@ const SHOP_ITEMS = {
         { id: 'gift_sun', name_en: "Sun", name_ar: "شمس", cost: 50000, type: 'gifts', charisma: 750000, minBonus: 1, maxBonus: 120000, desc_ar: "شمس ساطعة", desc_en: "Shining sun", emoji: "☀️", imageUrl: "" },
         { id: 'gift_world', name_en: "World", name_ar: "عالم", cost: 100000, type: 'gifts', charisma: 1700000, minBonus: 1, maxBonus: 120000, desc_ar: "عالم كامل ملكك", desc_en: "Your own world", emoji: "🌍", imageUrl: "" },
         { id: 'gift_universe', name_en: "Universe", name_ar: "كون", cost: 100000, type: 'gifts', charisma: 1900000, minBonus: 1, maxBonus: 120000, desc_ar: "كون كامل ملكك", desc_en: "Your own universe", emoji: "🌌", imageUrl: "" },
-        { id: 'gift_multiverse', name_en: "Multiverse", name_ar: "متعدد أكوان", cost: 150000, type: 'gifts', charisma: 2500000, minBonus: 1, maxBonus: 120000, desc_ar: "متعدد أكوان خاص", desc_en: "Your multiverse", emoji: "🪐", imageUrl: "" },
+        { id: 'gift_multiverse', name_en: "Multiverse", name_ar: "متعدد أكوان", cost: 150000, type: 'gifts', charisma: 2500000, minBonus: 1, maxBonus: 120000, desc_ar: "متعدد أكوان خاص", desc_en: "Your multiverse", emoji: "", imageUrl: "https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Royal%20Crown1.png" },
         { id: 'gift_ultimate', name_en: "Ultimate Gift", name_ar: "الهدية المطلقة", cost: 150000, type: 'gifts', charisma: 3500000, minBonus: 1, maxBonus: 120000, desc_ar: "أعظم هدية", desc_en: "The ultimate gift", emoji: "", imageUrl: "https://i.ibb.co/YTj22zWy/awaw.png" },
     ]
 };
@@ -2589,4 +2589,5 @@ const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
+
 
