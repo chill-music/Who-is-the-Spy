@@ -2928,6 +2928,12 @@ body {
     font-weight: 600;
 }
 
+.blocked-notice.blocked-by-other {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #a78bfa;
+}
+
 .chat-blocked-notice {
     display: flex;
     align-items: center;
