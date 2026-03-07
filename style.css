@@ -1812,7 +1812,7 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-    max-width: 420px;
+    max-width: 450px;
     width: 95%;
     max-height: 90vh;
     padding: 0 0 20px 0;
@@ -1996,19 +1996,18 @@ body {
     border: 3px solid rgba(15, 23, 42, 0.95);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     position: relative;
-    z-index: 2;
+    z-index: 10;
     background: #0f172a;
 }
 
 /* Avatar frame - AROUND the avatar (larger) - OUTER RING */
 .profile-avatar-frame {
     position: absolute;
-    top: -15px;
-    left: -15px;
-    right: -15px;
-    bottom: -15px;
-    width: calc(100% + 30px);
-    height: calc(100% + 30px);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95px;
+    height: 95px;
     border-radius: 50%;
     pointer-events: none;
     overflow: hidden;
