@@ -3711,6 +3711,19 @@ const ProfileV11 = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Calculate charisma rank - must be before early return
+    useEffect(() => {
+        if (!show || !targetUID || !targetData) return;
+        // Get rank from charisma leaderboard
+        usersCollection.orderBy('charisma', 'desc').limit(1000).get().then(snap => {
+            const users = snap.docs.map((doc, idx) => ({ id: doc.id, rank: idx + 1 }));
+            const userRank = users.find(u => u.id === targetUID);
+            setCharismaRank(userRank ? userRank.rank : '--');
+        }).catch(() => {
+            setCharismaRank('--');
+        });
+    }, [show, targetUID, targetData]);
+
     if (!show) return null;
 
     const isOwnProfile = targetUID === currentUserUID;
@@ -3754,19 +3767,6 @@ const ProfileV11 = ({
     const wins = targetData?.stats?.wins || 0;
     const losses = targetData?.stats?.losses || 0;
     const level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
-
-    // Calculate charisma rank
-    useEffect(() => {
-        if (!show || !targetUID || !targetData) return;
-        // Get rank from charisma leaderboard
-        usersCollection.orderBy('charisma', 'desc').limit(1000).get().then(snap => {
-            const users = snap.docs.map((doc, idx) => ({ id: doc.id, rank: idx + 1 }));
-            const userRank = users.find(u => u.id === targetUID);
-            setCharismaRank(userRank ? userRank.rank : '--');
-        }).catch(() => {
-            setCharismaRank('--');
-        });
-    }, [show, targetUID, targetData]);
 
     return (
         <div className="modal-overlay" onClick={onClose}>
