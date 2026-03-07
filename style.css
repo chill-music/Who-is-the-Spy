@@ -1812,9 +1812,9 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-    max-width: 380px;
+    max-width: 420px;
     width: 95%;
-    max-height: 85vh;
+    max-height: 90vh;
     padding: 0 0 20px 0;
 }
 .profile-glass-card::-webkit-scrollbar { width: 3px; }
@@ -1983,33 +1983,36 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 90px;
-    height: 90px;
+    width: 110px;
+    height: 110px;
 }
 
-/* Avatar image - circular */
+/* Avatar image - circular - CENTER */
 .profile-avatar {
-    width: 60px;
-    height: 60px;
+    width: 65px;
+    height: 65px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid rgba(15, 23, 42, 0.9);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    border: 3px solid rgba(15, 23, 42, 0.95);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     position: relative;
-    z-index: 10;
+    z-index: 2;
+    background: #0f172a;
 }
 
-/* Avatar frame - AROUND the avatar (larger) */
+/* Avatar frame - AROUND the avatar (larger) - OUTER RING */
 .profile-avatar-frame {
     position: absolute;
-    top: -10px;
-    left: -10px;
-    right: -10px;
-    bottom: -10px;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -15px;
+    width: calc(100% + 30px);
+    height: calc(100% + 30px);
     border-radius: 50%;
     pointer-events: none;
     overflow: hidden;
-    z-index: 5;
+    z-index: 1;
 }
 .profile-avatar-frame img {
     width: 100%;
@@ -2021,14 +2024,14 @@ body {
 /* Online status dot */
 .profile-status-dot {
     position: absolute;
-    bottom: 2px;
-    right: 8px;
-    width: 14px;
-    height: 14px;
+    bottom: 5px;
+    right: 10px;
+    width: 16px;
+    height: 16px;
     background: #10b981;
     border: 3px solid #0f172a;
     border-radius: 50%;
-    z-index: 15;
+    z-index: 20;
 }
 .profile-status-dot.offline { background: #6b7280; }
 
@@ -2119,26 +2122,45 @@ body {
 
 /* Win Rate Circle */
 .profile-winrate-circle {
-    width: 70px;
-    height: 70px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    margin: 0 4px;
+    margin: 0 8px;
+    flex-shrink: 0;
 }
 .profile-winrate-circle::after {
     content: "";
     position: absolute;
-    width: 82%;
-    height: 82%;
+    width: 78%;
+    height: 78%;
     background: #0f172a;
     border-radius: 50%;
 }
-.profile-winrate-content { position: relative; z-index: 10; text-align: center; }
-.profile-winrate-value { font-size: 15px; font-weight: 800; }
-.profile-winrate-label { font-size: 7px; color: #64748b; text-transform: uppercase; }
+.profile-winrate-content { 
+    position: relative; 
+    z-index: 10; 
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.profile-winrate-value { 
+    font-size: 18px; 
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+.profile-winrate-label { 
+    font-size: 8px; 
+    color: #64748b; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
 /* ==========================================
    GIFT SECTION
@@ -2207,19 +2229,20 @@ body {
 /* Gift count badge - small and centered below icon */
 .profile-gift-count-badge {
     position: absolute;
-    bottom: 1px;
+    bottom: 2px;
     left: 50%;
     transform: translateX(-50%);
-    background: #facc15;
+    background: linear-gradient(135deg, #facc15, #f59e0b);
     color: #0f172a;
-    font-size: 6px;
-    padding: 0 3px;
-    border-radius: 4px;
+    font-size: 7px;
+    padding: 1px 4px;
+    border-radius: 6px;
     font-weight: 800;
-    min-width: 12px;
+    min-width: 14px;
     text-align: center;
     line-height: 1.2;
     white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* Gift sender avatar - top left corner */
@@ -2436,4 +2459,138 @@ body {
     .profile-gift-slot { font-size: 12px; }
     .profile-achievements-grid { grid-template-columns: repeat(8, 1fr); gap: 3px; }
     .profile-achievement-item { font-size: 10px; }
+}
+
+/* ==========================================
+   ACHIEVEMENT DETAIL MODAL
+   ========================================== */
+.achievement-detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    padding: 20px;
+    animation: fade-in-up 0.2s ease-out;
+}
+.achievement-detail-modal {
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.99));
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 16px;
+    padding: 20px;
+    max-width: 280px;
+    width: 100%;
+    text-align: center;
+    animation: pop-in 0.3s ease-out;
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.2);
+}
+.achievement-detail-icon {
+    font-size: 56px;
+    margin-bottom: 12px;
+    display: block;
+}
+.achievement-detail-icon-img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    margin: 0 auto 12px;
+}
+.achievement-detail-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+}
+.achievement-detail-desc {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+.achievement-detail-progress-wrap {
+    margin-bottom: 12px;
+}
+.achievement-detail-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+.achievement-detail-progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.achievement-detail-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #facc15, #f97316);
+    border-radius: 3px;
+    transition: width 0.3s;
+}
+.achievement-detail-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+.achievement-detail-status.unlocked {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1));
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+.achievement-detail-status.locked {
+    background: rgba(107, 114, 128, 0.2);
+    border: 1px solid rgba(107, 114, 128, 0.3);
+    color: #9ca3af;
+}
+.achievement-detail-close {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7000ff, #00f2ff);
+    color: white;
+    border: none;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.achievement-detail-close:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 242, 255, 0.3);
+}
+
+/* Charisma Display Under ID */
+.profile-charisma-under-id {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.05));
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 12px;
+}
+.profile-charisma-under-id .charisma-icon {
+    font-size: 14px;
+}
+.profile-charisma-under-id .charisma-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: #facc15;
+}
+.profile-charisma-under-id .charisma-level-img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    border-radius: 50%;
 }
