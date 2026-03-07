@@ -339,7 +339,7 @@ const SHOP_ITEMS = {
         { id: 'gift_world', name_en: "World", name_ar: "عالم", cost: 100000, type: 'gifts', charisma: 1700000, minBonus: 1, maxBonus: 120000, desc_ar: "عالم كامل ملكك", desc_en: "Your own world", emoji: "🌍", imageUrl: "" },
         { id: 'gift_universe', name_en: "Universe", name_ar: "كون", cost: 100000, type: 'gifts', charisma: 1900000, minBonus: 1, maxBonus: 120000, desc_ar: "كون كامل ملكك", desc_en: "Your own universe", emoji: "🌌", imageUrl: "" },
         { id: 'gift_multiverse', name_en: "Multiverse", name_ar: "متعدد أكوان", cost: 150000, type: 'gifts', charisma: 2500000, minBonus: 1, maxBonus: 120000, desc_ar: "متعدد أكوان خاص", desc_en: "Your multiverse", emoji: "🪐", imageUrl: "" },
-        { id: 'gift_ultimate', name_en: "Ultimate Gift", name_ar: "الهدية المطلقة", cost: 150000, type: 'gifts', charisma: 3500000, minBonus: 1, maxBonus: 120000, desc_ar: "أعظم هدية", desc_en: "The ultimate gift", emoji: "", imageUrl: "https://i.ibb.co/pr6j1xMz/wqwq.png" },
+        { id: 'gift_ultimate', name_en: "Ultimate Gift", name_ar: "الهدية المطلقة", cost: 150000, type: 'gifts', charisma: 3500000, minBonus: 1, maxBonus: 120000, desc_ar: "أعظم هدية", desc_en: "The ultimate gift", emoji: "🏆", imageUrl: "" },
     ]
 };
 
@@ -695,7 +695,11 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                                 key={gift.id} 
                                 className={`gift-mini-item ${idx === rotatingGiftIndex && lastThreeGifts.length > 1 ? 'active' : ''}`}
                             >
-                                <span className="gift-mini-emoji">{gift.giftEmoji}</span>
+                                {gift.giftImageUrl ? (
+                                    <img src={gift.giftImageUrl} alt={gift.giftName} className="gift-mini-img" />
+                                ) : (
+                                    <span className="gift-mini-emoji">{gift.giftEmoji}</span>
+                                )}
                             </div>
                         ))
                     ) : (
@@ -743,7 +747,11 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                                 className={`gift-wall-item ${gift.received ? 'received' : 'not-received'}`}
                                 onClick={() => gift.lastSender && onOpenProfile && onOpenProfile(gift.lastSender.uid)}
                             >
-                                <span className="gift-wall-emoji">{gift.emoji}</span>
+                                {gift.imageUrl ? (
+                                    <img src={gift.imageUrl} alt={gift.name_en} className="gift-wall-img" />
+                                ) : (
+                                    <span className="gift-wall-emoji">{gift.emoji}</span>
+                                )}
                                 {gift.received && (
                                     <>
                                         <span className="gift-wall-count">×{gift.count}</span>
@@ -787,7 +795,11 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                                     <div className="gift-log-item-content">
                                         <div className="gift-log-item-sender">{gift.senderName}</div>
                                         <div className="gift-log-item-details">
-                                            <span className="gift-log-item-emoji">{gift.giftEmoji}</span>
+                                            {gift.giftImageUrl ? (
+                                                <img src={gift.giftImageUrl} alt={gift.giftName} className="gift-log-item-img" />
+                                            ) : (
+                                                <span className="gift-log-item-emoji">{gift.giftEmoji}</span>
+                                            )}
                                             <span className="gift-log-item-name">{lang === 'ar' ? gift.giftNameAr : gift.giftNameEn}</span>
                                         </div>
                                     </div>
@@ -1118,7 +1130,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                             {SHOP_ITEMS[activeTab]?.map(item => {
                                 const owned = isOwned(item);
                                 const equippedItem = isEquipped(item);
-                                if (activeTab === 'gifts') return (<div key={item.id} className="gift-card" onClick={() => { setSelectedItem(item); setShowPreview(true); }}><div className="text-xl mb-1">{item.emoji}</div><div className="text-[10px] font-bold text-yellow-400">{item.cost}🧠</div></div>);
+                                if (activeTab === 'gifts') return (<div key={item.id} className="gift-card" onClick={() => { setSelectedItem(item); setShowPreview(true); }}>{item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="gift-icon-img" /> : <div className="text-xl mb-1">{item.emoji}</div>}<div className="gift-details"><div className="text-[10px] font-bold text-yellow-400">{item.cost}🧠</div><div className="gift-charisma">+{formatCharisma(item.charisma)} ⭐</div></div></div>);
                                 return (
                                     <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`} onClick={() => { setSelectedItem(item); setShowPreview(true); }}>
                                         <div className="inventory-item-preview">{renderPreview(item)}</div>
@@ -1806,6 +1818,7 @@ function App() {
     const [guestData, setGuestData] = useState(null);
     const [showEmail, setShowEmail] = useState(false);
     const [showLoginRewards, setShowLoginRewards] = useState(false);
+    const [sessionClaimedToday, setSessionClaimedToday] = useState(false); // Track if claimed in this session
     const [showLobbyPassword, setShowLobbyPassword] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState([]);
@@ -1870,13 +1883,13 @@ function App() {
 
     // Check for login rewards
     useEffect(() => {
-        if (isLoggedIn && userData) {
+        if (isLoggedIn && userData && !sessionClaimedToday) {
             const loginData = userData.loginRewards || { currentDay: 0, lastClaimDate: null };
             const today = new Date().toDateString();
             const lastClaim = loginData.lastClaimDate?.toDate?.()?.toDateString() || loginData.lastClaimDate;
             if (lastClaim !== today && loginData.currentDay < 30) setShowLoginRewards(true);
         }
-    }, [isLoggedIn, userData?.loginRewards?.lastClaimDate]);
+    }, [isLoggedIn, userData?.loginRewards?.lastClaimDate, sessionClaimedToday]);
 
     // Notifications Listener
     useEffect(() => {
@@ -1996,6 +2009,7 @@ function App() {
             await userRef.update(updates);
             playRewardSound();
             setShowLoginRewards(false);
+            setSessionClaimedToday(true); // Mark as claimed for this session
         } catch (error) { console.error('Claim reward error:', error); setNotification(lang === 'ar' ? 'حدث خطأ!' : 'An error occurred!'); }
     }, [user, isLoggedIn, lang]);
 
@@ -2103,6 +2117,25 @@ function App() {
                     charisma: firebase.firestore.FieldValue.increment(gift.charisma),
                     currency: firebase.firestore.FieldValue.increment(bonusForReceiver)
                 });
+                
+                // ✅ Log self-sent gift to gifts_log collection too
+                await giftsLogCollection.add({
+                    senderId: user.uid,
+                    senderName: userData?.displayName || 'User',
+                    senderPhoto: userData?.photoURL || null,
+                    receiverId: user.uid,
+                    receiverName: userData?.displayName || 'User',
+                    giftId: gift.id,
+                    giftName: giftName,
+                    giftNameEn: gift.name_en,
+                    giftNameAr: gift.name_ar,
+                    giftEmoji: gift.emoji,
+                    giftImageUrl: gift.imageUrl || '',
+                    charisma: gift.charisma,
+                    bonus: bonusForReceiver,
+                    cost: gift.cost,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
             } else {
                 // Sending to another person - add charisma AND bonus
                 await usersCollection.doc(targetUser.uid).update({ 
@@ -2149,6 +2182,7 @@ function App() {
                     giftNameEn: gift.name_en,
                     giftNameAr: gift.name_ar,
                     giftEmoji: gift.emoji,
+                    giftImageUrl: gift.imageUrl || '',
                     charisma: gift.charisma,
                     bonus: bonusForReceiver,
                     cost: gift.cost,
@@ -2310,7 +2344,7 @@ function App() {
                             </div>
                             <KDCircle wins={currentUserData?.stats?.wins || 0} losses={currentUserData?.stats?.losses || 0} lang={lang} />
                             <div className="flex items-center justify-center gap-2 mb-4 p-2 bg-yellow-500/10 rounded-lg"><span className="text-2xl">🧠</span><span className="text-lg font-bold text-yellow-400">{(currentUserData?.currency || 0).toLocaleString()} {CURRENCY_NAME}</span></div>
-                            {isLoggedIn && (<button onClick={() => setShowLoginRewards(true)} className="btn-gold w-full py-2 rounded-lg text-sm font-bold mb-2">🎁 {t.loginRewards}</button>)}
+                            {isLoggedIn && (<button onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }} className={`btn-gold w-full py-2 rounded-lg text-sm font-bold mb-2 ${sessionClaimedToday ? 'opacity-50' : ''}`}>🎁 {t.loginRewards} {sessionClaimedToday && <span className="text-[10px] text-green-400">✓</span>}</button>)}
                         </div>
                         <div className="modal-footer">
                             {isLoggedIn && (<div className="flex gap-2 mb-2"><button onClick={() => { setShowMyAccount(false); setShowShop(true); }} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {t.shop}</button><button onClick={() => { setShowMyAccount(false); setShowInventory(true); }} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">📦 {t.inventory}</button></div>)}
@@ -2378,7 +2412,6 @@ function App() {
                     <div><h1 className="game-title text-lg font-tech">{t.appName}</h1><p className="text-[8px] text-gray-500 uppercase tracking-wider">{t.tagline}</p></div>
                 </div>
                 <div className="header-actions">
-                    <div className="currency-display" onClick={() => { if(isLoggedIn) setShowShop(true); else setShowLoginAlert(true); }}><span className="currency-icon">🧠</span><span className="currency-value">{(currentUserData?.currency || 0).toLocaleString()}</span></div>
                     <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
                     {isLoggedIn && (
                         <div className="notification-center">
@@ -2397,7 +2430,7 @@ function App() {
                                     {isLoggedIn && (<>
                                         <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🛒</span> {t.shop}</button>
                                         <button onClick={() => { setShowInventory(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>📦</span> {t.inventory}</button>
-                                        <button onClick={() => { setShowLoginRewards(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🎁</span> {t.loginRewards}</button>
+                                        <button onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); setShowDropdown(false); }} className={`w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 ${sessionClaimedToday ? 'opacity-50' : ''}`}><span>🎁</span> {t.loginRewards} {sessionClaimedToday && <span className="text-[8px] text-green-400">✓</span>}</button>
                                     </>)}
                                     <button onClick={() => { handleLogout(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400"><span>🚪</span> {t.logout}</button>
                                 </>) : (<button onClick={() => { handleGoogleLogin(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🔑</span> {t.loginGoogle}</button>)}
@@ -2556,5 +2589,3 @@ const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
-
-
