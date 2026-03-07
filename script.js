@@ -3375,6 +3375,7 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
     const scrollRef = useRef(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
+    const [selectedAchievement, setSelectedAchievement] = useState(null);
 
     const getProgress = (achievement) => {
         const stats = userData?.stats || {};
@@ -3393,6 +3394,21 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
         }
 
         return Math.min(100, (current / condition.value) * 100);
+    };
+
+    const getCurrentValue = (achievement) => {
+        const stats = userData?.stats || {};
+        const condition = achievement.condition;
+        switch (condition.type) {
+            case 'wins': return stats.wins || 0;
+            case 'losses': return stats.losses || 0;
+            case 'games_played': return (stats.wins || 0) + (stats.losses || 0);
+            case 'gifts_received': return userData?.giftsReceived || 0;
+            case 'gifts_sent': return userData?.giftsSent || 0;
+            case 'charisma': return userData?.charisma || 0;
+            case 'friends': return userData?.friends?.length || 0;
+            default: return 0;
+        }
     };
 
     const checkScroll = () => {
@@ -3455,7 +3471,7 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                             <div 
                                 key={ach.id} 
                                 className={`profile-achievement-item ${isUnlocked ? 'unlocked' : 'locked'}`}
-                                title={TRANSLATIONS[lang]?.[ach.nameKey] || ach.id}
+                                onClick={() => setSelectedAchievement(ach)}
                             >
                                 <span className="profile-achievement-icon" style={{ 
                                     fontSize: '20px',
@@ -3483,6 +3499,42 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                     </button>
                 )}
             </div>
+
+            {/* Achievement Detail Modal */}
+            {selectedAchievement && (
+                <div className="achievement-detail-overlay" onClick={() => setSelectedAchievement(null)}>
+                    <div className="achievement-detail-modal" onClick={e => e.stopPropagation()}>
+                        <button className="achievement-detail-close" onClick={() => setSelectedAchievement(null)}>✕</button>
+                        <div className="achievement-detail-icon">
+                            {selectedAchievement.icon || '🏅'}
+                        </div>
+                        <div className="achievement-detail-name">
+                            {TRANSLATIONS[lang]?.[selectedAchievement.nameKey] || selectedAchievement.id}
+                        </div>
+                        <div className="achievement-detail-desc">
+                            {TRANSLATIONS[lang]?.[selectedAchievement.descKey] || ''}
+                        </div>
+                        {unlockedAchievements.includes(selectedAchievement.id) ? (
+                            <div className="achievement-detail-status unlocked">
+                                <span>✓</span>
+                                <span>{lang === 'ar' ? 'تم فتحه!' : 'Unlocked!'}</span>
+                            </div>
+                        ) : (
+                            <div className="achievement-detail-progress-section">
+                                <div className="achievement-detail-progress-bar">
+                                    <div 
+                                        className="achievement-detail-progress-fill" 
+                                        style={{ width: `${getProgress(selectedAchievement)}%` }}
+                                    ></div>
+                                </div>
+                                <div className="achievement-detail-progress-text">
+                                    {getCurrentValue(selectedAchievement)} / {selectedAchievement.condition.value}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -3538,12 +3590,12 @@ const UserBadgesV11 = ({ equipped, lang }) => {
     );
 };
 
-// 👤 AVATAR WITH FRAME V11 - FIXED
+// 👤 AVATAR WITH FRAME V11 - FIXED CIRCULAR
 const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
     const sizeMap = {
         sm: { wrapper: 52, avatar: 30, mask: 32 },
         md: { wrapper: 72, avatar: 40, mask: 42 },
-        lg: { wrapper: 96, avatar: 56, mask: 60 },
+        lg: { wrapper: 80, avatar: 56, mask: 60 },
         xl: { wrapper: 140, avatar: 80, mask: 88 }
     };
 
@@ -3552,35 +3604,39 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
     const frameStyle = frame ? SHOP_ITEMS.frames.find(f => f.id === frame) : null;
 
     return (
-        <div className="profile-avatar-container" style={{ position: 'relative' }}>
+        <div className="profile-avatar-container" style={{ 
+            position: 'relative',
+            width: s.wrapper,
+            height: s.wrapper
+        }}>
             {/* Frame layer - rendered first (below avatar) */}
             {frameStyle && frameStyle.preview && (
                 <div 
                     className="avatar-frame-ring" 
                     style={{ 
-                        borderRadius: size === 'lg' ? 24 : '50%',
+                        borderRadius: '50%',
                         position: 'absolute',
-                        top: -4,
-                        left: -4,
-                        right: -4,
-                        bottom: -4,
-                        zIndex: 1
+                        top: -6,
+                        left: -6,
+                        right: -6,
+                        bottom: -6,
+                        zIndex: 5
                     }}
                 >
                     {frameStyle.preview.startsWith('http') ? (
-                        <img src={frameStyle.preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                        <img src={frameStyle.preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                     ) : (
                         <div style={{
                             width: '100%',
                             height: '100%',
                             background: frameStyle.preview,
-                            borderRadius: 'inherit'
+                            borderRadius: '50%'
                         }} />
                     )}
                 </div>
             )}
             
-            {/* Avatar image - rendered second (above frame) */}
+            {/* Avatar image - rendered second (above frame) - CIRCULAR */}
             <img 
                 src={photoURL || `https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&size=${s.avatar * 2}`}
                 alt=""
@@ -3588,11 +3644,12 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
                 style={{ 
                     width: s.avatar, 
                     height: s.avatar,
-                    borderRadius: size === 'lg' ? 16 : '50%',
+                    borderRadius: '50%',
                     position: 'relative',
                     zIndex: 10,
                     border: '3px solid var(--bg-dark)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                    objectFit: 'cover'
                 }}
             />
             
@@ -3772,7 +3829,7 @@ const ProfileV11 = ({
         <div className="modal-overlay" onClick={onClose}>
             <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
                 
-                {/* Profile Header Bar - Contains X and Three Dots */}
+                {/* Profile Header Bar - X on left, Three dots on right */}
                 <div className="profile-header-bar">
                     <button 
                         onClick={onClose}
@@ -3780,6 +3837,9 @@ const ProfileV11 = ({
                     >
                         ✕
                     </button>
+                    
+                    {/* Spacer */}
+                    <div style={{ flex: 1 }}></div>
                     
                     {!isOwnProfile && !isTargetGuest && (
                         <div className="profile-options-container" ref={optionsRef}>
@@ -3808,8 +3868,10 @@ const ProfileV11 = ({
                     )}
                 </div>
 
+                {/* Charisma Display */}
                 <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
 
+                {/* Cover with centered Avatar */}
                 <div className="profile-cover">
                     <div className="profile-avatar-wrapper">
                         <AvatarWithFrameV11 
