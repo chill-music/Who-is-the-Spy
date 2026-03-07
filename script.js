@@ -3303,23 +3303,14 @@ const GiftWallV11 = ({ gifts, lang }) => {
                                 className={`profile-gift-slot ${unlocked ? 'unlocked' : 'locked'}`}
                                 title={unlocked ? `${lang === 'ar' ? gift.name_ar : gift.name_en} x${count}` : (lang === 'ar' ? 'لم تُستلم بعد' : 'Not received')}
                             >
-                                {/* Show sender photo if received */}
-                                {unlocked && lastSender && (
-                                    <img 
-                                        src={lastSender.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(lastSender.name || 'User')}&background=ffd700&color=000&size=24`}
-                                        alt=""
-                                        className="profile-gift-sender-avatar"
-                                    />
-                                )}
-                                
-                                {/* Gift icon/emoji */}
+                                {/* Gift icon/emoji - centered */}
                                 <span className="profile-gift-icon">
                                     {gift.emoji || '🎁'}
                                 </span>
                                 
-                                {/* Count badge */}
+                                {/* Count badge - small at bottom */}
                                 {count > 0 && (
-                                    <span className="profile-gift-count-badge">×{count}</span>
+                                    <span className="profile-gift-count-badge">{count}</span>
                                 )}
                                 
                                 {/* Glow effect for unlocked gifts */}
@@ -3590,13 +3581,13 @@ const UserBadgesV11 = ({ equipped, lang }) => {
     );
 };
 
-// 👤 AVATAR WITH FRAME V11 - FIXED CIRCULAR
+// 👤 AVATAR WITH FRAME V11 - FIXED CIRCULAR (Frame AROUND Avatar)
 const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
     const sizeMap = {
-        sm: { wrapper: 52, avatar: 30, mask: 32 },
-        md: { wrapper: 72, avatar: 40, mask: 42 },
-        lg: { wrapper: 80, avatar: 56, mask: 60 },
-        xl: { wrapper: 140, avatar: 80, mask: 88 }
+        sm: { wrapper: 64, avatar: 36, frameSize: 56 },
+        md: { wrapper: 80, avatar: 48, frameSize: 72 },
+        lg: { wrapper: 96, avatar: 58, frameSize: 90 },
+        xl: { wrapper: 150, avatar: 90, frameSize: 140 }
     };
 
     const s = sizeMap[size] || sizeMap.lg;
@@ -3607,24 +3598,26 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
         <div className="profile-avatar-container" style={{ 
             position: 'relative',
             width: s.wrapper,
-            height: s.wrapper
+            height: s.wrapper,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
         }}>
-            {/* Frame layer - rendered first (below avatar) */}
+            {/* Frame layer - AROUND the avatar (larger than avatar) */}
             {frameStyle && frameStyle.preview && (
                 <div 
-                    className="avatar-frame-ring" 
+                    className="profile-avatar-frame"
                     style={{ 
-                        borderRadius: '50%',
                         position: 'absolute',
-                        top: -6,
-                        left: -6,
-                        right: -6,
-                        bottom: -6,
-                        zIndex: 5
+                        width: s.frameSize,
+                        height: s.frameSize,
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        zIndex: 1
                     }}
                 >
                     {frameStyle.preview.startsWith('http') ? (
-                        <img src={frameStyle.preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                        <img src={frameStyle.preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                         <div style={{
                             width: '100%',
@@ -3636,9 +3629,9 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
                 </div>
             )}
             
-            {/* Avatar image - rendered second (above frame) - CIRCULAR */}
+            {/* Avatar image - CENTERED inside frame */}
             <img 
-                src={photoURL || `https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&size=${s.avatar * 2}`}
+                src={photoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`}
                 alt=""
                 className="profile-avatar"
                 style={{ 
@@ -3647,9 +3640,10 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
                     borderRadius: '50%',
                     position: 'relative',
                     zIndex: 10,
-                    border: '3px solid var(--bg-dark)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                    objectFit: 'cover'
+                    border: '3px solid #0f172a',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                    objectFit: 'cover',
+                    background: '#0f172a'
                 }}
             />
             
@@ -3830,56 +3824,45 @@ const ProfileV11 = ({
         <div className="modal-overlay" onClick={onClose}>
             <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
                 
-                {/* Profile Header Bar - X button left, Three dots right */}
+                {/* Profile Header Bar - X button on RIGHT, Three dots on LEFT of X */}
                 <div className="profile-header-bar">
-                    {!isOwnProfile && !isTargetGuest ? (
-                        <>
-                            {/* Three dots menu on the left */}
-                            <div className="profile-options-container" ref={optionsRef}>
-                                <button 
-                                    className="profile-options-btn"
-                                    onClick={() => setShowOptionsMenu(!showOptionsMenu)}
-                                >
-                                    ⋮
-                                </button>
-                                {showOptionsMenu && (
-                                    <div className="profile-options-menu">
-                                        {isBlocked ? (
-                                            <button onClick={handleUnblockUser} className="profile-options-item unblock">
-                                                <span>🔓</span>
-                                                <span>{lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}</span>
-                                            </button>
-                                        ) : (
-                                            <button onClick={() => setShowBlockConfirm(true)} className="profile-options-item block">
-                                                <span>🚫</span>
-                                                <span>{lang === 'ar' ? 'حظر' : 'Block'}</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                            
-                            {/* X button on the right */}
+                    {/* Spacer on left to push buttons to right */}
+                    <div style={{ flex: 1 }}></div>
+                    
+                    {/* Three dots menu (only for other users) */}
+                    {!isOwnProfile && !isTargetGuest && (
+                        <div className="profile-options-container" ref={optionsRef}>
                             <button 
-                                onClick={onClose}
-                                className="profile-close-btn"
+                                className="profile-options-btn"
+                                onClick={() => setShowOptionsMenu(!showOptionsMenu)}
                             >
-                                ✕
+                                ⋮
                             </button>
-                        </>
-                    ) : (
-                        <>
-                            {/* Spacer for own profile */}
-                            <div style={{ flex: 1 }}></div>
-                            {/* X button on the right */}
-                            <button 
-                                onClick={onClose}
-                                className="profile-close-btn"
-                            >
-                                ✕
-                            </button>
-                        </>
+                            {showOptionsMenu && (
+                                <div className="profile-options-menu">
+                                    {isBlocked ? (
+                                        <button onClick={handleUnblockUser} className="profile-options-item unblock">
+                                            <span>🔓</span>
+                                            <span>{lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}</span>
+                                        </button>
+                                    ) : (
+                                        <button onClick={() => setShowBlockConfirm(true)} className="profile-options-item block">
+                                            <span>🚫</span>
+                                            <span>{lang === 'ar' ? 'حظر' : 'Block'}</span>
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     )}
+                    
+                    {/* X button - ALWAYS on the far right */}
+                    <button 
+                        onClick={onClose}
+                        className="profile-close-btn"
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 {/* Charisma Display */}
