@@ -2738,3 +2738,109 @@ body {
     border-color: var(--gold);
     color: var(--gold);
 }
+
+/* ==========================================
+   ⚙️ SETTINGS MODAL
+   ========================================== */
+.settings-section {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.settings-section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border);
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.settings-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.settings-icon {
+    font-size: 18px;
+}
+
+.settings-toggle {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.settings-toggle.on {
+    background: linear-gradient(135deg, #10b981, #22c55e);
+    color: white;
+}
+
+.settings-toggle.off {
+    background: linear-gradient(135deg, #6b7280, #9ca3af);
+    color: white;
+}
+
+.settings-toggle:hover {
+    transform: scale(1.05);
+}
+
+/* Block Users */
+.block-input-row {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.block-input-row .input-dark {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+.blocked-users-list {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.blocked-user-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.blocked-user-name {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.no-blocked-users {
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: var(--text-muted);
+    font-size: 12px;
+}
