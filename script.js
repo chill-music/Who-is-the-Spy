@@ -2416,6 +2416,7 @@ function App() {
     const [sessionClaimedToday, setSessionClaimedToday] = useState(false); // Track if claimed in this session
     const [showLobbyPassword, setShowLobbyPassword] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [showRegistrationPopup, setShowRegistrationPopup] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadNotifications, setUnreadNotifications] = useState(0);
     const notificationBellRef = useRef(null);
@@ -2505,6 +2506,13 @@ function App() {
             if (lastClaim !== today && loginData.currentDay < 30) setShowLoginRewards(true);
         }
     }, [isLoggedIn, userData?.loginRewards?.lastClaimDate, sessionClaimedToday]);
+
+    // Show registration popup for users without display name or for guests wanting to register
+    useEffect(() => {
+        if (isLoggedIn && userData && !userData.displayName && !userData.isGuest) {
+            setShowRegistrationPopup(true);
+        }
+    }, [isLoggedIn, userData]);
 
     // Notifications Listener
     useEffect(() => {
@@ -2938,6 +2946,39 @@ function App() {
             
             <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
             <LoginRewards show={showLoginRewards} onClose={() => setShowLoginRewards(false)} userData={userData} onClaim={handleClaimLoginReward} lang={lang} />
+            
+            {/* Registration Popup for new users */}
+            <RegistrationPopup 
+                show={showRegistrationPopup} 
+                onComplete={async (data) => {
+                    try {
+                        if (user && !user.isAnonymous) {
+                            await usersCollection.doc(user.uid).update({
+                                displayName: data.displayName,
+                                gender: data.gender
+                            });
+                        } else if (isGuest && guestData) {
+                            // Convert guest to registered user
+                            const newUserData = {
+                                uid: guestData.uid,
+                                displayName: data.displayName,
+                                gender: data.gender,
+                                isGuest: false,
+                                stats: guestData.stats || { wins: 0, losses: 0, xp: 0 },
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                currency: 100,
+                                charisma: 0
+                            };
+                            await usersCollection.doc(guestData.uid).set(newUserData);
+                            await guestsCollection.doc(guestData.uid).delete();
+                        }
+                        setShowRegistrationPopup(false);
+                    } catch (error) {
+                        console.error('Registration error:', error);
+                    }
+                }}
+                lang={lang}
+            />
             
             {showSummary && room && (
                 <div className="modal-overlay" onClick={() => setShowSummary(false)}>
@@ -3907,6 +3948,14 @@ const ProfileV11 = ({
                     </button>
                 </div>
 
+                {/* Profile Banner with Camera Icon */}
+                <ProfileBanner 
+                    bannerUrl={targetData?.bannerUrl}
+                    isOwnProfile={isOwnProfile}
+                    onEdit={() => {/* TODO: Implement banner edit */}}
+                    lang={lang}
+                />
+                
                 {/* Cover with centered Avatar */}
                 <div className="profile-cover">
                     <div className="profile-avatar-wrapper">
@@ -3935,6 +3984,10 @@ const ProfileV11 = ({
                             <div className="profile-name-row">
                                 <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
                                 <h1 className="profile-name">{targetData?.displayName || 'Unknown'}</h1>
+                                {/* Gender Icon */}
+                                <GenderIcon gender={targetData?.gender} />
+                                {/* Guest Badge */}
+                                {isTargetGuest && <GuestBadge lang={lang} />}
                             </div>
                             
                             <UserBadgesV11 equipped={targetData?.equipped} lang={lang} />
@@ -4005,6 +4058,19 @@ const ProfileV11 = ({
                             <div className="profile-guest-notice">
                                 {lang === 'ar' ? 'هذا حساب ضيف. بعض الميزات غير متاحة.' : 'This is a guest account. Some features are unavailable.'}
                             </div>
+                        )}
+
+                        {/* Account Details Section - Only for own profile */}
+                        {isOwnProfile && (
+                            <AccountDetailsSection userData={targetData} lang={lang} />
+                        )}
+
+                        {/* Send Gift to Self Button - Only for own profile */}
+                        {isOwnProfile && (
+                            <SendGiftToSelfButton 
+                                onClick={() => setShowGiftModal(true)} 
+                                lang={lang} 
+                            />
                         )}
 
                         {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && (
