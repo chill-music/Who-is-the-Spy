@@ -2946,7 +2946,7 @@ function App() {
                 </div>
             )}
             
-            <UserProfileModal 
+            <ProfileV11 
                 show={showUserProfile} 
                 onClose={() => setShowUserProfile(false)} 
                 targetUID={targetProfileUID} 
@@ -3212,6 +3212,663 @@ function App() {
         </div>
     );
 }
+// ==========================================
+// 🎯 PROFILE V11 - NEW PREMIUM DESIGN COMPONENTS
+// ==========================================
+
+// 📊 WIN RATE CIRCLE COMPONENT
+const WinRateCircleV11 = ({ wins, losses, lang }) => {
+    const total = wins + losses;
+    const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
+    
+    const getColor = (percentage) => {
+        if (percentage >= 70) return '#10b981';
+        if (percentage >= 50) return '#facc15';
+        if (percentage >= 30) return '#f97316';
+        return '#ef4444';
+    };
+
+    const gradient = \`conic-gradient(\${getColor(rate)} \${rate}%, #1f2937 \${rate}%)\`;
+
+    return (
+        <div className="profile-winrate-circle" style={{ background: gradient }}>
+            <div className="profile-winrate-content">
+                <span className="profile-winrate-value" style={{ color: getColor(rate) }}>{rate}%</span>
+                <span className="profile-winrate-label">{lang === 'ar' ? 'معدل' : 'Win Rate'}</span>
+            </div>
+        </div>
+    );
+};
+
+// 🎁 GIFT WALL COMPONENT V11
+const GiftWallV11 = ({ gifts, lang }) => {
+    const [activeTab, setActiveTab] = useState('wall');
+    const totalGifts = gifts?.length || 0;
+
+    const giftCounts = useMemo(() => {
+        const counts = {};
+        gifts?.forEach(g => {
+            counts[g.giftId] = (counts[g.giftId] || 0) + 1;
+        });
+        return counts;
+    }, [gifts]);
+
+    const displayGifts = SHOP_ITEMS.gifts.slice(0, 16);
+
+    return (
+        <div className="profile-gift-section">
+            <div className="profile-gift-header">
+                <div className="profile-gift-tabs">
+                    <button 
+                        className={\`profile-gift-tab \${activeTab === 'wall' ? 'active' : ''}\`}
+                        onClick={() => setActiveTab('wall')}
+                    >
+                        {lang === 'ar' ? 'الجدار' : 'Wall'}
+                    </button>
+                    <button 
+                        className={\`profile-gift-tab \${activeTab === 'log' ? 'active' : ''}\`}
+                        onClick={() => setActiveTab('log')}
+                    >
+                        {lang === 'ar' ? 'السجل' : 'Log'}
+                    </button>
+                </div>
+                <span className="profile-gift-count">{totalGifts} {lang === 'ar' ? 'هدية' : 'GIFTS'}</span>
+            </div>
+
+            {activeTab === 'wall' && (
+                <div className="profile-gift-grid">
+                    {displayGifts.map((gift, idx) => {
+                        const count = giftCounts[gift.id] || 0;
+                        const unlocked = count > 0;
+
+                        return (
+                            <div 
+                                key={gift.id} 
+                                className={\`profile-gift-slot \${unlocked ? 'unlocked' : 'locked'}\`}
+                            >
+                                {gift.emoji ? (
+                                    <span>{gift.emoji}</span>
+                                ) : gift.imageUrl ? (
+                                    <img src={gift.imageUrl} alt={gift.name_en} />
+                                ) : (
+                                    <span>🎁</span>
+                                )}
+                                {count > 1 && (
+                                    <span className="profile-gift-count-badge">x{count}</span>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {activeTab === 'log' && (
+                <div className="profile-gift-log">
+                    {gifts && gifts.length > 0 ? (
+                        gifts.slice(0, 10).map((gift, idx) => (
+                            <div key={idx} className="profile-gift-log-item">
+                                <img 
+                                    src={gift.senderPhoto || \`https://ui-avatars.com/api/?name=\${encodeURIComponent(gift.senderName)}&background=6366f1&color=fff\`} 
+                                    alt="" 
+                                    className="profile-gift-log-avatar"
+                                />
+                                <div className="profile-gift-log-content">
+                                    <div className="profile-gift-log-sender">{gift.senderName}</div>
+                                    <div className="profile-gift-log-details">
+                                        <span className="profile-gift-log-emoji">{gift.giftEmoji || '🎁'}</span>
+                                        <span className="profile-gift-log-name">
+                                            {lang === 'ar' ? gift.giftNameAr : gift.giftNameEn}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="profile-gift-log-stats">
+                                    <div className="profile-gift-log-charisma">+{gift.charisma || 0}</div>
+                                    <div className="profile-gift-log-time">
+                                        {gift.timestamp?.toDate ? formatTime(gift.timestamp) : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '12px' }}>
+                            {lang === 'ar' ? 'لا توجد هدايا بعد' : 'No gifts yet'}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// 🏆 ACHIEVEMENTS DISPLAY V11
+const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
+    const unlockedAchievements = userData?.achievements || [];
+    const maxDisplay = showAll ? 20 : 8;
+
+    const getProgress = (achievement) => {
+        const stats = userData?.stats || {};
+        const condition = achievement.condition;
+        let current = 0;
+
+        switch (condition.type) {
+            case 'wins': current = stats.wins || 0; break;
+            case 'losses': current = stats.losses || 0; break;
+            case 'games_played': current = (stats.wins || 0) + (stats.losses || 0); break;
+            case 'gifts_received': current = userData?.giftsReceived || 0; break;
+            case 'gifts_sent': current = userData?.giftsSent || 0; break;
+            case 'charisma': current = userData?.charisma || 0; break;
+            case 'friends': current = userData?.friends?.length || 0; break;
+            default: current = 0;
+        }
+
+        return Math.min(100, (current / condition.value) * 100);
+    };
+
+    const displayAchievements = ACHIEVEMENTS.slice(0, maxDisplay);
+
+    return (
+        <div className="profile-achievements-section">
+            <div className="profile-achievements-header">
+                <span className="profile-achievements-title">
+                    <i className="fas fa-trophy" style={{ marginRight: '4px', color: '#facc15' }}></i>
+                    {lang === 'ar' ? 'الإنجازات' : 'Achievements'}
+                </span>
+                <span className="profile-achievements-count">{unlockedAchievements.length}/{ACHIEVEMENTS.length}</span>
+            </div>
+            <div className="profile-achievements-grid">
+                {displayAchievements.map((ach, idx) => {
+                    const isUnlocked = unlockedAchievements.includes(ach.id);
+                    const progress = getProgress(ach);
+
+                    return (
+                        <div 
+                            key={ach.id} 
+                            className={\`profile-achievement-item \${isUnlocked ? 'unlocked' : 'locked'}\`}
+                            title={TRANSLATIONS[lang]?.[ach.nameKey] || ach.id}
+                        >
+                            {ach.imageUrl ? (
+                                <img src={ach.imageUrl} alt="" />
+                            ) : (
+                                <i className={ach.icon} style={{ color: isUnlocked ? '#facc15' : undefined }}></i>
+                            )}
+                            {isUnlocked && (
+                                <span className="profile-achievement-badge">
+                                    <i className="fas fa-check" style={{ fontSize: '6px' }}></i>
+                                </span>
+                            )}
+                            {!isUnlocked && progress > 0 && (
+                                <div className="profile-achievement-progress">
+                                    <div className="profile-achievement-progress-fill" style={{ width: \`\${progress}%\` }}></div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+// 👤 USER TITLE COMPONENT V11
+const UserTitleV11 = ({ equipped, lang }) => {
+    const titleId = equipped?.titles;
+    if (!titleId) return null;
+
+    const title = SHOP_ITEMS.titles.find(t => t.id === titleId);
+    if (!title) return null;
+
+    if (title.imageUrl) {
+        return (
+            <div className="profile-user-title has-image">
+                <img src={title.imageUrl} alt={title.name_en} />
+            </div>
+        );
+    }
+
+    return (
+        <span className="profile-user-title">
+            {lang === 'ar' ? title.name_ar : title.name_en}
+        </span>
+    );
+};
+
+// 🎖️ USER BADGES COMPONENT V11
+const UserBadgesV11 = ({ equipped, lang }) => {
+    const badges = equipped?.badges || [];
+    if (badges.length === 0) return null;
+
+    return (
+        <div className="profile-badges-row">
+            {badges.slice(0, 3).map((badgeId, idx) => {
+                const badge = SHOP_ITEMS.badges.find(b => b.id === badgeId);
+                if (!badge) return null;
+
+                return (
+                    <div key={idx} className="profile-badge-chip">
+                        {badge.imageUrl ? (
+                            <img src={badge.imageUrl} alt="" style={{ width: 12, height: 12 }} />
+                        ) : (
+                            <span>{badge.preview}</span>
+                        )}
+                        <span>{lang === 'ar' ? badge.name_ar : badge.name_en}</span>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+// 👤 AVATAR WITH FRAME V11
+const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
+    const sizeMap = {
+        sm: { wrapper: 52, avatar: 30, mask: 32 },
+        md: { wrapper: 72, avatar: 40, mask: 42 },
+        lg: { wrapper: 96, avatar: 64, mask: 68 },
+        xl: { wrapper: 140, avatar: 96, mask: 100 }
+    };
+
+    const s = sizeMap[size] || sizeMap.lg;
+    const frame = equipped?.frames;
+    const frameStyle = frame ? SHOP_ITEMS.frames.find(f => f.id === frame) : null;
+
+    return (
+        <div className="profile-avatar-container" style={{ position: 'relative' }}>
+            <div 
+                className="avatar-wrapper"
+                style={{ width: s.wrapper, height: s.wrapper }}
+            >
+                <img 
+                    src={photoURL || \`https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&size=\${s.avatar * 2}\`}
+                    alt=""
+                    className="profile-avatar"
+                    style={{ 
+                        width: s.avatar, 
+                        height: s.avatar,
+                        borderRadius: size === 'lg' ? 20 : '50%'
+                    }}
+                />
+                
+                {frameStyle && frameStyle.preview && (
+                    <div className="avatar-frame-ring" style={{ borderRadius: size === 'lg' ? 24 : '50%' }}>
+                        {frameStyle.preview.startsWith('http') ? (
+                            <img src={frameStyle.preview} alt="" />
+                        ) : (
+                            <div style={{
+                                width: '100%',
+                                height: '100%',
+                                background: frameStyle.preview,
+                                borderRadius: 'inherit'
+                            }} />
+                        )}
+                    </div>
+                )}
+            </div>
+            
+            {isOnline !== undefined && (
+                <div className={\`profile-status-dot \${isOnline ? '' : 'offline'}\`}></div>
+            )}
+        </div>
+    );
+};
+
+// ==========================================
+// 🎯 PROFILE V11 - MAIN COMPONENT
+// ==========================================
+const ProfileV11 = ({ 
+    show, 
+    onClose, 
+    targetUID, 
+    lang, 
+    currentUserUID, 
+    onSendFriendRequest, 
+    onSendGift, 
+    userData, 
+    currentUserFriends, 
+    currentUserFriendRequests, 
+    friendsData 
+}) => {
+    const t = TRANSLATIONS[lang] || {};
+    
+    const [targetData, setTargetData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [showGiftModal, setShowGiftModal] = useState(false);
+    const [requestSent, setRequestSent] = useState(false);
+    const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [blockedByTarget, setBlockedByTarget] = useState(false);
+    const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+    const [gifts, setGifts] = useState([]);
+    
+    const optionsRef = useRef(null);
+
+    useEffect(() => {
+        if (!show || !targetUID) { 
+            setLoading(true); 
+            return; 
+        }
+        
+        setLoading(true);
+        setRequestSent(false);
+        setShowOptionsMenu(false);
+        
+        usersCollection.doc(targetUID).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                setTargetData({ id: doc.id, ...data, isGuest: false });
+                const theirBlockedUsers = data.blockedUsers || [];
+                setBlockedByTarget(theirBlockedUsers.includes(currentUserUID));
+                setLoading(false);
+            } else {
+                guestsCollection.doc(targetUID).get().then(guestDoc => {
+                    if (guestDoc.exists) {
+                        setTargetData({ id: guestDoc.id, ...guestDoc.data(), isGuest: true });
+                    } else {
+                        setTargetData(null);
+                    }
+                    setLoading(false);
+                }).catch(() => {
+                    setTargetData(null);
+                    setLoading(false);
+                });
+            }
+        }).catch(() => {
+            setLoading(false);
+            setTargetData(null);
+        });
+    }, [show, targetUID, currentUserUID]);
+
+    useEffect(() => {
+        if (userData && targetUID) {
+            const blocked = userData.blockedUsers || [];
+            setIsBlocked(blocked.includes(targetUID));
+        }
+    }, [userData, targetUID]);
+
+    useEffect(() => {
+        if (!show || !targetUID) return;
+        
+        const unsub = giftsLogCollection
+            .where('receiverId', '==', targetUID)
+            .orderBy('timestamp', 'desc')
+            .limit(50)
+            .onSnapshot(snap => {
+                const giftData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setGifts(giftData);
+            });
+        
+        return unsub;
+    }, [show, targetUID]);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (optionsRef.current && !optionsRef.current.contains(e.target)) {
+                setShowOptionsMenu(false);
+            }
+        };
+        
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    if (!show) return null;
+
+    const isOwnProfile = targetUID === currentUserUID;
+    const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
+    const isAlreadyFriend = currentUserFriends?.includes(targetUID);
+    const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
+
+    const handleAddFriend = async () => {
+        if (isAlreadyFriend || hasPendingRequest) return;
+        await onSendFriendRequest(targetUID);
+        setRequestSent(true);
+    };
+
+    const handleBlockUser = async () => {
+        if (!userData || !targetUID) return;
+        try {
+            await usersCollection.doc(currentUserUID).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayUnion(targetUID)
+            });
+            setIsBlocked(true);
+            setShowBlockConfirm(false);
+            setShowOptionsMenu(false);
+        } catch (error) {
+            console.error('Block error:', error);
+        }
+    };
+
+    const handleUnblockUser = async () => {
+        if (!userData || !targetUID) return;
+        try {
+            await usersCollection.doc(currentUserUID).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayRemove(targetUID)
+            });
+            setIsBlocked(false);
+            setShowOptionsMenu(false);
+        } catch (error) {
+            console.error('Unblock error:', error);
+        }
+    };
+
+    const wins = targetData?.stats?.wins || 0;
+    const losses = targetData?.stats?.losses || 0;
+    const level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
+                
+                {!isOwnProfile && !isTargetGuest && (
+                    <div className="profile-options-container" ref={optionsRef}>
+                        <button 
+                            className="profile-options-btn"
+                            onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                        >
+                            ⋮
+                        </button>
+                        {showOptionsMenu && (
+                            <div className="profile-options-menu">
+                                {isBlocked ? (
+                                    <button onClick={handleUnblockUser} className="profile-options-item unblock">
+                                        <span>🔓</span>
+                                        <span>{lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}</span>
+                                    </button>
+                                ) : (
+                                    <button onClick={() => setShowBlockConfirm(true)} className="profile-options-item block">
+                                        <span>🚫</span>
+                                        <span>{lang === 'ar' ? 'حظر' : 'Block'}</span>
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
+
+                <div className="profile-cover">
+                    <div className="profile-avatar-wrapper">
+                        <AvatarWithFrameV11 
+                            photoURL={targetData?.photoURL}
+                            equipped={targetData?.equipped}
+                            size="lg"
+                            isOnline={targetData?.isOnline}
+                        />
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div className="profile-loading">
+                        <div className="profile-loading-spinner"></div>
+                        <div className="profile-loading-text">{t.loading || 'Loading...'}</div>
+                    </div>
+                ) : !targetData ? (
+                    <div className="profile-loading">
+                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
+                        <div className="profile-loading-text">{t.friendNotFound || 'User not found'}</div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="profile-identity">
+                            <div className="profile-name-row">
+                                <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
+                                <h1 className="profile-name">{targetData?.displayName || 'Unknown'}</h1>
+                            </div>
+                            
+                            <UserBadgesV11 equipped={targetData?.equipped} lang={lang} />
+                            
+                            <span 
+                                className="profile-id-display"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(targetData?.customId || targetData?.uid?.substring(0, 8));
+                                }}
+                            >
+                                ID: {targetData?.customId || targetData?.uid?.substring(0, 8)} 📋
+                            </span>
+                        </div>
+
+                        <div className="profile-stats-dashboard">
+                            <div className="profile-stats-grid">
+                                <div className="profile-stat-box">
+                                    <span className="profile-stat-value wins">{wins}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? 'فوز' : 'Wins'}</span>
+                                </div>
+                                <div className="profile-stat-box">
+                                    <span className="profile-stat-value losses">{losses}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? 'خسارة' : 'Losses'}</span>
+                                </div>
+                            </div>
+                            
+                            <WinRateCircleV11 wins={wins} losses={losses} lang={lang} />
+                            
+                            <div className="profile-stats-grid">
+                                <div className="profile-stat-box">
+                                    <span className="profile-stat-value rank">#{targetData?.globalRank || '--'}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? 'الترتيب' : 'Rank'}</span>
+                                </div>
+                                <div className="profile-stat-box">
+                                    <span className="profile-stat-value" style={{ color: '#a78bfa' }}>{level}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? 'المستوى' : 'Level'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <GiftWallV11 gifts={gifts} lang={lang} />
+
+                        <AchievementsDisplayV11 userData={targetData} lang={lang} />
+
+                        {isBlocked && !isOwnProfile && (
+                            <div className="profile-blocked-notice">
+                                <span>🚫</span>
+                                <span>{lang === 'ar' ? 'لقد حظرت هذا المستخدم' : 'You have blocked this user'}</span>
+                            </div>
+                        )}
+
+                        {blockedByTarget && !isOwnProfile && (
+                            <div className="profile-blocked-notice blocked-by-other">
+                                <span>🚫</span>
+                                <span>{lang === 'ar' ? 'هذا المستخدم قد حظرك' : 'This user has blocked you'}</span>
+                            </div>
+                        )}
+
+                        {isTargetGuest && !isOwnProfile && (
+                            <div className="profile-guest-notice">
+                                {lang === 'ar' ? 'هذا حساب ضيف. بعض الميزات غير متاحة.' : 'This is a guest account. Some features are unavailable.'}
+                            </div>
+                        )}
+
+                        {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && (
+                            <div className="profile-actions">
+                                {isAlreadyFriend ? (
+                                    <button disabled className="profile-action-btn friends">
+                                        <span>✓</span>
+                                        <span>{lang === 'ar' ? 'أصدقاء' : 'Friends'}</span>
+                                    </button>
+                                ) : hasPendingRequest ? (
+                                    <button disabled className="profile-action-btn secondary">
+                                        <span>⏳</span>
+                                        <span>{lang === 'ar' ? 'تم الإرسال' : 'Sent'}</span>
+                                    </button>
+                                ) : (
+                                    <button onClick={handleAddFriend} className="profile-action-btn primary">
+                                        <span>👤</span>
+                                        <span>{lang === 'ar' ? 'أضف صديق' : 'Add Friend'}</span>
+                                    </button>
+                                )}
+                                <button onClick={() => setShowGiftModal(true)} className="profile-action-btn secondary">
+                                    <span>🎁</span>
+                                    <span>{lang === 'ar' ? 'أرسل هدية' : 'Send Gift'}</span>
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {showBlockConfirm && (
+                    <div className="profile-confirm-overlay" onClick={() => setShowBlockConfirm(false)}>
+                        <div className="profile-confirm-modal" onClick={e => e.stopPropagation()}>
+                            <div className="profile-confirm-icon">🚫</div>
+                            <div className="profile-confirm-title">
+                                {lang === 'ar' ? 'حظر المستخدم' : 'Block User'}
+                            </div>
+                            <div className="profile-confirm-message">
+                                {lang === 'ar' 
+                                    ? \`هل أنت متأكد من حظر \${targetData?.displayName || 'هذا المستخدم'}؟\`
+                                    : \`Are you sure you want to block \${targetData?.displayName || 'this user'}?\`}
+                            </div>
+                            <div className="profile-confirm-actions">
+                                <button onClick={() => setShowBlockConfirm(false)} className="cancel">
+                                    {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                                <button onClick={handleBlockUser} className="confirm">
+                                    {lang === 'ar' ? 'حظر' : 'Block'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <button 
+                    onClick={onClose}
+                    style={{
+                        position: 'absolute',
+                        top: '16px',
+                        right: '60px',
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '8px',
+                        background: 'rgba(255,255,255,0.1)',
+                        border: 'none',
+                        color: '#94a3b8',
+                        fontSize: '20px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                >
+                    ✕
+                </button>
+            </div>
+
+            {showGiftModal && targetData && (
+                <SendGiftModal 
+                    show={showGiftModal}
+                    onClose={() => setShowGiftModal(false)}
+                    targetUser={targetData}
+                    currentUser={userData}
+                    lang={lang}
+                    onSendGift={onSendGift}
+                    currency={userData?.currency || 0}
+                    friendsData={friendsData}
+                />
+            )}
+        </div>
+    );
+};
+
+// Make ProfileV11 available globally
+window.ProfileV11 = ProfileV11;
 
 // Wrap with ErrorBoundary
 const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
