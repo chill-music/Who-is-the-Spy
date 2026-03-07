@@ -3564,14 +3564,14 @@ const UserTitleV11 = ({ equipped, lang }) => {
     );
 };
 
-// 🎖️ USER BADGES COMPONENT V11
+// 🎖️ USER BADGES COMPONENT V11 - SHOW ALL 10 BADGES
 const UserBadgesV11 = ({ equipped, lang }) => {
     const badges = equipped?.badges || [];
     if (badges.length === 0) return null;
 
     return (
         <div className="profile-badges-row">
-            {badges.slice(0, 3).map((badgeId, idx) => {
+            {badges.slice(0, 10).map((badgeId, idx) => {
                 const badge = SHOP_ITEMS.badges.find(b => b.id === badgeId);
                 if (!badge) return null;
 
@@ -3688,6 +3688,7 @@ const ProfileV11 = ({
     const [showBlockConfirm, setShowBlockConfirm] = useState(false);
     const [gifts, setGifts] = useState([]);
     const [charismaRank, setCharismaRank] = useState(null);
+    const [copiedId, setCopiedId] = useState(false);
     
     const optionsRef = useRef(null);
 
@@ -3829,42 +3830,55 @@ const ProfileV11 = ({
         <div className="modal-overlay" onClick={onClose}>
             <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
                 
-                {/* Profile Header Bar - X on left, Three dots on right */}
+                {/* Profile Header Bar - X button left, Three dots right */}
                 <div className="profile-header-bar">
-                    <button 
-                        onClick={onClose}
-                        className="profile-close-btn"
-                    >
-                        ✕
-                    </button>
-                    
-                    {/* Spacer */}
-                    <div style={{ flex: 1 }}></div>
-                    
-                    {!isOwnProfile && !isTargetGuest && (
-                        <div className="profile-options-container" ref={optionsRef}>
+                    {!isOwnProfile && !isTargetGuest ? (
+                        <>
+                            {/* Three dots menu on the left */}
+                            <div className="profile-options-container" ref={optionsRef}>
+                                <button 
+                                    className="profile-options-btn"
+                                    onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                                >
+                                    ⋮
+                                </button>
+                                {showOptionsMenu && (
+                                    <div className="profile-options-menu">
+                                        {isBlocked ? (
+                                            <button onClick={handleUnblockUser} className="profile-options-item unblock">
+                                                <span>🔓</span>
+                                                <span>{lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}</span>
+                                            </button>
+                                        ) : (
+                                            <button onClick={() => setShowBlockConfirm(true)} className="profile-options-item block">
+                                                <span>🚫</span>
+                                                <span>{lang === 'ar' ? 'حظر' : 'Block'}</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* X button on the right */}
                             <button 
-                                className="profile-options-btn"
-                                onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                                onClick={onClose}
+                                className="profile-close-btn"
                             >
-                                ⋮
+                                ✕
                             </button>
-                            {showOptionsMenu && (
-                                <div className="profile-options-menu">
-                                    {isBlocked ? (
-                                        <button onClick={handleUnblockUser} className="profile-options-item unblock">
-                                            <span>🔓</span>
-                                            <span>{lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}</span>
-                                        </button>
-                                    ) : (
-                                        <button onClick={() => setShowBlockConfirm(true)} className="profile-options-item block">
-                                            <span>🚫</span>
-                                            <span>{lang === 'ar' ? 'حظر' : 'Block'}</span>
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                        </>
+                    ) : (
+                        <>
+                            {/* Spacer for own profile */}
+                            <div style={{ flex: 1 }}></div>
+                            {/* X button on the right */}
+                            <button 
+                                onClick={onClose}
+                                className="profile-close-btn"
+                            >
+                                ✕
+                            </button>
+                        </>
                     )}
                 </div>
 
@@ -3907,9 +3921,14 @@ const ProfileV11 = ({
                                 className="profile-id-display"
                                 onClick={() => {
                                     navigator.clipboard.writeText(targetData?.customId || targetData?.uid?.substring(0, 8));
+                                    setCopiedId(true);
+                                    setTimeout(() => setCopiedId(false), 2000);
                                 }}
                             >
-                                ID: {targetData?.customId || targetData?.uid?.substring(0, 8)} 📋
+                                {copiedId 
+                                    ? (lang === 'ar' ? '✓ تم النسخ!' : '✓ Copied!') 
+                                    : `ID: ${targetData?.customId || targetData?.uid?.substring(0, 8)} 📋`
+                                }
                             </span>
                         </div>
 
