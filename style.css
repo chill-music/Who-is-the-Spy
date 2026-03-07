@@ -2242,3 +2242,499 @@ body {
 .friend-select-status.online {
     color: #10b981;
 }
+
+/* ==========================================
+   ⚙️ SETTINGS MODAL STYLES
+   ========================================== */
+.settings-section {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-md);
+}
+
+.settings-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-main);
+}
+
+.settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+}
+
+.settings-item-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.settings-item-icon {
+    font-size: 20px;
+}
+
+.settings-item-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.sound-toggle-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sound-toggle-btn.on {
+    background: linear-gradient(135deg, #10b981, #22c55e);
+    color: white;
+}
+
+.sound-toggle-btn.off {
+    background: rgba(107, 114, 128, 0.3);
+    color: var(--text-muted);
+}
+
+.block-input-row {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.block-input-row input {
+    flex: 1;
+}
+
+.blocked-users-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.blocked-user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.blocked-user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.blocked-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.blocked-user-name {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.blocked-users-empty {
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+/* ==========================================
+   🏆 ACHIEVEMENTS STYLES
+   ========================================== */
+.achievements-container {
+    margin: var(--spacing-md) 0;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+}
+
+.achievement-item {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.achievement-item:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.achievement-item.unlocked {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 136, 0, 0.1));
+    border-color: var(--gold);
+}
+
+.achievement-item.locked {
+    opacity: 0.6;
+}
+
+.achievement-icon {
+    font-size: 20px;
+}
+
+.achievement-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.achievement-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    color: #10b981;
+}
+
+.achievement-progress-mini {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+}
+
+.achievement-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    transition: width 0.3s;
+}
+
+.achievement-progress-bar {
+    margin-top: var(--spacing-sm);
+}
+
+.achievement-progress-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.achievement-progress-track {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.achievement-progress-fill-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #ff8800);
+    transition: width 0.3s;
+}
+
+.achievements-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+}
+
+.achievements-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.achievements-view-all {
+    font-size: 10px;
+    color: var(--primary);
+    cursor: pointer;
+}
+
+/* ==========================================
+   👑 CHARISMA RANK STYLES
+   ========================================== */
+.charisma-rank-section {
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.05));
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: var(--radius-md);
+}
+
+.charisma-rank-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+}
+
+.charisma-rank-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.charisma-rank-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.charisma-rank-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.charisma-rank-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.charisma-rank-item.rank-1 {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 136, 0, 0.1));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.charisma-rank-item.rank-2 {
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(169, 169, 169, 0.08));
+    border: 1px solid rgba(192, 192, 192, 0.3);
+}
+
+.charisma-rank-item.rank-3 {
+    background: linear-gradient(135deg, rgba(205, 127, 50, 0.15), rgba(184, 115, 51, 0.08));
+    border: 1px solid rgba(205, 127, 50, 0.3);
+}
+
+.charisma-rank-position {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.charisma-rank-item.rank-1 .charisma-rank-position {
+    background: linear-gradient(135deg, #ffd700, #ff8800);
+    color: #000;
+}
+
+.charisma-rank-item.rank-2 .charisma-rank-position {
+    background: linear-gradient(135deg, #c0c0c0, #a9a9a9);
+    color: #000;
+}
+
+.charisma-rank-item.rank-3 .charisma-rank-position {
+    background: linear-gradient(135deg, #cd7f32, #b87333);
+    color: #000;
+}
+
+.charisma-rank-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.charisma-rank-item.rank-1 .charisma-rank-avatar {
+    border-color: var(--gold);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.charisma-rank-item.rank-2 .charisma-rank-avatar {
+    border-color: #c0c0c0;
+    box-shadow: 0 0 8px rgba(192, 192, 192, 0.3);
+}
+
+.charisma-rank-item.rank-3 .charisma-rank-avatar {
+    border-color: #cd7f32;
+    box-shadow: 0 0 8px rgba(205, 127, 50, 0.3);
+}
+
+.charisma-rank-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.charisma-rank-name {
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.charisma-rank-value {
+    font-size: 10px;
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.charisma-rank-crown {
+    font-size: 16px;
+    animation: float 2s ease-in-out infinite;
+}
+
+.charisma-rank-badge-img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+/* ==========================================
+   🎵 SOUND TOGGLE STYLES
+   ========================================== */
+.header-sound-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 16px;
+}
+
+.header-sound-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary);
+}
+
+.header-sound-btn.muted {
+    opacity: 0.5;
+}
+
+/* ==========================================
+   🌟 PROFILE SETTINGS BUTTON
+   ========================================== */
+.profile-settings-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: linear-gradient(135deg, rgba(112, 0, 255, 0.2), rgba(0, 242, 255, 0.1));
+    border: 1px solid rgba(112, 0, 255, 0.3);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    margin-top: var(--spacing-sm);
+}
+
+.profile-settings-btn:hover {
+    background: linear-gradient(135deg, rgba(112, 0, 255, 0.3), rgba(0, 242, 255, 0.2));
+    transform: translateY(-2px);
+}
+
+.profile-settings-icon {
+    font-size: 16px;
+}
+
+.profile-settings-text {
+    font-size: 12px;
+    font-weight: 600;
+    flex: 1;
+}
+
+.profile-settings-arrow {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+/* ==========================================
+   🚫 BLOCK USER BUTTON
+   ========================================== */
+.block-user-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: 6px 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-sm);
+    color: #ef4444;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.block-user-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* ==========================================
+   📋 LEADERBOARD TABS
+   ========================================== */
+.leaderboard-tabs {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+}
+
+.leaderboard-tab {
+    flex: 1;
+    padding: var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.leaderboard-tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.leaderboard-tab.active {
+    background: linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(112, 0, 255, 0.1));
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.leaderboard-tab.gold.active {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 136, 0, 0.1));
+    border-color: var(--gold);
+    color: var(--gold);
+}
