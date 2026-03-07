@@ -338,10 +338,40 @@ const SHOP_ITEMS = {
         { id: 'gift_sun', name_en: "Sun", name_ar: "شمس", cost: 50000, type: 'gifts', charisma: 750000, minBonus: 1, maxBonus: 120000, desc_ar: "شمس ساطعة", desc_en: "Shining sun", emoji: "☀️", imageUrl: "" },
         { id: 'gift_world', name_en: "World", name_ar: "عالم", cost: 100000, type: 'gifts', charisma: 1700000, minBonus: 1, maxBonus: 120000, desc_ar: "عالم كامل ملكك", desc_en: "Your own world", emoji: "🌍", imageUrl: "" },
         { id: 'gift_universe', name_en: "Universe", name_ar: "كون", cost: 100000, type: 'gifts', charisma: 1900000, minBonus: 1, maxBonus: 120000, desc_ar: "كون كامل ملكك", desc_en: "Your own universe", emoji: "🌌", imageUrl: "" },
-        { id: 'gift_multiverse', name_en: "Multiverse", name_ar: "متعدد أكوان", cost: 150000, type: 'gifts', charisma: 2500000, minBonus: 1, maxBonus: 120000, desc_ar: "متعدد أكوان خاص", desc_en: "Your multiverse", emoji: "", imageUrl: "https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Royal%20Crown1.png" },
-        { id: 'gift_ultimate', name_en: "Ultimate Gift", name_ar: "الهدية المطلقة", cost: 150000, type: 'gifts', charisma: 3500000, minBonus: 1, maxBonus: 120000, desc_ar: "أعظم هدية", desc_en: "The ultimate gift", emoji: "", imageUrl: "https://i.ibb.co/YTj22zWy/awaw.png" },
+        { id: 'gift_multiverse', name_en: "Multiverse", name_ar: "متعدد أكوان", cost: 150000, type: 'gifts', charisma: 2500000, minBonus: 1, maxBonus: 120000, desc_ar: "متعدد أكوان خاص", desc_en: "Your multiverse", emoji: "🪐", imageUrl: "" },
+        { id: 'gift_ultimate', name_en: "Ultimate Gift", name_ar: "الهدية المطلقة", cost: 150000, type: 'gifts', charisma: 3500000, minBonus: 1, maxBonus: 120000, desc_ar: "أعظم هدية", desc_en: "The ultimate gift", emoji: "🏆", imageUrl: "" },
     ]
 };
+
+// ==========================================
+// 🏆 ACHIEVEMENTS SYSTEM
+// ==========================================
+const ACHIEVEMENTS = [
+    // Gift Achievements
+    { id: 'ach_first_gift', nameKey: 'achFirstGift', descKey: 'achFirstGiftDesc', icon: '🎁', imageUrl: '', condition: { type: 'gifts_received', value: 1 } },
+    { id: 'ach_gift_collector', nameKey: 'achGiftCollector', descKey: 'achGiftCollectorDesc', icon: '💝', imageUrl: '', condition: { type: 'gifts_received', value: 10 } },
+    { id: 'ach_gift_master', nameKey: 'achGiftMaster', descKey: 'achGiftMasterDesc', icon: '💎', imageUrl: '', condition: { type: 'gifts_received', value: 50 } },
+    { id: 'ach_gift_legend', nameKey: 'achGiftLegend', descKey: 'achGiftLegendDesc', icon: '👑', imageUrl: '', condition: { type: 'gifts_received', value: 100 } },
+    
+    // Game Achievements
+    { id: 'ach_first_win', nameKey: 'achFirstWin', descKey: 'achFirstWinDesc', icon: '🏆', imageUrl: '', condition: { type: 'wins', value: 1 } },
+    { id: 'ach_veteran', nameKey: 'achVeteran', descKey: 'achVeteranDesc', icon: '🎖️', imageUrl: '', condition: { type: 'games_played', value: 10 } },
+    { id: 'ach_pro', nameKey: 'achPro', descKey: 'achProDesc', icon: '⭐', imageUrl: '', condition: { type: 'games_played', value: 25 } },
+    { id: 'ach_master', nameKey: 'achMaster', descKey: 'achMasterDesc', icon: '🌟', imageUrl: '', condition: { type: 'games_played', value: 50 } },
+    
+    // Login Achievements
+    { id: 'ach_week_streak', nameKey: 'achWeekStreak', descKey: 'achWeekStreakDesc', icon: '🔥', imageUrl: '', condition: { type: 'login_streak', value: 7 } },
+    { id: 'ach_month_streak', nameKey: 'achMonthStreak', descKey: 'achMonthStreakDesc', icon: '📅', imageUrl: '', condition: { type: 'total_logins', value: 30 } },
+    
+    // Role Achievements
+    { id: 'ach_first_spy', nameKey: 'achFirstSpy', descKey: 'achFirstSpyDesc', icon: '🕵️', imageUrl: '', condition: { type: 'spy_wins', value: 1 } },
+    { id: 'ach_spy_master', nameKey: 'achSpyMaster', descKey: 'achSpyMasterDesc', icon: '🥷', imageUrl: '', condition: { type: 'spy_wins', value: 10 } },
+    { id: 'ach_agent_pro', nameKey: 'achAgentPro', descKey: 'achAgentProDesc', icon: '🤵', imageUrl: '', condition: { type: 'agent_wins', value: 10 } },
+    
+    // Social Achievements
+    { id: 'ach_social', nameKey: 'achSocial', descKey: 'achSocialDesc', icon: '🦋', imageUrl: '', condition: { type: 'friends', value: 10 } },
+    { id: 'ach_generous', nameKey: 'achGenerous', descKey: 'achGenerousDesc', icon: '💌', imageUrl: '', condition: { type: 'gifts_sent', value: 10 } },
+];
 
 // --- Scenarios ---
 const SCENARIOS = [ 
@@ -401,6 +431,29 @@ const TRANSLATIONS = {
         selectEmojis: "Select Emoji", recentEmojis: "Recent", allEmojis: "All",
         sentAGift: "sent a gift",
         giftWall: "Gift Wall", giftBadge: "Gift Badge", comingSoon: "Coming Soon", receivedGiftsCount: "received gifts",
+        // Settings & Block
+        settings: "Settings", blockUser: "Block User", unblock: "Unblock", blockedUsers: "Blocked Users", noBlockedUsers: "No blocked users.", blockSuccess: "User blocked!", unblockSuccess: "User unblocked!",
+        // Sound
+        sound: "Sound", soundOn: "ON", soundOff: "OFF",
+        // Charisma Rank
+        charismaRank: "Charisma Rank", topCharisma: "Top Charisma", rank: "Rank", firstPlace: "1st", secondPlace: "2nd", thirdPlace: "3rd",
+        // Achievements
+        achievementUnlocked: "Achievement Unlocked!", achievementProgress: "Progress", howToUnlock: "How to unlock", achievementsList: "Achievements",
+        achFirstGift: "First Gift", achFirstGiftDesc: "Receive your first gift",
+        achGiftCollector: "Gift Collector", achGiftCollectorDesc: "Receive 10 gifts",
+        achGiftMaster: "Gift Master", achGiftMasterDesc: "Receive 50 gifts",
+        achGiftLegend: "Gift Legend", achGiftLegendDesc: "Receive 100 gifts",
+        achFirstWin: "First Victory", achFirstWinDesc: "Win your first game",
+        achVeteran: "Veteran", achVeteranDesc: "Play 10 games",
+        achPro: "Pro Player", achProDesc: "Play 25 games",
+        achMaster: "Game Master", achMasterDesc: "Play 50 games",
+        achWeekStreak: "Week Warrior", achWeekStreakDesc: "Login 7 days in a row",
+        achMonthStreak: "Dedicated", achMonthStreakDesc: "Login 30 days total",
+        achFirstSpy: "Sneaky Spy", achFirstSpyDesc: "Win as the Spy",
+        achSpyMaster: "Spy Master", achSpyMasterDesc: "Win 10 times as Spy",
+        achAgentPro: "Agent Pro", achAgentProDesc: "Win 10 times as Agent",
+        achSocial: "Social Butterfly", achSocialDesc: "Add 10 friends",
+        achGenerous: "Generous", achGenerousDesc: "Send 10 gifts",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
@@ -423,6 +476,29 @@ const TRANSLATIONS = {
         selectEmojis: "اختر إيموجي", recentEmojis: "الأخيرة", allEmojis: "الكل",
         sentAGift: "أرسل هدية",
         giftWall: "جدار الهدايا", giftBadge: "شارة الهدايا", comingSoon: "قريباً", receivedGiftsCount: "هدية مستلمة",
+        // Settings & Block
+        settings: "الإعدادات", blockUser: "حظر المستخدم", unblock: "إلغاء الحظر", blockedUsers: "المحظورين", noBlockedUsers: "لا يوجد مستخدمين محظورين.", blockSuccess: "تم حظر المستخدم!", unblockSuccess: "تم إلغاء الحظر!",
+        // Sound
+        sound: "الصوت", soundOn: "تشغيل", soundOff: "كتم",
+        // Charisma Rank
+        charismaRank: "ترتيب الكاريزما", topCharisma: "أعلى كاريزما", rank: "الترتيب", firstPlace: "الأول", secondPlace: "الثاني", thirdPlace: "الثالث",
+        // Achievements
+        achievementUnlocked: "تم فتح إنجاز!", achievementProgress: "التقدم", howToUnlock: "كيفية الفتح", achievementsList: "الإنجازات",
+        achFirstGift: "أول هدية", achFirstGiftDesc: "استقبل هديتك الأولى",
+        achGiftCollector: "جامع الهدايا", achGiftCollectorDesc: "استقبل 10 هدايا",
+        achGiftMaster: "سيد الهدايا", achGiftMasterDesc: "استقبل 50 هدية",
+        achGiftLegend: "أسطورة الهدايا", achGiftLegendDesc: "استقبل 100 هدية",
+        achFirstWin: "أول انتصار", achFirstWinDesc: "افوز بأول لعبة",
+        achVeteran: "مخضرم", achVeteranDesc: "العب 10 ألعاب",
+        achPro: "لاعب محترف", achProDesc: "العب 25 لعبة",
+        achMaster: "سيد اللعبة", achMasterDesc: "العب 50 لعبة",
+        achWeekStreak: "محارب الأسبوع", achWeekStreakDesc: "سجل دخول 7 أيام متتالية",
+        achMonthStreak: "مخلص", achMonthStreakDesc: "سجل دخول 30 يوم",
+        achFirstSpy: "جاسوس متخفي", achFirstSpyDesc: "افوز كجاسوس",
+        achSpyMaster: "سيد الجاسوسية", achSpyMasterDesc: "افوز 10 مرات كجاسوس",
+        achAgentPro: "عميل محترف", achAgentProDesc: "افوز 10 مرات كعميل",
+        achSocial: "فراشة اجتماعية", achSocialDesc: "أضف 10 أصدقاء",
+        achGenerous: "كريم", achGenerousDesc: "أرسل 10 هدايا",
     } 
 };
 
@@ -814,6 +890,209 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                     </div>
                 )}
             </div>
+        </div>
+    );
+};
+
+// ==========================================
+// ⚙️ SETTINGS MODAL - WITH BLOCK LIST & SOUND
+// ==========================================
+const SettingsModal = ({ show, onClose, userData, lang, onBlockUser, onUnblockUser, blockedUsers, soundEnabled, onToggleSound }) => {
+    const t = TRANSLATIONS[lang];
+    const [blockInput, setBlockInput] = useState('');
+    
+    if (!show) return null;
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">⚙️ {t.settings}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body">
+                    {/* Sound Toggle */}
+                    <div className="settings-section">
+                        <div className="settings-item">
+                            <div className="settings-item-info">
+                                <span className="settings-item-icon">🔊</span>
+                                <span className="settings-item-label">{t.sound}</span>
+                            </div>
+                            <button 
+                                onClick={onToggleSound}
+                                className={`sound-toggle-btn ${soundEnabled ? 'on' : 'off'}`}
+                            >
+                                {soundEnabled ? t.soundOn : t.soundOff}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {/* Block User Section */}
+                    <div className="settings-section">
+                        <h3 className="settings-section-title">🚫 {t.blockedUsers}</h3>
+                        
+                        {/* Add Block Input */}
+                        <div className="block-input-row">
+                            <input
+                                type="text"
+                                className="input-dark"
+                                placeholder={t.friendIdPlaceholder}
+                                value={blockInput}
+                                onChange={e => setBlockInput(e.target.value)}
+                            />
+                            <button
+                                onClick={() => {
+                                    if (blockInput.trim()) {
+                                        onBlockUser(blockInput.trim());
+                                        setBlockInput('');
+                                    }
+                                }}
+                                className="btn-danger text-xs px-3 py-2 rounded"
+                            >
+                                {t.blockUser}
+                            </button>
+                        </div>
+                        
+                        {/* Blocked Users List */}
+                        <div className="blocked-users-list">
+                            {blockedUsers && blockedUsers.length > 0 ? (
+                                blockedUsers.map(user => (
+                                    <div key={user.id} className="blocked-user-item">
+                                        <div className="blocked-user-info">
+                                            <img 
+                                                src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=random`}
+                                                alt={user.displayName}
+                                                className="blocked-user-avatar"
+                                            />
+                                            <span className="blocked-user-name">{user.displayName}</span>
+                                        </div>
+                                        <button
+                                            onClick={() => onUnblockUser(user.id)}
+                                            className="btn-ghost text-xs px-2 py-1 rounded"
+                                        >
+                                            {t.unblock}
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="blocked-users-empty">{t.noBlockedUsers}</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// 🏆 ACHIEVEMENTS DISPLAY COMPONENT
+// ==========================================
+const AchievementsDisplay = ({ userData, lang, showAll = false }) => {
+    const t = TRANSLATIONS[lang];
+    const [selectedAch, setSelectedAch] = useState(null);
+    
+    const userAchievements = userData?.achievements || [];
+    const stats = userData?.stats || {};
+    const gamesPlayed = (stats.wins || 0) + (stats.losses || 0);
+    const giftsReceived = userData?.giftsReceived || 0;
+    const giftsSent = userData?.giftsSent || 0;
+    const friendsCount = userData?.friends?.length || 0;
+    const loginStreak = userData?.loginRewards?.streak || 0;
+    const totalLogins = userData?.loginRewards?.totalClaims || 0;
+    const spyWins = userData?.spyWins || 0;
+    const agentWins = userData?.agentWins || 0;
+    
+    const getProgress = (achievement) => {
+        const type = achievement.condition.type;
+        const target = achievement.condition.value;
+        let current = 0;
+        
+        switch (type) {
+            case 'gifts_received': current = giftsReceived; break;
+            case 'gifts_sent': current = giftsSent; break;
+            case 'wins': current = stats.wins || 0; break;
+            case 'games_played': current = gamesPlayed; break;
+            case 'login_streak': current = loginStreak; break;
+            case 'total_logins': current = totalLogins; break;
+            case 'friends': current = friendsCount; break;
+            case 'spy_wins': current = spyWins; break;
+            case 'agent_wins': current = agentWins; break;
+        }
+        
+        return { current, target, percent: Math.min(100, (current / target) * 100) };
+    };
+    
+    const isUnlocked = (achievement) => userAchievements.includes(achievement.id);
+    
+    const displayAchievements = showAll ? ACHIEVEMENTS : ACHIEVEMENTS.slice(0, 6);
+    
+    return (
+        <div className="achievements-container">
+            <div className="achievements-grid">
+                {displayAchievements.map(ach => {
+                    const unlocked = isUnlocked(ach);
+                    const progress = getProgress(ach);
+                    
+                    return (
+                        <div
+                            key={ach.id}
+                            className={`achievement-item ${unlocked ? 'unlocked' : 'locked'}`}
+                            onClick={() => setSelectedAch(ach)}
+                        >
+                            {ach.imageUrl ? (
+                                <img src={ach.imageUrl} alt={t[ach.nameKey]} className="achievement-icon-img" />
+                            ) : (
+                                <span className="achievement-icon">{ach.icon}</span>
+                            )}
+                            {unlocked && <span className="achievement-badge">✓</span>}
+                            {!unlocked && progress.current > 0 && (
+                                <div className="achievement-progress-mini">
+                                    <div 
+                                        className="achievement-progress-fill"
+                                        style={{ width: `${progress.percent}%` }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+            
+            {/* Achievement Detail Modal */}
+            {selectedAch && (
+                <div className="modal-overlay" onClick={() => setSelectedAch(null)}>
+                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+                        <div className="modal-body text-center py-4">
+                            <div className="text-4xl mb-3">
+                                {selectedAch.imageUrl ? (
+                                    <img src={selectedAch.imageUrl} alt={t[selectedAch.nameKey]} className="w-16 h-16 mx-auto" />
+                                ) : selectedAch.icon}
+                            </div>
+                            <h3 className="font-bold text-lg mb-1">{t[selectedAch.nameKey]}</h3>
+                            <p className="text-sm text-gray-400 mb-3">{t[selectedAch.descKey]}</p>
+                            
+                            {!isUnlocked(selectedAch) && (
+                                <div className="achievement-progress-bar">
+                                    <div className="achievement-progress-text">
+                                        {t.achievementProgress}: {getProgress(selectedAch).current}/{getProgress(selectedAch).target}
+                                    </div>
+                                    <div className="achievement-progress-track">
+                                        <div
+                                            className="achievement-progress-fill-bar"
+                                            style={{ width: `${getProgress(selectedAch).percent}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {isUnlocked(selectedAch) && (
+                                <div className="text-green-400 font-bold">✓ {t.achievementUnlocked}</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -1795,6 +2074,8 @@ function App() {
     const [joinError, setJoinError] = useState('');
     const [alertMessage, setAlertMessage] = useState(null);
     const [leaderboardData, setLeaderboardData] = useState([]);
+    const [charismaLeaderboard, setCharismaLeaderboard] = useState([]);
+    const [leaderboardTab, setLeaderboardTab] = useState('wins');
     const [friendsData, setFriendsData] = useState([]);
     const [addFriendId, setAddFriendId] = useState('');
     const [friendSearchMsg, setFriendSearchMsg] = useState('');
@@ -1912,6 +2193,23 @@ function App() {
 
     // Leaderboard - Real-time
     useEffect(() => { if (activeView === 'leaderboard') { const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); setLeaderboardData(data); }, error => { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); }); return unsub; } }, [activeView]);
+    
+    // Charisma Leaderboard - Real-time
+    useEffect(() => {
+        if (activeView === 'leaderboard' && leaderboardTab === 'charisma') {
+            const unsub = usersCollection.orderBy('charisma', 'desc').limit(100).onSnapshot(snap => {
+                let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous);
+                setCharismaLeaderboard(data);
+            }, error => {
+                usersCollection.limit(100).get().then(snap => {
+                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous);
+                    data.sort((a, b) => (b.charisma || 0) - (a.charisma || 0));
+                    setCharismaLeaderboard(data);
+                });
+            });
+            return unsub;
+        }
+    }, [activeView, leaderboardTab]);
     
     // ✅ FIXED: Friends - Real-time with online status
     useEffect(() => { 
@@ -2463,15 +2761,51 @@ function App() {
                     
                     {activeView === 'leaderboard' && (
                         <div className="card-container">
+                            {/* Leaderboard Tabs */}
+                            <div className="leaderboard-tabs">
+                                <button 
+                                    onClick={() => setLeaderboardTab('wins')} 
+                                    className={`leaderboard-tab ${leaderboardTab === 'wins' ? 'active' : ''}`}
+                                >
+                                    🏆 {t.wins}
+                                </button>
+                                <button 
+                                    onClick={() => setLeaderboardTab('charisma')} 
+                                    className={`leaderboard-tab gold ${leaderboardTab === 'charisma' ? 'active' : ''}`}
+                                >
+                                    ⭐ {t.charismaRank}
+                                </button>
+                            </div>
+                            
                             <div className="overflow-y-auto max-h-[60vh]">
-                                {leaderboardData.map((player, i) => (
-                                    <div key={player.id} onClick={() => openProfile(player.id)} className="leaderboard-row cursor-pointer">
-                                        <span className="w-6 text-xs font-bold text-gray-500">{i + 1}</span>
-                                        <AvatarWithFrame photoURL={player.photoURL} equipped={player.equipped} size="sm" />
-                                        <span className="flex-1 text-sm font-medium truncate">{player.displayName}</span>
-                                        <div className="text-right"><div className="text-xs font-bold text-primary">{player.stats?.wins || 0} {t.wins}</div></div>
-                                    </div>
-                                ))}
+                                {(leaderboardTab === 'charisma' ? charismaLeaderboard : leaderboardData).map((player, i) => {
+                                    const rank = i + 1;
+                                    const isTop3 = rank <= 3;
+                                    return (
+                                        <div 
+                                            key={player.id} 
+                                            onClick={() => openProfile(player.id)} 
+                                            className={`leaderboard-row cursor-pointer ${isTop3 && leaderboardTab === 'charisma' ? 'rank-' + rank : ''}`}
+                                        >
+                                            {isTop3 && leaderboardTab === 'charisma' ? (
+                                                <div className="charisma-rank-position">
+                                                    {rank === 1 ? '👑' : rank === 2 ? '🥈' : '🥉'}
+                                                </div>
+                                            ) : (
+                                                <span className="w-6 text-xs font-bold text-gray-500">{rank}</span>
+                                            )}
+                                            <AvatarWithFrame photoURL={player.photoURL} equipped={player.equipped} size="sm" />
+                                            <span className="flex-1 text-sm font-medium truncate">{player.displayName}</span>
+                                            <div className="text-right">
+                                                {leaderboardTab === 'charisma' ? (
+                                                    <div className="text-xs font-bold text-yellow-400">⭐ {formatCharisma(player.charisma || 0)}</div>
+                                                ) : (
+                                                    <div className="text-xs font-bold text-primary">{player.stats?.wins || 0} {t.wins}</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
@@ -2589,5 +2923,3 @@ const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
-
-
