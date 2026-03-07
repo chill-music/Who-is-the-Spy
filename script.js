@@ -3630,6 +3630,7 @@ const ProfileV11 = ({
     const [blockedByTarget, setBlockedByTarget] = useState(false);
     const [showBlockConfirm, setShowBlockConfirm] = useState(false);
     const [gifts, setGifts] = useState([]);
+    const [charismaRank, setCharismaRank] = useState(null);
     
     const optionsRef = useRef(null);
 
@@ -3755,7 +3756,6 @@ const ProfileV11 = ({
     const level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
 
     // Calculate charisma rank
-    const [charismaRank, setCharismaRank] = useState(null);
     useEffect(() => {
         if (!show || !targetUID || !targetData) return;
         // Get rank from charisma leaderboard
