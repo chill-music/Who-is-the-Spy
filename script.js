@@ -62,6 +62,10 @@ const initAudioContext = () => {
 
 const playSound = (type) => {
     try {
+        // Check if sound is muted
+        if (typeof window !== 'undefined' && window.proSpySoundMuted) return;
+        if (localStorage.getItem('pro_spy_sound_muted') === 'true') return;
+        
         if (!audioContext) audioContext = initAudioContext();
         if (!audioContext) return;
         if (audioContext.state === 'suspended') audioContext.resume();
@@ -142,6 +146,11 @@ const initAudioOnFirstInteraction = () => {
         playSound('click');
     }
 };
+
+// Initialize sound mute state from localStorage
+if (typeof window !== 'undefined') {
+    window.proSpySoundMuted = localStorage.getItem('pro_spy_sound_muted') === 'true';
+}
 
 if (typeof window !== 'undefined') {
     const initEvents = ['click', 'touchstart', 'keydown'];
@@ -889,97 +898,6 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                         )}
                     </div>
                 )}
-            </div>
-        </div>
-    );
-};
-
-// ==========================================
-// ⚙️ SETTINGS MODAL - WITH BLOCK LIST & SOUND
-// ==========================================
-const SettingsModal = ({ show, onClose, userData, lang, onBlockUser, onUnblockUser, blockedUsers, soundEnabled, onToggleSound }) => {
-    const t = TRANSLATIONS[lang];
-    const [blockInput, setBlockInput] = useState('');
-    
-    if (!show) return null;
-    
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px' }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">⚙️ {t.settings}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
-                <div className="modal-body">
-                    {/* Sound Toggle */}
-                    <div className="settings-section">
-                        <div className="settings-item">
-                            <div className="settings-item-info">
-                                <span className="settings-item-icon">🔊</span>
-                                <span className="settings-item-label">{t.sound}</span>
-                            </div>
-                            <button 
-                                onClick={onToggleSound}
-                                className={`sound-toggle-btn ${soundEnabled ? 'on' : 'off'}`}
-                            >
-                                {soundEnabled ? t.soundOn : t.soundOff}
-                            </button>
-                        </div>
-                    </div>
-                    
-                    {/* Block User Section */}
-                    <div className="settings-section">
-                        <h3 className="settings-section-title">🚫 {t.blockedUsers}</h3>
-                        
-                        {/* Add Block Input */}
-                        <div className="block-input-row">
-                            <input
-                                type="text"
-                                className="input-dark"
-                                placeholder={t.friendIdPlaceholder}
-                                value={blockInput}
-                                onChange={e => setBlockInput(e.target.value)}
-                            />
-                            <button
-                                onClick={() => {
-                                    if (blockInput.trim()) {
-                                        onBlockUser(blockInput.trim());
-                                        setBlockInput('');
-                                    }
-                                }}
-                                className="btn-danger text-xs px-3 py-2 rounded"
-                            >
-                                {t.blockUser}
-                            </button>
-                        </div>
-                        
-                        {/* Blocked Users List */}
-                        <div className="blocked-users-list">
-                            {blockedUsers && blockedUsers.length > 0 ? (
-                                blockedUsers.map(user => (
-                                    <div key={user.id} className="blocked-user-item">
-                                        <div className="blocked-user-info">
-                                            <img 
-                                                src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=random`}
-                                                alt={user.displayName}
-                                                className="blocked-user-avatar"
-                                            />
-                                            <span className="blocked-user-name">{user.displayName}</span>
-                                        </div>
-                                        <button
-                                            onClick={() => onUnblockUser(user.id)}
-                                            className="btn-ghost text-xs px-2 py-1 rounded"
-                                        >
-                                            {t.unblock}
-                                        </button>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="blocked-users-empty">{t.noBlockedUsers}</div>
-                            )}
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     );
@@ -2049,6 +1967,174 @@ const TutorialModal = ({ show, onClose, lang }) => {
 
 
 // ==========================================
+// ⚙️ SETTINGS MODAL
+// ==========================================
+const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) => {
+    const t = TRANSLATIONS[lang];
+    const [blockedUsers, setBlockedUsers] = useState([]);
+    const [blockInput, setBlockInput] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [soundMutedLocal, setSoundMutedLocal] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
+
+    useEffect(() => {
+        if (show && userData) {
+            setBlockedUsers(userData.blockedUsers || []);
+        }
+    }, [show, userData]);
+
+    if (!show) return null;
+
+    const toggleSound = () => {
+        const newMuted = !soundMutedLocal;
+        setSoundMutedLocal(newMuted);
+        localStorage.setItem('pro_spy_sound_muted', String(newMuted));
+        // Update global audio state
+        if (typeof window !== 'undefined') {
+            window.proSpySoundMuted = newMuted;
+        }
+        onNotification(newMuted ? (lang === 'ar' ? 'تم كتم الصوت' : 'Sound muted') : (lang === 'ar' ? 'تم تشغيل الصوت' : 'Sound enabled'));
+    };
+
+    const handleBlockUser = async () => {
+        if (!blockInput.trim() || !user) return;
+        setLoading(true);
+        try {
+            // Find user by ID
+            const userQuery = await usersCollection.where('customId', '==', blockInput.trim()).get();
+            if (userQuery.empty) {
+                onNotification(t.friendNotFound);
+                setLoading(false);
+                return;
+            }
+            const targetUid = userQuery.docs[0].id;
+            if (targetUid === user.uid) {
+                onNotification(lang === 'ar' ? 'لا يمكنك حظر نفسك' : 'Cannot block yourself');
+                setLoading(false);
+                return;
+            }
+            if (blockedUsers.includes(targetUid)) {
+                onNotification(lang === 'ar' ? 'المستخدم محظور بالفعل' : 'User already blocked');
+                setLoading(false);
+                return;
+            }
+            // Add to blocked list
+            await usersCollection.doc(user.uid).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayUnion(targetUid)
+            });
+            setBlockedUsers([...blockedUsers, targetUid]);
+            setBlockInput('');
+            onNotification(t.blockSuccess);
+        } catch (error) {
+            console.error('Block error:', error);
+            onNotification(lang === 'ar' ? 'حدث خطأ' : 'An error occurred');
+        }
+        setLoading(false);
+    };
+
+    const handleUnblockUser = async (targetUid) => {
+        if (!user) return;
+        try {
+            await usersCollection.doc(user.uid).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayRemove(targetUid)
+            });
+            setBlockedUsers(blockedUsers.filter(id => id !== targetUid));
+            onNotification(t.unblockSuccess);
+        } catch (error) {
+            console.error('Unblock error:', error);
+        }
+    };
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">⚙️ {t.settings}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body">
+                    {/* Sound Toggle */}
+                    <div className="settings-section">
+                        <div className="settings-row">
+                            <div className="settings-label">
+                                <span className="settings-icon">🔊</span>
+                                <span>{t.sound}</span>
+                            </div>
+                            <button
+                                onClick={toggleSound}
+                                className={`settings-toggle ${soundMutedLocal ? 'off' : 'on'}`}
+                            >
+                                {soundMutedLocal ? t.soundOff : t.soundOn}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Block Users Section */}
+                    <div className="settings-section">
+                        <div className="settings-section-title">
+                            <span>🚫</span>
+                            <span>{t.blockedUsers}</span>
+                        </div>
+                        <div className="block-input-row">
+                            <input
+                                type="text"
+                                className="input-dark"
+                                value={blockInput}
+                                onChange={e => setBlockInput(e.target.value)}
+                                placeholder={t.friendIdPlaceholder}
+                            />
+                            <button
+                                onClick={handleBlockUser}
+                                disabled={loading || !blockInput.trim()}
+                                className="btn-danger px-3 py-2 rounded text-xs"
+                            >
+                                {t.blockUser}
+                            </button>
+                        </div>
+                        <div className="blocked-users-list">
+                            {blockedUsers.length === 0 ? (
+                                <div className="no-blocked-users">{t.noBlockedUsers}</div>
+                            ) : (
+                                blockedUsers.map(uid => (
+                                    <BlockedUserItem
+                                        key={uid}
+                                        uid={uid}
+                                        onUnblock={() => handleUnblockUser(uid)}
+                                        lang={lang}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Blocked User Item Component
+const BlockedUserItem = ({ uid, onUnblock, lang }) => {
+    const [userData, setUserData] = useState(null);
+
+    useEffect(() => {
+        usersCollection.doc(uid).get().then(doc => {
+            if (doc.exists) {
+                setUserData({ id: doc.id, ...doc.data() });
+            }
+        });
+    }, [uid]);
+
+    return (
+        <div className="blocked-user-item">
+            <AvatarWithFrame photoURL={userData?.photoURL} equipped={userData?.equipped} size="sm" />
+            <span className="blocked-user-name">{userData?.displayName || uid.substring(0, 8)}</span>
+            <button onClick={onUnblock} className="btn-ghost px-2 py-1 rounded text-xs">
+                {lang === 'ar' ? 'إلغاء' : 'Unblock'}
+            </button>
+        </div>
+    );
+};
+
+// ==========================================
 // 🎮 MAIN APP COMPONENT
 // ==========================================
 function App() {
@@ -2105,6 +2191,8 @@ function App() {
     const [notifications, setNotifications] = useState([]);
     const [unreadNotifications, setUnreadNotifications] = useState(0);
     const notificationBellRef = useRef(null);
+    const [showSettings, setShowSettings] = useState(false);
+    const [soundMuted, setSoundMuted] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
     
     const t = TRANSLATIONS[lang];
     const isLoggedIn = useMemo(() => user && !user.isAnonymous, [user]);
@@ -2617,6 +2705,7 @@ function App() {
             
             <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} />
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
+            <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} />
             
             {showMyAccount && (
                 <div className="modal-overlay" onClick={() => setShowMyAccount(false)}>
@@ -2646,6 +2735,7 @@ function App() {
                         </div>
                         <div className="modal-footer">
                             {isLoggedIn && (<div className="flex gap-2 mb-2"><button onClick={() => { setShowMyAccount(false); setShowShop(true); }} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {t.shop}</button><button onClick={() => { setShowMyAccount(false); setShowInventory(true); }} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">📦 {t.inventory}</button></div>)}
+                            <button onClick={() => { setShowMyAccount(false); setShowSettings(true); }} className="btn-ghost w-full py-2 rounded-lg text-sm font-bold mb-2">⚙️ {t.settings}</button>
                             {isLoggedIn ? (<button onClick={handleLogout} className="btn-danger w-full py-2 rounded-lg text-sm">{t.logout}</button>) : isGuest ? (<div className="flex gap-2"><button onClick={handleLogout} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.logout}</button><button onClick={() => { setShowMyAccount(false); handleGoogleLogin(); }} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.loginGoogle}</button></div>) : null}
                         </div>
                     </div>
@@ -2730,6 +2820,7 @@ function App() {
                                         <button onClick={() => { setShowInventory(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>📦</span> {t.inventory}</button>
                                         <button onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); setShowDropdown(false); }} className={`w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 ${sessionClaimedToday ? 'opacity-50' : ''}`}><span>🎁</span> {t.loginRewards} {sessionClaimedToday && <span className="text-[8px] text-green-400">✓</span>}</button>
                                     </>)}
+                                    <button onClick={() => { setShowSettings(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>⚙️</span> {t.settings}</button>
                                     <button onClick={() => { handleLogout(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400"><span>🚪</span> {t.logout}</button>
                                 </>) : (<button onClick={() => { handleGoogleLogin(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🔑</span> {t.loginGoogle}</button>)}
                             </div>
