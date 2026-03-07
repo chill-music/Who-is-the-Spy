@@ -3228,7 +3228,7 @@ const WinRateCircleV11 = ({ wins, losses, lang }) => {
         return '#ef4444';
     };
 
-    const gradient = \`conic-gradient(\${getColor(rate)} \${rate}%, #1f2937 \${rate}%)\`;
+    const gradient = `conic-gradient(${getColor(rate)} ${rate}%, #1f2937 ${rate}%)`;
 
     return (
         <div className="profile-winrate-circle" style={{ background: gradient }}>
@@ -3260,13 +3260,13 @@ const GiftWallV11 = ({ gifts, lang }) => {
             <div className="profile-gift-header">
                 <div className="profile-gift-tabs">
                     <button 
-                        className={\`profile-gift-tab \${activeTab === 'wall' ? 'active' : ''}\`}
+                        className={`profile-gift-tab ${activeTab === 'wall' ? 'active' : ''}`}
                         onClick={() => setActiveTab('wall')}
                     >
                         {lang === 'ar' ? 'الجدار' : 'Wall'}
                     </button>
                     <button 
-                        className={\`profile-gift-tab \${activeTab === 'log' ? 'active' : ''}\`}
+                        className={`profile-gift-tab ${activeTab === 'log' ? 'active' : ''}`}
                         onClick={() => setActiveTab('log')}
                     >
                         {lang === 'ar' ? 'السجل' : 'Log'}
@@ -3284,7 +3284,7 @@ const GiftWallV11 = ({ gifts, lang }) => {
                         return (
                             <div 
                                 key={gift.id} 
-                                className={\`profile-gift-slot \${unlocked ? 'unlocked' : 'locked'}\`}
+                                className={`profile-gift-slot ${unlocked ? 'unlocked' : 'locked'}`}
                             >
                                 {gift.emoji ? (
                                     <span>{gift.emoji}</span>
@@ -3308,7 +3308,7 @@ const GiftWallV11 = ({ gifts, lang }) => {
                         gifts.slice(0, 10).map((gift, idx) => (
                             <div key={idx} className="profile-gift-log-item">
                                 <img 
-                                    src={gift.senderPhoto || \`https://ui-avatars.com/api/?name=\${encodeURIComponent(gift.senderName)}&background=6366f1&color=fff\`} 
+                                    src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(gift.senderName)}&background=6366f1&color=fff`} 
                                     alt="" 
                                     className="profile-gift-log-avatar"
                                 />
@@ -3383,7 +3383,7 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                     return (
                         <div 
                             key={ach.id} 
-                            className={\`profile-achievement-item \${isUnlocked ? 'unlocked' : 'locked'}\`}
+                            className={`profile-achievement-item ${isUnlocked ? 'unlocked' : 'locked'}`}
                             title={TRANSLATIONS[lang]?.[ach.nameKey] || ach.id}
                         >
                             {ach.imageUrl ? (
@@ -3398,7 +3398,7 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                             )}
                             {!isUnlocked && progress > 0 && (
                                 <div className="profile-achievement-progress">
-                                    <div className="profile-achievement-progress-fill" style={{ width: \`\${progress}%\` }}></div>
+                                    <div className="profile-achievement-progress-fill" style={{ width: `${progress}%` }}></div>
                                 </div>
                             )}
                         </div>
@@ -3478,7 +3478,7 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
                 style={{ width: s.wrapper, height: s.wrapper }}
             >
                 <img 
-                    src={photoURL || \`https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&size=\${s.avatar * 2}\`}
+                    src={photoURL || `https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&size=${s.avatar * 2}`}
                     alt=""
                     className="profile-avatar"
                     style={{ 
@@ -3505,7 +3505,7 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
             </div>
             
             {isOnline !== undefined && (
-                <div className={\`profile-status-dot \${isOnline ? '' : 'offline'}\`}></div>
+                <div className={`profile-status-dot ${isOnline ? '' : 'offline'}`}></div>
             )}
         </div>
     );
@@ -3813,8 +3813,8 @@ const ProfileV11 = ({
                             </div>
                             <div className="profile-confirm-message">
                                 {lang === 'ar' 
-                                    ? \`هل أنت متأكد من حظر \${targetData?.displayName || 'هذا المستخدم'}؟\`
-                                    : \`Are you sure you want to block \${targetData?.displayName || 'this user'}?\`}
+                                    ? `هل أنت متأكد من حظر ${targetData?.displayName || 'هذا المستخدم'}؟`
+                                    : `Are you sure you want to block ${targetData?.displayName || 'this user'}?`}
                             </div>
                             <div className="profile-confirm-actions">
                                 <button onClick={() => setShowBlockConfirm(false)} className="cancel">
