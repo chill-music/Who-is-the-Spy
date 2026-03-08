@@ -1327,7 +1327,9 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             </div>
                             <div className="gift-preview-stat">
                                 <div className="gift-preview-stat-label">{t.luckyBonus}</div>
-                                <div className="gift-preview-stat-value bonus">+{previewBonus} 🧠</div>
+                                <div className="gift-preview-stat-value bonus" style={{color:'#facc15', fontStyle:'italic'}}>
+                                    🍀 {lang === 'ar' ? 'مفاجأة!' : 'Surprise!'}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1407,7 +1409,10 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                                 disabled={currency < gift.cost || (!directTarget && sendMode === 'others' && !selectedFriend && isGiftItem)} 
                                 className={`flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
                             >
-                                {isSending || directTarget ? t.sendGift : t.buy} ({gift.cost}🧠)
+                                {isGiftItem && !directTarget && sendMode === 'self'
+                                    ? `🎒 ${lang === 'ar' ? 'أضف للمخزون' : 'Add to Inventory'} (${gift.cost}🧠)`
+                                    : `${isSending || directTarget ? t.sendGift : t.buy} (${gift.cost}🧠)`
+                                }
                             </button> 
                         </div>
                     )}
@@ -2228,14 +2233,10 @@ function App() {
         try {
             const achievement = ACHIEVEMENTS.find(a => a.id === badgeId);
             if (!achievement) return;
-            
+            // ✅ FIX: Save as simple string ID array (not nested object)
+            // Prevents mismatch with AchievementsDisplayV11 which reads achievements as string[]
             await usersCollection.doc(user.uid).update({
-                'achievements.badges': firebase.firestore.FieldValue.arrayUnion({
-                    id: badgeId,
-                    ...achievement,
-                    unlocked: true,
-                    unlockedDate: firebase.firestore.FieldValue.serverTimestamp()
-                })
+                achievements: firebase.firestore.FieldValue.arrayUnion(badgeId)
             });
         } catch (error) {
             console.error('Achievement unlock error:', error);
@@ -2860,7 +2861,25 @@ function App() {
         const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
         
         if (item.type === 'gifts') {
-            await handleSendGiftToUser(item, targetUser || { uid: 'self' });
+            // ✅ FIX: if targetUser is specified (send to friend) → keep old flow
+            // If buying for self (no target or target=self) → add to inventory instead of instant charisma
+            if (targetUser && targetUser.uid !== 'self' && targetUser.uid !== user?.uid) {
+                await handleSendGiftToUser(item, targetUser);
+                return;
+            }
+            // Buying for self → add to inventory
+            const currency = userData?.currency || 0;
+            if (currency < item.cost) { setNotification(t.purchaseFail); return; }
+            const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
+            try {
+                await usersCollection.doc(user.uid).update({
+                    currency: firebase.firestore.FieldValue.increment(-item.cost),
+                    'inventory.gifts': firebase.firestore.FieldValue.arrayUnion(item.id)
+                });
+                playSound('success');
+                const giftName = lang === 'ar' ? item.name_ar : item.name_en;
+                setNotification(`🎁 ${giftName} ${lang === 'ar' ? 'أُضيفت للمخزون!' : 'added to inventory!'}`);
+            } catch (e) { setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
             return;
         }
         
@@ -3947,27 +3966,74 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
                                 const mData = missions[m.id] || {};
                                 const done = mData.lastCompleted === todayStr;
                                 const loading = claiming === m.id;
+
+                                // ✅ FIX: Check real mission progress
+                                const missionProgress = userData?.missionProgress || {};
+                                const dailyProgress = missionProgress.daily || {};
+                                const progressChecks = {
+                                    'd1': dailyProgress.gamesPlayed || 0,
+                                    'd2': dailyProgress.gamesWon || 0,
+                                    'd3': dailyProgress.spyGames || 0,
+                                    'd4': dailyProgress.giftsSent || 0,
+                                    'd5': dailyProgress.friendsAdded || 0,
+                                    'd6': dailyProgress.momentsPosted || 0,
+                                    'd7': dailyProgress.commentsPosted || 0,
+                                };
+                                const requiredChecks = { d1:1, d2:1, d3:1, d4:1, d5:1, d6:1, d7:1 };
+                                const currentVal = progressChecks[m.id] || 0;
+                                const requiredVal = requiredChecks[m.id] || 1;
+                                const isCompleted = currentVal >= requiredVal;
+
                                 return (
                                 <div key={m.id} style={{
                                     display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
                                     padding:'9px 12px', borderRadius:'10px',
-                                    background: done ? 'rgba(74,222,128,0.07)' : 'rgba(255,255,255,0.04)',
-                                    border: done ? '1px solid rgba(74,222,128,0.25)' : '1px solid rgba(255,255,255,0.07)'
+                                    background: done ? 'rgba(74,222,128,0.07)' : isCompleted ? 'rgba(251,191,36,0.07)' : 'rgba(255,255,255,0.04)',
+                                    border: done ? '1px solid rgba(74,222,128,0.25)' : isCompleted ? '1px solid rgba(251,191,36,0.3)' : '1px solid rgba(255,255,255,0.07)'
                                 }}>
                                     <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
                                         <span style={{fontSize:'18px', filter: done ? 'grayscale(60%)' : 'none'}}>{m.icon}</span>
                                         <div>
                                             <div style={{fontSize:'11px', fontWeight:700, color: done ? '#6b7280' : '#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
                                             <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700}}>+{m.xp} XP</div>
+                                            {/* ✅ Show progress bar when not done */}
+                                            {!done && (
+                                                <div style={{display:'flex', alignItems:'center', gap:'4px', marginTop:'3px'}}>
+                                                    <div style={{width:'60px', height:'3px', background:'rgba(255,255,255,0.1)', borderRadius:'2px', overflow:'hidden'}}>
+                                                        <div style={{
+                                                            height:'100%', borderRadius:'2px',
+                                                            width: `${Math.min(100, (currentVal/requiredVal)*100)}%`,
+                                                            background: isCompleted ? 'linear-gradient(90deg,#4ade80,#22c55e)' : 'linear-gradient(90deg,#fbbf24,#f59e0b)',
+                                                            transition:'width 0.3s ease'
+                                                        }}/>
+                                                    </div>
+                                                    <span style={{fontSize:'8px', color: isCompleted ? '#4ade80' : '#9ca3af'}}>
+                                                        {currentVal}/{requiredVal}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     {done ? (
                                         <div style={{fontSize:'11px', color:'#4ade80', fontWeight:800}}>✓</div>
-                                    ) : (
+                                    ) : isCompleted ? (
+                                        // ✅ Mission completed → show green Claim button
                                         <button onClick={() => handleClaimMission(m, 'daily')} disabled={loading} style={{
-                                            fontSize:'9px', fontWeight:800, color:'#0f0f1a', background:'linear-gradient(135deg,#fbbf24,#f59e0b)',
-                                            border:'none', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', opacity: loading ? 0.6 : 1
+                                            fontSize:'9px', fontWeight:800, color:'#000',
+                                            background:'linear-gradient(135deg,#4ade80,#22c55e)',
+                                            border:'none', borderRadius:'6px', padding:'5px 10px',
+                                            cursor:'pointer', opacity: loading ? 0.6 : 1,
+                                            boxShadow:'0 0 8px rgba(74,222,128,0.4)'
                                         }}>{loading ? '...' : (lang==='ar'?'استلم':'Claim')}</button>
+                                    ) : (
+                                        // ✅ Mission NOT completed → show locked state
+                                        <div style={{
+                                            fontSize:'9px', fontWeight:700, color:'#6b7280',
+                                            background:'rgba(107,114,128,0.15)',
+                                            border:'1px solid rgba(107,114,128,0.2)',
+                                            borderRadius:'6px', padding:'4px 8px',
+                                            cursor:'not-allowed'
+                                        }}>{lang==='ar'?'قيد التنفيذ':'In Progress'}</div>
                                     )}
                                 </div>
                                 );
@@ -3981,27 +4047,70 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
                                 const mData = missions[m.id] || {};
                                 const done = mData.lastWeekCompleted === weekStr;
                                 const loading = claiming === m.id;
+
+                                // ✅ FIX: Check real weekly mission progress
+                                const missionProgress = userData?.missionProgress || {};
+                                const weeklyProgress = missionProgress.weekly || {};
+                                const weeklyChecks = {
+                                    'w1': weeklyProgress.gamesPlayed || 0,
+                                    'w2': weeklyProgress.gamesWon || 0,
+                                    'w3': weeklyProgress.giftsSent || 0,
+                                    'w4': weeklyProgress.momentsPosted || 0,
+                                    'w5': weeklyProgress.friendsAdded || 0,
+                                };
+                                const weeklyRequired = { w1:10, w2:5, w3:5, w4:3, w5:3 };
+                                const currentVal = weeklyChecks[m.id] || 0;
+                                const requiredVal = weeklyRequired[m.id] || 1;
+                                const isCompleted = currentVal >= requiredVal;
+
                                 return (
                                 <div key={m.id} style={{
                                     display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
                                     padding:'9px 12px', borderRadius:'10px',
-                                    background: done ? 'rgba(192,132,252,0.07)' : 'rgba(168,85,247,0.05)',
-                                    border: done ? '1px solid rgba(192,132,252,0.25)' : '1px solid rgba(168,85,247,0.15)'
+                                    background: done ? 'rgba(192,132,252,0.07)' : isCompleted ? 'rgba(192,132,252,0.1)' : 'rgba(168,85,247,0.05)',
+                                    border: done ? '1px solid rgba(192,132,252,0.25)' : isCompleted ? '1px solid rgba(192,132,252,0.35)' : '1px solid rgba(168,85,247,0.15)'
                                 }}>
                                     <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
                                         <span style={{fontSize:'18px', filter: done ? 'grayscale(60%)' : 'none'}}>{m.icon}</span>
                                         <div>
                                             <div style={{fontSize:'11px', fontWeight:700, color: done ? '#6b7280' : '#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
                                             <div style={{fontSize:'9px', color:'#c084fc', fontWeight:700}}>+{m.xp} XP</div>
+                                            {/* Progress bar */}
+                                            {!done && (
+                                                <div style={{display:'flex', alignItems:'center', gap:'4px', marginTop:'3px'}}>
+                                                    <div style={{width:'60px', height:'3px', background:'rgba(255,255,255,0.1)', borderRadius:'2px', overflow:'hidden'}}>
+                                                        <div style={{
+                                                            height:'100%', borderRadius:'2px',
+                                                            width: `${Math.min(100, (currentVal/requiredVal)*100)}%`,
+                                                            background: isCompleted ? 'linear-gradient(90deg,#4ade80,#22c55e)' : 'linear-gradient(90deg,#c084fc,#8b5cf6)',
+                                                            transition:'width 0.3s ease'
+                                                        }}/>
+                                                    </div>
+                                                    <span style={{fontSize:'8px', color: isCompleted ? '#4ade80' : '#9ca3af'}}>
+                                                        {currentVal}/{requiredVal}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     {done ? (
                                         <div style={{fontSize:'11px', color:'#c084fc', fontWeight:800}}>✓</div>
-                                    ) : (
+                                    ) : isCompleted ? (
                                         <button onClick={() => handleClaimMission(m, 'weekly')} disabled={loading} style={{
-                                            fontSize:'9px', fontWeight:800, color:'#0f0f1a', background:'linear-gradient(135deg,#c084fc,#8b5cf6)',
-                                            border:'none', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', opacity: loading ? 0.6 : 1
+                                            fontSize:'9px', fontWeight:800, color:'#000',
+                                            background:'linear-gradient(135deg,#4ade80,#22c55e)',
+                                            border:'none', borderRadius:'6px', padding:'5px 10px',
+                                            cursor:'pointer', opacity: loading ? 0.6 : 1,
+                                            boxShadow:'0 0 8px rgba(74,222,128,0.4)'
                                         }}>{loading ? '...' : (lang==='ar'?'استلم':'Claim')}</button>
+                                    ) : (
+                                        <div style={{
+                                            fontSize:'9px', fontWeight:700, color:'#6b7280',
+                                            background:'rgba(107,114,128,0.15)',
+                                            border:'1px solid rgba(107,114,128,0.2)',
+                                            borderRadius:'6px', padding:'4px 8px',
+                                            cursor:'not-allowed'
+                                        }}>{lang==='ar'?'قيد التنفيذ':'In Progress'}</div>
                                     )}
                                 </div>
                                 );
@@ -5080,7 +5189,22 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
 
 // 🏆 ACHIEVEMENTS DISPLAY V11 - IMPROVED WITH SCROLLING
 const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
-    const unlockedAchievements = userData?.achievements || [];
+    // ✅ FIX: Support both storage formats:
+    // - New: achievements = ['ach_first_win', 'ach_10_wins'] (string array)
+    // - Old: achievements.badges = [{id:'ach_first_win', unlocked:true,...}] (object array)
+    const rawAchievements = userData?.achievements;
+    const unlockedAchievements = React.useMemo(() => {
+        if (!rawAchievements) return [];
+        // New format: array of strings
+        if (Array.isArray(rawAchievements)) {
+            return rawAchievements.map(item => typeof item === 'string' ? item : item?.id).filter(Boolean);
+        }
+        // Old format: object with .badges array
+        if (rawAchievements?.badges && Array.isArray(rawAchievements.badges)) {
+            return rawAchievements.badges.map(b => b?.id || b).filter(Boolean);
+        }
+        return [];
+    }, [rawAchievements]);
     const scrollRef = useRef(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
