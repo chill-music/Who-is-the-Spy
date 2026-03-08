@@ -185,6 +185,20 @@ const playGiftSound = () => playSound('gift');
 // ============================================================
 // 🎫 FUN PASS SYSTEM - 50 levels, daily/weekly missions
 // ============================================================
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🔧 FUN PASS SEASON CONFIG - بتتجدد كل 3 شهور
+//    عشان تجدد السيزون:
+//    1. غير FUN_PASS_SEASON_ID لرقم جديد (مثلاً: '2', '3', '4')
+//    2. كل المستخدمين هيتصفر تقدمهم تلقائياً في السيزون الجديد
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const FUN_PASS_SEASON_ID = '1';           // 🔧 غيّر هنا لتجديد السيزون
+const FUN_PASS_SEASON_NAME_EN = 'Season 1'; // اسم السيزون بالإنجليزي
+const FUN_PASS_SEASON_NAME_AR = 'الموسم الأول'; // اسم السيزون بالعربي
+const FUN_PASS_SEASON_START = '2025-01-01'; // تاريخ بداية السيزون
+const FUN_PASS_SEASON_END   = '2025-03-31'; // تاريخ نهاية السيزون
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 const FUN_PASS_PRICE = 2000; // Cost in Intel to buy Fun Pass
 
 const FUN_PASS_LEVELS = [
@@ -2229,7 +2243,9 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
     const [claiming, setClaiming] = useState(null);
 
     // All hooks before early return
-    const fp = userData?.funPass || {};
+    // Season-aware: data is stored under funPass.seasons[SEASON_ID]
+    const fpAll = userData?.funPass || {};
+    const fp = fpAll.seasons?.[FUN_PASS_SEASON_ID] || {};
     const hasPremium = fp.premium === true;
     const currentXP = fp.xp || 0;
     const claimedFree = fp.claimedFree || [];
@@ -2251,7 +2267,7 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
         try {
             await usersCollection.doc(user.uid).update({
                 currency: firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE),
-                'funPass.premium': true
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true
             });
             onNotification(lang==='ar'?'🎫 تم شراء Fun Pass!':'🎫 Fun Pass purchased!');
         } catch(e) { console.error(e); onNotification(lang==='ar'?'خطأ':'Error'); }
@@ -2280,9 +2296,9 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
                 updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
             }
             if (type === 'free') {
-                updates['funPass.claimedFree'] = firebase.firestore.FieldValue.arrayUnion(level);
+                updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.claimedFree`] = firebase.firestore.FieldValue.arrayUnion(level);
             } else {
-                updates['funPass.claimedPremium'] = firebase.firestore.FieldValue.arrayUnion(level);
+                updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.claimedPremium`] = firebase.firestore.FieldValue.arrayUnion(level);
             }
             await usersCollection.doc(user.uid).update(updates);
             onNotification(`${lang==='ar'?'تم استلام':'Claimed'} ${lang==='ar'?reward.name_ar:reward.name_en}! 🎉`);
@@ -2318,8 +2334,11 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
                             <div style={{fontSize:'16px', fontWeight:900, background:'linear-gradient(135deg,#ffd700,#ff8800)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>
                                 FUN PASS
                             </div>
-                            <div style={{fontSize:'9px', color:'#6b7280'}}>
-                                {lang==='ar'?'مستوى':'Level'} {currentLevel}/50 · {currentXP} XP
+                            <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700}}>
+                                {lang==='ar' ? FUN_PASS_SEASON_NAME_AR : FUN_PASS_SEASON_NAME_EN}
+                            </div>
+                            <div style={{fontSize:'8px', color:'#6b7280'}}>
+                                {lang==='ar'?'مستوى':'Lv'} {currentLevel}/50 · {currentXP} XP · {lang==='ar'?'ينتهي':'Ends'} {FUN_PASS_SEASON_END}
                             </div>
                         </div>
                     </div>
@@ -5240,7 +5259,7 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang }
     const previewMoments = moments.slice(0, PREVIEW_COUNT);
     const hasMore = moments.length > PREVIEW_COUNT;
 
-    return (
+    return (<>
         <div style={{
             margin:'8px 12px',
             background:'linear-gradient(135deg,rgba(0,0,0,0.35),rgba(0,0,0,0.2))',
@@ -5344,20 +5363,6 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang }
                 </div>
             )}
 
-            {selectedMoment && (
-                <MomentDetailModal
-                    moment={selectedMoment}
-                    onClose={() => setSelectedMoment(null)}
-                    currentUser={currentUser}
-                    isOwnProfile={isOwnProfile}
-                    lang={lang}
-                    onDelete={(id) => {
-                        momentsCollection.doc(id).delete();
-                        setSelectedMoment(null);
-                    }}
-                />
-            )}
-
             {showCreateModal && (
                 <CreateMomentModal
                     onClose={() => setShowCreateModal(false)}
@@ -5366,19 +5371,29 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang }
                 />
             )}
             </div>{/* end content padding */}
-            </div>{/* end container box */}
+        </div>{/* end container box */}
 
-            {showAllMoments && (
-                <AllMomentsModal
-                    show={showAllMoments}
-                    onClose={() => setShowAllMoments(false)}
-                    moments={moments}
-                    ownerName={ownerName || ''}
-                    lang={lang}
-                    onSelectMoment={setSelectedMoment}
-                />
-            )}
-    );
+        {showAllMoments && (
+            <AllMomentsModal
+                show={showAllMoments}
+                onClose={() => setShowAllMoments(false)}
+                moments={moments}
+                ownerName={ownerName || ''}
+                lang={lang}
+                onSelectMoment={setSelectedMoment}
+            />
+        )}
+        {selectedMoment && (
+            <MomentDetailModal
+                moment={selectedMoment}
+                onClose={() => setSelectedMoment(null)}
+                currentUser={currentUser}
+                isOwnProfile={isOwnProfile}
+                lang={lang}
+                onDelete={(id) => { momentsCollection.doc(id).delete(); setSelectedMoment(null); }}
+            />
+        )}
+    </>);
 };
 
 const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onDelete }) => {
