@@ -352,6 +352,20 @@ const checkLoginRewardsCycle = (userData) => {
 const getCurrentCycleMonth = () => LOGIN_REWARDS_CONFIG.currentCycleStart;
 
 // ==========================================
+// 📦 DAILY TASKS CONFIG - 8 Boxes (by online time)
+// ==========================================
+const DAILY_TASKS_CONFIG = [
+    { id: 1, label_en: '1 min',   label_ar: '١ دقيقة',   duration: 60000,   reward: { type:'currency', amount:50,  icon:'🧠'}, comingSoon: false },
+    { id: 2, label_en: '5 min',   label_ar: '٥ دقائق',   duration: 300000,  reward: { type:'currency', amount:100, icon:'🧠'}, comingSoon: false },
+    { id: 3, label_en: '10 min',  label_ar: '١٠ دقائق',  duration: 600000,  reward: { type:'currency', amount:150, icon:'🧠'}, comingSoon: false },
+    { id: 4, label_en: 'VIP',     label_ar: 'VIP',        duration: null,    reward: { type:'currency', amount:300, icon:'👑'}, comingSoon: true  },
+    { id: 5, label_en: '20 min',  label_ar: '٢٠ دقيقة',  duration: 1200000, reward: { type:'currency', amount:200, icon:'🧠'}, comingSoon: false },
+    { id: 6, label_en: '30 min',  label_ar: '٣٠ دقيقة',  duration: 1800000, reward: { type:'currency', amount:300, icon:'🧠'}, comingSoon: false },
+    { id: 7, label_en: '60 min',  label_ar: '٦٠ دقيقة',  duration: 3600000, reward: { type:'currency', amount:500, icon:'🧠'}, comingSoon: false },
+    { id: 8, label_en: 'VIP',     label_ar: 'VIP',        duration: null,    reward: { type:'currency', amount:800, icon:'👑'}, comingSoon: true  },
+];
+
+// ==========================================
 // CHARISMA LEVELS - 21 Levels
 // ==========================================
 const CHARISMA_LEVELS = [
@@ -1192,6 +1206,78 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     
     if(!show || !gift) return null; 
     
+    // ── Profile Effect special view ──
+    if (gift.type === 'profileEffects') {
+        const rKey = gift.rarity || 'Common';
+        const rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
+        const owned = currency >= gift.cost;
+        return (
+            <div className="modal-overlay" onClick={onClose}>
+                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{maxWidth:'340px'}}>
+                    <div className="modal-header">
+                        <h2 className="modal-title">{lang === 'ar' ? gift.name_ar : gift.name_en}</h2>
+                        <ModalCloseBtn onClose={onClose} />
+                    </div>
+                    <div className="modal-body text-center py-3">
+                        {/* Effect Preview Box */}
+                        <div style={{
+                            width:'100%', height:'140px', borderRadius:'12px', marginBottom:'12px',
+                            background: rarity.bg, border: `2px solid ${rarity.border}`,
+                            display:'flex', alignItems:'center', justifyContent:'center',
+                            position:'relative', overflow:'hidden',
+                            boxShadow: rarity.glow ? `0 0 20px ${rarity.color}55` : 'none'
+                        }}>
+                            {gift.imageUrl && gift.imageUrl.trim() !== '' ? (
+                                <img src={gift.imageUrl} alt={gift.name_en} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'10px'}} />
+                            ) : (
+                                <span style={{fontSize:'56px'}}>{gift.preview}</span>
+                            )}
+                            {gift.hasGlow && (
+                                <div style={{position:'absolute',inset:0,background:'radial-gradient(circle at center, rgba(0,242,255,0.25), transparent 70%)',pointerEvents:'none'}} />
+                            )}
+                            {/* Rarity badge */}
+                            <div style={{position:'absolute',top:'8px',right:'8px',background:rarity.color,color:'#000',fontSize:'9px',fontWeight:800,padding:'2px 7px',borderRadius:'8px'}}>
+                                {rarity.icon} {lang==='ar'?rarity.name_ar:rarity.name_en}
+                            </div>
+                        </div>
+                        <h3 style={{fontSize:'15px',fontWeight:800,color:'white',marginBottom:'6px'}}>{lang==='ar'?gift.name_ar:gift.name_en}</h3>
+                        {/* Details */}
+                        <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'10px',textAlign:'right',direction:'ltr'}}>
+                            <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#9ca3af',padding:'6px 10px',background:'rgba(255,255,255,0.04)',borderRadius:'8px'}}>
+                                <span>💰 {lang==='ar'?'السعر':'Price'}</span>
+                                <span style={{color:'#facc15',fontWeight:700}}>{gift.cost} 🧠</span>
+                            </div>
+                            {gift.particles && gift.particles.length > 0 && (
+                                <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#9ca3af',padding:'6px 10px',background:'rgba(255,255,255,0.04)',borderRadius:'8px'}}>
+                                    <span>✨ {lang==='ar'?'الجزيئات':'Particles'}</span>
+                                    <span style={{color:'white',fontWeight:700}}>{gift.particles.map(p=>`${p.emoji}×${p.count}`).join(' ')}</span>
+                                </div>
+                            )}
+                            {gift.hasGlow && (
+                                <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#9ca3af',padding:'6px 10px',background:'rgba(255,255,255,0.04)',borderRadius:'8px'}}>
+                                    <span>🌟 {lang==='ar'?'توهج خاص':'Special Glow'}</span>
+                                    <span style={{color:'#00f2ff',fontWeight:700}}>✓ {lang==='ar'?'نعم':'Yes'}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer py-2">
+                            <div className="flex gap-2">
+                                <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{lang==='ar'?'إغلاق':'Close'}</button>
+                                <button
+                                    onClick={() => onBuy && onBuy(gift, null)}
+                                    disabled={!owned}
+                                    style={{flex:1,padding:'8px',borderRadius:'8px',background: owned ? rarity.color : 'rgba(100,100,100,0.2)',color: owned ? '#000' : '#6b7280',border:'none',fontWeight:800,fontSize:'12px',cursor: owned ? 'pointer' : 'not-allowed'}}
+                                >
+                                    {owned ? `${lang==='ar'?'شراء':'Buy'} (${gift.cost}🧠)` : (lang==='ar'?'إنتل غير كافٍ':'Not enough Intel')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     const renderGiftIcon = () => {
         if (gift.type === 'frames') { return gift.preview.startsWith('http') ? <img src={gift.preview} alt={gift.name_en} className="w-14 h-14 rounded-full object-cover mx-auto" /> : <div className="w-14 h-14 rounded-full mx-auto" style={{ background: gift.preview }}></div>; }
         if (gift.type === 'badges') { return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="w-12 h-12 object-contain mx-auto" /> : <div className="text-4xl mb-2">{gift.preview}</div>; }
@@ -1739,99 +1825,148 @@ const OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
     );
 };
 
-// ========== ✅ #9: DAILY TASKS COMPONENT ==========
+// ========== ✅ #9: DAILY TASKS COMPONENT - ENHANCED ==========
 const DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) => {
-    const t = TRANSLATIONS[lang] || {};
+    const [tick, setTick] = React.useState(0);
+    
+    // Tick every 30 seconds to update progress
+    React.useEffect(() => {
+        const t = setInterval(() => setTick(p => p + 1), 30000);
+        return () => clearInterval(t);
+    }, []);
+    
     const userTasks = userData?.dailyTasks || {};
     const sessionStart = userTasks.sessionStartTime?.toDate?.() || new Date();
     const minutesOnline = Math.floor((Date.now() - sessionStart.getTime()) / 60000);
-    
+
     const getTaskStatus = (box) => {
-        if (box.comingSoon) return 'coming_soon';
-        if (!box.duration) return 'locked';
-        
         const claimed = userTasks.boxes?.[box.id - 1]?.status === 'claimed';
         if (claimed) return 'claimed';
-        
-        if (minutesOnline >= (box.duration / 60000)) return 'available';
+        if (box.comingSoon) return 'coming_soon';
+        if (!box.duration) return 'locked';
+        if (minutesOnline >= Math.ceil(box.duration / 60000)) return 'available';
         return 'locked';
     };
-    
+
     const handleClaimTask = async (box) => {
         const status = getTaskStatus(box);
-        if (status === 'claimed') return onNotification(lang === 'ar' ? '✅ استلمت بالفعل' : '✅ Already claimed');
-        if (status === 'locked') return onNotification(lang === 'ar' ? '⏳ لم تصل الفترة بعد' : '⏳ Not available yet');
-        if (status === 'coming_soon') return onNotification(lang === 'ar' ? '🔜 قريباً' : '🔜 Coming Soon');
-        
+        if (status === 'claimed') { onNotification(lang === 'ar' ? '✅ استلمت بالفعل' : '✅ Already claimed'); return; }
+        if (status === 'coming_soon') { onNotification(lang === 'ar' ? '🔜 قريباً جداً' : '🔜 Coming soon'); return; }
+        if (status === 'locked') {
+            const requiredMin = Math.ceil(box.duration / 60000);
+            const remaining = requiredMin - minutesOnline;
+            onNotification(lang === 'ar' ? `⏳ بعد ${remaining} دقيقة` : `⏳ In ${remaining} min`);
+            return;
+        }
         try {
             const updates = {};
             updates[`dailyTasks.boxes.${box.id - 1}.status`] = 'claimed';
             updates[`dailyTasks.boxes.${box.id - 1}.claimedAt`] = firebase.firestore.FieldValue.serverTimestamp();
-            
             if (box.reward.type === 'currency') {
                 updates['currency'] = firebase.firestore.FieldValue.increment(box.reward.amount);
             }
-            
             await usersCollection.doc(user.uid).update(updates);
-            onNotification(`✅ ${lang === 'ar' ? 'تم الاستلام!' : 'Claimed!'}`);
-        } catch (error) {
+            onNotification(`✅ +${box.reward.amount} 🧠`);
+        } catch (err) {
             onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
         }
     };
-    
+
     return (
-        <div style={{ padding: '16px', background: 'rgba(0,242,255,0.05)', borderRadius: '12px', marginBottom: '12px' }}>
-            <h3 style={{ color: '#00f2ff', marginBottom: '12px', fontSize: '14px', fontWeight: 800 }}>
-                {lang === 'ar' ? '📦 مهام يومية' : '📦 Daily Tasks'}
-                <span style={{ fontSize: '11px', opacity: 0.7, marginLeft: '8px' }}>
-                  ({minutesOnline} {lang === 'ar' ? 'دقيقة' : 'min'})
-                </span>
-            </h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
+        <div style={{
+            marginTop: '16px',
+            padding: '14px',
+            background: 'linear-gradient(135deg, rgba(0,242,255,0.05), rgba(112,0,255,0.04))',
+            borderRadius: '14px',
+            border: '1px solid rgba(0,242,255,0.15)'
+        }}>
+            {/* Header */}
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                    <span style={{fontSize:'16px'}}>📦</span>
+                    <div>
+                        <div style={{fontSize:'13px', fontWeight:800, color:'#00f2ff'}}>
+                            {lang === 'ar' ? 'المهام اليومية' : 'Daily Tasks'}
+                        </div>
+                        <div style={{fontSize:'10px', color:'#64748b'}}>
+                            {lang === 'ar' ? `أون لاين منذ ${minutesOnline} دقيقة` : `Online for ${minutesOnline} min`}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 8 Boxes - 4 per row */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'8px' }}>
                 {DAILY_TASKS_CONFIG.map(box => {
                     const status = getTaskStatus(box);
-                    const isClicked = userTasks.boxes?.[box.id - 1]?.status === 'claimed';
-                    
+                    const reqMin = box.duration ? Math.ceil(box.duration / 60000) : null;
+                    const progress = reqMin ? Math.min(100, Math.floor((minutesOnline / reqMin) * 100)) : 0;
+
+                    const isVip = box.comingSoon;
+                    const bgColor =
+                        status === 'claimed'     ? 'rgba(74,222,128,0.18)' :
+                        status === 'available'   ? 'rgba(0,242,255,0.18)' :
+                        isVip                    ? 'rgba(245,158,11,0.08)' :
+                                                   'rgba(255,255,255,0.04)';
+                    const borderColor =
+                        status === 'claimed'   ? 'rgba(74,222,128,0.6)' :
+                        status === 'available' ? 'rgba(0,242,255,0.6)' :
+                        isVip                  ? 'rgba(245,158,11,0.4)' :
+                                                 'rgba(255,255,255,0.08)';
+
                     return (
                         <button
                             key={box.id}
                             onClick={() => handleClaimTask(box)}
                             style={{
-                                padding: '12px 8px',
-                                borderRadius: '8px',
-                                border: '1px solid',
-                                background: 
-                                    status === 'claimed' ? 'rgba(74,222,128,0.15)' :
-                                    status === 'available' ? 'rgba(0,242,255,0.15)' :
-                                    status === 'coming_soon' ? 'rgba(156,163,175,0.1)' :
-                                    'rgba(100,100,100,0.1)',
-                                borderColor:
-                                    status === 'claimed' ? 'rgba(74,222,128,0.5)' :
-                                    status === 'available' ? 'rgba(0,242,255,0.5)' :
-                                    'rgba(156,163,175,0.3)',
-                                color:
-                                    status === 'claimed' ? '#4ade80' :
-                                    status === 'available' ? '#00f2ff' :
-                                    '#9ca3af',
-                                cursor: status === 'available' ? 'pointer' : 'not-allowed',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                transition: 'all 0.2s',
-                                opacity: status === 'locked' && !box.duration ? 0.5 : 1,
-                                textAlign: 'center'
+                                padding:'10px 4px', borderRadius:'10px',
+                                border:`1.5px solid ${borderColor}`,
+                                background: bgColor,
+                                cursor: status === 'available' ? 'pointer' : 'default',
+                                textAlign:'center', position:'relative', overflow:'hidden',
+                                transition:'all 0.2s',
+                                boxShadow: status === 'available' ? '0 0 10px rgba(0,242,255,0.2)' :
+                                           status === 'claimed'   ? '0 0 8px rgba(74,222,128,0.15)' : 'none'
                             }}
-                            disabled={status !== 'available'}
                         >
-                            <div>{box.reward.icon}</div>
-                            <div style={{ marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {box.comingSoon ? '🔜' : 
-                                 status === 'claimed' ? '✅' :
-                                 status === 'available' ? '📦' : '🔒'}
+                            {/* Reward icon */}
+                            <div style={{fontSize:'20px', lineHeight:1, marginBottom:'4px'}}>
+                                {isVip ? '👑' : box.reward.icon}
                             </div>
-                            <div style={{ fontSize: '10px', marginTop: '2px', opacity: 0.8 }}>
-                                {lang === 'ar' ? box.label_ar : box.label_en}
+                            {/* Amount or VIP label */}
+                            <div style={{
+                                fontSize:'9px', fontWeight:800,
+                                color: status === 'claimed' ? '#4ade80' :
+                                       status === 'available' ? '#00f2ff' :
+                                       isVip ? '#f59e0b' : '#6b7280',
+                                marginBottom:'2px'
+                            }}>
+                                {isVip ? (lang==='ar'?'قريباً':'Soon') : `+${box.reward.amount}`}
                             </div>
+                            {/* Time label */}
+                            <div style={{fontSize:'8px', color:'#4b5563', marginBottom:'4px'}}>
+                                {isVip ? 'VIP' : (reqMin ? (reqMin >= 60 ? `${reqMin/60}h` : `${reqMin}m`) : '')}
+                            </div>
+                            {/* Status icon */}
+                            <div style={{fontSize:'11px'}}>
+                                {status === 'claimed'     ? <span style={{color:'#4ade80', fontWeight:900}}>✓</span> :
+                                 status === 'available'   ? <span style={{fontSize:'13px'}}>📦</span> :
+                                 isVip                    ? <span style={{color:'#f59e0b'}}>🔜</span> :
+                                                            <span style={{color:'#6b7280'}}>🔒</span>}
+                            </div>
+                            {/* Progress bar for locked/in-progress */}
+                            {status === 'locked' && !isVip && progress > 0 && (
+                                <div style={{
+                                    position:'absolute', bottom:0, left:0, right:0, height:'3px',
+                                    background:'rgba(255,255,255,0.08)', borderRadius:'0 0 10px 10px'
+                                }}>
+                                    <div style={{
+                                        height:'100%', width:`${progress}%`,
+                                        background:'linear-gradient(90deg,#00f2ff,#7000ff)',
+                                        borderRadius:'inherit', transition:'width 0.5s ease'
+                                    }} />
+                                </div>
+                            )}
                         </button>
                     );
                 })}
@@ -2205,37 +2340,80 @@ function App() {
     }, []);
 
     useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && isLoggedIn) setShowTutorial(true); }, [isLoggedIn]);
-    // ========== ✅ #5: Update Last Active & Online Status ==========
+    // ========== ✅ #5: Update Last Active & Online Status - REAL-TIME ==========
     useEffect(() => { 
-        if (!user || isGuest) return; 
+        if (!user || isGuest) return;
+        
+        // Set online immediately on login
+        usersCollection.doc(user.uid).update({ 
+            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+            onlineStatus: 'online'
+        }).catch(() => {});
+        
+        // Heartbeat every 3 minutes
         const interval = setInterval(() => { 
             usersCollection.doc(user.uid).update({ 
                 lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-                onlineStatus: 'online'  // ✅ #5: Set online status
-            }); 
-        }, 60000); 
-        return () => clearInterval(interval); 
+                onlineStatus: 'online'
+            }).catch(() => {}); 
+        }, 180000); 
+
+        // Set offline immediately when page closes
+        const handleOffline = () => {
+            try {
+                navigator.sendBeacon && navigator.sendBeacon(
+                    `https://firestore.googleapis.com/v1/projects/who-is-the-spy-919b9/databases/(default)/documents/users/${user.uid}`,
+                    JSON.stringify({ fields: { onlineStatus: { stringValue: 'offline' } } })
+                );
+            } catch(e) {}
+            // Also try direct update (works when tab not fully closed)
+            usersCollection.doc(user.uid).update({ onlineStatus: 'offline' }).catch(() => {});
+        };
+
+        // Set "away" when page hidden (user switched tab)
+        const handleVisibility = () => {
+            if (document.visibilityState === 'hidden') {
+                usersCollection.doc(user.uid).update({ 
+                    onlineStatus: 'away',
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(() => {});
+            } else {
+                usersCollection.doc(user.uid).update({ 
+                    onlineStatus: 'online',
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(() => {});
+            }
+        };
+
+        window.addEventListener('beforeunload', handleOffline);
+        document.addEventListener('visibilitychange', handleVisibility);
+        
+        return () => { 
+            clearInterval(interval);
+            window.removeEventListener('beforeunload', handleOffline);
+            document.removeEventListener('visibilitychange', handleVisibility);
+            // Set offline on component unmount (logout)
+            usersCollection.doc(user.uid).update({ onlineStatus: 'offline' }).catch(() => {});
+        }; 
     }, [user, isGuest]);
 
-    // ========== ✅ #9: Update Daily Tasks Session ==========
+    // ========== ✅ #9: Initialize Daily Tasks Session on Login ==========
     useEffect(() => {
-        if (!isLoggedIn || !userData) return;
-        const interval = setInterval(() => {
-            if (userData.dailyTasks?.sessionStartTime) {
-                const sessionStart = userData.dailyTasks.sessionStartTime?.toDate?.() || new Date();
-                const minutesOnline = Math.floor((Date.now() - sessionStart.getTime()) / 60000);
-                
-                try {
-                    usersCollection.doc(user.uid).update({
-                        'dailyTasks.sessionTotalMinutesOnline': minutesOnline
-                    });
-                } catch (error) {
-                    console.error('Daily tasks update error:', error);
-                }
-            }
-        }, 60000);
-        return () => clearInterval(interval);
-    }, [isLoggedIn, userData?.dailyTasks?.sessionStartTime, user]);
+        if (!isLoggedIn || !user || !userData) return;
+        
+        // Initialize session start time if not set today
+        const sessionStart = userData.dailyTasks?.sessionStartTime?.toDate?.();
+        const today = new Date().toDateString();
+        const sessionDay = sessionStart ? sessionStart.toDateString() : null;
+        
+        if (sessionDay !== today) {
+            // New day - reset boxes and set session start
+            usersCollection.doc(user.uid).update({
+                'dailyTasks.sessionStartTime': firebase.firestore.FieldValue.serverTimestamp(),
+                'dailyTasks.boxes': Array(8).fill(null).map(() => ({ status: 'unclaimed' }))
+            }).catch(() => {});
+        }
+    }, [isLoggedIn, user?.uid, userData?.uid]);
 
     // ========== ✅ #8 & #1: Check Login Rewards & Reset Daily Missions ==========
     useEffect(() => {
@@ -2302,13 +2480,16 @@ function App() {
                         const data = d.data();
                         const lastActive = data.lastActive?.toDate?.() || new Date(0);
                         const timeSinceActive = Date.now() - lastActive.getTime();
+                        const dbStatus = data.onlineStatus;
                         
-                        // ✅ #5: Three status levels
-                        let onlineStatus = 'offline'; // Gray - Last active > 30 min
-                        if (timeSinceActive < 300000) { // 5 minutes
-                            onlineStatus = 'online'; // Green
-                        } else if (timeSinceActive < 1800000) { // 30 minutes
-                            onlineStatus = 'away'; // Yellow/Amber
+                        // ✅ Real-time status: use both DB onlineStatus field AND lastActive timestamp
+                        let onlineStatus = 'offline';
+                        if (dbStatus === 'online' && timeSinceActive < 600000) { // DB says online + seen < 10min
+                            onlineStatus = 'online';
+                        } else if (dbStatus === 'away' || (dbStatus === 'online' && timeSinceActive < 1800000)) {
+                            onlineStatus = 'away'; // DB says away OR online but not seen for 10-30min
+                        } else if (timeSinceActive < 300000) {
+                            onlineStatus = 'online'; // seen < 5min regardless of DB
                         }
                         
                         return { id: d.id, ...data, isOnline: onlineStatus === 'online', onlineStatus };
@@ -2981,6 +3162,16 @@ function App() {
                                 <div className="flex items-center gap-2"><input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase tracking-wider" value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder={t.codePlaceholder} maxLength={6} /><button onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()} className="btn-neon px-4 py-3 rounded-lg font-bold text-sm">{loading ? '...' : t.join}</button></div>
                                 {joinError && <p className="text-xs text-red-400 text-center">{joinError}</p>}
                             </div>
+                            {/* Daily Tasks - only for logged in users */}
+                            {isLoggedIn && userData && (
+                                <DailyTasksComponent
+                                    userData={userData}
+                                    user={user}
+                                    lang={lang}
+                                    onClaim={() => {}}
+                                    onNotification={setNotification}
+                                />
+                            )}
                         </div>
                     )}
                     
@@ -3058,14 +3249,30 @@ function App() {
                                 {friendsData.length === 0 ? (
                                     <div className="text-center py-6"><div className="text-4xl mb-2">👥</div><p className="text-gray-400">{t.noFriends}</p></div>
                                 ) : (() => {
-                                    const online = friendsData.filter(f => f.isOnline);
-                                    const offline = friendsData.filter(f => !f.isOnline);
+                                    const online = friendsData.filter(f => f.onlineStatus === 'online');
+                                    const away = friendsData.filter(f => f.onlineStatus === 'away');
+                                    const offline = friendsData.filter(f => !f.onlineStatus || f.onlineStatus === 'offline');
                                     const renderFriend = (friend) => (
                                         <div key={friend.id} className="friend-item">
-                                            <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                                            <div style={{position:'relative'}}>
+                                                <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                                                <div style={{
+                                                    position:'absolute', bottom:'-1px', right:'-1px',
+                                                    width:'10px', height:'10px', borderRadius:'50%',
+                                                    background: friend.onlineStatus==='online' ? '#4ade80' : friend.onlineStatus==='away' ? '#facc15' : '#6b7280',
+                                                    border:'2px solid #0a0a14'
+                                                }} />
+                                            </div>
                                             <div className="friend-info">
                                                 <div className="friend-name">{friend.displayName}</div>
-                                                <div className="friend-status">{friend.isOnline ? <span className="text-green-400">● {t.online}</span> : <span className="text-gray-500">● {t.offline}</span>}</div>
+                                                <div className="friend-status">
+                                                    {friend.onlineStatus === 'online'
+                                                        ? <span style={{color:'#4ade80'}}>● {t.online}</span>
+                                                        : friend.onlineStatus === 'away'
+                                                            ? <span style={{color:'#facc15'}}>● {lang==='ar'?'بعيد':'Away'}</span>
+                                                            : <span style={{color:'#6b7280'}}>● {t.offline}</span>
+                                                    }
+                                                </div>
                                             </div>
                                             <div className="friend-actions">
                                                 <button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-xs">💬</button>
@@ -3084,9 +3291,18 @@ function App() {
                                                     {online.map(renderFriend)}
                                                 </>
                                             )}
+                                            {away.length > 0 && (
+                                                <>
+                                                    <div style={{fontSize:'9px',fontWeight:700,color:'#facc15',textTransform:'uppercase',padding:'8px 0 6px',display:'flex',alignItems:'center',gap:'5px',borderTop:'1px solid rgba(255,255,255,0.06)',marginTop:'6px'}}>
+                                                        <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#facc15',display:'inline-block'}}/>
+                                                        {lang==='ar'?'بعيد':'Away'} ({away.length})
+                                                    </div>
+                                                    {away.map(renderFriend)}
+                                                </>
+                                            )}
                                             {offline.length > 0 && (
                                                 <>
-                                                    <div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',textTransform:'uppercase',padding:'8px 0 6px',display:'flex',alignItems:'center',gap:'5px',borderTop: online.length ? '1px solid rgba(255,255,255,0.06)' : 'none',marginTop: online.length ? '6px' : 0}}>
+                                                    <div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',textTransform:'uppercase',padding:'8px 0 6px',display:'flex',alignItems:'center',gap:'5px',borderTop:(online.length||away.length)?'1px solid rgba(255,255,255,0.06)':'none',marginTop:(online.length||away.length)?'6px':0}}>
                                                         <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#6b7280',display:'inline-block'}}/>
                                                         {t.offline} ({offline.length})
                                                     </div>
@@ -3407,18 +3623,22 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
         const missionProgress = userData?.missionProgress || {};
         const progressData = type === 'daily' ? missionProgress.daily : missionProgress.weekly;
         
-        // قائمة المهام مع شروطها
+        // قائمة المهام مع شروطها - daily: d1-d7, weekly: w1-w5
         const missionChecks = {
-            'm1': () => progressData?.gamesPlayed >= 1,
-            'm2': () => progressData?.gamesWon >= 1,
-            'm3': () => progressData?.spyGames >= 1,
-            'm4': () => progressData?.giftsSent >= 1,
-            'm5': () => progressData?.friendsAdded >= 1,
-            'm6': () => progressData?.momentsPosted >= 1,
-            'm7': () => progressData?.commentsPosted >= 1,
-            'm8': () => progressData?.gamesPlayed >= 10,
-            'm9': () => progressData?.gamesWon >= 5,
-            'm10': () => progressData?.giftsSent >= 5,
+            // Daily missions
+            'd1': () => (progressData?.gamesPlayed || 0) >= 1,
+            'd2': () => (progressData?.gamesWon || 0) >= 1,
+            'd3': () => (progressData?.spyGames || 0) >= 1,
+            'd4': () => (progressData?.giftsSent || 0) >= 1,
+            'd5': () => (progressData?.friendsAdded || 0) >= 1,
+            'd6': () => (progressData?.momentsPosted || 0) >= 1,
+            'd7': () => (progressData?.commentsPosted || 0) >= 1,
+            // Weekly missions
+            'w1': () => (progressData?.gamesPlayed || 0) >= 10,
+            'w2': () => (progressData?.gamesWon || 0) >= 5,
+            'w3': () => (progressData?.giftsSent || 0) >= 5,
+            'w4': () => (progressData?.momentsPosted || 0) >= 3,
+            'w5': () => (progressData?.friendsAdded || 0) >= 3,
         };
         
         // التحقق من إكمال المهمة
@@ -5086,7 +5306,7 @@ const UserBadgesV11 = ({ equipped, lang }) => {
 };
 
 // 👤 AVATAR WITH FRAME V11 - FIXED CIRCULAR (Frame AROUND Avatar)
-const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
+const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId }) => {
     const sizeMap = {
         sm: { wrapper: 64, avatar: 36, frameSize: 56 },
         md: { wrapper: 80, avatar: 48, frameSize: 72 },
@@ -5097,6 +5317,11 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
     const s = sizeMap[size] || sizeMap.lg;
     const frame = equipped?.frames;
     const frameStyle = frame ? SHOP_ITEMS.frames.find(f => f.id === frame) : null;
+
+    // Resolve profile effect (from prop or equipped)
+    const resolvedEffectId = effectId || equipped?.profileEffects;
+    const effect = resolvedEffectId ? (SHOP_ITEMS.profileEffects || []).find(e => e.id === resolvedEffectId) : null;
+    const hasImageEffect = effect && effect.imageUrl && effect.imageUrl.trim() !== '';
 
     return (
         <div className="profile-avatar-container" style={{ 
@@ -5134,22 +5359,47 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
             )}
             
             {/* Avatar image - CENTERED inside frame */}
-            <img 
-                src={photoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`}
-                alt=""
-                className="profile-avatar"
-                style={{ 
-                    width: s.avatar, 
-                    height: s.avatar,
-                    borderRadius: '50%',
-                    position: 'relative',
-                    zIndex: 10,
-                    border: '3px solid #0f172a',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                    objectFit: 'cover',
-                    background: '#0f172a'
-                }}
-            />
+            <div style={{ position:'relative', width: s.avatar, height: s.avatar, zIndex: 10, borderRadius:'50%', overflow: hasImageEffect ? 'hidden' : 'visible' }}>
+                <img 
+                    src={photoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`}
+                    alt=""
+                    className="profile-avatar"
+                    style={{ 
+                        width: '100%', 
+                        height: '100%',
+                        borderRadius: '50%',
+                        display: 'block',
+                        border: '3px solid #0f172a',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                        objectFit: 'cover',
+                        background: '#0f172a'
+                    }}
+                />
+                {/* Image/GIF effect directly ON the avatar */}
+                {hasImageEffect && (
+                    <>
+                        <img
+                            src={effect.imageUrl}
+                            alt=""
+                            style={{
+                                position:'absolute', inset:0,
+                                width:'100%', height:'100%',
+                                objectFit:'cover', objectPosition:'center',
+                                borderRadius:'50%',
+                                opacity: 0.85,
+                                pointerEvents:'none'
+                            }}
+                        />
+                        {effect.hasGlow && (
+                            <div style={{
+                                position:'absolute', inset:0, borderRadius:'50%',
+                                background:'radial-gradient(circle at center, rgba(0,242,255,0.3) 0%, transparent 70%)',
+                                pointerEvents:'none'
+                            }} />
+                        )}
+                    </>
+                )}
+            </div>
             
             {isOnline !== undefined && (
                 <div className={`profile-status-dot ${isOnline ? '' : 'offline'}`}></div>
@@ -5166,8 +5416,9 @@ const ProfileEffectOverlay = ({ effectId }) => {
     const [alive, setAlive] = useState(false);
     const timerRef = useRef(null);
 
+    const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
+
     useEffect(() => {
-        const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
         if (!effect) return;
         const all = [];
         (effect.particles || []).forEach(p => {
@@ -5187,6 +5438,38 @@ const ProfileEffectOverlay = ({ effectId }) => {
         return () => { if (timerRef.current) clearTimeout(timerRef.current); };
     }, [effectId]);
 
+    if (!effect) return null;
+
+    // Support for image/GIF effects (imageUrl field in effect)
+    if (effect.imageUrl && effect.imageUrl.trim() !== '') {
+        return (
+            <div style={{
+                position:'absolute', inset:0, borderRadius:'inherit',
+                overflow:'hidden', pointerEvents:'none', zIndex:2
+            }}>
+                <img
+                    src={effect.imageUrl}
+                    alt={effect.name_en}
+                    style={{
+                        position:'absolute', inset:0,
+                        width:'100%', height:'100%',
+                        objectFit:'cover', objectPosition:'center',
+                        borderRadius:'inherit',
+                        opacity: 0.85
+                    }}
+                />
+                {effect.hasGlow && (
+                    <div style={{
+                        position:'absolute', inset:0,
+                        background:'radial-gradient(circle at center, rgba(0,242,255,0.25) 0%, transparent 70%)',
+                        pointerEvents:'none'
+                    }} />
+                )}
+            </div>
+        );
+    }
+
+    // Default: particle effect
     if (!alive || particles.length === 0) return null;
     return (
         <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:99998,overflow:'hidden'}}>
@@ -6331,8 +6614,8 @@ const ProfileV11 = ({
                     {/* Spacer on left to push buttons to right */}
                     <div style={{ flex: 1 }}></div>
                     
-                    {/* Three dots menu (only for other users) */}
-                    {!isOwnProfile && !isTargetGuest && (
+                    {/* Three dots menu (only for other users, NOT for guest viewers) */}
+                    {!isOwnProfile && !isTargetGuest && !isGuestViewer && (
                         <div className="profile-options-container" ref={optionsRef}>
                             <button 
                                 className="profile-options-btn"
@@ -6430,6 +6713,7 @@ const ProfileV11 = ({
                             equipped={targetData?.equipped}
                             size="lg"
                             isOnline={targetData?.isOnline}
+                            effectId={targetData?.equipped?.profileEffects}
                         />
                     </div>
                 </div>
@@ -6553,7 +6837,7 @@ const ProfileV11 = ({
                             </div>
                         )}
 
-                        {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && (
+                        {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && !isGuestViewer && (
                             <div className="profile-actions">
                                 {isAlreadyFriend ? (
                                     /* Already friends → show Chat button */
