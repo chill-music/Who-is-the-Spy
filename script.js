@@ -1,25 +1,16 @@
-// ==========================================
-// PRO SPY - SCRIPT V10 - COMPLETE FILE
-// All-in-one: Config + Components + App
-// Changes: Gift System (Bonus only, NO Cashback), Gift Log, Improved Chat, Friend Selection Fix
-// ==========================================
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 🎯 Z-INDEX CONSTANTS - Layer Management
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const Z = {
     MODAL:      10000,  // Standard modals
     MODAL_HIGH: 12000,  // FunPass, BrowseRooms
-    MODAL_TOP:  15000,  // SelfChat, Notifications  
+    MODAL_TOP:  15000,  // SelfChat, Notifications
     FORCED:     25000,  // Forced logout warning
     OVERLAY:    99999,  // Full overlays
     TOOLTIP:    999999, // Tooltips & dropdowns
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 🎨 GRADIENT CONSTANTS - Reusable styles
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const GR = {
     DARK_CARD:  'linear-gradient(135deg, rgba(15,15,35,0.95), rgba(25,25,50,0.95))',
     NEON:       'linear-gradient(135deg, rgba(0,242,255,0.15), rgba(112,0,255,0.15))',
@@ -55,9 +46,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const appId = 'pro_spy_v25_final_fix_complete';
 
-// ==========================================
 // COLLECTIONS
-// ==========================================
 const usersCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users');
 const guestsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guests');
 const reportsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('reports');
@@ -75,9 +64,7 @@ const MAX_ROUNDS = 3;
 const MAX_BADGES = 10;
 const MAX_GIFT_LOG_DISPLAY = 10;
 
-// ==========================================
 // 🔊 AUDIO SYSTEM
-// ==========================================
 let audioContext = null;
 let isAudioInitialized = false;
 
@@ -98,17 +85,17 @@ const playSound = (type) => {
         // Check if sound is muted
         if (typeof window !== 'undefined' && window.proSpySoundMuted) return;
         if (localStorage.getItem('pro_spy_sound_muted') === 'true') return;
-        
+
         if (!audioContext) audioContext = initAudioContext();
         if (!audioContext) return;
         if (audioContext.state === 'suspended') audioContext.resume();
-        
+
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         const now = audioContext.currentTime;
-        
+
         switch(type) {
             case 'click':
                 oscillator.frequency.setValueAtTime(800, now);
@@ -197,26 +184,19 @@ const playNotificationSound = () => playSound('notification');
 const playRewardSound = () => playSound('reward');
 const playGiftSound = () => playSound('gift');
 
-// ==========================================
 // LOGIN REWARDS - 30 DAYS
-// ==========================================
 
-// ============================================================
 // 🎫 FUN PASS SYSTEM - 50 levels, daily/weekly missions
-// ============================================================
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 🔧 FUN PASS SEASON CONFIG - بتتجدد كل 3 شهور
 //    عشان تجدد السيزون:
 //    1. غير FUN_PASS_SEASON_ID لرقم جديد (مثلاً: '2', '3', '4')
 //    2. كل المستخدمين هيتصفر تقدمهم تلقائياً في السيزون الجديد
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const FUN_PASS_SEASON_ID = '1';           // 🔧 غيّر هنا لتجديد السيزون
 const FUN_PASS_SEASON_NAME_EN = 'Season 1'; // اسم السيزون بالإنجليزي
 const FUN_PASS_SEASON_NAME_AR = 'الموسم الأول'; // اسم السيزون بالعربي
 const FUN_PASS_SEASON_START = '2025-01-01'; // تاريخ بداية السيزون
 const FUN_PASS_SEASON_END   = '2025-03-31'; // تاريخ نهاية السيزون
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const FUN_PASS_PRICE = 2000; // Cost in Intel to buy Fun Pass
 
@@ -351,9 +331,7 @@ const checkLoginRewardsCycle = (userData) => {
 
 const getCurrentCycleMonth = () => LOGIN_REWARDS_CONFIG.currentCycleStart;
 
-// ==========================================
 // 📦 DAILY TASKS CONFIG - 8 Boxes (by online time)
-// ==========================================
 const DAILY_TASKS_CONFIG = [
     { id: 1, label_en: '1 min',   label_ar: '١ دقيقة',   duration: 60000,   reward: { type:'currency', amount:50,  icon:'🧠'}, comingSoon: false },
     { id: 2, label_en: '5 min',   label_ar: '٥ دقائق',   duration: 300000,  reward: { type:'currency', amount:100, icon:'🧠'}, comingSoon: false },
@@ -365,9 +343,7 @@ const DAILY_TASKS_CONFIG = [
     { id: 8, label_en: 'VIP',     label_ar: 'VIP',        duration: null,    reward: { type:'currency', amount:800, icon:'👑'}, comingSoon: true  },
 ];
 
-// ==========================================
 // CHARISMA LEVELS - 21 Levels
-// ==========================================
 const CHARISMA_LEVELS = [
     { level: 1, threshold: 0, icon: '', iconType: 'image', iconUrl: 'https://i.ibb.co/3mhcggzc/star3.png', name_en: 'Rising Star', name_ar: 'نجم صاعد', color: '#ffd700', badge_class: 'level-1-3' },
     { level: 2, threshold: 4000, icon: '', iconType: 'image', iconUrl: 'https://i.ibb.co/k2Dk82C7/star2.png', name_en: 'Shining Star', name_ar: 'نجم ساطع', color: '#ffd700', badge_class: 'level-1-3' },
@@ -412,9 +388,7 @@ const getCharismaProgress = (charisma) => {
     return Math.min(100, Math.max(0, progress));
 };
 
-// ==========================================
 // SHOP ITEMS - GIFTS WITH BONUS (NO CASHBACK)
-// ==========================================
 const SHOP_ITEMS = {
     frames: [
         { id: 'frame_gold', name_en: "Gold Frame", name_ar: "إطار ذهبي", cost: 500, type: 'frames', preview: 'linear-gradient(45deg, #f7ff00, #db9700)' },
@@ -501,9 +475,7 @@ const SHOP_ITEMS = {
     ]
 };
 
-// ==========================================
 // 🎨 GIFT RARITY SYSTEM
-// ==========================================
 const RARITY_CONFIG = {
     Common:    { name_en: 'Common',    name_ar: 'عادي',     color: '#9ca3af', bg: 'rgba(156,163,175,0.07)', border: 'rgba(156,163,175,0.25)', glow: false, icon: '⚪', order: 0 },
     Uncommon:  { name_en: 'Uncommon',  name_ar: 'غير شائع', color: '#4ade80', bg: 'rgba(74,222,128,0.08)',  border: 'rgba(74,222,128,0.35)',  glow: false, icon: '🟢', order: 1 },
@@ -512,7 +484,6 @@ const RARITY_CONFIG = {
     Legendary: { name_en: 'Legendary', name_ar: 'أسطوري',   color: '#f59e0b', bg: 'rgba(245,158,11,0.10)',  border: 'rgba(245,158,11,0.50)',  glow: true,  icon: '⭐', order: 4 },
     Mythic:    { name_en: 'Mythic',    name_ar: 'خرافي',    color: '#ff0055', bg: 'rgba(255,0,85,0.12)',    border: 'rgba(255,0,85,0.60)',    glow: true,  icon: '🔮', order: 5, special: true },
 };
-
 
 const getItemRarity = (item) => {
     if (!item) return 'Common';
@@ -531,9 +502,7 @@ const getGiftRarity = (cost) => {
     return 'Common';
 };
 
-// ==========================================
 // 🏆 ACHIEVEMENTS SYSTEM
-// ==========================================
 const ACHIEVEMENTS = [
     // Gift Achievements
     { id: 'ach_first_gift', nameKey: 'achFirstGift', descKey: 'achFirstGiftDesc', icon: '🎁', imageUrl: '', condition: { type: 'gifts_received', value: 1 } },
@@ -541,7 +510,7 @@ const ACHIEVEMENTS = [
     { id: 'ach_gift_master', nameKey: 'achGiftMaster', descKey: 'achGiftMasterDesc', icon: '💎', imageUrl: '', condition: { type: 'gifts_received', value: 50 } },
     { id: 'ach_gift_legend', nameKey: 'achGiftLegend', descKey: 'achGiftLegendDesc', icon: '👑', imageUrl: '', condition: { type: 'gifts_received', value: 100 } },
     { id: 'ach_gift_king', nameKey: 'achGiftKing', descKey: 'achGiftKingDesc', icon: '🏆', imageUrl: '', condition: { type: 'gifts_received', value: 500 } },
-    
+
     // Game Achievements
     { id: 'ach_first_win', nameKey: 'achFirstWin', descKey: 'achFirstWinDesc', icon: '🏆', imageUrl: '', condition: { type: 'wins', value: 1 } },
     { id: 'ach_veteran', nameKey: 'achVeteran', descKey: 'achVeteranDesc', icon: '🎖️', imageUrl: '', condition: { type: 'games_played', value: 10 } },
@@ -550,25 +519,25 @@ const ACHIEVEMENTS = [
     { id: 'ach_legend_player', nameKey: 'achLegendPlayer', descKey: 'achLegendPlayerDesc', icon: '🏅', imageUrl: '', condition: { type: 'games_played', value: 100 } },
     { id: 'ach_win_streak_5', nameKey: 'achWinStreak5', descKey: 'achWinStreak5Desc', icon: '🔥', imageUrl: '', condition: { type: 'win_streak', value: 5 } },
     { id: 'ach_win_streak_10', nameKey: 'achWinStreak10', descKey: 'achWinStreak10Desc', icon: '💥', imageUrl: '', condition: { type: 'win_streak', value: 10 } },
-    
+
     // Login Achievements
     { id: 'ach_week_streak', nameKey: 'achWeekStreak', descKey: 'achWeekStreakDesc', icon: '🔥', imageUrl: '', condition: { type: 'login_streak', value: 7 } },
     { id: 'ach_month_streak', nameKey: 'achMonthStreak', descKey: 'achMonthStreakDesc', icon: '📅', imageUrl: '', condition: { type: 'total_logins', value: 30 } },
     { id: 'ach_dedicated', nameKey: 'achDedicated', descKey: 'achDedicatedDesc', icon: '💎', imageUrl: '', condition: { type: 'total_logins', value: 100 } },
-    
+
     // Role Achievements
     { id: 'ach_first_spy', nameKey: 'achFirstSpy', descKey: 'achFirstSpyDesc', icon: '🕵️', imageUrl: '', condition: { type: 'spy_wins', value: 1 } },
     { id: 'ach_spy_master', nameKey: 'achSpyMaster', descKey: 'achSpyMasterDesc', icon: '🥷', imageUrl: '', condition: { type: 'spy_wins', value: 10 } },
     { id: 'ach_spy_legend', nameKey: 'achSpyLegend', descKey: 'achSpyLegendDesc', icon: '👤', imageUrl: '', condition: { type: 'spy_wins', value: 25 } },
     { id: 'ach_agent_pro', nameKey: 'achAgentPro', descKey: 'achAgentProDesc', icon: '🤵', imageUrl: '', condition: { type: 'agent_wins', value: 10 } },
     { id: 'ach_agent_legend', nameKey: 'achAgentLegend', descKey: 'achAgentLegendDesc', icon: '🛡️', imageUrl: '', condition: { type: 'agent_wins', value: 25 } },
-    
+
     // Social Achievements
     { id: 'ach_social', nameKey: 'achSocial', descKey: 'achSocialDesc', icon: '🦋', imageUrl: '', condition: { type: 'friends', value: 10 } },
     { id: 'ach_popular', nameKey: 'achPopular', descKey: 'achPopularDesc', icon: '⭐', imageUrl: '', condition: { type: 'friends', value: 25 } },
     { id: 'ach_generous', nameKey: 'achGenerous', descKey: 'achGenerousDesc', icon: '💌', imageUrl: '', condition: { type: 'gifts_sent', value: 10 } },
     { id: 'ach_santa', nameKey: 'achSanta', descKey: 'achSantaDesc', icon: '🎅', imageUrl: '', condition: { type: 'gifts_sent', value: 50 } },
-    
+
     // Charisma Achievements
     { id: 'ach_charisma_10k', nameKey: 'achCharisma10k', descKey: 'achCharisma10kDesc', icon: '✨', imageUrl: '', condition: { type: 'charisma', value: 10000 } },
     { id: 'ach_charisma_100k', nameKey: 'achCharisma100k', descKey: 'achCharisma100kDesc', icon: '🌟', imageUrl: '', condition: { type: 'charisma', value: 100000 } },
@@ -576,20 +545,18 @@ const ACHIEVEMENTS = [
 ];
 
 // --- Scenarios ---
-const SCENARIOS = [ 
-    { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] }, 
-    { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Sonar"] }, 
-    { loc_ar: "قصر ملكي", words_ar: ["تاج", "حراس", "عروش", "خدم"], loc_en: "Royal Palace", words_en: ["Crown", "Guards", "Throne", "Servants"] }, 
-    { loc_ar: "بنك مركزي", words_ar: ["خزنة", "مال", "رصاص", "مفتاح"], loc_en: "Central Bank", words_en: ["Vault", "Money", "Lead", "Key"] }, 
-    { loc_ar: "مستشفى مهجور", words_ar: ["أشباح", "أطباء", "ظلام", "حقن"], loc_en: "Abandoned Hospital", words_en: ["Ghosts", "Doctors", "Dark", "Syringe"] }, 
-    { loc_ar: "قطار ليلي", words_ar: ["درجات", "تذاكر", "نوم", "ممر"], loc_en: "Night Train", words_en: ["Bunks", "Tickets", "Sleep", "Aisle"] }, 
-    { loc_ar: "جزيرة كنز", words_ar: ["خريطة", "حفر", "ذهب", "قراصنة"], loc_en: "Treasure Island", words_en: ["Map", "Dig", "Gold", "Pirates"] }, 
-    { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] } 
+const SCENARIOS = [
+    { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
+    { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Sonar"] },
+    { loc_ar: "قصر ملكي", words_ar: ["تاج", "حراس", "عروش", "خدم"], loc_en: "Royal Palace", words_en: ["Crown", "Guards", "Throne", "Servants"] },
+    { loc_ar: "بنك مركزي", words_ar: ["خزنة", "مال", "رصاص", "مفتاح"], loc_en: "Central Bank", words_en: ["Vault", "Money", "Lead", "Key"] },
+    { loc_ar: "مستشفى مهجور", words_ar: ["أشباح", "أطباء", "ظلام", "حقن"], loc_en: "Abandoned Hospital", words_en: ["Ghosts", "Doctors", "Dark", "Syringe"] },
+    { loc_ar: "قطار ليلي", words_ar: ["درجات", "تذاكر", "نوم", "ممر"], loc_en: "Night Train", words_en: ["Bunks", "Tickets", "Sleep", "Aisle"] },
+    { loc_ar: "جزيرة كنز", words_ar: ["خريطة", "حفر", "ذهب", "قراصنة"], loc_en: "Treasure Island", words_en: ["Map", "Dig", "Gold", "Pirates"] },
+    { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] }
 ];
 
-// ==========================================
 // EMOJI CATEGORIES FOR PROFESSIONAL PICKER
-// ==========================================
 const EMOJI_CATEGORIES = {
     smiles: ['😀', '😂', '😍', '🤔', '😎', '🤫', '😡', '🤢', '😴', '🤯', '😤', '🥺', '😱', '🤬', '💀', '👻', '👾', '🤖', '💩', '😈'],
     gestures: ['👁️', '🧠', '🦷', '🦴', '👀', '👊', '✌️', '🤞', '🤟', '👌', '🤙', '👈', '👉', '☝️', '👆', '👇', '✋', '🤚', '🖐️', '🖖', '👋', '🤝', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🙏'],
@@ -607,8 +574,8 @@ const maskEmail = (email) => { if (!email) return 'N/A'; const [localPart, domai
 const generateRandomBonus = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 // --- Translations ---
-const TRANSLATIONS = { 
-    en: { 
+const TRANSLATIONS = {
+    en: {
         appName: "PRO SPY", tagline: "COVERT ARENA", nickname: "OPERATOR NAME", create: "CREATE GAME", join: "JOIN OPS", browse: "BROWSE ROOMS", players: "OPERATIVES", start: "LAUNCH MISSION", langBtn: "العربية", loading: "PROCESSING...", you: "YOU", statusSpy: "SPY", statusAgent: "AGENT", statusInformant: "INFORMANT", statusMrWhite: "MR. WHITE", statusGhost: "GHOST", round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT", chatPlaceholder: "Type message...", send: "SEND", waiting: "Awaiting host...", location: "LOCATION", spectator: "SPECTATOR", confirm: "CONFIRM VOTE", spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!", mrWhiteWin: "MR. WHITE WINS!", playAgain: "PLAY AGAIN", connecting: "Connecting...", startVoting: "START VOTING", votingStarted: "VOTING INITIATED", voteRequestTitle: "VOTING REQUEST", voteRequestDesc: "wants to start voting.", agree: "AGREE", decline: "DECLINE", endVoting: "END VOTING NOW", votesTitle: "VOTES:", roundsFormat: (c, m) => `ROUND ${c}/${m}`, wordSelectionTitle: "SELECT KEYWORD", wordSelectionDesc: "Choose a keyword for this round", finishSelection: "FINISH SELECTION", selectedWord: "Selected Keyword", loginGoogle: "Login with Google", myAccount: "Profile", logout: "Logout", profile: "Profile", guest: "Guest", linkGuessCard: "GUESS MY CARD", level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID", enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Minimum players not met!", ok: "OK", tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends", addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID", online: "Online", offline: "Offline", noFriends: "No friends yet.", friendAdded: "Friend Added!", friendNotFound: "User not found.", requestSent: "Request Sent!", incomingRequests: "Incoming Requests", noRequests: "No pending requests.", accept: "Accept", reject: "Reject", sendMessage: "Send", inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?", inviteFriends: "Invite Friends", accountInfo: "Account Information", email: "Email", memberSince: "Member Since", nameChangeCountdown: "Name Change In", canChangeNow: "Can change now!", selectEmoji: "Emoji", guestTitle: "GUEST ACCOUNT", guestDesc: "Register to save progress and add friends.", kd: "K/D Ratio", stats: "Stats", noPermission: "Feature unavailable for guests.", normalMode: "NORMAL MODE", advancedMode: "ADVANCED MODE (6+)", modeNormalDesc: "Classic Spy vs Agents. 3-10 Players.", modeAdvDesc: "Special Roles included! 6-10 Players.", privateRoom: "Private Room", password: "Password", publicRoom: "Public Room", noRooms: "No active games found.", lobbyTitle: "GAME LOBBY", mrWhiteInstruction: "Guess the location to win!", informantInstruction: "You know a neighbor!", ghostInstruction: "You are now a Ghost. You can watch but cannot act.", guessLocation: "GUESS LOCATION", leaveRoom: "LEAVE", closeRoom: "CLOSE ROOM", showPassword: "Show Password", guestAccountLabel: "GUEST ACCOUNT", guestProfileMsg: "Guests cannot receive friend requests.", reportUser: "Report User", reportSent: "Report sent successfully!", reportTitle: "Report User", reportDesc: "Please select a reason for reporting this user.", reportReasonAbusive: "Abusive Behavior", reportReasonCheating: "Cheating", reportReasonSpam: "Spam", reportReasonOther: "Other", reportSubmit: "Submit Report", reportCancel: "Cancel", privateRoomError: "Private rooms require a password.",
         shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", unequip: "UnEquip", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", badges: "Badges", profileEffects: "Profile FX", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", alreadyOwned: "Already Owned",
         tutorialTitle: "Welcome, Agent", tutorialStep1: "Your goal is to find the Spy (or blend in if you are the Spy).", tutorialStep2: "Each round, discuss and vote to eject a suspect.", tutorialStep3: "Win matches to earn Intel and buy items in the Shop!", skipTutorial: "Skip", next: "Next", startGame: "Start Game",
@@ -665,8 +632,8 @@ const TRANSLATIONS = {
         achCharisma10k: "Rising Star", achCharisma10kDesc: "Reach 10,000 charisma",
         achCharisma100k: "Charisma Master", achCharisma100kDesc: "Reach 100,000 charisma",
         achCharisma1m: "Charisma Legend", achCharisma1mDesc: "Reach 1,000,000 charisma",
-    }, 
-    ar: { 
+    },
+    ar: {
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "بروفايل", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
         shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مُزين", unequip: "إزالة", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", badges: "شارات", profileEffects: "تأثيرات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
         tutorialTitle: "مرحباً أيها العميل", tutorialStep1: "هدفك هو العثور على الجاسوس (أو التخفي إن كنت الجاسوس).", tutorialStep2: "في كل جولة، ناقش وصوّت لطرد المشتبه به.", tutorialStep3: "اربح المباريات لتحصل على إنتل واشتري من المتجر!", skipTutorial: "تخطي", next: "التالي", startGame: "ابدأ اللعبة",
@@ -719,12 +686,10 @@ const TRANSLATIONS = {
         achCharisma10k: "نجم صاعد", achCharisma10kDesc: "اصل إلى 10,000 كاريزما",
         achCharisma100k: "سيد الكاريزما", achCharisma100kDesc: "اصل إلى 100,000 كاريزما",
         achCharisma1m: "أسطورة الكاريزما", achCharisma1mDesc: "اصل إلى 1,000,000 كاريزما",
-    } 
+    }
 };
 
-// ==========================================
 // UI COMPONENTS
-// ==========================================
 
 // Error Boundary
 class ErrorBoundary extends React.Component {
@@ -749,9 +714,9 @@ class ErrorBoundary extends React.Component {
 }
 
 // Guest Banner
-const GuestBanner = ({ lang }) => { 
-    const t = TRANSLATIONS[lang]; 
-    return ( <div className="guest-banner"> <h3 className="guest-banner-title">{t.guestTitle}</h3> <p className="guest-banner-desc">{t.guestDesc}</p> </div> ); 
+const GuestBanner = ({ lang }) => {
+    const t = TRANSLATIONS[lang];
+    return ( <div className="guest-banner"> <h3 className="guest-banner-title">{t.guestTitle}</h3> <p className="guest-banner-desc">{t.guestDesc}</p> </div> );
 };
 
 // Notification Toast
@@ -780,14 +745,14 @@ const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
     const neededForNext = nextLevel ? nextLevel.threshold - (charisma || 0) : 0;
     const isMaxLevel = currentLevel.isMaxLevel;
     const hasGlow = currentLevel.hasGlow;
-    
+
     const renderIcon = () => {
         if (currentLevel.iconType === 'image' && currentLevel.iconUrl) {
             return <img src={currentLevel.iconUrl} alt="level" className={`w-5 h-5 ${hasGlow ? 'animate-pulse' : ''}`} style={hasGlow ? {filter: 'drop-shadow(0 0 8px #ff6600)'} : {}} />;
         }
         return <span className="charisma-icon">{currentLevel.icon}</span>;
     };
-    
+
     return (
         <div className={`charisma-container ${hasGlow ? 'has-glow' : ''}`}>
             <div className="charisma-header">
@@ -804,25 +769,25 @@ const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
 };
 
 // K/D Circle
-const KDCircle = ({ wins, losses, lang }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const total = wins + losses; 
-    const ratio = total > 0 ? wins / total : 0; 
-    const percentage = Math.round(ratio * 100); 
-    const size = 100; const strokeWidth = 6; 
-    const radius = (size - strokeWidth) / 2; 
-    const circumference = 2 * Math.PI * radius; 
-    const offset = circumference - (ratio * circumference); 
-    return ( 
-        <div className="kd-circle-container" style={{ width: size, height: size }}> 
-            <svg width={size} height={size}> 
-                <defs><linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="var(--secondary)" /><stop offset="100%" stopColor="var(--primary)" /></linearGradient></defs> 
-                <circle className="kd-circle-bg" cx={size/2} cy={size/2} r={radius} /> 
-                <circle className="kd-circle-progress" cx={size/2} cy={size/2} r={radius} strokeDasharray={circumference} strokeDashoffset={offset} /> 
-            </svg> 
+const KDCircle = ({ wins, losses, lang }) => {
+    const t = TRANSLATIONS[lang];
+    const total = wins + losses;
+    const ratio = total > 0 ? wins / total : 0;
+    const percentage = Math.round(ratio * 100);
+    const size = 100; const strokeWidth = 6;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (ratio * circumference);
+    return (
+        <div className="kd-circle-container" style={{ width: size, height: size }}>
+            <svg width={size} height={size}>
+                <defs><linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="var(--secondary)" /><stop offset="100%" stopColor="var(--primary)" /></linearGradient></defs>
+                <circle className="kd-circle-bg" cx={size/2} cy={size/2} r={radius} />
+                <circle className="kd-circle-progress" cx={size/2} cy={size/2} r={radius} strokeDasharray={circumference} strokeDashoffset={offset} />
+            </svg>
             <div className="kd-text"><span className="kd-rate">{percentage}%</span><span className="kd-label">{t.winRate}</span></div>
-        </div> 
-    ); 
+        </div>
+    );
 };
 
 // Avatar With Frame
@@ -830,7 +795,7 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
     const sizeConfig = { sm: { wrapper: 52, avatar: 30, mask: 32 }, md: { wrapper: 72, avatar: 40, mask: 42 }, lg: { wrapper: 110, avatar: 60, mask: 62 }, xl: { wrapper: 140, avatar: 80, mask: 82 } };
     const config = sizeConfig[size] || sizeConfig.md;
     const frameItem = SHOP_ITEMS.frames.find(f => f.id === equipped?.frames);
-    
+
     const renderFrame = () => {
         if (!frameItem) return null;
         if (frameItem.preview.startsWith('http')) {
@@ -838,7 +803,7 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
         }
         return (<div style={{ position: 'absolute', top: 0, left: 0, width: config.wrapper + 'px', height: config.wrapper + 'px', borderRadius: '50%', background: frameItem.preview, zIndex: 1 }}><div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: config.mask + 'px', height: config.mask + 'px', borderRadius: '50%', background: 'var(--bg-dark)' }} /></div>);
     };
-    
+
     return (
         <div style={{ position: 'relative', width: config.wrapper + 'px', height: config.wrapper + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: onClick ? 'pointer' : 'default', flexShrink: 0 }} onClick={onClick}>
             {renderFrame()}
@@ -890,7 +855,7 @@ const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClea
     if (!show) return null;
     const unreadCount = notifications.filter(n => !n.read).length;
     const getNotificationIcon = (type) => { switch(type) { case 'friend_request': return '👥'; case 'gift': return '🎁'; case 'message': return '💬'; case 'friend_request_accepted': return '✅'; case 'achievement': return '🏆'; default: return '🔔'; } };
-    
+
     return (
         <div className="notification-dropdown animate-pop">
             <div className="notification-dropdown-header">
@@ -913,9 +878,7 @@ const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClea
     );
 };
 
-// ==========================================
 // 🎁 GIFT LOG COMPONENT - REDESIGNED WITH 3 TABS
-// ==========================================
 const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }) => {
     const t = TRANSLATIONS[lang];
     const [gifts, setGifts] = useState([]);
@@ -925,12 +888,12 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
     const [lastSenders, setLastSenders] = useState({});
     const [totalGifts, setTotalGifts] = useState(0);
     const [rotatingGiftIndex, setRotatingGiftIndex] = useState(0);
-    
+
     // Fetch gifts without orderBy to avoid index requirement
     useEffect(() => {
         if (!show || !targetUID) return;
         setLoading(true);
-        
+
         const unsub = giftsLogCollection
             .where('receiverId', '==', targetUID)
             .limit(50)
@@ -944,7 +907,7 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                 });
                 setGifts(giftsData);
                 setTotalGifts(giftsData.length);
-                
+
                 // Calculate gift counts and last senders
                 const counts = {};
                 const senders = {};
@@ -965,10 +928,10 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
             }, error => {
                 setLoading(false);
             });
-        
+
         return unsub;
     }, [show, targetUID]);
-    
+
     // Auto-rotate gifts in the mini display
     useEffect(() => {
         if (gifts.length === 0) return;
@@ -977,12 +940,12 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
         }, 2000);
         return () => clearInterval(interval);
     }, [gifts.length]);
-    
+
     if (!show) return null;
-    
+
     // Get last 3 gifts for mini display
     const lastThreeGifts = gifts.slice(0, 3);
-    
+
     // Get unique gifts for Gift Wall
     const uniqueGifts = SHOP_ITEMS.gifts.map(gift => ({
         ...gift,
@@ -990,7 +953,7 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
         lastSender: lastSenders[gift.id] || null,
         received: giftCounts[gift.id] > 0
     }));
-    
+
     return (
         <div className="gift-log-container-v2">
             {/* Mini Gift Display - Shows rotating gifts */}
@@ -998,8 +961,8 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                 <div className="gift-mini-images">
                     {lastThreeGifts.length > 0 ? (
                         lastThreeGifts.map((gift, idx) => (
-                            <div 
-                                key={gift.id} 
+                            <div
+                                key={gift.id}
                                 className={`gift-mini-item ${idx === rotatingGiftIndex && lastThreeGifts.length > 1 ? 'active' : ''}`}
                             >
                                 {gift.giftImageUrl ? (
@@ -1018,29 +981,29 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                     <span className="gift-mini-label">{t.receivedGiftsCount}</span>
                 </div>
             </div>
-            
+
             {/* Tab Buttons */}
             <div className="gift-log-tabs">
-                <button 
+                <button
                     className={`gift-log-tab ${activeTab === 'wall' ? 'active' : ''}`}
                     onClick={() => setActiveTab('wall')}
                 >
                     🎁 {t.giftWall}
                 </button>
-                <button 
+                <button
                     className={`gift-log-tab ${activeTab === 'badge' ? 'active' : ''}`}
                     onClick={() => setActiveTab('badge')}
                 >
                     🏅 {t.giftBadge}
                 </button>
-                <button 
+                <button
                     className={`gift-log-tab ${activeTab === 'received' ? 'active' : ''}`}
                     onClick={() => setActiveTab('received')}
                 >
                     📬 {t.giftLog}
                 </button>
             </div>
-            
+
             {/* Tab Content */}
             <div className="gift-log-content">
                 {loading ? (
@@ -1049,8 +1012,8 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                     /* GIFT WALL - All gifts with received indicator */
                     <div className="gift-wall-grid">
                         {uniqueGifts.map(gift => (
-                            <div 
-                                key={gift.id} 
+                            <div
+                                key={gift.id}
                                 className={`gift-wall-item ${gift.received ? 'received' : 'not-received'}`}
                                 onClick={() => gift.lastSender && onOpenProfile && onOpenProfile(gift.lastSender.uid)}
                             >
@@ -1063,7 +1026,7 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                                     <>
                                         <span className="gift-wall-count">×{gift.count}</span>
                                         {gift.lastSender && (
-                                            <img 
+                                            <img
                                                 src={gift.lastSender.photo || `https://ui-avatars.com/api/?name=${gift.lastSender.name}&background=random`}
                                                 alt={gift.lastSender.name}
                                                 className="gift-wall-sender"
@@ -1089,14 +1052,14 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                             <div className="gift-log-empty">{t.giftLogEmpty}</div>
                         ) : (
                             gifts.slice(0, 10).map(gift => (
-                                <div 
-                                    key={gift.id} 
+                                <div
+                                    key={gift.id}
                                     className="gift-log-item"
                                     onClick={() => onOpenProfile && onOpenProfile(gift.senderId)}
                                 >
-                                    <img 
-                                        src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${gift.senderName}&background=random`} 
-                                        alt={gift.senderName} 
+                                    <img
+                                        src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${gift.senderName}&background=random`}
+                                        alt={gift.senderName}
                                         className="gift-log-item-avatar"
                                     />
                                     <div className="gift-log-item-content">
@@ -1125,16 +1088,14 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
     );
 };
 
-// ==========================================
 // 🏆 ACHIEVEMENTS DISPLAY COMPONENT
-// ==========================================
 
 const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
     const t = TRANSLATIONS[lang];
     const [activeCategory, setActiveCategory] = useState('smiles');
-    
+
     if (!show) return null;
-    
+
     const categories = [
         { id: 'smiles',   icon: '😀', label_ar: 'وجوه',   label_en: 'Faces' },
         { id: 'gestures', icon: '👋', label_ar: 'إيماءات', label_en: 'Gestures' },
@@ -1144,7 +1105,7 @@ const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
     ];
 
     const wrapperStyle = inline ? {} : undefined;
-    
+
     return (
         <div className={inline ? '' : 'emoji-picker-modal animate-slide-up'} style={wrapperStyle}>
             {!inline && (
@@ -1155,7 +1116,7 @@ const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
             )}
             <div className="emoji-categories" style={{marginBottom:'6px'}}>
                 {categories.map(cat => (
-                    <button 
+                    <button
                         key={cat.id}
                         className={`emoji-category-btn ${activeCategory === cat.id ? 'active' : ''}`}
                         onClick={() => setActiveCategory(cat.id)}
@@ -1167,9 +1128,9 @@ const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
             </div>
             <div className="emoji-picker-grid">
                 {(EMOJI_CATEGORIES[activeCategory] || []).map((emoji, i) => (
-                    <button 
-                        key={i} 
-                        className="emoji-picker-item" 
+                    <button
+                        key={i}
+                        className="emoji-picker-item"
                         onClick={() => { onSelect(emoji); }}
                     >
                         {emoji}
@@ -1178,7 +1139,7 @@ const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
             </div>
             <div className="emoji-categories">
                 {categories.map(cat => (
-                    <button 
+                    <button
                         key={cat.id}
                         className={`emoji-category-btn ${activeCategory === cat.id ? 'active' : ''}`}
                         onClick={() => setActiveCategory(cat.id)}
@@ -1192,18 +1153,16 @@ const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
     );
 };
 
-// ==========================================
 // 🎁 GIFT PREVIEW MODAL - IMPROVED
 // Shows details for both sender and receiver
-// ==========================================
-const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData, user, directTarget = null }) => { 
-    const t = TRANSLATIONS[lang]; 
+const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData, user, directTarget = null }) => {
+    const t = TRANSLATIONS[lang];
     const [showFriendSelect, setShowFriendSelect] = useState(false);
     const [selectedFriend, setSelectedFriend] = useState(null);
     const [sendMode, setSendMode] = useState(directTarget ? 'direct' : 'self');
     const [previewBonus, setPreviewBonus] = useState(0);
     const isGiftItem = gift?.type === 'gifts';
-    
+
     useEffect(() => {
         if (show && gift) {
             setSelectedFriend(directTarget || null);
@@ -1215,9 +1174,9 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
             }
         }
     }, [show, gift, directTarget]);
-    
-    if(!show || !gift) return null; 
-    
+
+    if(!show || !gift) return null;
+
     // ── Profile Effect special view ──
     if (gift.type === 'profileEffects') {
         const rKey = gift.rarity || 'Common';
@@ -1296,7 +1255,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
         if (gift.type === 'titles') { return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="h-8 object-contain mx-auto" /> : <div className="text-3xl mb-2">{gift.preview}</div>; }
         return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="w-12 h-12 object-contain mx-auto" /> : <div className="text-4xl mb-2">{gift.emoji}</div>;
     };
-    
+
     const handleSendFromInventory = () => {
         if (!onSendFromInventory) return;
         if (directTarget) {
@@ -1310,7 +1269,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
             onClose();
         }
     };
-    
+
     const handleBuy = () => {
         if (!onBuy) return;
         if (directTarget) {
@@ -1321,16 +1280,16 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
             onBuy(gift, selectedFriend);
         }
     };
-    
-    return ( 
-        <div className="modal-overlay" onClick={onClose}> 
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>
                 <div className="modal-header"><h2 className="modal-title">{isGiftItem ? t.giftPreview : (lang === 'ar' ? gift.name_ar : gift.name_en)}</h2><ModalCloseBtn onClose={onClose} /></div>
                 <div className="modal-body text-center py-3">
                     {renderGiftIcon()}
-                    <h3 className="text-base font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3> 
+                    <h3 className="text-base font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3>
                     {isGiftItem && (gift.desc_ar || gift.desc_en) && <p className="text-[10px] text-gray-400 mb-2">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p>}
-                    
+
                     {isGiftItem && (
                         <div className="gift-preview-details">
                             <div className="gift-preview-stat">
@@ -1345,7 +1304,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             </div>
                         </div>
                     )}
-                    
+
                     {/* Show target info if direct target */}
                     {directTarget && (
                         <div className="flex items-center gap-2 mb-2 p-2 bg-yellow-500/10 rounded-lg">
@@ -1356,33 +1315,33 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             </div>
                         </div>
                     )}
-                    
+
                     {/* Only show self/others toggle if no direct target */}
                     {isGiftItem && !directTarget && (
                         <div className="flex gap-1 mb-2">
-                            <button 
-                                onClick={() => setSendMode('self')} 
+                            <button
+                                onClick={() => setSendMode('self')}
                                 className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'self' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
                             >
                                 🎁 {t.sendToSelf}
                             </button>
-                            <button 
-                                onClick={() => { setSendMode('others'); setShowFriendSelect(true); }} 
+                            <button
+                                onClick={() => { setSendMode('others'); setShowFriendSelect(true); }}
                                 className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'others' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
                             >
                                 👥 {t.sendToOthers}
                             </button>
                         </div>
                     )}
-                    
+
                     {sendMode === 'others' && showFriendSelect && !directTarget && (
                         <div className="friend-select-list">
                             <div className="text-[10px] text-gray-400 p-2 border-b border-white/5">{t.selectFriend}</div>
                             {friendsData && friendsData.length > 0 ? (
                                 friendsData.map(friend => (
-                                    <div 
-                                        key={friend.id} 
-                                        onClick={() => setSelectedFriend(friend)} 
+                                    <div
+                                        key={friend.id}
+                                        onClick={() => setSelectedFriend(friend)}
                                         className={`friend-select-item ${selectedFriend?.id === friend.id ? 'selected' : ''}`}
                                     >
                                         <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
@@ -1405,8 +1364,8 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                     {isFromInventory ? (
                         <div className="flex gap-2">
                             <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.close}</button>
-                            <button 
-                                onClick={handleSendFromInventory} 
+                            <button
+                                onClick={handleSendFromInventory}
                                 disabled={!directTarget && sendMode === 'others' && !selectedFriend}
                                 className={`flex-1 py-1.5 rounded text-xs font-bold ${!directTarget && sendMode === 'others' && !selectedFriend ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'btn-gold'}`}
                             >
@@ -1415,51 +1374,49 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         </div>
                     ) : (
                         <div className="flex gap-2">
-                            <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.reportCancel}</button> 
-                            <button 
-                                onClick={handleBuy} 
-                                disabled={currency < gift.cost || (!directTarget && sendMode === 'others' && !selectedFriend && isGiftItem)} 
+                            <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.reportCancel}</button>
+                            <button
+                                onClick={handleBuy}
+                                disabled={currency < gift.cost || (!directTarget && sendMode === 'others' && !selectedFriend && isGiftItem)}
                                 className={`flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
                             >
                                 {isGiftItem && !directTarget && sendMode === 'self'
                                     ? `🎒 ${lang === 'ar' ? 'أضف للمخزون' : 'Add to Inventory'} (${gift.cost}🧠)`
                                     : `${isSending || directTarget ? t.sendGift : t.buy} (${gift.cost}🧠)`
                                 }
-                            </button> 
+                            </button>
                         </div>
                     )}
                 </div>
             </div>
-        </div> 
-    ); 
+        </div>
+    );
 };
 
-// ==========================================
 // 🎁 SEND GIFT MODAL - IMPROVED WITH DIRECT TARGET
-// ==========================================
-const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency, friendsData }) => { 
-    const t = TRANSLATIONS[lang]; 
-    const [selectedGift, setSelectedGift] = useState(null); 
+const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency, friendsData }) => {
+    const t = TRANSLATIONS[lang];
+    const [selectedGift, setSelectedGift] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
-    
-    if(!show) return null; 
-    
+
+    if(!show) return null;
+
     // Determine if we have a direct target (from profile)
     const hasDirectTarget = targetUser && targetUser.uid !== 'self';
-    
-    return ( 
-        <> 
-            <div className="modal-overlay" onClick={onClose}> 
+
+    return (
+        <>
+            <div className="modal-overlay" onClick={onClose}>
                 <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header"><h2 className="modal-title">{t.sendGift}</h2><ModalCloseBtn onClose={onClose} /></div> 
+                    <div className="modal-header"><h2 className="modal-title">{t.sendGift}</h2><ModalCloseBtn onClose={onClose} /></div>
                     <div className="modal-body py-3">
                         {hasDirectTarget && (
-                            <div className="flex items-center gap-2 mb-2 p-1.5 bg-white/5 rounded"> 
+                            <div className="flex items-center gap-2 mb-2 p-1.5 bg-white/5 rounded">
                                 <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
-                                <div><div className="font-bold text-xs">{targetUser.displayName}</div><div className="text-[9px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div></div> 
-                            </div> 
+                                <div><div className="font-bold text-xs">{targetUser.displayName}</div><div className="text-[9px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div></div>
+                            </div>
                         )}
-                        <div className="flex items-center gap-2 mb-2 text-[10px] text-yellow-400"><span>🧠 {currency} {CURRENCY_NAME}</span></div> 
+                        <div className="flex items-center gap-2 mb-2 text-[10px] text-yellow-400"><span>🧠 {currency} {CURRENCY_NAME}</span></div>
                         <div className="grid grid-cols-5 gap-1 max-h-[180px] overflow-y-auto">
                             {SHOP_ITEMS.gifts.map(gift => {
                                 const rKey = getGiftRarity(gift.cost);
@@ -1476,45 +1433,43 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                                 );
                             })}
                         </div>
-                    </div> 
-                </div> 
-            </div> 
-            <GiftPreviewModal 
-                show={showPreview} 
-                onClose={() => setShowPreview(false)} 
-                gift={selectedGift} 
-                lang={lang} 
-                onBuy={(gift, target) => { onSendGift(gift, target); onClose(); }} 
-                currency={currency} 
-                isSending={true} 
+                    </div>
+                </div>
+            </div>
+            <GiftPreviewModal
+                show={showPreview}
+                onClose={() => setShowPreview(false)}
+                gift={selectedGift}
+                lang={lang}
+                onBuy={(gift, target) => { onSendGift(gift, target); onClose(); }}
+                currency={currency}
+                isSending={true}
                 directTarget={hasDirectTarget ? targetUser : null}
                 friendsData={friendsData}
                 user={{ uid: currentUser?.uid }}
                 currentUserData={currentUser}
-            /> 
-        </> 
-    ); 
+            />
+        </>
+    );
 };
 
-// ==========================================
 // 🛒 SHOP MODAL
-// ==========================================
 const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedItem, setSelectedItem] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
-    
+
     if (!show) return null;
-    
+
     const currency = userData?.currency || 0;
     const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
     const equipped = userData?.equipped || {};
-    
+
     const isOwned = (item) => inventory[item.type]?.includes(item.id);
     const isEquipped = (item) => { if (item.type === 'badges') { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.includes(item.id) : equipped.badges === item.id; } return equipped[item.type] === item.id; };
     const getEquippedBadgeCount = () => { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.length : (equipped.badges ? 1 : 0); };
-    
+
     const renderPreview = (item) => {
         if (item.type === 'frames') return item.preview.startsWith('http') ? <img src={item.preview} alt={item.name_en} className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full" style={{ background: item.preview }}></div>;
         if (item.type === 'badges') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.preview}</span>;
@@ -1523,9 +1478,9 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
         if (item.type === 'profileEffects') return <span style={{fontSize:'26px',lineHeight:1}}>{item.preview}</span>;
         return <span className="text-xl">🎨</span>;
     };
-    
+
     const tabs = ['frames', 'titles', 'badges', 'profileEffects', 'gifts'];
-    
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', maxHeight: '85vh' }}>
@@ -1576,18 +1531,18 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                     </div>
                 </div>
                 {showPreview && selectedItem && (
-                    <GiftPreviewModal 
-                        show={showPreview} 
-                        onClose={() => setShowPreview(false)} 
-                        gift={selectedItem} 
-                        lang={lang} 
-                        onBuy={(item, target) => { 
-                            if (currency >= item.cost) { 
-                                onPurchase(item, target); 
-                                setShowPreview(false); 
+                    <GiftPreviewModal
+                        show={showPreview}
+                        onClose={() => setShowPreview(false)}
+                        gift={selectedItem}
+                        lang={lang}
+                        onBuy={(item, target) => {
+                            if (currency >= item.cost) {
+                                onPurchase(item, target);
+                                setShowPreview(false);
                             }
-                        }} 
-                        currency={currency} 
+                        }}
+                        currency={currency}
                         friendsData={[]}
                         user={{ uid: userData?.uid }}
                         currentUserData={userData}
@@ -1598,23 +1553,21 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     );
 };
 
-// ==========================================
 // 📦 INVENTORY MODAL
-// ==========================================
 const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData, user }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedGift, setSelectedGift] = useState(null);
     const [showGiftPreview, setShowGiftPreview] = useState(false);
-    
+
     if (!show) return null;
-    
+
     const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
     const equipped = userData?.equipped || {};
     const getOwnedItems = (type) => { const ownedIds = inventory[type] || []; return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || []; };
     const isEquipped = (item) => { if (item.type === 'badges') { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.includes(item.id) : equipped.badges === item.id; } return equipped[item.type] === item.id; };
     const getEquippedBadgeCount = () => { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.length : (equipped.badges ? 1 : 0); };
-    
+
     const renderPreview = (item) => {
         if (item.type === 'frames') return item.preview.startsWith('http') ? <img src={item.preview} alt={item.name_en} className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full" style={{ background: item.preview }}></div>;
         if (item.type === 'badges') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.preview}</span>;
@@ -1623,10 +1576,10 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
         if (item.type === 'profileEffects') return <span style={{fontSize:'26px',lineHeight:1}}>{item.preview}</span>;
         return <span className="text-xl">🎨</span>;
     };
-    
+
     const tabs = ['frames', 'titles', 'badges', 'profileEffects', 'gifts'];
     const ownedItems = getOwnedItems(activeTab);
-    
+
     return (
         <>
             <div className="modal-overlay" onClick={onClose}>
@@ -1647,11 +1600,11 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                             <div key={item.id} className="inventory-item">
                                                 <div className="inventory-item-preview">{renderPreview(item)}</div>
                                                 <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
-                                                <button 
-                                                    onClick={() => { 
-                                                        setSelectedGift(item); 
-                                                        setShowGiftPreview(true); 
-                                                    }} 
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedGift(item);
+                                                        setShowGiftPreview(true);
+                                                    }}
                                                     className="btn-gold w-full text-[10px] py-0.5 rounded mt-1"
                                                 >
                                                     {t.sendGiftToFriend}
@@ -1662,11 +1615,11 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                             <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`}>
                                                 <div className="inventory-item-preview">{renderPreview(item)}</div>
                                                 <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
-                                                {equippedItem ? 
-                                                    <button onClick={() => onUnequip(item.type, item.id)} className="btn-unequip w-full">{t.unequip}</button> : 
-                                                    <button 
-                                                        onClick={() => onEquip(item)} 
-                                                        disabled={activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES} 
+                                                {equippedItem ?
+                                                    <button onClick={() => onUnequip(item.type, item.id)} className="btn-unequip w-full">{t.unequip}</button> :
+                                                    <button
+                                                        onClick={() => onEquip(item)}
+                                                        disabled={activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES}
                                                         className={`btn-success w-full text-[10px] py-0.5 rounded ${(activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                     >
                                                         {t.equip}
@@ -1682,16 +1635,16 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                 </div>
             </div>
             {showGiftPreview && selectedGift && (
-                <GiftPreviewModal 
-                    show={showGiftPreview} 
-                    onClose={() => setShowGiftPreview(false)} 
-                    gift={selectedGift} 
-                    lang={lang} 
-                    onBuy={() => {}} 
-                    currency={userData?.currency || 0} 
-                    isFromInventory={true} 
-                    onSendFromInventory={onSendGift} 
-                    friendsData={friendsData} 
+                <GiftPreviewModal
+                    show={showGiftPreview}
+                    onClose={() => setShowGiftPreview(false)}
+                    gift={selectedGift}
+                    lang={lang}
+                    onBuy={() => {}}
+                    currency={userData?.currency || 0}
+                    isFromInventory={true}
+                    onSendFromInventory={onSendGift}
+                    friendsData={friendsData}
                     currentUserData={currentUserData}
                     user={user}
                 />
@@ -1700,9 +1653,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     );
 };
 
-// ==========================================
 // 👤 USER PROFILE MODAL - WITH GIFT LOG
-// ==========================================
 // Blocked User Item Component
 const BlockedUserItem = ({ uid, onUnblock, lang }) => {
     const [userData, setUserData] = useState(null);
@@ -1726,10 +1677,7 @@ const BlockedUserItem = ({ uid, onUnblock, lang }) => {
     );
 };
 
-
-// ==========================================
 // 🎉 ONBOARDING MODAL - New User Setup
-// ==========================================
 const OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
     const [displayName, setDisplayName] = useState(googleUser?.displayName || '');
     const [gender, setGender] = useState('');
@@ -1842,16 +1790,15 @@ const OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
     );
 };
 
-// ========== ✅ #9: DAILY TASKS COMPONENT - ENHANCED ==========
 const DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) => {
     const [tick, setTick] = React.useState(0);
-    
+
     // Tick every 30 seconds to update progress
     React.useEffect(() => {
         const t = setInterval(() => setTick(p => p + 1), 30000);
         return () => clearInterval(t);
     }, []);
-    
+
     const userTasks = userData?.dailyTasks || {};
     const sessionStart = userTasks.sessionStartTime?.toDate?.() || new Date();
     const minutesOnline = Math.floor((Date.now() - sessionStart.getTime()) / 60000);
@@ -1992,23 +1939,22 @@ const DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) 
     );
 };
 
-// ========== ✅ #8: LOGIN REWARDS COMPONENT ==========
 const LoginRewardsComponent = ({ userData, user, lang, onNotification }) => {
     const t = TRANSLATIONS[lang] || {};
     const rewards = userData?.loginRewards || {};
-    
+
     const handleClaimDay = async (day) => {
         if ((rewards.claimedDays || []).includes(day)) {
             return onNotification(lang === 'ar' ? '✅ استلمت بالفعل' : '✅ Already claimed');
         }
-        
+
         const lastClaim = rewards.lastClaimDate?.toDate?.() || new Date(0);
         const hoursSinceLastClaim = (Date.now() - lastClaim.getTime()) / (1000 * 60 * 60);
-        
+
         if (hoursSinceLastClaim < 23) {
             return onNotification(lang === 'ar' ? '⏳ عد إلى الغد' : '⏳ Come back tomorrow');
         }
-        
+
         try {
             const rewardData = LOGIN_REWARDS_CONFIG.dailyRewards.find(r => r.day === day);
             const updates = {
@@ -2017,20 +1963,20 @@ const LoginRewardsComponent = ({ userData, user, lang, onNotification }) => {
                 'loginRewards.claimedDays': firebase.firestore.FieldValue.arrayUnion(day),
                 'currency': firebase.firestore.FieldValue.increment(rewardData?.reward || 100)
             };
-            
+
             await usersCollection.doc(user.uid).update(updates);
             onNotification(`✅ +${rewardData?.reward} ${lang === 'ar' ? 'تم الاستلام!' : 'Claimed!'}`);
         } catch (error) {
             onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
         }
     };
-    
+
     return (
         <div style={{ padding: '12px', background: 'rgba(255,215,0,0.08)', borderRadius: '8px', marginBottom: '12px' }}>
             <h3 style={{ color: '#ffd700', marginBottom: '8px', fontSize: '12px', fontWeight: 800 }}>
                 {lang === 'ar' ? '🎁 مكافآت الدخول' : '🎁 Login Rewards'}
             </h3>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(40px, 1fr))', gap: '6px' }}>
                 {LOGIN_REWARDS_CONFIG.dailyRewards.slice(0, 7).map(reward => (
                     <button
@@ -2061,9 +2007,7 @@ const LoginRewardsComponent = ({ userData, user, lang, onNotification }) => {
 
 // AchievementsDisplayComponent removed - use AchievementsDisplayV11 instead
 
-// ==========================================
 // 🎮 MAIN APP COMPONENT
-// ==========================================
 function App() {
     const [lang, setLang] = useState(() => localStorage.getItem('pro_spy_lang') || 'en');
 
@@ -2113,7 +2057,7 @@ function App() {
     const [chatFriend, setChatFriend] = useState(null);
     const [showLoginAlert, setShowLoginAlert] = useState(false);
     const [forcedLogoutMsg, setForcedLogoutMsg] = useState(false);
-    
+
     // Single-session token: unique per browser tab/session
     const SESSION_TOKEN = React.useRef(
         (() => { let t = sessionStorage.getItem('pro_spy_st'); if(!t){ t=Math.random().toString(36).slice(2)+Date.now(); sessionStorage.setItem('pro_spy_st',t); } return t; })()
@@ -2132,7 +2076,7 @@ function App() {
     const notificationBellRef = useRef(null);
     const [showSettings, setShowSettings] = useState(false);
     const [soundMuted, setSoundMuted] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
-    
+
     // Click outside handler for notification dropdown
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -2150,7 +2094,7 @@ function App() {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [showNotifications]);
-    
+
     const t = TRANSLATIONS[lang];
     const isLoggedIn = useMemo(() => user && !user.isAnonymous, [user]);
     const isGuest = useMemo(() => guestData !== null, [guestData]);
@@ -2158,8 +2102,6 @@ function App() {
     const currentUID = useMemo(() => { if (user && !user.isAnonymous) return user.uid; if (guestData) return guestData.uid; return null; }, [user, guestData]);
     const currentUserData = useMemo(() => { if (isLoggedIn) return userData; if (isGuest) return guestData; return null; }, [isLoggedIn, userData, isGuest, guestData]);
 
-    // ========== ✅ #1: HELPER - Increment Mission Progress ==========
-    // ========== ✅ ACHIEVEMENTS SYSTEM - CLEAN REBUILD ==========
     // Saves achievement IDs as simple strings in userData.achievements[]
     const unlockAchievement = useCallback(async (badgeId) => {
         if (!isLoggedIn || !user) return;
@@ -2228,7 +2170,6 @@ function App() {
         }
     }, [isLoggedIn, user, userData, unlockAchievement]);
 
-    // ========== ✅ MISSION PROGRESS TRACKING ==========
     const incrementMissionProgress = useCallback(async (key, amount = 1) => {
         if (!isLoggedIn || !user) return;
         try {
@@ -2279,7 +2220,6 @@ function App() {
         }
     }, [isLoggedIn, user, userData]);
 
-    // ========== ✅ #5: HELPER - Update Last Active ==========
     const updateLastActive = async () => {
         if (!isLoggedIn || !user) return;
         try {
@@ -2291,7 +2231,6 @@ function App() {
         }
     };
 
-    // ========== ✅ #6: HELPER - Purchase Fun Pass ==========
     const purchaseFunPass = async () => {
         if (!isLoggedIn || !user || !userData) return;
         const FUN_PASS_PRICE = 2000;
@@ -2313,7 +2252,6 @@ function App() {
         }
     };
 
-    // ========== ✅ #8: HELPER - Claim Login Reward ==========
     const claimLoginReward = async (day) => {
         if (!isLoggedIn || !user) return;
         try {
@@ -2330,18 +2268,17 @@ function App() {
         }
     };
 
-    // ========== ✅ #9: HELPER - Claim Daily Task ==========
     const claimDailyTask = async (boxId, reward) => {
         if (!isLoggedIn || !user) return;
         try {
             const updates = {};
             updates[`dailyTasks.boxes.${boxId - 1}.status`] = 'claimed';
             updates[`dailyTasks.boxes.${boxId - 1}.claimedAt`] = firebase.firestore.FieldValue.serverTimestamp();
-            
+
             if (reward.type === 'currency') {
                 updates['currency'] = firebase.firestore.FieldValue.increment(reward.amount);
             }
-            
+
             await usersCollection.doc(user.uid).update(updates);
             setNotification(`✅ +${reward.amount} ${lang === 'ar' ? 'تم الاستلام!' : 'Claimed!'}`);
         } catch (error) {
@@ -2370,9 +2307,9 @@ function App() {
     useEffect(() => {
         setAuthLoading(true);
         const unsubAuth = auth.onAuthStateChanged(async (u) => {
-            if (u && !u.isAnonymous) { 
+            if (u && !u.isAnonymous) {
                 setUser(u); setGuestData(null);
-                const userRef = usersCollection.doc(u.uid); 
+                const userRef = usersCollection.doc(u.uid);
                 const doc = await userRef.get();
                 if (!doc.exists) {
                     // New user - show onboarding modal
@@ -2406,28 +2343,27 @@ function App() {
                 }
             } else { setUser(null); setUserData(null); }
             setAuthLoading(false);
-        }); 
+        });
         return unsubAuth;
     }, []);
 
     useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && isLoggedIn) setShowTutorial(true); }, [isLoggedIn]);
-    // ========== ✅ #5: Update Last Active & Online Status - REAL-TIME ==========
-    useEffect(() => { 
+    useEffect(() => {
         if (!user || isGuest) return;
-        
+
         // Set online immediately on login
-        usersCollection.doc(user.uid).update({ 
+        usersCollection.doc(user.uid).update({
             lastActive: firebase.firestore.FieldValue.serverTimestamp(),
             onlineStatus: 'online'
         }).catch(() => {});
-        
+
         // Heartbeat every 3 minutes
-        const interval = setInterval(() => { 
-            usersCollection.doc(user.uid).update({ 
+        const interval = setInterval(() => {
+            usersCollection.doc(user.uid).update({
                 lastActive: firebase.firestore.FieldValue.serverTimestamp(),
                 onlineStatus: 'online'
-            }).catch(() => {}); 
-        }, 180000); 
+            }).catch(() => {});
+        }, 180000);
 
         // Set offline immediately when page closes
         const handleOffline = () => {
@@ -2444,12 +2380,12 @@ function App() {
         // Set "away" when page hidden (user switched tab)
         const handleVisibility = () => {
             if (document.visibilityState === 'hidden') {
-                usersCollection.doc(user.uid).update({ 
+                usersCollection.doc(user.uid).update({
                     onlineStatus: 'away',
                     lastActive: firebase.firestore.FieldValue.serverTimestamp()
                 }).catch(() => {});
             } else {
-                usersCollection.doc(user.uid).update({ 
+                usersCollection.doc(user.uid).update({
                     onlineStatus: 'online',
                     lastActive: firebase.firestore.FieldValue.serverTimestamp()
                 }).catch(() => {});
@@ -2458,25 +2394,24 @@ function App() {
 
         window.addEventListener('beforeunload', handleOffline);
         document.addEventListener('visibilitychange', handleVisibility);
-        
-        return () => { 
+
+        return () => {
             clearInterval(interval);
             window.removeEventListener('beforeunload', handleOffline);
             document.removeEventListener('visibilitychange', handleVisibility);
             // Set offline on component unmount (logout)
             usersCollection.doc(user.uid).update({ onlineStatus: 'offline' }).catch(() => {});
-        }; 
+        };
     }, [user, isGuest]);
 
-    // ========== ✅ #9: Initialize Daily Tasks Session on Login ==========
     useEffect(() => {
         if (!isLoggedIn || !user || !userData) return;
-        
+
         // Initialize session start time if not set today
         const sessionStart = userData.dailyTasks?.sessionStartTime?.toDate?.();
         const today = new Date().toDateString();
         const sessionDay = sessionStart ? sessionStart.toDateString() : null;
-        
+
         if (sessionDay !== today) {
             // New day - reset boxes and set session start
             usersCollection.doc(user.uid).update({
@@ -2486,7 +2421,6 @@ function App() {
         }
     }, [isLoggedIn, user?.uid, userData?.uid]);
 
-    // ========== ✅ #8 & #1: Check Login Rewards & Reset Daily Missions ==========
     useEffect(() => {
         if (isLoggedIn && userData && !sessionClaimedToday) {
             const loginData = userData.loginRewards || { currentDay: 0, lastClaimDate: null };
@@ -2570,7 +2504,7 @@ function App() {
 
     // Leaderboard - Real-time
     useEffect(() => { if (activeView === 'leaderboard') { const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); setLeaderboardData(data); }, error => { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); }); return unsub; } }, [activeView]);
-    
+
     // Charisma Leaderboard - Real-time
     useEffect(() => {
         if (activeView === 'leaderboard' && leaderboardTab === 'charisma') {
@@ -2587,19 +2521,19 @@ function App() {
             return unsub;
         }
     }, [activeView, leaderboardTab]);
-    
+
     // ✅ FIXED: Friends - Real-time with online status
     // ✅ REALTIME friends - always active (not just when tab is open)
-    useEffect(() => { 
-        if (userData && user && isLoggedIn) { 
-            if (userData.friends?.length > 0) { 
-                const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).onSnapshot(snap => { 
-                    const friends = snap.docs.map(d => { 
+    useEffect(() => {
+        if (userData && user && isLoggedIn) {
+            if (userData.friends?.length > 0) {
+                const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).onSnapshot(snap => {
+                    const friends = snap.docs.map(d => {
                         const data = d.data();
                         const lastActive = data.lastActive?.toDate?.() || new Date(0);
                         const timeSinceActive = Date.now() - lastActive.getTime();
                         const dbStatus = data.onlineStatus;
-                        
+
                         // ✅ Real-time status: use both DB onlineStatus field AND lastActive timestamp
                         let onlineStatus = 'offline';
                         if (dbStatus === 'online' && timeSinceActive < 600000) { // DB says online + seen < 10min
@@ -2609,22 +2543,22 @@ function App() {
                         } else if (timeSinceActive < 300000) {
                             onlineStatus = 'online'; // seen < 5min regardless of DB
                         }
-                        
+
                         return { id: d.id, ...data, isOnline: onlineStatus === 'online', onlineStatus };
                     });
-                    setFriendsData(friends); 
-                }); 
-                return unsub; 
-            } else { setFriendsData([]); } 
-        } 
+                    setFriendsData(friends);
+                });
+                return unsub;
+            } else { setFriendsData([]); }
+        }
     }, [userData?.friends, user, isLoggedIn]);
-    
+
     // Friend Requests - Real-time
     useEffect(() => { if (userData && user && isLoggedIn) { if (userData.friendRequests?.length > 0) { const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).onSnapshot(snap => { setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); return unsub; } else { setFriendRequests([]); } } }, [userData?.friendRequests, user, isLoggedIn]);
-    
+
     // Chats Meta - Real-time
     useEffect(() => { if (!user || !isLoggedIn) return; const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => { let total = 0; const meta = {}; snap.docs.forEach(doc => { const d = doc.data(); meta[doc.id] = d; const myUnread = d.unread?.[user.uid] || 0; total += myUnread; }); setChatsMeta(meta); setTotalUnread(total); }); return unsub; }, [user, isLoggedIn]);
-    
+
     // Timers
     useEffect(() => { if (room?.status === 'discussing' && room?.turnEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000)); setTurnTimer(remaining); if (remaining <= 0) { handleSkipTurn(true); clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setTurnTimer(30); }, [room?.status, room?.turnEndTime]);
     useEffect(() => { if (room?.status === 'voting' && room?.votingEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.votingEndTime - Date.now()) / 1000)); setVotingTimer(remaining); if (remaining <= 0) { clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setVotingTimer(30); }, [room?.status, room?.votingEndTime]);
@@ -2692,9 +2626,9 @@ function App() {
         };
         initGuest();
     }, [authLoading, user]);
-    
+
     useEffect(() => { if (!guestData?.uid) return; const unsub = guestsCollection.doc(guestData.uid).onSnapshot(snap => { if (snap.exists) setGuestData({ id: snap.id, ...snap.data() }); }); return unsub; }, [guestData?.uid]);
-    
+
     const getDefaultPhoto = useCallback((uData, name) => uData?.photoURL || `https://ui-avatars.com/api/?name=${name || 'Guest'}&background=random`, []);
 
     // Notification Functions
@@ -2724,7 +2658,7 @@ function App() {
             const userData = userDoc.data();
             const inventory = userData?.inventory || { frames: [], titles: [], badges: [], gifts: [] };
             const updates = {};
-            
+
             switch (reward.type) {
                 case 'currency':
                     updates.currency = firebase.firestore.FieldValue.increment(reward.amount);
@@ -2756,42 +2690,42 @@ function App() {
     }, [user, isLoggedIn, lang]);
 
     // Room Functions
-    const handleCreateGame = useCallback(async () => { 
-        if (!nickname.trim()) return; 
+    const handleCreateGame = useCallback(async () => {
+        if (!nickname.trim()) return;
         if (isPrivate && !password.trim()) { setAlertMessage(t.privateRoomError); return; }
-        playSound('click'); setLoading(true); 
+        playSound('click'); setLoading(true);
         const uid = currentUID; const tempUserData = currentUserData;
-        if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; } 
-        const id = Math.random().toString(36).substring(2, 7).toUpperCase(); 
-        await roomsCollection.doc(id).set({ id, admin: uid, status: 'waiting', players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {} }], scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null, summaryShown: false }); 
+        if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; }
+        const id = Math.random().toString(36).substring(2, 7).toUpperCase();
+        await roomsCollection.doc(id).set({ id, admin: uid, status: 'waiting', players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {} }], scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null, summaryShown: false });
         setRoomId(id); setLoading(false); setShowSetupModal(false); setActiveView('lobby');
         navigator.clipboard.writeText(id); setCopied(true); setTimeout(() => setCopied(false), 2000);
     }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, getDefaultPhoto]);
-    
+
     const handleJoinGame = useCallback(async (id, pwd) => {
         if (!id || id.trim() === "") { setJoinError(t.enterCodeError); return; }
         if (!nickname.trim()) return;
-        playSound('click'); setLoading(true); setJoinError(''); 
+        playSound('click'); setLoading(true); setJoinError('');
         const uid = currentUID; const tempUserData = currentUserData;
-        if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; } 
-        const ref = roomsCollection.doc(id.toUpperCase()); 
-        const snap = await ref.get(); 
-        if (snap.exists) { 
-            const data = snap.data(); 
-            if(data.isPrivate && data.password !== pwd) { setJoinError(lang === 'ar' ? 'كلمة السر غير صحيحة' : "Incorrect Password"); setLoading(false); return; } 
-            const exists = data.players.find(p => p.uid === uid); 
-            if (!exists) { await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {} }] }); } 
+        if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; }
+        const ref = roomsCollection.doc(id.toUpperCase());
+        const snap = await ref.get();
+        if (snap.exists) {
+            const data = snap.data();
+            if(data.isPrivate && data.password !== pwd) { setJoinError(lang === 'ar' ? 'كلمة السر غير صحيحة' : "Incorrect Password"); setLoading(false); return; }
+            const exists = data.players.find(p => p.uid === uid);
+            if (!exists) { await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {} }] }); }
             setRoomId(id.toUpperCase()); setActiveView('lobby'); setShowBrowseRooms(false);
-        } else { setJoinError(lang === 'ar' ? 'الغرفة غير موجودة' : "Room not found"); } 
-        setLoading(false); 
+        } else { setJoinError(lang === 'ar' ? 'الغرفة غير موجودة' : "Room not found"); }
+        setLoading(false);
     }, [nickname, currentUID, currentUserData, t, lang, getDefaultPhoto]);
-    
-    const handleLeaveRoom = useCallback(async () => { 
-        if (!room || !currentUID) return; 
-        playSound('click'); 
+
+    const handleLeaveRoom = useCallback(async () => {
+        if (!room || !currentUID) return;
+        playSound('click');
         const isAdmin = room.admin === currentUID;
         if (isAdmin) { await roomsCollection.doc(roomId).delete(); } else { await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== currentUID) }); }
-        setRoom(null); setRoomId(''); setShowSummary(false); 
+        setRoom(null); setRoomId(''); setShowSummary(false);
     }, [room, currentUID, roomId]);
 
     // Game Logic Functions
@@ -2837,33 +2771,31 @@ function App() {
     }, [user, isLoggedIn, t, userData, createNotification, lang]);
     const handleRejectRequest = useCallback(async (fromUid) => { if (!user || !isLoggedIn) return; await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); }, [user, isLoggedIn]);
 
-    // ==========================================
     // 🎁 GIFT FUNCTIONS - NO CASHBACK, BONUS FOR RECEIVER ONLY
-    // ==========================================
     const handleSendGiftToUser = useCallback(async (gift, targetUser) => {
         const currency = userData?.currency || 0;
         if (currency < gift.cost) return;
-        
+
         // ✅ Generate bonus for RECEIVER only
         const minBonus = gift.minBonus || 1;
         const maxBonus = gift.maxBonus || Math.floor(gift.cost * 0.1);
         const bonusForReceiver = generateRandomBonus(minBonus, maxBonus);
-        
+
         const giftName = lang === 'ar' ? gift.name_ar : gift.name_en;
-        
+
         try {
             // Deduct from sender (NO cashback)
-            await usersCollection.doc(user.uid).update({ 
+            await usersCollection.doc(user.uid).update({
                 currency: firebase.firestore.FieldValue.increment(-gift.cost)
             });
-            
+
             if (targetUser?.uid === 'self' || targetUser?.uid === user.uid) {
                 // Sending to self
-                await usersCollection.doc(user.uid).update({ 
+                await usersCollection.doc(user.uid).update({
                     charisma: firebase.firestore.FieldValue.increment(gift.charisma),
                     currency: firebase.firestore.FieldValue.increment(bonusForReceiver)
                 });
-                
+
                 // ✅ Log self-sent gift to gifts_log collection too
                 await giftsLogCollection.add({
                     senderId: user.uid,
@@ -2882,7 +2814,7 @@ function App() {
                     cost: gift.cost,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                
+
                 // 📝 Also log gift card to SelfChat
                 try {
                     const selfChatId = `${user.uid}_self`;
@@ -2906,13 +2838,13 @@ function App() {
                 } catch(e) { }
             } else {
                 // Sending to another person - add charisma AND bonus
-                await usersCollection.doc(targetUser.uid).update({ 
+                await usersCollection.doc(targetUser.uid).update({
                     charisma: firebase.firestore.FieldValue.increment(gift.charisma),
                     currency: firebase.firestore.FieldValue.increment(bonusForReceiver)
                 });
-                
+
                 const chatId = [user.uid, targetUser.uid].sort().join('_');
-                
+
                 // Add gift message to chat
                 await chatsCollection.doc(chatId).collection('messages').add({
                     senderId: user.uid,
@@ -2929,7 +2861,7 @@ function App() {
                     text: `🎁 ${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji}`,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                
+
                 // Update chat metadata
                 await chatsCollection.doc(chatId).set({
                     members: [user.uid, targetUser.uid],
@@ -2937,7 +2869,7 @@ function App() {
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     [`unread.${targetUser.uid}`]: firebase.firestore.FieldValue.increment(1)
                 }, { merge: true });
-                
+
                 // ✅ Log gift to gifts_log collection
                 await giftsLogCollection.add({
                     senderId: user.uid,
@@ -2956,18 +2888,18 @@ function App() {
                     cost: gift.cost,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                
+
                 // Send notification to receiver
                 await createNotification(
-                    targetUser.uid, 
-                    'gift', 
-                    `${userData?.displayName || 'User'} ${t.sentAGift}: ${gift.emoji} (+${formatCharisma(gift.charisma)} ⭐, +${bonusForReceiver} 🧠)`, 
-                    user.uid, 
-                    userData?.displayName || 'User', 
+                    targetUser.uid,
+                    'gift',
+                    `${userData?.displayName || 'User'} ${t.sentAGift}: ${gift.emoji} (+${formatCharisma(gift.charisma)} ⭐, +${bonusForReceiver} 🧠)`,
+                    user.uid,
+                    userData?.displayName || 'User',
                     { giftId: gift.id, giftEmoji: gift.emoji, giftName, charisma: gift.charisma, bonus: bonusForReceiver }
                 );
             }
-            
+
             playGiftSound();
             setNotification(`${t.giftSent}!`);
             // ✅ Mission: giftsSent + giftsSent stat for achievements
@@ -2989,7 +2921,7 @@ function App() {
             // ✅ Check achievements after gifting
             const updDoc = await usersCollection.doc(user.uid).get();
             if (updDoc.exists) await checkAndUnlockAchievements(updDoc.data());
-        } catch (error) { 
+        } catch (error) {
             }
     }, [userData, user, t, createNotification, lang, incrementMissionProgress, checkAndUnlockAchievements]);
 
@@ -2999,7 +2931,7 @@ function App() {
         const currency = userData?.currency || 0;
         if (currency < item.cost) { setNotification(t.purchaseFail); return; }
         const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
-        
+
         if (item.type === 'gifts') {
             // ✅ FIX: if targetUser is specified (send to friend) → keep old flow
             // If buying for self (no target or target=self) → add to inventory instead of instant charisma
@@ -3022,16 +2954,16 @@ function App() {
             } catch (e) { setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
             return;
         }
-        
+
         if (inventory[item.type]?.includes(item.id)) { setNotification(t.alreadyOwned); return; }
-        try { 
-            const newInventory = { ...inventory, [item.type]: [...(inventory[item.type] || []), item.id] }; 
-            await usersCollection.doc(user.uid).update({ currency: currency - item.cost, inventory: newInventory }); 
-            playSound('success'); 
-            setNotification(t.purchaseSuccess); 
+        try {
+            const newInventory = { ...inventory, [item.type]: [...(inventory[item.type] || []), item.id] };
+            await usersCollection.doc(user.uid).update({ currency: currency - item.cost, inventory: newInventory });
+            playSound('success');
+            setNotification(t.purchaseSuccess);
         } catch (error) { }
     }, [user, userData, isLoggedIn, t, handleSendGiftToUser]);
-    
+
     const handleEquip = useCallback(async (item) => {
         if (!user || !isLoggedIn) return;
         try {
@@ -3045,7 +2977,7 @@ function App() {
             playSound('click'); setNotification(lang === 'ar' ? 'تم التزيين!' : 'Equipped!');
         } catch (error) { }
     }, [user, userData, isLoggedIn, lang]);
-    
+
     const handleUnequip = useCallback(async (type, itemId) => {
         if (!user || !isLoggedIn) return;
         try {
@@ -3076,14 +3008,13 @@ function App() {
     const handleCopy = useCallback(() => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 2000); }, [roomId]);
     const requireLogin = useCallback(() => { setShowLoginAlert(true); }, []);
 
-
     // RENDER
     if (authLoading) { return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl animate-bounce mb-4">🕵️</div><div className="text-lg font-bold">{t.loading}</div></div></div>; }
 
     return (
         <div className="main-wrapper" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
             <NotificationToast message={notification} onClose={() => setNotification(null)} />
-            
+
             {showOnboarding && (
                 <OnboardingModal
                     show={showOnboarding}
@@ -3092,7 +3023,7 @@ function App() {
                     lang={lang}
                 />
             )}
-            
+
             {forcedLogoutMsg && (
                 <div className="modal-overlay" style={{zIndex:Z.FORCED}}>
                     <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
@@ -3133,10 +3064,10 @@ function App() {
                     </div>
                 </div>
             )}
-            
+
             <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
             <LoginRewards show={showLoginRewards} onClose={() => setShowLoginRewards(false)} userData={userData} onClaim={handleClaimLoginReward} lang={lang} />
-            
+
             {showSummary && room && (
                 <div className="modal-overlay" onClick={() => setShowSummary(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
@@ -3146,11 +3077,11 @@ function App() {
                     </div>
                 </div>
             )}
-            
+
             <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} />
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
             <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} />
-            
+
             {showMyAccount && currentUID && (
                 <ProfileV11
                     show={showMyAccount}
@@ -3185,17 +3116,17 @@ function App() {
                     }}
                 />
             )}
-            
-            <ProfileV11 
-                show={showUserProfile} 
-                onClose={() => setShowUserProfile(false)} 
-                targetUID={targetProfileUID} 
-                lang={lang} 
-                currentUserUID={currentUID} 
-                onSendFriendRequest={handleSendRequest} 
-                onSendGift={handleSendGiftToUser} 
-                userData={currentUserData} 
-                currentUserFriends={userData?.friends} 
+
+            <ProfileV11
+                show={showUserProfile}
+                onClose={() => setShowUserProfile(false)}
+                targetUID={targetProfileUID}
+                lang={lang}
+                currentUserUID={currentUID}
+                onSendFriendRequest={handleSendRequest}
+                onSendGift={handleSendGiftToUser}
+                userData={currentUserData}
+                currentUserFriends={userData?.friends}
                 currentUserFriendRequests={userData?.friendRequests}
                 friendsData={friendsData}
                 isGuest={isGuest}
@@ -3205,23 +3136,23 @@ function App() {
                 }}
             />
             <BrowseRoomsModal show={showBrowseRooms} onClose={() => setShowBrowseRooms(false)} onJoin={handleJoinGame} nickname={nickname} currentUID={currentUID} currentUserData={currentUserData} lang={lang} />
-            
+
             {showPrivateChat && chatFriend && user && (
-                <PrivateChatModal 
-                    show={showPrivateChat} 
-                    onClose={closePrivateChat} 
-                    friend={chatFriend} 
-                    currentUser={currentUserData} 
-                    user={user} 
-                    lang={lang} 
-                    onSendNotification={createNotification} 
-                    onSendGift={handleSendGiftToUser} 
+                <PrivateChatModal
+                    show={showPrivateChat}
+                    onClose={closePrivateChat}
+                    friend={chatFriend}
+                    currentUser={currentUserData}
+                    user={user}
+                    lang={lang}
+                    onSendNotification={createNotification}
+                    onSendGift={handleSendGiftToUser}
                     currency={userData?.currency || 0}
                     friendsData={friendsData}
                     onOpenProfile={openProfile}
                 />
             )}
-            
+
             {showSelfChat && user && (
                 <SelfChatModal
                     show={showSelfChat}
@@ -3245,7 +3176,7 @@ function App() {
             )}
 
             {alertMessage && (<div className="alert-modal" onClick={() => setAlertMessage(null)}><div className="modal-content animate-pop" onClick={e => e.stopPropagation()}><div className="modal-header"><span></span><ModalCloseBtn onClose={() => setAlertMessage(null)} /></div><div className="modal-body text-center"><div className="text-2xl mb-2">🚫</div><p className="font-bold mb-4">{alertMessage}</p><button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button></div></div></div>)}
-            
+
             {showSetupModal && (
                 <div className="modal-overlay" onClick={()=>setShowSetupModal(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
@@ -3263,7 +3194,7 @@ function App() {
                     </div>
                 </div>
             )}
-            
+
             {/* Header */}
             <header className="site-header">
                 <div className="logo-container">
@@ -3303,7 +3234,7 @@ function App() {
                     </div>
                 </div>
             </header>
-            
+
             {/* Main Content */}
             {!room && (
                 <main className="main-content">
@@ -3312,7 +3243,7 @@ function App() {
                         <button onClick={() => setActiveView('leaderboard')} className={`tab-button ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
                         <button onClick={() => { if(isLoggedIn) setActiveView('friends'); else requireLogin(); }} className={`tab-button relative ${activeView === 'friends' ? 'active' : ''}`}>{t.tabFriends}{totalFriendsUnread > 0 && <span className="friends-tab-badge">{totalFriendsUnread > 9 ? '9+' : totalFriendsUnread}</span>}</button>
                     </div>
-                    
+
                     {activeView === 'lobby' && (
                         <div className="card-container">
                             {isGuest && <GuestBanner lang={lang} />}
@@ -3334,33 +3265,33 @@ function App() {
                             )}
                         </div>
                     )}
-                    
+
                     {activeView === 'leaderboard' && (
                         <div className="card-container">
                             {/* Leaderboard Tabs */}
                             <div className="leaderboard-tabs">
-                                <button 
-                                    onClick={() => setLeaderboardTab('wins')} 
+                                <button
+                                    onClick={() => setLeaderboardTab('wins')}
                                     className={`leaderboard-tab ${leaderboardTab === 'wins' ? 'active' : ''}`}
                                 >
                                     🏆 {t.wins}
                                 </button>
-                                <button 
-                                    onClick={() => setLeaderboardTab('charisma')} 
+                                <button
+                                    onClick={() => setLeaderboardTab('charisma')}
                                     className={`leaderboard-tab gold ${leaderboardTab === 'charisma' ? 'active' : ''}`}
                                 >
                                     ⭐ {t.charismaRank}
                                 </button>
                             </div>
-                            
+
                             <div className="overflow-y-auto max-h-[60vh]">
                                 {(leaderboardTab === 'charisma' ? charismaLeaderboard : leaderboardData).map((player, i) => {
                                     const rank = i + 1;
                                     const isTop3 = rank <= 3;
                                     return (
-                                        <div 
-                                            key={player.id} 
-                                            onClick={() => openProfile(player.id)} 
+                                        <div
+                                            key={player.id}
+                                            onClick={() => openProfile(player.id)}
                                             className={`leaderboard-row cursor-pointer ${isTop3 && leaderboardTab === 'charisma' ? 'rank-' + rank : ''}`}
                                         >
                                             {isTop3 && leaderboardTab === 'charisma' ? (
@@ -3385,7 +3316,7 @@ function App() {
                             </div>
                         </div>
                     )}
-                    
+
                     {activeView === 'friends' && (
                         <div className="card-container friends-container">
                             <div className="add-friend-section">
@@ -3477,7 +3408,7 @@ function App() {
                     )}
                 </main>
             )}
-            
+
             {/* Room View */}
             {room && (
                 <main className="main-content">
@@ -3492,7 +3423,7 @@ function App() {
                             <div className="text-xs text-gray-400">{t.roundsFormat(room.currentRound || 0, 3)}</div>
                         </div>
                     </div>
-                    
+
                     {room.status === 'waiting' && (
                         <div className="card-container">
                             <h3 className="text-sm font-bold mb-3 text-center">{t.lobbyTitle}</h3>
@@ -3500,7 +3431,7 @@ function App() {
                             <div className="flex gap-2">{room.admin === currentUID ? (<button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>) : (<p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>)}<button onClick={handleLeaveRoom} className="btn-danger px-4 py-2 rounded-lg text-sm">{t.leaveRoom}</button></div>
                         </div>
                     )}
-                    
+
                     {room.status === 'word_selection' && !isSpectator && (
                         <div className="card-container">
                             <h3 className="text-sm font-bold mb-2 text-center">{t.wordSelectionTitle}</h3>
@@ -3509,7 +3440,7 @@ function App() {
                             <div className="grid grid-cols-2 gap-2">{(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => (<button key={i} onClick={() => submitWordVote(word)} className={`word-vote-card ${hasVotedWord === word ? 'selected' : ''}`}><span className="font-bold">{word}</span></button>))}</div>
                         </div>
                     )}
-                    
+
                     {room.status === 'discussing' && (
                         <div className="flex-1 flex flex-col gap-2">
                             <div className="card-container"><div className="grid grid-cols-3 gap-2">{room.players.filter(p => p.status === 'active').map(p => (<div key={p.uid} className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === currentUID ? 'border-primary' : ''}`} onClick={() => openProfile(p.uid)}><AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" /><span className="text-[10px] truncate mt-1">{p.name}</span>{room.currentTurnUID === p.uid && <span className="text-[8px] text-primary">Speaking</span>}</div>))}</div></div>
@@ -3527,7 +3458,7 @@ function App() {
                             </div>
                         </div>
                     )}
-                    
+
                     {room.status === 'voting' && (
                         <div className="card-container">
                             <h3 className="text-sm font-bold mb-2 text-center">{t.vote}</h3>
@@ -3535,7 +3466,7 @@ function App() {
                             <div className="grid grid-cols-2 gap-2 mb-4">{room.players.filter(p => p.status === 'active').map(p => (<button key={p.uid} onClick={() => submitVote(p.uid)} disabled={hasVoted} className={`player-card ${hasVoted === p.uid ? 'border-primary bg-primary/10' : ''}`}><AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" /><span className="text-xs truncate mt-1">{p.name}</span></button>))}</div>
                         </div>
                     )}
-                    
+
                     {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_mrwhite_wins') && (
                         <div className="card-container text-center">
                             <div className="text-4xl mb-4">{room.status === 'finished_spy_caught' ? '🎉' : '🕵️'}</div>
@@ -3546,7 +3477,7 @@ function App() {
                     )}
                 </main>
             )}
-            
+
             {showDropdown && <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)}></div>}
         </div>
     );
@@ -3580,7 +3511,6 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
         setSending(true);
         try {
             const chatRef = chatsCollection.doc(selfChatId);
-            // Fix: never pass undefined - use explicit null for missing fields
             await chatRef.set({
                 participants: [uid, uid],
                 type: 'self',
@@ -3737,10 +3667,7 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
     );
 };
 
-
-// ============================================================
 // 🎫 FUN PASS MODAL COMPONENT
-// ============================================================
 
 const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) => {
     const [activeTab, setActiveTab] = useState('pass'); // 'pass' | 'missions'
@@ -4048,7 +3975,7 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
                                             })
                                         }}>
                                             <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0}}>
-                                                {lv.free.imageUrl 
+                                                {lv.free.imageUrl
                                     ? <img src={lv.free.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
                                     : <span style={{fontSize:'16px', flexShrink:0}}>{lv.free.icon}</span>}
                                                 <div style={{minWidth:0}}>
@@ -4303,7 +4230,6 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
     );
 };
 
-
 const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSendNotification, onSendGift, currency, friendsData, onOpenProfile }) => {
     const t = TRANSLATIONS[lang];
     const [messages, setMessages] = useState([]);
@@ -4316,14 +4242,14 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
     const chatId = friend && user ? [user.uid, friend.uid].sort().join('_') : null;
-    
+
     // Check if blocked
     useEffect(() => {
         if (!show || !friend || !currentUser) return;
         // Check if current user blocked this friend
         const myBlocked = currentUser.blockedUsers || [];
         setIsBlocked(myBlocked.includes(friend.uid));
-        
+
         // Check if friend blocked current user
         usersCollection.doc(friend.uid).get().then(doc => {
             if (doc.exists) {
@@ -4332,7 +4258,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
             }
         });
     }, [show, friend, currentUser, user?.uid]);
-    
+
     useEffect(() => {
         if (!show || !chatId) return;
         const unsub = chatsCollection.doc(chatId).collection('messages').onSnapshot(snap => {
@@ -4343,25 +4269,25 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
         });
         return unsub;
     }, [show, chatId, user?.uid]);
-    
+
     useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-    
+
     const handleSend = async () => {
         if (!newMsg.trim() || sending || isBlocked || blockedByTarget) return;
         setSending(true);
         try {
-            await chatsCollection.doc(chatId).collection('messages').add({ 
-                senderId: user.uid, 
-                senderName: currentUser?.displayName || 'User', 
-                senderPhoto: currentUser?.photoURL || null, 
-                text: newMsg.trim(), 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+            await chatsCollection.doc(chatId).collection('messages').add({
+                senderId: user.uid,
+                senderName: currentUser?.displayName || 'User',
+                senderPhoto: currentUser?.photoURL || null,
+                text: newMsg.trim(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
-            await chatsCollection.doc(chatId).set({ 
-                members: [user.uid, friend.uid], 
-                lastMessage: newMsg.trim(), 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
-                [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) 
+            await chatsCollection.doc(chatId).set({
+                members: [user.uid, friend.uid],
+                lastMessage: newMsg.trim(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1)
             }, { merge: true });
             if (onSendNotification) await onSendNotification(friend.uid, 'message', `${currentUser?.displayName || 'User'}: ${newMsg.trim().substring(0, 50)}`, user.uid, currentUser?.displayName || 'User');
             setNewMsg('');
@@ -4369,44 +4295,44 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
         } catch (e) { }
         setSending(false);
     };
-    
+
     const handleEmojiSelect = (emoji) => {
         setNewMsg(prev => prev + emoji);
         setShowEmojiPicker(false);
         inputRef.current?.focus();
     };
-    
+
     const handleSendGiftToChat = async (gift, targetUser) => {
         if (!onSendGift || isBlocked || blockedByTarget) return;
         await onSendGift(gift, targetUser);
         setShowGiftModal(false);
     };
-    
+
     // Handle profile opening
     const handleOpenProfile = (uid) => {
         if (onOpenProfile) {
             onOpenProfile(uid);
         }
     };
-    
+
     if (!show || !friend) return null;
-    
+
     return (
         <>
             <div className="modal-overlay" onClick={onClose}>
                 <div className="chat-modal-content animate-pop" onClick={e => e.stopPropagation()}>
                     <div className="chat-header-bar">
-                        <div 
+                        <div
                             onClick={() => handleOpenProfile(friend.uid)}
                             style={{ cursor: 'pointer' }}
                         >
-                            <AvatarWithFrame 
-                                photoURL={friend.photoURL} 
-                                equipped={friend.equipped} 
-                                size="sm" 
+                            <AvatarWithFrame
+                                photoURL={friend.photoURL}
+                                equipped={friend.equipped}
+                                size="sm"
                             />
                         </div>
-                        <div 
+                        <div
                             className="chat-header-info"
                             onClick={() => handleOpenProfile(friend.uid)}
                             style={{ cursor: 'pointer' }}
@@ -4419,18 +4345,18 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                         <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" disabled={isBlocked || blockedByTarget} title={t.sendGift}>🎁</button>
                         <ModalCloseBtn onClose={onClose} />
                     </div>
-                    
+
                     {/* Blocked Notice */}
                     {(isBlocked || blockedByTarget) && (
                         <div className="chat-blocked-notice">
                             <span>🚫</span>
-                            <span>{isBlocked 
+                            <span>{isBlocked
                                 ? (lang === 'ar' ? 'لقد حظرت هذا المستخدم. إلغاء الحظر للمراسلة.' : 'You have blocked this user. Unblock to message.')
                                 : (lang === 'ar' ? 'هذا المستخدم حظرك. لا يمكنك إرسال رسائل.' : 'This user has blocked you. You cannot send messages.')
                             }</span>
                         </div>
                     )}
-                    
+
                     <div className="chat-messages-container">
                         {messages.length === 0 ? <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div> : messages.map(msg => {
                             const isMine = msg.senderId === user?.uid;
@@ -4438,19 +4364,19 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                             return (
                                 <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''} ${isGift ? 'gift-message' : ''}`}>
                                     {!isMine && (
-                                        <div 
+                                        <div
                                             onClick={() => handleOpenProfile(msg.senderId || friend.uid)}
                                             style={{ cursor: 'pointer' }}
                                         >
-                                            <AvatarWithFrame 
-                                                photoURL={msg.senderPhoto || friend.photoURL} 
-                                                equipped={friend.equipped} 
-                                                size="sm" 
+                                            <AvatarWithFrame
+                                                photoURL={msg.senderPhoto || friend.photoURL}
+                                                equipped={friend.equipped}
+                                                size="sm"
                                             />
                                         </div>
                                     )}
                                     <div className="chat-message-content">
-                                        <div 
+                                        <div
                                             className="chat-message-sender"
                                             onClick={() => handleOpenProfile(isMine ? user.uid : (msg.senderId || friend.uid))}
                                             style={{ cursor: 'pointer' }}
@@ -4494,7 +4420,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                         )}
                         {!(isBlocked || blockedByTarget) && (
                             <div style={{display:'flex',alignItems:'center',gap:'6px',width:'100%'}}>
-                                <button 
+                                <button
                                     className="emoji-picker-btn"
                                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                                     style={{ fontSize: '22px' }}
@@ -4502,14 +4428,14 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                                     😀
                                 </button>
                                 <div className="chat-input-row" style={{flex:1}}>
-                                    <input 
-                                        ref={inputRef} 
-                                        type="text" 
-                                        className="chat-input" 
-                                        placeholder={t.typeMessage} 
-                                        value={newMsg} 
-                                        onChange={e => setNewMsg(e.target.value)} 
-                                        onKeyPress={e => e.key === 'Enter' && handleSend()} 
+                                    <input
+                                        ref={inputRef}
+                                        type="text"
+                                        className="chat-input"
+                                        placeholder={t.typeMessage}
+                                        value={newMsg}
+                                        onChange={e => setNewMsg(e.target.value)}
+                                        onKeyPress={e => e.key === 'Enter' && handleSend()}
                                     />
                                     <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
                                 </div>
@@ -4519,13 +4445,13 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                 </div>
             </div>
             {showGiftModal && (
-                <SendGiftModal 
-                    show={showGiftModal} 
-                    onClose={() => setShowGiftModal(false)} 
-                    targetUser={friend} 
-                    currentUser={currentUser} 
-                    lang={lang} 
-                    onSendGift={handleSendGiftToChat} 
+                <SendGiftModal
+                    show={showGiftModal}
+                    onClose={() => setShowGiftModal(false)}
+                    targetUser={friend}
+                    currentUser={currentUser}
+                    lang={lang}
+                    onSendGift={handleSendGiftToChat}
                     currency={currency || 0}
                     friendsData={friendsData}
                 />
@@ -4535,9 +4461,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
     );
 };
 
-// ==========================================
 // 📅 LOGIN REWARDS COMPONENT
-// ==========================================
 
 const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     const t = TRANSLATIONS[lang];
@@ -4546,7 +4470,7 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
 
     // ALL computations before any hooks - Rules of Hooks compliance
     const loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
-    
+
     const getLastClaimDate = () => {
         const lcd = loginData.lastClaimDate;
         if (!lcd) return null;
@@ -4555,14 +4479,14 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
         const d = new Date(lcd);
         return isNaN(d.getTime()) ? null : d;
     };
-    
+
     const lastClaimDate = getLastClaimDate();
     const todayStr = new Date().toDateString();
     const lastClaimStr = lastClaimDate ? lastClaimDate.toDateString() : null;
     const canClaimToday = lastClaimStr !== todayStr;
     const currentDay = loginData.currentDay || 0;
     const currentReward = LOGIN_REWARDS[currentDay];
-    
+
     // Countdown timer - MUST be before any conditional returns
     useEffect(() => {
         if (!show || canClaimToday || !lastClaimDate) { setCountdown(''); return; }
@@ -4584,25 +4508,25 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
 
     // Early return AFTER all hooks
     if (!show) return null;
-    
-    const handleClaim = async () => { 
-        if (!canClaimToday || claiming) return; 
-        setClaiming(true); 
-        playRewardSound(); 
-        await onClaim(currentDay + 1); 
-        setClaiming(false); 
+
+    const handleClaim = async () => {
+        if (!canClaimToday || claiming) return;
+        setClaiming(true);
+        playRewardSound();
+        await onClaim(currentDay + 1);
+        setClaiming(false);
     };
-    
+
     const renderRewardIcon = (reward, size = 16) => {
         if (!reward) return <span style={{ fontSize: size + 'px' }}>❓</span>;
         return <span style={{ fontSize: size + 'px' }}>{reward.icon || '🎁'}</span>;
     };
-    
+
     const getRewardName = (reward) => {
         if (!reward) return '';
         return lang === 'ar' ? reward.name_ar : reward.name_en;
     };
-    
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', maxHeight: '90vh', width: '95%' }}>
@@ -4623,12 +4547,12 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
                                 const isCurrent = dayNum === currentDay + 1 && canClaimToday;
                                 const isSpecial = reward.special === true;
                                 const isFinal = reward.final === true;
-                                
+
                                 let bgColor = 'rgba(255, 255, 255, 0.03)';
                                 let borderColor = 'rgba(255, 255, 255, 0.1)';
                                 let textColor = 'rgba(255, 255, 255, 0.5)';
                                 let extraStyles = {};
-                                
+
                                 if (isClaimed) {
                                     bgColor = 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1))';
                                     borderColor = '#10b981';
@@ -4648,7 +4572,7 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
                                     textColor = '#ff0055';
                                     extraStyles = { animation: 'glow-pulse 2s infinite' };
                                 }
-                                
+
                                 return (
                                     <div key={dayNum} title={getRewardName(reward)} style={{ aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: `2px solid ${borderColor}`, background: bgColor, padding: '4px', gap: '2px', position: 'relative', cursor: isCurrent ? 'pointer' : 'default', transition: 'all 0.2s ease', ...extraStyles }}>
                                         <span style={{ fontSize: '11px', fontWeight: '700', color: textColor, lineHeight: 1 }}>{dayNum}</span>
@@ -4695,9 +4619,7 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     );
 };
 
-// ==========================================
 // 🔧 BROWSE ROOMS MODAL
-// ==========================================
 
 const BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUserData, lang }) => {
     const t = TRANSLATIONS[lang];
@@ -4707,7 +4629,7 @@ const BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, current
     const [selectedRoom, setSelectedRoom] = useState(null);
     const [showPasswordInput, setShowPasswordInput] = useState(false);
     const [passwordError, setPasswordError] = useState('');
-    
+
     useEffect(() => {
         if (!show) return;
         setLoading(true);
@@ -4719,33 +4641,33 @@ const BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, current
         }, error => { setLoading(false); });
         return unsub;
     }, [show]);
-    
+
     if (!show) return null;
-    
-    const handleJoinClick = (room) => { 
-        if (room.isPrivate) { 
-            setSelectedRoom(room); 
-            setShowPasswordInput(true); 
-            setPasswordError(''); 
-        } else { 
-            onJoin(room.id, ''); 
-        } 
+
+    const handleJoinClick = (room) => {
+        if (room.isPrivate) {
+            setSelectedRoom(room);
+            setShowPasswordInput(true);
+            setPasswordError('');
+        } else {
+            onJoin(room.id, '');
+        }
     };
-    
-    const handlePasswordJoin = () => { 
+
+    const handlePasswordJoin = () => {
         if (selectedRoom && joinPassword) {
             if (joinPassword !== selectedRoom.password) {
                 setPasswordError(lang === 'ar' ? 'كلمة السر غير صحيحة!' : 'Incorrect password!');
                 return;
             }
-            onJoin(selectedRoom.id, joinPassword); 
-            setShowPasswordInput(false); 
-            setSelectedRoom(null); 
-            setJoinPassword(''); 
+            onJoin(selectedRoom.id, joinPassword);
+            setShowPasswordInput(false);
+            setSelectedRoom(null);
+            setJoinPassword('');
             setPasswordError('');
-        } 
+        }
     };
-    
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
@@ -4781,9 +4703,7 @@ const BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, current
     );
 };
 
-// ==========================================
 // 📚 TUTORIAL MODAL
-// ==========================================
 
 const TutorialModal = ({ show, onClose, lang }) => {
     const t = TRANSLATIONS[lang];
@@ -4809,10 +4729,7 @@ const TutorialModal = ({ show, onClose, lang }) => {
     );
 };
 
-
-// ==========================================
 // ⚙️ SETTINGS MODAL
-// ==========================================
 
 const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle }) => {
     const t = TRANSLATIONS[lang];
@@ -5132,16 +5049,13 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, is
     );
 };
 
-
-// ==========================================
 // 🎯 PROFILE V11 - NEW PREMIUM DESIGN COMPONENTS
-// ==========================================
 
 // 📊 WIN RATE CIRCLE COMPONENT
 const WinRateCircleV11 = ({ wins, losses, lang }) => {
     const total = wins + losses;
     const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
-    
+
     const getColor = (percentage) => {
         if (percentage >= 70) return '#10b981';
         if (percentage >= 50) return '#facc15';
@@ -5173,7 +5087,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
     const giftData = useMemo(() => {
         const counts = {};
         const lastSenders = {};
-        
+
         gifts?.forEach(g => {
             counts[g.giftId] = (counts[g.giftId] || 0) + 1;
             // Keep track of the most recent sender for each gift type
@@ -5185,7 +5099,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                 };
             }
         });
-        
+
         return { counts, lastSenders };
     }, [gifts]);
 
@@ -5197,13 +5111,13 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
         <div className="profile-gift-section">
             <div className="profile-gift-header">
                 <div className="profile-gift-tabs">
-                    <button 
+                    <button
                         className={`profile-gift-tab ${activeTab === 'wall' ? 'active' : ''}`}
                         onClick={() => setActiveTab('wall')}
                     >
                         {lang === 'ar' ? '🎁 الجدار' : '🎁 Wall'}
                     </button>
-                    <button 
+                    <button
                         className={`profile-gift-tab ${activeTab === 'log' ? 'active' : ''}`}
                         onClick={() => setActiveTab('log')}
                     >
@@ -5223,8 +5137,8 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                         const rKey = getGiftRarity(gift.cost);
                         const rarity = RARITY_CONFIG[rKey];
                         return (
-                            <div 
-                                key={gift.id} 
+                            <div
+                                key={gift.id}
                                 className={`profile-gift-slot ${unlocked ? 'unlocked' : 'locked'}${unlocked && rKey === 'Mythic' ? ' mythic-glow' : ''}`}
                                 title={unlocked ? `${lang === 'ar' ? gift.name_ar : gift.name_en} x${count}` : (lang === 'ar' ? 'لم تُستلم بعد' : 'Not received')}
                                 style={{ cursor:'pointer', ...(unlocked ? {
@@ -5329,9 +5243,9 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                             return (
                             <div key={idx} className={`profile-gift-log-item${isMythicLog ? ' mythic-glow' : ''}`}
                                 style={isMythicLog ? {border:'1px solid rgba(255,0,85,0.5)', background:'rgba(255,0,85,0.08)'} : {}}>
-                                <img 
-                                    src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(gift.senderName || 'User')}&background=6366f1&color=fff`} 
-                                    alt="" 
+                                <img
+                                    src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(gift.senderName || 'User')}&background=6366f1&color=fff`}
+                                    alt=""
                                     className="profile-gift-log-avatar"
                                 />
                                 <div className="profile-gift-log-content">
@@ -5675,7 +5589,7 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectI
     const hasImageEffect = effect && effect.imageUrl && effect.imageUrl.trim() !== '';
 
     return (
-        <div className="profile-avatar-container" style={{ 
+        <div className="profile-avatar-container" style={{
             position: 'relative',
             width: s.wrapper,
             height: s.wrapper,
@@ -5685,9 +5599,9 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectI
         }}>
             {/* Frame layer - AROUND the avatar (larger than avatar) */}
             {frameStyle && frameStyle.preview && (
-                <div 
+                <div
                     className="profile-avatar-frame"
-                    style={{ 
+                    style={{
                         position: 'absolute',
                         width: s.frameSize,
                         height: s.frameSize,
@@ -5708,15 +5622,15 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectI
                     )}
                 </div>
             )}
-            
+
             {/* Avatar image - CENTERED inside frame */}
             <div style={{ position:'relative', width: s.avatar, height: s.avatar, zIndex: 10, borderRadius:'50%', overflow: hasImageEffect ? 'hidden' : 'visible' }}>
-                <img 
+                <img
                     src={photoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`}
                     alt=""
                     className="profile-avatar"
-                    style={{ 
-                        width: '100%', 
+                    style={{
+                        width: '100%',
                         height: '100%',
                         borderRadius: '50%',
                         display: 'block',
@@ -5751,7 +5665,7 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectI
                     </>
                 )}
             </div>
-            
+
             {isOnline !== undefined && (
                 <div className={`profile-status-dot ${isOnline ? '' : 'offline'}`}></div>
             )}
@@ -5759,9 +5673,7 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectI
     );
 };
 
-// ==========================================
 // ✨ PROFILE EFFECT OVERLAY (standalone component - no hooks added to ProfileV11)
-// ==========================================
 const ProfileEffectOverlay = ({ effectId }) => {
     const [particles, setParticles] = useState([]);
     const [alive, setAlive] = useState(false);
@@ -5837,9 +5749,7 @@ const ProfileEffectOverlay = ({ effectId }) => {
     );
 };
 
-// ==========================================
 // 📸 MOMENTS SYSTEM - Complete Component
-// ==========================================
 
 // Max file size: 2MB images, 5MB videos (10 sec max)
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
@@ -6075,13 +5985,13 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
     const [lastCommentTime, setLastCommentTime] = useState(0);
     const COMMENT_COOLDOWN_MS = 60000; // 1 minute
     const [cooldownTick, setCooldownTick] = useState(0);
-    
+
     // Tick every second to update cooldown display
     useEffect(() => {
         const timer = setInterval(() => setCooldownTick(t => t + 1), 1000);
         return () => clearInterval(timer);
     }, []);
-    
+
     const cooldownRemaining = Math.max(0, Math.ceil((COMMENT_COOLDOWN_MS - (Date.now() - lastCommentTime)) / 1000));
     const isCoolingDown = cooldownRemaining > 0 && lastCommentTime > 0;
     const [momentReportReason, setMomentReportReason] = useState('');
@@ -6793,20 +6703,18 @@ const MomentsSettingsSection = ({ currentUser, userData, lang }) => {
     );
 };
 
-// ==========================================
 // 🎯 PROFILE V11 - MAIN COMPONENT
-// ==========================================
-const ProfileV11 = ({ 
-    show, 
-    onClose, 
-    targetUID, 
-    lang, 
-    currentUserUID, 
-    onSendFriendRequest, 
-    onSendGift, 
-    userData, 
-    currentUserFriends, 
-    currentUserFriendRequests, 
+const ProfileV11 = ({
+    show,
+    onClose,
+    targetUID,
+    lang,
+    currentUserUID,
+    onSendFriendRequest,
+    onSendGift,
+    userData,
+    currentUserFriends,
+    currentUserFriendRequests,
     friendsData,
     isOwnProfileOverride = false,
     onOpenSettings,
@@ -6822,7 +6730,7 @@ const ProfileV11 = ({
     onOpenChat
 }) => {
     const t = TRANSLATIONS[lang] || {};
-    
+
     const [targetData, setTargetData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showGiftModal, setShowGiftModal] = useState(false);
@@ -6842,19 +6750,19 @@ const ProfileV11 = ({
     const [reportSending, setReportSending] = useState(false);
     const [selfGift, setSelfGift] = useState(null);
     const [showSelfGiftModal, setShowSelfGiftModal] = useState(false);
-    
+
     const optionsRef = useRef(null);
 
     useEffect(() => {
-        if (!show || !targetUID) { 
-            setLoading(true); 
-            return; 
+        if (!show || !targetUID) {
+            setLoading(true);
+            return;
         }
-        
+
         setLoading(true);
         setRequestSent(false);
         setShowOptionsMenu(false);
-        
+
         usersCollection.doc(targetUID).get().then(doc => {
             if (doc.exists) {
                 const data = doc.data();
@@ -6892,7 +6800,7 @@ const ProfileV11 = ({
     // Fetch gifts without orderBy to avoid Firebase index requirement
     useEffect(() => {
         if (!show || !targetUID) return;
-        
+
         const unsub = giftsLogCollection
             .where('receiverId', '==', targetUID)
             .limit(50)
@@ -6907,7 +6815,7 @@ const ProfileV11 = ({
                 setGifts(giftData);
             }, error => {
             });
-        
+
         return unsub;
     }, [show, targetUID]);
 
@@ -6917,7 +6825,7 @@ const ProfileV11 = ({
                 setShowOptionsMenu(false);
             }
         };
-        
+
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
@@ -7004,16 +6912,16 @@ const ProfileV11 = ({
                 <ProfileEffectOverlay key={`fx-${targetUID}`} effectId={targetData.equipped.profileEffects} />
             )}
             <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
-                
+
                 {/* Profile Header Bar - X button on RIGHT, Three dots on LEFT of X */}
                 <div className="profile-header-bar">
                     {/* Spacer on left to push buttons to right */}
                     <div style={{ flex: 1 }}></div>
-                    
+
                     {/* Three dots menu (only for other users, NOT for guest viewers) */}
                     {!isOwnProfile && !isTargetGuest && !isGuestViewer && (
                         <div className="profile-options-container" ref={optionsRef}>
-                            <button 
+                            <button
                                 className="profile-options-btn"
                                 onClick={() => setShowOptionsMenu(!showOptionsMenu)}
                             >
@@ -7040,9 +6948,9 @@ const ProfileV11 = ({
                             )}
                         </div>
                     )}
-                    
+
                     {/* X button - ALWAYS on the far right */}
-                    <button 
+                    <button
                         onClick={onClose}
                         className="profile-close-btn"
                     >
@@ -7139,10 +7047,10 @@ const ProfileV11 = ({
                                     )}
                                 </div>
                             </div>
-                            
+
                             <UserBadgesV11 equipped={targetData?.equipped} lang={lang} />
-                            
-                            <span 
+
+                            <span
                                 className="profile-id-display"
                                 onClick={() => {
                                     navigator.clipboard.writeText(targetData?.customId || targetData?.uid?.substring(0, 8));
@@ -7150,12 +7058,12 @@ const ProfileV11 = ({
                                     setTimeout(() => setCopiedId(false), 2000);
                                 }}
                             >
-                                {copiedId 
-                                    ? (lang === 'ar' ? '✓ تم النسخ!' : '✓ Copied!') 
+                                {copiedId
+                                    ? (lang === 'ar' ? '✓ تم النسخ!' : '✓ Copied!')
                                     : `ID: ${targetData?.customId || targetData?.uid?.substring(0, 8)} 📋`
                                 }
                             </span>
-                            
+
                             {/* Charisma Display */}
                             {/* Moments Section - above Charisma */}
                             <MomentsSection
@@ -7378,7 +7286,7 @@ const ProfileV11 = ({
                                 {lang === 'ar' ? 'حظر المستخدم' : 'Block User'}
                             </div>
                             <div className="profile-confirm-message">
-                                {lang === 'ar' 
+                                {lang === 'ar'
                                     ? `هل أنت متأكد من حظر ${targetData?.displayName || 'هذا المستخدم'}؟`
                                     : `Are you sure you want to block ${targetData?.displayName || 'this user'}?`}
                             </div>
@@ -7396,7 +7304,7 @@ const ProfileV11 = ({
             </div>
 
             {showGiftModal && targetData && (
-                <SendGiftModal 
+                <SendGiftModal
                     show={showGiftModal}
                     onClose={() => setShowGiftModal(false)}
                     targetUser={targetData}
