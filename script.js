@@ -5393,7 +5393,7 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
     }, [rawAchievements]);
 
     const [selectedAch, setSelectedAch]   = useState(null);
-    const [showAll, setShowAll]            = useState(false);
+    const [showExpanded, setShowExpanded]  = useState(false);
     const INITIAL_COUNT = 8;
 
     // Current value for progress
@@ -5426,7 +5426,7 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
         });
     }, [unlockedIds, userData]);
 
-    const displayed = showAll ? sorted : sorted.slice(0, INITIAL_COUNT);
+    const displayed = showExpanded ? sorted : sorted.slice(0, INITIAL_COUNT);
     const unlockedCount = unlockedIds.length;
 
     return (
@@ -5514,7 +5514,7 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
             {sorted.length > INITIAL_COUNT && (
                 <button
                     className="profile-achievements-more-btn"
-                    onClick={() => setShowAll(v => !v)}
+                    onClick={() => setShowExpanded(v => !v)}
                 >
                     {showAll
                         ? (lang==='ar'?'▲ عرض أقل':'▲ Show less')
