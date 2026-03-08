@@ -2176,32 +2176,29 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     const t = TRANSLATIONS[lang];
     const [claiming, setClaiming] = useState(false);
     const [countdown, setCountdown] = useState('');
-    
-    if (!show) return null;
-    
+
+    // ALL computations before any hooks - Rules of Hooks compliance
     const loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
     
-    // Robust date comparison - handle Firestore Timestamp, Date, and string
     const getLastClaimDate = () => {
         const lcd = loginData.lastClaimDate;
         if (!lcd) return null;
-        if (lcd?.toDate) return lcd.toDate(); // Firestore Timestamp
+        if (lcd?.toDate) return lcd.toDate();
         if (lcd instanceof Date) return lcd;
         const d = new Date(lcd);
         return isNaN(d.getTime()) ? null : d;
     };
     
     const lastClaimDate = getLastClaimDate();
-    const today = new Date();
-    const todayStr = today.toDateString();
+    const todayStr = new Date().toDateString();
     const lastClaimStr = lastClaimDate ? lastClaimDate.toDateString() : null;
     const canClaimToday = lastClaimStr !== todayStr;
     const currentDay = loginData.currentDay || 0;
     const currentReward = LOGIN_REWARDS[currentDay];
     
-    // Countdown timer to next claim
+    // Countdown timer - MUST be before any conditional returns
     useEffect(() => {
-        if (canClaimToday || !lastClaimDate) { setCountdown(''); return; }
+        if (!show || canClaimToday || !lastClaimDate) { setCountdown(''); return; }
         const calcCountdown = () => {
             const now = new Date();
             const nextMidnight = new Date(now);
@@ -2216,7 +2213,10 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
         calcCountdown();
         const timer = setInterval(calcCountdown, 1000);
         return () => clearInterval(timer);
-    }, [canClaimToday, lastClaimDate]);
+    }, [show, canClaimToday, lastClaimDate]);
+
+    // Early return AFTER all hooks
+    if (!show) return null;
     
     const handleClaim = async () => { 
         if (!canClaimToday || claiming) return; 
@@ -3812,6 +3812,8 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
     const [activeTab, setActiveTab] = useState('wall');
     const totalGifts = gifts?.length || 0;
     const [selectedGiftDetail, setSelectedGiftDetail] = useState(null);
+    const [showAllGifts, setShowAllGifts] = useState(false);
+    const GIFTS_LIMIT = 24;
 
     // Calculate gift counts and last sender info
     const giftData = useMemo(() => {
@@ -3833,7 +3835,9 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
         return { counts, lastSenders };
     }, [gifts]);
 
-    const displayGifts = SHOP_ITEMS.gifts; // All gifts auto-synced
+    const allGifts = SHOP_ITEMS.gifts;
+    const displayGifts = showAllGifts ? allGifts : allGifts.slice(0, GIFTS_LIMIT);
+    const hasMoreGifts = allGifts.length > GIFTS_LIMIT;
 
     return (
         <div className="profile-gift-section">
@@ -3880,6 +3884,26 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                         );
                     })}
                 </div>
+            )}
+
+            {/* More / Less gifts button */}
+            {activeTab === 'wall' && hasMoreGifts && (
+                <button
+                    onClick={() => setShowAllGifts(v => !v)}
+                    style={{
+                        width:'100%', marginTop:'6px', padding:'7px',
+                        background:'rgba(0,242,255,0.05)',
+                        border:'1px solid rgba(0,242,255,0.15)',
+                        borderRadius:'8px', color:'#00f2ff', fontSize:'11px',
+                        fontWeight:700, cursor:'pointer', display:'flex',
+                        alignItems:'center', justifyContent:'center', gap:'5px'
+                    }}
+                >
+                    {showAllGifts
+                        ? (lang==='ar' ? '▲ عرض أقل' : '▲ Show Less')
+                        : `▼ ${lang==='ar' ? 'المزيد' : 'More'} (${allGifts.length - GIFTS_LIMIT} ${lang==='ar' ? 'هدية' : 'gifts'})`
+                    }
+                </button>
             )}
 
             {/* Gift Detail Popup - PORTAL to escape backdrop-filter */}
@@ -4321,20 +4345,29 @@ const MomentsSection = ({ ownerUID, currentUser, isOwnProfile, lang }) => {
                     {lang === 'ar' ? 'لا توجد لحظات بعد' : 'No moments yet'}
                 </div>
             ) : (
-                <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'4px'}}>
+                <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'5px'}}>
                     {moments.map(moment => (
                         <div
                             key={moment.id}
                             onClick={() => setSelectedMoment(moment)}
                             style={{
-                                aspectRatio:'1', borderRadius:'8px', overflow:'hidden',
-                                background:'rgba(31,41,55,0.6)', border:'1px solid rgba(255,255,255,0.08)',
-                                cursor:'pointer', position:'relative', transition:'all 0.2s',
+                                aspectRatio:'1', borderRadius:'10px', overflow:'hidden',
+                                background:'linear-gradient(135deg,rgba(0,242,255,0.06),rgba(112,0,255,0.06))',
+                                border:'1px solid rgba(0,242,255,0.18)',
+                                boxShadow:'0 0 8px rgba(0,242,255,0.06)',
+                                cursor:'pointer', position:'relative', transition:'transform 0.15s',
                                 display:'flex', alignItems:'center', justifyContent:'center'
                             }}
+                            onMouseEnter={e => e.currentTarget.style.transform='scale(0.97)'}
+                            onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}
                         >
+                            {/* Moment type indicator */}
+                            <div style={{position:'absolute', top:'4px', left:'4px', zIndex:2, fontSize:'8px', background:'rgba(0,0,0,0.6)', borderRadius:'4px', padding:'1px 4px', color:'#00f2ff', fontWeight:700}}>
+                                {moment.type === 'text' ? '✏️' : moment.type === 'image' ? '🖼️' : '🎥'}
+                            </div>
+
                             {moment.type === 'text' ? (
-                                <div style={{padding:'6px', fontSize:'9px', color:'#e2e8f0', textAlign:'center', wordBreak:'break-word', lineHeight:1.4, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical'}}>
+                                <div style={{padding:'8px', fontSize:'9px', color:'#e2e8f0', textAlign:'center', wordBreak:'break-word', lineHeight:1.5, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:5, WebkitBoxOrient:'vertical'}}>
                                     {moment.content}
                                 </div>
                             ) : moment.type === 'image' ? (
@@ -4342,17 +4375,18 @@ const MomentsSection = ({ ownerUID, currentUser, isOwnProfile, lang }) => {
                             ) : moment.type === 'video' ? (
                                 <div style={{width:'100%', height:'100%', position:'relative', background:'#000'}}>
                                     <video src={moment.mediaUrl} style={{width:'100%', height:'100%', objectFit:'cover'}} muted />
-                                    <div style={{position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.3)'}}>
-                                        <span style={{fontSize:'20px'}}>▶</span>
+                                    <div style={{position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.25)'}}>
+                                        <span style={{fontSize:'22px'}}>▶</span>
                                     </div>
                                 </div>
                             ) : null}
-                            {/* Likes count badge */}
-                            {(moment.likesCount || 0) > 0 && (
-                                <div style={{position:'absolute', bottom:'2px', right:'2px', background:'rgba(0,0,0,0.7)', borderRadius:'6px', padding:'1px 5px', fontSize:'8px', color:'#f87171', fontWeight:700}}>
-                                    ❤️ {moment.likesCount}
-                                </div>
-                            )}
+
+                            {/* Likes + comments bottom bar */}
+                            <div style={{position:'absolute', bottom:0, left:0, right:0, background:'linear-gradient(transparent,rgba(0,0,0,0.75))', padding:'8px 4px 3px', display:'flex', justifyContent:'flex-end', gap:'6px', alignItems:'center'}}>
+                                {(moment.likesCount || 0) > 0 && (
+                                    <span style={{fontSize:'8px', color:'#f87171', fontWeight:700}}>❤️ {moment.likesCount}</span>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -4438,6 +4472,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
     };
 
     const handleDeleteComment = async (commentId) => {
+        if (!window.confirm(lang === 'ar' ? 'حذف هذا التعليق؟' : 'Delete this comment?')) return;
         await momentsCollection.doc(moment.id).collection('comments').doc(commentId).delete();
     };
 
@@ -4600,33 +4635,29 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                     </div>
                 )}
 
-                {/* Delete confirm overlay */}
+                {/* Delete confirm - PortalModal to escape overflow:hidden */}
                 {showDeleteConfirm && (
-                    <div style={{position:'absolute', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'16px', zIndex:10}}>
-                        <div style={{background:'#1e293b', border:'1px solid rgba(239,68,68,0.4)', borderRadius:'12px', padding:'20px 24px', textAlign:'center', maxWidth:'260px'}}>
-                            <div style={{fontSize:'28px', marginBottom:'8px'}}>🗑️</div>
-                            <div style={{fontSize:'13px', fontWeight:700, color:'white', marginBottom:'6px'}}>
-                                {lang === 'ar' ? 'حذف اللحظة؟' : 'Delete Moment?'}
-                            </div>
-                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'16px'}}>
-                                {lang === 'ar' ? 'لا يمكن التراجع عن هذا الإجراء' : 'This action cannot be undone'}
-                            </div>
-                            <div style={{display:'flex', gap:'8px'}}>
-                                <button
-                                    onClick={() => setShowDeleteConfirm(false)}
-                                    style={{flex:1, padding:'8px', borderRadius:'8px', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'12px', fontWeight:700, cursor:'pointer'}}
-                                >
-                                    {lang === 'ar' ? 'إلغاء' : 'Cancel'}
-                                </button>
-                                <button
-                                    onClick={() => { setShowDeleteConfirm(false); onDelete(moment.id); }}
-                                    style={{flex:1, padding:'8px', borderRadius:'8px', background:'rgba(239,68,68,0.2)', border:'1px solid rgba(239,68,68,0.4)', color:'#f87171', fontSize:'12px', fontWeight:700, cursor:'pointer'}}
-                                >
-                                    {lang === 'ar' ? 'حذف' : 'Delete'}
-                                </button>
+                    <PortalModal>
+                        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:999999, padding:'16px'}} onClick={() => setShowDeleteConfirm(false)}>
+                            <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)', border:'1px solid rgba(239,68,68,0.35)', borderRadius:'14px', padding:'22px 24px', textAlign:'center', maxWidth:'260px', width:'100%'}} onClick={e => e.stopPropagation()}>
+                                <div style={{fontSize:'32px', marginBottom:'8px'}}>🗑️</div>
+                                <div style={{fontSize:'14px', fontWeight:800, color:'white', marginBottom:'6px'}}>
+                                    {lang === 'ar' ? 'حذف اللحظة؟' : 'Delete Moment?'}
+                                </div>
+                                <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'18px'}}>
+                                    {lang === 'ar' ? 'لا يمكن التراجع عن هذا الإجراء' : 'This action cannot be undone'}
+                                </div>
+                                <div style={{display:'flex', gap:'8px'}}>
+                                    <button onClick={() => setShowDeleteConfirm(false)} style={{flex:1, padding:'9px', borderRadius:'8px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'12px', fontWeight:700, cursor:'pointer'}}>
+                                        {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                                    </button>
+                                    <button onClick={() => { setShowDeleteConfirm(false); onDelete(moment.id); }} style={{flex:1, padding:'9px', borderRadius:'8px', background:'rgba(239,68,68,0.18)', border:'1px solid rgba(239,68,68,0.4)', color:'#f87171', fontSize:'12px', fontWeight:700, cursor:'pointer'}}>
+                                        {lang === 'ar' ? 'حذف' : 'Delete'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </PortalModal>
                 )}
             </div>
         </div>
@@ -5367,23 +5398,28 @@ const ProfileV11 = ({
                             </div>
                             <div style={{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'14px'}}>
                                 {[
-                                    {key:'abusive', ar:'سلوك مسيء', en:'Abusive Behavior'},
-                                    {key:'cheating', ar:'غش',        en:'Cheating'},
-                                    {key:'spam',     ar:'سبام',       en:'Spam'},
-                                    {key:'other',    ar:'سبب آخر',   en:'Other'}
+                                    {key:'abusive',       icon:'🤬', ar:'سلوك مسيء',       en:'Abusive Behavior'},
+                                    {key:'verbal_abuse',  icon:'💬', ar:'شتيمة لفظية',      en:'Verbal Abuse'},
+                                    {key:'cheating',      icon:'🎮', ar:'غش في اللعبة',     en:'Cheating'},
+                                    {key:'fraud',         icon:'💰', ar:'احتيال',            en:'Fraud'},
+                                    {key:'avatar',        icon:'🖼️', ar:'صورة أفاتار مسيئة', en:'Inappropriate Avatar'},
+                                    {key:'spam',          icon:'📢', ar:'سبام',              en:'Spam'},
+                                    {key:'other',         icon:'❓', ar:'سبب آخر',           en:'Other'}
                                 ].map(r => (
                                     <button
                                         key={r.key}
                                         onClick={() => setReportReason(r.key)}
                                         style={{
-                                            padding:'9px 12px', borderRadius:'8px', fontSize:'12px',
+                                            padding:'8px 12px', borderRadius:'8px', fontSize:'12px',
                                             textAlign:'start', cursor:'pointer', fontWeight:600,
+                                            display:'flex', alignItems:'center', gap:'8px',
                                             background: reportReason === r.key ? 'rgba(112,0,255,0.3)' : 'rgba(255,255,255,0.05)',
                                             border: reportReason === r.key ? '1.5px solid #7000ff' : '1px solid rgba(255,255,255,0.1)',
                                             color: reportReason === r.key ? 'white' : '#9ca3af'
                                         }}
                                     >
-                                        {lang === 'ar' ? r.ar : r.en}
+                                        <span>{r.icon}</span>
+                                        <span>{lang === 'ar' ? r.ar : r.en}</span>
                                     </button>
                                 ))}
                             </div>
