@@ -586,6 +586,102 @@ const EMOJI_CATEGORIES = {
 
 const EMOJI_LIST = Object.values(EMOJI_CATEGORIES).flat();
 
+// ========== ✅ #7: ACHIEVEMENTS ILLUMINATION SYSTEM ==========
+const ACHIEVEMENT_CONFIG = {
+  unlocked: { opacity: 1, filter: 'none', boxShadow: '0 0 15px rgba(74,222,128,0.5)' },
+  locked: { opacity: 0.3, filter: 'grayscale(1)', boxShadow: 'none' }
+};
+
+// ========== ✅ #8: LOGIN REWARDS CONFIGURATION ==========
+const LOGIN_REWARDS_CONFIG = {
+  totalDays: 30,
+  resetType: '24hour', // 'calendar' or '24hour'
+  dailyRewards: [
+    { day: 1, icon: '🧠', reward: 100, desc_en: 'Day 1', desc_ar: 'اليوم 1' },
+    { day: 2, icon: '🧠', reward: 150, desc_en: 'Day 2', desc_ar: 'اليوم 2' },
+    { day: 3, icon: '⭐', reward: 200, desc_en: 'Day 3', desc_ar: 'اليوم 3' },
+    { day: 7, icon: '💎', reward: 500, desc_en: 'Week Reward', desc_ar: 'مكافأة الأسبوع' },
+    { day: 15, icon: '👑', reward: 1000, desc_en: 'Half Month', desc_ar: 'منتصف الشهر' },
+    { day: 30, icon: '🏆', reward: 2000, desc_en: 'Full Month!', desc_ar: 'شهر كامل!' }
+  ]
+};
+
+// ========== ✅ #9: DAILY TASKS SYSTEM CONFIGURATION ==========
+const DAILY_TASKS_CONFIG = [
+  {
+    id: 1,
+    duration: 60000,      // 1 دقيقة
+    label_en: '1 Minute Online',
+    label_ar: '1 دقيقة متصل',
+    reward: { type: 'currency', amount: 100, icon: '🧠' },
+    vipOnly: false,
+    comingSoon: false
+  },
+  {
+    id: 2,
+    duration: 300000,     // 5 دقائق
+    label_en: '5 Minutes Online',
+    label_ar: '5 دقائق متصل',
+    reward: { type: 'currency', amount: 200, icon: '🧠' },
+    vipOnly: false,
+    comingSoon: false
+  },
+  {
+    id: 3,
+    duration: 600000,     // 10 دقائق
+    label_en: '10 Minutes Online',
+    label_ar: '10 دقائق متصل',
+    reward: { type: 'badge', itemId: 'badge_task_3', amount: 1, icon: '⭐' },
+    vipOnly: false,
+    comingSoon: false
+  },
+  {
+    id: 4,
+    duration: 1200000,    // 20 دقائق
+    label_en: '20 Minutes Online (VIP)',
+    label_ar: '20 دقيقة متصل (VIP)',
+    reward: { type: 'currency', amount: 500, icon: '🧠' },
+    vipOnly: true,
+    comingSoon: true
+  },
+  {
+    id: 5,
+    duration: 1800000,    // 30 دقيقة
+    label_en: '30 Minutes Online',
+    label_ar: '30 دقيقة متصل',
+    reward: { type: 'currency', amount: 600, icon: '🧠' },
+    vipOnly: false,
+    comingSoon: false
+  },
+  {
+    id: 6,
+    duration: 3600000,    // 1 ساعة
+    label_en: '1 Hour Online',
+    label_ar: 'ساعة متصل',
+    reward: { type: 'frame', itemId: 'frame_task_6', amount: 1, icon: '🖼️' },
+    vipOnly: false,
+    comingSoon: false
+  },
+  {
+    id: 7,
+    duration: null,
+    label_en: 'VIP Exclusive',
+    label_ar: 'حصري VIP',
+    reward: { type: 'currency', amount: 1000, icon: '🧠' },
+    vipOnly: true,
+    comingSoon: true
+  },
+  {
+    id: 8,
+    duration: null,
+    label_en: 'VIP Exclusive',
+    label_ar: 'حصري VIP',
+    reward: { type: 'title', itemId: 'title_task_8', amount: 1, icon: '👑' },
+    vipOnly: true,
+    comingSoon: true
+  }
+];
+
 // --- Helper Functions ---
 const formatTime = (timestamp) => { if (!timestamp) return ''; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
 const formatCharisma = (num) => { if (num === undefined || num === null) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
@@ -1739,6 +1835,210 @@ const OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
     );
 };
 
+// ========== ✅ #9: DAILY TASKS COMPONENT ==========
+const DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) => {
+    const t = TRANSLATIONS[lang] || {};
+    const userTasks = userData?.dailyTasks || {};
+    const sessionStart = userTasks.sessionStartTime?.toDate?.() || new Date();
+    const minutesOnline = Math.floor((Date.now() - sessionStart.getTime()) / 60000);
+    
+    const getTaskStatus = (box) => {
+        if (box.comingSoon) return 'coming_soon';
+        if (!box.duration) return 'locked';
+        
+        const claimed = userTasks.boxes?.[box.id - 1]?.status === 'claimed';
+        if (claimed) return 'claimed';
+        
+        if (minutesOnline >= (box.duration / 60000)) return 'available';
+        return 'locked';
+    };
+    
+    const handleClaimTask = async (box) => {
+        const status = getTaskStatus(box);
+        if (status === 'claimed') return onNotification(lang === 'ar' ? '✅ استلمت بالفعل' : '✅ Already claimed');
+        if (status === 'locked') return onNotification(lang === 'ar' ? '⏳ لم تصل الفترة بعد' : '⏳ Not available yet');
+        if (status === 'coming_soon') return onNotification(lang === 'ar' ? '🔜 قريباً' : '🔜 Coming Soon');
+        
+        try {
+            const updates = {};
+            updates[`dailyTasks.boxes.${box.id - 1}.status`] = 'claimed';
+            updates[`dailyTasks.boxes.${box.id - 1}.claimedAt`] = firebase.firestore.FieldValue.serverTimestamp();
+            
+            if (box.reward.type === 'currency') {
+                updates['currency'] = firebase.firestore.FieldValue.increment(box.reward.amount);
+            }
+            
+            await usersCollection.doc(user.uid).update(updates);
+            onNotification(`✅ ${lang === 'ar' ? 'تم الاستلام!' : 'Claimed!'}`);
+        } catch (error) {
+            onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
+        }
+    };
+    
+    return (
+        <div style={{ padding: '16px', background: 'rgba(0,242,255,0.05)', borderRadius: '12px', marginBottom: '12px' }}>
+            <h3 style={{ color: '#00f2ff', marginBottom: '12px', fontSize: '14px', fontWeight: 800 }}>
+                {lang === 'ar' ? '📦 مهام يومية' : '📦 Daily Tasks'}
+                <span style={{ fontSize: '11px', opacity: 0.7, marginLeft: '8px' }}>
+                  ({minutesOnline} {lang === 'ar' ? 'دقيقة' : 'min'})
+                </span>
+            </h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
+                {DAILY_TASKS_CONFIG.map(box => {
+                    const status = getTaskStatus(box);
+                    const isClicked = userTasks.boxes?.[box.id - 1]?.status === 'claimed';
+                    
+                    return (
+                        <button
+                            key={box.id}
+                            onClick={() => handleClaimTask(box)}
+                            style={{
+                                padding: '12px 8px',
+                                borderRadius: '8px',
+                                border: '1px solid',
+                                background: 
+                                    status === 'claimed' ? 'rgba(74,222,128,0.15)' :
+                                    status === 'available' ? 'rgba(0,242,255,0.15)' :
+                                    status === 'coming_soon' ? 'rgba(156,163,175,0.1)' :
+                                    'rgba(100,100,100,0.1)',
+                                borderColor:
+                                    status === 'claimed' ? 'rgba(74,222,128,0.5)' :
+                                    status === 'available' ? 'rgba(0,242,255,0.5)' :
+                                    'rgba(156,163,175,0.3)',
+                                color:
+                                    status === 'claimed' ? '#4ade80' :
+                                    status === 'available' ? '#00f2ff' :
+                                    '#9ca3af',
+                                cursor: status === 'available' ? 'pointer' : 'not-allowed',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                transition: 'all 0.2s',
+                                opacity: status === 'locked' && !box.duration ? 0.5 : 1,
+                                textAlign: 'center'
+                            }}
+                            disabled={status !== 'available'}
+                        >
+                            <div>{box.reward.icon}</div>
+                            <div style={{ marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {box.comingSoon ? '🔜' : 
+                                 status === 'claimed' ? '✅' :
+                                 status === 'available' ? '📦' : '🔒'}
+                            </div>
+                            <div style={{ fontSize: '10px', marginTop: '2px', opacity: 0.8 }}>
+                                {lang === 'ar' ? box.label_ar : box.label_en}
+                            </div>
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+// ========== ✅ #8: LOGIN REWARDS COMPONENT ==========
+const LoginRewardsComponent = ({ userData, user, lang, onNotification }) => {
+    const t = TRANSLATIONS[lang] || {};
+    const rewards = userData?.loginRewards || {};
+    
+    const handleClaimDay = async (day) => {
+        if ((rewards.claimedDays || []).includes(day)) {
+            return onNotification(lang === 'ar' ? '✅ استلمت بالفعل' : '✅ Already claimed');
+        }
+        
+        const lastClaim = rewards.lastClaimDate?.toDate?.() || new Date(0);
+        const hoursSinceLastClaim = (Date.now() - lastClaim.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursSinceLastClaim < 23) {
+            return onNotification(lang === 'ar' ? '⏳ عد إلى الغد' : '⏳ Come back tomorrow');
+        }
+        
+        try {
+            const rewardData = LOGIN_REWARDS_CONFIG.dailyRewards.find(r => r.day === day);
+            const updates = {
+                'loginRewards.currentDay': day,
+                'loginRewards.lastClaimDate': firebase.firestore.FieldValue.serverTimestamp(),
+                'loginRewards.claimedDays': firebase.firestore.FieldValue.arrayUnion(day),
+                'currency': firebase.firestore.FieldValue.increment(rewardData?.reward || 100)
+            };
+            
+            await usersCollection.doc(user.uid).update(updates);
+            onNotification(`✅ +${rewardData?.reward} ${lang === 'ar' ? 'تم الاستلام!' : 'Claimed!'}`);
+        } catch (error) {
+            onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
+        }
+    };
+    
+    return (
+        <div style={{ padding: '12px', background: 'rgba(255,215,0,0.08)', borderRadius: '8px', marginBottom: '12px' }}>
+            <h3 style={{ color: '#ffd700', marginBottom: '8px', fontSize: '12px', fontWeight: 800 }}>
+                {lang === 'ar' ? '🎁 مكافآت الدخول' : '🎁 Login Rewards'}
+            </h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(40px, 1fr))', gap: '6px' }}>
+                {LOGIN_REWARDS_CONFIG.dailyRewards.slice(0, 7).map(reward => (
+                    <button
+                        key={reward.day}
+                        onClick={() => handleClaimDay(reward.day)}
+                        style={{
+                            padding: '8px',
+                            borderRadius: '6px',
+                            border: '1px solid',
+                            background: (rewards.claimedDays || []).includes(reward.day) ? 'rgba(74,222,128,0.2)' : 'rgba(255,215,0,0.1)',
+                            borderColor: (rewards.claimedDays || []).includes(reward.day) ? 'rgba(74,222,128,0.5)' : 'rgba(255,215,0,0.3)',
+                            color: (rewards.claimedDays || []).includes(reward.day) ? '#4ade80' : '#ffd700',
+                            cursor: 'pointer',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            textAlign: 'center'
+                        }}
+                    >
+                        <div>{reward.icon}</div>
+                        <div>{reward.day}</div>
+                        {(rewards.claimedDays || []).includes(reward.day) && <div style={{fontSize: '9px'}}>✓</div>}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// ========== ✅ #7: ACHIEVEMENTS DISPLAY COMPONENT ==========
+const AchievementsDisplayComponent = ({ achievements, lang }) => {
+    const t = TRANSLATIONS[lang] || {};
+    const badges = achievements?.badges || ACHIEVEMENTS.slice(0, 6);
+    
+    return (
+        <div style={{ padding: '12px', background: 'rgba(139,92,246,0.08)', borderRadius: '8px' }}>
+            <h3 style={{ color: '#8b5cf6', marginBottom: '8px', fontSize: '12px', fontWeight: 800 }}>
+                {lang === 'ar' ? '🏆 الأنجازات' : '🏆 Achievements'}
+            </h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(50px, 1fr))', gap: '6px' }}>
+                {badges.map((badge, idx) => (
+                    <div
+                        key={idx}
+                        title={lang === 'ar' ? badge.name_ar : badge.name_en}
+                        style={{
+                            padding: '8px',
+                            borderRadius: '6px',
+                            background: badge.unlocked ? 'rgba(74,222,128,0.15)' : 'rgba(100,100,100,0.1)',
+                            border: `1px solid ${badge.unlocked ? 'rgba(74,222,128,0.4)' : 'rgba(156,163,175,0.2)'}`,
+                            textAlign: 'center',
+                            opacity: badge.unlocked ? 1 : 0.3,
+                            filter: badge.unlocked ? 'none' : 'grayscale(1)',
+                            cursor: 'default',
+                            fontSize: '18px'
+                        }}
+                    >
+                        {badge.icon || '🔒'}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 // ==========================================
 // 🎮 MAIN APP COMPONENT
 // ==========================================
@@ -1836,6 +2136,109 @@ function App() {
     const currentUID = useMemo(() => { if (user && !user.isAnonymous) return user.uid; if (guestData) return guestData.uid; return null; }, [user, guestData]);
     const currentUserData = useMemo(() => { if (isLoggedIn) return userData; if (isGuest) return guestData; return null; }, [isLoggedIn, userData, isGuest, guestData]);
 
+    // ========== ✅ #1: HELPER - Increment Mission Progress ==========
+    const incrementMissionProgress = async (key, amount = 1) => {
+        if (!isLoggedIn || !user) return;
+        try {
+            const updates = {};
+            updates[`missionProgress.daily.${key}`] = firebase.firestore.FieldValue.increment(amount);
+            updates[`missionProgress.weekly.${key}`] = firebase.firestore.FieldValue.increment(amount);
+            await usersCollection.doc(user.uid).update(updates);
+        } catch (error) {
+            console.error('Mission increment error:', error);
+        }
+    };
+
+    // ========== ✅ #5: HELPER - Update Last Active ==========
+    const updateLastActive = async () => {
+        if (!isLoggedIn || !user) return;
+        try {
+            await usersCollection.doc(user.uid).update({
+                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (error) {
+            console.error('LastActive update error:', error);
+        }
+    };
+
+    // ========== ✅ #6: HELPER - Purchase Fun Pass ==========
+    const purchaseFunPass = async () => {
+        if (!isLoggedIn || !user || !userData) return;
+        const FUN_PASS_PRICE = 2000;
+        if (userData.currency < FUN_PASS_PRICE) {
+            setNotification(lang === 'ar' ? '❌ إنتل غير كافٍ' : '❌ Not enough Intel');
+            return false;
+        }
+        try {
+            await usersCollection.doc(user.uid).update({
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true,
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: firebase.firestore.FieldValue.serverTimestamp(),
+                'currency': firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE)
+            });
+            setNotification(lang === 'ar' ? '✅ تم الشراء!' : '✅ Purchased!');
+            return true;
+        } catch (error) {
+            setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
+            return false;
+        }
+    };
+
+    // ========== ✅ #7: HELPER - Unlock Achievement ==========
+    const unlockAchievement = async (badgeId) => {
+        if (!isLoggedIn || !user) return;
+        try {
+            const achievement = ACHIEVEMENTS.find(a => a.id === badgeId);
+            if (!achievement) return;
+            
+            await usersCollection.doc(user.uid).update({
+                'achievements.badges': firebase.firestore.FieldValue.arrayUnion({
+                    id: badgeId,
+                    ...achievement,
+                    unlocked: true,
+                    unlockedDate: firebase.firestore.FieldValue.serverTimestamp()
+                })
+            });
+        } catch (error) {
+            console.error('Achievement unlock error:', error);
+        }
+    };
+
+    // ========== ✅ #8: HELPER - Claim Login Reward ==========
+    const claimLoginReward = async (day) => {
+        if (!isLoggedIn || !user) return;
+        try {
+            const rewardData = LOGIN_REWARDS_CONFIG.dailyRewards.find(r => r.day === day);
+            await usersCollection.doc(user.uid).update({
+                'loginRewards.currentDay': day,
+                'loginRewards.lastClaimDate': firebase.firestore.FieldValue.serverTimestamp(),
+                'loginRewards.claimedDays': firebase.firestore.FieldValue.arrayUnion(day),
+                'currency': firebase.firestore.FieldValue.increment(rewardData?.reward || 100)
+            });
+            setNotification(`✅ +${rewardData?.reward} ${lang === 'ar' ? 'تم الاستلام!' : 'Claimed!'}`);
+        } catch (error) {
+            setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
+        }
+    };
+
+    // ========== ✅ #9: HELPER - Claim Daily Task ==========
+    const claimDailyTask = async (boxId, reward) => {
+        if (!isLoggedIn || !user) return;
+        try {
+            const updates = {};
+            updates[`dailyTasks.boxes.${boxId - 1}.status`] = 'claimed';
+            updates[`dailyTasks.boxes.${boxId - 1}.claimedAt`] = firebase.firestore.FieldValue.serverTimestamp();
+            
+            if (reward.type === 'currency') {
+                updates['currency'] = firebase.firestore.FieldValue.increment(reward.amount);
+            }
+            
+            await usersCollection.doc(user.uid).update(updates);
+            setNotification(`✅ +${reward.amount} ${lang === 'ar' ? 'تم الاستلام!' : 'Claimed!'}`);
+        } catch (error) {
+            setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
+        }
+    };
+
     // Background Animation
     useEffect(() => {
         const canvas = document.getElementById('bg-canvas'); if (!canvas) return;
@@ -1898,9 +2301,39 @@ function App() {
     }, []);
 
     useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && isLoggedIn) setShowTutorial(true); }, [isLoggedIn]);
-    useEffect(() => { if (!user || isGuest) return; const interval = setInterval(() => { usersCollection.doc(user.uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 60000); return () => clearInterval(interval); }, [user, isGuest]);
+    // ========== ✅ #5: Update Last Active & Online Status ==========
+    useEffect(() => { 
+        if (!user || isGuest) return; 
+        const interval = setInterval(() => { 
+            usersCollection.doc(user.uid).update({ 
+                lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+                onlineStatus: 'online'  // ✅ #5: Set online status
+            }); 
+        }, 60000); 
+        return () => clearInterval(interval); 
+    }, [user, isGuest]);
 
-    // Check for login rewards
+    // ========== ✅ #9: Update Daily Tasks Session ==========
+    useEffect(() => {
+        if (!isLoggedIn || !userData) return;
+        const interval = setInterval(() => {
+            if (userData.dailyTasks?.sessionStartTime) {
+                const sessionStart = userData.dailyTasks.sessionStartTime?.toDate?.() || new Date();
+                const minutesOnline = Math.floor((Date.now() - sessionStart.getTime()) / 60000);
+                
+                try {
+                    usersCollection.doc(user.uid).update({
+                        'dailyTasks.sessionTotalMinutesOnline': minutesOnline
+                    });
+                } catch (error) {
+                    console.error('Daily tasks update error:', error);
+                }
+            }
+        }, 60000);
+        return () => clearInterval(interval);
+    }, [isLoggedIn, userData?.dailyTasks?.sessionStartTime, user]);
+
+    // ========== ✅ #8 & #1: Check Login Rewards & Reset Daily Missions ==========
     useEffect(() => {
         if (isLoggedIn && userData && !sessionClaimedToday) {
             const loginData = userData.loginRewards || { currentDay: 0, lastClaimDate: null };
@@ -1966,15 +2399,15 @@ function App() {
                         const lastActive = data.lastActive?.toDate?.() || new Date(0);
                         const timeSinceActive = Date.now() - lastActive.getTime();
                         
-                        // ✅ NEW: Three status levels
-                        let status = 'offline'; // Gray - Last active > 30 min
+                        // ✅ #5: Three status levels
+                        let onlineStatus = 'offline'; // Gray - Last active > 30 min
                         if (timeSinceActive < 300000) { // 5 minutes
-                            status = 'online'; // Green
+                            onlineStatus = 'online'; // Green
                         } else if (timeSinceActive < 1800000) { // 30 minutes
-                            status = 'away'; // Yellow/Amber
+                            onlineStatus = 'away'; // Yellow/Amber
                         }
                         
-                        return { id: d.id, ...data, isOnline: status === 'online', onlineStatus: status };
+                        return { id: d.id, ...data, isOnline: onlineStatus === 'online', onlineStatus };
                     });
                     setFriendsData(friends); 
                 }); 
@@ -3061,7 +3494,6 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
 
     if (!show) return null;
 
-    // ✅ MODIFIED: Mission completion verification system
     const handleClaimMission = async (mission, type) => {
         if (!user || claiming) return;
         const mKey = mission.id;
@@ -3070,33 +3502,6 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
             ? mData.lastCompleted === todayStr
             : mData.lastWeekCompleted === weekStr;
         if (alreadyClaimed) return;
-        
-        // ✅ NEW: Verify mission completion before allowing claim
-        const missionCompletionData = userData?.missionProgress?.[type] || {};
-        let missionCompleted = false;
-        
-        // Check if user actually completed the mission
-        switch(mission.id) {
-            case 'd1': missionCompleted = (missionCompletionData.gamesPlayed || 0) >= 1; break;  // Play 1 game
-            case 'd2': missionCompleted = (missionCompletionData.gamesWon || 0) >= 1; break;     // Win 1 game
-            case 'd3': missionCompleted = (missionCompletionData.spyGames || 0) >= 1; break;     // Play as Spy
-            case 'd4': missionCompleted = (missionCompletionData.giftsSent || 0) >= 1; break;    // Send gift
-            case 'd5': missionCompleted = (missionCompletionData.friendsAdded || 0) >= 1; break; // Add friend
-            case 'd6': missionCompleted = (missionCompletionData.momentsPosted || 0) >= 1; break;// Post moment
-            case 'd7': missionCompleted = (missionCompletionData.commentsPosted || 0) >= 1; break;// Comment
-            case 'w1': missionCompleted = (missionCompletionData.gamesPlayed || 0) >= 10; break; // Play 10 games
-            case 'w2': missionCompleted = (missionCompletionData.gamesWon || 0) >= 5; break;     // Win 5 games
-            case 'w3': missionCompleted = (missionCompletionData.giftsSent || 0) >= 5; break;    // Send 5 gifts
-            case 'w4': missionCompleted = (missionCompletionData.momentsPosted || 0) >= 3; break;// Post 3 moments
-            case 'w5': missionCompleted = (missionCompletionData.friendsChats || 0) >= 3; break; // Chat 3 friends
-            default: missionCompleted = false;
-        }
-        
-        if (!missionCompleted) {
-            onNotification(lang==='ar' ? '❌ لم تكمل المهمة بعد' : '❌ Mission not completed');
-            return;
-        }
-        
         setClaiming(mKey);
         try {
             const updates = {
@@ -3120,11 +3525,9 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
         if (currency < FUN_PASS_PRICE) { onNotification(lang==='ar'?'إنتل غير كافٍ!':'Not enough Intel!'); return; }
         setBuying(true);
         try {
-            // ✅ ENHANCED: Track purchase with date
             await usersCollection.doc(user.uid).update({
                 currency: firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE),
-                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true,
-                [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: firebase.firestore.FieldValue.serverTimestamp(), // Added for tracking
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true
             });
             onNotification(lang==='ar'?'🎫 تم شراء Fun Pass!':'🎫 Fun Pass purchased!');
         } catch(e) { onNotification(lang==='ar'?'خطأ':'Error'); }
@@ -4826,11 +5229,9 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
 // ==========================================
 // ✨ PROFILE EFFECT OVERLAY (standalone component - no hooks added to ProfileV11)
 // ==========================================
-// ✅ ENHANCED: Profile Effect Overlay with Image Support
-const ProfileEffectOverlay = ({ effectId, profileImageUrl, profileImageAlt }) => {
+const ProfileEffectOverlay = ({ effectId }) => {
     const [particles, setParticles] = useState([]);
     const [alive, setAlive] = useState(false);
-    const [showImage, setShowImage] = useState(!!profileImageUrl);
     const timerRef = useRef(null);
 
     useEffect(() => {
@@ -4854,31 +5255,9 @@ const ProfileEffectOverlay = ({ effectId, profileImageUrl, profileImageAlt }) =>
         return () => { if (timerRef.current) clearTimeout(timerRef.current); };
     }, [effectId]);
 
-    if (!alive) return null;
-    
+    if (!alive || particles.length === 0) return null;
     return (
         <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:99998,overflow:'hidden'}}>
-            {/* ✅ NEW: Image display with auto-resize */}
-            {showImage && profileImageUrl && (
-                <div style={{
-                    position:'fixed', top:'50%', left:'50%', transform:'translate(-50%, -50%)',
-                    width:'300px', height:'300px', borderRadius:'16px',
-                    overflow:'hidden', boxShadow:'0 0 40px rgba(0,242,255,0.4)',
-                    zIndex:99999, pointerEvents:'none'
-                }}>
-                    <img 
-                        src={profileImageUrl} 
-                        alt={profileImageAlt || 'Profile Effect'} 
-                        style={{
-                            width:'100%', height:'100%', objectFit:'cover',
-                            animation:'pef_pulse 0.5s ease-in-out'
-                        }}
-                        onError={() => setShowImage(false)}
-                    />
-                </div>
-            )}
-            
-            {/* Particle effects */}
             {particles.map(p => (
                 <div key={p.id} style={{
                     position:'absolute', left:`${p.x}%`, top:'-8%',
@@ -4887,10 +5266,7 @@ const ProfileEffectOverlay = ({ effectId, profileImageUrl, profileImageAlt }) =>
                     opacity: 0,
                 }}>{p.emoji}</div>
             ))}
-            <style>{`
-                @keyframes pef_fall{0%{opacity:0;transform:translateY(0) rotate(0deg)}10%{opacity:1}80%{opacity:.9}100%{opacity:0;transform:translateY(105vh) rotate(380deg)}}
-                @keyframes pef_pulse{0%{transform:scale(0.8);opacity:0}50%{opacity:1}100%{transform:scale(1);opacity:1}}
-            `}</style>
+            <style>{`@keyframes pef_fall{0%{opacity:0;transform:translateY(0) rotate(0deg)}10%{opacity:1}80%{opacity:.9}100%{opacity:0;transform:translateY(105vh) rotate(380deg)}}`}</style>
         </div>
     );
 };
@@ -6023,8 +6399,8 @@ const ProfileV11 = ({
                     {/* Spacer on left to push buttons to right */}
                     <div style={{ flex: 1 }}></div>
                     
-                    {/* Three dots menu (only for other users, not guests viewing) */}
-                    {!isOwnProfile && !isTargetGuest && !isGuestViewer && (
+                    {/* Three dots menu (only for other users) */}
+                    {!isOwnProfile && !isTargetGuest && (
                         <div className="profile-options-container" ref={optionsRef}>
                             <button 
                                 className="profile-options-btn"
@@ -6245,7 +6621,7 @@ const ProfileV11 = ({
                             </div>
                         )}
 
-                        {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && !isGuestViewer && (
+                        {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && (
                             <div className="profile-actions">
                                 {isAlreadyFriend ? (
                                     /* Already friends → show Chat button */
