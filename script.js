@@ -451,7 +451,7 @@ const generateRandomBonus = (min, max) => Math.floor(Math.random() * (max - min 
 // --- Translations ---
 const TRANSLATIONS = { 
     en: { 
-        appName: "PRO SPY", tagline: "COVERT ARENA", nickname: "OPERATOR NAME", create: "CREATE GAME", join: "JOIN OPS", browse: "BROWSE ROOMS", players: "OPERATIVES", start: "LAUNCH MISSION", langBtn: "العربية", loading: "PROCESSING...", you: "YOU", statusSpy: "SPY", statusAgent: "AGENT", statusInformant: "INFORMANT", statusMrWhite: "MR. WHITE", statusGhost: "GHOST", round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT", chatPlaceholder: "Type message...", send: "SEND", waiting: "Awaiting host...", location: "LOCATION", spectator: "SPECTATOR", confirm: "CONFIRM VOTE", spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!", mrWhiteWin: "MR. WHITE WINS!", playAgain: "PLAY AGAIN", connecting: "Connecting...", startVoting: "START VOTING", votingStarted: "VOTING INITIATED", voteRequestTitle: "VOTING REQUEST", voteRequestDesc: "wants to start voting.", agree: "AGREE", decline: "DECLINE", endVoting: "END VOTING NOW", votesTitle: "VOTES:", roundsFormat: (c, m) => `ROUND ${c}/${m}`, wordSelectionTitle: "SELECT KEYWORD", wordSelectionDesc: "Choose a keyword for this round", finishSelection: "FINISH SELECTION", selectedWord: "Selected Keyword", loginGoogle: "Login with Google", myAccount: "My Account", logout: "Logout", profile: "Profile", guest: "Guest", linkGuessCard: "GUESS MY CARD", level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID", enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Minimum players not met!", ok: "OK", tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends", addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID", online: "Online", offline: "Offline", noFriends: "No friends yet.", friendAdded: "Friend Added!", friendNotFound: "User not found.", requestSent: "Request Sent!", incomingRequests: "Incoming Requests", noRequests: "No pending requests.", accept: "Accept", reject: "Reject", sendMessage: "Send", inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?", inviteFriends: "Invite Friends", accountInfo: "Account Information", email: "Email", memberSince: "Member Since", nameChangeCountdown: "Name Change In", canChangeNow: "Can change now!", selectEmoji: "Emoji", guestTitle: "GUEST ACCOUNT", guestDesc: "Register to save progress and add friends.", kd: "K/D Ratio", stats: "Stats", noPermission: "Feature unavailable for guests.", normalMode: "NORMAL MODE", advancedMode: "ADVANCED MODE (6+)", modeNormalDesc: "Classic Spy vs Agents. 3-10 Players.", modeAdvDesc: "Special Roles included! 6-10 Players.", privateRoom: "Private Room", password: "Password", publicRoom: "Public Room", noRooms: "No active games found.", lobbyTitle: "GAME LOBBY", mrWhiteInstruction: "Guess the location to win!", informantInstruction: "You know a neighbor!", ghostInstruction: "You are now a Ghost. You can watch but cannot act.", guessLocation: "GUESS LOCATION", leaveRoom: "LEAVE", closeRoom: "CLOSE ROOM", showPassword: "Show Password", guestAccountLabel: "GUEST ACCOUNT", guestProfileMsg: "Guests cannot receive friend requests.", reportUser: "Report User", reportSent: "Report sent successfully!", reportTitle: "Report User", reportDesc: "Please select a reason for reporting this user.", reportReasonAbusive: "Abusive Behavior", reportReasonCheating: "Cheating", reportReasonSpam: "Spam", reportReasonOther: "Other", reportSubmit: "Submit Report", reportCancel: "Cancel", privateRoomError: "Private rooms require a password.",
+        appName: "PRO SPY", tagline: "COVERT ARENA", nickname: "OPERATOR NAME", create: "CREATE GAME", join: "JOIN OPS", browse: "BROWSE ROOMS", players: "OPERATIVES", start: "LAUNCH MISSION", langBtn: "العربية", loading: "PROCESSING...", you: "YOU", statusSpy: "SPY", statusAgent: "AGENT", statusInformant: "INFORMANT", statusMrWhite: "MR. WHITE", statusGhost: "GHOST", round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT", chatPlaceholder: "Type message...", send: "SEND", waiting: "Awaiting host...", location: "LOCATION", spectator: "SPECTATOR", confirm: "CONFIRM VOTE", spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!", mrWhiteWin: "MR. WHITE WINS!", playAgain: "PLAY AGAIN", connecting: "Connecting...", startVoting: "START VOTING", votingStarted: "VOTING INITIATED", voteRequestTitle: "VOTING REQUEST", voteRequestDesc: "wants to start voting.", agree: "AGREE", decline: "DECLINE", endVoting: "END VOTING NOW", votesTitle: "VOTES:", roundsFormat: (c, m) => `ROUND ${c}/${m}`, wordSelectionTitle: "SELECT KEYWORD", wordSelectionDesc: "Choose a keyword for this round", finishSelection: "FINISH SELECTION", selectedWord: "Selected Keyword", loginGoogle: "Login with Google", myAccount: "Profile", logout: "Logout", profile: "Profile", guest: "Guest", linkGuessCard: "GUESS MY CARD", level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID", enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Minimum players not met!", ok: "OK", tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends", addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID", online: "Online", offline: "Offline", noFriends: "No friends yet.", friendAdded: "Friend Added!", friendNotFound: "User not found.", requestSent: "Request Sent!", incomingRequests: "Incoming Requests", noRequests: "No pending requests.", accept: "Accept", reject: "Reject", sendMessage: "Send", inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?", inviteFriends: "Invite Friends", accountInfo: "Account Information", email: "Email", memberSince: "Member Since", nameChangeCountdown: "Name Change In", canChangeNow: "Can change now!", selectEmoji: "Emoji", guestTitle: "GUEST ACCOUNT", guestDesc: "Register to save progress and add friends.", kd: "K/D Ratio", stats: "Stats", noPermission: "Feature unavailable for guests.", normalMode: "NORMAL MODE", advancedMode: "ADVANCED MODE (6+)", modeNormalDesc: "Classic Spy vs Agents. 3-10 Players.", modeAdvDesc: "Special Roles included! 6-10 Players.", privateRoom: "Private Room", password: "Password", publicRoom: "Public Room", noRooms: "No active games found.", lobbyTitle: "GAME LOBBY", mrWhiteInstruction: "Guess the location to win!", informantInstruction: "You know a neighbor!", ghostInstruction: "You are now a Ghost. You can watch but cannot act.", guessLocation: "GUESS LOCATION", leaveRoom: "LEAVE", closeRoom: "CLOSE ROOM", showPassword: "Show Password", guestAccountLabel: "GUEST ACCOUNT", guestProfileMsg: "Guests cannot receive friend requests.", reportUser: "Report User", reportSent: "Report sent successfully!", reportTitle: "Report User", reportDesc: "Please select a reason for reporting this user.", reportReasonAbusive: "Abusive Behavior", reportReasonCheating: "Cheating", reportReasonSpam: "Spam", reportReasonOther: "Other", reportSubmit: "Submit Report", reportCancel: "Cancel", privateRoomError: "Private rooms require a password.",
         shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", unequip: "UnEquip", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", badges: "Badges", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", alreadyOwned: "Already Owned",
         tutorialTitle: "Welcome, Agent", tutorialStep1: "Your goal is to find the Spy (or blend in if you are the Spy).", tutorialStep2: "Each round, discuss and vote to eject a suspect.", tutorialStep3: "Win matches to earn Intel and buy items in the Shop!", skipTutorial: "Skip", next: "Next", startGame: "Start Game",
         matchSummary: "Match Summary", matchDuration: "Duration", mvp: "MVP", correctVotes: "Correct Votes", summaryTitle: "Game Over!",
@@ -509,7 +509,7 @@ const TRANSLATIONS = {
         achCharisma1m: "Charisma Legend", achCharisma1mDesc: "Reach 1,000,000 charisma",
     }, 
     ar: { 
-        appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "حسابي", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
+        appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "بروفايل", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
         shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مُزين", unequip: "إزالة", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", badges: "شارات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
         tutorialTitle: "مرحباً أيها العميل", tutorialStep1: "هدفك هو العثور على الجاسوس (أو التخفي إن كنت الجاسوس).", tutorialStep2: "في كل جولة، ناقش وصوّت لطرد المشتبه به.", tutorialStep3: "اربح المباريات لتحصل على إنتل واشتري من المتجر!", skipTutorial: "تخطي", next: "التالي", startGame: "ابدأ اللعبة",
         matchSummary: "ملخص المباراة", matchDuration: "المدة", mvp: "الأفضل", correctVotes: "أصوات صحيحة", summaryTitle: "انتهت اللعبة!",
@@ -1580,7 +1580,7 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     
     if (!show) return null;
     
-    const isOwnProfile = targetUID === currentUserUID;
+    const isOwnProfile = isOwnProfileOverride || targetUID === currentUserUID;
     const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
     const isAlreadyFriend = currentUserFriends?.includes(targetUID);
     const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
@@ -1710,6 +1710,42 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                     )}
                 </div>
 
+                {/* Report Modal */}
+                {showReportModal && (
+                    <div className="confirm-overlay" onClick={() => setShowReportModal(false)}>
+                        <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+                            <div className="confirm-icon">🚨</div>
+                            <div className="confirm-title">{lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'}</div>
+                            <div className="confirm-message" style={{fontSize:'11px', color:'#9ca3af', marginBottom:'12px'}}>
+                                {lang === 'ar' ? 'اختر سبب الإبلاغ:' : 'Select a reason:'}
+                            </div>
+                            <div style={{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'14px'}}>
+                                {[
+                                    {key:'abusive', ar:'سلوك مسيء', en:'Abusive Behavior'},
+                                    {key:'cheating', ar:'غش',        en:'Cheating'},
+                                    {key:'spam',     ar:'سبام',       en:'Spam'},
+                                    {key:'other',    ar:'سبب آخر',   en:'Other'}
+                                ].map(r => (
+                                    <button
+                                        key={r.key}
+                                        onClick={() => setReportReason(r.key)}
+                                        className={reportReason === r.key ? 'btn-neon' : 'btn-ghost'}
+                                        style={{padding:'8px 12px', borderRadius:'8px', fontSize:'12px', textAlign:'start'}}
+                                    >
+                                        {lang === 'ar' ? r.ar : r.en}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="confirm-actions">
+                                <button onClick={() => { setShowReportModal(false); setReportReason(''); }} className="btn-ghost">{lang === 'ar' ? 'إلغاء' : 'Cancel'}</button>
+                                <button onClick={handleSendReport} disabled={!reportReason || reportSending} className="btn-danger" style={{opacity: (!reportReason || reportSending) ? 0.5 : 1}}>
+                                    {reportSending ? '...' : (lang === 'ar' ? 'إرسال' : 'Submit')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Block Confirmation Modal */}
                 {showBlockConfirm && (
                     <div className="confirm-overlay" onClick={() => setShowBlockConfirm(false)}>
@@ -1741,6 +1777,27 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                         currency={userData?.currency || 0}
                         friendsData={friendsData}
                     />
+                )}
+
+                {/* Own Profile Footer Actions */}
+                {isOwnProfile && (isLoggedInProp !== undefined) && (
+                    <div className="profile-own-footer">
+                        {isLoggedInProp && (
+                            <button onClick={() => { if(!sessionClaimedToday) onOpenLoginRewards?.(); }} className={`btn-gold flex-1 py-2 rounded-lg text-sm font-bold ${sessionClaimedToday ? 'opacity-50' : ''}`}>
+                                🎁 {TRANSLATIONS[lang]?.loginRewards || 'Login Reward'} {sessionClaimedToday && <span style={{fontSize:'9px', color:'#4ade80'}}>✓</span>}
+                            </button>
+                        )}
+                        <div style={{display:'flex', gap:'6px', width:'100%'}}>
+                            {isLoggedInProp && (<><button onClick={onOpenShop} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {TRANSLATIONS[lang]?.shop || 'Shop'}</button><button onClick={onOpenInventory} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">📦 {TRANSLATIONS[lang]?.inventory || 'Inventory'}</button></>)}
+                        </div>
+                        <button onClick={onOpenSettings} className="btn-ghost w-full py-2 rounded-lg text-sm font-bold">⚙️ {TRANSLATIONS[lang]?.settings || 'Settings'}</button>
+                        {isLoggedInProp
+                            ? <button onClick={onLogout} className="btn-danger w-full py-2 rounded-lg text-sm">{TRANSLATIONS[lang]?.logout || 'Logout'}</button>
+                            : isGuestProp
+                                ? <div style={{display:'flex', gap:'6px', width:'100%'}}><button onClick={onLogout} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{TRANSLATIONS[lang]?.logout || 'Logout'}</button><button onClick={onLoginGoogle} className="btn-neon flex-1 py-2 rounded-lg text-sm">{TRANSLATIONS[lang]?.loginGoogle || 'Google Login'}</button></div>
+                                : null
+                        }
+                    </div>
                 )}
             </div>
         </div>
@@ -1959,6 +2016,14 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                     onSendGift={handleSendGiftToChat} 
                     currency={currency || 0}
                     friendsData={friendsData}
+                />
+            )}
+            {showEmojiPicker && (
+                <EmojiPicker
+                    show={showEmojiPicker}
+                    onClose={() => setShowEmojiPicker(false)}
+                    onSelect={handleEmojiSelect}
+                    lang={lang}
                 />
             )}
         </>
@@ -2279,6 +2344,40 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
                             <div className="settings-section-title">
                                 <span>👤</span>
                                 <span>{lang === 'ar' ? 'معلومات الحساب' : 'Account Info'}</span>
+                            </div>
+                            {/* Profile Photo */}
+                            <div style={{display:'flex', justifyContent:'center', marginBottom:'12px', marginTop:'8px'}}>
+                                <div style={{position:'relative', cursor:'pointer'}} onClick={() => document.getElementById('settings-photo-input')?.click()}>
+                                    <img
+                                        src={userData?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.displayName||'User')}&background=7000ff&color=fff&size=200`}
+                                        alt="avatar"
+                                        style={{width:'72px', height:'72px', borderRadius:'50%', objectFit:'cover', border:'3px solid rgba(112,0,255,0.5)'}}
+                                    />
+                                    <div style={{position:'absolute', bottom:'0', right:'0', background:'rgba(112,0,255,0.9)', borderRadius:'50%', width:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', border:'2px solid #0f0f1a'}}>📷</div>
+                                </div>
+                                <input id="settings-photo-input" type="file" style={{display:'none'}} accept="image/*" onChange={async(e) => {
+                                    const file = e.target.files?.[0];
+                                    if(!file || !user) return;
+                                    const reader = new FileReader();
+                                    reader.onload = async(ev) => {
+                                        const img = new Image();
+                                        img.onload = async() => {
+                                            const canvas = document.createElement('canvas');
+                                            const MAX = 300;
+                                            let w = img.width, h = img.height;
+                                            if(w > h){ if(w > MAX){h = Math.round(h*MAX/w); w=MAX;} } else { if(h > MAX){w = Math.round(w*MAX/h); h=MAX;} }
+                                            canvas.width=w; canvas.height=h;
+                                            canvas.getContext('2d').drawImage(img,0,0,w,h);
+                                            const base64 = canvas.toDataURL('image/jpeg', 0.75);
+                                            try {
+                                                await usersCollection.doc(user.uid).update({photoURL: base64});
+                                                onNotification(lang==='ar'?'تم تحديث الصورة!':'Photo updated!');
+                                            } catch(err){ console.error(err); }
+                                        };
+                                        img.src = ev.target.result;
+                                    };
+                                    reader.readAsDataURL(file);
+                                }} />
                             </div>
                             <div className="settings-account-card">
                                 <div className="settings-account-row">
@@ -2726,14 +2825,15 @@ function App() {
     }, [activeView, leaderboardTab]);
     
     // ✅ FIXED: Friends - Real-time with online status
+    // ✅ REALTIME friends - always active (not just when tab is open)
     useEffect(() => { 
-        if (activeView === 'friends' && userData && user && isLoggedIn) { 
+        if (userData && user && isLoggedIn) { 
             if (userData.friends?.length > 0) { 
                 const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).onSnapshot(snap => { 
                     const friends = snap.docs.map(d => { 
                         const data = d.data();
                         const lastActive = data.lastActive?.toDate?.() || new Date(0);
-                        const isOnline = (Date.now() - lastActive.getTime()) < 300000; // 5 minutes
+                        const isOnline = (Date.now() - lastActive.getTime()) < 300000;
                         return { id: d.id, ...data, isOnline };
                     });
                     setFriendsData(friends); 
@@ -2741,7 +2841,7 @@ function App() {
                 return unsub; 
             } else { setFriendsData([]); } 
         } 
-    }, [activeView, userData?.friends, user, isLoggedIn]);
+    }, [userData?.friends, user, isLoggedIn]);
     
     // Friend Requests - Real-time
     useEffect(() => { if (userData && user && isLoggedIn) { if (userData.friendRequests?.length > 0) { const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).onSnapshot(snap => { setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); return unsub; } else { setFriendRequests([]); } } }, [userData?.friendRequests, user, isLoggedIn]);
@@ -3185,39 +3285,31 @@ function App() {
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
             <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} />
             
-            {showMyAccount && (
-                <div className="modal-overlay" onClick={() => setShowMyAccount(false)}>
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><h2 className="modal-title">{t.myAccount}</h2><ModalCloseBtn onClose={() => setShowMyAccount(false)} /></div>
-                        <div className="modal-body">
-                            <div className="profile-header">
-                                <div className="profile-avatar-section">
-                                    <div className="profile-avatar-container"><AvatarWithFrame photoURL={currentUserData?.photoURL} equipped={currentUserData?.equipped} size="lg" /></div>
-                                    <h3 className="profile-name">{currentUserData?.displayName || 'User'}</h3>
-                                    {currentUserData?.equipped?.titles && <div className="profile-title-container">{renderTitle(currentUserData.equipped.titles, lang)}</div>}
-                                    {currentUserData?.equipped?.badges && renderBadges(currentUserData.equipped.badges, 28)}
-                                    {isGuest && <div className="profile-account-type guest">{t.guestAccount}</div>}
-                                    <div className="profile-id" onClick={() => { navigator.clipboard.writeText(currentUserData?.customId || ''); }}><span>ID: {currentUserData?.customId || 'N/A'}</span><span className="text-[10px]">📋</span></div>
-                                </div>
-                            </div>
-                            {/* Account info moved to Settings */}
-                            <CharismaDisplay charisma={currentUserData?.charisma} lang={lang} />
-                            <div className="profile-stats">
-                                <div className="profile-stat"><div className="profile-stat-value">{currentUserData?.stats?.wins || 0}</div><div className="profile-stat-label">{t.wins}</div></div>
-                                <div className="profile-stat"><div className="profile-stat-value">{currentUserData?.stats?.losses || 0}</div><div className="profile-stat-label">{t.losses}</div></div>
-                                <div className="profile-stat"><div className="profile-stat-value">{Math.floor((currentUserData?.stats?.xp || 0) / 100) + 1}</div><div className="profile-stat-label">{t.level}</div></div>
-                            </div>
-                            <KDCircle wins={currentUserData?.stats?.wins || 0} losses={currentUserData?.stats?.losses || 0} lang={lang} />
-                            <div className="flex items-center justify-center gap-2 mb-4 p-2 bg-yellow-500/10 rounded-lg"><span className="text-2xl">🧠</span><span className="text-lg font-bold text-yellow-400">{(currentUserData?.currency || 0).toLocaleString()} {CURRENCY_NAME}</span></div>
-                            {isLoggedIn && (<button onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }} className={`btn-gold w-full py-2 rounded-lg text-sm font-bold mb-2 ${sessionClaimedToday ? 'opacity-50' : ''}`}>🎁 {t.loginRewards} {sessionClaimedToday && <span className="text-[10px] text-green-400">✓</span>}</button>)}
-                        </div>
-                        <div className="modal-footer">
-                            {isLoggedIn && (<div className="flex gap-2 mb-2"><button onClick={() => { setShowMyAccount(false); setShowShop(true); }} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {t.shop}</button><button onClick={() => { setShowMyAccount(false); setShowInventory(true); }} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">📦 {t.inventory}</button></div>)}
-                            <button onClick={() => { setShowMyAccount(false); setShowSettings(true); }} className="btn-ghost w-full py-2 rounded-lg text-sm font-bold mb-2">⚙️ {t.settings}</button>
-                            {isLoggedIn ? (<button onClick={handleLogout} className="btn-danger w-full py-2 rounded-lg text-sm">{t.logout}</button>) : isGuest ? (<div className="flex gap-2"><button onClick={handleLogout} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{t.logout}</button><button onClick={() => { setShowMyAccount(false); handleGoogleLogin(); }} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.loginGoogle}</button></div>) : null}
-                        </div>
-                    </div>
-                </div>
+            {showMyAccount && currentUID && (
+                <ProfileV11
+                    show={showMyAccount}
+                    onClose={() => setShowMyAccount(false)}
+                    targetUID={currentUID}
+                    lang={lang}
+                    currentUserUID={currentUID}
+                    onSendFriendRequest={handleSendRequest}
+                    onSendGift={handleSendGiftToUser}
+                    userData={currentUserData}
+                    currentUserFriends={userData?.friends}
+                    currentUserFriendRequests={userData?.friendRequests}
+                    friendsData={friendsData}
+                    isOwnProfileOverride={true}
+                    onOpenSettings={() => { setShowMyAccount(false); setShowSettings(true); }}
+                    onOpenShop={() => { setShowMyAccount(false); setShowShop(true); }}
+                    onOpenInventory={() => { setShowMyAccount(false); setShowInventory(true); }}
+                    onLogout={handleLogout}
+                    onLoginGoogle={() => { setShowMyAccount(false); handleGoogleLogin(); }}
+                    isLoggedIn={isLoggedIn}
+                    isGuest={isGuest}
+                    sessionClaimedToday={sessionClaimedToday}
+                    onOpenLoginRewards={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}
+                    currency={currentUserData?.currency || 0}
+                />
             )}
             
             <ProfileV11 
@@ -3542,7 +3634,7 @@ const GiftWallV11 = ({ gifts, lang }) => {
         return { counts, lastSenders };
     }, [gifts]);
 
-    const displayGifts = SHOP_ITEMS.gifts.slice(0, 20);
+    const displayGifts = SHOP_ITEMS.gifts; // All gifts auto-synced
 
     return (
         <div className="profile-gift-section">
@@ -3571,23 +3663,18 @@ const GiftWallV11 = ({ gifts, lang }) => {
                         const unlocked = count > 0;
                         const lastSender = giftData.lastSenders[gift.id];
 
+                        const rKey = getGiftRarity(gift.cost);
+                        const rarity = RARITY_CONFIG[rKey];
                         return (
                             <div 
                                 key={gift.id} 
                                 className={`profile-gift-slot ${unlocked ? 'unlocked' : 'locked'}`}
                                 title={unlocked ? `${lang === 'ar' ? gift.name_ar : gift.name_en} x${count}` : (lang === 'ar' ? 'لم تُستلم بعد' : 'Not received')}
+                                style={unlocked ? { border: `1.5px solid ${rarity.border}`, boxShadow: rarity.glow ? `0 0 8px ${rarity.color}55` : 'none', background: rarity.bg } : {}}
                             >
-                                {/* Gift icon/emoji - centered */}
-                                <span className="profile-gift-icon">
-                                    {gift.emoji || '🎁'}
-                                </span>
-                                
-                                {/* Count badge - small at bottom */}
-                                {count > 0 && (
-                                    <span className="profile-gift-count-badge">{count}</span>
-                                )}
-                                
-                                {/* Glow effect for unlocked gifts */}
+                                <span style={{ position:'absolute', top:'2px', right:'2px', fontSize:'9px' }}>{rarity.icon}</span>
+                                <span className="profile-gift-icon">{gift.emoji || '🎁'}</span>
+                                {count > 0 && <span className="profile-gift-count-badge">{count}</span>}
                                 {unlocked && <div className="profile-gift-glow"></div>}
                             </div>
                         );
@@ -3944,7 +4031,18 @@ const ProfileV11 = ({
     userData, 
     currentUserFriends, 
     currentUserFriendRequests, 
-    friendsData 
+    friendsData,
+    isOwnProfileOverride = false,
+    onOpenSettings,
+    onOpenShop,
+    onOpenInventory,
+    onLogout,
+    onLoginGoogle,
+    isLoggedIn: isLoggedInProp,
+    isGuest: isGuestProp,
+    sessionClaimedToday,
+    onOpenLoginRewards,
+    currency: currencyProp
 }) => {
     const t = TRANSLATIONS[lang] || {};
     
@@ -3962,6 +4060,9 @@ const ProfileV11 = ({
     const [bannerURL, setBannerURL] = useState(null);
     const [bannerUploading, setBannerUploading] = useState(false);
     const bannerFileRef = useRef(null);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState('');
+    const [reportSending, setReportSending] = useState(false);
     
     const optionsRef = useRef(null);
 
@@ -4101,7 +4202,7 @@ const ProfileV11 = ({
     const level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay" onClick={onClose} style={{zIndex: 10000}}>
             <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
                 
                 {/* Profile Header Bar - X button on RIGHT, Three dots on LEFT of X */}
@@ -4126,11 +4227,15 @@ const ProfileV11 = ({
                                             <span>{lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}</span>
                                         </button>
                                     ) : (
-                                        <button onClick={() => setShowBlockConfirm(true)} className="profile-options-item block">
+                                        <button onClick={() => { setShowBlockConfirm(true); setShowOptionsMenu(false); }} className="profile-options-item block">
                                             <span>🚫</span>
                                             <span>{lang === 'ar' ? 'حظر' : 'Block'}</span>
                                         </button>
                                     )}
+                                    <button onClick={() => { setShowReportModal(true); setShowOptionsMenu(false); }} className="profile-options-item report">
+                                        <span>🚨</span>
+                                        <span>{lang === 'ar' ? 'إبلاغ' : 'Report'}</span>
+                                    </button>
                                 </div>
                             )}
                         </div>
