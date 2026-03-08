@@ -2954,27 +2954,29 @@ body {
 
 
 /* ============================================================
-   📊 PROFILE STATS - NEW LAYOUT: Wins+Losses | WinRate | Rank+Level
+   📊 PROFILE STATS - ALL HORIZONTAL IN ONE ROW
    ============================================================ */
 .profile-stats-main-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 5px;
     padding: 0 12px;
-    margin: 14px 0;
+    margin: 12px 0;
 }
-.profile-stats-left-col,
-.profile-stats-right-col {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+.profile-stats-main-row .profile-stat-box {
     flex: 1;
+    min-width: 0;
+    padding: 8px 4px;
 }
-.profile-stats-left-col .profile-stat-box,
-.profile-stats-right-col .profile-stat-box {
-    flex: none;
-    width: 100%;
+.profile-stats-main-row .profile-stat-box .profile-stat-value {
+    font-size: 15px;
+}
+.profile-stats-main-row .profile-stat-box .profile-stat-label {
+    font-size: 8px;
+}
+.profile-stats-main-row .profile-winrate-circle {
+    flex-shrink: 0;
 }
 
 /* ============================================================
@@ -3105,11 +3107,11 @@ body {
 .gift-detail-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.85);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10500;
+    z-index: 999999;
     padding: 16px;
     backdrop-filter: blur(4px);
 }
