@@ -3034,6 +3034,15 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
     const claimedFree = fp.claimedFree || [];
     const claimedPremium = fp.claimedPremium || [];
     const currency = userData?.currency || 0;
+    const missions = fp.missions || {};
+
+    // Helper: today string
+    const todayStr = new Date().toDateString();
+    // Helper: current week string (year-week)
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+    const weekStr = `${now.getFullYear()}-W${weekNum}`;
 
     // Find current level (last level where xp >= xpRequired)
     const currentLevel = FUN_PASS_LEVELS.reduce((acc, lv) => (currentXP >= lv.xp ? lv.level : acc), 0);
@@ -3042,6 +3051,32 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
     const progressPct = xpForNext ? Math.min(100, Math.round(((currentXP - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0)) / (xpForNext - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0))) * 100)) : 100;
 
     if (!show) return null;
+
+    const handleClaimMission = async (mission, type) => {
+        if (!user || claiming) return;
+        const mKey = mission.id;
+        const mData = missions[mKey] || {};
+        const alreadyClaimed = type === 'daily'
+            ? mData.lastCompleted === todayStr
+            : mData.lastWeekCompleted === weekStr;
+        if (alreadyClaimed) return;
+        setClaiming(mKey);
+        try {
+            const updates = {
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.xp`]: firebase.firestore.FieldValue.increment(mission.xp),
+            };
+            if (type === 'daily') {
+                updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.missions.${mKey}.lastCompleted`] = todayStr;
+            } else {
+                updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.missions.${mKey}.lastWeekCompleted`] = weekStr;
+            }
+            await usersCollection.doc(user.uid).update(updates);
+            onNotification(`+${mission.xp} XP ${lang==='ar'?'تم الاستلام!':'Claimed!'}`);
+        } catch(e) {
+            onNotification(lang==='ar'?'خطأ':'Error');
+        }
+        setClaiming(null);
+    };
 
     const handleBuyPremium = async () => {
         if (!user || hasPremium || buying) return;
@@ -3314,47 +3349,69 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
                             <div style={{fontSize:'11px', fontWeight:800, color:'#fbbf24', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px'}}>
                                 <span>☀️</span> {lang==='ar'?'المهمات اليومية':'Daily Missions'}
                             </div>
-                            {FUN_PASS_DAILY_MISSIONS.map(m => (
+                            {FUN_PASS_DAILY_MISSIONS.map(m => {
+                                const mData = missions[m.id] || {};
+                                const done = mData.lastCompleted === todayStr;
+                                const loading = claiming === m.id;
+                                return (
                                 <div key={m.id} style={{
                                     display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
                                     padding:'9px 12px', borderRadius:'10px',
-                                    background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)'
+                                    background: done ? 'rgba(74,222,128,0.07)' : 'rgba(255,255,255,0.04)',
+                                    border: done ? '1px solid rgba(74,222,128,0.25)' : '1px solid rgba(255,255,255,0.07)'
                                 }}>
                                     <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                                        <span style={{fontSize:'18px'}}>{m.icon}</span>
+                                        <span style={{fontSize:'18px', filter: done ? 'grayscale(60%)' : 'none'}}>{m.icon}</span>
                                         <div>
-                                            <div style={{fontSize:'11px', fontWeight:700, color:'#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
+                                            <div style={{fontSize:'11px', fontWeight:700, color: done ? '#6b7280' : '#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
                                             <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700}}>+{m.xp} XP</div>
                                         </div>
                                     </div>
-                                    <div style={{fontSize:'9px', color:'#4b5563', fontWeight:600, background:'rgba(255,255,255,0.05)', padding:'3px 8px', borderRadius:'5px'}}>
-                                        {lang==='ar'?'قريباً':'Soon'}
-                                    </div>
+                                    {done ? (
+                                        <div style={{fontSize:'11px', color:'#4ade80', fontWeight:800}}>✓</div>
+                                    ) : (
+                                        <button onClick={() => handleClaimMission(m, 'daily')} disabled={loading} style={{
+                                            fontSize:'9px', fontWeight:800, color:'#0f0f1a', background:'linear-gradient(135deg,#fbbf24,#f59e0b)',
+                                            border:'none', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', opacity: loading ? 0.6 : 1
+                                        }}>{loading ? '...' : (lang==='ar'?'استلم':'Claim')}</button>
+                                    )}
                                 </div>
-                            ))}
+                                );
+                            })}
 
                             {/* Weekly Missions */}
                             <div style={{fontSize:'11px', fontWeight:800, color:'#c084fc', marginTop:'8px', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px'}}>
                                 <span>📅</span> {lang==='ar'?'المهمات الأسبوعية':'Weekly Missions'}
                             </div>
-                            {FUN_PASS_WEEKLY_MISSIONS.map(m => (
+                            {FUN_PASS_WEEKLY_MISSIONS.map(m => {
+                                const mData = missions[m.id] || {};
+                                const done = mData.lastWeekCompleted === weekStr;
+                                const loading = claiming === m.id;
+                                return (
                                 <div key={m.id} style={{
                                     display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
                                     padding:'9px 12px', borderRadius:'10px',
-                                    background:'rgba(168,85,247,0.05)', border:'1px solid rgba(168,85,247,0.15)'
+                                    background: done ? 'rgba(192,132,252,0.07)' : 'rgba(168,85,247,0.05)',
+                                    border: done ? '1px solid rgba(192,132,252,0.25)' : '1px solid rgba(168,85,247,0.15)'
                                 }}>
                                     <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                                        <span style={{fontSize:'18px'}}>{m.icon}</span>
+                                        <span style={{fontSize:'18px', filter: done ? 'grayscale(60%)' : 'none'}}>{m.icon}</span>
                                         <div>
-                                            <div style={{fontSize:'11px', fontWeight:700, color:'#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
+                                            <div style={{fontSize:'11px', fontWeight:700, color: done ? '#6b7280' : '#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
                                             <div style={{fontSize:'9px', color:'#c084fc', fontWeight:700}}>+{m.xp} XP</div>
                                         </div>
                                     </div>
-                                    <div style={{fontSize:'9px', color:'#4b5563', fontWeight:600, background:'rgba(255,255,255,0.05)', padding:'3px 8px', borderRadius:'5px'}}>
-                                        {lang==='ar'?'قريباً':'Soon'}
-                                    </div>
+                                    {done ? (
+                                        <div style={{fontSize:'11px', color:'#c084fc', fontWeight:800}}>✓</div>
+                                    ) : (
+                                        <button onClick={() => handleClaimMission(m, 'weekly')} disabled={loading} style={{
+                                            fontSize:'9px', fontWeight:800, color:'#0f0f1a', background:'linear-gradient(135deg,#c084fc,#8b5cf6)',
+                                            border:'none', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', opacity: loading ? 0.6 : 1
+                                        }}>{loading ? '...' : (lang==='ar'?'استلم':'Claim')}</button>
+                                    )}
                                 </div>
-                            ))}
+                                );
+                            })}
                         </>
                     )}
                 </div>
@@ -4329,34 +4386,17 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                 <PortalModal>
                 <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.TOOLTIP,padding:'16px'}} onClick={() => setSelectedGiftDetail(null)}>
                     <div className="gift-detail-modal animate-pop" onClick={e => e.stopPropagation()} style={{
-                        background:
-                            selectedGiftDetail.rKey==='Mythic'    ? 'linear-gradient(160deg,#1a0010,#0d0020,#1a0010)' :
-                            selectedGiftDetail.rKey==='Legendary' ? 'linear-gradient(160deg,#1a1000,#0d0800,#1a1000)' :
-                            selectedGiftDetail.rKey==='Epic'      ? 'linear-gradient(160deg,#0e0a1a,#06040f,#0e0a1a)' :
-                            selectedGiftDetail.rKey==='Rare'      ? 'linear-gradient(160deg,#001020,#000810,#001020)' :
-                            'linear-gradient(160deg,#0f0f1a,#080812,#0f0f1a)',
+                        background: selectedGiftDetail.rKey==='Mythic' ? 'linear-gradient(160deg,#1a0010,#0d0020,#1a0010)' : selectedGiftDetail.rKey==='Legendary' ? 'linear-gradient(160deg,#1a1000,#0d0800,#1a1000)' : selectedGiftDetail.rKey==='Epic' ? 'linear-gradient(160deg,#0e0a1a,#06040f,#0e0a1a)' : selectedGiftDetail.rKey==='Rare' ? 'linear-gradient(160deg,#001020,#000810,#001020)' : 'linear-gradient(160deg,#0f0f1a,#080812,#0f0f1a)',
                         border: `2px solid ${selectedGiftDetail.rarity.border}`,
-                        boxShadow:
-                            selectedGiftDetail.rKey==='Mythic'    ? '0 0 0 1px rgba(255,0,85,0.3),0 0 30px rgba(255,0,85,0.7),0 0 70px rgba(255,0,85,0.3),inset 0 0 40px rgba(255,0,85,0.08)' :
-                            selectedGiftDetail.rKey==='Legendary' ? '0 0 0 1px rgba(245,158,11,0.3),0 0 25px rgba(245,158,11,0.6),0 0 55px rgba(245,158,11,0.2)' :
-                            selectedGiftDetail.rKey==='Epic'      ? '0 0 0 1px rgba(139,92,246,0.3),0 0 20px rgba(139,92,246,0.5),0 0 45px rgba(139,92,246,0.15)' :
-                            selectedGiftDetail.rKey==='Rare'      ? '0 0 0 1px rgba(96,165,250,0.3),0 0 16px rgba(96,165,250,0.4)' :
-                            '0 20px 60px rgba(0,0,0,0.6)',
+                        boxShadow: selectedGiftDetail.rKey==='Mythic' ? '0 0 0 1px rgba(255,0,85,0.3),0 0 30px rgba(255,0,85,0.7),0 0 70px rgba(255,0,85,0.3)' : selectedGiftDetail.rKey==='Legendary' ? '0 0 0 1px rgba(245,158,11,0.3),0 0 25px rgba(245,158,11,0.6),0 0 55px rgba(245,158,11,0.2)' : selectedGiftDetail.rKey==='Epic' ? '0 0 0 1px rgba(139,92,246,0.3),0 0 20px rgba(139,92,246,0.5)' : selectedGiftDetail.rKey==='Rare' ? '0 0 0 1px rgba(96,165,250,0.3),0 0 16px rgba(96,165,250,0.4)' : '0 20px 60px rgba(0,0,0,0.6)',
                         animation: selectedGiftDetail.rKey==='Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none',
                         position:'relative', overflow:'hidden'
                     }}>
                         <div style={{position:'absolute',top:0,left:0,right:0,height:'3px',background:`linear-gradient(90deg,transparent,${selectedGiftDetail.rarity.color},transparent)`}}/>
-                        {selectedGiftDetail.rKey==='Mythic' && <>
-                            <div style={{position:'absolute',top:'8px',left:'10px',fontSize:'11px',opacity:0.7,animation:'mythic-pulse 1.5s ease-in-out infinite'}}>✦</div>
-                            <div style={{position:'absolute',bottom:'8px',right:'10px',fontSize:'11px',opacity:0.7,animation:'mythic-pulse 1.8s ease-in-out infinite'}}>✦</div>
-                        </>}
+                        {selectedGiftDetail.rKey==='Mythic' && <><div style={{position:'absolute',top:'8px',left:'10px',fontSize:'11px',opacity:0.7,animation:'mythic-pulse 1.5s ease-in-out infinite'}}>✦</div><div style={{position:'absolute',bottom:'8px',right:'10px',fontSize:'11px',opacity:0.7,animation:'mythic-pulse 1.8s ease-in-out infinite'}}>✦</div></>}
                         <button className="gift-detail-close" onClick={() => setSelectedGiftDetail(null)}>✕</button>
                         <div className="gift-detail-emoji" style={{
-                            filter:
-                                selectedGiftDetail.rKey==='Mythic'    ? `drop-shadow(0 0 16px ${selectedGiftDetail.rarity.color}) drop-shadow(0 0 30px ${selectedGiftDetail.rarity.color}88)` :
-                                selectedGiftDetail.rKey==='Legendary' ? `drop-shadow(0 0 12px ${selectedGiftDetail.rarity.color}) drop-shadow(0 0 22px ${selectedGiftDetail.rarity.color}66)` :
-                                selectedGiftDetail.rKey==='Epic'      ? `drop-shadow(0 0 10px ${selectedGiftDetail.rarity.color}) drop-shadow(0 0 18px ${selectedGiftDetail.rarity.color}55)` :
-                                selectedGiftDetail.rKey==='Rare'      ? `drop-shadow(0 0 8px ${selectedGiftDetail.rarity.color}88)` : 'none',
+                            filter: selectedGiftDetail.rKey==='Mythic' ? `drop-shadow(0 0 16px ${selectedGiftDetail.rarity.color}) drop-shadow(0 0 30px ${selectedGiftDetail.rarity.color}88)` : selectedGiftDetail.rKey==='Legendary' ? `drop-shadow(0 0 12px ${selectedGiftDetail.rarity.color})` : selectedGiftDetail.rKey==='Epic' ? `drop-shadow(0 0 10px ${selectedGiftDetail.rarity.color})` : selectedGiftDetail.rKey==='Rare' ? `drop-shadow(0 0 8px ${selectedGiftDetail.rarity.color}88)` : 'none',
                             animation: selectedGiftDetail.rKey==='Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none'
                         }}>{selectedGiftDetail.gift.emoji || '🎁'}</div>
                         <div className="gift-detail-name" style={{color:selectedGiftDetail.rKey==='Mythic'?'#ff88bb':selectedGiftDetail.rKey==='Legendary'?'#fde68a':'white'}}>
@@ -4546,16 +4586,13 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                                 style={isUnlocked ? {
                                     background: 'rgba(255,215,0,0.10)',
                                     borderColor: 'rgba(255,215,0,0.45)',
-                                    boxShadow: '0 0 12px rgba(255,215,0,0.22), inset 0 0 16px rgba(255,215,0,0.06)',
-                                } : {
-                                    opacity: 0.45,
-                                    filter: 'grayscale(85%)',
-                                }}
+                                    boxShadow: '0 0 12px rgba(255,215,0,0.22),inset 0 0 16px rgba(255,215,0,0.06)',
+                                } : { opacity: 0.42, filter: 'grayscale(85%)' }}
                             >
                                 <span className="profile-achievement-v2-icon" style={{ 
                                     fontSize: '22px',
                                     filter: isUnlocked ? 'drop-shadow(0 0 7px rgba(255,215,0,0.9)) drop-shadow(0 0 14px rgba(255,215,0,0.5))' : 'grayscale(100%)',
-                                    opacity: isUnlocked ? 1 : 0.4,
+                                    opacity: isUnlocked ? 1 : 0.4
                                 }}>
                                     {ach.icon || '🏅'}
                                 </span>
@@ -4748,20 +4785,20 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
 };
 
 // ==========================================
-// ✨ PROFILE EFFECT OVERLAY
+// ✨ PROFILE EFFECT OVERLAY (standalone component - no hooks added to ProfileV11)
 // ==========================================
-const ProfileEffectOverlay = ({ effectId, triggerKey }) => {
-    const [particles, setParticles] = React.useState([]);
-    const [alive, setAlive] = React.useState(false);
-    const timerRef = React.useRef(null);
-    const effect = React.useMemo(() => (SHOP_ITEMS.profileEffects||[]).find(e=>e.id===effectId), [effectId]);
+const ProfileEffectOverlay = ({ effectId }) => {
+    const [particles, setParticles] = useState([]);
+    const [alive, setAlive] = useState(false);
+    const timerRef = useRef(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
+        const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
         if (!effect) return;
         const all = [];
-        (effect.particles||[]).forEach(p => {
-            for(let i=0;i<p.count;i++) all.push({
-                id:`${p.emoji}-${i}-${Math.random().toString(36).slice(2)}`,
+        (effect.particles || []).forEach(p => {
+            for (let i = 0; i < p.count; i++) all.push({
+                id: `${p.emoji}-${i}-${Math.random().toString(36).slice(2)}`,
                 emoji: p.emoji,
                 x: 5 + Math.random() * 90,
                 delay: Math.random() * 1.4,
@@ -4771,12 +4808,12 @@ const ProfileEffectOverlay = ({ effectId, triggerKey }) => {
         });
         setParticles(all);
         setAlive(true);
-        if(timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => setAlive(false), (effect.duration || 2200) + 1000);
-        return () => { if(timerRef.current) clearTimeout(timerRef.current); };
-    }, [effectId, triggerKey]);
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => setAlive(false), (effect.duration || 2200) + 1200);
+        return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    }, [effectId]);
 
-    if (!alive || !effect) return null;
+    if (!alive || particles.length === 0) return null;
     return (
         <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:99998,overflow:'hidden'}}>
             {particles.map(p => (
@@ -4784,7 +4821,7 @@ const ProfileEffectOverlay = ({ effectId, triggerKey }) => {
                     position:'absolute', left:`${p.x}%`, top:'-8%',
                     fontSize:`${p.size}px`, lineHeight:1, userSelect:'none',
                     animation:`pef_fall ${p.dur}s ease-in ${p.delay}s forwards`,
-                    opacity:0,
+                    opacity: 0,
                 }}>{p.emoji}</div>
             ))}
             <style>{`@keyframes pef_fall{0%{opacity:0;transform:translateY(0) rotate(0deg)}10%{opacity:1}80%{opacity:.9}100%{opacity:0;transform:translateY(105vh) rotate(380deg)}}`}</style>
@@ -5845,14 +5882,6 @@ const ProfileV11 = ({
         });
     }, [show, targetUID, targetData]);
 
-    // Profile FX - must be before conditional return (Rules of Hooks)
-    const [effectKey, setEffectKey] = React.useState(0);
-    React.useEffect(() => {
-        if (show && targetData?.equipped?.profileEffects) {
-            setEffectKey(k => k + 1);
-        }
-    }, [show, targetUID, targetData?.equipped?.profileEffects]);
-
     if (!show) return null;
 
     const isOwnProfile = isOwnProfileOverride || targetUID === currentUserUID;
@@ -5918,12 +5947,8 @@ const ProfileV11 = ({
 
     return (
         <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL}}>
-            {/* Profile FX - fixed overlay covering full screen */}
-            {targetData?.equipped?.profileEffects && effectKey > 0 && (
-                <ProfileEffectOverlay
-                    effectId={targetData.equipped.profileEffects}
-                    triggerKey={effectKey}
-                />
+            {targetData?.equipped?.profileEffects && (
+                <ProfileEffectOverlay key={`fx-${targetUID}`} effectId={targetData.equipped.profileEffects} />
             )}
             <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
                 
