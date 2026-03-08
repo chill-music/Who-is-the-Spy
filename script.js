@@ -1089,21 +1089,37 @@ const EmojiPicker = ({ show, onClose, onSelect, lang }) => {
     if (!show) return null;
     
     const categories = [
-        { id: 'smiles', icon: '😀', label: 'Faces' },
-        { id: 'gestures', icon: '👋', label: 'Gestures' },
-        { id: 'hearts', icon: '❤️', label: 'Hearts' },
-        { id: 'objects', icon: '🎉', label: 'Objects' },
-        { id: 'nature', icon: '🌸', label: 'Nature' },
+        { id: 'smiles',   icon: '😀', label_ar: 'وجوه',   label_en: 'Faces' },
+        { id: 'gestures', icon: '👋', label_ar: 'إيماءات', label_en: 'Gestures' },
+        { id: 'hearts',   icon: '❤️', label_ar: 'قلوب',   label_en: 'Hearts' },
+        { id: 'objects',  icon: '🎉', label_ar: 'أشياء',   label_en: 'Objects' },
+        { id: 'nature',   icon: '🌸', label_ar: 'طبيعة',  label_en: 'Nature' },
     ];
+
+    const wrapperStyle = inline ? {} : undefined;
     
     return (
-        <div className="emoji-picker-modal animate-slide-up">
-            <div className="emoji-picker-header">
-                <span className="emoji-picker-title">{t.selectEmojis}</span>
-                <button className="emoji-picker-close" onClick={onClose}>✕</button>
+        <div className={inline ? '' : 'emoji-picker-modal animate-slide-up'} style={wrapperStyle}>
+            {!inline && (
+                <div className="emoji-picker-header">
+                    <span className="emoji-picker-title">{t.selectEmojis || 'Emoji'}</span>
+                    <button className="emoji-picker-close" onClick={onClose}>✕</button>
+                </div>
+            )}
+            <div className="emoji-categories" style={{marginBottom:'6px'}}>
+                {categories.map(cat => (
+                    <button 
+                        key={cat.id}
+                        className={`emoji-category-btn ${activeCategory === cat.id ? 'active' : ''}`}
+                        onClick={() => setActiveCategory(cat.id)}
+                        title={lang==='ar'?cat.label_ar:cat.label_en}
+                    >
+                        {cat.icon}
+                    </button>
+                ))}
             </div>
             <div className="emoji-picker-grid">
-                {(EMOJI_CATEGORIES[activeCategory] || EMOJI_LIST.slice(0, 40)).map((emoji, i) => (
+                {(EMOJI_CATEGORIES[activeCategory] || []).map((emoji, i) => (
                     <button 
                         key={i} 
                         className="emoji-picker-item" 
@@ -1798,21 +1814,19 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                 )}
 
                 {/* Self Gift Modal */}
-                {showSelfGiftModal && selfGift && (
+                {showSelfGiftModal && (
                     <SendGiftModal
                         show={showSelfGiftModal}
-                        onClose={() => { setShowSelfGiftModal(false); setSelfGift(null); }}
+                        onClose={() => setShowSelfGiftModal(false)}
                         targetUser={{ uid: targetUID, displayName: targetData?.displayName || 'You', photoURL: targetData?.photoURL }}
                         currentUser={userData}
                         lang={lang}
                         onSendGift={async (gift, targetUser) => {
                             if (onSendGift) await onSendGift(gift, targetUser);
                             setShowSelfGiftModal(false);
-                            setSelfGift(null);
                         }}
                         currency={userData?.currency || 0}
                         friendsData={[]}
-                        preselectedGift={selfGift}
                     />
                 )}
 
@@ -1820,9 +1834,14 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                 {isOwnProfile && (isLoggedInProp !== undefined) && (
                     <div className="profile-own-footer">
                         {isLoggedInProp && (
-                            <button onClick={() => { if(!sessionClaimedToday) onOpenLoginRewards?.(); }} className={`btn-gold flex-1 py-2 rounded-lg text-sm font-bold ${sessionClaimedToday ? 'opacity-50' : ''}`}>
-                                🎁 {TRANSLATIONS[lang]?.loginRewards || 'Login Reward'} {sessionClaimedToday && <span style={{fontSize:'9px', color:'#4ade80'}}>✓</span>}
-                            </button>
+                            <div style={{display:'flex',gap:'6px',width:'100%'}}>
+                                <button onClick={() => { if(!sessionClaimedToday) onOpenLoginRewards?.(); }} className={`btn-gold flex-1 py-2 rounded-lg text-sm font-bold ${sessionClaimedToday ? 'opacity-50' : ''}`}>
+                                    🎁 {TRANSLATIONS[lang]?.loginRewards || 'Login Reward'} {sessionClaimedToday && <span style={{fontSize:'9px', color:'#4ade80'}}>✓</span>}
+                                </button>
+                                <button onClick={() => setShowSelfGiftModal(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold" style={{background:'linear-gradient(135deg,#7000ff,#00f2ff)'}}>
+                                    🎁 {lang==='ar'?'هدية لنفسك':'Gift Yourself'}
+                                </button>
+                            </div>
                         )}
                         <div style={{display:'flex', gap:'6px', width:'100%'}}>
                             {isLoggedInProp && (<><button onClick={onOpenShop} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {TRANSLATIONS[lang]?.shop || 'Shop'}</button><button onClick={onOpenInventory} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">📦 {TRANSLATIONS[lang]?.inventory || 'Inventory'}</button></>)}
@@ -2015,29 +2034,22 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                         <div ref={messagesEndRef} />
                     </div>
                     <div className="chat-input-container" style={{position:'relative'}}>
-                        {showEmojiPicker && (
-                            <div style={{
-                                position:'absolute', bottom:'calc(100% + 6px)', left:0, right:0,
-                                background:'var(--bg-card)', border:'1px solid var(--border)',
-                                borderRadius:'12px', padding:'10px', zIndex:9999,
-                                boxShadow:'0 -10px 30px rgba(0,0,0,0.6)'
-                            }}>
-                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px',borderBottom:'1px solid var(--border)',paddingBottom:'6px'}}>
-                                    <span style={{fontSize:'11px',fontWeight:700,color:'var(--primary)'}}>
-                                        {lang==='ar'?'اختر إيموجي':'Select Emoji'}
-                                    </span>
-                                    <button onClick={() => setShowEmojiPicker(false)} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:'14px'}}>✕</button>
-                                </div>
-                                <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:'4px',maxHeight:'160px',overflowY:'auto'}}>
-                                    {(EMOJI_CATEGORIES?.smiles || EMOJI_LIST || []).map((emoji, i) => (
-                                        <button key={i} onClick={() => { handleEmojiSelect(emoji); }}
-                                            style={{background:'none',border:'none',fontSize:'20px',cursor:'pointer',padding:'4px',borderRadius:'6px',transition:'background 0.15s'}}
-                                            onMouseEnter={e=>e.target.style.background='rgba(255,255,255,0.1)'}
-                                            onMouseLeave={e=>e.target.style.background='none'}
-                                        >{emoji}</button>
-                                    ))}
-                                </div>
-                            </div>
+                        {showEmojiPicker && React.createElement(
+                            React.Fragment, null,
+                            React.createElement('div', {
+                                style: {
+                                    position:'absolute', bottom:'calc(100% + 6px)', left:0, right:0,
+                                    background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.12)',
+                                    borderRadius:'14px', padding:'10px', zIndex:9999,
+                                    boxShadow:'0 -14px 40px rgba(0,0,0,0.7)'
+                                }
+                            },
+                                React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'7px',borderBottom:'1px solid rgba(255,255,255,0.08)',paddingBottom:'6px'}},
+                                    React.createElement('span', {style:{fontSize:'11px',fontWeight:700,color:'#00f2ff'}}, lang==='ar'?'اختر إيموجي':'Select Emoji'),
+                                    React.createElement('button', {onClick:()=>setShowEmojiPicker(false),style:{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:'14px',lineHeight:1}}, '✕')
+                                ),
+                                React.createElement(EmojiPicker, {show:true, onClose:()=>setShowEmojiPicker(false), onSelect:handleEmojiSelect, lang, inline:true})
+                            )
                         )}
                         {!(isBlocked || blockedByTarget) && (
                             <div style={{display:'flex',alignItems:'center',gap:'6px',width:'100%'}}>
@@ -3775,14 +3787,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                                 {lang==='ar'?selectedGiftDetail.gift.desc_ar:selectedGiftDetail.gift.desc_en}
                             </div>
                         )}
-                        {isOwnProfile && onSendGiftToSelf && (
-                            <button 
-                                className="gift-detail-self-btn"
-                                onClick={() => { onSendGiftToSelf(selectedGiftDetail.gift); setSelectedGiftDetail(null); }}
-                            >
-                                🎁 {lang==='ar'?'أرسل لنفسك':'Send to Yourself'}
-                            </button>
-                        )}
+
                     </div>
                 </div>
             )}
@@ -3957,9 +3962,9 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                 </button>
             )}
 
-            {/* Achievement Detail Modal */}
+            {/* Achievement Detail Modal - FIXED CENTER */}
             {selectedAchievement && (
-                <div className="achievement-detail-overlay" onClick={() => setSelectedAchievement(null)}>
+                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:99999,padding:'16px'}} onClick={() => setSelectedAchievement(null)}>
                     <div className="achievement-detail-modal" onClick={e => e.stopPropagation()}>
                         <div className="achievement-detail-icon">
                             {selectedAchievement.icon || '🏅'}
@@ -4304,6 +4309,27 @@ const ProfileV11 = ({
         }
     };
 
+    const handleSendReport = async () => {
+        if (!reportReason || !currentUserUID || !targetUID) return;
+        setReportSending(true);
+        try {
+            await reportsCollection.add({
+                reportedUID: targetUID,
+                reportedName: targetData?.displayName || 'Unknown',
+                reporterUID: currentUserUID,
+                reason: reportReason,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                status: 'pending'
+            });
+            setShowReportModal(false);
+            setReportReason('');
+            setShowOptionsMenu(false);
+        } catch (e) {
+            console.error('Report error:', e);
+        }
+        setReportSending(false);
+    };
+
     const wins = targetData?.stats?.wins || 0;
     const losses = targetData?.stats?.losses || 0;
     const level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
@@ -4454,7 +4480,8 @@ const ProfileV11 = ({
                                 }
                             </span>
                             
-                            {/* Charisma rank shown in stats dashboard below */}
+                            {/* Charisma Display */}
+                            <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
                         </div>
 
                         <div className="profile-stats-dashboard">
@@ -4478,10 +4505,7 @@ const ProfileV11 = ({
                                     <span className="profile-stat-value" style={{ color: '#a78bfa' }}>{level}</span>
                                     <span className="profile-stat-label">{lang === 'ar' ? '⚡ المستوى' : '⚡ Level'}</span>
                                 </div>
-                                <div className="profile-stat-box">
-                                    <span className="profile-stat-value" style={{color:'#fbbf24'}}>{(targetData?.charisma||0) > 0 ? formatCharisma(targetData.charisma) : '0'}</span>
-                                    <span className="profile-stat-label">{lang==='ar'?'⭐ كاريزما':'⭐ Charisma'}</span>
-                                </div>
+
                             </div>
                         </div>
 
@@ -4534,6 +4558,50 @@ const ProfileV11 = ({
                             </div>
                         )}
                     </>
+                )}
+
+                {/* Report Modal */}
+                {showReportModal && (
+                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:99999,padding:'16px'}} onClick={() => setShowReportModal(false)}>
+                        <div className="profile-confirm-modal" onClick={e => e.stopPropagation()} style={{maxWidth:'300px'}}>
+                            <div className="profile-confirm-icon">🚨</div>
+                            <div className="profile-confirm-title">{lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'}</div>
+                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'10px', textAlign:'center'}}>
+                                {lang === 'ar' ? 'اختر سبب الإبلاغ:' : 'Select a reason:'}
+                            </div>
+                            <div style={{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'14px'}}>
+                                {[
+                                    {key:'abusive', ar:'سلوك مسيء', en:'Abusive Behavior'},
+                                    {key:'cheating', ar:'غش',        en:'Cheating'},
+                                    {key:'spam',     ar:'سبام',       en:'Spam'},
+                                    {key:'other',    ar:'سبب آخر',   en:'Other'}
+                                ].map(r => (
+                                    <button
+                                        key={r.key}
+                                        onClick={() => setReportReason(r.key)}
+                                        style={{
+                                            padding:'9px 12px', borderRadius:'8px', fontSize:'12px',
+                                            textAlign:'start', cursor:'pointer', fontWeight:600,
+                                            background: reportReason === r.key ? 'rgba(112,0,255,0.3)' : 'rgba(255,255,255,0.05)',
+                                            border: reportReason === r.key ? '1.5px solid #7000ff' : '1px solid rgba(255,255,255,0.1)',
+                                            color: reportReason === r.key ? 'white' : '#9ca3af'
+                                        }}
+                                    >
+                                        {lang === 'ar' ? r.ar : r.en}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="profile-confirm-actions">
+                                <button onClick={() => { setShowReportModal(false); setReportReason(''); }} className="cancel">
+                                    {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                                <button onClick={handleSendReport} disabled={!reportReason || reportSending} className="confirm"
+                                    style={{opacity: (!reportReason || reportSending) ? 0.5 : 1, background:'#ef4444'}}>
+                                    {reportSending ? '...' : (lang === 'ar' ? 'إرسال' : 'Submit')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {showBlockConfirm && (
