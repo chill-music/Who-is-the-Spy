@@ -178,6 +178,10 @@ const playRewardSound = () => playSound('reward');
 const playMessageSound = () => playSound('message');
 const playGiftSound = () => playSound('gift');
 
+// ==========================================
+// LOGIN REWARDS - 30 DAYS
+// ==========================================
+
 // ============================================================
 // 🎫 FUN PASS SYSTEM - 50 levels, daily/weekly missions
 // ============================================================
@@ -187,7 +191,7 @@ const FUN_PASS_LEVELS = [
   // level, xpRequired, free reward, premium reward
   // free: {type, icon, name_en, name_ar, amount?, itemId?, rarity?}
   // premium: {type, icon, name_en, name_ar, amount?, itemId?, rarity?}
-  { level:1,  xp:0,    free:{type:'currency',icon:'🧠',iconUrl:'https://i.ibb.co/YTj22zWy/awaw.png',name_en:'200 Intel',name_ar:'200 إنتل',amount:200},                           premium:{type:'currency',icon:'🧠',name_en:'500 Intel',name_ar:'500 إنتل',amount:500} },
+  { level:1,  xp:0,    free:{type:'currency',icon:'🧠',name_en:'200 Intel',name_ar:'200 إنتل',amount:200},                           premium:{type:'currency',icon:'🧠',name_en:'500 Intel',name_ar:'500 إنتل',amount:500} },
   { level:2,  xp:100,  free:{type:'currency',icon:'🧠',name_en:'250 Intel',name_ar:'250 إنتل',amount:250},                           premium:{type:'badge',icon:'🔰',name_en:'Rookie Badge',name_ar:'شارة مبتدئ',itemId:'fp_badge_rookie',rarity:'Common'} },
   { level:3,  xp:250,  free:{type:'currency',icon:'🧠',name_en:'300 Intel',name_ar:'300 إنتل',amount:300},                           premium:{type:'currency',icon:'🧠',name_en:'700 Intel',name_ar:'700 إنتل',amount:700} },
   { level:4,  xp:450,  free:{type:'badge',icon:'⚡',name_en:'Speed Badge',name_ar:'شارة السرعة',itemId:'fp_badge_speed',rarity:'Common'}, premium:{type:'currency',icon:'🧠',name_en:'900 Intel',name_ar:'900 إنتل',amount:900} },
@@ -256,9 +260,7 @@ const FUN_PASS_WEEKLY_MISSIONS = [
   { id:'w4', icon:'📸', name_en:'Post 3 moments',    name_ar:'انشر 3 لحظات',       xp:220 },
   { id:'w5', icon:'👥', name_en:'Chat with 3 friends',name_ar:'كلم 3 أصدقاء',     xp:180 },
 ];
-// ==========================================
-// LOGIN REWARDS - 30 DAYS
-// ==========================================
+
 const LOGIN_REWARDS = [
     { day: 1, type: 'currency', amount: 100, icon: '🧠', iconUrl: '', name_en: '100 Intel', name_ar: '100 إنتل' },
     { day: 2, type: 'currency', amount: 150, icon: '🧠', iconUrl: '', name_en: '150 Intel', name_ar: '150 إنتل' },
