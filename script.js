@@ -2175,15 +2175,48 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
 const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
     const t = TRANSLATIONS[lang];
     const [claiming, setClaiming] = useState(false);
+    const [countdown, setCountdown] = useState('');
     
     if (!show) return null;
     
     const loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
-    const today = new Date().toDateString();
-    const lastClaim = loginData.lastClaimDate?.toDate?.()?.toDateString() || loginData.lastClaimDate;
-    const canClaimToday = lastClaim !== today;
+    
+    // Robust date comparison - handle Firestore Timestamp, Date, and string
+    const getLastClaimDate = () => {
+        const lcd = loginData.lastClaimDate;
+        if (!lcd) return null;
+        if (lcd?.toDate) return lcd.toDate(); // Firestore Timestamp
+        if (lcd instanceof Date) return lcd;
+        const d = new Date(lcd);
+        return isNaN(d.getTime()) ? null : d;
+    };
+    
+    const lastClaimDate = getLastClaimDate();
+    const today = new Date();
+    const todayStr = today.toDateString();
+    const lastClaimStr = lastClaimDate ? lastClaimDate.toDateString() : null;
+    const canClaimToday = lastClaimStr !== todayStr;
     const currentDay = loginData.currentDay || 0;
     const currentReward = LOGIN_REWARDS[currentDay];
+    
+    // Countdown timer to next claim
+    useEffect(() => {
+        if (canClaimToday || !lastClaimDate) { setCountdown(''); return; }
+        const calcCountdown = () => {
+            const now = new Date();
+            const nextMidnight = new Date(now);
+            nextMidnight.setHours(24, 0, 0, 0);
+            const diff = nextMidnight - now;
+            if (diff <= 0) { setCountdown(''); return; }
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            setCountdown(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
+        };
+        calcCountdown();
+        const timer = setInterval(calcCountdown, 1000);
+        return () => clearInterval(timer);
+    }, [canClaimToday, lastClaimDate]);
     
     const handleClaim = async () => { 
         if (!canClaimToday || claiming) return; 
@@ -2265,7 +2298,18 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
                                 {currentReward.special && <div style={{ fontSize: '10px', color: '#ffd700', marginTop: '4px' }}>⭐ {lang === 'ar' ? 'مكافأة خاصة!' : 'Special Reward!'}</div>}
                             </div>
                         )}
-                        <button onClick={handleClaim} disabled={!canClaimToday || claiming} style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: canClaimToday && !claiming ? 'pointer' : 'not-allowed', transition: 'all 0.2s ease', background: canClaimToday ? 'linear-gradient(135deg, #ffd700, #ff8800)' : 'rgba(107, 114, 128, 0.5)', color: canClaimToday ? '#000' : 'rgba(255, 255, 255, 0.5)', marginTop: '12px' }}>
+                        {/* Countdown shown when already claimed */}
+                        {!canClaimToday && countdown && (
+                            <div style={{textAlign:'center', marginTop:'10px', padding:'8px 12px', background:'rgba(0,242,255,0.06)', border:'1px solid rgba(0,242,255,0.15)', borderRadius:'10px'}}>
+                                <div style={{fontSize:'9px', color:'#64748b', marginBottom:'3px'}}>
+                                    {lang === 'ar' ? '⏳ الوقت المتبقي لليوم التالي' : '⏳ Next reward in'}
+                                </div>
+                                <div style={{fontSize:'18px', fontWeight:900, color:'#00f2ff', fontFamily:'monospace', letterSpacing:'2px'}}>
+                                    {countdown}
+                                </div>
+                            </div>
+                        )}
+                        <button onClick={handleClaim} disabled={!canClaimToday || claiming} style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: canClaimToday && !claiming ? 'pointer' : 'not-allowed', transition: 'all 0.2s ease', background: canClaimToday ? 'linear-gradient(135deg, #ffd700, #ff8800)' : 'rgba(107, 114, 128, 0.5)', color: canClaimToday ? '#000' : 'rgba(255, 255, 255, 0.5)', marginTop: '10px' }}>
                             {claiming ? t.loading : canClaimToday ? t.claimReward : t.alreadyClaimed}
                         </button>
                     </div>
@@ -2927,9 +2971,15 @@ function App() {
     useEffect(() => {
         if (isLoggedIn && userData && !sessionClaimedToday) {
             const loginData = userData.loginRewards || { currentDay: 0, lastClaimDate: null };
-            const today = new Date().toDateString();
-            const lastClaim = loginData.lastClaimDate?.toDate?.()?.toDateString() || loginData.lastClaimDate;
-            if (lastClaim !== today && loginData.currentDay < 30) setShowLoginRewards(true);
+            const lcd = loginData.lastClaimDate;
+            let lastClaimDate = null;
+            if (lcd?.toDate) lastClaimDate = lcd.toDate();
+            else if (lcd instanceof Date) lastClaimDate = lcd;
+            else if (lcd) { const d = new Date(lcd); if (!isNaN(d.getTime())) lastClaimDate = d; }
+            const todayStr = new Date().toDateString();
+            const lastClaimStr = lastClaimDate ? lastClaimDate.toDateString() : null;
+            const canClaim = lastClaimStr !== todayStr;
+            if (canClaim && loginData.currentDay < 30) setShowLoginRewards(true);
         }
     }, [isLoggedIn, userData?.loginRewards?.lastClaimDate, sessionClaimedToday]);
 
@@ -4339,11 +4389,13 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
     const [liked, setLiked] = useState(false);
     const [likesCount, setLikesCount] = useState(moment.likesCount || 0);
     const [submitting, setSubmitting] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [reportSent, setReportSent] = useState(false);
 
     useEffect(() => {
         if (!moment.id) return;
         const unsub = momentsCollection.doc(moment.id).collection('comments')
-            .limit(30)
+            .limit(50)
             .onSnapshot(snap => {
                 const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 data.sort((a, b) => {
@@ -4353,32 +4405,22 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                 });
                 setComments(data);
             });
-        // Check if current user liked
         if (currentUser) {
-            const likedBy = moment.likedBy || [];
-            setLiked(likedBy.includes(currentUser.uid));
+            setLiked((moment.likedBy || []).includes(currentUser.uid));
             setLikesCount(moment.likesCount || 0);
         }
         return unsub;
     }, [moment.id]);
 
     const handleLike = async () => {
-        if (!currentUser || !currentUser.uid) return;
+        if (!currentUser?.uid) return;
         const docRef = momentsCollection.doc(moment.id);
         if (liked) {
-            await docRef.update({
-                likedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
-                likesCount: firebase.firestore.FieldValue.increment(-1)
-            });
-            setLiked(false);
-            setLikesCount(p => Math.max(0, p - 1));
+            await docRef.update({ likedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid), likesCount: firebase.firestore.FieldValue.increment(-1) });
+            setLiked(false); setLikesCount(p => Math.max(0, p - 1));
         } else {
-            await docRef.update({
-                likedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
-                likesCount: firebase.firestore.FieldValue.increment(1)
-            });
-            setLiked(true);
-            setLikesCount(p => p + 1);
+            await docRef.update({ likedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid), likesCount: firebase.firestore.FieldValue.increment(1) });
+            setLiked(true); setLikesCount(p => p + 1);
         }
     };
 
@@ -4392,43 +4434,96 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
             text: newComment.trim(),
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        setNewComment('');
-        setSubmitting(false);
+        setNewComment(''); setSubmitting(false);
+    };
+
+    const handleDeleteComment = async (commentId) => {
+        await momentsCollection.doc(moment.id).collection('comments').doc(commentId).delete();
+    };
+
+    const handleReportMoment = async () => {
+        if (!currentUser || reportSent) return;
+        try {
+            await reportsCollection.add({
+                type: 'moment',
+                targetId: moment.id,
+                targetOwnerUID: moment.authorUID,
+                reporterUID: currentUser.uid,
+                reporterName: currentUser.displayName || 'User',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            setReportSent(true);
+        } catch(e) {}
+    };
+
+    const handleReportComment = async (comment) => {
+        if (!currentUser) return;
+        try {
+            await reportsCollection.add({
+                type: 'moment_comment',
+                targetId: comment.id,
+                momentId: moment.id,
+                targetOwnerUID: comment.authorUID,
+                reporterUID: currentUser.uid,
+                reporterName: currentUser.displayName || 'User',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch(e) {}
     };
 
     return (
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:99999, padding:'16px'}} onClick={onClose}>
             <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)', border:'1px solid rgba(0,242,255,0.2)', borderRadius:'16px', width:'100%', maxWidth:'400px', maxHeight:'85vh', overflow:'hidden', display:'flex', flexDirection:'column'}} onClick={e => e.stopPropagation()}>
+
                 {/* Header */}
                 <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
                     <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                        {moment.authorPhoto && <img src={moment.authorPhoto} alt="" style={{width:'28px', height:'28px', borderRadius:'50%', objectFit:'cover'}} />}
+                        {moment.authorPhoto
+                            ? <img src={moment.authorPhoto} alt="" style={{width:'28px', height:'28px', borderRadius:'50%', objectFit:'cover'}} />
+                            : <div style={{width:'28px', height:'28px', borderRadius:'50%', background:'#374151', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px'}}>👤</div>
+                        }
                         <span style={{fontSize:'12px', fontWeight:700, color:'white'}}>{moment.authorName}</span>
                     </div>
-                    <div style={{display:'flex', gap:'6px', alignItems:'center'}}>
+                    <div style={{display:'flex', gap:'5px', alignItems:'center'}}>
+                        {/* Report button - shown to non-owners */}
+                        {currentUser && !isOwnProfile && (
+                            <button
+                                onClick={handleReportMoment}
+                                title={lang === 'ar' ? 'إبلاغ' : 'Report'}
+                                style={{background: reportSent ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.06)', border: reportSent ? '1px solid rgba(251,191,36,0.4)' : '1px solid rgba(255,255,255,0.1)', borderRadius:'6px', color: reportSent ? '#fbbf24' : '#6b7280', fontSize:'10px', padding:'3px 8px', cursor: reportSent ? 'default' : 'pointer', fontWeight:700}}
+                            >
+                                {reportSent ? (lang === 'ar' ? '✓ تم' : '✓ Sent') : (lang === 'ar' ? '🚩 إبلاغ' : '🚩 Report')}
+                            </button>
+                        )}
+                        {/* Delete button - shown to owner */}
                         {isOwnProfile && (
-                            <button onClick={() => onDelete(moment.id)} style={{background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:'6px', color:'#f87171', fontSize:'10px', padding:'3px 8px', cursor:'pointer'}}>
+                            <button
+                                onClick={() => setShowDeleteConfirm(true)}
+                                style={{background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:'6px', color:'#f87171', fontSize:'10px', padding:'3px 8px', cursor:'pointer', fontWeight:700}}
+                            >
                                 🗑️
                             </button>
                         )}
-                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.1)', border:'none', color:'#9ca3af', fontSize:'16px', cursor:'pointer', borderRadius:'6px', padding:'4px 8px'}}>✕</button>
+                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.08)', border:'none', color:'#9ca3af', fontSize:'16px', cursor:'pointer', borderRadius:'6px', padding:'4px 8px'}}>✕</button>
                     </div>
                 </div>
 
                 {/* Content */}
                 <div style={{flex:'0 0 auto', padding:'12px 14px', background:'rgba(0,0,0,0.2)'}}>
-                    {moment.type === 'text' && (
-                        <p style={{fontSize:'14px', color:'#e2e8f0', lineHeight:1.6, margin:0}}>{moment.content}</p>
+                    {(moment.type === 'image' || moment.type === 'video') && moment.mediaUrl && (
+                        <div style={{marginBottom: moment.content ? '10px' : 0}}>
+                            {moment.type === 'image'
+                                ? <img src={moment.mediaUrl} alt="" style={{width:'100%', borderRadius:'10px', maxHeight:'250px', objectFit:'cover'}} />
+                                : <video src={moment.mediaUrl} controls style={{width:'100%', borderRadius:'10px', maxHeight:'250px'}} />
+                            }
+                        </div>
                     )}
-                    {moment.type === 'image' && (
-                        <img src={moment.mediaUrl} alt="" style={{width:'100%', borderRadius:'10px', maxHeight:'250px', objectFit:'cover'}} />
-                    )}
-                    {moment.type === 'video' && (
-                        <video src={moment.mediaUrl} controls style={{width:'100%', borderRadius:'10px', maxHeight:'250px'}} />
-                    )}
+                    {moment.content ? (
+                        <p style={{fontSize:'13px', color:'#e2e8f0', lineHeight:1.6, margin:0}}>{moment.content}</p>
+                    ) : null}
                 </div>
 
-                {/* Like button */}
+                {/* Like + stats bar */}
                 <div style={{padding:'8px 14px', display:'flex', alignItems:'center', gap:'12px', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                     <button
                         onClick={handleLike}
@@ -4444,24 +4539,48 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                     <span style={{fontSize:'10px', color:'#64748b'}}>💬 {comments.length}</span>
                 </div>
 
-                {/* Comments */}
+                {/* Comments list */}
                 <div style={{flex:1, overflowY:'auto', padding:'8px 14px', display:'flex', flexDirection:'column', gap:'8px'}}>
                     {comments.length === 0 ? (
                         <div style={{textAlign:'center', color:'#64748b', fontSize:'11px', padding:'12px 0'}}>
                             {lang === 'ar' ? 'لا توجد تعليقات' : 'No comments yet'}
                         </div>
-                    ) : comments.map(c => (
-                        <div key={c.id} style={{display:'flex', gap:'8px', alignItems:'flex-start'}}>
-                            {c.authorPhoto ? <img src={c.authorPhoto} alt="" style={{width:'24px', height:'24px', borderRadius:'50%', objectFit:'cover', flexShrink:0}} /> : <div style={{width:'24px', height:'24px', borderRadius:'50%', background:'#374151', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px'}}>👤</div>}
-                            <div style={{background:'rgba(255,255,255,0.05)', borderRadius:'10px', padding:'6px 10px', flex:1}}>
-                                <div style={{fontSize:'9px', fontWeight:700, color:'#00f2ff', marginBottom:'2px'}}>{c.authorName}</div>
-                                <div style={{fontSize:'11px', color:'#e2e8f0', lineHeight:1.4}}>{c.text}</div>
+                    ) : comments.map(c => {
+                        const isMyComment = currentUser?.uid === c.authorUID;
+                        const isMomentOwner = isOwnProfile;
+                        return (
+                            <div key={c.id} style={{display:'flex', gap:'8px', alignItems:'flex-start'}}>
+                                {c.authorPhoto
+                                    ? <img src={c.authorPhoto} alt="" style={{width:'24px', height:'24px', borderRadius:'50%', objectFit:'cover', flexShrink:0}} />
+                                    : <div style={{width:'24px', height:'24px', borderRadius:'50%', background:'#374151', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px'}}>👤</div>
+                                }
+                                <div style={{background:'rgba(255,255,255,0.05)', borderRadius:'10px', padding:'6px 10px', flex:1, minWidth:0}}>
+                                    <div style={{fontSize:'9px', fontWeight:700, color:'#00f2ff', marginBottom:'2px'}}>{c.authorName}</div>
+                                    <div style={{fontSize:'11px', color:'#e2e8f0', lineHeight:1.4, wordBreak:'break-word'}}>{c.text}</div>
+                                </div>
+                                {/* Actions: delete (my comment OR moment owner), report (others) */}
+                                <div style={{display:'flex', flexDirection:'column', gap:'3px', flexShrink:0}}>
+                                    {(isMyComment || isMomentOwner) && (
+                                        <button
+                                            onClick={() => handleDeleteComment(c.id)}
+                                            title={lang === 'ar' ? 'حذف' : 'Delete'}
+                                            style={{background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'5px', color:'#f87171', fontSize:'9px', padding:'2px 5px', cursor:'pointer', lineHeight:1}}
+                                        >✕</button>
+                                    )}
+                                    {!isMyComment && !isMomentOwner && currentUser && (
+                                        <button
+                                            onClick={() => handleReportComment(c)}
+                                            title={lang === 'ar' ? 'إبلاغ' : 'Report'}
+                                            style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'5px', color:'#6b7280', fontSize:'9px', padding:'2px 5px', cursor:'pointer', lineHeight:1}}
+                                        >🚩</button>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
-                {/* Comment Input */}
+                {/* Comment input */}
                 {currentUser && (
                     <div style={{padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.08)', display:'flex', gap:'8px'}}>
                         <input
@@ -4480,6 +4599,35 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                         </button>
                     </div>
                 )}
+
+                {/* Delete confirm overlay */}
+                {showDeleteConfirm && (
+                    <div style={{position:'absolute', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'16px', zIndex:10}}>
+                        <div style={{background:'#1e293b', border:'1px solid rgba(239,68,68,0.4)', borderRadius:'12px', padding:'20px 24px', textAlign:'center', maxWidth:'260px'}}>
+                            <div style={{fontSize:'28px', marginBottom:'8px'}}>🗑️</div>
+                            <div style={{fontSize:'13px', fontWeight:700, color:'white', marginBottom:'6px'}}>
+                                {lang === 'ar' ? 'حذف اللحظة؟' : 'Delete Moment?'}
+                            </div>
+                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'16px'}}>
+                                {lang === 'ar' ? 'لا يمكن التراجع عن هذا الإجراء' : 'This action cannot be undone'}
+                            </div>
+                            <div style={{display:'flex', gap:'8px'}}>
+                                <button
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                    style={{flex:1, padding:'8px', borderRadius:'8px', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'12px', fontWeight:700, cursor:'pointer'}}
+                                >
+                                    {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                                <button
+                                    onClick={() => { setShowDeleteConfirm(false); onDelete(moment.id); }}
+                                    style={{flex:1, padding:'8px', borderRadius:'8px', background:'rgba(239,68,68,0.2)', border:'1px solid rgba(239,68,68,0.4)', color:'#f87171', fontSize:'12px', fontWeight:700, cursor:'pointer'}}
+                                >
+                                    {lang === 'ar' ? 'حذف' : 'Delete'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -4487,7 +4635,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
 
 const CreateMomentModal = ({ onClose, currentUser, lang }) => {
     const [momentType, setMomentType] = useState('text');
-    const [textContent, setTextContent] = useState('');
+    const [textContent, setTextContent] = useState('');  // text content OR caption
     const [mediaFile, setMediaFile] = useState(null);
     const [mediaPreview, setMediaPreview] = useState(null);
     const [error, setError] = useState('');
@@ -4560,7 +4708,7 @@ const CreateMomentModal = ({ onClose, currentUser, lang }) => {
                 authorName: currentUser.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
                 authorPhoto: currentUser.photoURL || null,
                 type: momentType,
-                content: momentType === 'text' ? textContent.trim() : '',
+                content: textContent.trim(), // caption for image/video, full text for text type
                 mediaUrl: (momentType === 'image' || momentType === 'video') ? mediaPreview : null,
                 likesCount: 0,
                 likedBy: [],
@@ -4628,7 +4776,7 @@ const CreateMomentModal = ({ onClose, currentUser, lang }) => {
                                         ? <img src={mediaPreview} alt="" style={{width:'100%', maxHeight:'180px', objectFit:'cover'}} />
                                         : <video src={mediaPreview} controls style={{width:'100%', maxHeight:'180px'}} />
                                     }
-                                    <button onClick={() => { setMediaFile(null); setMediaPreview(null); }} style={{position:'absolute', top:'6px', right:'6px', background:'rgba(0,0,0,0.7)', border:'none', color:'white', borderRadius:'50%', width:'24px', height:'24px', cursor:'pointer', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center'}}>✕</button>
+                                    <button onClick={() => { setMediaFile(null); setMediaPreview(null); setTextContent(''); }} style={{position:'absolute', top:'6px', right:'6px', background:'rgba(0,0,0,0.7)', border:'none', color:'white', borderRadius:'50%', width:'24px', height:'24px', cursor:'pointer', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center'}}>✕</button>
                                 </div>
                             ) : (
                                 <div
@@ -4642,6 +4790,14 @@ const CreateMomentModal = ({ onClose, currentUser, lang }) => {
                                     </div>
                                 </div>
                             )}
+                            {/* Caption field - optional text with image/video */}
+                            <textarea
+                                value={textContent}
+                                onChange={e => setTextContent(e.target.value)}
+                                maxLength={200}
+                                placeholder={lang === 'ar' ? 'أضف تعليقاً (اختياري)...' : 'Add a caption (optional)...'}
+                                style={{width:'100%', marginTop:'8px', background:'rgba(0,0,0,0.35)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'8px 12px', color:'white', fontSize:'12px', fontFamily:'inherit', resize:'none', height:'56px', outline:'none'}}
+                            />
                         </div>
                     )}
 
@@ -4651,13 +4807,13 @@ const CreateMomentModal = ({ onClose, currentUser, lang }) => {
                         onClick={handleSubmit}
                         disabled={uploading || (momentType === 'text' ? !textContent.trim() : !mediaFile)}
                         style={{
-                            width:'100%', marginTop:'14px', padding:'12px', borderRadius:'12px',
+                            width:'100%', marginTop:'12px', padding:'12px', borderRadius:'12px',
                             background:'linear-gradient(135deg,#7000ff,#00f2ff)', color:'white',
                             fontSize:'14px', fontWeight:800, border:'none', cursor:'pointer',
                             opacity: (uploading || (momentType === 'text' ? !textContent.trim() : !mediaFile)) ? 0.5 : 1
                         }}
                     >
-                        {uploading ? '...' : (lang === 'ar' ? 'نشر اللحظة 🚀' : 'Post Moment 🚀')}
+                        {uploading ? (lang === 'ar' ? 'جارٍ النشر...' : 'Posting...') : (lang === 'ar' ? 'نشر اللحظة 🚀' : 'Post Moment 🚀')}
                     </button>
                 </div>
             </div>
