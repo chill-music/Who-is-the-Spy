@@ -93,9 +93,7 @@ body {
     0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } 
     50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); } 
     100% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } 
-}
-@keyframes rotate-border { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-@keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+}@keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pop-in { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
 @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
@@ -104,17 +102,8 @@ body {
 @keyframes glow-pulse { 0%, 100% { box-shadow: 0 0 10px currentColor; } 50% { box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; } }
 @keyframes notification-sound { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(15deg); } 75% { transform: rotate(-15deg); } }
 @keyframes slide-up { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes gift-glow-pulse { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.1); } }
-
-.animate-fade-in { animation: fade-in-up 0.6s ease-out forwards; }
 .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.animate-float { animation: float 3s ease-in-out infinite; }
-.animate-slide-down { animation: slide-down 0.3s ease-out; }
 .animate-slide-up { animation: slide-up 0.3s ease-out; }
-.animate-pulse-badge { animation: pulse-badge 2s infinite; }
-.animate-bell-ring { animation: notification-sound 0.5s ease-in-out; }
-
 /* ==========================================
    BUTTONS
    ========================================== */
@@ -269,22 +258,10 @@ body {
 /* ==========================================
    CURRENCY DISPLAY
    ========================================== */
-.currency-display {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 136, 0, 0.1));
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 20px;
-    padding: var(--spacing-xs) var(--spacing-md);
-    cursor: pointer;
-    transition: all 0.2s;
-}
 .currency-display:hover {
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 136, 0, 0.2));
     transform: scale(1.02);
 }
-.currency-icon { font-size: 16px; }
 .currency-value { font-size: 13px; font-weight: 700; color: var(--gold); }
 
 /* ==========================================
@@ -349,50 +326,10 @@ body {
 .avatar-wrapper.size-lg { width: 110px; height: 110px; }
 .avatar-wrapper.size-xl { width: 140px; height: 140px; }
 
-.avatar-image {
-    border-radius: 50%;
-    object-fit: cover;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    border: 2px solid rgba(0, 0, 0, 0.5);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
 .avatar-wrapper.size-sm .avatar-image { width: 30px; height: 30px; }
 .avatar-wrapper.size-md .avatar-image { width: 40px; height: 40px; }
 .avatar-wrapper.size-lg .avatar-image { width: 60px; height: 60px; }
 .avatar-wrapper.size-xl .avatar-image { width: 80px; height: 80px; }
-
-.avatar-frame-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    overflow: hidden;
-    z-index: 1;
-    pointer-events: none;
-}
-
-.avatar-frame-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.avatar-frame-mask {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: var(--bg-dark);
-    z-index: 2;
-}
 
 .avatar-wrapper.size-sm .avatar-frame-mask { width: 32px; height: 32px; }
 .avatar-wrapper.size-md .avatar-frame-mask { width: 42px; height: 42px; }
@@ -1158,7 +1095,6 @@ body {
 .vote-request-banner { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 50; width: 90%; max-width: 500px; }
 .xp-bar-bg { background: rgba(255,255,255,0.1); }
 .xp-bar-fill { background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 0.5s ease; }
-.achievement-card { transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; padding: var(--spacing-sm); border-radius: var(--radius-sm); }
 .achievement-card.locked { filter: grayscale(100%); opacity: 0.4; }
 .achievement-card.unlocked { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); background: linear-gradient(145deg, rgba(0, 242, 255, 0.05), transparent); }
 .dropdown-menu { position: absolute; top: 100%; right: 0; margin-top: var(--spacing-sm); min-width: 180px; z-index: 9999; }
@@ -1502,33 +1438,10 @@ body {
 .achievement-progress-text { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
 .achievement-progress-track { height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; }
 .achievement-progress-fill-bar { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8800); transition: width 0.3s; }
-.achievements-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-sm); }
 .achievements-title { font-size: 12px; font-weight: 700; color: var(--gold); display: flex; align-items: center; gap: 6px; }
-.achievements-view-all { font-size: 10px; color: var(--primary); cursor: pointer; }
-
 /* ==========================================
    CHARISMA RANK STYLES
    ========================================== */
-.charisma-rank-section {
-    margin-bottom: var(--spacing-md);
-    padding: var(--spacing-md);
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.05));
-    border: 1px solid rgba(255, 215, 0, 0.2);
-    border-radius: var(--radius-md);
-}
-.charisma-rank-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-sm); }
-.charisma-rank-title { font-size: 12px; font-weight: 700; color: var(--gold); display: flex; align-items: center; gap: 6px; }
-.charisma-rank-list { display: flex; flex-direction: column; gap: var(--spacing-xs); }
-.charisma-rank-item {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-sm);
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all 0.2s;
-}
 .charisma-rank-item:hover { background: rgba(255, 255, 255, 0.08); }
 .charisma-rank-item.rank-1 { background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 136, 0, 0.1)); border: 1px solid rgba(255, 215, 0, 0.3); }
 .charisma-rank-item.rank-2 { background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(169, 169, 169, 0.08)); border: 1px solid rgba(192, 192, 192, 0.3); }
@@ -1537,16 +1450,9 @@ body {
 .charisma-rank-item.rank-1 .charisma-rank-position { background: linear-gradient(135deg, #ffd700, #ff8800); color: #000; }
 .charisma-rank-item.rank-2 .charisma-rank-position { background: linear-gradient(135deg, #c0c0c0, #a9a9a9); color: #000; }
 .charisma-rank-item.rank-3 .charisma-rank-position { background: linear-gradient(135deg, #cd7f32, #b87333); color: #000; }
-.charisma-rank-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255, 255, 255, 0.1); }
 .charisma-rank-item.rank-1 .charisma-rank-avatar { border-color: var(--gold); box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
 .charisma-rank-item.rank-2 .charisma-rank-avatar { border-color: #c0c0c0; box-shadow: 0 0 8px rgba(192, 192, 192, 0.3); }
 .charisma-rank-item.rank-3 .charisma-rank-avatar { border-color: #cd7f32; box-shadow: 0 0 8px rgba(205, 127, 50, 0.3); }
-.charisma-rank-info { flex: 1; min-width: 0; }
-.charisma-rank-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.charisma-rank-value { font-size: 10px; color: var(--gold); font-weight: 700; }
-.charisma-rank-crown { font-size: 16px; animation: float 2s ease-in-out infinite; }
-.charisma-rank-badge-img { width: 20px; height: 20px; object-fit: contain; }
-
 /* ==========================================
    SOUND TOGGLE STYLES
    ========================================== */
@@ -1590,20 +1496,6 @@ body {
 /* ==========================================
    BLOCK USER BUTTON
    ========================================== */
-.block-user-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    padding: 6px 12px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: var(--radius-sm);
-    color: #ef4444;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
 .block-user-btn:hover { background: rgba(239, 68, 68, 0.2); }
 
 /* ==========================================
@@ -1814,15 +1706,10 @@ body {
 .achievement-detail-desc { font-size: 13px; color: var(--text-muted); margin-bottom: var(--spacing-md); }
 .achievement-detail-progress { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; margin-bottom: var(--spacing-xs); }
 .achievement-detail-progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8800); transition: width 0.3s; }
-.achievement-detail-stats { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
-
 /* ==========================================
    ACHIEVEMENTS SECTION IN SETTINGS
    ========================================== */
 .achievements-section { margin-top: var(--spacing-md); }
-.achievements-section-title { display: flex; align-items: center; gap: var(--spacing-sm); font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: var(--spacing-sm); }
-.achievements-section-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
-
 /* ==========================================
    ═══════════════════════════════════════════
    PROFILE V11 - PREMIUM DESIGN
@@ -1947,12 +1834,6 @@ body {
 /* ==========================================
    CHARISMA HEADER SECTION
    ========================================== */
-.charisma-header-section {
-    padding: 12px 14px 8px;
-    background: linear-gradient(180deg, rgba(0, 242, 255, 0.05), transparent);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-.charisma-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm); }
 .charisma-label { display: flex; align-items: center; gap: var(--spacing-sm); }
 .charisma-label i { color: var(--gold); font-size: 14px; }
 .charisma-label span { font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -1968,7 +1849,6 @@ body {
     gap: 4px;
 }
 .charisma-level-badge i { font-size: 8px; }
-.charisma-level-badge-img { width: 24px; height: 24px; object-fit: contain; border-radius: 50%; }
 .charisma-level-badge.has-glow { animation: pulse-glow 2s infinite; }
 .charisma-bar { height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden; }
 .charisma-bar-fill {
@@ -2491,17 +2371,6 @@ body {
 /* ==========================================
    ACHIEVEMENT DETAIL MODAL
    ========================================== */
-.achievement-detail-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1001;
-    padding: 20px;
-    animation: fade-in-up 0.2s ease-out;
-}
 .achievement-detail-modal {
     background: linear-gradient(180deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.99));
     border: 1px solid rgba(139, 92, 246, 0.3);
@@ -2610,18 +2479,6 @@ body {
 .profile-charisma-under-id .charisma-icon {
     font-size: 14px;
 }
-.profile-charisma-under-id .charisma-value {
-    font-size: 13px;
-    font-weight: 700;
-    color: #facc15;
-}
-.profile-charisma-under-id .charisma-level-img {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-    border-radius: 50%;
-}
-
 /* ============================================================
    🎨 RARITY SYSTEM
    ============================================================ */
@@ -3283,13 +3140,7 @@ body {
 @keyframes mythic-pulse {
     0%, 100% { box-shadow: 0 0 8px rgba(255,0,85,0.5), 0 0 20px rgba(255,0,85,0.2), inset 0 0 8px rgba(255,0,85,0.05); }
     50%       { box-shadow: 0 0 16px rgba(255,0,85,0.8), 0 0 36px rgba(255,0,85,0.35), inset 0 0 12px rgba(255,0,85,0.1); }
-}
-@keyframes mythic-border-pulse {
-    0%, 100% { border-color: rgba(255,0,85,0.6); }
-    50%       { border-color: rgba(255,0,85,1); }
-}
-
-/* Gift slot with Mythic rarity */
+}/* Gift slot with Mythic rarity */
 .profile-gift-slot.unlocked[data-rarity="Mythic"],
 .profile-gift-slot.mythic-rarity {
     animation: mythic-pulse 2s ease-in-out infinite, mythic-border-pulse 2s ease-in-out infinite !important;
@@ -3317,3 +3168,13 @@ body {
 .profile-stats-right-col {
     /* Cleared - using inline styles now */
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🔧 UTILITY CLASSES
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.bg-subtle { background: rgba(255,255,255,0.05); }
+.bg-subtle-md { background: rgba(255,255,255,0.08); }
+.text-muted-sm { color: var(--text-muted); font-size: 10px; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.icon-24 { width: 24px; height: 24px; object-fit: contain; }
+.icon-16 { width: 16px; height: 16px; object-fit: contain; }
