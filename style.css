@@ -2001,6 +2001,18 @@ body {
     gap: 4px;
     color: #cbd5e1;
 }
+.profile-badge-chip.has-image {
+    background: transparent;
+    border: none;
+    padding: 2px 4px;
+}
+.profile-badge-chip img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    border-radius: 4px;
+    background: transparent;
+}
 
 /* ==========================================
    STATS DASHBOARD
