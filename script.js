@@ -21,11 +21,11 @@ const Z = {
 // 🎨 GRADIENT CONSTANTS - Reusable styles
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const GR = {
-    DARK_CARD:  GR.DARK_CARD,
-    NEON:       GR.NEON,
-    GOLD:       GR.GOLD,
-    GOLD_SOFT:  GR.GOLD_SOFT,
-    CYAN_SOFT:  GR.CYAN_SOFT,
+    DARK_CARD:  'linear-gradient(135deg, rgba(15,15,35,0.95), rgba(25,25,50,0.95))',
+    NEON:       'linear-gradient(135deg, rgba(0,242,255,0.15), rgba(112,0,255,0.15))',
+    GOLD:       'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,140,0,0.15))',
+    GOLD_SOFT:  'linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,140,0,0.08))',
+    CYAN_SOFT:  'linear-gradient(135deg, rgba(0,242,255,0.08), rgba(112,0,255,0.08))',
 };
 
 const createPortal = ReactDOM.createPortal;
@@ -433,16 +433,6 @@ const SHOP_ITEMS = {
         { id: 'theme_dark', name_en: "Midnight", name_ar: "منتصف الليل", cost: 200, type: 'themes' },
         { id: 'theme_ocean', name_en: "Ocean Blue", name_ar: "أزرق محيطي", cost: 300, type: 'themes' },
     ],
-    profileEffects: [
-        { id: 'effect_sakura', name_en: "Sakura Petals", name_ar: "زهور الكرز",  cost: 800,  type: 'profileEffects', rarity: 'Rare',      preview: '🌸', particles: [{emoji:'🌸',count:12},{emoji:'🌺',count:8}], duration: 2200 },
-        { id: 'effect_hearts', name_en: "Heart Shower",  name_ar: "دش القلوب",   cost: 900,  type: 'profileEffects', rarity: 'Rare',      preview: '💖', particles: [{emoji:'💖',count:12},{emoji:'💕',count:10},{emoji:'❤️',count:8}], duration: 2200 },
-        { id: 'effect_stars',  name_en: "Star Burst",    name_ar: "انفجار نجوم", cost: 1200, type: 'profileEffects', rarity: 'Epic',      preview: '⭐', particles: [{emoji:'⭐',count:10},{emoji:'✨',count:14},{emoji:'💫',count:8}], duration: 2200 },
-        { id: 'effect_fire',   name_en: "Fire Storm",    name_ar: "عاصفة نارية", cost: 1500, type: 'profileEffects', rarity: 'Epic',      preview: '🔥', particles: [{emoji:'🔥',count:15},{emoji:'💥',count:6}], duration: 2200 },
-        { id: 'effect_ghost',  name_en: "Ghost Mode",    name_ar: "وضع الشبح",   cost: 1800, type: 'profileEffects', rarity: 'Epic',      preview: '👻', particles: [{emoji:'👻',count:8},{emoji:'💀',count:6},{emoji:'🕯️',count:8}], duration: 2200 },
-        { id: 'effect_money',  name_en: "Money Rain",    name_ar: "مطر الأموال", cost: 2000, type: 'profileEffects', rarity: 'Legendary', preview: '💰', particles: [{emoji:'💰',count:10},{emoji:'🧠',count:12},{emoji:'💵',count:8}], duration: 2200 },
-        { id: 'effect_crown',  name_en: "Royal Crown",   name_ar: "تاج ملكي",    cost: 2500, type: 'profileEffects', rarity: 'Legendary', preview: '👑', particles: [{emoji:'👑',count:6},{emoji:'💎',count:8},{emoji:'✨',count:12}], duration: 2200 },
-        { id: 'effect_galaxy', name_en: "Galaxy",        name_ar: "مجرة",        cost: 3000, type: 'profileEffects', rarity: 'Mythic',    preview: '🌌', particles: [{emoji:'🌟',count:8},{emoji:'💫',count:10},{emoji:'🌙',count:6},{emoji:'⭐',count:8}], duration: 2500 },
-    ],
     // ✅ GIFTS - WITH BONUS ONLY (NO CASHBACK FOR SENDER)
     gifts: [
         { id: 'gift_rose', name_en: "Rose", name_ar: "وردة", cost: 1, type: 'gifts', charisma: 10, minBonus: 1, maxBonus: 50, desc_ar: "عبّر عن مشاعرك", desc_en: "Express your feelings", emoji: "🌹", imageUrl: "" },
@@ -491,12 +481,10 @@ const SHOP_ITEMS = {
 // 🎨 GIFT RARITY SYSTEM
 // ==========================================
 const RARITY_CONFIG = {
-    Common:    { name_en: 'Common',    name_ar: 'عادي',     color: '#9ca3af', bg: 'rgba(156,163,175,0.07)', border: 'rgba(156,163,175,0.25)', glow: false, icon: '⚪', order: 0 },
-    Uncommon:  { name_en: 'Uncommon',  name_ar: 'غير شائع', color: '#4ade80', bg: 'rgba(74,222,128,0.08)',  border: 'rgba(74,222,128,0.35)',  glow: false, icon: '🟢', order: 1 },
-    Rare:      { name_en: 'Rare',      name_ar: 'نادر',     color: '#60a5fa', bg: 'rgba(96,165,250,0.09)',  border: 'rgba(96,165,250,0.40)',  glow: false, icon: '🔵', order: 2 },
-    Epic:      { name_en: 'Epic',      name_ar: 'ملحمي',    color: '#8b5cf6', bg: 'rgba(139,92,246,0.10)',  border: 'rgba(139,92,246,0.45)',  glow: false, icon: '💜', order: 3 },
-    Legendary: { name_en: 'Legendary', name_ar: 'أسطوري',   color: '#f59e0b', bg: 'rgba(245,158,11,0.10)',  border: 'rgba(245,158,11,0.50)',  glow: true,  icon: '⭐', order: 4 },
-    Mythic:    { name_en: 'Mythic',    name_ar: 'خرافي',    color: '#ff0055', bg: 'rgba(255,0,85,0.12)',    border: 'rgba(255,0,85,0.60)',    glow: true,  icon: '🔮', order: 5, special: true },
+    Common:    { name_en: 'Common',    name_ar: 'عادي',    color: '#9ca3af', bg: 'rgba(156,163,175,0.07)', border: 'rgba(156,163,175,0.25)', glow: false,  icon: '⚪', order: 0 },
+    Epic:      { name_en: 'Epic',      name_ar: 'ملحمي',   color: '#8b5cf6', bg: 'rgba(139,92,246,0.10)',  border: 'rgba(139,92,246,0.45)',  glow: false,  icon: '💜', order: 1 },
+    Legendary: { name_en: 'Legendary', name_ar: 'أسطوري',  color: '#f59e0b', bg: 'rgba(245,158,11,0.10)',  border: 'rgba(245,158,11,0.50)',  glow: true,   icon: '⭐', order: 2 },
+    Mythic:    { name_en: 'Mythic',    name_ar: 'خرافي',   color: '#ff0055', bg: 'rgba(255,0,85,0.12)',    border: 'rgba(255,0,85,0.60)',    glow: true,   icon: '🔮', order: 3, special: true },
 };
 
 
@@ -596,7 +584,7 @@ const generateRandomBonus = (min, max) => Math.floor(Math.random() * (max - min 
 const TRANSLATIONS = { 
     en: { 
         appName: "PRO SPY", tagline: "COVERT ARENA", nickname: "OPERATOR NAME", create: "CREATE GAME", join: "JOIN OPS", browse: "BROWSE ROOMS", players: "OPERATIVES", start: "LAUNCH MISSION", langBtn: "العربية", loading: "PROCESSING...", you: "YOU", statusSpy: "SPY", statusAgent: "AGENT", statusInformant: "INFORMANT", statusMrWhite: "MR. WHITE", statusGhost: "GHOST", round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT", chatPlaceholder: "Type message...", send: "SEND", waiting: "Awaiting host...", location: "LOCATION", spectator: "SPECTATOR", confirm: "CONFIRM VOTE", spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!", mrWhiteWin: "MR. WHITE WINS!", playAgain: "PLAY AGAIN", connecting: "Connecting...", startVoting: "START VOTING", votingStarted: "VOTING INITIATED", voteRequestTitle: "VOTING REQUEST", voteRequestDesc: "wants to start voting.", agree: "AGREE", decline: "DECLINE", endVoting: "END VOTING NOW", votesTitle: "VOTES:", roundsFormat: (c, m) => `ROUND ${c}/${m}`, wordSelectionTitle: "SELECT KEYWORD", wordSelectionDesc: "Choose a keyword for this round", finishSelection: "FINISH SELECTION", selectedWord: "Selected Keyword", loginGoogle: "Login with Google", myAccount: "Profile", logout: "Logout", profile: "Profile", guest: "Guest", linkGuessCard: "GUESS MY CARD", level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID", enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Minimum players not met!", ok: "OK", tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends", addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID", online: "Online", offline: "Offline", noFriends: "No friends yet.", friendAdded: "Friend Added!", friendNotFound: "User not found.", requestSent: "Request Sent!", incomingRequests: "Incoming Requests", noRequests: "No pending requests.", accept: "Accept", reject: "Reject", sendMessage: "Send", inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?", inviteFriends: "Invite Friends", accountInfo: "Account Information", email: "Email", memberSince: "Member Since", nameChangeCountdown: "Name Change In", canChangeNow: "Can change now!", selectEmoji: "Emoji", guestTitle: "GUEST ACCOUNT", guestDesc: "Register to save progress and add friends.", kd: "K/D Ratio", stats: "Stats", noPermission: "Feature unavailable for guests.", normalMode: "NORMAL MODE", advancedMode: "ADVANCED MODE (6+)", modeNormalDesc: "Classic Spy vs Agents. 3-10 Players.", modeAdvDesc: "Special Roles included! 6-10 Players.", privateRoom: "Private Room", password: "Password", publicRoom: "Public Room", noRooms: "No active games found.", lobbyTitle: "GAME LOBBY", mrWhiteInstruction: "Guess the location to win!", informantInstruction: "You know a neighbor!", ghostInstruction: "You are now a Ghost. You can watch but cannot act.", guessLocation: "GUESS LOCATION", leaveRoom: "LEAVE", closeRoom: "CLOSE ROOM", showPassword: "Show Password", guestAccountLabel: "GUEST ACCOUNT", guestProfileMsg: "Guests cannot receive friend requests.", reportUser: "Report User", reportSent: "Report sent successfully!", reportTitle: "Report User", reportDesc: "Please select a reason for reporting this user.", reportReasonAbusive: "Abusive Behavior", reportReasonCheating: "Cheating", reportReasonSpam: "Spam", reportReasonOther: "Other", reportSubmit: "Submit Report", reportCancel: "Cancel", privateRoomError: "Private rooms require a password.",
-        shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", unequip: "UnEquip", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", badges: "Badges", profileEffects: "Profile FX", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", alreadyOwned: "Already Owned",
+        shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", unequip: "UnEquip", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", badges: "Badges", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", alreadyOwned: "Already Owned",
         tutorialTitle: "Welcome, Agent", tutorialStep1: "Your goal is to find the Spy (or blend in if you are the Spy).", tutorialStep2: "Each round, discuss and vote to eject a suspect.", tutorialStep3: "Win matches to earn Intel and buy items in the Shop!", skipTutorial: "Skip", next: "Next", startGame: "Start Game",
         matchSummary: "Match Summary", matchDuration: "Duration", mvp: "MVP", correctVotes: "Correct Votes", summaryTitle: "Game Over!",
         notifTitle: "Notification", achUnlock: "Achievement Unlocked!", newFriend: "New Friend Added!", hiddenAch: "Hidden Achievement", tabMain: "Main", tabInv: "Inventory", tabAch: "Achievements",
@@ -654,7 +642,7 @@ const TRANSLATIONS = {
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "بروفايل", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
-        shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مُزين", unequip: "إزالة", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", badges: "شارات", profileEffects: "تأثيرات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
+        shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مُزين", unequip: "إزالة", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", badges: "شارات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
         tutorialTitle: "مرحباً أيها العميل", tutorialStep1: "هدفك هو العثور على الجاسوس (أو التخفي إن كنت الجاسوس).", tutorialStep2: "في كل جولة، ناقش وصوّت لطرد المشتبه به.", tutorialStep3: "اربح المباريات لتحصل على إنتل واشتري من المتجر!", skipTutorial: "تخطي", next: "التالي", startGame: "ابدأ اللعبة",
         matchSummary: "ملخص المباراة", matchDuration: "المدة", mvp: "الأفضل", correctVotes: "أصوات صحيحة", summaryTitle: "انتهت اللعبة!",
         notifTitle: "إشعار", achUnlock: "تم فتح إنجاز!", newFriend: "صديق جديد!", hiddenAch: "إنجاز سري", tabMain: "الرئيسية", tabInv: "المخزون", tabAch: "الإنجازات",
@@ -1417,11 +1405,10 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
         if (item.type === 'badges') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.preview}</span>;
         if (item.type === 'titles') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-6 h-6 object-contain" /> : <span className="text-xl">{item.preview}</span>;
         if (item.type === 'gifts') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.emoji}</span>;
-        if (item.type === 'profileEffects') return <span style={{fontSize:'26px',lineHeight:1}}>{item.preview}</span>;
         return <span className="text-xl">🎨</span>;
     };
     
-    const tabs = ['frames', 'titles', 'badges', 'profileEffects', 'gifts'];
+    const tabs = ['frames', 'titles', 'badges', 'gifts'];
     
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -1517,11 +1504,10 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
         if (item.type === 'badges') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.preview}</span>;
         if (item.type === 'titles') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-6 h-6 object-contain" /> : <span className="text-xl">{item.preview}</span>;
         if (item.type === 'gifts') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.emoji}</span>;
-        if (item.type === 'profileEffects') return <span style={{fontSize:'26px',lineHeight:1}}>{item.preview}</span>;
         return <span className="text-xl">🎨</span>;
     };
     
-    const tabs = ['frames', 'titles', 'badges', 'profileEffects', 'gifts'];
+    const tabs = ['frames', 'titles', 'badges', 'gifts'];
     const ownedItems = getOwnedItems(activeTab);
     
     return (
@@ -4327,46 +4313,17 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
             {/* Gift Detail Popup - PORTAL to escape backdrop-filter */}
             {selectedGiftDetail && (
                 <PortalModal>
-                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.TOOLTIP,padding:'16px'}} onClick={() => setSelectedGiftDetail(null)}>
-                    <div className="gift-detail-modal animate-pop" onClick={e => e.stopPropagation()} style={{
-                        background:
-                            selectedGiftDetail.rKey==='Mythic'    ? 'linear-gradient(160deg,#1a0010,#0d0020,#1a0010)' :
-                            selectedGiftDetail.rKey==='Legendary' ? 'linear-gradient(160deg,#1a1000,#0d0800,#1a1000)' :
-                            selectedGiftDetail.rKey==='Epic'      ? 'linear-gradient(160deg,#0e0a1a,#06040f,#0e0a1a)' :
-                            selectedGiftDetail.rKey==='Rare'      ? 'linear-gradient(160deg,#001020,#000810,#001020)' :
-                            'linear-gradient(160deg,#0f0f1a,#080812,#0f0f1a)',
-                        border: `2px solid ${selectedGiftDetail.rarity.border}`,
-                        boxShadow:
-                            selectedGiftDetail.rKey==='Mythic'    ? '0 0 0 1px rgba(255,0,85,0.3),0 0 30px rgba(255,0,85,0.7),0 0 70px rgba(255,0,85,0.3),inset 0 0 40px rgba(255,0,85,0.08)' :
-                            selectedGiftDetail.rKey==='Legendary' ? '0 0 0 1px rgba(245,158,11,0.3),0 0 25px rgba(245,158,11,0.6),0 0 55px rgba(245,158,11,0.2)' :
-                            selectedGiftDetail.rKey==='Epic'      ? '0 0 0 1px rgba(139,92,246,0.3),0 0 20px rgba(139,92,246,0.5),0 0 45px rgba(139,92,246,0.15)' :
-                            selectedGiftDetail.rKey==='Rare'      ? '0 0 0 1px rgba(96,165,250,0.3),0 0 16px rgba(96,165,250,0.4)' :
-                            '0 20px 60px rgba(0,0,0,0.6)',
-                        animation: selectedGiftDetail.rKey==='Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none',
-                        position:'relative', overflow:'hidden'
-                    }}>
-                        {/* Rarity top color bar */}
-                        <div style={{position:'absolute',top:0,left:0,right:0,height:'3px',background:`linear-gradient(90deg,transparent,${selectedGiftDetail.rarity.color},transparent)`,opacity:selectedGiftDetail.rKey==='Common'?0.4:1}}/>
-                        {selectedGiftDetail.rKey==='Mythic' && <>
-                            <div style={{position:'absolute',top:'8px',left:'10px',fontSize:'11px',opacity:0.6,animation:'mythic-pulse 1.5s ease-in-out infinite'}}>✦</div>
-                            <div style={{position:'absolute',bottom:'8px',right:'10px',fontSize:'11px',opacity:0.6,animation:'mythic-pulse 1.8s ease-in-out infinite'}}>✦</div>
-                        </>}
+                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.TOOLTIP,padding:'16px'}} onClick={() => setSelectedGiftDetail(null)}>
+                    <div className="gift-detail-modal animate-pop" onClick={e => e.stopPropagation()}>
                         <button className="gift-detail-close" onClick={() => setSelectedGiftDetail(null)}>✕</button>
-                        <div className="gift-detail-emoji" style={{
-                            filter:
-                                selectedGiftDetail.rKey==='Mythic'    ? `drop-shadow(0 0 16px ${selectedGiftDetail.rarity.color}) drop-shadow(0 0 30px ${selectedGiftDetail.rarity.color}88)` :
-                                selectedGiftDetail.rKey==='Legendary' ? `drop-shadow(0 0 12px ${selectedGiftDetail.rarity.color}) drop-shadow(0 0 22px ${selectedGiftDetail.rarity.color}66)` :
-                                selectedGiftDetail.rKey==='Epic'      ? `drop-shadow(0 0 10px ${selectedGiftDetail.rarity.color}) drop-shadow(0 0 18px ${selectedGiftDetail.rarity.color}55)` :
-                                selectedGiftDetail.rKey==='Rare'      ? `drop-shadow(0 0 8px ${selectedGiftDetail.rarity.color}88)` : 'none',
-                            animation: selectedGiftDetail.rKey==='Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none'
-                        }}>{selectedGiftDetail.gift.emoji || '🎁'}</div>
-                        <div className="gift-detail-name" style={{color:selectedGiftDetail.rKey==='Mythic'?'#ff88bb':selectedGiftDetail.rKey==='Legendary'?'#fde68a':'white'}}>
+                        <div className="gift-detail-emoji">{selectedGiftDetail.gift.emoji || '🎁'}</div>
+                        <div className="gift-detail-name">
                             {lang === 'ar' ? selectedGiftDetail.gift.name_ar : selectedGiftDetail.gift.name_en}
                         </div>
-                        <div className="gift-detail-rarity" style={{color:selectedGiftDetail.rarity.color,borderColor:selectedGiftDetail.rarity.border,background:`${selectedGiftDetail.rarity.color}18`}}>
+                        <div className="gift-detail-rarity" style={{ color: selectedGiftDetail.rarity.color, borderColor: selectedGiftDetail.rarity.border }}>
                             {selectedGiftDetail.rarity.icon} {lang === 'ar' ? selectedGiftDetail.rarity.name_ar : selectedGiftDetail.rarity.name_en}
                         </div>
-                        <div className="gift-detail-stats" style={{background:`${selectedGiftDetail.rarity.color}0a`,border:`1px solid ${selectedGiftDetail.rarity.border}`}}>
+                        <div className="gift-detail-stats">
                             <div className="gift-detail-stat">
                                 <span className="gift-detail-stat-label">⭐ {lang==='ar'?'كاريزما':'Charisma'}</span>
                                 <span className="gift-detail-stat-value" style={{color:'#fbbf24'}}>{(selectedGiftDetail.gift.charisma || 0).toLocaleString()}</span>
@@ -4393,6 +4350,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                                 {lang==='ar'?selectedGiftDetail.gift.desc_ar:selectedGiftDetail.gift.desc_en}
                             </div>
                         )}
+
                     </div>
                 </div>
                 </PortalModal>
@@ -4544,25 +4502,17 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                                 key={ach.id} 
                                 className={`profile-achievement-v2 ${isUnlocked ? 'unlocked' : 'locked'}`}
                                 onClick={() => setSelectedAchievement(ach)}
-                                style={isUnlocked ? {
-                                    background: 'rgba(255,215,0,0.1)',
-                                    borderColor: 'rgba(255,215,0,0.4)',
-                                    boxShadow: '0 0 10px rgba(255,215,0,0.2), inset 0 0 15px rgba(255,215,0,0.05)',
-                                } : {
-                                    opacity: 0.5,
-                                    filter: 'grayscale(80%)',
-                                }}
                             >
                                 <span className="profile-achievement-v2-icon" style={{ 
                                     fontSize: '22px',
-                                    filter: isUnlocked ? 'drop-shadow(0 0 6px rgba(255,215,0,0.8))' : 'grayscale(100%)',
-                                    opacity: isUnlocked ? 1 : 0.4
+                                    filter: isUnlocked ? 'none' : 'grayscale(100%)',
+                                    opacity: isUnlocked ? 1 : 0.35
                                 }}>
                                     {ach.icon || '🏅'}
                                 </span>
-                                <span className="profile-achievement-v2-name" style={isUnlocked ? {color:'#fde68a', fontWeight:700} : {}}>{achName}</span>
+                                <span className="profile-achievement-v2-name">{achName}</span>
                                 {isUnlocked ? (
-                                    <span className="profile-achievement-v2-badge" style={{color:'#4ade80',fontSize:'12px'}}>✓</span>
+                                    <span className="profile-achievement-v2-badge">✓</span>
                                 ) : progress > 0 ? (
                                     <div className="profile-achievement-v2-progress">
                                         <div className="profile-achievement-v2-fill" style={{ width: `${progress}%` }}></div>
@@ -4744,51 +4694,6 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
             {isOnline !== undefined && (
                 <div className={`profile-status-dot ${isOnline ? '' : 'offline'}`}></div>
             )}
-        </div>
-    );
-};
-
-// ==========================================
-// ✨ PROFILE EFFECT OVERLAY
-// ==========================================
-const ProfileEffectOverlay = ({ effectId }) => {
-    const [particles, setParticles] = React.useState([]);
-    const [visible, setVisible] = React.useState(false);
-    const timerRef = React.useRef(null);
-    const effect = React.useMemo(() => (SHOP_ITEMS.profileEffects||[]).find(e=>e.id===effectId), [effectId]);
-
-    React.useEffect(() => {
-        if (!effect) return;
-        const all = [];
-        (effect.particles||[]).forEach(p => {
-            for(let i=0;i<p.count;i++) all.push({
-                id:`${p.emoji}-${i}-${Math.random()}`,
-                emoji:p.emoji,
-                x: 5 + Math.random()*90,
-                delay: Math.random()*1.2,
-                size: 13 + Math.random()*16,
-                dur: 1.5 + Math.random()*0.8,
-                rot: Math.random()*360,
-            });
-        });
-        setParticles(all);
-        setVisible(true);
-        if(timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(()=>setVisible(false),(effect.duration||2200)+800);
-        return ()=>{ if(timerRef.current) clearTimeout(timerRef.current); };
-    }, [effectId]);
-
-    if(!visible||!effect) return null;
-    return (
-        <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:99999,overflow:'hidden'}}>
-            {particles.map(p=>(
-                <div key={p.id} style={{
-                    position:'absolute',left:`${p.x}%`,top:'-6%',
-                    fontSize:`${p.size}px`,lineHeight:1,userSelect:'none',
-                    animation:`pef_fall ${p.dur}s ease-in ${p.delay}s forwards`,opacity:0,
-                }}>{p.emoji}</div>
-            ))}
-            <style>{`@keyframes pef_fall{0%{opacity:0;transform:translateY(0) rotate(0deg)}10%{opacity:1}85%{opacity:.8}100%{opacity:0;transform:translateY(100vh) rotate(360deg)}}`}</style>
         </div>
     );
 };
@@ -5909,20 +5814,8 @@ const ProfileV11 = ({
     const losses = targetData?.stats?.losses || 0;
     const level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
 
-    // Profile Effect - trigger on each profile open
-    const [effectTrigger, setEffectTrigger] = React.useState(0);
-    React.useEffect(() => {
-        if (targetData?.equipped?.profileEffects) {
-            setEffectTrigger(t => t + 1);
-        }
-    }, [targetData?.equipped?.profileEffects, targetUID]);
-
     return (
         <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL}}>
-            {/* Profile Effect Overlay - fixed, covers full screen while profile is open */}
-            {targetData?.equipped?.profileEffects && effectTrigger > 0 && (
-                <ProfileEffectOverlay key={effectTrigger} effectId={targetData.equipped.profileEffects} />
-            )}
             <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
                 
                 {/* Profile Header Bar - X button on RIGHT, Three dots on LEFT of X */}
