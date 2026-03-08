@@ -851,7 +851,15 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
 const renderTitle = (titleId, lang) => {
     const titleItem = SHOP_ITEMS.titles.find(t => t.id === titleId);
     if (!titleItem) return null;
-    if (titleItem.imageUrl && titleItem.imageUrl.trim() !== '') return <div className="profile-title-image"><img src={titleItem.imageUrl} alt={titleItem.name_en} /></div>;
+    if (titleItem.imageUrl && titleItem.imageUrl.trim() !== '') {
+        // ✅ Image/GIF title: transparent, no background pill
+        return (
+            <div className="profile-title-image">
+                <img src={titleItem.imageUrl} alt={titleItem.name_en}
+                    style={{ maxWidth: '120px', maxHeight: '40px', objectFit: 'contain', background: 'transparent', imageRendering: 'auto' }} />
+            </div>
+        );
+    }
     const name = lang === 'ar' ? titleItem.name_ar : titleItem.name_en;
     return <div className="profile-title-text"><span>{titleItem.preview}</span><span>{name}</span></div>;
 };
@@ -865,7 +873,11 @@ const renderBadges = (badgeIds, size = 28) => {
             {badgeArray.slice(0, MAX_BADGES).map((badgeId, index) => {
                 const badgeItem = SHOP_ITEMS.badges.find(b => b.id === badgeId);
                 if (!badgeItem) return null;
-                if (badgeItem.imageUrl && badgeItem.imageUrl.trim() !== '') return <img key={index} src={badgeItem.imageUrl} alt={badgeItem.name_en} className="profile-badge-img" style={{ width: size + 'px', height: size + 'px' }} />;
+                if (badgeItem.imageUrl && badgeItem.imageUrl.trim() !== '') {
+                    // ✅ Image/GIF badge: transparent background, full display
+                    return <img key={index} src={badgeItem.imageUrl} alt={badgeItem.name_en}
+                        style={{ width: size, height: size, objectFit: 'contain', background: 'transparent', imageRendering: 'auto' }} />;
+                }
                 return <span key={index} className="profile-badge" style={{ fontSize: size + 'px' }}>{badgeItem.preview}</span>;
             })}
         </div>
@@ -2181,17 +2193,125 @@ function App() {
     const currentUserData = useMemo(() => { if (isLoggedIn) return userData; if (isGuest) return guestData; return null; }, [isLoggedIn, userData, isGuest, guestData]);
 
     // ========== ✅ #1: HELPER - Increment Mission Progress ==========
-    const incrementMissionProgress = async (key, amount = 1) => {
+    // ========== ✅ ACHIEVEMENTS SYSTEM - CLEAN REBUILD ==========
+    // Saves achievement IDs as simple strings in userData.achievements[]
+    const unlockAchievement = useCallback(async (badgeId) => {
         if (!isLoggedIn || !user) return;
         try {
+            const achievement = ACHIEVEMENTS.find(a => a.id === badgeId);
+            if (!achievement) return;
+            const currentAchs = userData?.achievements || [];
+            // Already unlocked - skip
+            if (currentAchs.includes(badgeId)) return;
+            await usersCollection.doc(user.uid).update({
+                achievements: firebase.firestore.FieldValue.arrayUnion(badgeId)
+            });
+        } catch (error) {
+            console.error('Achievement unlock error:', error);
+        }
+    }, [isLoggedIn, user, userData]);
+
+    // Check all achievements against current user data and unlock any earned ones
+    const checkAndUnlockAchievements = useCallback(async (latestUserData) => {
+        if (!isLoggedIn || !user || !latestUserData) return;
+        const data = latestUserData;
+        const currentAchs = Array.isArray(data.achievements) ? data.achievements : [];
+        const stats = data.stats || {};
+        const gamesPlayed = (stats.wins || 0) + (stats.losses || 0);
+
+        const getValue = (type) => {
+            switch (type) {
+                case 'wins':           return stats.wins || 0;
+                case 'losses':         return stats.losses || 0;
+                case 'games_played':   return gamesPlayed;
+                case 'spy_wins':       return stats.spy_wins || 0;
+                case 'agent_wins':     return stats.agent_wins || 0;
+                case 'win_streak':     return stats.win_streak || 0;
+                case 'gifts_received': return data.giftsReceived || 0;
+                case 'gifts_sent':     return data.giftsSent || 0;
+                case 'charisma':       return data.charisma || 0;
+                case 'friends':        return (data.friends || []).length;
+                case 'login_streak':   return data.loginRewards?.streak || 0;
+                case 'total_logins':   return data.loginRewards?.totalClaims || 0;
+                default:               return 0;
+            }
+        };
+
+        const toUnlock = [];
+        for (const ach of ACHIEVEMENTS) {
+            if (currentAchs.includes(ach.id)) continue; // already unlocked
+            const current = getValue(ach.condition.type);
+            if (current >= ach.condition.value) {
+                toUnlock.push(ach.id);
+            }
+        }
+
+        if (toUnlock.length > 0) {
+            try {
+                // Add all at once
+                await usersCollection.doc(user.uid).update({
+                    achievements: firebase.firestore.FieldValue.arrayUnion(...toUnlock)
+                });
+            } catch (e) {
+                console.error('Batch achievement error:', e);
+                // Fallback: unlock one by one
+                for (const id of toUnlock) {
+                    try { await unlockAchievement(id); } catch {}
+                }
+            }
+        }
+    }, [isLoggedIn, user, userData, unlockAchievement]);
+
+    // ========== ✅ MISSION PROGRESS TRACKING ==========
+    const incrementMissionProgress = useCallback(async (key, amount = 1) => {
+        if (!isLoggedIn || !user) return;
+        try {
+            const today = new Date().toDateString();
+            const now = new Date();
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+            const weekStr = `${now.getFullYear()}-W${weekNum}`;
+
+            // Reset daily if needed
+            const dailyProgress = userData?.missionProgress?.daily || {};
+            const weeklyProgress = userData?.missionProgress?.weekly || {};
+
             const updates = {};
-            updates[`missionProgress.daily.${key}`] = firebase.firestore.FieldValue.increment(amount);
-            updates[`missionProgress.weekly.${key}`] = firebase.firestore.FieldValue.increment(amount);
+
+            // Reset daily counters if day changed
+            if (dailyProgress.resetDate !== today) {
+                updates['missionProgress.daily.resetDate'] = today;
+                updates['missionProgress.daily.gamesPlayed']    = 0;
+                updates['missionProgress.daily.gamesWon']       = 0;
+                updates['missionProgress.daily.spyGames']       = 0;
+                updates['missionProgress.daily.giftsSent']      = 0;
+                updates['missionProgress.daily.friendsAdded']   = 0;
+                updates['missionProgress.daily.momentsPosted']  = 0;
+                updates['missionProgress.daily.commentsPosted'] = 0;
+                // After reset, set the specific key to amount
+                updates[`missionProgress.daily.${key}`] = amount;
+            } else {
+                updates[`missionProgress.daily.${key}`] = firebase.firestore.FieldValue.increment(amount);
+            }
+
+            // Reset weekly counters if week changed
+            if (weeklyProgress.resetWeek !== weekStr) {
+                updates['missionProgress.weekly.resetWeek']       = weekStr;
+                updates['missionProgress.weekly.gamesPlayed']     = 0;
+                updates['missionProgress.weekly.gamesWon']        = 0;
+                updates['missionProgress.weekly.giftsSent']       = 0;
+                updates['missionProgress.weekly.momentsPosted']   = 0;
+                updates['missionProgress.weekly.friendsAdded']    = 0;
+                updates[`missionProgress.weekly.${key}`] = amount;
+            } else {
+                updates[`missionProgress.weekly.${key}`] = firebase.firestore.FieldValue.increment(amount);
+            }
+
             await usersCollection.doc(user.uid).update(updates);
         } catch (error) {
             console.error('Mission increment error:', error);
         }
-    };
+    }, [isLoggedIn, user, userData]);
 
     // ========== ✅ #5: HELPER - Update Last Active ==========
     const updateLastActive = async () => {
@@ -2449,7 +2569,54 @@ function App() {
     }, [user, isLoggedIn]);
 
     // Room Listener
-    useEffect(() => { if (!roomId) return; const unsub = roomsCollection.doc(roomId).onSnapshot(async doc => { if (doc.exists) { const data = doc.data(); setRoom(data); if(data.status?.includes('finished') && !data.summaryShown) { setShowSummary(true); historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); roomsCollection.doc(roomId).update({summaryShown: true}); } } else { setRoom(null); setRoomId(''); } }); return unsub; }, [roomId]);
+    useEffect(() => { if (!roomId) return; const unsub = roomsCollection.doc(roomId).onSnapshot(async doc => { if (doc.exists) { const data = doc.data(); setRoom(data); if(data.status?.includes('finished') && !data.summaryShown) { setShowSummary(true); historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); roomsCollection.doc(roomId).update({summaryShown: true});
+        // ✅ Update stats, missions, achievements when game ends
+        if (isLoggedIn && user) {
+            try {
+                const me = data.players?.find(p => p.uid === user.uid);
+                if (me) {
+                    const isSpy = me.role === 'spy' || me.role === 'mrwhite';
+                    const spyCaught = data.status === 'finished_spy_caught';
+                    const spyEscaped = data.status === 'finished_spy_wins' || data.status === 'finished_spy_escaped';
+                    const mrwhiteWon = data.status === 'finished_mrwhite_win' || data.status === 'finished_mrwhite_wins';
+                    const agentsWon = spyCaught;
+
+                    // Determine if this player won
+                    let iWon = false;
+                    if (isSpy && (spyEscaped || mrwhiteWon)) iWon = true;
+                    if (!isSpy && agentsWon) iWon = true;
+
+                    // Stats updates
+                    const statUpdates = {
+                        'stats.losses': firebase.firestore.FieldValue.increment(iWon ? 0 : 1),
+                        'stats.wins': firebase.firestore.FieldValue.increment(iWon ? 1 : 0),
+                        'stats.xp': firebase.firestore.FieldValue.increment(iWon ? 20 : 5),
+                    };
+                    if (isSpy && iWon) statUpdates['stats.spy_wins'] = firebase.firestore.FieldValue.increment(1);
+                    if (!isSpy && iWon) statUpdates['stats.agent_wins'] = firebase.firestore.FieldValue.increment(1);
+                    // Win streak
+                    if (iWon) {
+                        statUpdates['stats.win_streak'] = firebase.firestore.FieldValue.increment(1);
+                    } else {
+                        statUpdates['stats.win_streak'] = 0;
+                    }
+
+                    await usersCollection.doc(user.uid).update(statUpdates);
+
+                    // Mission progress
+                    await incrementMissionProgress('gamesPlayed', 1);
+                    if (iWon) await incrementMissionProgress('gamesWon', 1);
+                    if (isSpy) await incrementMissionProgress('spyGames', 1);
+
+                    // Fetch updated user data and check achievements
+                    const updatedDoc = await usersCollection.doc(user.uid).get();
+                    if (updatedDoc.exists) {
+                        await checkAndUnlockAchievements(updatedDoc.data());
+                    }
+                }
+            } catch (e) { console.error('Game end stats error:', e); }
+        }
+    } } else { setRoom(null); setRoomId(''); } }); return unsub; }, [roomId, isLoggedIn, user, incrementMissionProgress, checkAndUnlockAchievements]);
 
     // Leaderboard - Real-time
     useEffect(() => { if (activeView === 'leaderboard') { const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); setLeaderboardData(data); }, error => { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); }); return unsub; } }, [activeView]);
@@ -2713,6 +2880,10 @@ function App() {
         await usersCollection.doc(fromUid).update({ friends: firebase.firestore.FieldValue.arrayUnion(user.uid) });
         await createNotification(fromUid, 'friend_request_accepted', `${userData.displayName} ${lang === 'ar' ? 'قبل طلب صداقتك!' : 'accepted your friend request!'}`, user.uid, userData.displayName);
         setNotification(t.friendAdded);
+        // ✅ Mission + Achievement
+        await incrementMissionProgress('friendsAdded', 1);
+        const updDoc = await usersCollection.doc(user.uid).get();
+        if (updDoc.exists) await checkAndUnlockAchievements(updDoc.data());
     }, [user, isLoggedIn, t, userData, createNotification, lang]);
     const handleRejectRequest = useCallback(async (fromUid) => { if (!user || !isLoggedIn) return; await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); }, [user, isLoggedIn]);
 
@@ -2849,9 +3020,28 @@ function App() {
             
             playGiftSound();
             setNotification(`${t.giftSent}!`);
+            // ✅ Mission: giftsSent + giftsSent stat for achievements
+            await incrementMissionProgress('giftsSent', 1);
+            await usersCollection.doc(user.uid).update({
+                giftsSent: firebase.firestore.FieldValue.increment(1)
+            });
+            // ✅ giftsReceived for the receiver
+            if (targetUser?.uid && targetUser.uid !== 'self' && targetUser.uid !== user.uid) {
+                await usersCollection.doc(targetUser.uid).update({
+                    giftsReceived: firebase.firestore.FieldValue.increment(1)
+                });
+            } else {
+                // self gift counts as received too
+                await usersCollection.doc(user.uid).update({
+                    giftsReceived: firebase.firestore.FieldValue.increment(1)
+                });
+            }
+            // ✅ Check achievements after gifting
+            const updDoc = await usersCollection.doc(user.uid).get();
+            if (updDoc.exists) await checkAndUnlockAchievements(updDoc.data());
         } catch (error) { 
             }
-    }, [userData, user, t, createNotification, lang]);
+    }, [userData, user, t, createNotification, lang, incrementMissionProgress, checkAndUnlockAchievements]);
 
     // Shop Functions
     const handlePurchase = useCallback(async (item, targetUser = null) => {
@@ -3058,6 +3248,7 @@ function App() {
                 currentUserFriends={userData?.friends} 
                 currentUserFriendRequests={userData?.friendRequests}
                 friendsData={friendsData}
+                isGuest={isGuest}
                 onOpenChat={(friendData) => {
                     openPrivateChat(friendData);
                     setShowUserProfile(false);
@@ -5415,13 +5606,13 @@ const UserBadgesV11 = ({ equipped, lang }) => {
                 if (!badge) return null;
 
                 return (
-                    <div key={idx} className="profile-badge-chip">
+                    <div key={idx} className={`profile-badge-chip${badge.imageUrl ? ' has-image' : ''}`}>
                         {badge.imageUrl ? (
-                            <img src={badge.imageUrl} alt="" style={{ width: 12, height: 12 }} />
+                            <img src={badge.imageUrl} alt="" style={{ width: 18, height: 18, objectFit:'contain', background:'transparent' }} />
                         ) : (
                             <span>{badge.preview}</span>
                         )}
-                        <span>{lang === 'ar' ? badge.name_ar : badge.name_en}</span>
+                        {!badge.imageUrl && <span>{lang === 'ar' ? badge.name_ar : badge.name_en}</span>}
                     </div>
                 );
             })}
@@ -5668,7 +5859,7 @@ const AllMomentsModal = ({ show, onClose, moments, ownerName, lang, onSelectMome
     );
 };
 
-const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang }) => {
+const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang, onMomentPosted }) => {
     const [moments, setMoments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedMoment, setSelectedMoment] = useState(null);
@@ -5807,6 +5998,7 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang }
                     onClose={() => setShowCreateModal(false)}
                     currentUser={currentUser}
                     lang={lang}
+                    onPosted={onMomentPosted}
                 />
             )}
             </div>{/* end content padding */}
@@ -5909,6 +6101,26 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
             text: newComment.trim(),
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+        // ✅ Track mission: commentsPosted
+        try {
+            const today = new Date().toDateString();
+            const dp = currentUser?.missionProgress?.daily || {};
+            const now3 = new Date(); const soy3 = new Date(now3.getFullYear(),0,1);
+            const wNum3 = Math.ceil(((now3-soy3)/86400000+soy3.getDay()+1)/7);
+            const wStr3 = `${now3.getFullYear()}-W${wNum3}`;
+            const wp3 = currentUser?.missionProgress?.weekly || {};
+            const cUpdates = {};
+            if (dp.resetDate !== today) {
+                cUpdates['missionProgress.daily.resetDate'] = today;
+                cUpdates['missionProgress.daily.commentsPosted'] = 1;
+            } else {
+                cUpdates['missionProgress.daily.commentsPosted'] = firebase.firestore.FieldValue.increment(1);
+            }
+            if (wp3.resetWeek !== wStr3) {
+                cUpdates['missionProgress.weekly.resetWeek'] = wStr3;
+            }
+            if (Object.keys(cUpdates).length) await usersCollection.doc(currentUser.uid).update(cUpdates);
+        } catch (ce) {}
         setNewComment(''); setSubmitting(false); setLastCommentTime(Date.now());
     };
 
@@ -6257,7 +6469,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
     );
 };
 
-const CreateMomentModal = ({ onClose, currentUser, lang }) => {
+const CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
     const [momentType, setMomentType] = useState('text');
     const [textContent, setTextContent] = useState('');  // text content OR caption
     const [mediaFile, setMediaFile] = useState(null);
@@ -6340,6 +6552,30 @@ const CreateMomentModal = ({ onClose, currentUser, lang }) => {
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             await momentsCollection.add(momentData);
+            // ✅ Track mission: momentsPosted
+            try {
+                const today = new Date().toDateString();
+                const dp = currentUser?.missionProgress?.daily || {};
+                const now2 = new Date(); const soy = new Date(now2.getFullYear(),0,1);
+                const wNum = Math.ceil(((now2-soy)/86400000+soy.getDay()+1)/7);
+                const wStr = `${now2.getFullYear()}-W${wNum}`;
+                const wp = currentUser?.missionProgress?.weekly || {};
+                const mUpdates = {};
+                if (dp.resetDate !== today) {
+                    mUpdates['missionProgress.daily.resetDate'] = today;
+                    mUpdates['missionProgress.daily.momentsPosted'] = 1;
+                } else {
+                    mUpdates['missionProgress.daily.momentsPosted'] = firebase.firestore.FieldValue.increment(1);
+                }
+                if (wp.resetWeek !== wStr) {
+                    mUpdates['missionProgress.weekly.resetWeek'] = wStr;
+                    mUpdates['missionProgress.weekly.momentsPosted'] = 1;
+                } else {
+                    mUpdates['missionProgress.weekly.momentsPosted'] = firebase.firestore.FieldValue.increment(1);
+                }
+                await usersCollection.doc(currentUser.uid).update(mUpdates);
+            } catch (me) {}
+            if (onPosted) onPosted();
             onClose();
         } catch (e) {
             setError(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, try again');
