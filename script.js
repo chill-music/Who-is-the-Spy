@@ -2347,22 +2347,6 @@ function App() {
         }
     };
 
-    // ========== ✅ #7: HELPER - Unlock Achievement ==========
-    const unlockAchievement = async (badgeId) => {
-        if (!isLoggedIn || !user) return;
-        try {
-            const achievement = ACHIEVEMENTS.find(a => a.id === badgeId);
-            if (!achievement) return;
-            // ✅ FIX: Save as simple string ID array (not nested object)
-            // Prevents mismatch with AchievementsDisplayV11 which reads achievements as string[]
-            await usersCollection.doc(user.uid).update({
-                achievements: firebase.firestore.FieldValue.arrayUnion(badgeId)
-            });
-        } catch (error) {
-            console.error('Achievement unlock error:', error);
-        }
-    };
-
     // ========== ✅ #8: HELPER - Claim Login Reward ==========
     const claimLoginReward = async (day) => {
         if (!isLoggedIn || !user) return;
