@@ -2919,7 +2919,7 @@ body {
     box-shadow: 0 0 12px rgba(255,215,0,0.22), inset 0 0 16px rgba(255,215,0,0.06);
 }
 .profile-achievement-v2.locked {
-    opacity: 0.45;
+    opacity: 0.42;
     filter: grayscale(85%);
 }
 .profile-achievement-v2.unlocked:hover {
@@ -2928,7 +2928,7 @@ body {
     box-shadow: 0 4px 18px rgba(255,215,0,0.35), inset 0 0 20px rgba(255,215,0,0.08);
 }
 .profile-achievement-v2.locked:hover {
-    opacity: 0.62;
+    opacity: 0.60;
     transform: translateY(-1px);
 }
 .profile-achievement-v2-icon {
