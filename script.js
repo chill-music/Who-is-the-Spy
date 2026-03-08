@@ -5,6 +5,29 @@
 // ==========================================
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🎯 Z-INDEX CONSTANTS - Layer Management
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const Z = {
+    MODAL:      10000,  // Standard modals
+    MODAL_HIGH: 12000,  // FunPass, BrowseRooms
+    MODAL_TOP:  15000,  // SelfChat, Notifications  
+    FORCED:     25000,  // Forced logout warning
+    OVERLAY:    99999,  // Full overlays
+    TOOLTIP:    999999, // Tooltips & dropdowns
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🎨 GRADIENT CONSTANTS - Reusable styles
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const GR = {
+    DARK_CARD:  GR.DARK_CARD,
+    NEON:       GR.NEON,
+    GOLD:       GR.GOLD,
+    GOLD_SOFT:  GR.GOLD_SOFT,
+    CYAN_SOFT:  GR.CYAN_SOFT,
+};
+
 const createPortal = ReactDOM.createPortal;
 
 // Portal helper - renders children on document.body to escape backdrop-filter stacking context
@@ -64,10 +87,8 @@ const initAudioContext = () => {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         audioContext = new AudioContext();
         isAudioInitialized = true;
-        console.log('🔊 Audio system initialized');
         return audioContext;
     } catch (e) {
-        console.error('Audio initialization failed:', e);
         return null;
     }
 };
@@ -148,7 +169,6 @@ const playSound = (type) => {
                 break;
         }
     } catch (e) {
-        console.error('Sound play error:', e);
     }
 };
 
@@ -175,7 +195,6 @@ if (typeof window !== 'undefined') {
 
 const playNotificationSound = () => playSound('notification');
 const playRewardSound = () => playSound('reward');
-const playMessageSound = () => playSound('message');
 const playGiftSound = () => playSound('gift');
 
 // ==========================================
@@ -556,11 +575,7 @@ const EMOJI_CATEGORIES = {
 const EMOJI_LIST = Object.values(EMOJI_CATEGORIES).flat();
 
 // --- Helper Functions ---
-const generateUID = () => Math.floor(100000 + Math.random() * 900000).toString();
-const calculateLevel = (xp) => Math.floor(xp / 100) + 1;
-const getChatId = (id1, id2) => [id1, id2].sort().join('_');
 const formatTime = (timestamp) => { if (!timestamp) return ''; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
-const formatDate = (timestamp) => { if (!timestamp) return ''; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleDateString(); };
 const formatCharisma = (num) => { if (num === undefined || num === null) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
 const maskEmail = (email) => { if (!email) return 'N/A'; const [localPart, domain] = email.split('@'); if (!domain) return email; const visibleChars = Math.min(2, localPart.length); return localPart.substring(0, visibleChars) + '***@' + domain; };
 const generateRandomBonus = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -689,7 +704,7 @@ const TRANSLATIONS = {
 class ErrorBoundary extends React.Component {
     constructor(props) { super(props); this.state = { hasError: false, error: null }; }
     static getDerivedStateFromError(error) { return { hasError: true, error }; }
-    componentDidCatch(error, errorInfo) { console.error('Error caught:', error, errorInfo); }
+    componentDidCatch(error, errorInfo) { }
     render() {
         if (this.state.hasError) {
             return (
@@ -910,7 +925,6 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
                 setLastSenders(senders);
                 setLoading(false);
             }, error => {
-                console.error('Gift log error:', error);
                 setLoading(false);
             });
         
@@ -1076,118 +1090,7 @@ const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }
 // ==========================================
 // 🏆 ACHIEVEMENTS DISPLAY COMPONENT
 // ==========================================
-const AchievementsDisplay = ({ userData, lang, showAll = false }) => {
-    const t = TRANSLATIONS[lang];
-    const [selectedAch, setSelectedAch] = useState(null);
-    
-    const userAchievements = userData?.achievements || [];
-    const stats = userData?.stats || {};
-    const gamesPlayed = (stats.wins || 0) + (stats.losses || 0);
-    const giftsReceived = userData?.giftsReceived || 0;
-    const giftsSent = userData?.giftsSent || 0;
-    const friendsCount = userData?.friends?.length || 0;
-    const loginStreak = userData?.loginRewards?.streak || 0;
-    const totalLogins = userData?.loginRewards?.totalClaims || 0;
-    const spyWins = userData?.spyWins || 0;
-    const agentWins = userData?.agentWins || 0;
-    
-    const getProgress = (achievement) => {
-        const type = achievement.condition.type;
-        const target = achievement.condition.value;
-        let current = 0;
-        
-        switch (type) {
-            case 'gifts_received': current = giftsReceived; break;
-            case 'gifts_sent': current = giftsSent; break;
-            case 'wins': current = stats.wins || 0; break;
-            case 'games_played': current = gamesPlayed; break;
-            case 'login_streak': current = loginStreak; break;
-            case 'total_logins': current = totalLogins; break;
-            case 'friends': current = friendsCount; break;
-            case 'spy_wins': current = spyWins; break;
-            case 'agent_wins': current = agentWins; break;
-        }
-        
-        return { current, target, percent: Math.min(100, (current / target) * 100) };
-    };
-    
-    const isUnlocked = (achievement) => userAchievements.includes(achievement.id);
-    
-    const displayAchievements = showAll ? ACHIEVEMENTS : ACHIEVEMENTS.slice(0, 6);
-    
-    return (
-        <div className="achievements-container">
-            <div className="achievements-grid">
-                {displayAchievements.map(ach => {
-                    const unlocked = isUnlocked(ach);
-                    const progress = getProgress(ach);
-                    
-                    return (
-                        <div
-                            key={ach.id}
-                            className={`achievement-item ${unlocked ? 'unlocked' : 'locked'}`}
-                            onClick={() => setSelectedAch(ach)}
-                        >
-                            {ach.imageUrl ? (
-                                <img src={ach.imageUrl} alt={t[ach.nameKey]} className="achievement-icon-img" />
-                            ) : (
-                                <span className="achievement-icon">{ach.icon}</span>
-                            )}
-                            {unlocked && <span className="achievement-badge">✓</span>}
-                            {!unlocked && progress.current > 0 && (
-                                <div className="achievement-progress-mini">
-                                    <div 
-                                        className="achievement-progress-fill"
-                                        style={{ width: `${progress.percent}%` }}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-            
-            {/* Achievement Detail Modal */}
-            {selectedAch && (
-                <div className="modal-overlay" onClick={() => setSelectedAch(null)}>
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
-                        <div className="modal-body text-center py-4">
-                            <div className="text-4xl mb-3">
-                                {selectedAch.imageUrl ? (
-                                    <img src={selectedAch.imageUrl} alt={t[selectedAch.nameKey]} className="w-16 h-16 mx-auto" />
-                                ) : selectedAch.icon}
-                            </div>
-                            <h3 className="font-bold text-lg mb-1">{t[selectedAch.nameKey]}</h3>
-                            <p className="text-sm text-gray-400 mb-3">{t[selectedAch.descKey]}</p>
-                            
-                            {!isUnlocked(selectedAch) && (
-                                <div className="achievement-progress-bar">
-                                    <div className="achievement-progress-text">
-                                        {t.achievementProgress}: {getProgress(selectedAch).current}/{getProgress(selectedAch).target}
-                                    </div>
-                                    <div className="achievement-progress-track">
-                                        <div
-                                            className="achievement-progress-fill-bar"
-                                            style={{ width: `${getProgress(selectedAch).percent}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                            
-                            {isUnlocked(selectedAch) && (
-                                <div className="text-green-400 font-bold">✓ {t.achievementUnlocked}</div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
 
-// ==========================================
-// 🎨 PROFESSIONAL EMOJI PICKER - NEW
-// ==========================================
 const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
     const t = TRANSLATIONS[lang];
     const [activeCategory, setActiveCategory] = useState('smiles');
@@ -1683,1729 +1586,6 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
 // ==========================================
 // 👤 USER PROFILE MODAL - WITH GIFT LOG
 // ==========================================
-const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSendFriendRequest, onSendGift, userData, currentUserFriends, currentUserFriendRequests, friendsData }) => {
-    const t = TRANSLATIONS[lang];
-    const [targetData, setTargetData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [showGiftModal, setShowGiftModal] = useState(false);
-    const [requestSent, setRequestSent] = useState(false);
-    const [showOptionsMenu, setShowOptionsMenu] = useState(false);
-    const [isBlocked, setIsBlocked] = useState(false);
-    const [blockedByTarget, setBlockedByTarget] = useState(false);
-    const [showBlockConfirm, setShowBlockConfirm] = useState(false);
-    const [showReportModal, setShowReportModal] = useState(false);
-    const [reportReason, setReportReason] = useState('');
-    const [reportSending, setReportSending] = useState(false);
-    
-    useEffect(() => {
-        if (!show || !targetUID) { setLoading(true); return; }
-        setLoading(true); setRequestSent(false); setShowOptionsMenu(false);
-        usersCollection.doc(targetUID).get().then(doc => {
-            if (doc.exists) { 
-                const data = doc.data();
-                setTargetData({ id: doc.id, ...data, isGuest: false });
-                // Check if target has blocked current user
-                const theirBlockedUsers = data.blockedUsers || [];
-                setBlockedByTarget(theirBlockedUsers.includes(currentUserUID));
-                setLoading(false); 
-            }
-            else { guestsCollection.doc(targetUID).get().then(guestDoc => { if (guestDoc.exists) { setTargetData({ id: guestDoc.id, ...guestDoc.data(), isGuest: true }); } else { setTargetData(null); } setLoading(false); }).catch(() => { setTargetData(null); setLoading(false); }); }
-        }).catch(() => { setLoading(false); setTargetData(null); });
-    }, [show, targetUID, currentUserUID]);
-
-    // Check if user is blocked
-    useEffect(() => {
-        if (userData && targetUID) {
-            const blocked = userData.blockedUsers || [];
-            setIsBlocked(blocked.includes(targetUID));
-        }
-    }, [userData, targetUID]);
-    
-    if (!show) return null;
-    
-    const isOwnProfile = isOwnProfileOverride || targetUID === currentUserUID;
-    const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
-    const isGuestViewer = isGuestProp === true; // current user viewing is a guest
-    const isAlreadyFriend = currentUserFriends?.includes(targetUID);
-    const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
-    
-    const handleAddFriend = async () => { if (isAlreadyFriend || hasPendingRequest) return; await onSendFriendRequest(targetUID); setRequestSent(true); };
-
-    const handleBlockUser = async () => {
-        if (!userData || !targetUID) return;
-        try {
-            await usersCollection.doc(currentUserUID).update({
-                blockedUsers: firebase.firestore.FieldValue.arrayUnion(targetUID)
-            });
-            setIsBlocked(true);
-            setShowBlockConfirm(false);
-            setShowOptionsMenu(false);
-        } catch (error) {
-            console.error('Block error:', error);
-        }
-    };
-
-    const handleUnblockUser = async () => {
-        if (!userData || !targetUID) return;
-        try {
-            await usersCollection.doc(currentUserUID).update({
-                blockedUsers: firebase.firestore.FieldValue.arrayRemove(targetUID)
-            });
-            setIsBlocked(false);
-            setShowOptionsMenu(false);
-        } catch (error) {
-            console.error('Unblock error:', error);
-        }
-    };
-
-    const handleSendReport = async () => {
-        if (!reportReason || !currentUserUID || !targetUID) return;
-        setReportSending(true);
-        try {
-            await reportsCollection.add({
-                reportedUID: targetUID,
-                reportedName: targetData?.displayName || 'Unknown',
-                reporterUID: currentUserUID,
-                reason: reportReason,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                status: 'pending'
-            });
-            setShowReportModal(false);
-            setReportReason('');
-            setShowOptionsMenu(false);
-        } catch(e) { console.error('Report error:', e); }
-        setReportSending(false);
-    };
-    
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t.profile}</h2>
-                    <div className="flex items-center gap-2">
-                        {!isOwnProfile && !isTargetGuest && !isGuestViewer && (
-                            <div className="relative">
-                                <button 
-                                    onClick={() => setShowOptionsMenu(!showOptionsMenu)}
-                                    className="profile-options-btn"
-                                >
-                                    ⋮
-                                </button>
-                                {showOptionsMenu && (
-                                    <div className="profile-options-menu">
-                                        {isBlocked ? (
-                                            <button onClick={handleUnblockUser} className="option-item unblock">
-                                                <span>🔓</span>
-                                                <span>{t.unblock}</span>
-                                            </button>
-                                        ) : (
-                                            <button onClick={() => { setShowBlockConfirm(true); setShowOptionsMenu(false); }} className="option-item block">
-                                                <span>🚫</span>
-                                                <span>{t.blockUser}</span>
-                                            </button>
-                                        )}
-                                        <button onClick={() => { setShowReportModal(true); setShowOptionsMenu(false); }} className="option-item" style={{color:'#f87171', borderTop:'1px solid rgba(255,255,255,0.07)'}}>
-                                            <span>🚨</span>
-                                            <span>{lang === 'ar' ? 'إبلاغ' : 'Report'}</span>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <ModalCloseBtn onClose={onClose} />
-                    </div>
-                </div>
-                <div className="modal-body">
-                    {loading ? <div className="text-center py-8"><div className="text-2xl animate-pulse">⏳</div><p className="text-gray-400 mt-2">{t.loading}</p></div> : !targetData ? <div className="text-center py-8"><div className="text-4xl mb-2">❌</div><p className="text-gray-400">{t.friendNotFound}</p></div> : (
-                        <div className="profile-container">
-                            <div className="profile-header">
-                                <div className="profile-avatar-section">
-                                    <div className="profile-avatar-container"><AvatarWithFrame photoURL={targetData.photoURL} equipped={targetData.equipped} size="lg" /></div>
-                                    <h3 className="profile-name">{targetData.displayName || 'Unknown'}</h3>
-                                    {targetData.equipped?.titles && <div className="profile-title-container">{renderTitle(targetData.equipped.titles, lang)}</div>}
-                                    {targetData.equipped?.badges && renderBadges(targetData.equipped.badges, 28)}
-                                    {isTargetGuest && <div className="profile-account-type guest">{t.guestAccount}</div>}
-                                    <div className="profile-id" onClick={() => { navigator.clipboard.writeText(targetData.customId || targetData.uid); }}><span>ID: {targetData.customId || targetData.uid?.substring(0, 8)}</span><span className="text-[10px]">📋</span></div>
-                                </div>
-                            </div>
-                            <CharismaDisplay charisma={targetData.charisma} lang={lang} />
-                            <div className="profile-stats">
-                                <div className="profile-stat"><div className="profile-stat-value">{targetData.stats?.wins || 0}</div><div className="profile-stat-label">{t.wins}</div></div>
-                                <div className="profile-stat"><div className="profile-stat-value">{targetData.stats?.losses || 0}</div><div className="profile-stat-label">{t.losses}</div></div>
-                                <div className="profile-stat"><div className="profile-stat-value">{Math.floor((targetData.stats?.xp || 0) / 100) + 1}</div><div className="profile-stat-label">{t.level}</div></div>
-                            </div>
-                            <KDCircle wins={targetData.stats?.wins || 0} losses={targetData.stats?.losses || 0} lang={lang} />
-                            
-                            {/* Achievements Display */}
-                            <AchievementsDisplay userData={targetData} lang={lang} showAll={false} />
-                            
-                            {/* Gift Log - REDESIGNED */}
-                            <GiftLog 
-                                show={true} 
-                                targetUID={targetUID} 
-                                lang={lang} 
-                                onOpenProfile={(uid) => {
-                                    // Could open another profile modal
-                                }}
-                                isOwnProfile={isOwnProfile}
-                            />
-                            
-                            {/* Blocked User Notice */}
-                            {isBlocked && !isOwnProfile && (
-                                <div className="blocked-notice">
-                                    <span>🚫</span>
-                                    <span>{lang === 'ar' ? 'لقد حظرت هذا المستخدم' : 'You have blocked this user'}</span>
-                                </div>
-                            )}
-                            
-                            {/* Blocked By Target Notice */}
-                            {blockedByTarget && !isOwnProfile && (
-                                <div className="blocked-notice blocked-by-other">
-                                    <span>🚫</span>
-                                    <span>{lang === 'ar' ? 'هذا المستخدم قد حظرك. لا يمكنك إرسال هدايا أو طلبات صداقة.' : 'This user has blocked you. You cannot send gifts or friend requests.'}</span>
-                                </div>
-                            )}
-                            
-                            {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && !isGuestViewer && (
-                                <div className="flex gap-2 mt-4">
-                                    {isAlreadyFriend ? <button disabled className="btn-success flex-1 py-2 rounded-lg text-sm opacity-80">✅ {lang === 'ar' ? 'أصدقاء' : 'Friends'}</button> : hasPendingRequest ? <button disabled className="btn-ghost flex-1 py-2 rounded-lg text-sm opacity-80">⏳ {lang === 'ar' ? 'تم الإرسال' : 'Sent'}</button> : <button onClick={handleAddFriend} className="btn-neon flex-1 py-2 rounded-lg text-sm">👥 {t.addFriend}</button>}
-                                    <button onClick={() => setShowGiftModal(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm">🎁 {t.sendGift}</button>
-                                </div>
-                            )}
-                            {!isOwnProfile && isGuestViewer && !isTargetGuest && (
-                                <div style={{marginTop:'14px', padding:'12px 14px', borderRadius:'12px', background:'linear-gradient(135deg,rgba(112,0,255,0.08),rgba(0,242,255,0.05))', border:'1px solid rgba(0,242,255,0.15)', textAlign:'center'}}>
-                                    <div style={{fontSize:'20px', marginBottom:'6px'}}>🔒</div>
-                                    <div style={{fontSize:'11px', color:'#e2e8f0', fontWeight:700, marginBottom:'4px'}}>
-                                        {lang === 'ar' ? 'سجّل دخولك للتفاعل' : 'Login to interact'}
-                                    </div>
-                                    <div style={{fontSize:'10px', color:'#6b7280'}}>
-                                        {lang === 'ar' ? 'لإرسال هدايا وطلبات صداقة' : 'To send gifts & friend requests'}
-                                    </div>
-                                </div>
-                            )}
-                            {isTargetGuest && !isOwnProfile && <div className="text-center text-gray-400 text-xs mt-4 p-2 bg-white/5 rounded-lg">{t.guestProfileMsg}</div>}
-                        </div>
-                    )}
-                </div>
-
-                {/* Report Modal */}
-                {showReportModal && (
-                    <div className="confirm-overlay" onClick={() => setShowReportModal(false)}>
-                        <div className="confirm-modal" onClick={e => e.stopPropagation()}>
-                            <div className="confirm-icon">🚨</div>
-                            <div className="confirm-title">{lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'}</div>
-                            <div className="confirm-message" style={{fontSize:'11px', color:'#9ca3af', marginBottom:'12px'}}>
-                                {lang === 'ar' ? 'اختر سبب الإبلاغ:' : 'Select a reason:'}
-                            </div>
-                            <div style={{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'14px'}}>
-                                {[
-                                    {key:'abusive', ar:'سلوك مسيء', en:'Abusive Behavior'},
-                                    {key:'cheating', ar:'غش',        en:'Cheating'},
-                                    {key:'spam',     ar:'سبام',       en:'Spam'},
-                                    {key:'other',    ar:'سبب آخر',   en:'Other'}
-                                ].map(r => (
-                                    <button
-                                        key={r.key}
-                                        onClick={() => setReportReason(r.key)}
-                                        className={reportReason === r.key ? 'btn-neon' : 'btn-ghost'}
-                                        style={{padding:'8px 12px', borderRadius:'8px', fontSize:'12px', textAlign:'start'}}
-                                    >
-                                        {lang === 'ar' ? r.ar : r.en}
-                                    </button>
-                                ))}
-                            </div>
-                            <div className="confirm-actions">
-                                <button onClick={() => { setShowReportModal(false); setReportReason(''); }} className="btn-ghost">{lang === 'ar' ? 'إلغاء' : 'Cancel'}</button>
-                                <button onClick={handleSendReport} disabled={!reportReason || reportSending} className="btn-danger" style={{opacity: (!reportReason || reportSending) ? 0.5 : 1}}>
-                                    {reportSending ? '...' : (lang === 'ar' ? 'إرسال' : 'Submit')}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Block Confirmation Modal */}
-                {/* Report Modal */}
-                {showReportModal && (
-                    <div className="confirm-overlay" onClick={() => setShowReportModal(false)}>
-                        <div className="confirm-modal" onClick={e => e.stopPropagation()}>
-                            <div className="confirm-icon">🚨</div>
-                            <div className="confirm-title">{lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'}</div>
-                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'10px', textAlign:'center'}}>
-                                {lang === 'ar' ? 'اختر سبب الإبلاغ:' : 'Select a reason:'}
-                            </div>
-                            <div style={{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'14px'}}>
-                                {[
-                                    {key:'abusive', ar:'سلوك مسيء', en:'Abusive Behavior'},
-                                    {key:'cheating', ar:'غش', en:'Cheating'},
-                                    {key:'spam', ar:'سبام', en:'Spam'},
-                                    {key:'other', ar:'سبب آخر', en:'Other'}
-                                ].map(r => (
-                                    <button key={r.key} onClick={() => setReportReason(r.key)}
-                                        style={{padding:'9px 12px', borderRadius:'8px', fontSize:'12px', textAlign:'start', cursor:'pointer', fontWeight:600,
-                                            background: reportReason === r.key ? 'rgba(112,0,255,0.3)' : 'rgba(255,255,255,0.05)',
-                                            border: reportReason === r.key ? '1.5px solid #7000ff' : '1px solid rgba(255,255,255,0.1)',
-                                            color: reportReason === r.key ? 'white' : '#9ca3af'
-                                        }}>
-                                        {lang === 'ar' ? r.ar : r.en}
-                                    </button>
-                                ))}
-                            </div>
-                            <div className="confirm-actions">
-                                <button onClick={() => { setShowReportModal(false); setReportReason(''); }} className="btn-ghost">{lang === 'ar' ? 'إلغاء' : 'Cancel'}</button>
-                                <button onClick={handleSendReport} disabled={!reportReason || reportSending} className="btn-danger"
-                                    style={{opacity: (!reportReason || reportSending) ? 0.5 : 1}}>
-                                    {reportSending ? '...' : (lang === 'ar' ? 'إرسال' : 'Submit')}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {showBlockConfirm && (
-                    <div className="confirm-overlay" onClick={() => setShowBlockConfirm(false)}>
-                        <div className="confirm-modal" onClick={e => e.stopPropagation()}>
-                            <div className="confirm-icon">🚫</div>
-                            <div className="confirm-title">{t.blockUser}</div>
-                            <div className="confirm-message">
-                                {lang === 'ar' 
-                                    ? `هل أنت متأكد من حظر ${targetData?.displayName || 'هذا المستخدم'}؟ لن يتمكن من إرسال رسائل أو هدايا لك.`
-                                    : `Are you sure you want to block ${targetData?.displayName || 'this user'}? They won't be able to send you messages or gifts.`
-                                }
-                            </div>
-                            <div className="confirm-actions">
-                                <button onClick={() => setShowBlockConfirm(false)} className="btn-ghost">{t.reportCancel}</button>
-                                <button onClick={handleBlockUser} className="btn-danger">{t.blockUser}</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {showGiftModal && targetData && (
-                    <SendGiftModal 
-                        show={showGiftModal} 
-                        onClose={() => setShowGiftModal(false)} 
-                        targetUser={targetData} 
-                        currentUser={userData} 
-                        lang={lang} 
-                        onSendGift={onSendGift} 
-                        currency={userData?.currency || 0}
-                        friendsData={friendsData}
-                    />
-                )}
-
-                {/* Self Gift Modal */}
-                {showSelfGiftModal && (
-                    <SendGiftModal
-                        show={showSelfGiftModal}
-                        onClose={() => setShowSelfGiftModal(false)}
-                        targetUser={{ uid: targetUID, displayName: targetData?.displayName || 'You', photoURL: targetData?.photoURL }}
-                        currentUser={userData}
-                        lang={lang}
-                        onSendGift={async (gift, targetUser) => {
-                            if (onSendGift) await onSendGift(gift, targetUser);
-                            setShowSelfGiftModal(false);
-                        }}
-                        currency={userData?.currency || 0}
-                        friendsData={[]}
-                    />
-                )}
-
-                {/* Own Profile Footer Actions */}
-                {isOwnProfile && (isLoggedInProp !== undefined) && (
-                    <div className="profile-own-footer">
-                        {isLoggedInProp && (
-                            <div style={{display:'flex',gap:'6px',width:'100%'}}>
-                                <button onClick={() => { if(!sessionClaimedToday) onOpenLoginRewards?.(); }} className={`btn-gold flex-1 py-2 rounded-lg text-sm font-bold ${sessionClaimedToday ? 'opacity-50' : ''}`}>
-                                    🎁 {TRANSLATIONS[lang]?.loginRewards || 'Login Reward'} {sessionClaimedToday && <span style={{fontSize:'9px', color:'#4ade80'}}>✓</span>}
-                                </button>
-                                <button onClick={() => setShowSelfGiftModal(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold" style={{background:'linear-gradient(135deg,#7000ff,#00f2ff)'}}>
-                                    🎁 {lang==='ar'?'هدية لنفسك':'Gift Yourself'}
-                                </button>
-                            </div>
-                        )}
-                        <div style={{display:'flex', gap:'6px', width:'100%'}}>
-                            {isLoggedInProp && (<><button onClick={onOpenShop} className="btn-gold flex-1 py-2 rounded-lg text-sm font-bold">🛒 {TRANSLATIONS[lang]?.shop || 'Shop'}</button><button onClick={onOpenInventory} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">📦 {TRANSLATIONS[lang]?.inventory || 'Inventory'}</button></>)}
-                        </div>
-                        <button onClick={onOpenSettings} className="btn-ghost w-full py-2 rounded-lg text-sm font-bold">⚙️ {TRANSLATIONS[lang]?.settings || 'Settings'}</button>
-                        {isLoggedInProp
-                            ? <button onClick={onLogout} className="btn-danger w-full py-2 rounded-lg text-sm">{TRANSLATIONS[lang]?.logout || 'Logout'}</button>
-                            : isGuestProp
-                                ? <div style={{display:'flex', gap:'6px', width:'100%'}}><button onClick={onLogout} className="btn-ghost flex-1 py-2 rounded-lg text-sm">{TRANSLATIONS[lang]?.logout || 'Logout'}</button><button onClick={onLoginGoogle} className="btn-neon flex-1 py-2 rounded-lg text-sm">{TRANSLATIONS[lang]?.loginGoogle || 'Google Login'}</button></div>
-                                : null
-                        }
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-// ==========================================
-// 💬 PRIVATE CHAT MODAL - IMPROVED WITH AVATARS
-// ==========================================
-
-// ============================================================
-// 💬 SELF CHAT MODAL - Personal notepad + gift history
-// ============================================================
-const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency }) => {
-    const [messages, setMessages] = useState([]);
-    const [inputText, setInputText] = useState('');
-    const [sending, setSending] = useState(false);
-
-    const uid = currentUser?.uid || null;
-    const selfChatId = uid ? `${uid}_self` : null;
-    const displayName = currentUser?.displayName || userData?.displayName || (lang==='ar'?'أنا':'Me');
-    const photoURL = currentUser?.photoURL || userData?.photoURL || null;
-
-    useEffect(() => {
-        if (!show || !selfChatId) return;
-        const unsub = chatsCollection
-            .doc(selfChatId)
-            .collection('messages')
-            .orderBy('timestamp', 'asc')
-            .limit(100)
-            .onSnapshot(snap => {
-                setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            });
-        return () => unsub();
-    }, [show, selfChatId]);
-
-    const sendNote = async () => {
-        if (!inputText.trim() || !selfChatId || sending || !uid) return;
-        setSending(true);
-        try {
-            const chatRef = chatsCollection.doc(selfChatId);
-            // Fix: never pass undefined - use explicit null for missing fields
-            await chatRef.set({
-                participants: [uid, uid],
-                type: 'self',
-                lastMessage: inputText.trim(),
-                lastAt: firebase.firestore.FieldValue.serverTimestamp(),
-                ownerUID: uid,
-                ownerName: displayName,
-                ownerPhoto: photoURL || null
-            }, { merge: true });
-            await chatRef.collection('messages').add({
-                text: inputText.trim(),
-                senderId: uid,
-                senderName: displayName,
-                senderPhoto: photoURL || null,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                type: 'note'
-            });
-            setInputText('');
-        } catch(e) { console.error('Send error:', e); }
-        setSending(false);
-    };
-
-    const formatMsgTime = (ts) => {
-        if (!ts?.toDate) return '';
-        const d = ts.toDate();
-        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
-
-    if (!show) return null;
-
-    return (
-        <div className="modal-overlay" onClick={onClose} style={{zIndex:15000}}>
-            <div
-                className="animate-pop"
-                onClick={e => e.stopPropagation()}
-                style={{
-                    background:'linear-gradient(180deg,#1a1a2e,#0f0f1a)',
-                    border:'1px solid rgba(0,242,255,0.2)',
-                    borderRadius:'18px',
-                    width:'100%',
-                    maxWidth:'400px',
-                    maxHeight:'88vh',
-                    display:'flex',
-                    flexDirection:'column',
-                    overflow:'hidden',
-                    boxShadow:'0 20px 60px rgba(0,0,0,0.9)'
-                }}
-            >
-                {/* Header - like a real chat with profile photo */}
-                <div style={{
-                    display:'flex', alignItems:'center', justifyContent:'space-between',
-                    padding:'12px 14px',
-                    background:'linear-gradient(135deg,rgba(0,10,30,0.9),rgba(20,0,40,0.9))',
-                    borderBottom:'1px solid rgba(255,255,255,0.06)'
-                }}>
-                    <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                        <div style={{position:'relative'}}>
-                            <img
-                                src={photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=7000ff&color=fff&size=80`}
-                                alt=""
-                                style={{width:'42px',height:'42px',borderRadius:'50%',objectFit:'cover',border:'2px solid rgba(0,242,255,0.4)'}}
-                            />
-                            <div style={{position:'absolute',bottom:'1px',right:'1px',width:'10px',height:'10px',borderRadius:'50%',background:'#4ade80',border:'2px solid #0f0f1a'}}/>
-                        </div>
-                        <div>
-                            <div style={{fontSize:'14px', fontWeight:800, color:'white'}}>
-                                {displayName}
-                            </div>
-                            <div style={{fontSize:'10px', color:'#4ade80', fontWeight:600}}>
-                                {lang==='ar' ? '● شاتي الشخصي' : '● My Personal Chat'}
-                            </div>
-                        </div>
-                    </div>
-                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
-                </div>
-
-                {/* Messages */}
-                <div style={{flex:1, overflowY:'auto', padding:'12px 14px', display:'flex', flexDirection:'column', gap:'10px', background:'rgba(0,0,0,0.2)'}}>
-                    {messages.length === 0 && (
-                        <div style={{textAlign:'center', marginTop:'50px', color:'#4b5563'}}>
-                            <div style={{fontSize:'40px', marginBottom:'8px'}}>💬</div>
-                            <div style={{fontSize:'12px', color:'#6b7280'}}>{lang==='ar' ? 'ابدأ محادثتك...' : 'Start chatting...'}</div>
-                        </div>
-                    )}
-                    {messages.map(msg => (
-                        <div key={msg.id} style={{display:'flex', justifyContent:'flex-end'}}>
-                            {msg.type === 'gift' ? (
-                                /* Gift notification bubble */
-                                <div style={{
-                                    background:'linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,136,0,0.08))',
-                                    border:'1px solid rgba(255,215,0,0.3)',
-                                    borderRadius:'14px 14px 4px 14px',
-                                    padding:'10px 14px',
-                                    maxWidth:'85%'
-                                }}>
-                                    <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700, marginBottom:'4px', textTransform:'uppercase', letterSpacing:'0.5px'}}>
-                                        🎁 {lang==='ar' ? 'هدية لنفسك' : 'Self Gift'}
-                                    </div>
-                                    <div style={{fontSize:'20px', marginBottom:'4px'}}>{msg.giftEmoji || '🎁'}</div>
-                                    <div style={{fontSize:'12px', color:'#f3f4f6', fontWeight:700}}>{msg.giftName}</div>
-                                    <div style={{fontSize:'10px', color:'#9ca3af', marginTop:'2px'}}>{lang==='ar'?'تكلفة:':'Cost:'} {msg.giftCost} 🧠</div>
-                                    <div style={{fontSize:'10px', color:'#9ca3af'}}>{lang==='ar'?'كاريزما:':'Charisma:'} +{msg.charismaGain}</div>
-                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{formatMsgTime(msg.timestamp)}</div>
-                                </div>
-                            ) : (
-                                /* Regular note bubble */
-                                <div style={{
-                                    background:'linear-gradient(135deg,rgba(0,242,255,0.1),rgba(112,0,255,0.1))',
-                                    border:'1px solid rgba(0,242,255,0.2)',
-                                    borderRadius:'14px 14px 4px 14px',
-                                    padding:'10px 14px',
-                                    maxWidth:'85%'
-                                }}>
-                                    <div style={{fontSize:'13px', color:'#e2e8f0', lineHeight:1.5}}>{msg.text}</div>
-                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{formatMsgTime(msg.timestamp)}</div>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-
-                {/* Input */}
-                <div style={{
-                    display:'flex', gap:'8px', padding:'12px 14px',
-                    borderTop:'1px solid rgba(255,255,255,0.07)',
-                    background:'rgba(0,0,0,0.2)'
-                }}>
-                    <input
-                        value={inputText}
-                        onChange={e => setInputText(e.target.value)}
-                        onKeyDown={e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendNote(); } }}
-                        placeholder={lang==='ar' ? 'اكتب ملاحظة...' : 'Write a note...'}
-                        style={{
-                            flex:1, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)',
-                            borderRadius:'10px', padding:'10px 12px', color:'white', fontSize:'13px', outline:'none'
-                        }}
-                    />
-                    <button
-                        onClick={sendNote}
-                        disabled={!inputText.trim() || sending}
-                        style={{
-                            padding:'10px 14px', borderRadius:'10px', fontSize:'14px', cursor:'pointer', border:'none',
-                            background: inputText.trim() ? 'linear-gradient(135deg,#00f2ff,#7000ff)' : 'rgba(255,255,255,0.06)',
-                            color: inputText.trim() ? '#000' : '#4b5563',
-                            fontWeight:800, transition:'all 0.2s',
-                            opacity: sending ? 0.6 : 1
-                        }}
-                    >
-                        {sending ? '...' : '➤'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
-// ============================================================
-// 🎫 FUN PASS MODAL COMPONENT
-// ============================================================
-const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) => {
-    const [activeTab, setActiveTab] = useState('pass'); // 'pass' | 'missions'
-    const [buying, setBuying] = useState(false);
-    const [claiming, setClaiming] = useState(null);
-
-    // All hooks before early return
-    // Season-aware: data is stored under funPass.seasons[SEASON_ID]
-    const fpAll = userData?.funPass || {};
-    const fp = fpAll.seasons?.[FUN_PASS_SEASON_ID] || {};
-    const hasPremium = fp.premium === true;
-    const currentXP = fp.xp || 0;
-    const claimedFree = fp.claimedFree || [];
-    const claimedPremium = fp.claimedPremium || [];
-    const currency = userData?.currency || 0;
-
-    // Find current level (last level where xp >= xpRequired)
-    const currentLevel = FUN_PASS_LEVELS.reduce((acc, lv) => (currentXP >= lv.xp ? lv.level : acc), 0);
-    const nextLevel = FUN_PASS_LEVELS.find(lv => lv.level === currentLevel + 1);
-    const xpForNext = nextLevel ? nextLevel.xp : null;
-    const progressPct = xpForNext ? Math.min(100, Math.round(((currentXP - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0)) / (xpForNext - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0))) * 100)) : 100;
-
-    if (!show) return null;
-
-    const handleBuyPremium = async () => {
-        if (!user || hasPremium || buying) return;
-        if (currency < FUN_PASS_PRICE) { onNotification(lang==='ar'?'إنتل غير كافٍ!':'Not enough Intel!'); return; }
-        setBuying(true);
-        try {
-            await usersCollection.doc(user.uid).update({
-                currency: firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE),
-                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true
-            });
-            onNotification(lang==='ar'?'🎫 تم شراء Fun Pass!':'🎫 Fun Pass purchased!');
-        } catch(e) { console.error(e); onNotification(lang==='ar'?'خطأ':'Error'); }
-        setBuying(false);
-    };
-
-    const handleClaim = async (level, type) => {
-        if (!user || claiming) return;
-        const key = `${type}_${level}`;
-        const alreadyClaimed = type === 'free' ? claimedFree.includes(level) : claimedPremium.includes(level);
-        if (alreadyClaimed) return;
-        if (type === 'premium' && !hasPremium) { onNotification(lang==='ar'?'اشترِ Fun Pass أولاً':'Buy Fun Pass first'); return; }
-        if (currentLevel < level) { onNotification(lang==='ar'?'لم تصل لهذا المستوى بعد':'Level not reached yet'); return; }
-        const lvData = FUN_PASS_LEVELS.find(l => l.level === level);
-        const reward = type === 'free' ? lvData.free : lvData.premium;
-        setClaiming(key);
-        try {
-            const updates = {};
-            if (reward.type === 'currency') {
-                updates.currency = firebase.firestore.FieldValue.increment(reward.amount);
-            } else if (reward.type === 'frame') {
-                updates['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
-            } else if (reward.type === 'badge') {
-                updates['inventory.badges'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
-            } else if (reward.type === 'title') {
-                updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
-            }
-            if (type === 'free') {
-                updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.claimedFree`] = firebase.firestore.FieldValue.arrayUnion(level);
-            } else {
-                updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.claimedPremium`] = firebase.firestore.FieldValue.arrayUnion(level);
-            }
-            await usersCollection.doc(user.uid).update(updates);
-            onNotification(`${lang==='ar'?'تم استلام':'Claimed'} ${lang==='ar'?reward.name_ar:reward.name_en}! 🎉`);
-        } catch(e) { console.error(e); }
-        setClaiming(null);
-    };
-
-    const getRarityStyle = (rarity) => {
-        const r = RARITY_CONFIG[rarity] || RARITY_CONFIG['Common'];
-        return { border: `1px solid ${r.border}`, background: r.bg, color: r.color };
-    };
-    const isMythic = (rarity) => rarity === 'Mythic';
-
-    return (
-        <div className="modal-overlay" onClick={onClose} style={{zIndex:12000}}>
-            <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
-                background:'linear-gradient(180deg,#0a0a1a,#0f0f1e)',
-                border:'1px solid rgba(255,215,0,0.25)',
-                borderRadius:'18px', width:'100%', maxWidth:'420px',
-                maxHeight:'90vh', display:'flex', flexDirection:'column', overflow:'hidden',
-                boxShadow:'0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(255,215,0,0.05)'
-            }}>
-                {/* Header */}
-                <div style={{
-                    padding:'14px 16px',
-                    background:'linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,136,0,0.08))',
-                    borderBottom:'1px solid rgba(255,215,0,0.15)',
-                    display:'flex', alignItems:'center', justifyContent:'space-between'
-                }}>
-                    <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                        <div style={{fontSize:'28px'}}>🎫</div>
-                        <div>
-                            <div style={{fontSize:'16px', fontWeight:900, background:'linear-gradient(135deg,#ffd700,#ff8800)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>
-                                FUN PASS
-                            </div>
-                            <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700}}>
-                                {lang==='ar' ? FUN_PASS_SEASON_NAME_AR : FUN_PASS_SEASON_NAME_EN}
-                            </div>
-                            <div style={{fontSize:'8px', color:'#6b7280'}}>
-                                {lang==='ar'?'مستوى':'Lv'} {currentLevel}/50 · {currentXP} XP · {lang==='ar'?'ينتهي':'Ends'} {FUN_PASS_SEASON_END}
-                            </div>
-                        </div>
-                    </div>
-                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                        {!hasPremium && (
-                            <button onClick={handleBuyPremium} disabled={buying || currency < FUN_PASS_PRICE} style={{
-                                padding:'6px 12px', borderRadius:'8px', fontSize:'11px', fontWeight:800, cursor:'pointer', border:'none',
-                                background: currency >= FUN_PASS_PRICE ? 'linear-gradient(135deg,#ffd700,#ff8800)' : 'rgba(100,100,100,0.2)',
-                                color: currency >= FUN_PASS_PRICE ? '#000' : '#6b7280',
-                                opacity: buying ? 0.6 : 1
-                            }}>
-                                {buying ? '...' : `🎫 ${FUN_PASS_PRICE}🧠`}
-                            </button>
-                        )}
-                        {hasPremium && (
-                            <div style={{background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,136,0,0.15))', border:'1px solid rgba(255,215,0,0.4)', borderRadius:'8px', padding:'4px 10px', fontSize:'11px', color:'#ffd700', fontWeight:800}}>
-                                ✓ PREMIUM
-                            </div>
-                        )}
-                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'28px',height:'28px',cursor:'pointer'}}>✕</button>
-                    </div>
-                </div>
-
-                {/* XP Progress Bar */}
-                <div style={{padding:'8px 16px', background:'rgba(0,0,0,0.3)', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
-                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#6b7280', marginBottom:'4px'}}>
-                        <span>XP: {currentXP}</span>
-                        <span>{xpForNext ? `${lang==='ar'?'التالي:':'Next:'} ${xpForNext} XP` : (lang==='ar'?'المستوى الأقصى!':'Max Level!')}</span>
-                    </div>
-                    <div style={{height:'6px', background:'rgba(255,255,255,0.08)', borderRadius:'3px', overflow:'hidden'}}>
-                        <div style={{
-                            height:'100%', borderRadius:'3px', transition:'width 0.5s ease',
-                            width:`${xpForNext ? progressPct : 100}%`,
-                            background:'linear-gradient(90deg,#ffd700,#ff8800)'
-                        }}/>
-                    </div>
-                </div>
-
-                {/* Tabs */}
-                <div style={{display:'flex', borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
-                    {[
-                        {id:'pass',     icon:'🎫', ar:'التمرير',  en:'Pass'},
-                        {id:'missions', icon:'📋', ar:'المهمات',  en:'Missions'},
-                    ].map(tab => (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
-                            flex:1, padding:'10px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none',
-                            background: activeTab===tab.id ? 'rgba(255,215,0,0.1)' : 'transparent',
-                            color: activeTab===tab.id ? '#ffd700' : '#6b7280',
-                            borderBottom: activeTab===tab.id ? '2px solid #ffd700' : '2px solid transparent'
-                        }}>
-                            {tab.icon} {lang==='ar'?tab.ar:tab.en}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Content */}
-                <div style={{flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px'}}>
-                    {activeTab === 'pass' && (
-                        <>
-                            {/* Legend */}
-                            <div style={{display:'flex', gap:'10px', padding:'6px 0', fontSize:'9px', color:'#6b7280'}}>
-                                <span>⬆️ {lang==='ar'?'مجاني':'Free'}</span>
-                                <span style={{color:'#ffd700'}}>🎫 {lang==='ar'?'بريميوم':'Premium'}</span>
-                                <span style={{color:'#4ade80'}}>✓ {lang==='ar'?'مستلم':'Claimed'}</span>
-                                <span style={{color:'#3b82f6'}}>🔵 {lang==='ar'?'حالي':'Current'}</span>
-                            </div>
-                            {FUN_PASS_LEVELS.map(lv => {
-                                const isReached = currentLevel >= lv.level;
-                                const isCurrent = currentLevel === lv.level - 1 && lv.level <= 50;
-                                const freeClaimable = isReached && !claimedFree.includes(lv.level);
-                                const premClaimable = isReached && hasPremium && !claimedPremium.includes(lv.level);
-                                const freeKey = `free_${lv.level}`;
-                                const premKey = `premium_${lv.level}`;
-                                const freeRarity = lv.free.rarity || 'Common';
-                                const premRarity = lv.premium.rarity || 'Common';
-
-                                return (
-                                    <div key={lv.level} style={{
-                                        display:'flex', gap:'6px', alignItems:'stretch',
-                                        opacity: (!isReached && !isCurrent) ? 0.55 : 1
-                                    }}>
-                                        {/* Level badge */}
-                                        <div style={{
-                                            width:'32px', minWidth:'32px', display:'flex', flexDirection:'column',
-                                            alignItems:'center', justifyContent:'center', gap:'2px'
-                                        }}>
-                                            <div style={{
-                                                width:'28px', height:'28px', borderRadius:'50%',
-                                                background: isCurrent ? 'rgba(59,130,246,0.3)' : isReached ? 'rgba(255,215,0,0.2)' : 'rgba(255,255,255,0.05)',
-                                                border: isCurrent ? '2px solid #3b82f6' : isReached ? '2px solid rgba(255,215,0,0.5)' : '1px solid rgba(255,255,255,0.08)',
-                                                display:'flex', alignItems:'center', justifyContent:'center',
-                                                fontSize:'9px', fontWeight:900,
-                                                color: isCurrent ? '#60a5fa' : isReached ? '#ffd700' : '#6b7280',
-                                                boxShadow: isCurrent ? '0 0 8px rgba(59,130,246,0.5)' : isReached ? '0 0 6px rgba(255,215,0,0.2)' : 'none'
-                                            }}>{lv.level}</div>
-                                            {lv.level < 50 && (
-                                                <div style={{width:'1px', height:'8px', background:'rgba(255,255,255,0.08)'}}/>
-                                            )}
-                                        </div>
-
-                                        {/* Free reward box */}
-                                        <div style={{
-                                            flex:1, padding:'7px 10px', borderRadius:'10px', display:'flex',
-                                            alignItems:'center', justifyContent:'space-between', gap:'6px',
-                                            ...(freeRarity === 'Mythic' ? {
-                                                background:'rgba(255,0,85,0.1)', border:'1px solid rgba(255,0,85,0.4)',
-                                                animation:'mythic-pulse 2s ease-in-out infinite'
-                                            } : freeRarity === 'Legendary' ? {
-                                                background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.35)'
-                                            } : freeRarity === 'Epic' ? {
-                                                background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)'
-                                            } : {
-                                                background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)'
-                                            })
-                                        }}>
-                                            <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0}}>
-                                                {lv.free.imageUrl 
-                                    ? <img src={lv.free.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
-                                    : <span style={{fontSize:'16px', flexShrink:0}}>{lv.free.icon}</span>}
-                                                <div style={{minWidth:0}}>
-                                                    <div style={{fontSize:'10px', fontWeight:700, color: freeRarity==='Mythic'?'#ff4488':freeRarity==='Legendary'?'#fbbf24':freeRarity==='Epic'?'#c084fc':'#e2e8f0', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
-                                                        {lang==='ar'?lv.free.name_ar:lv.free.name_en}
-                                                    </div>
-                                                    <div style={{fontSize:'8px', color:'#4ade80', fontWeight:600}}>FREE</div>
-                                                </div>
-                                            </div>
-                                            {claimedFree.includes(lv.level) ? (
-                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>✓</div>
-                                            ) : (
-                                                <button onClick={() => handleClaim(lv.level,'free')} disabled={!freeClaimable || claiming===freeKey} style={{
-                                                    padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: freeClaimable?'pointer':'default', border:'none', flexShrink:0,
-                                                    background: freeClaimable ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.04)',
-                                                    color: freeClaimable ? '#4ade80' : '#374151',
-                                                    opacity: claiming===freeKey ? 0.6 : 1
-                                                }}>
-                                                    {claiming===freeKey ? '...' : freeClaimable ? (lang==='ar'?'استلم':'Claim') : '🔒'}
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {/* Premium reward box */}
-                                        <div style={{
-                                            flex:1, padding:'7px 10px', borderRadius:'10px', display:'flex',
-                                            alignItems:'center', justifyContent:'space-between', gap:'6px',
-                                            ...(premRarity === 'Mythic' ? {
-                                                background:'rgba(255,0,85,0.12)', border:'1px solid rgba(255,0,85,0.5)',
-                                                animation:'mythic-pulse 2s ease-in-out infinite'
-                                            } : premRarity === 'Legendary' ? {
-                                                background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.4)'
-                                            } : premRarity === 'Epic' ? {
-                                                background:'rgba(168,85,247,0.1)', border:'1px solid rgba(168,85,247,0.3)'
-                                            } : {
-                                                background: hasPremium ? 'rgba(255,215,0,0.05)' : 'rgba(255,255,255,0.02)',
-                                                border: hasPremium ? '1px solid rgba(255,215,0,0.2)' : '1px dashed rgba(255,255,255,0.08)'
-                                            })
-                                        }}>
-                                            <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0, opacity: hasPremium ? 1 : 0.4}}>
-                                                {hasPremium && lv.premium.imageUrl
-                                    ? <img src={lv.premium.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
-                                    : <span style={{fontSize:'16px', flexShrink:0}}>{hasPremium ? lv.premium.icon : '🔒'}</span>}
-                                                <div style={{minWidth:0}}>
-                                                    <div style={{fontSize:'10px', fontWeight:700, color: premRarity==='Mythic'?'#ff4488':premRarity==='Legendary'?'#fbbf24':premRarity==='Epic'?'#c084fc':'#9ca3af', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
-                                                        {hasPremium ? (lang==='ar'?lv.premium.name_ar:lv.premium.name_en) : '???'}
-                                                    </div>
-                                                    <div style={{fontSize:'8px', color:'#ffd700', fontWeight:600}}>🎫 PASS</div>
-                                                </div>
-                                            </div>
-                                            {claimedPremium.includes(lv.level) ? (
-                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>✓</div>
-                                            ) : (
-                                                <button onClick={() => handleClaim(lv.level,'premium')} disabled={!premClaimable || claiming===premKey} style={{
-                                                    padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: premClaimable?'pointer':'default', border:'none', flexShrink:0,
-                                                    background: premClaimable ? 'linear-gradient(135deg,rgba(255,215,0,0.3),rgba(255,136,0,0.2))' : 'rgba(255,255,255,0.03)',
-                                                    color: premClaimable ? '#ffd700' : '#374151',
-                                                    opacity: claiming===premKey ? 0.6 : 1
-                                                }}>
-                                                    {claiming===premKey ? '...' : premClaimable ? (lang==='ar'?'استلم':'Claim') : (hasPremium?'🔒':'🎫')}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </>
-                    )}
-
-                    {activeTab === 'missions' && (
-                        <>
-                            {/* Daily Missions */}
-                            <div style={{fontSize:'11px', fontWeight:800, color:'#fbbf24', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px'}}>
-                                <span>☀️</span> {lang==='ar'?'المهمات اليومية':'Daily Missions'}
-                            </div>
-                            {FUN_PASS_DAILY_MISSIONS.map(m => (
-                                <div key={m.id} style={{
-                                    display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
-                                    padding:'9px 12px', borderRadius:'10px',
-                                    background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)'
-                                }}>
-                                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                                        <span style={{fontSize:'18px'}}>{m.icon}</span>
-                                        <div>
-                                            <div style={{fontSize:'11px', fontWeight:700, color:'#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
-                                            <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700}}>+{m.xp} XP</div>
-                                        </div>
-                                    </div>
-                                    <div style={{fontSize:'9px', color:'#4b5563', fontWeight:600, background:'rgba(255,255,255,0.05)', padding:'3px 8px', borderRadius:'5px'}}>
-                                        {lang==='ar'?'قريباً':'Soon'}
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Weekly Missions */}
-                            <div style={{fontSize:'11px', fontWeight:800, color:'#c084fc', marginTop:'8px', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px'}}>
-                                <span>📅</span> {lang==='ar'?'المهمات الأسبوعية':'Weekly Missions'}
-                            </div>
-                            {FUN_PASS_WEEKLY_MISSIONS.map(m => (
-                                <div key={m.id} style={{
-                                    display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
-                                    padding:'9px 12px', borderRadius:'10px',
-                                    background:'rgba(168,85,247,0.05)', border:'1px solid rgba(168,85,247,0.15)'
-                                }}>
-                                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                                        <span style={{fontSize:'18px'}}>{m.icon}</span>
-                                        <div>
-                                            <div style={{fontSize:'11px', fontWeight:700, color:'#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
-                                            <div style={{fontSize:'9px', color:'#c084fc', fontWeight:700}}>+{m.xp} XP</div>
-                                        </div>
-                                    </div>
-                                    <div style={{fontSize:'9px', color:'#4b5563', fontWeight:600, background:'rgba(255,255,255,0.05)', padding:'3px 8px', borderRadius:'5px'}}>
-                                        {lang==='ar'?'قريباً':'Soon'}
-                                    </div>
-                                </div>
-                            ))}
-                        </>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSendNotification, onSendGift, currency, friendsData, onOpenProfile }) => {
-    const t = TRANSLATIONS[lang];
-    const [messages, setMessages] = useState([]);
-    const [newMsg, setNewMsg] = useState('');
-    const [sending, setSending] = useState(false);
-    const [showGiftModal, setShowGiftModal] = useState(false);
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [isBlocked, setIsBlocked] = useState(false);
-    const [blockedByTarget, setBlockedByTarget] = useState(false);
-    const messagesEndRef = useRef(null);
-    const inputRef = useRef(null);
-    const chatId = friend && user ? [user.uid, friend.uid].sort().join('_') : null;
-    
-    // Check if blocked
-    useEffect(() => {
-        if (!show || !friend || !currentUser) return;
-        // Check if current user blocked this friend
-        const myBlocked = currentUser.blockedUsers || [];
-        setIsBlocked(myBlocked.includes(friend.uid));
-        
-        // Check if friend blocked current user
-        usersCollection.doc(friend.uid).get().then(doc => {
-            if (doc.exists) {
-                const theirBlocked = doc.data().blockedUsers || [];
-                setBlockedByTarget(theirBlocked.includes(user.uid));
-            }
-        });
-    }, [show, friend, currentUser, user?.uid]);
-    
-    useEffect(() => {
-        if (!show || !chatId) return;
-        const unsub = chatsCollection.doc(chatId).collection('messages').onSnapshot(snap => {
-            let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            msgs.sort((a, b) => { const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0; const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0; return timeA - timeB; });
-            setMessages(msgs);
-            chatsCollection.doc(chatId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {});
-        });
-        return unsub;
-    }, [show, chatId, user?.uid]);
-    
-    useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-    
-    const handleSend = async () => {
-        if (!newMsg.trim() || sending || isBlocked || blockedByTarget) return;
-        setSending(true);
-        try {
-            await chatsCollection.doc(chatId).collection('messages').add({ 
-                senderId: user.uid, 
-                senderName: currentUser?.displayName || 'User', 
-                senderPhoto: currentUser?.photoURL || null, 
-                text: newMsg.trim(), 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-            });
-            await chatsCollection.doc(chatId).set({ 
-                members: [user.uid, friend.uid], 
-                lastMessage: newMsg.trim(), 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
-                [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) 
-            }, { merge: true });
-            if (onSendNotification) await onSendNotification(friend.uid, 'message', `${currentUser?.displayName || 'User'}: ${newMsg.trim().substring(0, 50)}`, user.uid, currentUser?.displayName || 'User');
-            setNewMsg('');
-            playSound('click');
-        } catch (e) { console.error('Send error:', e); }
-        setSending(false);
-    };
-    
-    const handleEmojiSelect = (emoji) => {
-        setNewMsg(prev => prev + emoji);
-        setShowEmojiPicker(false);
-        inputRef.current?.focus();
-    };
-    
-    const handleSendGiftToChat = async (gift, targetUser) => {
-        if (!onSendGift || isBlocked || blockedByTarget) return;
-        await onSendGift(gift, targetUser);
-        setShowGiftModal(false);
-    };
-    
-    // Handle profile opening
-    const handleOpenProfile = (uid) => {
-        if (onOpenProfile) {
-            onOpenProfile(uid);
-        }
-    };
-    
-    if (!show || !friend) return null;
-    
-    return (
-        <>
-            <div className="modal-overlay" onClick={onClose}>
-                <div className="chat-modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    <div className="chat-header-bar">
-                        <div 
-                            onClick={() => handleOpenProfile(friend.uid)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <AvatarWithFrame 
-                                photoURL={friend.photoURL} 
-                                equipped={friend.equipped} 
-                                size="sm" 
-                            />
-                        </div>
-                        <div 
-                            className="chat-header-info"
-                            onClick={() => handleOpenProfile(friend.uid)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <div className="chat-header-name">{friend.displayName}</div>
-                            <div className="chat-header-status">
-                                {isBlocked ? (lang === 'ar' ? 'محظور' : 'Blocked') : blockedByTarget ? (lang === 'ar' ? 'تم حظرك' : 'You are blocked') : t.online}
-                            </div>
-                        </div>
-                        <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" disabled={isBlocked || blockedByTarget} title={t.sendGift}>🎁</button>
-                        <ModalCloseBtn onClose={onClose} />
-                    </div>
-                    
-                    {/* Blocked Notice */}
-                    {(isBlocked || blockedByTarget) && (
-                        <div className="chat-blocked-notice">
-                            <span>🚫</span>
-                            <span>{isBlocked 
-                                ? (lang === 'ar' ? 'لقد حظرت هذا المستخدم. إلغاء الحظر للمراسلة.' : 'You have blocked this user. Unblock to message.')
-                                : (lang === 'ar' ? 'هذا المستخدم حظرك. لا يمكنك إرسال رسائل.' : 'This user has blocked you. You cannot send messages.')
-                            }</span>
-                        </div>
-                    )}
-                    
-                    <div className="chat-messages-container">
-                        {messages.length === 0 ? <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div> : messages.map(msg => {
-                            const isMine = msg.senderId === user?.uid;
-                            const isGift = msg.type === 'gift';
-                            return (
-                                <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''} ${isGift ? 'gift-message' : ''}`}>
-                                    {!isMine && (
-                                        <div 
-                                            onClick={() => handleOpenProfile(msg.senderId || friend.uid)}
-                                            style={{ cursor: 'pointer' }}
-                                        >
-                                            <AvatarWithFrame 
-                                                photoURL={msg.senderPhoto || friend.photoURL} 
-                                                equipped={friend.equipped} 
-                                                size="sm" 
-                                            />
-                                        </div>
-                                    )}
-                                    <div className="chat-message-content">
-                                        <div 
-                                            className="chat-message-sender"
-                                            onClick={() => handleOpenProfile(isMine ? user.uid : (msg.senderId || friend.uid))}
-                                            style={{ cursor: 'pointer' }}
-                                        >
-                                            {isMine ? (currentUser?.displayName || 'You') : msg.senderName}
-                                        </div>
-                                        {isGift ? (
-                                            <div className="gift-message-content">
-                                                <div className="gift-message-icon">{msg.giftEmoji || '🎁'}</div>
-                                                <div className="gift-message-name">{msg.giftName || 'Gift'}</div>
-                                                <div className="gift-message-details">
-                                                    <span className="gift-charisma-badge">+{formatCharisma(msg.giftCharisma)} ⭐</span>
-                                                    {msg.giftBonus > 0 && <span className="gift-bonus-badge">+{msg.giftBonus} 🧠</span>}
-                                                </div>
-                                            </div>
-                                        ) : <div className="chat-message-bubble">{msg.text}</div>}
-                                        <div className="chat-message-time">{formatTime(msg.timestamp)}</div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                        <div ref={messagesEndRef} />
-                    </div>
-                    <div className="chat-input-container" style={{position:'relative'}}>
-                        {showEmojiPicker && React.createElement(
-                            React.Fragment, null,
-                            React.createElement('div', {
-                                style: {
-                                    position:'absolute', bottom:'calc(100% + 6px)', left:0, right:0,
-                                    background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.12)',
-                                    borderRadius:'14px', padding:'10px', zIndex:9999,
-                                    boxShadow:'0 -14px 40px rgba(0,0,0,0.7)'
-                                }
-                            },
-                                React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'7px',borderBottom:'1px solid rgba(255,255,255,0.08)',paddingBottom:'6px'}},
-                                    React.createElement('span', {style:{fontSize:'11px',fontWeight:700,color:'#00f2ff'}}, lang==='ar'?'اختر إيموجي':'Select Emoji'),
-                                    React.createElement('button', {onClick:()=>setShowEmojiPicker(false),style:{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:'14px',lineHeight:1}}, '✕')
-                                ),
-                                React.createElement(EmojiPicker, {show:true, onClose:()=>setShowEmojiPicker(false), onSelect:handleEmojiSelect, lang, inline:true})
-                            )
-                        )}
-                        {!(isBlocked || blockedByTarget) && (
-                            <div style={{display:'flex',alignItems:'center',gap:'6px',width:'100%'}}>
-                                <button 
-                                    className="emoji-picker-btn"
-                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                    style={{ fontSize: '22px' }}
-                                >
-                                    😀
-                                </button>
-                                <div className="chat-input-row" style={{flex:1}}>
-                                    <input 
-                                        ref={inputRef} 
-                                        type="text" 
-                                        className="chat-input" 
-                                        placeholder={t.typeMessage} 
-                                        value={newMsg} 
-                                        onChange={e => setNewMsg(e.target.value)} 
-                                        onKeyPress={e => e.key === 'Enter' && handleSend()} 
-                                    />
-                                    <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-            {showGiftModal && (
-                <SendGiftModal 
-                    show={showGiftModal} 
-                    onClose={() => setShowGiftModal(false)} 
-                    targetUser={friend} 
-                    currentUser={currentUser} 
-                    lang={lang} 
-                    onSendGift={handleSendGiftToChat} 
-                    currency={currency || 0}
-                    friendsData={friendsData}
-                />
-            )}
-
-        </>
-    );
-};
-
-// ==========================================
-// 📅 LOGIN REWARDS COMPONENT
-// ==========================================
-const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
-    const t = TRANSLATIONS[lang];
-    const [claiming, setClaiming] = useState(false);
-    const [countdown, setCountdown] = useState('');
-
-    // ALL computations before any hooks - Rules of Hooks compliance
-    const loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
-    
-    const getLastClaimDate = () => {
-        const lcd = loginData.lastClaimDate;
-        if (!lcd) return null;
-        if (lcd?.toDate) return lcd.toDate();
-        if (lcd instanceof Date) return lcd;
-        const d = new Date(lcd);
-        return isNaN(d.getTime()) ? null : d;
-    };
-    
-    const lastClaimDate = getLastClaimDate();
-    const todayStr = new Date().toDateString();
-    const lastClaimStr = lastClaimDate ? lastClaimDate.toDateString() : null;
-    const canClaimToday = lastClaimStr !== todayStr;
-    const currentDay = loginData.currentDay || 0;
-    const currentReward = LOGIN_REWARDS[currentDay];
-    
-    // Countdown timer - MUST be before any conditional returns
-    useEffect(() => {
-        if (!show || canClaimToday || !lastClaimDate) { setCountdown(''); return; }
-        const calcCountdown = () => {
-            const now = new Date();
-            const nextMidnight = new Date(now);
-            nextMidnight.setHours(24, 0, 0, 0);
-            const diff = nextMidnight - now;
-            if (diff <= 0) { setCountdown(''); return; }
-            const h = Math.floor(diff / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-            setCountdown(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
-        };
-        calcCountdown();
-        const timer = setInterval(calcCountdown, 1000);
-        return () => clearInterval(timer);
-    }, [show, canClaimToday, lastClaimDate]);
-
-    // Early return AFTER all hooks
-    if (!show) return null;
-    
-    const handleClaim = async () => { 
-        if (!canClaimToday || claiming) return; 
-        setClaiming(true); 
-        playRewardSound(); 
-        await onClaim(currentDay + 1); 
-        setClaiming(false); 
-    };
-    
-    const renderRewardIcon = (reward, size = 16) => {
-        if (!reward) return <span style={{ fontSize: size + 'px' }}>❓</span>;
-        return <span style={{ fontSize: size + 'px' }}>{reward.icon || '🎁'}</span>;
-    };
-    
-    const getRewardName = (reward) => {
-        if (!reward) return '';
-        return lang === 'ar' ? reward.name_ar : reward.name_en;
-    };
-    
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', maxHeight: '90vh', width: '95%' }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">🎁 {t.loginRewards}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
-                <div className="modal-body" style={{ padding: '12px' }}>
-                    <div className="login-rewards-container">
-                        <div className="login-rewards-header">
-                            <span className="login-rewards-title">🔥 {t.dailyStreak}</span>
-                            <span className="login-rewards-streak">{currentDay}/30</span>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', width: '100%', padding: '8px 0' }}>
-                            {LOGIN_REWARDS.map((reward, index) => {
-                                const dayNum = index + 1;
-                                const isClaimed = dayNum <= currentDay;
-                                const isCurrent = dayNum === currentDay + 1 && canClaimToday;
-                                const isSpecial = reward.special === true;
-                                const isFinal = reward.final === true;
-                                
-                                let bgColor = 'rgba(255, 255, 255, 0.03)';
-                                let borderColor = 'rgba(255, 255, 255, 0.1)';
-                                let textColor = 'rgba(255, 255, 255, 0.5)';
-                                let extraStyles = {};
-                                
-                                if (isClaimed) {
-                                    bgColor = 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1))';
-                                    borderColor = '#10b981';
-                                    textColor = '#10b981';
-                                } else if (isCurrent) {
-                                    bgColor = 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 136, 0, 0.1))';
-                                    borderColor = '#ffd700';
-                                    textColor = '#ffd700';
-                                    extraStyles = { animation: 'pulse-badge 2s infinite', boxShadow: '0 0 10px rgba(255, 215, 0, 0.3)' };
-                                } else if (isSpecial) {
-                                    bgColor = 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1))';
-                                    borderColor = '#8b5cf6';
-                                    textColor = '#a855f7';
-                                } else if (isFinal) {
-                                    bgColor = 'linear-gradient(135deg, rgba(255, 0, 85, 0.2), rgba(255, 51, 102, 0.1))';
-                                    borderColor = '#ff0055';
-                                    textColor = '#ff0055';
-                                    extraStyles = { animation: 'glow-pulse 2s infinite' };
-                                }
-                                
-                                return (
-                                    <div key={dayNum} title={getRewardName(reward)} style={{ aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: `2px solid ${borderColor}`, background: bgColor, padding: '4px', gap: '2px', position: 'relative', cursor: isCurrent ? 'pointer' : 'default', transition: 'all 0.2s ease', ...extraStyles }}>
-                                        <span style={{ fontSize: '11px', fontWeight: '700', color: textColor, lineHeight: 1 }}>{dayNum}</span>
-                                        <span style={{ fontSize: '14px', lineHeight: 1 }}>{renderRewardIcon(reward, 14)}</span>
-                                        {/* ✓ claimed overlay */}
-                                        {isClaimed && (
-                                            <div style={{position:'absolute',inset:0,background:'rgba(16,185,129,0.15)',borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                                                <span style={{fontSize:'14px',color:'#10b981',fontWeight:900}}>✓</span>
-                                            </div>
-                                        )}
-                                        {/* Current day glow ring */}
-                                        {isCurrent && !isClaimed && (
-                                            <div style={{position:'absolute',inset:'-2px',borderRadius:'10px',border:'2px solid #ffd700',boxShadow:'0 0 10px rgba(255,215,0,0.5)',pointerEvents:'none'}}/>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        {canClaimToday && currentReward && (
-                            <div style={{ marginTop: '12px', padding: '12px', background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.05))', border: '1px solid rgba(255, 215, 0, 0.3)', borderRadius: '12px', textAlign: 'center' }}>
-                                <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '4px' }}>{lang === 'ar' ? 'مكافأة اليوم' : "Today's Reward"}</div>
-                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'white' }}>{renderRewardIcon(currentReward, 18)} {getRewardName(currentReward)}</div>
-                                {currentReward.special && <div style={{ fontSize: '10px', color: '#ffd700', marginTop: '4px' }}>⭐ {lang === 'ar' ? 'مكافأة خاصة!' : 'Special Reward!'}</div>}
-                            </div>
-                        )}
-                        {/* Countdown shown when already claimed */}
-                        {!canClaimToday && countdown && (
-                            <div style={{textAlign:'center', marginTop:'10px', padding:'8px 12px', background:'rgba(0,242,255,0.06)', border:'1px solid rgba(0,242,255,0.15)', borderRadius:'10px'}}>
-                                <div style={{fontSize:'9px', color:'#64748b', marginBottom:'3px'}}>
-                                    {lang === 'ar' ? '⏳ الوقت المتبقي لليوم التالي' : '⏳ Next reward in'}
-                                </div>
-                                <div style={{fontSize:'18px', fontWeight:900, color:'#00f2ff', fontFamily:'monospace', letterSpacing:'2px'}}>
-                                    {countdown}
-                                </div>
-                            </div>
-                        )}
-                        <button onClick={handleClaim} disabled={!canClaimToday || claiming} style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: canClaimToday && !claiming ? 'pointer' : 'not-allowed', transition: 'all 0.2s ease', background: canClaimToday ? 'linear-gradient(135deg, #ffd700, #ff8800)' : 'rgba(107, 114, 128, 0.5)', color: canClaimToday ? '#000' : 'rgba(255, 255, 255, 0.5)', marginTop: '10px' }}>
-                            {claiming ? t.loading : canClaimToday ? t.claimReward : t.alreadyClaimed}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// ==========================================
-// 🔧 BROWSE ROOMS MODAL
-// ==========================================
-const BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUserData, lang }) => {
-    const t = TRANSLATIONS[lang];
-    const [rooms, setRooms] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [joinPassword, setJoinPassword] = useState('');
-    const [selectedRoom, setSelectedRoom] = useState(null);
-    const [showPasswordInput, setShowPasswordInput] = useState(false);
-    const [passwordError, setPasswordError] = useState('');
-    
-    useEffect(() => {
-        if (!show) return;
-        setLoading(true);
-        setPasswordError('');
-        const unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => {
-            const roomsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(room => room.players?.length < 10);
-            setRooms(roomsData);
-            setLoading(false);
-        }, error => { console.error('Browse rooms error:', error); setLoading(false); });
-        return unsub;
-    }, [show]);
-    
-    if (!show) return null;
-    
-    const handleJoinClick = (room) => { 
-        if (room.isPrivate) { 
-            setSelectedRoom(room); 
-            setShowPasswordInput(true); 
-            setPasswordError(''); 
-        } else { 
-            onJoin(room.id, ''); 
-        } 
-    };
-    
-    const handlePasswordJoin = () => { 
-        if (selectedRoom && joinPassword) {
-            if (joinPassword !== selectedRoom.password) {
-                setPasswordError(lang === 'ar' ? 'كلمة السر غير صحيحة!' : 'Incorrect password!');
-                return;
-            }
-            onJoin(selectedRoom.id, joinPassword); 
-            setShowPasswordInput(false); 
-            setSelectedRoom(null); 
-            setJoinPassword(''); 
-            setPasswordError('');
-        } 
-    };
-    
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-                <div className="modal-header"><h2 className="modal-title">{t.browse}</h2><ModalCloseBtn onClose={onClose} /></div>
-                <div className="modal-body">
-                    {loading ? <div className="text-center py-8"><div className="text-2xl animate-pulse">⏳</div><p className="text-gray-400 mt-2">{t.loading}</p></div> : rooms.length === 0 ? <div className="text-center py-8 text-gray-400"><div className="text-4xl mb-2">🔍</div><p>{t.noRooms}</p></div> : (
-                        <div className="browse-rooms-container">
-                            {rooms.map(room => (
-                                <div key={room.id} className="room-card">
-                                    <div className="room-card-header"><span className="room-card-code">{room.id}</span><span className="room-card-mode">{room.mode === 'advanced' ? (lang === 'ar' ? 'متقدم' : 'Advanced') : (lang === 'ar' ? 'عادي' : 'Normal')}</span></div>
-                                    <div className="room-card-info">
-                                        <div className="room-card-players"><span>👥 {room.players?.length || 0}/10</span>{room.isPrivate && <span className="room-card-private ml-2">🔒</span>}</div>
-                                        <button onClick={() => handleJoinClick(room)} className="room-card-join-btn">{t.join}</button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                {showPasswordInput && selectedRoom && (
-                    <div className="p-3 bg-white/5 border-t border-white/10">
-                        <div className="text-xs text-gray-400 mb-2">🔒 {lang === 'ar' ? 'أدخل كلمة السر' : 'Enter password'} - Room: {selectedRoom.id}</div>
-                        <div className="flex gap-2">
-                            <input type="password" value={joinPassword} onChange={e => { setJoinPassword(e.target.value); setPasswordError(''); }} placeholder={t.password} className="input-dark flex-1 p-2 rounded text-sm" />
-                            <button onClick={handlePasswordJoin} className="btn-neon px-4 py-2 rounded text-sm">{t.join}</button>
-                            <button onClick={() => { setShowPasswordInput(false); setSelectedRoom(null); setPasswordError(''); }} className="btn-ghost px-3 py-2 rounded text-sm">✕</button>
-                        </div>
-                        {passwordError && <div className="text-xs text-red-400 mt-2 text-center flex items-center justify-center gap-1"><span>❌</span> {passwordError}</div>}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-// ==========================================
-// 📚 TUTORIAL MODAL
-// ==========================================
-const TutorialModal = ({ show, onClose, lang }) => {
-    const t = TRANSLATIONS[lang];
-    const [step, setStep] = useState(0);
-    if(!show) return null;
-    const steps = [ { text: t.tutorialStep1, img: "🕵️" }, { text: t.tutorialStep2, img: "🗳️" }, { text: t.tutorialStep3, img: "🛒" } ];
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>
-                <div className="modal-header"><h2 className="modal-title">{t.tutorialTitle}</h2><ModalCloseBtn onClose={onClose} /></div>
-                <div className="modal-body text-center">
-                    <div className="text-5xl mb-4 animate-bounce">{steps[step].img}</div>
-                    <p className="text-sm mb-4 text-gray-200">{steps[step].text}</p>
-                    <div className="flex justify-center gap-2 mb-3">{steps.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === step ? 'bg-cyan-400 w-4' : 'bg-gray-600'}`}></div>)}</div>
-                    <div className="flex gap-2">
-                        {step > 0 && <button onClick={() => setStep(s => s-1)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">Back</button>}
-                        {step < steps.length - 1 ? <button onClick={() => setStep(s => s+1)} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.next}</button> : <button onClick={onClose} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.startGame}</button>}
-                    </div>
-                    <button onClick={onClose} className="text-xs text-gray-500 mt-3 hover:text-white">{t.skipTutorial}</button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
-// ==========================================
-// ⚙️ SETTINGS MODAL
-// ==========================================
-const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle }) => {
-    const t = TRANSLATIONS[lang];
-    const [blockedUsers, setBlockedUsers] = useState([]);
-    const [blockInput, setBlockInput] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [soundMutedLocal, setSoundMutedLocal] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
-    const [showEmailLocal, setShowEmailLocal] = useState(false);
-    const [editingName, setEditingName] = useState(false);
-    const [newName, setNewName] = useState('');
-
-    useEffect(() => {
-        if (show && userData) {
-            setBlockedUsers(userData.blockedUsers || []);
-        }
-    }, [show, userData]);
-
-    if (!show) return null;
-
-    const toggleSound = () => {
-        const newMuted = !soundMutedLocal;
-        setSoundMutedLocal(newMuted);
-        localStorage.setItem('pro_spy_sound_muted', String(newMuted));
-        // Update global audio state
-        if (typeof window !== 'undefined') {
-            window.proSpySoundMuted = newMuted;
-        }
-        onNotification(newMuted ? (lang === 'ar' ? 'تم كتم الصوت' : 'Sound muted') : (lang === 'ar' ? 'تم تشغيل الصوت' : 'Sound enabled'));
-    };
-
-    const handleBlockUser = async () => {
-        if (!blockInput.trim() || !user) return;
-        setLoading(true);
-        try {
-            // Find user by ID
-            const userQuery = await usersCollection.where('customId', '==', blockInput.trim()).get();
-            if (userQuery.empty) {
-                onNotification(t.friendNotFound);
-                setLoading(false);
-                return;
-            }
-            const targetUid = userQuery.docs[0].id;
-            if (targetUid === user.uid) {
-                onNotification(lang === 'ar' ? 'لا يمكنك حظر نفسك' : 'Cannot block yourself');
-                setLoading(false);
-                return;
-            }
-            if (blockedUsers.includes(targetUid)) {
-                onNotification(lang === 'ar' ? 'المستخدم محظور بالفعل' : 'User already blocked');
-                setLoading(false);
-                return;
-            }
-            // Add to blocked list
-            await usersCollection.doc(user.uid).update({
-                blockedUsers: firebase.firestore.FieldValue.arrayUnion(targetUid)
-            });
-            setBlockedUsers([...blockedUsers, targetUid]);
-            setBlockInput('');
-            onNotification(t.blockSuccess);
-        } catch (error) {
-            console.error('Block error:', error);
-            onNotification(lang === 'ar' ? 'حدث خطأ' : 'An error occurred');
-        }
-        setLoading(false);
-    };
-
-    const handleUnblockUser = async (targetUid) => {
-        if (!user) return;
-        try {
-            await usersCollection.doc(user.uid).update({
-                blockedUsers: firebase.firestore.FieldValue.arrayRemove(targetUid)
-            });
-            setBlockedUsers(blockedUsers.filter(id => id !== targetUid));
-            onNotification(t.unblockSuccess);
-        } catch (error) {
-            console.error('Unblock error:', error);
-        }
-    };
-
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">⚙️ {t.settings}</h2>
-                    <ModalCloseBtn onClose={onClose} />
-                </div>
-                <div className="modal-body">
-                    {/* Account Info Section - GUEST: show login prompt instead */}
-                    {isGuestPropForSettings && (
-                        <div className="settings-section">
-                            <div className="settings-section-title">
-                                <span>👤</span>
-                                <span>{lang === 'ar' ? 'معلومات الحساب' : 'Account Info'}</span>
-                            </div>
-                            <div style={{padding:'16px', borderRadius:'12px', background:'linear-gradient(135deg,rgba(0,10,30,0.6),rgba(20,0,50,0.4))', border:'1px solid rgba(0,242,255,0.15)', textAlign:'center'}}>
-                                <div style={{fontSize:'32px', marginBottom:'8px'}}>🔒</div>
-                                <div style={{fontSize:'13px', fontWeight:800, color:'white', marginBottom:'4px'}}>
-                                    {lang === 'ar' ? 'حساب زائر' : 'Guest Account'}
-                                </div>
-                                <div style={{fontSize:'11px', color:'#6b7280', marginBottom:'14px'}}>
-                                    {lang === 'ar' ? 'سجّل دخولك للوصول لجميع المميزات' : 'Login to access all features'}
-                                </div>
-                                <button onClick={onLoginGoogle} style={{
-                                    display:'flex', alignItems:'center', justifyContent:'center', gap:'8px',
-                                    width:'100%', padding:'10px 16px', borderRadius:'10px', border:'none', cursor:'pointer',
-                                    background:'white', color:'#333', fontSize:'13px', fontWeight:700
-                                }}>
-                                    <img src="https://www.google.com/favicon.ico" alt="G" style={{width:'16px',height:'16px'}} />
-                                    {lang === 'ar' ? 'تسجيل الدخول بجوجل' : 'Login with Google'}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                    {/* Account Info Section - Logged in users */}
-                    {user && !isGuestPropForSettings && (
-                        <div className="settings-section">
-                            <div className="settings-section-title">
-                                <span>👤</span>
-                                <span>{lang === 'ar' ? 'معلومات الحساب' : 'Account Info'}</span>
-                            </div>
-                            {/* Profile Photo */}
-                            <div style={{display:'flex', justifyContent:'center', marginBottom:'12px', marginTop:'8px'}}>
-                                <div style={{position:'relative', cursor:'pointer'}} onClick={() => document.getElementById('settings-photo-input')?.click()}>
-                                    <img
-                                        src={userData?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.displayName||'User')}&background=7000ff&color=fff&size=200`}
-                                        alt="avatar"
-                                        style={{width:'72px', height:'72px', borderRadius:'50%', objectFit:'cover', border:'3px solid rgba(112,0,255,0.5)'}}
-                                    />
-                                    <div style={{position:'absolute', bottom:'0', right:'0', background:'rgba(112,0,255,0.9)', borderRadius:'50%', width:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', border:'2px solid #0f0f1a'}}>📷</div>
-                                </div>
-                                <input id="settings-photo-input" type="file" style={{display:'none'}} accept="image/*" onChange={async(e) => {
-                                    const file = e.target.files?.[0];
-                                    if(!file || !user) return;
-                                    const reader = new FileReader();
-                                    reader.onload = async(ev) => {
-                                        const img = new Image();
-                                        img.onload = async() => {
-                                            const canvas = document.createElement('canvas');
-                                            const MAX = 300;
-                                            let w = img.width, h = img.height;
-                                            if(w > h){ if(w > MAX){h = Math.round(h*MAX/w); w=MAX;} } else { if(h > MAX){w = Math.round(w*MAX/h); h=MAX;} }
-                                            canvas.width=w; canvas.height=h;
-                                            canvas.getContext('2d').drawImage(img,0,0,w,h);
-                                            const base64 = canvas.toDataURL('image/jpeg', 0.75);
-                                            try {
-                                                await usersCollection.doc(user.uid).update({photoURL: base64});
-                                                onNotification(lang==='ar'?'تم تحديث الصورة!':'Photo updated!');
-                                            } catch(err){ console.error(err); }
-                                        };
-                                        img.src = ev.target.result;
-                                    };
-                                    reader.readAsDataURL(file);
-                                }} />
-                            </div>
-                            <div className="settings-account-card">
-                                <div className="settings-account-row">
-                                    <span className="settings-account-label">📧 {lang === 'ar' ? 'البريد' : 'Email'}</span>
-                                    <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                                        <span className="settings-account-value">{showEmailLocal ? (user?.email || 'N/A') : maskEmail(user?.email)}</span>
-                                        <button onClick={() => setShowEmailLocal(!showEmailLocal)} className="settings-eye-btn">{showEmailLocal ? '🙈' : '👁️'}</button>
-                                    </div>
-                                </div>
-                                <div className="settings-account-row">
-                                    <span className="settings-account-label">🪪 ID</span>
-                                    <span className="settings-account-value" onClick={() => navigator.clipboard.writeText(userData?.customId || '')} style={{cursor:'pointer'}}>
-                                        {userData?.customId || 'N/A'} 📋
-                                    </span>
-                                </div>
-                                <div className="settings-account-row">
-                                    <span className="settings-account-label">📅 {lang === 'ar' ? 'عضو منذ' : 'Member Since'}</span>
-                                    <span className="settings-account-value">{userData?.createdAt?.toDate?.() ? userData.createdAt.toDate().toLocaleDateString() : 'N/A'}</span>
-                                </div>
-                                <div className="settings-account-row">
-                                    <span className="settings-account-label">🔑 {lang === 'ar' ? 'نوع الحساب' : 'Account Type'}</span>
-                                    <span className="settings-account-value" style={{color:'#10b981'}}>Google ✓</span>
-                                </div>
-                                <div className="settings-account-row">
-                                    <span className="settings-account-label">✏️ {lang === 'ar' ? 'الاسم' : 'Name'}</span>
-                                    {editingName ? (
-                                        <div style={{display:'flex',gap:'4px'}}>
-                                            <input className="input-dark" style={{padding:'4px 8px',fontSize:'11px',borderRadius:'6px',width:'120px'}} value={newName} onChange={e => setNewName(e.target.value)} placeholder={userData?.displayName} />
-                                            <button className="btn-neon" style={{padding:'2px 8px',fontSize:'10px',borderRadius:'6px'}} onClick={async() => {
-                                                if(newName.trim() && user) {
-                                                    const now = new Date();
-                                                    const lastChange = userData?.lastChangedName?.toDate?.() || new Date(0);
-                                                    const diffDays = (now - lastChange) / (1000*60*60*24);
-                                                    if(diffDays < 30) { onNotification(lang==='ar'?'يمكن التغيير مرة شهريًا':'Can change once per month'); setEditingName(false); return; }
-                                                    await usersCollection.doc(user.uid).update({displayName:newName.trim(), lastChangedName:firebase.firestore.FieldValue.serverTimestamp()});
-                                                    onNotification(lang==='ar'?'تم تغيير الاسم!':'Name changed!');
-                                                    setEditingName(false);
-                                                }
-                                            }}>✓</button>
-                                            <button className="btn-ghost" style={{padding:'2px 6px',fontSize:'10px',borderRadius:'6px'}} onClick={() => setEditingName(false)}>✕</button>
-                                        </div>
-                                    ) : (
-                                        <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                                            <span className="settings-account-value">{userData?.displayName}</span>
-                                            <button onClick={() => { setNewName(userData?.displayName || ''); setEditingName(true); }} className="settings-eye-btn">✏️</button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            {/* Gender row */}
-                            <div className="settings-account-row" style={{marginTop:'4px'}}>
-                                <span className="settings-account-label">
-                                    {(userData?.gender === 'male') ? '♂️' : (userData?.gender === 'female') ? '♀️' : '👤'}
-                                    {' '}{lang === 'ar' ? 'الجنس' : 'Gender'}
-                                </span>
-                                <div style={{display:'flex', gap:'6px'}}>
-                                    <button
-                                        onClick={async () => {
-                                            if (!user) return;
-                                            await usersCollection.doc(user.uid).update({ gender: 'male' });
-                                            onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
-                                        }}
-                                        style={{
-                                            padding:'3px 10px', borderRadius:'6px', fontSize:'11px', fontWeight:700, cursor:'pointer',
-                                            background: userData?.gender === 'male' ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.05)',
-                                            border: userData?.gender === 'male' ? '1.5px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
-                                            color: userData?.gender === 'male' ? '#93c5fd' : '#9ca3af'
-                                        }}
-                                    >♂️ {lang === 'ar' ? 'ذكر' : 'Male'}</button>
-                                    <button
-                                        onClick={async () => {
-                                            if (!user) return;
-                                            await usersCollection.doc(user.uid).update({ gender: 'female' });
-                                            onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
-                                        }}
-                                        style={{
-                                            padding:'3px 10px', borderRadius:'6px', fontSize:'11px', fontWeight:700, cursor:'pointer',
-                                            background: userData?.gender === 'female' ? 'rgba(236,72,153,0.3)' : 'rgba(255,255,255,0.05)',
-                                            border: userData?.gender === 'female' ? '1.5px solid #ec4899' : '1px solid rgba(255,255,255,0.1)',
-                                            color: userData?.gender === 'female' ? '#f9a8d4' : '#9ca3af'
-                                        }}
-                                    >♀️ {lang === 'ar' ? 'أنثى' : 'Female'}</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {/* Sound Toggle */}
-                    <div className="settings-section">
-                        <div className="settings-row">
-                            <div className="settings-label">
-                                <span className="settings-icon">🔊</span>
-                                <span>{t.sound}</span>
-                            </div>
-                            <button
-                                onClick={toggleSound}
-                                className={`settings-toggle ${soundMutedLocal ? 'off' : 'on'}`}
-                            >
-                                {soundMutedLocal ? t.soundOff : t.soundOn}
-                            </button>
-                        </div>
-                    </div>
-
-                    )} {/* end logged-in account section */}
-                    {/* Moments Section - only for logged-in users */}
-                    {user && !isGuestPropForSettings && (
-                    <div className="settings-section">
-                        <div className="settings-section-title">
-                            <span>📸</span>
-                            <span>{lang === 'ar' ? 'لحظاتي' : 'My Moments'}</span>
-                        </div>
-                        <MomentsSettingsSection currentUser={user} userData={userData} lang={lang} />
-                    </div>
-                    )}
-
-                    {/* Achievements Section */}
-                    <div className="settings-section">
-                        <div className="settings-section-title">
-                            <span>🏆</span>
-                            <span>{t.achievements}</span>
-                        </div>
-                        <AchievementsDisplayV11 userData={userData} lang={lang} showAll={true} />
-                    </div>
-
-                    {/* Block Users Section - only for logged-in users */}
-                    {user && !isGuestPropForSettings && (
-                    <div className="settings-section">
-                        <div className="settings-section-title">
-                            <span>🚫</span>
-                            <span>{t.blockedUsers}</span>
-                        </div>
-                        <div className="block-input-row">
-                            <input
-                                type="text"
-                                className="input-dark"
-                                value={blockInput}
-                                onChange={e => setBlockInput(e.target.value)}
-                                placeholder={t.friendIdPlaceholder}
-                            />
-                            <button
-                                onClick={handleBlockUser}
-                                disabled={loading || !blockInput.trim()}
-                                className="btn-danger px-3 py-2 rounded text-xs"
-                            >
-                                {t.blockUser}
-                            </button>
-                        </div>
-                        <div className="blocked-users-list">
-                            {blockedUsers.length === 0 ? (
-                                <div className="no-blocked-users">{t.noBlockedUsers}</div>
-                            ) : (
-                                blockedUsers.map(uid => (
-                                    <BlockedUserItem
-                                        key={uid}
-                                        uid={uid}
-                                        onUnblock={() => handleUnblockUser(uid)}
-                                        lang={lang}
-                                    />
-                                ))
-                            )}
-                        </div>
-                    </div>
-                    )} {/* end block users section */}
-                </div>
-            </div>
-        </div>
-    );
-};
-
 // Blocked User Item Component
 const BlockedUserItem = ({ uid, onUnblock, lang }) => {
     const [userData, setUserData] = useState(null);
@@ -3468,7 +1648,7 @@ const OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
     };
 
     return (
-        <div className="onboarding-overlay" style={{ zIndex: 9999 }}>
+        <div className="onboarding-overlay" style={{ zIndex:Z.MODAL }}>
             <div className="onboarding-card animate-pop">
                 <div className="onboarding-header">
                     <div className="onboarding-spy-icon">🕵️</div>
@@ -3551,10 +1731,6 @@ const OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
 function App() {
     const [lang, setLang] = useState(() => localStorage.getItem('pro_spy_lang') || 'en');
 
-    // Helper: show login required for guests
-    const requireAuth = useCallback((action) => {
-        setNotification(lang === 'ar' ? '🔒 سجّل دخولك أولاً للقيام بهذا' : '🔒 Please login to do this');
-    }, [lang]);
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
@@ -3738,7 +1914,7 @@ function App() {
             previousCount = newUnread;
             setNotifications(notifs);
             setUnreadNotifications(newUnread);
-        }, error => { console.error('Notifications error:', error); });
+        }, error => { });
         return () => unsub();
     }, [user, isLoggedIn]);
 
@@ -3796,7 +1972,7 @@ function App() {
     useEffect(() => { if (room?.status === 'word_selection' && room?.wordSelEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.wordSelEndTime - Date.now()) / 1000)); setWordSelTimer(remaining); if (remaining <= 0) { clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setWordSelTimer(30); }, [room?.status, room?.wordSelEndTime]);
 
     // Auth Functions
-    const handleGoogleLogin = useCallback(async () => { const provider = new firebase.auth.GoogleAuthProvider(); try { await auth.signInWithPopup(provider); setShowDropdown(false); } catch (e) { console.error('Google login error:', e); } }, []);
+    const handleGoogleLogin = useCallback(async () => { const provider = new firebase.auth.GoogleAuthProvider(); try { await auth.signInWithPopup(provider); setShowDropdown(false); } catch (e) { } }, []);
     const handleLogout = useCallback(async () => { if (user) await auth.signOut(); setShowDropdown(false); setNickname(''); setGuestData(null); localStorage.removeItem('pro_spy_guest_uid'); localStorage.removeItem('pro_spy_nick'); }, [user]);
 
     // Onboarding Complete Handler
@@ -3848,12 +2024,12 @@ function App() {
         const initGuest = async () => {
             if (authLoading) return; if (user && !user.isAnonymous) return;
             const savedGuestUID = localStorage.getItem('pro_spy_guest_uid');
-            if (savedGuestUID) { try { const doc = await guestsCollection.doc(savedGuestUID).get(); if (doc.exists) { setGuestData({ id: doc.id, ...doc.data() }); if (doc.data().displayName) setNickname(doc.data().displayName); return; } } catch (e) { console.error('Error loading guest:', e); } }
+            if (savedGuestUID) { try { const doc = await guestsCollection.doc(savedGuestUID).get(); if (doc.exists) { setGuestData({ id: doc.id, ...doc.data() }); if (doc.data().displayName) setNickname(doc.data().displayName); return; } } catch (e) { } }
             const savedNick = localStorage.getItem('pro_spy_nick');
             const guestNick = savedNick || ('Player_' + Math.random().toString(36).substring(2, 6));
             const guestUID = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
             const newGuestData = { uid: guestUID, displayName: guestNick, photoURL: null, customId: Math.floor(100000 + Math.random() * 900000).toString(), stats: { wins: 0, losses: 0, xp: 0 }, currency: 0, charisma: 0, equipped: { badges: [] }, inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] }, isAnonymous: true, isGuest: true, createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastActive: firebase.firestore.FieldValue.serverTimestamp() };
-            try { await guestsCollection.doc(guestUID).set(newGuestData); setGuestData(newGuestData); setNickname(guestNick); localStorage.setItem('pro_spy_guest_uid', guestUID); localStorage.setItem('pro_spy_nick', guestNick); } catch (e) { console.error('Auto guest creation error:', e); }
+            try { await guestsCollection.doc(guestUID).set(newGuestData); setGuestData(newGuestData); setNickname(guestNick); localStorage.setItem('pro_spy_guest_uid', guestUID); localStorage.setItem('pro_spy_nick', guestNick); } catch (e) { }
         };
         initGuest();
     }, [authLoading, user]);
@@ -3863,9 +2039,9 @@ function App() {
     const getDefaultPhoto = useCallback((uData, name) => uData?.photoURL || `https://ui-avatars.com/api/?name=${name || 'Guest'}&background=random`, []);
 
     // Notification Functions
-    const createNotification = useCallback(async (toUserId, type, message, fromUserId, fromName, giftData = null) => { try { await notificationsCollection.add({ toUserId, fromUserId, fromName, type, message, giftData, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false }); } catch (e) { console.error('Notification error:', e); } }, []);
-    const markNotificationRead = useCallback(async (notifId) => { try { await notificationsCollection.doc(notifId).update({ read: true }); } catch (e) { console.error('Mark read error:', e); } }, []);
-    const clearAllNotifications = useCallback(async () => { try { const batch = db.batch(); notifications.forEach(n => { batch.delete(notificationsCollection.doc(n.id)); }); await batch.commit(); setNotifications([]); setUnreadNotifications(0); } catch (e) { console.error('Clear notifications error:', e); } }, [notifications]);
+    const createNotification = useCallback(async (toUserId, type, message, fromUserId, fromName, giftData = null) => { try { await notificationsCollection.add({ toUserId, fromUserId, fromName, type, message, giftData, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false }); } catch (e) { } }, []);
+    const markNotificationRead = useCallback(async (notifId) => { try { await notificationsCollection.doc(notifId).update({ read: true }); } catch (e) { } }, []);
+    const clearAllNotifications = useCallback(async () => { try { const batch = db.batch(); notifications.forEach(n => { batch.delete(notificationsCollection.doc(n.id)); }); await batch.commit(); setNotifications([]); setUnreadNotifications(0); } catch (e) { } }, [notifications]);
     const handleNotificationClick = useCallback((notif) => { if (notif.type === 'friend_request') { setActiveView('friends'); } else if (notif.type === 'gift') { setNotification(notif.message); } else if (notif.type === 'message') { if (notif.fromUserId && notif.fromName) { const friend = { uid: notif.fromUserId, displayName: notif.fromName, photoURL: notif.fromPhoto }; setChatFriend(friend); setShowPrivateChat(true); } } }, []);
 
     // Claim Login Reward
@@ -3879,7 +2055,6 @@ function App() {
         // The next day to claim must match what we expect
         const expectedNextDay = freshDay + 1;
         if (day !== expectedNextDay) {
-            console.warn('Day mismatch, using fresh day:', freshDay, '-> claiming day:', expectedNextDay);
             day = expectedNextDay; // Fix stale day
         }
         const reward = LOGIN_REWARDS[day - 1];
@@ -3918,7 +2093,7 @@ function App() {
             playRewardSound();
             setShowLoginRewards(false);
             setSessionClaimedToday(true); // Mark as claimed for this session
-        } catch (error) { console.error('Claim reward error:', error); setNotification(lang === 'ar' ? 'حدث خطأ!' : 'An error occurred!'); }
+        } catch (error) { setNotification(lang === 'ar' ? 'حدث خطأ!' : 'An error occurred!'); }
     }, [user, isLoggedIn, lang]);
 
     // Room Functions
@@ -4065,7 +2240,7 @@ function App() {
                         senderId: user.uid,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                } catch(e) { console.warn('SelfChat gift log:', e); }
+                } catch(e) { }
             } else {
                 // Sending to another person - add charisma AND bonus
                 await usersCollection.doc(targetUser.uid).update({ 
@@ -4133,8 +2308,7 @@ function App() {
             playGiftSound();
             setNotification(`${t.giftSent}!`);
         } catch (error) { 
-            console.error("Gift error:", error); 
-        }
+            }
     }, [userData, user, t, createNotification, lang]);
 
     // Shop Functions
@@ -4155,7 +2329,7 @@ function App() {
             await usersCollection.doc(user.uid).update({ currency: currency - item.cost, inventory: newInventory }); 
             playSound('success'); 
             setNotification(t.purchaseSuccess); 
-        } catch (error) { console.error('Purchase error:', error); }
+        } catch (error) { }
     }, [user, userData, isLoggedIn, t, handleSendGiftToUser]);
     
     const handleEquip = useCallback(async (item) => {
@@ -4169,7 +2343,7 @@ function App() {
                 await usersCollection.doc(user.uid).update({ equipped: { ...equipped, badges: currentBadges } });
             } else { await usersCollection.doc(user.uid).update({ equipped: { ...equipped, [item.type]: item.id } }); }
             playSound('click'); setNotification(lang === 'ar' ? 'تم التزيين!' : 'Equipped!');
-        } catch (error) { console.error('Equip error:', error); }
+        } catch (error) { }
     }, [user, userData, isLoggedIn, lang]);
     
     const handleUnequip = useCallback(async (type, itemId) => {
@@ -4185,7 +2359,7 @@ function App() {
                 await usersCollection.doc(user.uid).update({ equipped: newEquipped });
             }
             playSound('click'); setNotification(lang === 'ar' ? 'تمت الإزالة!' : 'Unequipped!');
-        } catch (error) { console.error('Unequip error:', error); }
+        } catch (error) { }
     }, [user, userData, isLoggedIn, lang]);
 
     // Computed Values
@@ -4202,17 +2376,6 @@ function App() {
     const handleCopy = useCallback(() => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 2000); }, [roomId]);
     const requireLogin = useCallback(() => { setShowLoginAlert(true); }, []);
 
-    // Scenarios for game
-    const SCENARIOS = [
-        { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] }, 
-        { loc_ar: "غواصة نووية", words_ar: ["عمق", "ماء", "ضغط", "سونار"], loc_en: "Nuclear Submarine", words_en: ["Depth", "Water", "Pressure", "Sonar"] }, 
-        { loc_ar: "قصر ملكي", words_ar: ["تاج", "حراس", "عروش", "خدم"], loc_en: "Royal Palace", words_en: ["Crown", "Guards", "Throne", "Servants"] }, 
-        { loc_ar: "بنك مركزي", words_ar: ["خزنة", "مال", "رصاص", "مفتاح"], loc_en: "Central Bank", words_en: ["Vault", "Money", "Lead", "Key"] }, 
-        { loc_ar: "مستشفى مهجور", words_ar: ["أشباح", "أطباء", "ظلام", "حقن"], loc_en: "Abandoned Hospital", words_en: ["Ghosts", "Doctors", "Dark", "Syringe"] }, 
-        { loc_ar: "قطار ليلي", words_ar: ["درجات", "تذاكر", "نوم", "ممر"], loc_en: "Night Train", words_en: ["Bunks", "Tickets", "Sleep", "Aisle"] }, 
-        { loc_ar: "جزيرة كنز", words_ar: ["خريطة", "حفر", "ذهب", "قراصنة"], loc_en: "Treasure Island", words_en: ["Map", "Dig", "Gold", "Pirates"] }, 
-        { loc_ar: "مصنع روبوتات", words_ar: ["أسلاك", "صيانة", "برمجة", "معادن"], loc_en: "Robot Factory", words_en: ["Wires", "Maintenance", "Coding", "Metal"] }
-    ];
 
     // RENDER
     if (authLoading) { return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl animate-bounce mb-4">🕵️</div><div className="text-lg font-bold">{t.loading}</div></div></div>; }
@@ -4231,7 +2394,7 @@ function App() {
             )}
             
             {forcedLogoutMsg && (
-                <div className="modal-overlay" style={{zIndex:25000}}>
+                <div className="modal-overlay" style={{zIndex:Z.FORCED}}>
                     <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
                         background:'linear-gradient(180deg,#1a0a0a,#0f0f1a)',
                         border:'1px solid rgba(239,68,68,0.4)',
@@ -4249,7 +2412,7 @@ function App() {
                                 : 'Your account was opened on another device. You cannot be logged in on two devices simultaneously.'}
                         </div>
                         <button onClick={() => setForcedLogoutMsg(false)} style={{
-                            background:'linear-gradient(135deg,#7000ff,#00f2ff)',
+                            background:GR.NEON,
                             border:'none', borderRadius:'10px', color:'white',
                             fontWeight:700, fontSize:'13px', padding:'10px 24px', cursor:'pointer', width:'100%'
                         }}>
@@ -4410,7 +2573,7 @@ function App() {
                     </div>
                 </div>
                 <div className="header-actions">
-                    <button onClick={() => { if(isLoggedIn) setShowFunPass(true); else requireLogin(); }} title="Fun Pass" style={{background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,136,0,0.15))',border:'1px solid rgba(255,215,0,0.35)',color:'#ffd700',fontWeight:900,borderRadius:'6px',padding:'4px 8px',fontSize:'12px',cursor:'pointer'}}>🎫</button>
+                    <button onClick={() => { if(isLoggedIn) setShowFunPass(true); else requireLogin(); }} title="Fun Pass" style={{background:GR.GOLD,border:'1px solid rgba(255,215,0,0.35)',color:'#ffd700',fontWeight:900,borderRadius:'6px',padding:'4px 8px',fontSize:'12px',cursor:'pointer'}}>🎫</button>
                     <button onClick={() => { const nl = lang==='en'?'ar':'en'; setLang(nl); localStorage.setItem('pro_spy_lang', nl); }} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
                     {isLoggedIn && (
                         <div className="notification-center">
@@ -4652,6 +2815,1370 @@ function App() {
         </div>
     );
 }
+
+const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency }) => {
+    const [messages, setMessages] = useState([]);
+    const [inputText, setInputText] = useState('');
+    const [sending, setSending] = useState(false);
+
+    const uid = currentUser?.uid || null;
+    const selfChatId = uid ? `${uid}_self` : null;
+    const displayName = currentUser?.displayName || userData?.displayName || (lang==='ar'?'أنا':'Me');
+    const photoURL = currentUser?.photoURL || userData?.photoURL || null;
+
+    useEffect(() => {
+        if (!show || !selfChatId) return;
+        const unsub = chatsCollection
+            .doc(selfChatId)
+            .collection('messages')
+            .orderBy('timestamp', 'asc')
+            .limit(100)
+            .onSnapshot(snap => {
+                setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            });
+        return () => unsub();
+    }, [show, selfChatId]);
+
+    const sendNote = async () => {
+        if (!inputText.trim() || !selfChatId || sending || !uid) return;
+        setSending(true);
+        try {
+            const chatRef = chatsCollection.doc(selfChatId);
+            // Fix: never pass undefined - use explicit null for missing fields
+            await chatRef.set({
+                participants: [uid, uid],
+                type: 'self',
+                lastMessage: inputText.trim(),
+                lastAt: firebase.firestore.FieldValue.serverTimestamp(),
+                ownerUID: uid,
+                ownerName: displayName,
+                ownerPhoto: photoURL || null
+            }, { merge: true });
+            await chatRef.collection('messages').add({
+                text: inputText.trim(),
+                senderId: uid,
+                senderName: displayName,
+                senderPhoto: photoURL || null,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                type: 'note'
+            });
+            setInputText('');
+        } catch(e) { }
+        setSending(false);
+    };
+
+    const formatMsgTime = (ts) => {
+        if (!ts?.toDate) return '';
+        const d = ts.toDate();
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    if (!show) return null;
+
+    return (
+        <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL_TOP}}>
+            <div
+                className="animate-pop"
+                onClick={e => e.stopPropagation()}
+                style={{
+                    background:'linear-gradient(180deg,#1a1a2e,#0f0f1a)',
+                    border:'1px solid rgba(0,242,255,0.2)',
+                    borderRadius:'18px',
+                    width:'100%',
+                    maxWidth:'400px',
+                    maxHeight:'88vh',
+                    display:'flex',
+                    flexDirection:'column',
+                    overflow:'hidden',
+                    boxShadow:'0 20px 60px rgba(0,0,0,0.9)'
+                }}
+            >
+                {/* Header - like a real chat with profile photo */}
+                <div style={{
+                    display:'flex', alignItems:'center', justifyContent:'space-between',
+                    padding:'12px 14px',
+                    background:'linear-gradient(135deg,rgba(0,10,30,0.9),rgba(20,0,40,0.9))',
+                    borderBottom:'1px solid rgba(255,255,255,0.06)'
+                }}>
+                    <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                        <div style={{position:'relative'}}>
+                            <img
+                                src={photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=7000ff&color=fff&size=80`}
+                                alt=""
+                                style={{width:'42px',height:'42px',borderRadius:'50%',objectFit:'cover',border:'2px solid rgba(0,242,255,0.4)'}}
+                            />
+                            <div style={{position:'absolute',bottom:'1px',right:'1px',width:'10px',height:'10px',borderRadius:'50%',background:'#4ade80',border:'2px solid #0f0f1a'}}/>
+                        </div>
+                        <div>
+                            <div style={{fontSize:'14px', fontWeight:800, color:'white'}}>
+                                {displayName}
+                            </div>
+                            <div style={{fontSize:'10px', color:'#4ade80', fontWeight:600}}>
+                                {lang==='ar' ? '● شاتي الشخصي' : '● My Personal Chat'}
+                            </div>
+                        </div>
+                    </div>
+                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+                </div>
+
+                {/* Messages */}
+                <div style={{flex:1, overflowY:'auto', padding:'12px 14px', display:'flex', flexDirection:'column', gap:'10px', background:'rgba(0,0,0,0.2)'}}>
+                    {messages.length === 0 && (
+                        <div style={{textAlign:'center', marginTop:'50px', color:'#4b5563'}}>
+                            <div style={{fontSize:'40px', marginBottom:'8px'}}>💬</div>
+                            <div style={{fontSize:'12px', color:'#6b7280'}}>{lang==='ar' ? 'ابدأ محادثتك...' : 'Start chatting...'}</div>
+                        </div>
+                    )}
+                    {messages.map(msg => (
+                        <div key={msg.id} style={{display:'flex', justifyContent:'flex-end'}}>
+                            {msg.type === 'gift' ? (
+                                /* Gift notification bubble */
+                                <div style={{
+                                    background:GR.GOLD_SOFT,
+                                    border:'1px solid rgba(255,215,0,0.3)',
+                                    borderRadius:'14px 14px 4px 14px',
+                                    padding:'10px 14px',
+                                    maxWidth:'85%'
+                                }}>
+                                    <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700, marginBottom:'4px', textTransform:'uppercase', letterSpacing:'0.5px'}}>
+                                        🎁 {lang==='ar' ? 'هدية لنفسك' : 'Self Gift'}
+                                    </div>
+                                    <div style={{fontSize:'20px', marginBottom:'4px'}}>{msg.giftEmoji || '🎁'}</div>
+                                    <div style={{fontSize:'12px', color:'#f3f4f6', fontWeight:700}}>{msg.giftName}</div>
+                                    <div style={{fontSize:'10px', color:'#9ca3af', marginTop:'2px'}}>{lang==='ar'?'تكلفة:':'Cost:'} {msg.giftCost} 🧠</div>
+                                    <div style={{fontSize:'10px', color:'#9ca3af'}}>{lang==='ar'?'كاريزما:':'Charisma:'} +{msg.charismaGain}</div>
+                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{formatMsgTime(msg.timestamp)}</div>
+                                </div>
+                            ) : (
+                                /* Regular note bubble */
+                                <div style={{
+                                    background:'linear-gradient(135deg,rgba(0,242,255,0.1),rgba(112,0,255,0.1))',
+                                    border:'1px solid rgba(0,242,255,0.2)',
+                                    borderRadius:'14px 14px 4px 14px',
+                                    padding:'10px 14px',
+                                    maxWidth:'85%'
+                                }}>
+                                    <div style={{fontSize:'13px', color:'#e2e8f0', lineHeight:1.5}}>{msg.text}</div>
+                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{formatMsgTime(msg.timestamp)}</div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Input */}
+                <div style={{
+                    display:'flex', gap:'8px', padding:'12px 14px',
+                    borderTop:'1px solid rgba(255,255,255,0.07)',
+                    background:'rgba(0,0,0,0.2)'
+                }}>
+                    <input
+                        value={inputText}
+                        onChange={e => setInputText(e.target.value)}
+                        onKeyDown={e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendNote(); } }}
+                        placeholder={lang==='ar' ? 'اكتب ملاحظة...' : 'Write a note...'}
+                        style={{
+                            flex:1, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)',
+                            borderRadius:'10px', padding:'10px 12px', color:'white', fontSize:'13px', outline:'none'
+                        }}
+                    />
+                    <button
+                        onClick={sendNote}
+                        disabled={!inputText.trim() || sending}
+                        style={{
+                            padding:'10px 14px', borderRadius:'10px', fontSize:'14px', cursor:'pointer', border:'none',
+                            background: inputText.trim() ? 'linear-gradient(135deg,#00f2ff,#7000ff)' : 'rgba(255,255,255,0.06)',
+                            color: inputText.trim() ? '#000' : '#4b5563',
+                            fontWeight:800, transition:'all 0.2s',
+                            opacity: sending ? 0.6 : 1
+                        }}
+                    >
+                        {sending ? '...' : '➤'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// ============================================================
+// 🎫 FUN PASS MODAL COMPONENT
+// ============================================================
+
+const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) => {
+    const [activeTab, setActiveTab] = useState('pass'); // 'pass' | 'missions'
+    const [buying, setBuying] = useState(false);
+    const [claiming, setClaiming] = useState(null);
+
+    // All hooks before early return
+    // Season-aware: data is stored under funPass.seasons[SEASON_ID]
+    const fpAll = userData?.funPass || {};
+    const fp = fpAll.seasons?.[FUN_PASS_SEASON_ID] || {};
+    const hasPremium = fp.premium === true;
+    const currentXP = fp.xp || 0;
+    const claimedFree = fp.claimedFree || [];
+    const claimedPremium = fp.claimedPremium || [];
+    const currency = userData?.currency || 0;
+
+    // Find current level (last level where xp >= xpRequired)
+    const currentLevel = FUN_PASS_LEVELS.reduce((acc, lv) => (currentXP >= lv.xp ? lv.level : acc), 0);
+    const nextLevel = FUN_PASS_LEVELS.find(lv => lv.level === currentLevel + 1);
+    const xpForNext = nextLevel ? nextLevel.xp : null;
+    const progressPct = xpForNext ? Math.min(100, Math.round(((currentXP - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0)) / (xpForNext - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0))) * 100)) : 100;
+
+    if (!show) return null;
+
+    const handleBuyPremium = async () => {
+        if (!user || hasPremium || buying) return;
+        if (currency < FUN_PASS_PRICE) { onNotification(lang==='ar'?'إنتل غير كافٍ!':'Not enough Intel!'); return; }
+        setBuying(true);
+        try {
+            await usersCollection.doc(user.uid).update({
+                currency: firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE),
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true
+            });
+            onNotification(lang==='ar'?'🎫 تم شراء Fun Pass!':'🎫 Fun Pass purchased!');
+        } catch(e) { onNotification(lang==='ar'?'خطأ':'Error'); }
+        setBuying(false);
+    };
+
+    const handleClaim = async (level, type) => {
+        if (!user || claiming) return;
+        const key = `${type}_${level}`;
+        const alreadyClaimed = type === 'free' ? claimedFree.includes(level) : claimedPremium.includes(level);
+        if (alreadyClaimed) return;
+        if (type === 'premium' && !hasPremium) { onNotification(lang==='ar'?'اشترِ Fun Pass أولاً':'Buy Fun Pass first'); return; }
+        if (currentLevel < level) { onNotification(lang==='ar'?'لم تصل لهذا المستوى بعد':'Level not reached yet'); return; }
+        const lvData = FUN_PASS_LEVELS.find(l => l.level === level);
+        const reward = type === 'free' ? lvData.free : lvData.premium;
+        setClaiming(key);
+        try {
+            const updates = {};
+            if (reward.type === 'currency') {
+                updates.currency = firebase.firestore.FieldValue.increment(reward.amount);
+            } else if (reward.type === 'frame') {
+                updates['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+            } else if (reward.type === 'badge') {
+                updates['inventory.badges'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+            } else if (reward.type === 'title') {
+                updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+            }
+            if (type === 'free') {
+                updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.claimedFree`] = firebase.firestore.FieldValue.arrayUnion(level);
+            } else {
+                updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.claimedPremium`] = firebase.firestore.FieldValue.arrayUnion(level);
+            }
+            await usersCollection.doc(user.uid).update(updates);
+            onNotification(`${lang==='ar'?'تم استلام':'Claimed'} ${lang==='ar'?reward.name_ar:reward.name_en}! 🎉`);
+        } catch(e) { }
+        setClaiming(null);
+    };
+
+    const getRarityStyle = (rarity) => {
+        const r = RARITY_CONFIG[rarity] || RARITY_CONFIG['Common'];
+        return { border: `1px solid ${r.border}`, background: r.bg, color: r.color };
+    };
+    const isMythic = (rarity) => rarity === 'Mythic';
+
+    return (
+        <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL_HIGH}}>
+            <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
+                background:'linear-gradient(180deg,#0a0a1a,#0f0f1e)',
+                border:'1px solid rgba(255,215,0,0.25)',
+                borderRadius:'18px', width:'100%', maxWidth:'420px',
+                maxHeight:'90vh', display:'flex', flexDirection:'column', overflow:'hidden',
+                boxShadow:'0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(255,215,0,0.05)'
+            }}>
+                {/* Header */}
+                <div style={{
+                    padding:'14px 16px',
+                    background:GR.GOLD_SOFT,
+                    borderBottom:'1px solid rgba(255,215,0,0.15)',
+                    display:'flex', alignItems:'center', justifyContent:'space-between'
+                }}>
+                    <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                        <div style={{fontSize:'28px'}}>🎫</div>
+                        <div>
+                            <div style={{fontSize:'16px', fontWeight:900, background:'linear-gradient(135deg,#ffd700,#ff8800)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>
+                                FUN PASS
+                            </div>
+                            <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700}}>
+                                {lang==='ar' ? FUN_PASS_SEASON_NAME_AR : FUN_PASS_SEASON_NAME_EN}
+                            </div>
+                            <div style={{fontSize:'8px', color:'#6b7280'}}>
+                                {lang==='ar'?'مستوى':'Lv'} {currentLevel}/50 · {currentXP} XP · {lang==='ar'?'ينتهي':'Ends'} {FUN_PASS_SEASON_END}
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                        {!hasPremium && (
+                            <button onClick={handleBuyPremium} disabled={buying || currency < FUN_PASS_PRICE} style={{
+                                padding:'6px 12px', borderRadius:'8px', fontSize:'11px', fontWeight:800, cursor:'pointer', border:'none',
+                                background: currency >= FUN_PASS_PRICE ? 'linear-gradient(135deg,#ffd700,#ff8800)' : 'rgba(100,100,100,0.2)',
+                                color: currency >= FUN_PASS_PRICE ? '#000' : '#6b7280',
+                                opacity: buying ? 0.6 : 1
+                            }}>
+                                {buying ? '...' : `🎫 ${FUN_PASS_PRICE}🧠`}
+                            </button>
+                        )}
+                        {hasPremium && (
+                            <div style={{background:GR.GOLD, border:'1px solid rgba(255,215,0,0.4)', borderRadius:'8px', padding:'4px 10px', fontSize:'11px', color:'#ffd700', fontWeight:800}}>
+                                ✓ PREMIUM
+                            </div>
+                        )}
+                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'28px',height:'28px',cursor:'pointer'}}>✕</button>
+                    </div>
+                </div>
+
+                {/* XP Progress Bar */}
+                <div style={{padding:'8px 16px', background:'rgba(0,0,0,0.3)', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#6b7280', marginBottom:'4px'}}>
+                        <span>XP: {currentXP}</span>
+                        <span>{xpForNext ? `${lang==='ar'?'التالي:':'Next:'} ${xpForNext} XP` : (lang==='ar'?'المستوى الأقصى!':'Max Level!')}</span>
+                    </div>
+                    <div style={{height:'6px', background:'rgba(255,255,255,0.08)', borderRadius:'3px', overflow:'hidden'}}>
+                        <div style={{
+                            height:'100%', borderRadius:'3px', transition:'width 0.5s ease',
+                            width:`${xpForNext ? progressPct : 100}%`,
+                            background:'linear-gradient(90deg,#ffd700,#ff8800)'
+                        }}/>
+                    </div>
+                </div>
+
+                {/* Tabs */}
+                <div style={{display:'flex', borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+                    {[
+                        {id:'pass',     icon:'🎫', ar:'التمرير',  en:'Pass'},
+                        {id:'missions', icon:'📋', ar:'المهمات',  en:'Missions'},
+                    ].map(tab => (
+                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+                            flex:1, padding:'10px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none',
+                            background: activeTab===tab.id ? 'rgba(255,215,0,0.1)' : 'transparent',
+                            color: activeTab===tab.id ? '#ffd700' : '#6b7280',
+                            borderBottom: activeTab===tab.id ? '2px solid #ffd700' : '2px solid transparent'
+                        }}>
+                            {tab.icon} {lang==='ar'?tab.ar:tab.en}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Content */}
+                <div style={{flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px'}}>
+                    {activeTab === 'pass' && (
+                        <>
+                            {/* Legend */}
+                            <div style={{display:'flex', gap:'10px', padding:'6px 0', fontSize:'9px', color:'#6b7280'}}>
+                                <span>⬆️ {lang==='ar'?'مجاني':'Free'}</span>
+                                <span style={{color:'#ffd700'}}>🎫 {lang==='ar'?'بريميوم':'Premium'}</span>
+                                <span style={{color:'#4ade80'}}>✓ {lang==='ar'?'مستلم':'Claimed'}</span>
+                                <span style={{color:'#3b82f6'}}>🔵 {lang==='ar'?'حالي':'Current'}</span>
+                            </div>
+                            {FUN_PASS_LEVELS.map(lv => {
+                                const isReached = currentLevel >= lv.level;
+                                const isCurrent = currentLevel === lv.level - 1 && lv.level <= 50;
+                                const freeClaimable = isReached && !claimedFree.includes(lv.level);
+                                const premClaimable = isReached && hasPremium && !claimedPremium.includes(lv.level);
+                                const freeKey = `free_${lv.level}`;
+                                const premKey = `premium_${lv.level}`;
+                                const freeRarity = lv.free.rarity || 'Common';
+                                const premRarity = lv.premium.rarity || 'Common';
+
+                                return (
+                                    <div key={lv.level} style={{
+                                        display:'flex', gap:'6px', alignItems:'stretch',
+                                        opacity: (!isReached && !isCurrent) ? 0.55 : 1
+                                    }}>
+                                        {/* Level badge */}
+                                        <div style={{
+                                            width:'32px', minWidth:'32px', display:'flex', flexDirection:'column',
+                                            alignItems:'center', justifyContent:'center', gap:'2px'
+                                        }}>
+                                            <div style={{
+                                                width:'28px', height:'28px', borderRadius:'50%',
+                                                background: isCurrent ? 'rgba(59,130,246,0.3)' : isReached ? 'rgba(255,215,0,0.2)' : 'rgba(255,255,255,0.05)',
+                                                border: isCurrent ? '2px solid #3b82f6' : isReached ? '2px solid rgba(255,215,0,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                                                display:'flex', alignItems:'center', justifyContent:'center',
+                                                fontSize:'9px', fontWeight:900,
+                                                color: isCurrent ? '#60a5fa' : isReached ? '#ffd700' : '#6b7280',
+                                                boxShadow: isCurrent ? '0 0 8px rgba(59,130,246,0.5)' : isReached ? '0 0 6px rgba(255,215,0,0.2)' : 'none'
+                                            }}>{lv.level}</div>
+                                            {lv.level < 50 && (
+                                                <div style={{width:'1px', height:'8px', background:'rgba(255,255,255,0.08)'}}/>
+                                            )}
+                                        </div>
+
+                                        {/* Free reward box */}
+                                        <div style={{
+                                            flex:1, padding:'7px 10px', borderRadius:'10px', display:'flex',
+                                            alignItems:'center', justifyContent:'space-between', gap:'6px',
+                                            ...(freeRarity === 'Mythic' ? {
+                                                background:'rgba(255,0,85,0.1)', border:'1px solid rgba(255,0,85,0.4)',
+                                                animation:'mythic-pulse 2s ease-in-out infinite'
+                                            } : freeRarity === 'Legendary' ? {
+                                                background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.35)'
+                                            } : freeRarity === 'Epic' ? {
+                                                background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)'
+                                            } : {
+                                                background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)'
+                                            })
+                                        }}>
+                                            <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0}}>
+                                                {lv.free.imageUrl 
+                                    ? <img src={lv.free.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
+                                    : <span style={{fontSize:'16px', flexShrink:0}}>{lv.free.icon}</span>}
+                                                <div style={{minWidth:0}}>
+                                                    <div style={{fontSize:'10px', fontWeight:700, color: freeRarity==='Mythic'?'#ff4488':freeRarity==='Legendary'?'#fbbf24':freeRarity==='Epic'?'#c084fc':'#e2e8f0', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
+                                                        {lang==='ar'?lv.free.name_ar:lv.free.name_en}
+                                                    </div>
+                                                    <div style={{fontSize:'8px', color:'#4ade80', fontWeight:600}}>FREE</div>
+                                                </div>
+                                            </div>
+                                            {claimedFree.includes(lv.level) ? (
+                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>✓</div>
+                                            ) : (
+                                                <button onClick={() => handleClaim(lv.level,'free')} disabled={!freeClaimable || claiming===freeKey} style={{
+                                                    padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: freeClaimable?'pointer':'default', border:'none', flexShrink:0,
+                                                    background: freeClaimable ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.04)',
+                                                    color: freeClaimable ? '#4ade80' : '#374151',
+                                                    opacity: claiming===freeKey ? 0.6 : 1
+                                                }}>
+                                                    {claiming===freeKey ? '...' : freeClaimable ? (lang==='ar'?'استلم':'Claim') : '🔒'}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Premium reward box */}
+                                        <div style={{
+                                            flex:1, padding:'7px 10px', borderRadius:'10px', display:'flex',
+                                            alignItems:'center', justifyContent:'space-between', gap:'6px',
+                                            ...(premRarity === 'Mythic' ? {
+                                                background:'rgba(255,0,85,0.12)', border:'1px solid rgba(255,0,85,0.5)',
+                                                animation:'mythic-pulse 2s ease-in-out infinite'
+                                            } : premRarity === 'Legendary' ? {
+                                                background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.4)'
+                                            } : premRarity === 'Epic' ? {
+                                                background:'rgba(168,85,247,0.1)', border:'1px solid rgba(168,85,247,0.3)'
+                                            } : {
+                                                background: hasPremium ? 'rgba(255,215,0,0.05)' : 'rgba(255,255,255,0.02)',
+                                                border: hasPremium ? '1px solid rgba(255,215,0,0.2)' : '1px dashed rgba(255,255,255,0.08)'
+                                            })
+                                        }}>
+                                            <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0, opacity: hasPremium ? 1 : 0.4}}>
+                                                {hasPremium && lv.premium.imageUrl
+                                    ? <img src={lv.premium.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
+                                    : <span style={{fontSize:'16px', flexShrink:0}}>{hasPremium ? lv.premium.icon : '🔒'}</span>}
+                                                <div style={{minWidth:0}}>
+                                                    <div style={{fontSize:'10px', fontWeight:700, color: premRarity==='Mythic'?'#ff4488':premRarity==='Legendary'?'#fbbf24':premRarity==='Epic'?'#c084fc':'#9ca3af', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
+                                                        {hasPremium ? (lang==='ar'?lv.premium.name_ar:lv.premium.name_en) : '???'}
+                                                    </div>
+                                                    <div style={{fontSize:'8px', color:'#ffd700', fontWeight:600}}>🎫 PASS</div>
+                                                </div>
+                                            </div>
+                                            {claimedPremium.includes(lv.level) ? (
+                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>✓</div>
+                                            ) : (
+                                                <button onClick={() => handleClaim(lv.level,'premium')} disabled={!premClaimable || claiming===premKey} style={{
+                                                    padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: premClaimable?'pointer':'default', border:'none', flexShrink:0,
+                                                    background: premClaimable ? 'linear-gradient(135deg,rgba(255,215,0,0.3),rgba(255,136,0,0.2))' : 'rgba(255,255,255,0.03)',
+                                                    color: premClaimable ? '#ffd700' : '#374151',
+                                                    opacity: claiming===premKey ? 0.6 : 1
+                                                }}>
+                                                    {claiming===premKey ? '...' : premClaimable ? (lang==='ar'?'استلم':'Claim') : (hasPremium?'🔒':'🎫')}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </>
+                    )}
+
+                    {activeTab === 'missions' && (
+                        <>
+                            {/* Daily Missions */}
+                            <div style={{fontSize:'11px', fontWeight:800, color:'#fbbf24', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px'}}>
+                                <span>☀️</span> {lang==='ar'?'المهمات اليومية':'Daily Missions'}
+                            </div>
+                            {FUN_PASS_DAILY_MISSIONS.map(m => (
+                                <div key={m.id} style={{
+                                    display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
+                                    padding:'9px 12px', borderRadius:'10px',
+                                    background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)'
+                                }}>
+                                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                                        <span style={{fontSize:'18px'}}>{m.icon}</span>
+                                        <div>
+                                            <div style={{fontSize:'11px', fontWeight:700, color:'#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
+                                            <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700}}>+{m.xp} XP</div>
+                                        </div>
+                                    </div>
+                                    <div style={{fontSize:'9px', color:'#4b5563', fontWeight:600, background:'rgba(255,255,255,0.05)', padding:'3px 8px', borderRadius:'5px'}}>
+                                        {lang==='ar'?'قريباً':'Soon'}
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Weekly Missions */}
+                            <div style={{fontSize:'11px', fontWeight:800, color:'#c084fc', marginTop:'8px', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px'}}>
+                                <span>📅</span> {lang==='ar'?'المهمات الأسبوعية':'Weekly Missions'}
+                            </div>
+                            {FUN_PASS_WEEKLY_MISSIONS.map(m => (
+                                <div key={m.id} style={{
+                                    display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
+                                    padding:'9px 12px', borderRadius:'10px',
+                                    background:'rgba(168,85,247,0.05)', border:'1px solid rgba(168,85,247,0.15)'
+                                }}>
+                                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                                        <span style={{fontSize:'18px'}}>{m.icon}</span>
+                                        <div>
+                                            <div style={{fontSize:'11px', fontWeight:700, color:'#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
+                                            <div style={{fontSize:'9px', color:'#c084fc', fontWeight:700}}>+{m.xp} XP</div>
+                                        </div>
+                                    </div>
+                                    <div style={{fontSize:'9px', color:'#4b5563', fontWeight:600, background:'rgba(255,255,255,0.05)', padding:'3px 8px', borderRadius:'5px'}}>
+                                        {lang==='ar'?'قريباً':'Soon'}
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSendNotification, onSendGift, currency, friendsData, onOpenProfile }) => {
+    const t = TRANSLATIONS[lang];
+    const [messages, setMessages] = useState([]);
+    const [newMsg, setNewMsg] = useState('');
+    const [sending, setSending] = useState(false);
+    const [showGiftModal, setShowGiftModal] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [blockedByTarget, setBlockedByTarget] = useState(false);
+    const messagesEndRef = useRef(null);
+    const inputRef = useRef(null);
+    const chatId = friend && user ? [user.uid, friend.uid].sort().join('_') : null;
+    
+    // Check if blocked
+    useEffect(() => {
+        if (!show || !friend || !currentUser) return;
+        // Check if current user blocked this friend
+        const myBlocked = currentUser.blockedUsers || [];
+        setIsBlocked(myBlocked.includes(friend.uid));
+        
+        // Check if friend blocked current user
+        usersCollection.doc(friend.uid).get().then(doc => {
+            if (doc.exists) {
+                const theirBlocked = doc.data().blockedUsers || [];
+                setBlockedByTarget(theirBlocked.includes(user.uid));
+            }
+        });
+    }, [show, friend, currentUser, user?.uid]);
+    
+    useEffect(() => {
+        if (!show || !chatId) return;
+        const unsub = chatsCollection.doc(chatId).collection('messages').onSnapshot(snap => {
+            let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            msgs.sort((a, b) => { const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0; const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0; return timeA - timeB; });
+            setMessages(msgs);
+            chatsCollection.doc(chatId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {});
+        });
+        return unsub;
+    }, [show, chatId, user?.uid]);
+    
+    useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+    
+    const handleSend = async () => {
+        if (!newMsg.trim() || sending || isBlocked || blockedByTarget) return;
+        setSending(true);
+        try {
+            await chatsCollection.doc(chatId).collection('messages').add({ 
+                senderId: user.uid, 
+                senderName: currentUser?.displayName || 'User', 
+                senderPhoto: currentUser?.photoURL || null, 
+                text: newMsg.trim(), 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+            await chatsCollection.doc(chatId).set({ 
+                members: [user.uid, friend.uid], 
+                lastMessage: newMsg.trim(), 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
+                [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1) 
+            }, { merge: true });
+            if (onSendNotification) await onSendNotification(friend.uid, 'message', `${currentUser?.displayName || 'User'}: ${newMsg.trim().substring(0, 50)}`, user.uid, currentUser?.displayName || 'User');
+            setNewMsg('');
+            playSound('click');
+        } catch (e) { }
+        setSending(false);
+    };
+    
+    const handleEmojiSelect = (emoji) => {
+        setNewMsg(prev => prev + emoji);
+        setShowEmojiPicker(false);
+        inputRef.current?.focus();
+    };
+    
+    const handleSendGiftToChat = async (gift, targetUser) => {
+        if (!onSendGift || isBlocked || blockedByTarget) return;
+        await onSendGift(gift, targetUser);
+        setShowGiftModal(false);
+    };
+    
+    // Handle profile opening
+    const handleOpenProfile = (uid) => {
+        if (onOpenProfile) {
+            onOpenProfile(uid);
+        }
+    };
+    
+    if (!show || !friend) return null;
+    
+    return (
+        <>
+            <div className="modal-overlay" onClick={onClose}>
+                <div className="chat-modal-content animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="chat-header-bar">
+                        <div 
+                            onClick={() => handleOpenProfile(friend.uid)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <AvatarWithFrame 
+                                photoURL={friend.photoURL} 
+                                equipped={friend.equipped} 
+                                size="sm" 
+                            />
+                        </div>
+                        <div 
+                            className="chat-header-info"
+                            onClick={() => handleOpenProfile(friend.uid)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <div className="chat-header-name">{friend.displayName}</div>
+                            <div className="chat-header-status">
+                                {isBlocked ? (lang === 'ar' ? 'محظور' : 'Blocked') : blockedByTarget ? (lang === 'ar' ? 'تم حظرك' : 'You are blocked') : t.online}
+                            </div>
+                        </div>
+                        <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" disabled={isBlocked || blockedByTarget} title={t.sendGift}>🎁</button>
+                        <ModalCloseBtn onClose={onClose} />
+                    </div>
+                    
+                    {/* Blocked Notice */}
+                    {(isBlocked || blockedByTarget) && (
+                        <div className="chat-blocked-notice">
+                            <span>🚫</span>
+                            <span>{isBlocked 
+                                ? (lang === 'ar' ? 'لقد حظرت هذا المستخدم. إلغاء الحظر للمراسلة.' : 'You have blocked this user. Unblock to message.')
+                                : (lang === 'ar' ? 'هذا المستخدم حظرك. لا يمكنك إرسال رسائل.' : 'This user has blocked you. You cannot send messages.')
+                            }</span>
+                        </div>
+                    )}
+                    
+                    <div className="chat-messages-container">
+                        {messages.length === 0 ? <div className="text-center py-8 text-gray-400 text-sm">{t.noMessages}</div> : messages.map(msg => {
+                            const isMine = msg.senderId === user?.uid;
+                            const isGift = msg.type === 'gift';
+                            return (
+                                <div key={msg.id} className={`chat-message-row ${isMine ? 'mine' : ''} ${isGift ? 'gift-message' : ''}`}>
+                                    {!isMine && (
+                                        <div 
+                                            onClick={() => handleOpenProfile(msg.senderId || friend.uid)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <AvatarWithFrame 
+                                                photoURL={msg.senderPhoto || friend.photoURL} 
+                                                equipped={friend.equipped} 
+                                                size="sm" 
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="chat-message-content">
+                                        <div 
+                                            className="chat-message-sender"
+                                            onClick={() => handleOpenProfile(isMine ? user.uid : (msg.senderId || friend.uid))}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            {isMine ? (currentUser?.displayName || 'You') : msg.senderName}
+                                        </div>
+                                        {isGift ? (
+                                            <div className="gift-message-content">
+                                                <div className="gift-message-icon">{msg.giftEmoji || '🎁'}</div>
+                                                <div className="gift-message-name">{msg.giftName || 'Gift'}</div>
+                                                <div className="gift-message-details">
+                                                    <span className="gift-charisma-badge">+{formatCharisma(msg.giftCharisma)} ⭐</span>
+                                                    {msg.giftBonus > 0 && <span className="gift-bonus-badge">+{msg.giftBonus} 🧠</span>}
+                                                </div>
+                                            </div>
+                                        ) : <div className="chat-message-bubble">{msg.text}</div>}
+                                        <div className="chat-message-time">{formatTime(msg.timestamp)}</div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        <div ref={messagesEndRef} />
+                    </div>
+                    <div className="chat-input-container" style={{position:'relative'}}>
+                        {showEmojiPicker && React.createElement(
+                            React.Fragment, null,
+                            React.createElement('div', {
+                                style: {
+                                    position:'absolute', bottom:'calc(100% + 6px)', left:0, right:0,
+                                    background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.12)',
+                                    borderRadius:'14px', padding:'10px', zIndex:Z.MODAL,
+                                    boxShadow:'0 -14px 40px rgba(0,0,0,0.7)'
+                                }
+                            },
+                                React.createElement('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'7px',borderBottom:'1px solid rgba(255,255,255,0.08)',paddingBottom:'6px'}},
+                                    React.createElement('span', {style:{fontSize:'11px',fontWeight:700,color:'#00f2ff'}}, lang==='ar'?'اختر إيموجي':'Select Emoji'),
+                                    React.createElement('button', {onClick:()=>setShowEmojiPicker(false),style:{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:'14px',lineHeight:1}}, '✕')
+                                ),
+                                React.createElement(EmojiPicker, {show:true, onClose:()=>setShowEmojiPicker(false), onSelect:handleEmojiSelect, lang, inline:true})
+                            )
+                        )}
+                        {!(isBlocked || blockedByTarget) && (
+                            <div style={{display:'flex',alignItems:'center',gap:'6px',width:'100%'}}>
+                                <button 
+                                    className="emoji-picker-btn"
+                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                    style={{ fontSize: '22px' }}
+                                >
+                                    😀
+                                </button>
+                                <div className="chat-input-row" style={{flex:1}}>
+                                    <input 
+                                        ref={inputRef} 
+                                        type="text" 
+                                        className="chat-input" 
+                                        placeholder={t.typeMessage} 
+                                        value={newMsg} 
+                                        onChange={e => setNewMsg(e.target.value)} 
+                                        onKeyPress={e => e.key === 'Enter' && handleSend()} 
+                                    />
+                                    <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+            {showGiftModal && (
+                <SendGiftModal 
+                    show={showGiftModal} 
+                    onClose={() => setShowGiftModal(false)} 
+                    targetUser={friend} 
+                    currentUser={currentUser} 
+                    lang={lang} 
+                    onSendGift={handleSendGiftToChat} 
+                    currency={currency || 0}
+                    friendsData={friendsData}
+                />
+            )}
+
+        </>
+    );
+};
+
+// ==========================================
+// 📅 LOGIN REWARDS COMPONENT
+// ==========================================
+
+const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
+    const t = TRANSLATIONS[lang];
+    const [claiming, setClaiming] = useState(false);
+    const [countdown, setCountdown] = useState('');
+
+    // ALL computations before any hooks - Rules of Hooks compliance
+    const loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
+    
+    const getLastClaimDate = () => {
+        const lcd = loginData.lastClaimDate;
+        if (!lcd) return null;
+        if (lcd?.toDate) return lcd.toDate();
+        if (lcd instanceof Date) return lcd;
+        const d = new Date(lcd);
+        return isNaN(d.getTime()) ? null : d;
+    };
+    
+    const lastClaimDate = getLastClaimDate();
+    const todayStr = new Date().toDateString();
+    const lastClaimStr = lastClaimDate ? lastClaimDate.toDateString() : null;
+    const canClaimToday = lastClaimStr !== todayStr;
+    const currentDay = loginData.currentDay || 0;
+    const currentReward = LOGIN_REWARDS[currentDay];
+    
+    // Countdown timer - MUST be before any conditional returns
+    useEffect(() => {
+        if (!show || canClaimToday || !lastClaimDate) { setCountdown(''); return; }
+        const calcCountdown = () => {
+            const now = new Date();
+            const nextMidnight = new Date(now);
+            nextMidnight.setHours(24, 0, 0, 0);
+            const diff = nextMidnight - now;
+            if (diff <= 0) { setCountdown(''); return; }
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            setCountdown(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
+        };
+        calcCountdown();
+        const timer = setInterval(calcCountdown, 1000);
+        return () => clearInterval(timer);
+    }, [show, canClaimToday, lastClaimDate]);
+
+    // Early return AFTER all hooks
+    if (!show) return null;
+    
+    const handleClaim = async () => { 
+        if (!canClaimToday || claiming) return; 
+        setClaiming(true); 
+        playRewardSound(); 
+        await onClaim(currentDay + 1); 
+        setClaiming(false); 
+    };
+    
+    const renderRewardIcon = (reward, size = 16) => {
+        if (!reward) return <span style={{ fontSize: size + 'px' }}>❓</span>;
+        return <span style={{ fontSize: size + 'px' }}>{reward.icon || '🎁'}</span>;
+    };
+    
+    const getRewardName = (reward) => {
+        if (!reward) return '';
+        return lang === 'ar' ? reward.name_ar : reward.name_en;
+    };
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', maxHeight: '90vh', width: '95%' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">🎁 {t.loginRewards}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body" style={{ padding: '12px' }}>
+                    <div className="login-rewards-container">
+                        <div className="login-rewards-header">
+                            <span className="login-rewards-title">🔥 {t.dailyStreak}</span>
+                            <span className="login-rewards-streak">{currentDay}/30</span>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', width: '100%', padding: '8px 0' }}>
+                            {LOGIN_REWARDS.map((reward, index) => {
+                                const dayNum = index + 1;
+                                const isClaimed = dayNum <= currentDay;
+                                const isCurrent = dayNum === currentDay + 1 && canClaimToday;
+                                const isSpecial = reward.special === true;
+                                const isFinal = reward.final === true;
+                                
+                                let bgColor = 'rgba(255, 255, 255, 0.03)';
+                                let borderColor = 'rgba(255, 255, 255, 0.1)';
+                                let textColor = 'rgba(255, 255, 255, 0.5)';
+                                let extraStyles = {};
+                                
+                                if (isClaimed) {
+                                    bgColor = 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1))';
+                                    borderColor = '#10b981';
+                                    textColor = '#10b981';
+                                } else if (isCurrent) {
+                                    bgColor = 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 136, 0, 0.1))';
+                                    borderColor = '#ffd700';
+                                    textColor = '#ffd700';
+                                    extraStyles = { animation: 'pulse-badge 2s infinite', boxShadow: '0 0 10px rgba(255, 215, 0, 0.3)' };
+                                } else if (isSpecial) {
+                                    bgColor = 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1))';
+                                    borderColor = '#8b5cf6';
+                                    textColor = '#a855f7';
+                                } else if (isFinal) {
+                                    bgColor = 'linear-gradient(135deg, rgba(255, 0, 85, 0.2), rgba(255, 51, 102, 0.1))';
+                                    borderColor = '#ff0055';
+                                    textColor = '#ff0055';
+                                    extraStyles = { animation: 'glow-pulse 2s infinite' };
+                                }
+                                
+                                return (
+                                    <div key={dayNum} title={getRewardName(reward)} style={{ aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: `2px solid ${borderColor}`, background: bgColor, padding: '4px', gap: '2px', position: 'relative', cursor: isCurrent ? 'pointer' : 'default', transition: 'all 0.2s ease', ...extraStyles }}>
+                                        <span style={{ fontSize: '11px', fontWeight: '700', color: textColor, lineHeight: 1 }}>{dayNum}</span>
+                                        <span style={{ fontSize: '14px', lineHeight: 1 }}>{renderRewardIcon(reward, 14)}</span>
+                                        {/* ✓ claimed overlay */}
+                                        {isClaimed && (
+                                            <div style={{position:'absolute',inset:0,background:'rgba(16,185,129,0.15)',borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                                <span style={{fontSize:'14px',color:'#10b981',fontWeight:900}}>✓</span>
+                                            </div>
+                                        )}
+                                        {/* Current day glow ring */}
+                                        {isCurrent && !isClaimed && (
+                                            <div style={{position:'absolute',inset:'-2px',borderRadius:'10px',border:'2px solid #ffd700',boxShadow:'0 0 10px rgba(255,215,0,0.5)',pointerEvents:'none'}}/>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        {canClaimToday && currentReward && (
+                            <div style={{ marginTop: '12px', padding: '12px', background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.05))', border: '1px solid rgba(255, 215, 0, 0.3)', borderRadius: '12px', textAlign: 'center' }}>
+                                <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '4px' }}>{lang === 'ar' ? 'مكافأة اليوم' : "Today's Reward"}</div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'white' }}>{renderRewardIcon(currentReward, 18)} {getRewardName(currentReward)}</div>
+                                {currentReward.special && <div style={{ fontSize: '10px', color: '#ffd700', marginTop: '4px' }}>⭐ {lang === 'ar' ? 'مكافأة خاصة!' : 'Special Reward!'}</div>}
+                            </div>
+                        )}
+                        {/* Countdown shown when already claimed */}
+                        {!canClaimToday && countdown && (
+                            <div style={{textAlign:'center', marginTop:'10px', padding:'8px 12px', background:'rgba(0,242,255,0.06)', border:'1px solid rgba(0,242,255,0.15)', borderRadius:'10px'}}>
+                                <div style={{fontSize:'9px', color:'#64748b', marginBottom:'3px'}}>
+                                    {lang === 'ar' ? '⏳ الوقت المتبقي لليوم التالي' : '⏳ Next reward in'}
+                                </div>
+                                <div style={{fontSize:'18px', fontWeight:900, color:'#00f2ff', fontFamily:'monospace', letterSpacing:'2px'}}>
+                                    {countdown}
+                                </div>
+                            </div>
+                        )}
+                        <button onClick={handleClaim} disabled={!canClaimToday || claiming} style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: canClaimToday && !claiming ? 'pointer' : 'not-allowed', transition: 'all 0.2s ease', background: canClaimToday ? 'linear-gradient(135deg, #ffd700, #ff8800)' : 'rgba(107, 114, 128, 0.5)', color: canClaimToday ? '#000' : 'rgba(255, 255, 255, 0.5)', marginTop: '10px' }}>
+                            {claiming ? t.loading : canClaimToday ? t.claimReward : t.alreadyClaimed}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// 🔧 BROWSE ROOMS MODAL
+// ==========================================
+
+const BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUserData, lang }) => {
+    const t = TRANSLATIONS[lang];
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [joinPassword, setJoinPassword] = useState('');
+    const [selectedRoom, setSelectedRoom] = useState(null);
+    const [showPasswordInput, setShowPasswordInput] = useState(false);
+    const [passwordError, setPasswordError] = useState('');
+    
+    useEffect(() => {
+        if (!show) return;
+        setLoading(true);
+        setPasswordError('');
+        const unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => {
+            const roomsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(room => room.players?.length < 10);
+            setRooms(roomsData);
+            setLoading(false);
+        }, error => { setLoading(false); });
+        return unsub;
+    }, [show]);
+    
+    if (!show) return null;
+    
+    const handleJoinClick = (room) => { 
+        if (room.isPrivate) { 
+            setSelectedRoom(room); 
+            setShowPasswordInput(true); 
+            setPasswordError(''); 
+        } else { 
+            onJoin(room.id, ''); 
+        } 
+    };
+    
+    const handlePasswordJoin = () => { 
+        if (selectedRoom && joinPassword) {
+            if (joinPassword !== selectedRoom.password) {
+                setPasswordError(lang === 'ar' ? 'كلمة السر غير صحيحة!' : 'Incorrect password!');
+                return;
+            }
+            onJoin(selectedRoom.id, joinPassword); 
+            setShowPasswordInput(false); 
+            setSelectedRoom(null); 
+            setJoinPassword(''); 
+            setPasswordError('');
+        } 
+    };
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+                <div className="modal-header"><h2 className="modal-title">{t.browse}</h2><ModalCloseBtn onClose={onClose} /></div>
+                <div className="modal-body">
+                    {loading ? <div className="text-center py-8"><div className="text-2xl animate-pulse">⏳</div><p className="text-gray-400 mt-2">{t.loading}</p></div> : rooms.length === 0 ? <div className="text-center py-8 text-gray-400"><div className="text-4xl mb-2">🔍</div><p>{t.noRooms}</p></div> : (
+                        <div className="browse-rooms-container">
+                            {rooms.map(room => (
+                                <div key={room.id} className="room-card">
+                                    <div className="room-card-header"><span className="room-card-code">{room.id}</span><span className="room-card-mode">{room.mode === 'advanced' ? (lang === 'ar' ? 'متقدم' : 'Advanced') : (lang === 'ar' ? 'عادي' : 'Normal')}</span></div>
+                                    <div className="room-card-info">
+                                        <div className="room-card-players"><span>👥 {room.players?.length || 0}/10</span>{room.isPrivate && <span className="room-card-private ml-2">🔒</span>}</div>
+                                        <button onClick={() => handleJoinClick(room)} className="room-card-join-btn">{t.join}</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                {showPasswordInput && selectedRoom && (
+                    <div className="p-3 bg-white/5 border-t border-white/10">
+                        <div className="text-xs text-gray-400 mb-2">🔒 {lang === 'ar' ? 'أدخل كلمة السر' : 'Enter password'} - Room: {selectedRoom.id}</div>
+                        <div className="flex gap-2">
+                            <input type="password" value={joinPassword} onChange={e => { setJoinPassword(e.target.value); setPasswordError(''); }} placeholder={t.password} className="input-dark flex-1 p-2 rounded text-sm" />
+                            <button onClick={handlePasswordJoin} className="btn-neon px-4 py-2 rounded text-sm">{t.join}</button>
+                            <button onClick={() => { setShowPasswordInput(false); setSelectedRoom(null); setPasswordError(''); }} className="btn-ghost px-3 py-2 rounded text-sm">✕</button>
+                        </div>
+                        {passwordError && <div className="text-xs text-red-400 mt-2 text-center flex items-center justify-center gap-1"><span>❌</span> {passwordError}</div>}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// 📚 TUTORIAL MODAL
+// ==========================================
+
+const TutorialModal = ({ show, onClose, lang }) => {
+    const t = TRANSLATIONS[lang];
+    const [step, setStep] = useState(0);
+    if(!show) return null;
+    const steps = [ { text: t.tutorialStep1, img: "🕵️" }, { text: t.tutorialStep2, img: "🗳️" }, { text: t.tutorialStep3, img: "🛒" } ];
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>
+                <div className="modal-header"><h2 className="modal-title">{t.tutorialTitle}</h2><ModalCloseBtn onClose={onClose} /></div>
+                <div className="modal-body text-center">
+                    <div className="text-5xl mb-4 animate-bounce">{steps[step].img}</div>
+                    <p className="text-sm mb-4 text-gray-200">{steps[step].text}</p>
+                    <div className="flex justify-center gap-2 mb-3">{steps.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === step ? 'bg-cyan-400 w-4' : 'bg-gray-600'}`}></div>)}</div>
+                    <div className="flex gap-2">
+                        {step > 0 && <button onClick={() => setStep(s => s-1)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">Back</button>}
+                        {step < steps.length - 1 ? <button onClick={() => setStep(s => s+1)} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.next}</button> : <button onClick={onClose} className="btn-neon flex-1 py-2 rounded-lg text-sm">{t.startGame}</button>}
+                    </div>
+                    <button onClick={onClose} className="text-xs text-gray-500 mt-3 hover:text-white">{t.skipTutorial}</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// ==========================================
+// ⚙️ SETTINGS MODAL
+// ==========================================
+
+const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle }) => {
+    const t = TRANSLATIONS[lang];
+    const [blockedUsers, setBlockedUsers] = useState([]);
+    const [blockInput, setBlockInput] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [soundMutedLocal, setSoundMutedLocal] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
+    const [showEmailLocal, setShowEmailLocal] = useState(false);
+    const [editingName, setEditingName] = useState(false);
+    const [newName, setNewName] = useState('');
+
+    useEffect(() => {
+        if (show && userData) {
+            setBlockedUsers(userData.blockedUsers || []);
+        }
+    }, [show, userData]);
+
+    if (!show) return null;
+
+    const toggleSound = () => {
+        const newMuted = !soundMutedLocal;
+        setSoundMutedLocal(newMuted);
+        localStorage.setItem('pro_spy_sound_muted', String(newMuted));
+        // Update global audio state
+        if (typeof window !== 'undefined') {
+            window.proSpySoundMuted = newMuted;
+        }
+        onNotification(newMuted ? (lang === 'ar' ? 'تم كتم الصوت' : 'Sound muted') : (lang === 'ar' ? 'تم تشغيل الصوت' : 'Sound enabled'));
+    };
+
+    const handleBlockUser = async () => {
+        if (!blockInput.trim() || !user) return;
+        setLoading(true);
+        try {
+            // Find user by ID
+            const userQuery = await usersCollection.where('customId', '==', blockInput.trim()).get();
+            if (userQuery.empty) {
+                onNotification(t.friendNotFound);
+                setLoading(false);
+                return;
+            }
+            const targetUid = userQuery.docs[0].id;
+            if (targetUid === user.uid) {
+                onNotification(lang === 'ar' ? 'لا يمكنك حظر نفسك' : 'Cannot block yourself');
+                setLoading(false);
+                return;
+            }
+            if (blockedUsers.includes(targetUid)) {
+                onNotification(lang === 'ar' ? 'المستخدم محظور بالفعل' : 'User already blocked');
+                setLoading(false);
+                return;
+            }
+            // Add to blocked list
+            await usersCollection.doc(user.uid).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayUnion(targetUid)
+            });
+            setBlockedUsers([...blockedUsers, targetUid]);
+            setBlockInput('');
+            onNotification(t.blockSuccess);
+        } catch (error) {
+            onNotification(lang === 'ar' ? 'حدث خطأ' : 'An error occurred');
+        }
+        setLoading(false);
+    };
+
+    const handleUnblockUser = async (targetUid) => {
+        if (!user) return;
+        try {
+            await usersCollection.doc(user.uid).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayRemove(targetUid)
+            });
+            setBlockedUsers(blockedUsers.filter(id => id !== targetUid));
+            onNotification(t.unblockSuccess);
+        } catch (error) {
+        }
+    };
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">⚙️ {t.settings}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body">
+                    {/* Account Info Section - GUEST: show login prompt instead */}
+                    {isGuestPropForSettings && (
+                        <div className="settings-section">
+                            <div className="settings-section-title">
+                                <span>👤</span>
+                                <span>{lang === 'ar' ? 'معلومات الحساب' : 'Account Info'}</span>
+                            </div>
+                            <div style={{padding:'16px', borderRadius:'12px', background:'linear-gradient(135deg,rgba(0,10,30,0.6),rgba(20,0,50,0.4))', border:'1px solid rgba(0,242,255,0.15)', textAlign:'center'}}>
+                                <div style={{fontSize:'32px', marginBottom:'8px'}}>🔒</div>
+                                <div style={{fontSize:'13px', fontWeight:800, color:'white', marginBottom:'4px'}}>
+                                    {lang === 'ar' ? 'حساب زائر' : 'Guest Account'}
+                                </div>
+                                <div style={{fontSize:'11px', color:'#6b7280', marginBottom:'14px'}}>
+                                    {lang === 'ar' ? 'سجّل دخولك للوصول لجميع المميزات' : 'Login to access all features'}
+                                </div>
+                                <button onClick={onLoginGoogle} style={{
+                                    display:'flex', alignItems:'center', justifyContent:'center', gap:'8px',
+                                    width:'100%', padding:'10px 16px', borderRadius:'10px', border:'none', cursor:'pointer',
+                                    background:'white', color:'#333', fontSize:'13px', fontWeight:700
+                                }}>
+                                    <img src="https://www.google.com/favicon.ico" alt="G" style={{width:'16px',height:'16px'}} />
+                                    {lang === 'ar' ? 'تسجيل الدخول بجوجل' : 'Login with Google'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    {/* Account Info Section - Logged in users */}
+                    {user && !isGuestPropForSettings && (
+                        <div className="settings-section">
+                            <div className="settings-section-title">
+                                <span>👤</span>
+                                <span>{lang === 'ar' ? 'معلومات الحساب' : 'Account Info'}</span>
+                            </div>
+                            {/* Profile Photo */}
+                            <div style={{display:'flex', justifyContent:'center', marginBottom:'12px', marginTop:'8px'}}>
+                                <div style={{position:'relative', cursor:'pointer'}} onClick={() => document.getElementById('settings-photo-input')?.click()}>
+                                    <img
+                                        src={userData?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.displayName||'User')}&background=7000ff&color=fff&size=200`}
+                                        alt="avatar"
+                                        style={{width:'72px', height:'72px', borderRadius:'50%', objectFit:'cover', border:'3px solid rgba(112,0,255,0.5)'}}
+                                    />
+                                    <div style={{position:'absolute', bottom:'0', right:'0', background:'rgba(112,0,255,0.9)', borderRadius:'50%', width:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', border:'2px solid #0f0f1a'}}>📷</div>
+                                </div>
+                                <input id="settings-photo-input" type="file" style={{display:'none'}} accept="image/*" onChange={async(e) => {
+                                    const file = e.target.files?.[0];
+                                    if(!file || !user) return;
+                                    const reader = new FileReader();
+                                    reader.onload = async(ev) => {
+                                        const img = new Image();
+                                        img.onload = async() => {
+                                            const canvas = document.createElement('canvas');
+                                            const MAX = 300;
+                                            let w = img.width, h = img.height;
+                                            if(w > h){ if(w > MAX){h = Math.round(h*MAX/w); w=MAX;} } else { if(h > MAX){w = Math.round(w*MAX/h); h=MAX;} }
+                                            canvas.width=w; canvas.height=h;
+                                            canvas.getContext('2d').drawImage(img,0,0,w,h);
+                                            const base64 = canvas.toDataURL('image/jpeg', 0.75);
+                                            try {
+                                                await usersCollection.doc(user.uid).update({photoURL: base64});
+                                                onNotification(lang==='ar'?'تم تحديث الصورة!':'Photo updated!');
+                                            } catch(err){ }
+                                        };
+                                        img.src = ev.target.result;
+                                    };
+                                    reader.readAsDataURL(file);
+                                }} />
+                            </div>
+                            <div className="settings-account-card">
+                                <div className="settings-account-row">
+                                    <span className="settings-account-label">📧 {lang === 'ar' ? 'البريد' : 'Email'}</span>
+                                    <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                        <span className="settings-account-value">{showEmailLocal ? (user?.email || 'N/A') : maskEmail(user?.email)}</span>
+                                        <button onClick={() => setShowEmailLocal(!showEmailLocal)} className="settings-eye-btn">{showEmailLocal ? '🙈' : '👁️'}</button>
+                                    </div>
+                                </div>
+                                <div className="settings-account-row">
+                                    <span className="settings-account-label">🪪 ID</span>
+                                    <span className="settings-account-value" onClick={() => navigator.clipboard.writeText(userData?.customId || '')} style={{cursor:'pointer'}}>
+                                        {userData?.customId || 'N/A'} 📋
+                                    </span>
+                                </div>
+                                <div className="settings-account-row">
+                                    <span className="settings-account-label">📅 {lang === 'ar' ? 'عضو منذ' : 'Member Since'}</span>
+                                    <span className="settings-account-value">{userData?.createdAt?.toDate?.() ? userData.createdAt.toDate().toLocaleDateString() : 'N/A'}</span>
+                                </div>
+                                <div className="settings-account-row">
+                                    <span className="settings-account-label">🔑 {lang === 'ar' ? 'نوع الحساب' : 'Account Type'}</span>
+                                    <span className="settings-account-value" style={{color:'#10b981'}}>Google ✓</span>
+                                </div>
+                                <div className="settings-account-row">
+                                    <span className="settings-account-label">✏️ {lang === 'ar' ? 'الاسم' : 'Name'}</span>
+                                    {editingName ? (
+                                        <div style={{display:'flex',gap:'4px'}}>
+                                            <input className="input-dark" style={{padding:'4px 8px',fontSize:'11px',borderRadius:'6px',width:'120px'}} value={newName} onChange={e => setNewName(e.target.value)} placeholder={userData?.displayName} />
+                                            <button className="btn-neon" style={{padding:'2px 8px',fontSize:'10px',borderRadius:'6px'}} onClick={async() => {
+                                                if(newName.trim() && user) {
+                                                    const now = new Date();
+                                                    const lastChange = userData?.lastChangedName?.toDate?.() || new Date(0);
+                                                    const diffDays = (now - lastChange) / (1000*60*60*24);
+                                                    if(diffDays < 30) { onNotification(lang==='ar'?'يمكن التغيير مرة شهريًا':'Can change once per month'); setEditingName(false); return; }
+                                                    await usersCollection.doc(user.uid).update({displayName:newName.trim(), lastChangedName:firebase.firestore.FieldValue.serverTimestamp()});
+                                                    onNotification(lang==='ar'?'تم تغيير الاسم!':'Name changed!');
+                                                    setEditingName(false);
+                                                }
+                                            }}>✓</button>
+                                            <button className="btn-ghost" style={{padding:'2px 6px',fontSize:'10px',borderRadius:'6px'}} onClick={() => setEditingName(false)}>✕</button>
+                                        </div>
+                                    ) : (
+                                        <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                            <span className="settings-account-value">{userData?.displayName}</span>
+                                            <button onClick={() => { setNewName(userData?.displayName || ''); setEditingName(true); }} className="settings-eye-btn">✏️</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            {/* Gender row */}
+                            <div className="settings-account-row" style={{marginTop:'4px'}}>
+                                <span className="settings-account-label">
+                                    {(userData?.gender === 'male') ? '♂️' : (userData?.gender === 'female') ? '♀️' : '👤'}
+                                    {' '}{lang === 'ar' ? 'الجنس' : 'Gender'}
+                                </span>
+                                <div style={{display:'flex', gap:'6px'}}>
+                                    <button
+                                        onClick={async () => {
+                                            if (!user) return;
+                                            await usersCollection.doc(user.uid).update({ gender: 'male' });
+                                            onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
+                                        }}
+                                        style={{
+                                            padding:'3px 10px', borderRadius:'6px', fontSize:'11px', fontWeight:700, cursor:'pointer',
+                                            background: userData?.gender === 'male' ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.05)',
+                                            border: userData?.gender === 'male' ? '1.5px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
+                                            color: userData?.gender === 'male' ? '#93c5fd' : '#9ca3af'
+                                        }}
+                                    >♂️ {lang === 'ar' ? 'ذكر' : 'Male'}</button>
+                                    <button
+                                        onClick={async () => {
+                                            if (!user) return;
+                                            await usersCollection.doc(user.uid).update({ gender: 'female' });
+                                            onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
+                                        }}
+                                        style={{
+                                            padding:'3px 10px', borderRadius:'6px', fontSize:'11px', fontWeight:700, cursor:'pointer',
+                                            background: userData?.gender === 'female' ? 'rgba(236,72,153,0.3)' : 'rgba(255,255,255,0.05)',
+                                            border: userData?.gender === 'female' ? '1.5px solid #ec4899' : '1px solid rgba(255,255,255,0.1)',
+                                            color: userData?.gender === 'female' ? '#f9a8d4' : '#9ca3af'
+                                        }}
+                                    >♀️ {lang === 'ar' ? 'أنثى' : 'Female'}</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {/* Sound Toggle */}
+                    <div className="settings-section">
+                        <div className="settings-row">
+                            <div className="settings-label">
+                                <span className="settings-icon">🔊</span>
+                                <span>{t.sound}</span>
+                            </div>
+                            <button
+                                onClick={toggleSound}
+                                className={`settings-toggle ${soundMutedLocal ? 'off' : 'on'}`}
+                            >
+                                {soundMutedLocal ? t.soundOff : t.soundOn}
+                            </button>
+                        </div>
+                    </div>
+
+                    )} {/* end logged-in account section */}
+                    {/* Moments Section - only for logged-in users */}
+                    {user && !isGuestPropForSettings && (
+                    <div className="settings-section">
+                        <div className="settings-section-title">
+                            <span>📸</span>
+                            <span>{lang === 'ar' ? 'لحظاتي' : 'My Moments'}</span>
+                        </div>
+                        <MomentsSettingsSection currentUser={user} userData={userData} lang={lang} />
+                    </div>
+                    )}
+
+                    {/* Achievements Section */}
+                    <div className="settings-section">
+                        <div className="settings-section-title">
+                            <span>🏆</span>
+                            <span>{t.achievements}</span>
+                        </div>
+                        <AchievementsDisplayV11 userData={userData} lang={lang} showAll={true} />
+                    </div>
+
+                    {/* Block Users Section - only for logged-in users */}
+                    {user && !isGuestPropForSettings && (
+                    <div className="settings-section">
+                        <div className="settings-section-title">
+                            <span>🚫</span>
+                            <span>{t.blockedUsers}</span>
+                        </div>
+                        <div className="block-input-row">
+                            <input
+                                type="text"
+                                className="input-dark"
+                                value={blockInput}
+                                onChange={e => setBlockInput(e.target.value)}
+                                placeholder={t.friendIdPlaceholder}
+                            />
+                            <button
+                                onClick={handleBlockUser}
+                                disabled={loading || !blockInput.trim()}
+                                className="btn-danger px-3 py-2 rounded text-xs"
+                            >
+                                {t.blockUser}
+                            </button>
+                        </div>
+                        <div className="blocked-users-list">
+                            {blockedUsers.length === 0 ? (
+                                <div className="no-blocked-users">{t.noBlockedUsers}</div>
+                            ) : (
+                                blockedUsers.map(uid => (
+                                    <BlockedUserItem
+                                        key={uid}
+                                        uid={uid}
+                                        onUnblock={() => handleUnblockUser(uid)}
+                                        lang={lang}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </div>
+                    )} {/* end block users section */}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 // ==========================================
 // 🎯 PROFILE V11 - NEW PREMIUM DESIGN COMPONENTS
 // ==========================================
@@ -4786,7 +4313,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
             {/* Gift Detail Popup - PORTAL to escape backdrop-filter */}
             {selectedGiftDetail && (
                 <PortalModal>
-                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999999,padding:'16px'}} onClick={() => setSelectedGiftDetail(null)}>
+                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.TOOLTIP,padding:'16px'}} onClick={() => setSelectedGiftDetail(null)}>
                     <div className="gift-detail-modal animate-pop" onClick={e => e.stopPropagation()}>
                         <button className="gift-detail-close" onClick={() => setSelectedGiftDetail(null)}>✕</button>
                         <div className="gift-detail-emoji">{selectedGiftDetail.gift.emoji || '🎁'}</div>
@@ -5010,7 +4537,7 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
             {/* Achievement Detail Modal - PORTAL to escape backdrop-filter */}
             {selectedAchievement && (
                 <PortalModal>
-                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999999,padding:'16px'}} onClick={() => setSelectedAchievement(null)}>
+                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.TOOLTIP,padding:'16px'}} onClick={() => setSelectedAchievement(null)}>
                         <div className="achievement-detail-modal animate-pop" onClick={e => e.stopPropagation()}>
                             <div className="achievement-detail-icon">
                                 {selectedAchievement.icon || '🏅'}
@@ -5183,7 +4710,7 @@ const MAX_VIDEO_DURATION = 10;
 const AllMomentsModal = ({ show, onClose, moments, ownerName, lang, onSelectMoment }) => {
     if (!show) return null;
     return (
-        <div className="modal-overlay" onClick={onClose} style={{zIndex:14000}}>
+        <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL_HIGH}}>
             <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
                 background:'linear-gradient(180deg,#0f0f1e,#0a0a14)',
                 border:'1px solid rgba(0,242,255,0.2)',
@@ -5206,7 +4733,7 @@ const AllMomentsModal = ({ show, onClose, moments, ownerName, lang, onSelectMome
                         {moments.map(moment => (
                             <div key={moment.id} onClick={() => { onSelectMoment(moment); onClose(); }} style={{
                                 aspectRatio:'1', borderRadius:'10px', overflow:'hidden',
-                                background:'linear-gradient(135deg,rgba(0,242,255,0.06),rgba(112,0,255,0.06))',
+                                background:GR.CYAN_SOFT,
                                 border:'1px solid rgba(0,242,255,0.15)', cursor:'pointer', position:'relative',
                                 display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px',
                                 transition:'transform 0.15s'
@@ -5323,7 +4850,7 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang }
                             onClick={() => setSelectedMoment(moment)}
                             style={{
                                 aspectRatio:'1', borderRadius:'10px', overflow:'hidden',
-                                background:'linear-gradient(135deg,rgba(0,242,255,0.06),rgba(112,0,255,0.06))',
+                                background:GR.CYAN_SOFT,
                                 border:'1px solid rgba(0,242,255,0.18)',
                                 boxShadow:'0 0 8px rgba(0,242,255,0.06)',
                                 cursor:'pointer', position:'relative', transition:'transform 0.15s',
@@ -5496,7 +5023,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
             setReportSent(true);
             setShowReportMomentModal(false);
             setMomentReportReason('');
-        } catch(e) { console.error(e); }
+        } catch(e) { }
     };
 
     const handleReportCommentSubmit = async () => {
@@ -5516,7 +5043,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
             setShowReportCommentModal(false);
             setReportTargetComment(null);
             setCommentReportReason('');
-        } catch(e) { console.error(e); }
+        } catch(e) { }
     };
 
     const handleReportComment = async (comment) => {
@@ -5535,8 +5062,8 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
     };
 
     return (
-        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:99999, padding:'16px'}} onClick={onClose}>
-            <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)', border:'1px solid rgba(0,242,255,0.2)', borderRadius:'16px', width:'100%', maxWidth:'400px', maxHeight:'85vh', overflow:'hidden', display:'flex', flexDirection:'column'}} onClick={e => e.stopPropagation()}>
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.MODAL, padding:'16px'}} onClick={onClose}>
+            <div style={{background:GR.DARK_CARD, border:'1px solid rgba(0,242,255,0.2)', borderRadius:'16px', width:'100%', maxWidth:'400px', maxHeight:'85vh', overflow:'hidden', display:'flex', flexDirection:'column'}} onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
                 <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
@@ -5690,7 +5217,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                                 <button
                                     onClick={handleComment}
                                     disabled={!newComment.trim() || submitting}
-                                    style={{background:'linear-gradient(135deg,#7000ff,#00f2ff)', border:'none', borderRadius:'10px', color:'white', fontSize:'12px', fontWeight:700, padding:'8px 14px', cursor:'pointer', opacity: (!newComment.trim() || submitting) ? 0.5 : 1}}
+                                    style={{background:GR.NEON, border:'none', borderRadius:'10px', color:'white', fontSize:'12px', fontWeight:700, padding:'8px 14px', cursor:'pointer', opacity: (!newComment.trim() || submitting) ? 0.5 : 1}}
                                 >
                                     {lang === 'ar' ? 'إرسال' : 'Send'}
                                 </button>
@@ -5702,8 +5229,8 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                 {/* ── REPORT MOMENT MODAL ── */}
                 {showReportMomentModal && (
                     <PortalModal>
-                        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999999,padding:'16px'}} onClick={() => setShowReportMomentModal(false)}>
-                            <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'14px',padding:'20px',maxWidth:'300px',width:'100%'}} onClick={e => e.stopPropagation()}>
+                        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.TOOLTIP,padding:'16px'}} onClick={() => setShowReportMomentModal(false)}>
+                            <div style={{background:GR.DARK_CARD,border:'1px solid rgba(239,68,68,0.3)',borderRadius:'14px',padding:'20px',maxWidth:'300px',width:'100%'}} onClick={e => e.stopPropagation()}>
                                 <div style={{fontSize:'22px',textAlign:'center',marginBottom:'6px'}}>🚩</div>
                                 <div style={{fontSize:'14px',fontWeight:800,color:'white',textAlign:'center',marginBottom:'4px'}}>
                                     {lang==='ar'?'إبلاغ عن اللحظة':'Report Moment'}
@@ -5745,8 +5272,8 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                 {/* ── REPORT COMMENT MODAL ── */}
                 {showReportCommentModal && reportTargetComment && (
                     <PortalModal>
-                        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999999,padding:'16px'}} onClick={() => { setShowReportCommentModal(false); setReportTargetComment(null); }}>
-                            <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'14px',padding:'20px',maxWidth:'300px',width:'100%'}} onClick={e => e.stopPropagation()}>
+                        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.TOOLTIP,padding:'16px'}} onClick={() => { setShowReportCommentModal(false); setReportTargetComment(null); }}>
+                            <div style={{background:GR.DARK_CARD,border:'1px solid rgba(239,68,68,0.3)',borderRadius:'14px',padding:'20px',maxWidth:'300px',width:'100%'}} onClick={e => e.stopPropagation()}>
                                 <div style={{fontSize:'22px',textAlign:'center',marginBottom:'6px'}}>🚩</div>
                                 <div style={{fontSize:'14px',fontWeight:800,color:'white',textAlign:'center',marginBottom:'4px'}}>
                                     {lang==='ar'?'إبلاغ عن تعليق':'Report Comment'}
@@ -5792,8 +5319,8 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                 {/* Delete confirm - PortalModal to escape overflow:hidden */}
                 {showDeleteConfirm && (
                     <PortalModal>
-                        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:999999, padding:'16px'}} onClick={() => setShowDeleteConfirm(false)}>
-                            <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)', border:'1px solid rgba(239,68,68,0.35)', borderRadius:'14px', padding:'22px 24px', textAlign:'center', maxWidth:'260px', width:'100%'}} onClick={e => e.stopPropagation()}>
+                        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.TOOLTIP, padding:'16px'}} onClick={() => setShowDeleteConfirm(false)}>
+                            <div style={{background:GR.DARK_CARD, border:'1px solid rgba(239,68,68,0.35)', borderRadius:'14px', padding:'22px 24px', textAlign:'center', maxWidth:'260px', width:'100%'}} onClick={e => e.stopPropagation()}>
                                 <div style={{fontSize:'32px', marginBottom:'8px'}}>🗑️</div>
                                 <div style={{fontSize:'14px', fontWeight:800, color:'white', marginBottom:'6px'}}>
                                     {lang === 'ar' ? 'حذف اللحظة؟' : 'Delete Moment?'}
@@ -5909,8 +5436,8 @@ const CreateMomentModal = ({ onClose, currentUser, lang }) => {
     };
 
     return (
-        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:99999, padding:'16px'}} onClick={onClose}>
-            <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)', border:'1px solid rgba(0,242,255,0.25)', borderRadius:'16px', width:'100%', maxWidth:'360px', overflow:'hidden'}} onClick={e => e.stopPropagation()}>
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.MODAL, padding:'16px'}} onClick={onClose}>
+            <div style={{background:GR.DARK_CARD, border:'1px solid rgba(0,242,255,0.25)', borderRadius:'16px', width:'100%', maxWidth:'360px', overflow:'hidden'}} onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
                     <span style={{fontWeight:800, fontSize:'15px', color:'white'}}>{lang === 'ar' ? '📸 لحظة جديدة' : '📸 New Moment'}</span>
@@ -5993,7 +5520,7 @@ const CreateMomentModal = ({ onClose, currentUser, lang }) => {
                         disabled={uploading || (momentType === 'text' ? !textContent.trim() : !mediaFile)}
                         style={{
                             width:'100%', marginTop:'12px', padding:'12px', borderRadius:'12px',
-                            background:'linear-gradient(135deg,#7000ff,#00f2ff)', color:'white',
+                            background:GR.NEON, color:'white',
                             fontSize:'14px', fontWeight:800, border:'none', cursor:'pointer',
                             opacity: (uploading || (momentType === 'text' ? !textContent.trim() : !mediaFile)) ? 0.5 : 1
                         }}
@@ -6195,7 +5722,6 @@ const ProfileV11 = ({
                 });
                 setGifts(giftData);
             }, error => {
-                console.error('Gifts fetch error:', error);
             });
         
         return unsub;
@@ -6249,7 +5775,6 @@ const ProfileV11 = ({
             setShowBlockConfirm(false);
             setShowOptionsMenu(false);
         } catch (error) {
-            console.error('Block error:', error);
         }
     };
 
@@ -6262,7 +5787,6 @@ const ProfileV11 = ({
             setIsBlocked(false);
             setShowOptionsMenu(false);
         } catch (error) {
-            console.error('Unblock error:', error);
         }
     };
 
@@ -6282,7 +5806,6 @@ const ProfileV11 = ({
             setReportReason('');
             setShowOptionsMenu(false);
         } catch (e) {
-            console.error('Report error:', e);
         }
         setReportSending(false);
     };
@@ -6292,7 +5815,7 @@ const ProfileV11 = ({
     const level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
 
     return (
-        <div className="modal-overlay" onClick={onClose} style={{zIndex: 10000}}>
+        <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL}}>
             <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
                 
                 {/* Profile Header Bar - X button on RIGHT, Three dots on LEFT of X */}
@@ -6365,7 +5888,7 @@ const ProfileV11 = ({
                                 try {
                                     await usersCollection.doc(targetUID).update({ bannerURL: base64 });
                                     setBannerURL(base64);
-                                } catch(err) { console.error('Banner upload error:', err); }
+                                } catch(err) { }
                                 setBannerUploading(false);
                             };
                             img.src = ev.target.result;
@@ -6579,7 +6102,7 @@ const ProfileV11 = ({
                                     onClick={() => setShowSelfGiftModal(true)}
                                     style={{
                                         flex:1, padding:'11px', borderRadius:'12px',
-                                        background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,136,0,0.15))',
+                                        background:GR.GOLD,
                                         border:'1px solid rgba(255,215,0,0.4)', color:'#facc15',
                                         fontSize:'12px', fontWeight:800, cursor:'pointer',
                                         display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
@@ -6596,7 +6119,7 @@ const ProfileV11 = ({
 
                 {/* Report Modal */}
                 {showReportModal && (
-                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:99999,padding:'16px'}} onClick={() => setShowReportModal(false)}>
+                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL,padding:'16px'}} onClick={() => setShowReportModal(false)}>
                         <div className="profile-confirm-modal" onClick={e => e.stopPropagation()} style={{maxWidth:'300px'}}>
                             <div className="profile-confirm-icon">🚨</div>
                             <div className="profile-confirm-title">{lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'}</div>
