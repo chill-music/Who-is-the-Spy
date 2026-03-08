@@ -411,6 +411,24 @@ const SHOP_ITEMS = {
         { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif' },
         { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)' },
     ],
+    profileEffects: [
+        { id: 'effect_sakura', name_en: "Sakura Petals", name_ar: "زهور الكرز", cost: 800, type: 'profileEffects', preview: '🌸', imageUrl: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif', rarity: 'Rare',
+          particles: [{emoji:'🌸',count:12},{emoji:'🌺',count:8}], duration: 2000, description_en:'Cherry blossoms float across the profile', description_ar:'زهور الكرز تتساقط على البروفايل' },
+        { id: 'effect_stars', name_en: "Star Burst", name_ar: "انفجار نجوم", cost: 1200, type: 'profileEffects', preview: '⭐', imageUrl: '', rarity: 'Epic',
+          particles: [{emoji:'⭐',count:10},{emoji:'✨',count:14},{emoji:'💫',count:8}], duration: 2000, description_en:'Stars explode across the profile', description_ar:'نجوم تنفجر على البروفايل' },
+        { id: 'effect_fire', name_en: "Fire Storm", name_ar: "عاصفة نارية", cost: 1500, type: 'profileEffects', preview: '🔥', imageUrl: '', rarity: 'Epic',
+          particles: [{emoji:'🔥',count:15},{emoji:'💥',count:6}], duration: 2000, description_en:'Flames engulf the profile', description_ar:'ألسنة النار تغطي البروفايل' },
+        { id: 'effect_money', name_en: "Money Rain", name_ar: "مطر الأموال", cost: 2000, type: 'profileEffects', preview: '💰', imageUrl: '', rarity: 'Legendary',
+          particles: [{emoji:'💰',count:10},{emoji:'🧠',count:12},{emoji:'💵',count:8}], duration: 2000, description_en:'Intel rains down the profile', description_ar:'مطر من الانتل على البروفايل' },
+        { id: 'effect_hearts', name_en: "Heart Shower", name_ar: "دش القلوب", cost: 900, type: 'profileEffects', preview: '💖', imageUrl: '', rarity: 'Rare',
+          particles: [{emoji:'💖',count:12},{emoji:'💕',count:10},{emoji:'❤️',count:8}], duration: 2000, description_en:'Hearts shower the profile', description_ar:'قلوب تنهمر على البروفايل' },
+        { id: 'effect_galaxy', name_en: "Galaxy", name_ar: "مجرة", cost: 3000, type: 'profileEffects', preview: '🌌', imageUrl: '', rarity: 'Mythic',
+          particles: [{emoji:'🌟',count:8},{emoji:'💫',count:10},{emoji:'🌙',count:6},{emoji:'⭐',count:8}], duration: 2500, description_en:'A galaxy swirls around the profile', description_ar:'مجرة تدور حول البروفايل' },
+        { id: 'effect_crown', name_en: "Royal Crown", name_ar: "تاج ملكي", cost: 2500, type: 'profileEffects', preview: '👑', imageUrl: '', rarity: 'Legendary',
+          particles: [{emoji:'👑',count:6},{emoji:'💎',count:8},{emoji:'✨',count:12}], duration: 2000, description_en:'Crown and jewels adorn the profile', description_ar:'التاج والجواهر تزين البروفايل' },
+        { id: 'effect_ghost', name_en: "Ghost Mode", name_ar: "وضع الشبح", cost: 1800, type: 'profileEffects', preview: '👻', imageUrl: '', rarity: 'Epic',
+          particles: [{emoji:'👻',count:8},{emoji:'💀',count:6},{emoji:'🕯️',count:8}], duration: 2000, description_en:'Ghosts haunt the profile', description_ar:'أشباح تسكن البروفايل' },
+    ],
     titles: [
         { id: 'title_spy', name_en: "Mr. Spy", name_ar: "سيد جاسوس", cost: 600, type: 'titles', preview: '🕵️', imageUrl: '' },
         { id: 'title_hunter', name_en: "Hunter", name_ar: "صياد", cost: 450, type: 'titles', preview: '🎯', imageUrl: '' },
@@ -547,6 +565,18 @@ const ACHIEVEMENTS = [
     { id: 'ach_charisma_10k', nameKey: 'achCharisma10k', descKey: 'achCharisma10kDesc', icon: '✨', imageUrl: '', condition: { type: 'charisma', value: 10000 } },
     { id: 'ach_charisma_100k', nameKey: 'achCharisma100k', descKey: 'achCharisma100kDesc', icon: '🌟', imageUrl: '', condition: { type: 'charisma', value: 100000 } },
     { id: 'ach_charisma_1m', nameKey: 'achCharisma1m', descKey: 'achCharisma1mDesc', icon: '💫', imageUrl: '', condition: { type: 'charisma', value: 1000000 } },
+
+    // Moment Likes Achievements
+    { id: 'ach_likes_100', nameKey: 'achLikes100', descKey: 'achLikes100Desc', icon: '❤️', imageUrl: '', condition: { type: 'moment_likes', value: 100 } },
+    { id: 'ach_likes_500', nameKey: 'achLikes500', descKey: 'achLikes500Desc', icon: '💖', imageUrl: '', condition: { type: 'moment_likes', value: 500 } },
+    { id: 'ach_likes_1000', nameKey: 'achLikes1000', descKey: 'achLikes1000Desc', icon: '💝', imageUrl: '', condition: { type: 'moment_likes', value: 1000 } },
+    { id: 'ach_likes_5000', nameKey: 'achLikes5000', descKey: 'achLikes5000Desc', icon: '👑', imageUrl: '', condition: { type: 'moment_likes', value: 5000 } },
+
+    // Comment Likes Achievements
+    { id: 'ach_comment_likes_100', nameKey: 'achCommentLikes100', descKey: 'achCommentLikes100Desc', icon: '💬', imageUrl: '', condition: { type: 'comment_likes', value: 100 } },
+    { id: 'ach_comment_likes_500', nameKey: 'achCommentLikes500', descKey: 'achCommentLikes500Desc', icon: '🗨️', imageUrl: '', condition: { type: 'comment_likes', value: 500 } },
+    { id: 'ach_comment_likes_1000', nameKey: 'achCommentLikes1000', descKey: 'achCommentLikes1000Desc', icon: '💬', imageUrl: '', condition: { type: 'comment_likes', value: 1000 } },
+    { id: 'ach_comment_likes_5000', nameKey: 'achCommentLikes5000', descKey: 'achCommentLikes5000Desc', icon: '🏅', imageUrl: '', condition: { type: 'comment_likes', value: 5000 } },
 ];
 
 // --- Scenarios ---
@@ -584,7 +614,7 @@ const generateRandomBonus = (min, max) => Math.floor(Math.random() * (max - min 
 const TRANSLATIONS = { 
     en: { 
         appName: "PRO SPY", tagline: "COVERT ARENA", nickname: "OPERATOR NAME", create: "CREATE GAME", join: "JOIN OPS", browse: "BROWSE ROOMS", players: "OPERATIVES", start: "LAUNCH MISSION", langBtn: "العربية", loading: "PROCESSING...", you: "YOU", statusSpy: "SPY", statusAgent: "AGENT", statusInformant: "INFORMANT", statusMrWhite: "MR. WHITE", statusGhost: "GHOST", round: "ROUND", skip: "SKIP TURN", vote: "VOTE TO EJECT", chatPlaceholder: "Type message...", send: "SEND", waiting: "Awaiting host...", location: "LOCATION", spectator: "SPECTATOR", confirm: "CONFIRM VOTE", spyWin: "SPY WINS!", agentsWin: "AGENTS WIN!", mrWhiteWin: "MR. WHITE WINS!", playAgain: "PLAY AGAIN", connecting: "Connecting...", startVoting: "START VOTING", votingStarted: "VOTING INITIATED", voteRequestTitle: "VOTING REQUEST", voteRequestDesc: "wants to start voting.", agree: "AGREE", decline: "DECLINE", endVoting: "END VOTING NOW", votesTitle: "VOTES:", roundsFormat: (c, m) => `ROUND ${c}/${m}`, wordSelectionTitle: "SELECT KEYWORD", wordSelectionDesc: "Choose a keyword for this round", finishSelection: "FINISH SELECTION", selectedWord: "Selected Keyword", loginGoogle: "Login with Google", myAccount: "Profile", logout: "Logout", profile: "Profile", guest: "Guest", linkGuessCard: "GUESS MY CARD", level: "Level", wins: "Wins", losses: "Losses", winRate: "Win Rate", totalGames: "Games", achievements: "Achievements", id: "ID", enterCodeError: "Please enter a room code.", changeName: "Change Name", nameChangeLimit: "Once a month", copied: "Copied!", save: "Save", or: "OR", needPlayers: "Minimum players not met!", ok: "OK", tabLobby: "Lobby", tabLeaderboard: "Leaderboard", tabFriends: "Friends", addFriend: "Add Friend", friendIdPlaceholder: "Enter Friend ID", online: "Online", offline: "Offline", noFriends: "No friends yet.", friendAdded: "Friend Added!", friendNotFound: "User not found.", requestSent: "Request Sent!", incomingRequests: "Incoming Requests", noRequests: "No pending requests.", accept: "Accept", reject: "Reject", sendMessage: "Send", inviteBtn: "Invite", invitedYou: "invited you to play.", joinInvite: "Join?", inviteFriends: "Invite Friends", accountInfo: "Account Information", email: "Email", memberSince: "Member Since", nameChangeCountdown: "Name Change In", canChangeNow: "Can change now!", selectEmoji: "Emoji", guestTitle: "GUEST ACCOUNT", guestDesc: "Register to save progress and add friends.", kd: "K/D Ratio", stats: "Stats", noPermission: "Feature unavailable for guests.", normalMode: "NORMAL MODE", advancedMode: "ADVANCED MODE (6+)", modeNormalDesc: "Classic Spy vs Agents. 3-10 Players.", modeAdvDesc: "Special Roles included! 6-10 Players.", privateRoom: "Private Room", password: "Password", publicRoom: "Public Room", noRooms: "No active games found.", lobbyTitle: "GAME LOBBY", mrWhiteInstruction: "Guess the location to win!", informantInstruction: "You know a neighbor!", ghostInstruction: "You are now a Ghost. You can watch but cannot act.", guessLocation: "GUESS LOCATION", leaveRoom: "LEAVE", closeRoom: "CLOSE ROOM", showPassword: "Show Password", guestAccountLabel: "GUEST ACCOUNT", guestProfileMsg: "Guests cannot receive friend requests.", reportUser: "Report User", reportSent: "Report sent successfully!", reportTitle: "Report User", reportDesc: "Please select a reason for reporting this user.", reportReasonAbusive: "Abusive Behavior", reportReasonCheating: "Cheating", reportReasonSpam: "Spam", reportReasonOther: "Other", reportSubmit: "Submit Report", reportCancel: "Cancel", privateRoomError: "Private rooms require a password.",
-        shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", unequip: "UnEquip", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", badges: "Badges", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", alreadyOwned: "Already Owned",
+        shop: "Shop", currency: "Intel", buy: "Buy", owned: "Owned", equip: "Equip", equipped: "Equipped", unequip: "UnEquip", inventory: "Inventory", frames: "Frames", titles: "Titles", themes: "Themes", badges: "Badges", profileEffects: "Profile FX", purchaseSuccess: "Purchase Successful!", purchaseFail: "Not enough Intel!", alreadyOwned: "Already Owned",
         tutorialTitle: "Welcome, Agent", tutorialStep1: "Your goal is to find the Spy (or blend in if you are the Spy).", tutorialStep2: "Each round, discuss and vote to eject a suspect.", tutorialStep3: "Win matches to earn Intel and buy items in the Shop!", skipTutorial: "Skip", next: "Next", startGame: "Start Game",
         matchSummary: "Match Summary", matchDuration: "Duration", mvp: "MVP", correctVotes: "Correct Votes", summaryTitle: "Game Over!",
         notifTitle: "Notification", achUnlock: "Achievement Unlocked!", newFriend: "New Friend Added!", hiddenAch: "Hidden Achievement", tabMain: "Main", tabInv: "Inventory", tabAch: "Achievements",
@@ -639,10 +669,21 @@ const TRANSLATIONS = {
         achCharisma10k: "Rising Star", achCharisma10kDesc: "Reach 10,000 charisma",
         achCharisma100k: "Charisma Master", achCharisma100kDesc: "Reach 100,000 charisma",
         achCharisma1m: "Charisma Legend", achCharisma1mDesc: "Reach 1,000,000 charisma",
+        // Likes Achievements
+        achLikes100: "Popular Post", achLikes100Desc: "Get 100 likes on your moments",
+        achLikes500: "Trending", achLikes500Desc: "Get 500 likes on your moments",
+        achLikes1000: "Viral", achLikes1000Desc: "Get 1,000 likes on your moments",
+        achLikes5000: "Megastar", achLikes5000Desc: "Get 5,000 likes on your moments",
+        achCommentLikes100: "Comment Star", achCommentLikes100Desc: "Get 100 likes on your comments",
+        achCommentLikes500: "Comment Pro", achCommentLikes500Desc: "Get 500 likes on your comments",
+        achCommentLikes1000: "Comment Master", achCommentLikes1000Desc: "Get 1,000 likes on your comments",
+        achCommentLikes5000: "Comment Legend", achCommentLikes5000Desc: "Get 5,000 likes on your comments",
+        // Profile Effect
+        profileEffect: "Profile Effect", loginToSeeMore: "Login to see more",
     }, 
     ar: { 
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "بروفايل", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
-        shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مُزين", unequip: "إزالة", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", badges: "شارات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
+        shop: "المتجر", currency: "إنتل", buy: "شراء", owned: "مملوك", equip: "تزيين", equipped: "مُزين", unequip: "إزالة", inventory: "المخزون", frames: "إطارات", titles: "ألقاب", themes: "سمات", badges: "شارات", profileEffects: "تأثيرات", purchaseSuccess: "تم الشراء!", purchaseFail: "لا تملك إنتل كافي!", alreadyOwned: "مملوك مسبقاً",
         tutorialTitle: "مرحباً أيها العميل", tutorialStep1: "هدفك هو العثور على الجاسوس (أو التخفي إن كنت الجاسوس).", tutorialStep2: "في كل جولة، ناقش وصوّت لطرد المشتبه به.", tutorialStep3: "اربح المباريات لتحصل على إنتل واشتري من المتجر!", skipTutorial: "تخطي", next: "التالي", startGame: "ابدأ اللعبة",
         matchSummary: "ملخص المباراة", matchDuration: "المدة", mvp: "الأفضل", correctVotes: "أصوات صحيحة", summaryTitle: "انتهت اللعبة!",
         notifTitle: "إشعار", achUnlock: "تم فتح إنجاز!", newFriend: "صديق جديد!", hiddenAch: "إنجاز سري", tabMain: "الرئيسية", tabInv: "المخزون", tabAch: "الإنجازات",
@@ -693,6 +734,17 @@ const TRANSLATIONS = {
         achCharisma10k: "نجم صاعد", achCharisma10kDesc: "اصل إلى 10,000 كاريزما",
         achCharisma100k: "سيد الكاريزما", achCharisma100kDesc: "اصل إلى 100,000 كاريزما",
         achCharisma1m: "أسطورة الكاريزما", achCharisma1mDesc: "اصل إلى 1,000,000 كاريزما",
+        // Likes Achievements
+        achLikes100: "منشور مشهور", achLikes100Desc: "احصل على 100 لايك على لحظاتك",
+        achLikes500: "ترند", achLikes500Desc: "احصل على 500 لايك على لحظاتك",
+        achLikes1000: "فايرال", achLikes1000Desc: "احصل على 1,000 لايك على لحظاتك",
+        achLikes5000: "نجم عملاق", achLikes5000Desc: "احصل على 5,000 لايك على لحظاتك",
+        achCommentLikes100: "نجم التعليقات", achCommentLikes100Desc: "احصل على 100 لايك على تعليقاتك",
+        achCommentLikes500: "محترف التعليقات", achCommentLikes500Desc: "احصل على 500 لايك على تعليقاتك",
+        achCommentLikes1000: "سيد التعليقات", achCommentLikes1000Desc: "احصل على 1,000 لايك على تعليقاتك",
+        achCommentLikes5000: "أسطورة التعليقات", achCommentLikes5000Desc: "احصل على 5,000 لايك على تعليقاتك",
+        // Profile Effect
+        profileEffect: "تأثير البروفايل", loginToSeeMore: "سجل الدخول لرؤية المزيد",
     } 
 };
 
@@ -1408,7 +1460,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
         return <span className="text-xl">🎨</span>;
     };
     
-    const tabs = ['frames', 'titles', 'badges', 'gifts'];
+    const tabs = ['frames', 'titles', 'badges', 'profileEffects', 'gifts'];
     
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -1507,7 +1559,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
         return <span className="text-xl">🎨</span>;
     };
     
-    const tabs = ['frames', 'titles', 'badges', 'gifts'];
+    const tabs = ['frames', 'titles', 'badges', 'profileEffects', 'gifts'];
     const ownedItems = getOwnedItems(activeTab);
     
     return (
@@ -3300,47 +3352,94 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
                             <div style={{fontSize:'11px', fontWeight:800, color:'#fbbf24', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px'}}>
                                 <span>☀️</span> {lang==='ar'?'المهمات اليومية':'Daily Missions'}
                             </div>
-                            {FUN_PASS_DAILY_MISSIONS.map(m => (
+                            {FUN_PASS_DAILY_MISSIONS.map(m => {
+                                const todayStr = new Date().toDateString();
+                                const seasonMissions = userData?.funPass?.seasons?.[FUN_PASS_SEASON_ID]?.missions || {};
+                                const missionData = seasonMissions[m.id] || {};
+                                const isDoneToday = missionData.lastCompleted === todayStr;
+                                return (
                                 <div key={m.id} style={{
                                     display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
                                     padding:'9px 12px', borderRadius:'10px',
-                                    background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)'
+                                    background: isDoneToday ? 'rgba(74,222,128,0.06)' : 'rgba(255,255,255,0.04)',
+                                    border: isDoneToday ? '1px solid rgba(74,222,128,0.25)' : '1px solid rgba(255,255,255,0.07)'
                                 }}>
                                     <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
                                         <span style={{fontSize:'18px'}}>{m.icon}</span>
                                         <div>
-                                            <div style={{fontSize:'11px', fontWeight:700, color:'#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
+                                            <div style={{fontSize:'11px', fontWeight:700, color: isDoneToday ? '#4ade80' : '#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
                                             <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700}}>+{m.xp} XP</div>
                                         </div>
                                     </div>
-                                    <div style={{fontSize:'9px', color:'#4b5563', fontWeight:600, background:'rgba(255,255,255,0.05)', padding:'3px 8px', borderRadius:'5px'}}>
-                                        {lang==='ar'?'قريباً':'Soon'}
-                                    </div>
+                                    {isDoneToday ? (
+                                        <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, background:'rgba(74,222,128,0.1)', padding:'3px 8px', borderRadius:'5px'}}>
+                                            ✓ {lang==='ar'?'مكتمل':'Done'}
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={async () => {
+                                                if (!user) return;
+                                                await usersCollection.doc(user.uid).update({
+                                                    [`funPass.seasons.${FUN_PASS_SEASON_ID}.missions.${m.id}`]: { lastCompleted: todayStr },
+                                                    [`funPass.seasons.${FUN_PASS_SEASON_ID}.xp`]: firebase.firestore.FieldValue.increment(m.xp)
+                                                });
+                                                onNotification(`+${m.xp} XP! 🎉`);
+                                            }}
+                                            style={{fontSize:'9px', color:'#fbbf24', fontWeight:700, background:'rgba(251,191,36,0.1)', padding:'3px 8px', borderRadius:'5px', border:'1px solid rgba(251,191,36,0.3)', cursor:'pointer'}}
+                                        >
+                                            {lang==='ar'?'استلم':'Claim'}
+                                        </button>
+                                    )}
                                 </div>
-                            ))}
+                                );
+                            })}
 
                             {/* Weekly Missions */}
                             <div style={{fontSize:'11px', fontWeight:800, color:'#c084fc', marginTop:'8px', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px'}}>
                                 <span>📅</span> {lang==='ar'?'المهمات الأسبوعية':'Weekly Missions'}
                             </div>
-                            {FUN_PASS_WEEKLY_MISSIONS.map(m => (
+                            {FUN_PASS_WEEKLY_MISSIONS.map(m => {
+                                const d = new Date(); const day = d.getDay(); const diff = d.getDate() - day;
+                                const weekStr = new Date(d.getFullYear(), d.getMonth(), diff).toDateString();
+                                const seasonMissions = userData?.funPass?.seasons?.[FUN_PASS_SEASON_ID]?.missions || {};
+                                const missionData = seasonMissions[m.id] || {};
+                                const isDoneThisWeek = missionData.lastWeekCompleted === weekStr;
+                                return (
                                 <div key={m.id} style={{
                                     display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
                                     padding:'9px 12px', borderRadius:'10px',
-                                    background:'rgba(168,85,247,0.05)', border:'1px solid rgba(168,85,247,0.15)'
+                                    background: isDoneThisWeek ? 'rgba(192,132,252,0.06)' : 'rgba(168,85,247,0.05)',
+                                    border: isDoneThisWeek ? '1px solid rgba(192,132,252,0.25)' : '1px solid rgba(168,85,247,0.15)'
                                 }}>
                                     <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
                                         <span style={{fontSize:'18px'}}>{m.icon}</span>
                                         <div>
-                                            <div style={{fontSize:'11px', fontWeight:700, color:'#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
+                                            <div style={{fontSize:'11px', fontWeight:700, color: isDoneThisWeek ? '#c084fc' : '#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
                                             <div style={{fontSize:'9px', color:'#c084fc', fontWeight:700}}>+{m.xp} XP</div>
                                         </div>
                                     </div>
-                                    <div style={{fontSize:'9px', color:'#4b5563', fontWeight:600, background:'rgba(255,255,255,0.05)', padding:'3px 8px', borderRadius:'5px'}}>
-                                        {lang==='ar'?'قريباً':'Soon'}
-                                    </div>
+                                    {isDoneThisWeek ? (
+                                        <div style={{fontSize:'9px', color:'#c084fc', fontWeight:700, background:'rgba(192,132,252,0.1)', padding:'3px 8px', borderRadius:'5px'}}>
+                                            ✓ {lang==='ar'?'مكتمل':'Done'}
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={async () => {
+                                                if (!user) return;
+                                                await usersCollection.doc(user.uid).update({
+                                                    [`funPass.seasons.${FUN_PASS_SEASON_ID}.missions.${m.id}`]: { lastWeekCompleted: weekStr },
+                                                    [`funPass.seasons.${FUN_PASS_SEASON_ID}.xp`]: firebase.firestore.FieldValue.increment(m.xp)
+                                                });
+                                                onNotification(`+${m.xp} XP! 🎉`);
+                                            }}
+                                            style={{fontSize:'9px', color:'#c084fc', fontWeight:700, background:'rgba(192,132,252,0.1)', padding:'3px 8px', borderRadius:'5px', border:'1px solid rgba(192,132,252,0.3)', cursor:'pointer'}}
+                                        >
+                                            {lang==='ar'?'استلم':'Claim'}
+                                        </button>
+                                    )}
                                 </div>
-                            ))}
+                                );
+                            })}
                         </>
                     )}
                 </div>
@@ -4180,7 +4279,71 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, is
 
 
 // ==========================================
-// 🎯 PROFILE V11 - NEW PREMIUM DESIGN COMPONENTS
+// ✨ PROFILE EFFECT COMPONENT
+// ==========================================
+const ProfileEffectOverlay = ({ effectId }) => {
+    const [particles, setParticles] = useState([]);
+    const [visible, setVisible] = useState(true);
+
+    const effect = SHOP_ITEMS.profileEffects?.find(e => e.id === effectId);
+    if (!effect) return null;
+
+    useEffect(() => {
+        if (!effect) return;
+        // Generate particles
+        const allParticles = [];
+        effect.particles.forEach(p => {
+            for (let i = 0; i < p.count; i++) {
+                allParticles.push({
+                    id: Math.random(),
+                    emoji: p.emoji,
+                    x: Math.random() * 100,
+                    delay: Math.random() * 1.2,
+                    size: 14 + Math.random() * 16,
+                    duration: 1.2 + Math.random() * 0.8,
+                });
+            }
+        });
+        setParticles(allParticles);
+        setVisible(true);
+        // Fade out after effect duration
+        const timer = setTimeout(() => setVisible(false), effect.duration || 2000);
+        return () => clearTimeout(timer);
+    }, [effectId]);
+
+    if (!visible) return null;
+
+    return (
+        <div style={{
+            position:'absolute', inset:0, pointerEvents:'none', overflow:'hidden',
+            zIndex:50, borderRadius:'inherit',
+        }}>
+            {particles.map(p => (
+                <div key={p.id} style={{
+                    position:'absolute',
+                    left: `${p.x}%`,
+                    top: '-10%',
+                    fontSize: `${p.size}px`,
+                    animation: `pe-fall ${p.duration}s ease-in ${p.delay}s forwards`,
+                    opacity: 0,
+                }}>
+                    {p.emoji}
+                </div>
+            ))}
+            <style>{`
+                @keyframes pe-fall {
+                    0%   { opacity:0; transform: translateY(0) rotate(0deg); }
+                    10%  { opacity:1; }
+                    80%  { opacity:0.8; }
+                    100% { opacity:0; transform: translateY(110vh) rotate(360deg); }
+                }
+            `}</style>
+        </div>
+    );
+};
+
+// ==========================================
+// 🎭 PROFILE V11 MAIN COMPONENT
 // ==========================================
 
 // 📊 WIN RATE CIRCLE COMPONENT
@@ -4314,9 +4477,40 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
             {selectedGiftDetail && (
                 <PortalModal>
                 <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.TOOLTIP,padding:'16px'}} onClick={() => setSelectedGiftDetail(null)}>
-                    <div className="gift-detail-modal animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="gift-detail-modal animate-pop" onClick={e => e.stopPropagation()} style={{
+                        border: `2px solid ${selectedGiftDetail.rarity.border}`,
+                        background: selectedGiftDetail.rKey === 'Mythic'
+                            ? 'linear-gradient(180deg,#1a0010,#0f0020)'
+                            : selectedGiftDetail.rKey === 'Legendary'
+                            ? 'linear-gradient(180deg,#1a1000,#0f0800)'
+                            : selectedGiftDetail.rKey === 'Epic'
+                            ? 'linear-gradient(180deg,#0e0a1a,#080512)'
+                            : selectedGiftDetail.rKey === 'Uncommon'
+                            ? 'linear-gradient(180deg,#001a0a,#000f06)'
+                            : 'linear-gradient(180deg,#0f0f1a,#080812)',
+                        boxShadow: selectedGiftDetail.rKey === 'Mythic'
+                            ? `0 0 40px rgba(255,0,85,0.6), 0 0 80px rgba(255,0,85,0.2), inset 0 0 30px rgba(255,0,85,0.05)`
+                            : selectedGiftDetail.rKey === 'Legendary'
+                            ? `0 0 30px rgba(245,158,11,0.5), 0 0 60px rgba(245,158,11,0.15)`
+                            : selectedGiftDetail.rKey === 'Epic'
+                            ? `0 0 24px rgba(168,85,247,0.4), 0 0 50px rgba(168,85,247,0.1)`
+                            : selectedGiftDetail.rKey === 'Uncommon'
+                            ? `0 0 20px rgba(74,222,128,0.3)`
+                            : `0 0 16px rgba(156,163,175,0.2)`,
+                        animation: selectedGiftDetail.rKey === 'Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none',
+                        position: 'relative', overflow: 'hidden'
+                    }}>
+                        {/* Rarity glow bar at top */}
+                        <div style={{
+                            position:'absolute', top:0, left:0, right:0, height:'3px',
+                            background: `linear-gradient(90deg, transparent, ${selectedGiftDetail.rarity.color}, transparent)`,
+                        }}/>
                         <button className="gift-detail-close" onClick={() => setSelectedGiftDetail(null)}>✕</button>
-                        <div className="gift-detail-emoji">{selectedGiftDetail.gift.emoji || '🎁'}</div>
+                        <div className="gift-detail-emoji" style={{
+                            filter: selectedGiftDetail.rKey === 'Mythic' ? 'drop-shadow(0 0 12px rgba(255,0,85,0.8))' :
+                                    selectedGiftDetail.rKey === 'Legendary' ? 'drop-shadow(0 0 10px rgba(245,158,11,0.7))' :
+                                    selectedGiftDetail.rKey === 'Epic' ? 'drop-shadow(0 0 8px rgba(168,85,247,0.6))' : 'none'
+                        }}>{selectedGiftDetail.gift.emoji || '🎁'}</div>
                         <div className="gift-detail-name">
                             {lang === 'ar' ? selectedGiftDetail.gift.name_ar : selectedGiftDetail.gift.name_en}
                         </div>
@@ -4350,7 +4544,6 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                                 {lang==='ar'?selectedGiftDetail.gift.desc_ar:selectedGiftDetail.gift.desc_en}
                             </div>
                         )}
-
                     </div>
                 </div>
                 </PortalModal>
@@ -4424,6 +4617,8 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
             case 'gifts_sent': current = userData?.giftsSent || 0; break;
             case 'charisma': current = userData?.charisma || 0; break;
             case 'friends': current = userData?.friends?.length || 0; break;
+            case 'moment_likes': current = userData?.totalMomentLikes || 0; break;
+            case 'comment_likes': current = userData?.totalCommentLikes || 0; break;
             default: current = 0;
         }
 
@@ -4441,6 +4636,8 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
             case 'gifts_sent': return userData?.giftsSent || 0;
             case 'charisma': return userData?.charisma || 0;
             case 'friends': return userData?.friends?.length || 0;
+            case 'moment_likes': return userData?.totalMomentLikes || 0;
+            case 'comment_likes': return userData?.totalCommentLikes || 0;
             default: return 0;
         }
     };
@@ -5823,8 +6020,8 @@ const ProfileV11 = ({
                     {/* Spacer on left to push buttons to right */}
                     <div style={{ flex: 1 }}></div>
                     
-                    {/* Three dots menu (only for other users) */}
-                    {!isOwnProfile && !isTargetGuest && (
+                    {/* Three dots menu (only for logged-in users viewing other users) */}
+                    {!isOwnProfile && !isTargetGuest && !isGuestViewer && (
                         <div className="profile-options-container" ref={optionsRef}>
                             <button 
                                 className="profile-options-btn"
@@ -5903,8 +6100,14 @@ const ProfileV11 = ({
                         backgroundImage: `url(${bannerURL})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
-                    } : {}}
+                        position: 'relative',
+                        overflow: 'hidden',
+                    } : { position: 'relative', overflow: 'hidden' }}
                 >
+                    {/* Profile Effect Overlay */}
+                    {targetData?.equipped?.profileEffects && (
+                        <ProfileEffectOverlay effectId={targetData.equipped.profileEffects} />
+                    )}
                     {/* Camera icon to change banner - only own profile */}
                     {isOwnProfile && (
                         <button
@@ -6047,7 +6250,19 @@ const ProfileV11 = ({
 
                         {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && (
                             <div className="profile-actions">
-                                {isAlreadyFriend ? (
+                                {isGuestViewer ? (
+                                    /* Guest user sees login prompt instead of action buttons */
+                                    <div style={{
+                                        width:'100%', padding:'12px', borderRadius:'12px',
+                                        background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)',
+                                        textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:'6px'
+                                    }}>
+                                        <span style={{fontSize:'22px'}}>🔐</span>
+                                        <span style={{fontSize:'11px', color:'#9ca3af', fontWeight:600}}>
+                                            {lang === 'ar' ? 'سجل الدخول لإضافة أصدقاء وإرسال الهدايا' : 'Login to add friends & send gifts'}
+                                        </span>
+                                    </div>
+                                ) : isAlreadyFriend ? (
                                     /* Already friends → show Chat button */
                                     <button
                                         onClick={() => {
@@ -6072,10 +6287,12 @@ const ProfileV11 = ({
                                         <span>{lang === 'ar' ? 'أضف صديق' : 'Add Friend'}</span>
                                     </button>
                                 )}
-                                <button onClick={() => setShowGiftModal(true)} className="profile-action-btn secondary">
-                                    <span>🎁</span>
-                                    <span>{lang === 'ar' ? 'أرسل هدية' : 'Send Gift'}</span>
-                                </button>
+                                {!isGuestViewer && (
+                                    <button onClick={() => setShowGiftModal(true)} className="profile-action-btn secondary">
+                                        <span>🎁</span>
+                                        <span>{lang === 'ar' ? 'أرسل هدية' : 'Send Gift'}</span>
+                                    </button>
+                                )}
                             </div>
                         )}
 
