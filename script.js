@@ -5845,6 +5845,14 @@ const ProfileV11 = ({
         });
     }, [show, targetUID, targetData]);
 
+    // Profile FX - must be before conditional return (Rules of Hooks)
+    const [effectKey, setEffectKey] = React.useState(0);
+    React.useEffect(() => {
+        if (show && targetData?.equipped?.profileEffects) {
+            setEffectKey(k => k + 1);
+        }
+    }, [show, targetUID, targetData?.equipped?.profileEffects]);
+
     if (!show) return null;
 
     const isOwnProfile = isOwnProfileOverride || targetUID === currentUserUID;
@@ -5907,14 +5915,6 @@ const ProfileV11 = ({
     const wins = targetData?.stats?.wins || 0;
     const losses = targetData?.stats?.losses || 0;
     const level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
-
-    // Trigger profile effect when profile opens
-    const [effectKey, setEffectKey] = React.useState(0);
-    React.useEffect(() => {
-        if (targetData?.equipped?.profileEffects) {
-            setEffectKey(k => k + 1);
-        }
-    }, [targetUID, targetData?.equipped?.profileEffects]);
 
     return (
         <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL}}>
