@@ -1587,6 +1587,9 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     const [isBlocked, setIsBlocked] = useState(false);
     const [blockedByTarget, setBlockedByTarget] = useState(false);
     const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState('');
+    const [reportSending, setReportSending] = useState(false);
     
     useEffect(() => {
         if (!show || !targetUID) { setLoading(true); return; }
@@ -1647,6 +1650,25 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
             console.error('Unblock error:', error);
         }
     };
+
+    const handleSendReport = async () => {
+        if (!reportReason || !currentUserUID || !targetUID) return;
+        setReportSending(true);
+        try {
+            await reportsCollection.add({
+                reportedUID: targetUID,
+                reportedName: targetData?.displayName || 'Unknown',
+                reporterUID: currentUserUID,
+                reason: reportReason,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                status: 'pending'
+            });
+            setShowReportModal(false);
+            setReportReason('');
+            setShowOptionsMenu(false);
+        } catch(e) { console.error('Report error:', e); }
+        setReportSending(false);
+    };
     
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -1670,11 +1692,15 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                                                 <span>{t.unblock}</span>
                                             </button>
                                         ) : (
-                                            <button onClick={() => setShowBlockConfirm(true)} className="option-item block">
+                                            <button onClick={() => { setShowBlockConfirm(true); setShowOptionsMenu(false); }} className="option-item block">
                                                 <span>🚫</span>
                                                 <span>{t.blockUser}</span>
                                             </button>
                                         )}
+                                        <button onClick={() => { setShowReportModal(true); setShowOptionsMenu(false); }} className="option-item" style={{color:'#f87171', borderTop:'1px solid rgba(255,255,255,0.07)'}}>
+                                            <span>🚨</span>
+                                            <span>{lang === 'ar' ? 'إبلاغ' : 'Report'}</span>
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -1781,6 +1807,43 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                 )}
 
                 {/* Block Confirmation Modal */}
+                {/* Report Modal */}
+                {showReportModal && (
+                    <div className="confirm-overlay" onClick={() => setShowReportModal(false)}>
+                        <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+                            <div className="confirm-icon">🚨</div>
+                            <div className="confirm-title">{lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'}</div>
+                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'10px', textAlign:'center'}}>
+                                {lang === 'ar' ? 'اختر سبب الإبلاغ:' : 'Select a reason:'}
+                            </div>
+                            <div style={{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'14px'}}>
+                                {[
+                                    {key:'abusive', ar:'سلوك مسيء', en:'Abusive Behavior'},
+                                    {key:'cheating', ar:'غش', en:'Cheating'},
+                                    {key:'spam', ar:'سبام', en:'Spam'},
+                                    {key:'other', ar:'سبب آخر', en:'Other'}
+                                ].map(r => (
+                                    <button key={r.key} onClick={() => setReportReason(r.key)}
+                                        style={{padding:'9px 12px', borderRadius:'8px', fontSize:'12px', textAlign:'start', cursor:'pointer', fontWeight:600,
+                                            background: reportReason === r.key ? 'rgba(112,0,255,0.3)' : 'rgba(255,255,255,0.05)',
+                                            border: reportReason === r.key ? '1.5px solid #7000ff' : '1px solid rgba(255,255,255,0.1)',
+                                            color: reportReason === r.key ? 'white' : '#9ca3af'
+                                        }}>
+                                        {lang === 'ar' ? r.ar : r.en}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="confirm-actions">
+                                <button onClick={() => { setShowReportModal(false); setReportReason(''); }} className="btn-ghost">{lang === 'ar' ? 'إلغاء' : 'Cancel'}</button>
+                                <button onClick={handleSendReport} disabled={!reportReason || reportSending} className="btn-danger"
+                                    style={{opacity: (!reportReason || reportSending) ? 0.5 : 1}}>
+                                    {reportSending ? '...' : (lang === 'ar' ? 'إرسال' : 'Submit')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {showBlockConfirm && (
                     <div className="confirm-overlay" onClick={() => setShowBlockConfirm(false)}>
                         <div className="confirm-modal" onClick={e => e.stopPropagation()}>
@@ -4271,7 +4334,7 @@ const ProfileV11 = ({
 
     if (!show) return null;
 
-    const isOwnProfile = targetUID === currentUserUID;
+    const isOwnProfile = isOwnProfileOverride || targetUID === currentUserUID;
     const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
     const isAlreadyFriend = currentUserFriends?.includes(targetUID);
     const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
