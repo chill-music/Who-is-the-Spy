@@ -178,10 +178,6 @@ const playRewardSound = () => playSound('reward');
 const playMessageSound = () => playSound('message');
 const playGiftSound = () => playSound('gift');
 
-// ==========================================
-// LOGIN REWARDS - 30 DAYS
-// ==========================================
-
 // ============================================================
 // 🎫 FUN PASS SYSTEM - 50 levels, daily/weekly missions
 // ============================================================
@@ -260,6 +256,10 @@ const FUN_PASS_WEEKLY_MISSIONS = [
   { id:'w4', icon:'📸', name_en:'Post 3 moments',    name_ar:'انشر 3 لحظات',       xp:220 },
   { id:'w5', icon:'👥', name_en:'Chat with 3 friends',name_ar:'كلم 3 أصدقاء',     xp:180 },
 ];
+
+// ==========================================
+// LOGIN REWARDS - 30 DAYS
+// ==========================================
 
 const LOGIN_REWARDS = [
     { day: 1, type: 'currency', amount: 100, icon: '🧠', iconUrl: '', name_en: '100 Intel', name_ar: '100 إنتل' },
@@ -6455,3 +6455,4 @@ const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
+
