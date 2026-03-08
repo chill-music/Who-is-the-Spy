@@ -181,6 +181,86 @@ const playGiftSound = () => playSound('gift');
 // ==========================================
 // LOGIN REWARDS - 30 DAYS
 // ==========================================
+
+// ============================================================
+// 🎫 FUN PASS SYSTEM - 50 levels, daily/weekly missions
+// ============================================================
+const FUN_PASS_PRICE = 2000; // Cost in Intel to buy Fun Pass
+
+const FUN_PASS_LEVELS = [
+  // level, xpRequired, free reward, premium reward
+  // free: {type, icon, name_en, name_ar, amount?, itemId?, rarity?}
+  // premium: {type, icon, name_en, name_ar, amount?, itemId?, rarity?}
+  { level:1,  xp:0,    free:{type:'currency',icon:'🧠',name_en:'200 Intel',name_ar:'200 إنتل',amount:200},                           premium:{type:'currency',icon:'🧠',name_en:'500 Intel',name_ar:'500 إنتل',amount:500} },
+  { level:2,  xp:100,  free:{type:'currency',icon:'🧠',name_en:'250 Intel',name_ar:'250 إنتل',amount:250},                           premium:{type:'badge',icon:'🔰',name_en:'Rookie Badge',name_ar:'شارة مبتدئ',itemId:'fp_badge_rookie',rarity:'Common'} },
+  { level:3,  xp:250,  free:{type:'currency',icon:'🧠',name_en:'300 Intel',name_ar:'300 إنتل',amount:300},                           premium:{type:'currency',icon:'🧠',name_en:'700 Intel',name_ar:'700 إنتل',amount:700} },
+  { level:4,  xp:450,  free:{type:'badge',icon:'⚡',name_en:'Speed Badge',name_ar:'شارة السرعة',itemId:'fp_badge_speed',rarity:'Common'}, premium:{type:'currency',icon:'🧠',name_en:'900 Intel',name_ar:'900 إنتل',amount:900} },
+  { level:5,  xp:700,  free:{type:'currency',icon:'🧠',name_en:'400 Intel',name_ar:'400 إنتل',amount:400},                           premium:{type:'frame',icon:'🖼️',name_en:'Neon Frame',name_ar:'إطار نيون',itemId:'fp_frame_neon',rarity:'Rare'} },
+  { level:6,  xp:1000, free:{type:'currency',icon:'🧠',name_en:'450 Intel',name_ar:'450 إنتل',amount:450},                           premium:{type:'currency',icon:'🧠',name_en:'1000 Intel',name_ar:'1000 إنتل',amount:1000} },
+  { level:7,  xp:1400, free:{type:'title',icon:'🕵️',name_en:'Agent Title',name_ar:'لقب عميل',itemId:'fp_title_agent',rarity:'Rare'},  premium:{type:'currency',icon:'🧠',name_en:'1100 Intel',name_ar:'1100 إنتل',amount:1100} },
+  { level:8,  xp:1850, free:{type:'currency',icon:'🧠',name_en:'500 Intel',name_ar:'500 إنتل',amount:500},                           premium:{type:'badge',icon:'💎',name_en:'Diamond Badge',name_ar:'شارة ألماس',itemId:'fp_badge_diamond',rarity:'Epic'} },
+  { level:9,  xp:2350, free:{type:'currency',icon:'🧠',name_en:'550 Intel',name_ar:'550 إنتل',amount:550},                           premium:{type:'currency',icon:'🧠',name_en:'1200 Intel',name_ar:'1200 إنتل',amount:1200} },
+  { level:10, xp:2900, free:{type:'frame',icon:'🌟',name_en:'Star Frame',name_ar:'إطار نجمة',itemId:'fp_frame_star',rarity:'Epic'},    premium:{type:'title',icon:'🌟',name_en:'Star Title',name_ar:'لقب نجمة',itemId:'fp_title_star',rarity:'Epic'} },
+  { level:11, xp:3500, free:{type:'currency',icon:'🧠',name_en:'600 Intel',name_ar:'600 إنتل',amount:600},                           premium:{type:'currency',icon:'🧠',name_en:'1300 Intel',name_ar:'1300 إنتل',amount:1300} },
+  { level:12, xp:4200, free:{type:'badge',icon:'🔥',name_en:'Fire Badge',name_ar:'شارة النار',itemId:'fp_badge_fire',rarity:'Epic'},   premium:{type:'currency',icon:'🧠',name_en:'1400 Intel',name_ar:'1400 إنتل',amount:1400} },
+  { level:13, xp:5000, free:{type:'currency',icon:'🧠',name_en:'700 Intel',name_ar:'700 إنتل',amount:700},                           premium:{type:'frame',icon:'💠',name_en:'Crystal Frame',name_ar:'إطار كريستال',itemId:'fp_frame_crystal',rarity:'Epic'} },
+  { level:14, xp:5900, free:{type:'currency',icon:'🧠',name_en:'750 Intel',name_ar:'750 إنتل',amount:750},                           premium:{type:'currency',icon:'🧠',name_en:'1500 Intel',name_ar:'1500 إنتل',amount:1500} },
+  { level:15, xp:6900, free:{type:'title',icon:'⚔️',name_en:'Warrior Title',name_ar:'لقب محارب',itemId:'fp_title_warrior',rarity:'Epic'}, premium:{type:'badge',icon:'🏆',name_en:'Champion Badge',name_ar:'شارة بطل',itemId:'fp_badge_champion',rarity:'Epic'} },
+  { level:16, xp:8000, free:{type:'currency',icon:'🧠',name_en:'800 Intel',name_ar:'800 إنتل',amount:800},                           premium:{type:'currency',icon:'🧠',name_en:'1700 Intel',name_ar:'1700 إنتل',amount:1700} },
+  { level:17, xp:9200, free:{type:'currency',icon:'🧠',name_en:'850 Intel',name_ar:'850 إنتل',amount:850},                           premium:{type:'frame',icon:'🌀',name_en:'Vortex Frame',name_ar:'إطار دوامة',itemId:'fp_frame_vortex',rarity:'Epic'} },
+  { level:18, xp:10500,free:{type:'badge',icon:'🎯',name_en:'Sniper Badge',name_ar:'شارة القناص',itemId:'fp_badge_sniper',rarity:'Epic'}, premium:{type:'currency',icon:'🧠',name_en:'1800 Intel',name_ar:'1800 إنتل',amount:1800} },
+  { level:19, xp:12000,free:{type:'currency',icon:'🧠',name_en:'900 Intel',name_ar:'900 إنتل',amount:900},                           premium:{type:'title',icon:'👁️',name_en:'Eye Title',name_ar:'لقب العين',itemId:'fp_title_eye',rarity:'Epic'} },
+  { level:20, xp:13700,free:{type:'frame',icon:'👑',name_en:'Gold Frame',name_ar:'إطار ذهبي',itemId:'fp_frame_gold',rarity:'Legendary'}, premium:{type:'currency',icon:'🧠',name_en:'2000 Intel',name_ar:'2000 إنتل',amount:2000} },
+  { level:21, xp:15600,free:{type:'currency',icon:'🧠',name_en:'950 Intel',name_ar:'950 إنتل',amount:950},                           premium:{type:'badge',icon:'⭐',name_en:'Legend Badge',name_ar:'شارة أسطورية',itemId:'fp_badge_legend',rarity:'Legendary'} },
+  { level:22, xp:17600,free:{type:'currency',icon:'🧠',name_en:'1000 Intel',name_ar:'1000 إنتل',amount:1000},                        premium:{type:'frame',icon:'🌙',name_en:'Moon Frame',name_ar:'إطار القمر',itemId:'fp_frame_moon',rarity:'Legendary'} },
+  { level:23, xp:19800,free:{type:'title',icon:'🌙',name_en:'Shadow Title',name_ar:'لقب الظل',itemId:'fp_title_shadow',rarity:'Legendary'}, premium:{type:'currency',icon:'🧠',name_en:'2200 Intel',name_ar:'2200 إنتل',amount:2200} },
+  { level:24, xp:22200,free:{type:'currency',icon:'🧠',name_en:'1100 Intel',name_ar:'1100 إنتل',amount:1100},                        premium:{type:'badge',icon:'🌌',name_en:'Galaxy Badge',name_ar:'شارة المجرة',itemId:'fp_badge_galaxy',rarity:'Legendary'} },
+  { level:25, xp:24800,free:{type:'badge',icon:'🏅',name_en:'Gold Badge',name_ar:'شارة ذهبية',itemId:'fp_badge_gold',rarity:'Legendary'}, premium:{type:'title',icon:'🏅',name_en:'Gold Title',name_ar:'لقب ذهبي',itemId:'fp_title_gold',rarity:'Legendary'} },
+  { level:26, xp:27600,free:{type:'currency',icon:'🧠',name_en:'1200 Intel',name_ar:'1200 إنتل',amount:1200},                        premium:{type:'frame',icon:'🔥',name_en:'Inferno Frame',name_ar:'إطار جهنم',itemId:'fp_frame_inferno',rarity:'Legendary'} },
+  { level:27, xp:30600,free:{type:'currency',icon:'🧠',name_en:'1300 Intel',name_ar:'1300 إنتل',amount:1300},                        premium:{type:'currency',icon:'🧠',name_en:'2500 Intel',name_ar:'2500 إنتل',amount:2500} },
+  { level:28, xp:33800,free:{type:'frame',icon:'⚡',name_en:'Thunder Frame',name_ar:'إطار الرعد',itemId:'fp_frame_thunder',rarity:'Legendary'}, premium:{type:'badge',icon:'⚡',name_en:'Thunder Badge',name_ar:'شارة الرعد',itemId:'fp_badge_thunder',rarity:'Legendary'} },
+  { level:29, xp:37200,free:{type:'currency',icon:'🧠',name_en:'1400 Intel',name_ar:'1400 إنتل',amount:1400},                        premium:{type:'title',icon:'🌊',name_en:'Ocean Title',name_ar:'لقب المحيط',itemId:'fp_title_ocean',rarity:'Legendary'} },
+  { level:30, xp:40800,free:{type:'title',icon:'👑',name_en:'King Title',name_ar:'لقب الملك',itemId:'fp_title_king',rarity:'Legendary'}, premium:{type:'frame',icon:'💀',name_en:'Skull Frame',name_ar:'إطار الجمجمة',itemId:'fp_frame_skull',rarity:'Legendary'} },
+  { level:31, xp:44600,free:{type:'currency',icon:'🧠',name_en:'1500 Intel',name_ar:'1500 إنتل',amount:1500},                        premium:{type:'currency',icon:'🧠',name_en:'2800 Intel',name_ar:'2800 إنتل',amount:2800} },
+  { level:32, xp:48600,free:{type:'badge',icon:'🔮',name_en:'Mystic Badge',name_ar:'شارة غامضة',itemId:'fp_badge_mystic',rarity:'Legendary'}, premium:{type:'frame',icon:'🔮',name_en:'Mystic Frame',name_ar:'إطار غامض',itemId:'fp_frame_mystic',rarity:'Legendary'} },
+  { level:33, xp:52900,free:{type:'currency',icon:'🧠',name_en:'1600 Intel',name_ar:'1600 إنتل',amount:1600},                        premium:{type:'title',icon:'🔥',name_en:'Flame Title',name_ar:'لقب اللهب',itemId:'fp_title_flame',rarity:'Legendary'} },
+  { level:34, xp:57400,free:{type:'currency',icon:'🧠',name_en:'1700 Intel',name_ar:'1700 إنتل',amount:1700},                        premium:{type:'badge',icon:'💥',name_en:'Blast Badge',name_ar:'شارة الانفجار',itemId:'fp_badge_blast',rarity:'Legendary'} },
+  { level:35, xp:62200,free:{type:'frame',icon:'🌈',name_en:'Rainbow Frame',name_ar:'إطار قوس قزح',itemId:'fp_frame_rainbow',rarity:'Legendary'}, premium:{type:'title',icon:'🌈',name_en:'Rainbow Title',name_ar:'لقب قوس قزح',itemId:'fp_title_rainbow',rarity:'Legendary'} },
+  { level:36, xp:67200,free:{type:'currency',icon:'🧠',name_en:'1800 Intel',name_ar:'1800 إنتل',amount:1800},                        premium:{type:'currency',icon:'🧠',name_en:'3000 Intel',name_ar:'3000 إنتل',amount:3000} },
+  { level:37, xp:72500,free:{type:'badge',icon:'🌑',name_en:'Dark Badge',name_ar:'شارة الظلام',itemId:'fp_badge_dark',rarity:'Legendary'}, premium:{type:'frame',icon:'🌑',name_en:'Dark Frame',name_ar:'إطار الظلام',itemId:'fp_frame_dark',rarity:'Legendary'} },
+  { level:38, xp:78100,free:{type:'currency',icon:'🧠',name_en:'2000 Intel',name_ar:'2000 إنتل',amount:2000},                        premium:{type:'title',icon:'👁️',name_en:'Watcher Title',name_ar:'لقب الراصد',itemId:'fp_title_watcher',rarity:'Legendary'} },
+  { level:39, xp:84000,free:{type:'currency',icon:'🧠',name_en:'2100 Intel',name_ar:'2100 إنتل',amount:2100},                        premium:{type:'badge',icon:'🏹',name_en:'Arrow Badge',name_ar:'شارة السهم',itemId:'fp_badge_arrow',rarity:'Legendary'} },
+  { level:40, xp:90200,free:{type:'title',icon:'🔮',name_en:'Mystic Title',name_ar:'لقب الغموض',itemId:'fp_title_mystic',rarity:'Mythic'}, premium:{type:'frame',icon:'🔮',name_en:'Mythic Frame',name_ar:'إطار خرافي',itemId:'fp_frame_mythic',rarity:'Mythic'} },
+  { level:41, xp:96800,free:{type:'currency',icon:'🧠',name_en:'2200 Intel',name_ar:'2200 إنتل',amount:2200},                        premium:{type:'currency',icon:'🧠',name_en:'3500 Intel',name_ar:'3500 إنتل',amount:3500} },
+  { level:42, xp:103700,free:{type:'badge',icon:'💠',name_en:'Prism Badge',name_ar:'شارة المنشور',itemId:'fp_badge_prism',rarity:'Mythic'}, premium:{type:'frame',icon:'💠',name_en:'Prism Frame',name_ar:'إطار المنشور',itemId:'fp_frame_prism',rarity:'Mythic'} },
+  { level:43, xp:110900,free:{type:'currency',icon:'🧠',name_en:'2400 Intel',name_ar:'2400 إنتل',amount:2400},                       premium:{type:'title',icon:'💠',name_en:'Prism Title',name_ar:'لقب المنشور',itemId:'fp_title_prism',rarity:'Mythic'} },
+  { level:44, xp:118500,free:{type:'currency',icon:'🧠',name_en:'2600 Intel',name_ar:'2600 إنتل',amount:2600},                       premium:{type:'badge',icon:'🌀',name_en:'Void Badge',name_ar:'شارة الفراغ',itemId:'fp_badge_void',rarity:'Mythic'} },
+  { level:45, xp:126500,free:{type:'frame',icon:'🌀',name_en:'Void Frame',name_ar:'إطار الفراغ',itemId:'fp_frame_void',rarity:'Mythic'}, premium:{type:'title',icon:'🌀',name_en:'Void Title',name_ar:'لقب الفراغ',itemId:'fp_title_void',rarity:'Mythic'} },
+  { level:46, xp:134900,free:{type:'currency',icon:'🧠',name_en:'2800 Intel',name_ar:'2800 إنتل',amount:2800},                       premium:{type:'currency',icon:'🧠',name_en:'4000 Intel',name_ar:'4000 إنتل',amount:4000} },
+  { level:47, xp:143700,free:{type:'badge',icon:'🔥',name_en:'Phoenix Badge',name_ar:'شارة الفينيكس',itemId:'fp_badge_phoenix',rarity:'Mythic'}, premium:{type:'frame',icon:'🔥',name_en:'Phoenix Frame',name_ar:'إطار الفينيكس',itemId:'fp_frame_phoenix',rarity:'Mythic'} },
+  { level:48, xp:152900,free:{type:'currency',icon:'🧠',name_en:'3000 Intel',name_ar:'3000 إنتل',amount:3000},                       premium:{type:'title',icon:'🔥',name_en:'Phoenix Title',name_ar:'لقب الفينيكس',itemId:'fp_title_phoenix',rarity:'Mythic'} },
+  { level:49, xp:162600,free:{type:'currency',icon:'🧠',name_en:'3200 Intel',name_ar:'3200 إنتل',amount:3200},                       premium:{type:'badge',icon:'🌟',name_en:'Nova Badge',name_ar:'شارة النجم المتفجر',itemId:'fp_badge_nova',rarity:'Mythic'} },
+  { level:50, xp:172700,free:{type:'frame',icon:'🌟',name_en:'Nova Frame',name_ar:'إطار النجم المتفجر',itemId:'fp_frame_nova',rarity:'Mythic'}, premium:{type:'title',icon:'🔱',name_en:'GOD Title',name_ar:'لقب الإله',itemId:'fp_title_god',rarity:'Mythic'} },
+];
+
+const FUN_PASS_DAILY_MISSIONS = [
+  { id:'d1', icon:'🎮', name_en:'Play 1 game',       name_ar:'العب لعبة واحدة',    xp:30  },
+  { id:'d2', icon:'🏆', name_en:'Win 1 game',        name_ar:'اربح لعبة واحدة',    xp:60  },
+  { id:'d3', icon:'🕵️', name_en:'Play as Spy',      name_ar:'العب كجاسوس',        xp:50  },
+  { id:'d4', icon:'💬', name_en:'Send a gift',       name_ar:'أرسل هدية',          xp:40  },
+  { id:'d5', icon:'👥', name_en:'Add a friend',      name_ar:'أضف صديق',           xp:35  },
+  { id:'d6', icon:'📸', name_en:'Post a moment',     name_ar:'انشر لحظة',          xp:45  },
+  { id:'d7', icon:'🗨️', name_en:'Comment on moment',name_ar:'علق على لحظة',       xp:25  },
+];
+
+const FUN_PASS_WEEKLY_MISSIONS = [
+  { id:'w1', icon:'🎮', name_en:'Play 10 games',     name_ar:'العب 10 ألعاب',      xp:200 },
+  { id:'w2', icon:'🏆', name_en:'Win 5 games',       name_ar:'اربح 5 ألعاب',       xp:300 },
+  { id:'w3', icon:'🎁', name_en:'Send 5 gifts',      name_ar:'أرسل 5 هدايا',       xp:250 },
+  { id:'w4', icon:'📸', name_en:'Post 3 moments',    name_ar:'انشر 3 لحظات',       xp:220 },
+  { id:'w5', icon:'👥', name_en:'Chat with 3 friends',name_ar:'كلم 3 أصدقاء',     xp:180 },
+];
+
 const LOGIN_REWARDS = [
     { day: 1, type: 'currency', amount: 100, icon: '🧠', iconUrl: '', name_en: '100 Intel', name_ar: '100 إنتل' },
     { day: 2, type: 'currency', amount: 150, icon: '🧠', iconUrl: '', name_en: '150 Intel', name_ar: '150 إنتل' },
@@ -1432,7 +1512,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                     const rarity = RARITY_CONFIG[rKey];
                                     return (
                                         <div key={item.id} className="gift-card" onClick={() => { setSelectedItem(item); setShowPreview(true); }}
-                                            style={{ border: `1.5px solid ${rarity.border}`, background: rarity.bg, boxShadow: rarity.glow ? `0 0 8px ${rarity.color}55` : 'none', position:'relative' }}
+                                            style={{ border: `1.5px solid ${rarity.border}`, background: rarity.bg, boxShadow: rarity.glow && rKey === 'Mythic' ? `0 0 14px rgba(255,0,85,0.7), 0 0 30px rgba(255,0,85,0.3)` : rarity.glow ? `0 0 8px ${rarity.color}55` : 'none', position:'relative', animation: rKey==='Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none' }}
                                         >
                                             <span className="gift-rarity-badge" style={{ background: rarity.color }}>{rarity.icon}</span>
                                             {item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="gift-icon-img" /> : <div className="text-xl mb-1">{item.emoji}</div>}
@@ -1947,8 +2027,10 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
     const [inputText, setInputText] = useState('');
     const [sending, setSending] = useState(false);
 
-    // Use personal chat doc: userId_self
-    const selfChatId = currentUser?.uid ? `${currentUser.uid}_self` : null;
+    const uid = currentUser?.uid || null;
+    const selfChatId = uid ? `${uid}_self` : null;
+    const displayName = currentUser?.displayName || userData?.displayName || (lang==='ar'?'أنا':'Me');
+    const photoURL = currentUser?.photoURL || userData?.photoURL || null;
 
     useEffect(() => {
         if (!show || !selfChatId) return;
@@ -1964,25 +2046,30 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
     }, [show, selfChatId]);
 
     const sendNote = async () => {
-        if (!inputText.trim() || !selfChatId || sending) return;
+        if (!inputText.trim() || !selfChatId || sending || !uid) return;
         setSending(true);
         try {
             const chatRef = chatsCollection.doc(selfChatId);
-            await chatRef.set({ 
-                participants: [currentUser.uid, currentUser.uid],
+            // Fix: never pass undefined - use explicit null for missing fields
+            await chatRef.set({
+                participants: [uid, uid],
                 type: 'self',
                 lastMessage: inputText.trim(),
-                lastAt: firebase.firestore.FieldValue.serverTimestamp()
+                lastAt: firebase.firestore.FieldValue.serverTimestamp(),
+                ownerUID: uid,
+                ownerName: displayName,
+                ownerPhoto: photoURL || null
             }, { merge: true });
             await chatRef.collection('messages').add({
                 text: inputText.trim(),
-                senderId: currentUser.uid,
-                senderName: currentUser.displayName || 'Me',
+                senderId: uid,
+                senderName: displayName,
+                senderPhoto: photoURL || null,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 type: 'note'
             });
             setInputText('');
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error('Send error:', e); }
         setSending(false);
     };
 
@@ -2001,37 +2088,39 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
                 onClick={e => e.stopPropagation()}
                 style={{
                     background:'linear-gradient(180deg,#1a1a2e,#0f0f1a)',
-                    border:'1px solid rgba(0,242,255,0.25)',
+                    border:'1px solid rgba(0,242,255,0.2)',
                     borderRadius:'18px',
                     width:'100%',
-                    maxWidth:'380px',
-                    maxHeight:'85vh',
+                    maxWidth:'400px',
+                    maxHeight:'88vh',
                     display:'flex',
                     flexDirection:'column',
                     overflow:'hidden',
-                    boxShadow:'0 20px 60px rgba(0,0,0,0.8)'
+                    boxShadow:'0 20px 60px rgba(0,0,0,0.9)'
                 }}
             >
-                {/* Header */}
+                {/* Header - like a real chat with profile photo */}
                 <div style={{
                     display:'flex', alignItems:'center', justifyContent:'space-between',
-                    padding:'14px 16px',
-                    background:'linear-gradient(135deg,rgba(0,242,255,0.08),rgba(112,0,255,0.08))',
-                    borderBottom:'1px solid rgba(255,255,255,0.07)'
+                    padding:'12px 14px',
+                    background:'linear-gradient(135deg,rgba(0,10,30,0.9),rgba(20,0,40,0.9))',
+                    borderBottom:'1px solid rgba(255,255,255,0.06)'
                 }}>
                     <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                        <div style={{
-                            width:'38px', height:'38px', borderRadius:'50%',
-                            background:'linear-gradient(135deg,#00f2ff,#7000ff)',
-                            display:'flex', alignItems:'center', justifyContent:'center',
-                            fontSize:'18px', boxShadow:'0 0 12px rgba(0,242,255,0.4)'
-                        }}>📝</div>
+                        <div style={{position:'relative'}}>
+                            <img
+                                src={photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=7000ff&color=fff&size=80`}
+                                alt=""
+                                style={{width:'42px',height:'42px',borderRadius:'50%',objectFit:'cover',border:'2px solid rgba(0,242,255,0.4)'}}
+                            />
+                            <div style={{position:'absolute',bottom:'1px',right:'1px',width:'10px',height:'10px',borderRadius:'50%',background:'#4ade80',border:'2px solid #0f0f1a'}}/>
+                        </div>
                         <div>
-                            <div style={{fontSize:'13px', fontWeight:800, color:'white'}}>
-                                {lang==='ar' ? 'ملاحظاتي الشخصية' : 'My Personal Notes'}
+                            <div style={{fontSize:'14px', fontWeight:800, color:'white'}}>
+                                {displayName}
                             </div>
-                            <div style={{fontSize:'10px', color:'#6b7280'}}>
-                                {lang==='ar' ? 'أنت فقط من يشوف هذا' : 'Only you can see this'}
+                            <div style={{fontSize:'10px', color:'#4ade80', fontWeight:600}}>
+                                {lang==='ar' ? '● شاتي الشخصي' : '● My Personal Chat'}
                             </div>
                         </div>
                     </div>
@@ -2039,11 +2128,11 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
                 </div>
 
                 {/* Messages */}
-                <div style={{flex:1, overflowY:'auto', padding:'12px 14px', display:'flex', flexDirection:'column', gap:'10px'}}>
+                <div style={{flex:1, overflowY:'auto', padding:'12px 14px', display:'flex', flexDirection:'column', gap:'10px', background:'rgba(0,0,0,0.2)'}}>
                     {messages.length === 0 && (
-                        <div style={{textAlign:'center', marginTop:'40px', color:'#4b5563'}}>
-                            <div style={{fontSize:'36px', marginBottom:'8px'}}>📝</div>
-                            <div style={{fontSize:'12px'}}>{lang==='ar' ? 'ابدأ كتابة ملاحظاتك...' : 'Start writing your notes...'}</div>
+                        <div style={{textAlign:'center', marginTop:'50px', color:'#4b5563'}}>
+                            <div style={{fontSize:'40px', marginBottom:'8px'}}>💬</div>
+                            <div style={{fontSize:'12px', color:'#6b7280'}}>{lang==='ar' ? 'ابدأ محادثتك...' : 'Start chatting...'}</div>
                         </div>
                     )}
                     {messages.map(msg => (
@@ -2112,6 +2201,344 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
                     >
                         {sending ? '...' : '➤'}
                     </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// ============================================================
+// 🎫 FUN PASS MODAL COMPONENT
+// ============================================================
+const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) => {
+    const [activeTab, setActiveTab] = useState('pass'); // 'pass' | 'missions'
+    const [buying, setBuying] = useState(false);
+    const [claiming, setClaiming] = useState(null);
+
+    // All hooks before early return
+    const fp = userData?.funPass || {};
+    const hasPremium = fp.premium === true;
+    const currentXP = fp.xp || 0;
+    const claimedFree = fp.claimedFree || [];
+    const claimedPremium = fp.claimedPremium || [];
+    const currency = userData?.currency || 0;
+
+    // Find current level (last level where xp >= xpRequired)
+    const currentLevel = FUN_PASS_LEVELS.reduce((acc, lv) => (currentXP >= lv.xp ? lv.level : acc), 0);
+    const nextLevel = FUN_PASS_LEVELS.find(lv => lv.level === currentLevel + 1);
+    const xpForNext = nextLevel ? nextLevel.xp : null;
+    const progressPct = xpForNext ? Math.min(100, Math.round(((currentXP - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0)) / (xpForNext - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0))) * 100)) : 100;
+
+    if (!show) return null;
+
+    const handleBuyPremium = async () => {
+        if (!user || hasPremium || buying) return;
+        if (currency < FUN_PASS_PRICE) { onNotification(lang==='ar'?'إنتل غير كافٍ!':'Not enough Intel!'); return; }
+        setBuying(true);
+        try {
+            await usersCollection.doc(user.uid).update({
+                currency: firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE),
+                'funPass.premium': true
+            });
+            onNotification(lang==='ar'?'🎫 تم شراء Fun Pass!':'🎫 Fun Pass purchased!');
+        } catch(e) { console.error(e); onNotification(lang==='ar'?'خطأ':'Error'); }
+        setBuying(false);
+    };
+
+    const handleClaim = async (level, type) => {
+        if (!user || claiming) return;
+        const key = `${type}_${level}`;
+        const alreadyClaimed = type === 'free' ? claimedFree.includes(level) : claimedPremium.includes(level);
+        if (alreadyClaimed) return;
+        if (type === 'premium' && !hasPremium) { onNotification(lang==='ar'?'اشترِ Fun Pass أولاً':'Buy Fun Pass first'); return; }
+        if (currentLevel < level) { onNotification(lang==='ar'?'لم تصل لهذا المستوى بعد':'Level not reached yet'); return; }
+        const lvData = FUN_PASS_LEVELS.find(l => l.level === level);
+        const reward = type === 'free' ? lvData.free : lvData.premium;
+        setClaiming(key);
+        try {
+            const updates = {};
+            if (reward.type === 'currency') {
+                updates.currency = firebase.firestore.FieldValue.increment(reward.amount);
+            } else if (reward.type === 'frame') {
+                updates['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+            } else if (reward.type === 'badge') {
+                updates['inventory.badges'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+            } else if (reward.type === 'title') {
+                updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+            }
+            if (type === 'free') {
+                updates['funPass.claimedFree'] = firebase.firestore.FieldValue.arrayUnion(level);
+            } else {
+                updates['funPass.claimedPremium'] = firebase.firestore.FieldValue.arrayUnion(level);
+            }
+            await usersCollection.doc(user.uid).update(updates);
+            onNotification(`${lang==='ar'?'تم استلام':'Claimed'} ${lang==='ar'?reward.name_ar:reward.name_en}! 🎉`);
+        } catch(e) { console.error(e); }
+        setClaiming(null);
+    };
+
+    const getRarityStyle = (rarity) => {
+        const r = RARITY_CONFIG[rarity] || RARITY_CONFIG['Common'];
+        return { border: `1px solid ${r.border}`, background: r.bg, color: r.color };
+    };
+    const isMythic = (rarity) => rarity === 'Mythic';
+
+    return (
+        <div className="modal-overlay" onClick={onClose} style={{zIndex:12000}}>
+            <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
+                background:'linear-gradient(180deg,#0a0a1a,#0f0f1e)',
+                border:'1px solid rgba(255,215,0,0.25)',
+                borderRadius:'18px', width:'100%', maxWidth:'420px',
+                maxHeight:'90vh', display:'flex', flexDirection:'column', overflow:'hidden',
+                boxShadow:'0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(255,215,0,0.05)'
+            }}>
+                {/* Header */}
+                <div style={{
+                    padding:'14px 16px',
+                    background:'linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,136,0,0.08))',
+                    borderBottom:'1px solid rgba(255,215,0,0.15)',
+                    display:'flex', alignItems:'center', justifyContent:'space-between'
+                }}>
+                    <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                        <div style={{fontSize:'28px'}}>🎫</div>
+                        <div>
+                            <div style={{fontSize:'16px', fontWeight:900, background:'linear-gradient(135deg,#ffd700,#ff8800)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>
+                                FUN PASS
+                            </div>
+                            <div style={{fontSize:'9px', color:'#6b7280'}}>
+                                {lang==='ar'?'مستوى':'Level'} {currentLevel}/50 · {currentXP} XP
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                        {!hasPremium && (
+                            <button onClick={handleBuyPremium} disabled={buying || currency < FUN_PASS_PRICE} style={{
+                                padding:'6px 12px', borderRadius:'8px', fontSize:'11px', fontWeight:800, cursor:'pointer', border:'none',
+                                background: currency >= FUN_PASS_PRICE ? 'linear-gradient(135deg,#ffd700,#ff8800)' : 'rgba(100,100,100,0.2)',
+                                color: currency >= FUN_PASS_PRICE ? '#000' : '#6b7280',
+                                opacity: buying ? 0.6 : 1
+                            }}>
+                                {buying ? '...' : `🎫 ${FUN_PASS_PRICE}🧠`}
+                            </button>
+                        )}
+                        {hasPremium && (
+                            <div style={{background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,136,0,0.15))', border:'1px solid rgba(255,215,0,0.4)', borderRadius:'8px', padding:'4px 10px', fontSize:'11px', color:'#ffd700', fontWeight:800}}>
+                                ✓ PREMIUM
+                            </div>
+                        )}
+                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'28px',height:'28px',cursor:'pointer'}}>✕</button>
+                    </div>
+                </div>
+
+                {/* XP Progress Bar */}
+                <div style={{padding:'8px 16px', background:'rgba(0,0,0,0.3)', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#6b7280', marginBottom:'4px'}}>
+                        <span>XP: {currentXP}</span>
+                        <span>{xpForNext ? `${lang==='ar'?'التالي:':'Next:'} ${xpForNext} XP` : (lang==='ar'?'المستوى الأقصى!':'Max Level!')}</span>
+                    </div>
+                    <div style={{height:'6px', background:'rgba(255,255,255,0.08)', borderRadius:'3px', overflow:'hidden'}}>
+                        <div style={{
+                            height:'100%', borderRadius:'3px', transition:'width 0.5s ease',
+                            width:`${xpForNext ? progressPct : 100}%`,
+                            background:'linear-gradient(90deg,#ffd700,#ff8800)'
+                        }}/>
+                    </div>
+                </div>
+
+                {/* Tabs */}
+                <div style={{display:'flex', borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+                    {[
+                        {id:'pass',     icon:'🎫', ar:'التمرير',  en:'Pass'},
+                        {id:'missions', icon:'📋', ar:'المهمات',  en:'Missions'},
+                    ].map(tab => (
+                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+                            flex:1, padding:'10px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none',
+                            background: activeTab===tab.id ? 'rgba(255,215,0,0.1)' : 'transparent',
+                            color: activeTab===tab.id ? '#ffd700' : '#6b7280',
+                            borderBottom: activeTab===tab.id ? '2px solid #ffd700' : '2px solid transparent'
+                        }}>
+                            {tab.icon} {lang==='ar'?tab.ar:tab.en}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Content */}
+                <div style={{flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px'}}>
+                    {activeTab === 'pass' && (
+                        <>
+                            {/* Legend */}
+                            <div style={{display:'flex', gap:'10px', padding:'6px 0', fontSize:'9px', color:'#6b7280'}}>
+                                <span>⬆️ {lang==='ar'?'مجاني':'Free'}</span>
+                                <span style={{color:'#ffd700'}}>🎫 {lang==='ar'?'بريميوم':'Premium'}</span>
+                                <span style={{color:'#4ade80'}}>✓ {lang==='ar'?'مستلم':'Claimed'}</span>
+                                <span style={{color:'#3b82f6'}}>🔵 {lang==='ar'?'حالي':'Current'}</span>
+                            </div>
+                            {FUN_PASS_LEVELS.map(lv => {
+                                const isReached = currentLevel >= lv.level;
+                                const isCurrent = currentLevel === lv.level - 1 && lv.level <= 50;
+                                const freeClaimable = isReached && !claimedFree.includes(lv.level);
+                                const premClaimable = isReached && hasPremium && !claimedPremium.includes(lv.level);
+                                const freeKey = `free_${lv.level}`;
+                                const premKey = `premium_${lv.level}`;
+                                const freeRarity = lv.free.rarity || 'Common';
+                                const premRarity = lv.premium.rarity || 'Common';
+
+                                return (
+                                    <div key={lv.level} style={{
+                                        display:'flex', gap:'6px', alignItems:'stretch',
+                                        opacity: (!isReached && !isCurrent) ? 0.55 : 1
+                                    }}>
+                                        {/* Level badge */}
+                                        <div style={{
+                                            width:'32px', minWidth:'32px', display:'flex', flexDirection:'column',
+                                            alignItems:'center', justifyContent:'center', gap:'2px'
+                                        }}>
+                                            <div style={{
+                                                width:'28px', height:'28px', borderRadius:'50%',
+                                                background: isCurrent ? 'rgba(59,130,246,0.3)' : isReached ? 'rgba(255,215,0,0.2)' : 'rgba(255,255,255,0.05)',
+                                                border: isCurrent ? '2px solid #3b82f6' : isReached ? '2px solid rgba(255,215,0,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                                                display:'flex', alignItems:'center', justifyContent:'center',
+                                                fontSize:'9px', fontWeight:900,
+                                                color: isCurrent ? '#60a5fa' : isReached ? '#ffd700' : '#6b7280',
+                                                boxShadow: isCurrent ? '0 0 8px rgba(59,130,246,0.5)' : isReached ? '0 0 6px rgba(255,215,0,0.2)' : 'none'
+                                            }}>{lv.level}</div>
+                                            {lv.level < 50 && (
+                                                <div style={{width:'1px', height:'8px', background:'rgba(255,255,255,0.08)'}}/>
+                                            )}
+                                        </div>
+
+                                        {/* Free reward box */}
+                                        <div style={{
+                                            flex:1, padding:'7px 10px', borderRadius:'10px', display:'flex',
+                                            alignItems:'center', justifyContent:'space-between', gap:'6px',
+                                            ...(freeRarity === 'Mythic' ? {
+                                                background:'rgba(255,0,85,0.1)', border:'1px solid rgba(255,0,85,0.4)',
+                                                animation:'mythic-pulse 2s ease-in-out infinite'
+                                            } : freeRarity === 'Legendary' ? {
+                                                background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.35)'
+                                            } : freeRarity === 'Epic' ? {
+                                                background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)'
+                                            } : {
+                                                background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)'
+                                            })
+                                        }}>
+                                            <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0}}>
+                                                <span style={{fontSize:'16px', flexShrink:0}}>{lv.free.icon}</span>
+                                                <div style={{minWidth:0}}>
+                                                    <div style={{fontSize:'10px', fontWeight:700, color: freeRarity==='Mythic'?'#ff4488':freeRarity==='Legendary'?'#fbbf24':freeRarity==='Epic'?'#c084fc':'#e2e8f0', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
+                                                        {lang==='ar'?lv.free.name_ar:lv.free.name_en}
+                                                    </div>
+                                                    <div style={{fontSize:'8px', color:'#4ade80', fontWeight:600}}>FREE</div>
+                                                </div>
+                                            </div>
+                                            {claimedFree.includes(lv.level) ? (
+                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>✓</div>
+                                            ) : (
+                                                <button onClick={() => handleClaim(lv.level,'free')} disabled={!freeClaimable || claiming===freeKey} style={{
+                                                    padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: freeClaimable?'pointer':'default', border:'none', flexShrink:0,
+                                                    background: freeClaimable ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.04)',
+                                                    color: freeClaimable ? '#4ade80' : '#374151',
+                                                    opacity: claiming===freeKey ? 0.6 : 1
+                                                }}>
+                                                    {claiming===freeKey ? '...' : freeClaimable ? (lang==='ar'?'استلم':'Claim') : '🔒'}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Premium reward box */}
+                                        <div style={{
+                                            flex:1, padding:'7px 10px', borderRadius:'10px', display:'flex',
+                                            alignItems:'center', justifyContent:'space-between', gap:'6px',
+                                            ...(premRarity === 'Mythic' ? {
+                                                background:'rgba(255,0,85,0.12)', border:'1px solid rgba(255,0,85,0.5)',
+                                                animation:'mythic-pulse 2s ease-in-out infinite'
+                                            } : premRarity === 'Legendary' ? {
+                                                background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.4)'
+                                            } : premRarity === 'Epic' ? {
+                                                background:'rgba(168,85,247,0.1)', border:'1px solid rgba(168,85,247,0.3)'
+                                            } : {
+                                                background: hasPremium ? 'rgba(255,215,0,0.05)' : 'rgba(255,255,255,0.02)',
+                                                border: hasPremium ? '1px solid rgba(255,215,0,0.2)' : '1px dashed rgba(255,255,255,0.08)'
+                                            })
+                                        }}>
+                                            <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0, opacity: hasPremium ? 1 : 0.4}}>
+                                                <span style={{fontSize:'16px', flexShrink:0}}>{hasPremium ? lv.premium.icon : '🔒'}</span>
+                                                <div style={{minWidth:0}}>
+                                                    <div style={{fontSize:'10px', fontWeight:700, color: premRarity==='Mythic'?'#ff4488':premRarity==='Legendary'?'#fbbf24':premRarity==='Epic'?'#c084fc':'#9ca3af', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
+                                                        {hasPremium ? (lang==='ar'?lv.premium.name_ar:lv.premium.name_en) : '???'}
+                                                    </div>
+                                                    <div style={{fontSize:'8px', color:'#ffd700', fontWeight:600}}>🎫 PASS</div>
+                                                </div>
+                                            </div>
+                                            {claimedPremium.includes(lv.level) ? (
+                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>✓</div>
+                                            ) : (
+                                                <button onClick={() => handleClaim(lv.level,'premium')} disabled={!premClaimable || claiming===premKey} style={{
+                                                    padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: premClaimable?'pointer':'default', border:'none', flexShrink:0,
+                                                    background: premClaimable ? 'linear-gradient(135deg,rgba(255,215,0,0.3),rgba(255,136,0,0.2))' : 'rgba(255,255,255,0.03)',
+                                                    color: premClaimable ? '#ffd700' : '#374151',
+                                                    opacity: claiming===premKey ? 0.6 : 1
+                                                }}>
+                                                    {claiming===premKey ? '...' : premClaimable ? (lang==='ar'?'استلم':'Claim') : (hasPremium?'🔒':'🎫')}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </>
+                    )}
+
+                    {activeTab === 'missions' && (
+                        <>
+                            {/* Daily Missions */}
+                            <div style={{fontSize:'11px', fontWeight:800, color:'#fbbf24', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px'}}>
+                                <span>☀️</span> {lang==='ar'?'المهمات اليومية':'Daily Missions'}
+                            </div>
+                            {FUN_PASS_DAILY_MISSIONS.map(m => (
+                                <div key={m.id} style={{
+                                    display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
+                                    padding:'9px 12px', borderRadius:'10px',
+                                    background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)'
+                                }}>
+                                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                                        <span style={{fontSize:'18px'}}>{m.icon}</span>
+                                        <div>
+                                            <div style={{fontSize:'11px', fontWeight:700, color:'#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
+                                            <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700}}>+{m.xp} XP</div>
+                                        </div>
+                                    </div>
+                                    <div style={{fontSize:'9px', color:'#4b5563', fontWeight:600, background:'rgba(255,255,255,0.05)', padding:'3px 8px', borderRadius:'5px'}}>
+                                        {lang==='ar'?'قريباً':'Soon'}
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Weekly Missions */}
+                            <div style={{fontSize:'11px', fontWeight:800, color:'#c084fc', marginTop:'8px', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px'}}>
+                                <span>📅</span> {lang==='ar'?'المهمات الأسبوعية':'Weekly Missions'}
+                            </div>
+                            {FUN_PASS_WEEKLY_MISSIONS.map(m => (
+                                <div key={m.id} style={{
+                                    display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
+                                    padding:'9px 12px', borderRadius:'10px',
+                                    background:'rgba(168,85,247,0.05)', border:'1px solid rgba(168,85,247,0.15)'
+                                }}>
+                                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                                        <span style={{fontSize:'18px'}}>{m.icon}</span>
+                                        <div>
+                                            <div style={{fontSize:'11px', fontWeight:700, color:'#e2e8f0'}}>{lang==='ar'?m.name_ar:m.name_en}</div>
+                                            <div style={{fontSize:'9px', color:'#c084fc', fontWeight:700}}>+{m.xp} XP</div>
+                                        </div>
+                                    </div>
+                                    <div style={{fontSize:'9px', color:'#4b5563', fontWeight:600, background:'rgba(255,255,255,0.05)', padding:'3px 8px', borderRadius:'5px'}}>
+                                        {lang==='ar'?'قريباً':'Soon'}
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    )}
                 </div>
             </div>
         </div>
@@ -3056,7 +3483,12 @@ const OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
 // 🎮 MAIN APP COMPONENT
 // ==========================================
 function App() {
-    const [lang, setLang] = useState('en');
+    const [lang, setLang] = useState(() => localStorage.getItem('pro_spy_lang') || 'en');
+
+    // Helper: show login required for guests
+    const requireAuth = useCallback((action) => {
+        setNotification(lang === 'ar' ? '🔒 سجّل دخولك أولاً للقيام بهذا' : '🔒 Please login to do this');
+    }, [lang]);
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
@@ -3099,6 +3531,7 @@ function App() {
     const [showInventory, setShowInventory] = useState(false);
     const [showPrivateChat, setShowPrivateChat] = useState(false);
     const [showSelfChat, setShowSelfChat] = useState(false);
+    const [showFunPass, setShowFunPass] = useState(false);
     const [chatFriend, setChatFriend] = useState(null);
     const [showLoginAlert, setShowLoginAlert] = useState(false);
     const [guestData, setGuestData] = useState(null);
@@ -3822,6 +4255,17 @@ function App() {
                 />
             )}
 
+            {showFunPass && (
+                <FunPassModal
+                    show={showFunPass}
+                    onClose={() => setShowFunPass(false)}
+                    userData={userData || currentUserData}
+                    user={user}
+                    lang={lang}
+                    onNotification={setNotification}
+                />
+            )}
+
             {alertMessage && (<div className="alert-modal" onClick={() => setAlertMessage(null)}><div className="modal-content animate-pop" onClick={e => e.stopPropagation()}><div className="modal-header"><span></span><ModalCloseBtn onClose={() => setAlertMessage(null)} /></div><div className="modal-body text-center"><div className="text-2xl mb-2">🚫</div><p className="font-bold mb-4">{alertMessage}</p><button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button></div></div></div>)}
             
             {showSetupModal && (
@@ -3852,7 +4296,8 @@ function App() {
                     </div>
                 </div>
                 <div className="header-actions">
-                    <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
+                    <button onClick={() => { if(isLoggedIn) setShowFunPass(true); else requireLogin(); }} title="Fun Pass" style={{background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,136,0,0.15))',border:'1px solid rgba(255,215,0,0.35)',color:'#ffd700',fontWeight:900,borderRadius:'6px',padding:'4px 8px',fontSize:'12px',cursor:'pointer'}}>🎫</button>
+                    <button onClick={() => { const nl = lang==='en'?'ar':'en'; setLang(nl); localStorage.setItem('pro_spy_lang', nl); }} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
                     {isLoggedIn && (
                         <div className="notification-center">
                             <div ref={notificationBellRef} className="notification-bell" onClick={() => setShowNotifications(!showNotifications)}><span className="notification-bell-icon">🔔</span>{unreadNotifications > 0 && <span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>}</div>
@@ -4752,6 +5197,8 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [reportSent, setReportSent] = useState(false);
     const [showReportMomentModal, setShowReportMomentModal] = useState(false);
+    const [lastCommentTime, setLastCommentTime] = useState(0);
+    const COMMENT_COOLDOWN_MS = 60000; // 1 minute
     const [momentReportReason, setMomentReportReason] = useState('');
     const [showReportCommentModal, setShowReportCommentModal] = useState(false);
     const [reportTargetComment, setReportTargetComment] = useState(null);
@@ -4791,6 +5238,15 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
 
     const handleComment = async () => {
         if (!newComment.trim() || !currentUser || submitting) return;
+        // Anti-spam: 1 minute cooldown
+        const now = Date.now();
+        if (now - lastCommentTime < COMMENT_COOLDOWN_MS) {
+            const remaining = Math.ceil((COMMENT_COOLDOWN_MS - (now - lastCommentTime)) / 1000);
+            alert(lang === 'ar'
+                ? `انتظر ${remaining} ثانية قبل التعليق مرة أخرى`
+                : `Wait ${remaining}s before commenting again`);
+            return;
+        }
         setSubmitting(true);
         await momentsCollection.doc(moment.id).collection('comments').add({
             authorUID: currentUser.uid,
@@ -4799,7 +5255,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
             text: newComment.trim(),
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        setNewComment(''); setSubmitting(false);
+        setNewComment(''); setSubmitting(false); setLastCommentTime(Date.now());
     };
 
     const handleDeleteComment = async (commentId) => {
@@ -4950,7 +5406,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                                     <div style={{fontSize:'9px', fontWeight:700, color:'#00f2ff', marginBottom:'2px'}}>{c.authorName}</div>
                                     <div style={{fontSize:'11px', color:'#e2e8f0', lineHeight:1.4, wordBreak:'break-word'}}>{c.text}</div>
                                 </div>
-                                {/* Actions: delete (my comment OR moment owner), report (others) */}
+                                {/* Actions: delete for owner/moment-owner, report for all non-authors */}
                                 <div style={{display:'flex', flexDirection:'column', gap:'3px', flexShrink:0}}>
                                     {(isMyComment || isMomentOwner) && (
                                         <button
@@ -4959,7 +5415,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                                             style={{background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'5px', color:'#f87171', fontSize:'9px', padding:'2px 5px', cursor:'pointer', lineHeight:1}}
                                         >✕</button>
                                     )}
-                                    {!isMyComment && !isMomentOwner && currentUser && (
+                                    {!isMyComment && currentUser && (
                                         <button
                                             onClick={() => { setReportTargetComment(c); setShowReportCommentModal(true); }}
                                             title={lang === 'ar' ? 'إبلاغ' : 'Report'}
