@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PRO SPY | Covert Arena</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕵️</text></svg>">
+
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div id="root"></div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <!--
+    ════════════════════════════════════════════════════════════
+      PRO SPY — Source Files (load order matters!)
+      Each file depends on everything loaded before it.
+    ════════════════════════════════════════════════════════════
+    -->
+
+    <!-- 01 · Constants, Firebase, Collections -->
+    <script type="text/babel" src="src/01-config.js"></script>
+
+    <!-- 02 · Audio System -->
+    <script type="text/babel" src="src/02-audio.js"></script>
+
+    <!-- 03 · Data: FunPass, Login Rewards -->
+    <script type="text/babel" src="src/03-data-funpass.js"></script>
+
+    <!-- 04 · Data: Shop, Achievements, Scenarios, Helpers -->
+    <script type="text/babel" src="src/04-data-game.js"></script>
+
+    <!-- 05 · Translations (AR / EN) -->
+    <script type="text/babel" src="src/05-translations.js"></script>
+
+    <!-- 06 · Base UI Components -->
+    <script type="text/babel" src="src/06-components-base.js"></script>
+
+    <!-- 07 · Gift Components -->
+    <script type="text/babel" src="src/07-components-gifts.js"></script>
+
+    <!-- 08 · Shop & Inventory -->
+    <script type="text/babel" src="src/08-components-shop.js"></script>
+
+    <!-- 09 · User Components (Onboarding, Daily Tasks, Login Rewards) -->
+    <script type="text/babel" src="src/09-components-user.js"></script>
+
+    <!-- 10 · App() — Main Logic -->
+    <script type="text/babel" src="src/10-app.js"></script>
+
+    <!-- 11 · Self Chat Modal -->
+    <script type="text/babel" src="src/11-modal-selfchat.js"></script>
+
+    <!-- 12 · FunPass Modal -->
+    <script type="text/babel" src="src/12-modal-funpass.js"></script>
+
+    <!-- 13 · Private Chat Modal -->
+    <script type="text/babel" src="src/13-modal-chat.js"></script>
+
+    <!-- 14 · Misc Modals (Settings, Browse Rooms, Tutorial, Login Rewards) -->
+    <script type="text/babel" src="src/14-modals-misc.js"></script>
+
+    <!-- 15 · Profile V11 + All Moments Components -->
+    <script type="text/babel" src="src/15-profile.js"></script>
+
+    <!-- 16 · Entry Point — render app -->
+    <script type="text/babel" src="src/16-main.js"></script>
+
+</body>
+</html>
