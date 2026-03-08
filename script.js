@@ -3402,6 +3402,32 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
         if (!user || claiming) return;
         const mKey = mission.id;
         const mData = missions[mKey] || {};
+        
+        // ✅ #1: التحقق من إكمال المهمة الفعلي
+        const missionProgress = userData?.missionProgress || {};
+        const progressData = type === 'daily' ? missionProgress.daily : missionProgress.weekly;
+        
+        // قائمة المهام مع شروطها
+        const missionChecks = {
+            'm1': () => progressData?.gamesPlayed >= 1,
+            'm2': () => progressData?.gamesWon >= 1,
+            'm3': () => progressData?.spyGames >= 1,
+            'm4': () => progressData?.giftsSent >= 1,
+            'm5': () => progressData?.friendsAdded >= 1,
+            'm6': () => progressData?.momentsPosted >= 1,
+            'm7': () => progressData?.commentsPosted >= 1,
+            'm8': () => progressData?.gamesPlayed >= 10,
+            'm9': () => progressData?.gamesWon >= 5,
+            'm10': () => progressData?.giftsSent >= 5,
+        };
+        
+        // التحقق من إكمال المهمة
+        const isCompleted = missionChecks[mKey]?.() || false;
+        if (!isCompleted) {
+            onNotification(lang==='ar'?'❌ لم تكمل هذه المهمة بعد':'❌ Mission not completed');
+            return;
+        }
+        
         const alreadyClaimed = type === 'daily'
             ? mData.lastCompleted === todayStr
             : mData.lastWeekCompleted === weekStr;
@@ -3410,6 +3436,7 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
         try {
             const updates = {
                 [`funPass.seasons.${FUN_PASS_SEASON_ID}.xp`]: firebase.firestore.FieldValue.increment(mission.xp),
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.missions.${mKey}.claimed`]: true,
             };
             if (type === 'daily') {
                 updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.missions.${mKey}.lastCompleted`] = todayStr;
@@ -3431,7 +3458,8 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
         try {
             await usersCollection.doc(user.uid).update({
                 currency: firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE),
-                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true,
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: firebase.firestore.FieldValue.serverTimestamp()
             });
             onNotification(lang==='ar'?'🎫 تم شراء Fun Pass!':'🎫 Fun Pass purchased!');
         } catch(e) { onNotification(lang==='ar'?'خطأ':'Error'); }
