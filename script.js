@@ -187,7 +187,7 @@ const FUN_PASS_LEVELS = [
   // level, xpRequired, free reward, premium reward
   // free: {type, icon, name_en, name_ar, amount?, itemId?, rarity?}
   // premium: {type, icon, name_en, name_ar, amount?, itemId?, rarity?}
-  { level:1,  xp:0,    free:{type:'currency',icon:'🧠',name_en:'200 Intel',name_ar:'200 إنتل',amount:200},                           premium:{type:'currency',icon:'🧠',name_en:'500 Intel',name_ar:'500 إنتل',amount:500} },
+  { level:1,  xp:0,    free:{type:'currency',icon:'🧠',iconUrl:'https://i.ibb.co/YTj22zWy/awaw.png',name_en:'200 Intel',name_ar:'200 إنتل',amount:200},                           premium:{type:'currency',icon:'🧠',name_en:'500 Intel',name_ar:'500 إنتل',amount:500} },
   { level:2,  xp:100,  free:{type:'currency',icon:'🧠',name_en:'250 Intel',name_ar:'250 إنتل',amount:250},                           premium:{type:'badge',icon:'🔰',name_en:'Rookie Badge',name_ar:'شارة مبتدئ',itemId:'fp_badge_rookie',rarity:'Common'} },
   { level:3,  xp:250,  free:{type:'currency',icon:'🧠',name_en:'300 Intel',name_ar:'300 إنتل',amount:300},                           premium:{type:'currency',icon:'🧠',name_en:'700 Intel',name_ar:'700 إنتل',amount:700} },
   { level:4,  xp:450,  free:{type:'badge',icon:'⚡',name_en:'Speed Badge',name_ar:'شارة السرعة',itemId:'fp_badge_speed',rarity:'Common'}, premium:{type:'currency',icon:'🧠',name_en:'900 Intel',name_ar:'900 إنتل',amount:900} },
@@ -256,11 +256,9 @@ const FUN_PASS_WEEKLY_MISSIONS = [
   { id:'w4', icon:'📸', name_en:'Post 3 moments',    name_ar:'انشر 3 لحظات',       xp:220 },
   { id:'w5', icon:'👥', name_en:'Chat with 3 friends',name_ar:'كلم 3 أصدقاء',     xp:180 },
 ];
-
 // ==========================================
 // LOGIN REWARDS - 30 DAYS
 // ==========================================
-
 const LOGIN_REWARDS = [
     { day: 1, type: 'currency', amount: 100, icon: '🧠', iconUrl: '', name_en: '100 Intel', name_ar: '100 إنتل' },
     { day: 2, type: 'currency', amount: 150, icon: '🧠', iconUrl: '', name_en: '150 Intel', name_ar: '150 إنتل' },
@@ -1711,6 +1709,7 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
     
     const isOwnProfile = isOwnProfileOverride || targetUID === currentUserUID;
     const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
+    const isGuestViewer = isGuestProp === true; // current user viewing is a guest
     const isAlreadyFriend = currentUserFriends?.includes(targetUID);
     const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
     
@@ -1768,7 +1767,7 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                 <div className="modal-header">
                     <h2 className="modal-title">{t.profile}</h2>
                     <div className="flex items-center gap-2">
-                        {!isOwnProfile && !isTargetGuest && (
+                        {!isOwnProfile && !isTargetGuest && !isGuestViewer && (
                             <div className="relative">
                                 <button 
                                     onClick={() => setShowOptionsMenu(!showOptionsMenu)}
@@ -1851,10 +1850,21 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                                 </div>
                             )}
                             
-                            {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && (
+                            {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && !isGuestViewer && (
                                 <div className="flex gap-2 mt-4">
                                     {isAlreadyFriend ? <button disabled className="btn-success flex-1 py-2 rounded-lg text-sm opacity-80">✅ {lang === 'ar' ? 'أصدقاء' : 'Friends'}</button> : hasPendingRequest ? <button disabled className="btn-ghost flex-1 py-2 rounded-lg text-sm opacity-80">⏳ {lang === 'ar' ? 'تم الإرسال' : 'Sent'}</button> : <button onClick={handleAddFriend} className="btn-neon flex-1 py-2 rounded-lg text-sm">👥 {t.addFriend}</button>}
                                     <button onClick={() => setShowGiftModal(true)} className="btn-gold flex-1 py-2 rounded-lg text-sm">🎁 {t.sendGift}</button>
+                                </div>
+                            )}
+                            {!isOwnProfile && isGuestViewer && !isTargetGuest && (
+                                <div style={{marginTop:'14px', padding:'12px 14px', borderRadius:'12px', background:'linear-gradient(135deg,rgba(112,0,255,0.08),rgba(0,242,255,0.05))', border:'1px solid rgba(0,242,255,0.15)', textAlign:'center'}}>
+                                    <div style={{fontSize:'20px', marginBottom:'6px'}}>🔒</div>
+                                    <div style={{fontSize:'11px', color:'#e2e8f0', fontWeight:700, marginBottom:'4px'}}>
+                                        {lang === 'ar' ? 'سجّل دخولك للتفاعل' : 'Login to interact'}
+                                    </div>
+                                    <div style={{fontSize:'10px', color:'#6b7280'}}>
+                                        {lang === 'ar' ? 'لإرسال هدايا وطلبات صداقة' : 'To send gifts & friend requests'}
+                                    </div>
                                 </div>
                             )}
                             {isTargetGuest && !isOwnProfile && <div className="text-center text-gray-400 text-xs mt-4 p-2 bg-white/5 rounded-lg">{t.guestProfileMsg}</div>}
@@ -2424,7 +2434,9 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
                                             })
                                         }}>
                                             <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0}}>
-                                                <span style={{fontSize:'16px', flexShrink:0}}>{lv.free.icon}</span>
+                                                {lv.free.imageUrl 
+                                    ? <img src={lv.free.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
+                                    : <span style={{fontSize:'16px', flexShrink:0}}>{lv.free.icon}</span>}
                                                 <div style={{minWidth:0}}>
                                                     <div style={{fontSize:'10px', fontWeight:700, color: freeRarity==='Mythic'?'#ff4488':freeRarity==='Legendary'?'#fbbf24':freeRarity==='Epic'?'#c084fc':'#e2e8f0', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
                                                         {lang==='ar'?lv.free.name_ar:lv.free.name_en}
@@ -2463,7 +2475,9 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
                                             })
                                         }}>
                                             <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0, opacity: hasPremium ? 1 : 0.4}}>
-                                                <span style={{fontSize:'16px', flexShrink:0}}>{hasPremium ? lv.premium.icon : '🔒'}</span>
+                                                {hasPremium && lv.premium.imageUrl
+                                    ? <img src={lv.premium.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
+                                    : <span style={{fontSize:'16px', flexShrink:0}}>{hasPremium ? lv.premium.icon : '🔒'}</span>}
                                                 <div style={{minWidth:0}}>
                                                     <div style={{fontSize:'10px', fontWeight:700, color: premRarity==='Mythic'?'#ff4488':premRarity==='Legendary'?'#fbbf24':premRarity==='Epic'?'#c084fc':'#9ca3af', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
                                                         {hasPremium ? (lang==='ar'?lv.premium.name_ar:lv.premium.name_en) : '???'}
@@ -3051,7 +3065,7 @@ const TutorialModal = ({ show, onClose, lang }) => {
 // ==========================================
 // ⚙️ SETTINGS MODAL
 // ==========================================
-const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) => {
+const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle }) => {
     const t = TRANSLATIONS[lang];
     const [blockedUsers, setBlockedUsers] = useState([]);
     const [blockInput, setBlockInput] = useState('');
@@ -3137,8 +3151,34 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
                     <ModalCloseBtn onClose={onClose} />
                 </div>
                 <div className="modal-body">
-                    {/* Account Info Section */}
-                    {user && (
+                    {/* Account Info Section - GUEST: show login prompt instead */}
+                    {isGuestPropForSettings && (
+                        <div className="settings-section">
+                            <div className="settings-section-title">
+                                <span>👤</span>
+                                <span>{lang === 'ar' ? 'معلومات الحساب' : 'Account Info'}</span>
+                            </div>
+                            <div style={{padding:'16px', borderRadius:'12px', background:'linear-gradient(135deg,rgba(0,10,30,0.6),rgba(20,0,50,0.4))', border:'1px solid rgba(0,242,255,0.15)', textAlign:'center'}}>
+                                <div style={{fontSize:'32px', marginBottom:'8px'}}>🔒</div>
+                                <div style={{fontSize:'13px', fontWeight:800, color:'white', marginBottom:'4px'}}>
+                                    {lang === 'ar' ? 'حساب زائر' : 'Guest Account'}
+                                </div>
+                                <div style={{fontSize:'11px', color:'#6b7280', marginBottom:'14px'}}>
+                                    {lang === 'ar' ? 'سجّل دخولك للوصول لجميع المميزات' : 'Login to access all features'}
+                                </div>
+                                <button onClick={onLoginGoogle} style={{
+                                    display:'flex', alignItems:'center', justifyContent:'center', gap:'8px',
+                                    width:'100%', padding:'10px 16px', borderRadius:'10px', border:'none', cursor:'pointer',
+                                    background:'white', color:'#333', fontSize:'13px', fontWeight:700
+                                }}>
+                                    <img src="https://www.google.com/favicon.ico" alt="G" style={{width:'16px',height:'16px'}} />
+                                    {lang === 'ar' ? 'تسجيل الدخول بجوجل' : 'Login with Google'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    {/* Account Info Section - Logged in users */}
+                    {user && !isGuestPropForSettings && (
                         <div className="settings-section">
                             <div className="settings-section-title">
                                 <span>👤</span>
@@ -3279,7 +3319,9 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
                         </div>
                     </div>
 
-                    {/* Moments Section */}
+                    )} {/* end logged-in account section */}
+                    {/* Moments Section - only for logged-in users */}
+                    {user && !isGuestPropForSettings && (
                     <div className="settings-section">
                         <div className="settings-section-title">
                             <span>📸</span>
@@ -3287,7 +3329,9 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
                         </div>
                         <MomentsSettingsSection currentUser={user} userData={userData} lang={lang} />
                     </div>
+                    )}
 
+                    )} {/* end guest-restricted sections */}
                     {/* Achievements Section */}
                     <div className="settings-section">
                         <div className="settings-section-title">
@@ -3297,7 +3341,8 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
                         <AchievementsDisplayV11 userData={userData} lang={lang} showAll={true} />
                     </div>
 
-                    {/* Block Users Section */}
+                    {/* Block Users Section - only for logged-in users */}
+                    {user && !isGuestPropForSettings && (
                     <div className="settings-section">
                         <div className="settings-section-title">
                             <span>🚫</span>
@@ -3534,6 +3579,12 @@ function App() {
     const [showFunPass, setShowFunPass] = useState(false);
     const [chatFriend, setChatFriend] = useState(null);
     const [showLoginAlert, setShowLoginAlert] = useState(false);
+    const [forcedLogoutMsg, setForcedLogoutMsg] = useState(false);
+    
+    // Single-session token: unique per browser tab/session
+    const SESSION_TOKEN = React.useRef(
+        (() => { let t = sessionStorage.getItem('pro_spy_st'); if(!t){ t=Math.random().toString(36).slice(2)+Date.now(); sessionStorage.setItem('pro_spy_st',t); } return t; })()
+    ).current;
     const [guestData, setGuestData] = useState(null);
     const [showEmail, setShowEmail] = useState(false);
     const [showLoginRewards, setShowLoginRewards] = useState(false);
@@ -3609,10 +3660,23 @@ function App() {
                     const existingData = doc.data();
                     setUserData(existingData);
                     if (existingData.displayName) setNickname(existingData.displayName);
+                    // Write session token (single-session enforcement)
+                    userRef.update({ activeSession: SESSION_TOKEN }).catch(() => {});
                     if (checkLoginRewardsCycle(existingData)) {
                         await userRef.update({ 'loginRewards.currentDay': 0, 'loginRewards.streak': 0, 'loginRewards.cycleMonth': getCurrentCycleMonth() });
                     }
-                    const unsubSnap = userRef.onSnapshot(snap => { if (snap.exists) { setUserData(snap.data()); if (snap.data().displayName) setNickname(snap.data().displayName); } });
+                    const unsubSnap = userRef.onSnapshot(snap => {
+                        if (snap.exists) {
+                            const d = snap.data();
+                            setUserData(d);
+                            if (d.displayName) setNickname(d.displayName);
+                            // Single-session: if activeSession changed by another device, force logout
+                            if (d.activeSession && d.activeSession !== SESSION_TOKEN) {
+                                setForcedLogoutMsg(true);
+                                auth.signOut();
+                            }
+                        }
+                    });
                     setAuthLoading(false);
                     return () => unsubSnap();
                 }
@@ -3739,7 +3803,8 @@ function App() {
             equipped: { badges: [] },
             charisma: 0,
             bannerURL: null,
-            loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: getCurrentCycleMonth() }
+            loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: getCurrentCycleMonth() },
+            activeSession: SESSION_TOKEN
         };
         await pendingNewUserRef.set(newUserData);
         setUserData(newUserData);
@@ -4144,6 +4209,34 @@ function App() {
                 />
             )}
             
+            {forcedLogoutMsg && (
+                <div className="modal-overlay" style={{zIndex:25000}}>
+                    <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
+                        background:'linear-gradient(180deg,#1a0a0a,#0f0f1a)',
+                        border:'1px solid rgba(239,68,68,0.4)',
+                        borderRadius:'18px', width:'100%', maxWidth:'340px',
+                        padding:'28px 24px', textAlign:'center',
+                        boxShadow:'0 0 40px rgba(239,68,68,0.2)'
+                    }}>
+                        <div style={{fontSize:'44px', marginBottom:'12px'}}>⚠️</div>
+                        <div style={{fontSize:'15px', fontWeight:900, color:'#ef4444', marginBottom:'8px'}}>
+                            {lang === 'ar' ? 'تم تسجيل خروجك' : 'Signed Out'}
+                        </div>
+                        <div style={{fontSize:'12px', color:'#9ca3af', marginBottom:'20px', lineHeight:1.6}}>
+                            {lang === 'ar'
+                                ? 'تم فتح حسابك على جهاز آخر. لا يمكن تسجيل الدخول في مكانين في نفس الوقت.'
+                                : 'Your account was opened on another device. You cannot be logged in on two devices simultaneously.'}
+                        </div>
+                        <button onClick={() => setForcedLogoutMsg(false)} style={{
+                            background:'linear-gradient(135deg,#7000ff,#00f2ff)',
+                            border:'none', borderRadius:'10px', color:'white',
+                            fontWeight:700, fontSize:'13px', padding:'10px 24px', cursor:'pointer', width:'100%'
+                        }}>
+                            {lang === 'ar' ? 'حسناً' : 'OK'}
+                        </button>
+                    </div>
+                </div>
+            )}
             {showLoginAlert && (
                 <div className="modal-overlay" onClick={() => setShowLoginAlert(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
@@ -4172,7 +4265,7 @@ function App() {
             
             <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} />
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
-            <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} />
+            <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} />
             
             {showMyAccount && currentUID && (
                 <ProfileV11
@@ -5066,18 +5159,69 @@ const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 5 * 1024 * 1024;
 const MAX_VIDEO_DURATION = 10;
 
-const MomentsSection = ({ ownerUID, currentUser, isOwnProfile, lang }) => {
+const AllMomentsModal = ({ show, onClose, moments, ownerName, lang, onSelectMoment }) => {
+    if (!show) return null;
+    return (
+        <div className="modal-overlay" onClick={onClose} style={{zIndex:14000}}>
+            <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
+                background:'linear-gradient(180deg,#0f0f1e,#0a0a14)',
+                border:'1px solid rgba(0,242,255,0.2)',
+                borderRadius:'18px', width:'100%', maxWidth:'420px',
+                maxHeight:'85vh', display:'flex', flexDirection:'column', overflow:'hidden',
+                boxShadow:'0 20px 60px rgba(0,0,0,0.9)'
+            }}>
+                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                        <span style={{fontSize:'16px'}}>📸</span>
+                        <div>
+                            <div style={{fontSize:'13px', fontWeight:800, color:'white'}}>{lang==='ar'?'كل اللحظات':'All Moments'}</div>
+                            <div style={{fontSize:'9px', color:'#6b7280'}}>{ownerName} · {moments.length} {lang==='ar'?'لحظة':'moments'}</div>
+                        </div>
+                    </div>
+                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer'}}>✕</button>
+                </div>
+                <div style={{flex:1, overflowY:'auto', padding:'10px 12px'}}>
+                    <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'6px'}}>
+                        {moments.map(moment => (
+                            <div key={moment.id} onClick={() => { onSelectMoment(moment); onClose(); }} style={{
+                                aspectRatio:'1', borderRadius:'10px', overflow:'hidden',
+                                background:'linear-gradient(135deg,rgba(0,242,255,0.06),rgba(112,0,255,0.06))',
+                                border:'1px solid rgba(0,242,255,0.15)', cursor:'pointer', position:'relative',
+                                display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px',
+                                transition:'transform 0.15s'
+                            }}>
+                                {moment.type === 'image' && moment.mediaUrl ? (
+                                    <img src={moment.mediaUrl} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                                ) : moment.type === 'video' && moment.mediaUrl ? (
+                                    <video src={moment.mediaUrl} style={{width:'100%',height:'100%',objectFit:'cover'}} muted />
+                                ) : (
+                                    <div style={{fontSize:'11px',color:'#e2e8f0',padding:'8px',textAlign:'center',lineHeight:1.3, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical'}}>
+                                        {moment.content}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang }) => {
     const [moments, setMoments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedMoment, setSelectedMoment] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showAllMoments, setShowAllMoments] = useState(false);
+    const PREVIEW_COUNT = 3;
 
     useEffect(() => {
         if (!ownerUID) return;
         setLoading(true);
         const unsub = momentsCollection
             .where('authorUID', '==', ownerUID)
-            .limit(20)
+            .limit(50)
             .onSnapshot(snap => {
                 const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 data.sort((a, b) => {
@@ -5091,33 +5235,68 @@ const MomentsSection = ({ ownerUID, currentUser, isOwnProfile, lang }) => {
         return unsub;
     }, [ownerUID]);
 
+    const previewMoments = moments.slice(0, PREVIEW_COUNT);
+    const hasMore = moments.length > PREVIEW_COUNT;
+
     return (
-        <div style={{padding:'0 12px 8px'}}>
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>
-                <span style={{fontSize:'9px', fontWeight:700, color:'#64748b', textTransform:'uppercase', display:'flex', alignItems:'center', gap:'4px'}}>
-                    <span style={{color:'#00f2ff'}}>📸</span>
-                    {lang === 'ar' ? 'اللحظات' : 'Moments'}
-                    <span style={{color:'#00f2ff', fontWeight:700}}>{moments.length}</span>
-                </span>
-                {isOwnProfile && currentUser && (
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        style={{fontSize:'9px', color:'#00f2ff', background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.3)', borderRadius:'6px', padding:'3px 8px', cursor:'pointer', fontWeight:700}}
-                    >
-                        + {lang === 'ar' ? 'أضف' : 'Add'}
-                    </button>
-                )}
+        <div style={{
+            margin:'8px 12px',
+            background:'linear-gradient(135deg,rgba(0,0,0,0.35),rgba(0,0,0,0.2))',
+            border:'1px solid rgba(0,242,255,0.12)',
+            borderRadius:'14px',
+            overflow:'hidden',
+            boxShadow:'0 8px 32px rgba(0,0,0,0.3)'
+        }}>
+            {/* Header */}
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', borderBottom: moments.length > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none'}}>
+                <button
+                    onClick={() => moments.length > 0 && setShowAllMoments(true)}
+                    style={{
+                        display:'flex', alignItems:'center', gap:'6px', background:'none', border:'none',
+                        cursor: moments.length > 0 ? 'pointer' : 'default', padding:0
+                    }}
+                >
+                    <span style={{fontSize:'11px'}}>📸</span>
+                    <span style={{fontSize:'10px', fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.5px'}}>
+                        {lang === 'ar' ? 'اللحظات' : 'Moments'}
+                    </span>
+                    <span style={{
+                        fontSize:'9px', fontWeight:800, color:'#00f2ff',
+                        background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)',
+                        borderRadius:'4px', padding:'1px 5px'
+                    }}>{moments.length}</span>
+                </button>
+                <div style={{display:'flex', gap:'6px', alignItems:'center'}}>
+                    {hasMore && (
+                        <button
+                            onClick={() => setShowAllMoments(true)}
+                            style={{fontSize:'9px', color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', padding:'3px 8px', cursor:'pointer', fontWeight:600}}
+                        >
+                            {lang === 'ar' ? `الكل (${moments.length})` : `All (${moments.length})`}
+                        </button>
+                    )}
+                    {isOwnProfile && currentUser && (
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            style={{fontSize:'9px', color:'#00f2ff', background:'rgba(0,242,255,0.08)', border:'1px solid rgba(0,242,255,0.25)', borderRadius:'6px', padding:'3px 8px', cursor:'pointer', fontWeight:700}}
+                        >
+                            + {lang === 'ar' ? 'أضف' : 'Add'}
+                        </button>
+                    )}
+                </div>
             </div>
 
+            {/* Content */}
+            <div style={{padding:'10px 12px 12px'}}>
             {loading ? (
                 <div style={{textAlign:'center', padding:'16px', color:'#64748b', fontSize:'11px'}}>...</div>
             ) : moments.length === 0 ? (
-                <div style={{textAlign:'center', padding:'16px', color:'#64748b', fontSize:'11px'}}>
+                <div style={{textAlign:'center', padding:'12px', color:'#64748b', fontSize:'11px'}}>
                     {lang === 'ar' ? 'لا توجد لحظات بعد' : 'No moments yet'}
                 </div>
             ) : (
                 <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'5px'}}>
-                    {moments.map(moment => (
+                    {previewMoments.map(moment => (
                         <div
                             key={moment.id}
                             onClick={() => setSelectedMoment(moment)}
@@ -5184,7 +5363,19 @@ const MomentsSection = ({ ownerUID, currentUser, isOwnProfile, lang }) => {
                     lang={lang}
                 />
             )}
-        </div>
+            </div>{/* end content padding */}
+            </div>{/* end container box */}
+
+            {showAllMoments && (
+                <AllMomentsModal
+                    show={showAllMoments}
+                    onClose={() => setShowAllMoments(false)}
+                    moments={moments}
+                    ownerName={ownerName || ''}
+                    lang={lang}
+                    onSelectMoment={setSelectedMoment}
+                />
+            )}
     );
 };
 
@@ -5199,6 +5390,16 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
     const [showReportMomentModal, setShowReportMomentModal] = useState(false);
     const [lastCommentTime, setLastCommentTime] = useState(0);
     const COMMENT_COOLDOWN_MS = 60000; // 1 minute
+    const [cooldownTick, setCooldownTick] = useState(0);
+    
+    // Tick every second to update cooldown display
+    useEffect(() => {
+        const timer = setInterval(() => setCooldownTick(t => t + 1), 1000);
+        return () => clearInterval(timer);
+    }, []);
+    
+    const cooldownRemaining = Math.max(0, Math.ceil((COMMENT_COOLDOWN_MS - (Date.now() - lastCommentTime)) / 1000));
+    const isCoolingDown = cooldownRemaining > 0 && lastCommentTime > 0;
     const [momentReportReason, setMomentReportReason] = useState('');
     const [showReportCommentModal, setShowReportCommentModal] = useState(false);
     const [reportTargetComment, setReportTargetComment] = useState(null);
@@ -5241,10 +5442,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
         // Anti-spam: 1 minute cooldown
         const now = Date.now();
         if (now - lastCommentTime < COMMENT_COOLDOWN_MS) {
-            const remaining = Math.ceil((COMMENT_COOLDOWN_MS - (now - lastCommentTime)) / 1000);
-            alert(lang === 'ar'
-                ? `انتظر ${remaining} ثانية قبل التعليق مرة أخرى`
-                : `Wait ${remaining}s before commenting again`);
+            // Just block silently - UI shows cooldown timer
             return;
         }
         setSubmitting(true);
@@ -5430,21 +5628,57 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
 
                 {/* Comment input */}
                 {currentUser && (
-                    <div style={{padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.08)', display:'flex', gap:'8px'}}>
-                        <input
-                            value={newComment}
-                            onChange={e => setNewComment(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleComment()}
-                            placeholder={lang === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...'}
-                            style={{flex:1, background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'10px', padding:'8px 12px', color:'white', fontSize:'12px', outline:'none', fontFamily:'inherit'}}
-                        />
-                        <button
-                            onClick={handleComment}
-                            disabled={!newComment.trim() || submitting}
-                            style={{background:'linear-gradient(135deg,#7000ff,#00f2ff)', border:'none', borderRadius:'10px', color:'white', fontSize:'12px', fontWeight:700, padding:'8px 14px', cursor:'pointer', opacity: (!newComment.trim() || submitting) ? 0.5 : 1}}
-                        >
-                            {lang === 'ar' ? 'إرسال' : 'Send'}
-                        </button>
+                    <div style={{padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.08)'}}>
+                        {isCoolingDown ? (
+                            /* Cooldown banner - shown INSIDE modal in place of input */
+                            <div style={{
+                                display:'flex', alignItems:'center', justifyContent:'center', gap:'10px',
+                                padding:'10px 14px', borderRadius:'12px',
+                                background:'linear-gradient(135deg,rgba(255,136,0,0.12),rgba(255,60,0,0.08))',
+                                border:'1px solid rgba(255,136,0,0.3)'
+                            }}>
+                                <div style={{
+                                    width:'36px', height:'36px', borderRadius:'50%', flexShrink:0,
+                                    background:'rgba(255,136,0,0.15)', border:'2px solid rgba(255,136,0,0.4)',
+                                    display:'flex', alignItems:'center', justifyContent:'center',
+                                    fontSize:'16px'
+                                }}>⏳</div>
+                                <div>
+                                    <div style={{fontSize:'11px', fontWeight:700, color:'#fb923c'}}>
+                                        {lang === 'ar' ? 'انتظر قبل التعليق التالي' : 'Wait before next comment'}
+                                    </div>
+                                    <div style={{fontSize:'10px', color:'#9ca3af', marginTop:'2px'}}>
+                                        {lang === 'ar' ? `${cooldownRemaining} ثانية` : `${cooldownRemaining}s remaining`}
+                                    </div>
+                                </div>
+                                {/* Progress bar */}
+                                <div style={{flex:1, height:'4px', background:'rgba(255,255,255,0.08)', borderRadius:'2px', overflow:'hidden'}}>
+                                    <div style={{
+                                        height:'100%', borderRadius:'2px',
+                                        background:'linear-gradient(90deg,#ff8800,#ff4500)',
+                                        width:`${(cooldownRemaining / 60) * 100}%`,
+                                        transition:'width 1s linear'
+                                    }}/>
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{display:'flex', gap:'8px'}}>
+                                <input
+                                    value={newComment}
+                                    onChange={e => setNewComment(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleComment()}
+                                    placeholder={lang === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...'}
+                                    style={{flex:1, background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'10px', padding:'8px 12px', color:'white', fontSize:'12px', outline:'none', fontFamily:'inherit'}}
+                                />
+                                <button
+                                    onClick={handleComment}
+                                    disabled={!newComment.trim() || submitting}
+                                    style={{background:'linear-gradient(135deg,#7000ff,#00f2ff)', border:'none', borderRadius:'10px', color:'white', fontSize:'12px', fontWeight:700, padding:'8px 14px', cursor:'pointer', opacity: (!newComment.trim() || submitting) ? 0.5 : 1}}
+                                >
+                                    {lang === 'ar' ? 'إرسال' : 'Send'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -5978,6 +6212,7 @@ const ProfileV11 = ({
 
     const isOwnProfile = isOwnProfileOverride || targetUID === currentUserUID;
     const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
+    const isGuestViewer = isGuestProp === true; // current user viewing is a guest
     const isAlreadyFriend = currentUserFriends?.includes(targetUID);
     const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
 
@@ -6197,6 +6432,7 @@ const ProfileV11 = ({
                             {/* Moments Section - above Charisma */}
                             <MomentsSection
                                 ownerUID={targetUID}
+                                ownerName={targetData?.displayName || ''}
                                 currentUser={userData}
                                 isOwnProfile={isOwnProfile}
                                 lang={lang}
@@ -6455,4 +6691,3 @@ const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
-
