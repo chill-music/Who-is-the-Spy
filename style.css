@@ -2906,19 +2906,29 @@ body {
     gap: 8px;
     padding: 8px 10px;
     border-radius: 10px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
 }
 .profile-achievement-v2.unlocked {
-    background: rgba(255,215,0,0.07);
-    border-color: rgba(255,215,0,0.25);
+    background: rgba(255,215,0,0.10);
+    border-color: rgba(255,215,0,0.40);
+    box-shadow: 0 0 10px rgba(255,215,0,0.2), inset 0 0 15px rgba(255,215,0,0.05);
 }
-.profile-achievement-v2:hover {
-    background: rgba(255,255,255,0.08);
+.profile-achievement-v2.locked {
+    opacity: 0.48;
+    filter: grayscale(80%);
+}
+.profile-achievement-v2.unlocked:hover {
+    background: rgba(255,215,0,0.16);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255,215,0,0.3), inset 0 0 20px rgba(255,215,0,0.07);
+}
+.profile-achievement-v2.locked:hover {
+    opacity: 0.65;
     transform: translateY(-1px);
 }
 .profile-achievement-v2-icon {
@@ -2928,13 +2938,13 @@ body {
 }
 .profile-achievement-v2-name {
     font-size: 10px;
-    color: #d1d5db;
+    color: #9ca3af;
     font-weight: 600;
     flex: 1;
     line-height: 1.3;
     word-break: break-word;
 }
-.profile-achievement-v2.unlocked .profile-achievement-v2-name { color: #fde68a; }
+.profile-achievement-v2.unlocked .profile-achievement-v2-name { color: #fde68a; font-weight: 700; }
 .profile-achievement-v2-badge {
     position: absolute;
     top: 4px;
