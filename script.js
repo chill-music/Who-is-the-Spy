@@ -1938,6 +1938,186 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
 // ==========================================
 // 💬 PRIVATE CHAT MODAL - IMPROVED WITH AVATARS
 // ==========================================
+
+// ============================================================
+// 💬 SELF CHAT MODAL - Personal notepad + gift history
+// ============================================================
+const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency }) => {
+    const [messages, setMessages] = useState([]);
+    const [inputText, setInputText] = useState('');
+    const [sending, setSending] = useState(false);
+
+    // Use personal chat doc: userId_self
+    const selfChatId = currentUser?.uid ? `${currentUser.uid}_self` : null;
+
+    useEffect(() => {
+        if (!show || !selfChatId) return;
+        const unsub = chatsCollection
+            .doc(selfChatId)
+            .collection('messages')
+            .orderBy('timestamp', 'asc')
+            .limit(100)
+            .onSnapshot(snap => {
+                setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            });
+        return () => unsub();
+    }, [show, selfChatId]);
+
+    const sendNote = async () => {
+        if (!inputText.trim() || !selfChatId || sending) return;
+        setSending(true);
+        try {
+            const chatRef = chatsCollection.doc(selfChatId);
+            await chatRef.set({ 
+                participants: [currentUser.uid, currentUser.uid],
+                type: 'self',
+                lastMessage: inputText.trim(),
+                lastAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            await chatRef.collection('messages').add({
+                text: inputText.trim(),
+                senderId: currentUser.uid,
+                senderName: currentUser.displayName || 'Me',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                type: 'note'
+            });
+            setInputText('');
+        } catch(e) { console.error(e); }
+        setSending(false);
+    };
+
+    const formatMsgTime = (ts) => {
+        if (!ts?.toDate) return '';
+        const d = ts.toDate();
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    if (!show) return null;
+
+    return (
+        <div className="modal-overlay" onClick={onClose} style={{zIndex:15000}}>
+            <div
+                className="animate-pop"
+                onClick={e => e.stopPropagation()}
+                style={{
+                    background:'linear-gradient(180deg,#1a1a2e,#0f0f1a)',
+                    border:'1px solid rgba(0,242,255,0.25)',
+                    borderRadius:'18px',
+                    width:'100%',
+                    maxWidth:'380px',
+                    maxHeight:'85vh',
+                    display:'flex',
+                    flexDirection:'column',
+                    overflow:'hidden',
+                    boxShadow:'0 20px 60px rgba(0,0,0,0.8)'
+                }}
+            >
+                {/* Header */}
+                <div style={{
+                    display:'flex', alignItems:'center', justifyContent:'space-between',
+                    padding:'14px 16px',
+                    background:'linear-gradient(135deg,rgba(0,242,255,0.08),rgba(112,0,255,0.08))',
+                    borderBottom:'1px solid rgba(255,255,255,0.07)'
+                }}>
+                    <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                        <div style={{
+                            width:'38px', height:'38px', borderRadius:'50%',
+                            background:'linear-gradient(135deg,#00f2ff,#7000ff)',
+                            display:'flex', alignItems:'center', justifyContent:'center',
+                            fontSize:'18px', boxShadow:'0 0 12px rgba(0,242,255,0.4)'
+                        }}>📝</div>
+                        <div>
+                            <div style={{fontSize:'13px', fontWeight:800, color:'white'}}>
+                                {lang==='ar' ? 'ملاحظاتي الشخصية' : 'My Personal Notes'}
+                            </div>
+                            <div style={{fontSize:'10px', color:'#6b7280'}}>
+                                {lang==='ar' ? 'أنت فقط من يشوف هذا' : 'Only you can see this'}
+                            </div>
+                        </div>
+                    </div>
+                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+                </div>
+
+                {/* Messages */}
+                <div style={{flex:1, overflowY:'auto', padding:'12px 14px', display:'flex', flexDirection:'column', gap:'10px'}}>
+                    {messages.length === 0 && (
+                        <div style={{textAlign:'center', marginTop:'40px', color:'#4b5563'}}>
+                            <div style={{fontSize:'36px', marginBottom:'8px'}}>📝</div>
+                            <div style={{fontSize:'12px'}}>{lang==='ar' ? 'ابدأ كتابة ملاحظاتك...' : 'Start writing your notes...'}</div>
+                        </div>
+                    )}
+                    {messages.map(msg => (
+                        <div key={msg.id} style={{display:'flex', justifyContent:'flex-end'}}>
+                            {msg.type === 'gift' ? (
+                                /* Gift notification bubble */
+                                <div style={{
+                                    background:'linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,136,0,0.08))',
+                                    border:'1px solid rgba(255,215,0,0.3)',
+                                    borderRadius:'14px 14px 4px 14px',
+                                    padding:'10px 14px',
+                                    maxWidth:'85%'
+                                }}>
+                                    <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700, marginBottom:'4px', textTransform:'uppercase', letterSpacing:'0.5px'}}>
+                                        🎁 {lang==='ar' ? 'هدية لنفسك' : 'Self Gift'}
+                                    </div>
+                                    <div style={{fontSize:'20px', marginBottom:'4px'}}>{msg.giftEmoji || '🎁'}</div>
+                                    <div style={{fontSize:'12px', color:'#f3f4f6', fontWeight:700}}>{msg.giftName}</div>
+                                    <div style={{fontSize:'10px', color:'#9ca3af', marginTop:'2px'}}>{lang==='ar'?'تكلفة:':'Cost:'} {msg.giftCost} 🧠</div>
+                                    <div style={{fontSize:'10px', color:'#9ca3af'}}>{lang==='ar'?'كاريزما:':'Charisma:'} +{msg.charismaGain}</div>
+                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{formatMsgTime(msg.timestamp)}</div>
+                                </div>
+                            ) : (
+                                /* Regular note bubble */
+                                <div style={{
+                                    background:'linear-gradient(135deg,rgba(0,242,255,0.1),rgba(112,0,255,0.1))',
+                                    border:'1px solid rgba(0,242,255,0.2)',
+                                    borderRadius:'14px 14px 4px 14px',
+                                    padding:'10px 14px',
+                                    maxWidth:'85%'
+                                }}>
+                                    <div style={{fontSize:'13px', color:'#e2e8f0', lineHeight:1.5}}>{msg.text}</div>
+                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{formatMsgTime(msg.timestamp)}</div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Input */}
+                <div style={{
+                    display:'flex', gap:'8px', padding:'12px 14px',
+                    borderTop:'1px solid rgba(255,255,255,0.07)',
+                    background:'rgba(0,0,0,0.2)'
+                }}>
+                    <input
+                        value={inputText}
+                        onChange={e => setInputText(e.target.value)}
+                        onKeyDown={e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendNote(); } }}
+                        placeholder={lang==='ar' ? 'اكتب ملاحظة...' : 'Write a note...'}
+                        style={{
+                            flex:1, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)',
+                            borderRadius:'10px', padding:'10px 12px', color:'white', fontSize:'13px', outline:'none'
+                        }}
+                    />
+                    <button
+                        onClick={sendNote}
+                        disabled={!inputText.trim() || sending}
+                        style={{
+                            padding:'10px 14px', borderRadius:'10px', fontSize:'14px', cursor:'pointer', border:'none',
+                            background: inputText.trim() ? 'linear-gradient(135deg,#00f2ff,#7000ff)' : 'rgba(255,255,255,0.06)',
+                            color: inputText.trim() ? '#000' : '#4b5563',
+                            fontWeight:800, transition:'all 0.2s',
+                            opacity: sending ? 0.6 : 1
+                        }}
+                    >
+                        {sending ? '...' : '➤'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSendNotification, onSendGift, currency, friendsData, onOpenProfile }) => {
     const t = TRANSLATIONS[lang];
     const [messages, setMessages] = useState([]);
@@ -2283,10 +2463,19 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
                                 }
                                 
                                 return (
-                                    <div key={dayNum} title={getRewardName(reward)} style={{ aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: `2px solid ${borderColor}`, background: bgColor, padding: '4px', gap: '2px', position: 'relative', cursor: 'pointer', transition: 'all 0.2s ease', ...extraStyles }}>
+                                    <div key={dayNum} title={getRewardName(reward)} style={{ aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: `2px solid ${borderColor}`, background: bgColor, padding: '4px', gap: '2px', position: 'relative', cursor: isCurrent ? 'pointer' : 'default', transition: 'all 0.2s ease', ...extraStyles }}>
                                         <span style={{ fontSize: '11px', fontWeight: '700', color: textColor, lineHeight: 1 }}>{dayNum}</span>
                                         <span style={{ fontSize: '14px', lineHeight: 1 }}>{renderRewardIcon(reward, 14)}</span>
-                                        {isClaimed && <span style={{ position: 'absolute', top: '1px', right: '2px', fontSize: '8px', color: '#10b981' }}>✓</span>}
+                                        {/* ✓ claimed overlay */}
+                                        {isClaimed && (
+                                            <div style={{position:'absolute',inset:0,background:'rgba(16,185,129,0.15)',borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                                <span style={{fontSize:'14px',color:'#10b981',fontWeight:900}}>✓</span>
+                                            </div>
+                                        )}
+                                        {/* Current day glow ring */}
+                                        {isCurrent && !isClaimed && (
+                                            <div style={{position:'absolute',inset:'-2px',borderRadius:'10px',border:'2px solid #ffd700',boxShadow:'0 0 10px rgba(255,215,0,0.5)',pointerEvents:'none'}}/>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -2610,6 +2799,42 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
                                     )}
                                 </div>
                             </div>
+                            {/* Gender row */}
+                            <div className="settings-account-row" style={{marginTop:'4px'}}>
+                                <span className="settings-account-label">
+                                    {(userData?.gender === 'male') ? '♂️' : (userData?.gender === 'female') ? '♀️' : '👤'}
+                                    {' '}{lang === 'ar' ? 'الجنس' : 'Gender'}
+                                </span>
+                                <div style={{display:'flex', gap:'6px'}}>
+                                    <button
+                                        onClick={async () => {
+                                            if (!user) return;
+                                            await usersCollection.doc(user.uid).update({ gender: 'male' });
+                                            onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
+                                        }}
+                                        style={{
+                                            padding:'3px 10px', borderRadius:'6px', fontSize:'11px', fontWeight:700, cursor:'pointer',
+                                            background: userData?.gender === 'male' ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.05)',
+                                            border: userData?.gender === 'male' ? '1.5px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
+                                            color: userData?.gender === 'male' ? '#93c5fd' : '#9ca3af'
+                                        }}
+                                    >♂️ {lang === 'ar' ? 'ذكر' : 'Male'}</button>
+                                    <button
+                                        onClick={async () => {
+                                            if (!user) return;
+                                            await usersCollection.doc(user.uid).update({ gender: 'female' });
+                                            onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
+                                        }}
+                                        style={{
+                                            padding:'3px 10px', borderRadius:'6px', fontSize:'11px', fontWeight:700, cursor:'pointer',
+                                            background: userData?.gender === 'female' ? 'rgba(236,72,153,0.3)' : 'rgba(255,255,255,0.05)',
+                                            border: userData?.gender === 'female' ? '1.5px solid #ec4899' : '1px solid rgba(255,255,255,0.1)',
+                                            color: userData?.gender === 'female' ? '#f9a8d4' : '#9ca3af'
+                                        }}
+                                    >♀️ {lang === 'ar' ? 'أنثى' : 'Female'}</button>
+                                </div>
+                            </div>
+                        </div>
                         </div>
                     )}
                     {/* Sound Toggle */}
@@ -2874,6 +3099,7 @@ function App() {
     const [showShop, setShowShop] = useState(false);
     const [showInventory, setShowInventory] = useState(false);
     const [showPrivateChat, setShowPrivateChat] = useState(false);
+    const [showSelfChat, setShowSelfChat] = useState(false);
     const [chatFriend, setChatFriend] = useState(null);
     const [showLoginAlert, setShowLoginAlert] = useState(false);
     const [guestData, setGuestData] = useState(null);
@@ -3127,6 +3353,17 @@ function App() {
     // Claim Login Reward
     const handleClaimLoginReward = useCallback(async (day) => {
         if (!user || !isLoggedIn) return;
+        // Safety: re-read current day from Firestore to avoid stale data
+        const freshDoc = await usersCollection.doc(user.uid).get();
+        const freshData = freshDoc.data();
+        const freshLoginData = freshData?.loginRewards || {};
+        const freshDay = freshLoginData.currentDay || 0;
+        // The next day to claim must match what we expect
+        const expectedNextDay = freshDay + 1;
+        if (day !== expectedNextDay) {
+            console.warn('Day mismatch, using fresh day:', freshDay, '-> claiming day:', expectedNextDay);
+            day = expectedNextDay; // Fix stale day
+        }
         const reward = LOGIN_REWARDS[day - 1];
         if (!reward) return;
         try {
@@ -3289,6 +3526,28 @@ function App() {
                     cost: gift.cost,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                
+                // 📝 Also log gift card to SelfChat
+                try {
+                    const selfChatId = `${user.uid}_self`;
+                    const selfChatRef = chatsCollection.doc(selfChatId);
+                    await selfChatRef.set({
+                        participants: [user.uid, user.uid],
+                        type: 'self',
+                        lastMessage: `🎁 ${giftName}`,
+                        lastAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    await selfChatRef.collection('messages').add({
+                        type: 'gift',
+                        giftEmoji: gift.emoji || '🎁',
+                        giftName: `${gift.name_en} / ${gift.name_ar}`,
+                        giftCost: gift.cost,
+                        charismaGain: gift.charisma,
+                        bonusIntel: bonusForReceiver,
+                        senderId: user.uid,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } catch(e) { console.warn('SelfChat gift log:', e); }
             } else {
                 // Sending to another person - add charisma AND bonus
                 await usersCollection.doc(targetUser.uid).update({ 
@@ -3507,6 +3766,14 @@ function App() {
                     sessionClaimedToday={sessionClaimedToday}
                     onOpenLoginRewards={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}
                     currency={currentUserData?.currency || 0}
+                    onOpenChat={(target) => {
+                        setShowMyAccount(false);
+                        if (target === 'self') {
+                            setShowSelfChat(true);
+                        } else {
+                            openPrivateChat(target);
+                        }
+                    }}
                 />
             )}
             
@@ -3522,6 +3789,10 @@ function App() {
                 currentUserFriends={userData?.friends} 
                 currentUserFriendRequests={userData?.friendRequests}
                 friendsData={friendsData}
+                onOpenChat={(friendData) => {
+                    openPrivateChat(friendData);
+                    setShowUserProfile(false);
+                }}
             />
             <BrowseRoomsModal show={showBrowseRooms} onClose={() => setShowBrowseRooms(false)} onJoin={handleJoinGame} nickname={nickname} currentUID={currentUID} currentUserData={currentUserData} lang={lang} />
             
@@ -3541,6 +3812,17 @@ function App() {
                 />
             )}
             
+            {showSelfChat && user && (
+                <SelfChatModal
+                    show={showSelfChat}
+                    onClose={() => setShowSelfChat(false)}
+                    currentUser={currentUserData}
+                    userData={currentUserData}
+                    lang={lang}
+                    currency={userData?.currency || 0}
+                />
+            )}
+
             {alertMessage && (<div className="alert-modal" onClick={() => setAlertMessage(null)}><div className="modal-content animate-pop" onClick={e => e.stopPropagation()}><div className="modal-header"><span></span><ModalCloseBtn onClose={() => setAlertMessage(null)} /></div><div className="modal-body text-center"><div className="text-2xl mb-2">🚫</div><p className="font-bold mb-4">{alertMessage}</p><button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button></div></div></div>)}
             
             {showSetupModal && (
@@ -3692,14 +3974,47 @@ function App() {
                                 </div>
                             )}
                             <div className="friends-list-section">
-                                <div className="friends-list-header">{t.tabFriends} ({friendsData.length})</div>
-                                {friendsData.length === 0 ? <div className="text-center py-6"><div className="text-4xl mb-2">👥</div><p className="text-gray-400">{t.noFriends}</p></div> : friendsData.map(friend => (
-                                    <div key={friend.id} className="friend-item">
-                                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                                        <div className="friend-info"><div className="friend-name">{friend.displayName}</div><div className="friend-status">{friend.isOnline ? <span className="text-green-400">{t.online}</span> : <span className="text-gray-500">{t.offline}</span>}</div></div>
-                                        <div className="friend-actions"><button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-xs">💬</button><button onClick={() => openProfile(friend.id)} className="btn-ghost px-2 py-1 rounded text-xs">👤</button></div>
-                                    </div>
-                                ))}
+                                {friendsData.length === 0 ? (
+                                    <div className="text-center py-6"><div className="text-4xl mb-2">👥</div><p className="text-gray-400">{t.noFriends}</p></div>
+                                ) : (() => {
+                                    const online = friendsData.filter(f => f.isOnline);
+                                    const offline = friendsData.filter(f => !f.isOnline);
+                                    const renderFriend = (friend) => (
+                                        <div key={friend.id} className="friend-item">
+                                            <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
+                                            <div className="friend-info">
+                                                <div className="friend-name">{friend.displayName}</div>
+                                                <div className="friend-status">{friend.isOnline ? <span className="text-green-400">● {t.online}</span> : <span className="text-gray-500">● {t.offline}</span>}</div>
+                                            </div>
+                                            <div className="friend-actions">
+                                                <button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-xs">💬</button>
+                                                <button onClick={() => openProfile(friend.id)} className="btn-ghost px-2 py-1 rounded text-xs">👤</button>
+                                            </div>
+                                        </div>
+                                    );
+                                    return (
+                                        <>
+                                            {online.length > 0 && (
+                                                <>
+                                                    <div style={{fontSize:'9px',fontWeight:700,color:'#4ade80',textTransform:'uppercase',padding:'4px 0 6px',display:'flex',alignItems:'center',gap:'5px'}}>
+                                                        <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block'}}/>
+                                                        {t.online} ({online.length})
+                                                    </div>
+                                                    {online.map(renderFriend)}
+                                                </>
+                                            )}
+                                            {offline.length > 0 && (
+                                                <>
+                                                    <div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',textTransform:'uppercase',padding:'8px 0 6px',display:'flex',alignItems:'center',gap:'5px',borderTop: online.length ? '1px solid rgba(255,255,255,0.06)' : 'none',marginTop: online.length ? '6px' : 0}}>
+                                                        <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#6b7280',display:'inline-block'}}/>
+                                                        {t.offline} ({offline.length})
+                                                    </div>
+                                                    {offline.map(renderFriend)}
+                                                </>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </div>
                         </div>
                     )}
@@ -3871,9 +4186,13 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                         return (
                             <div 
                                 key={gift.id} 
-                                className={`profile-gift-slot ${unlocked ? 'unlocked' : 'locked'}`}
+                                className={`profile-gift-slot ${unlocked ? 'unlocked' : 'locked'}${unlocked && rKey === 'Mythic' ? ' mythic-glow' : ''}`}
                                 title={unlocked ? `${lang === 'ar' ? gift.name_ar : gift.name_en} x${count}` : (lang === 'ar' ? 'لم تُستلم بعد' : 'Not received')}
-                                style={{ cursor:'pointer', ...(unlocked ? { border: `1.5px solid ${rarity.border}`, boxShadow: rarity.glow ? `0 0 8px ${rarity.color}55` : 'none', background: rarity.bg } : {}) }}
+                                style={{ cursor:'pointer', ...(unlocked ? {
+                                    border: `1.5px solid ${rarity.border}`,
+                                    boxShadow: rKey === 'Mythic' ? `0 0 12px rgba(255,0,85,0.6), 0 0 24px rgba(255,0,85,0.25)` : (rarity.glow ? `0 0 8px ${rarity.color}55` : 'none'),
+                                    background: rarity.bg
+                                } : {}) }}
                                 onClick={() => setSelectedGiftDetail({ gift, count, rarity, rKey, unlocked })}
                             >
                                 <span style={{ position:'absolute', top:'2px', right:'2px', fontSize:'9px' }}>{rarity.icon}</span>
@@ -3955,15 +4274,22 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
             {activeTab === 'log' && (
                 <div className="profile-gift-log">
                     {gifts && gifts.length > 0 ? (
-                        gifts.slice(0, 10).map((gift, idx) => (
-                            <div key={idx} className="profile-gift-log-item">
+                        gifts.slice(0, 10).map((gift, idx) => {
+                            const logRarityKey = getGiftRarity(gift.giftCost || 0);
+                            const isMythicLog = logRarityKey === 'Mythic';
+                            return (
+                            <div key={idx} className={`profile-gift-log-item${isMythicLog ? ' mythic-glow' : ''}`}
+                                style={isMythicLog ? {border:'1px solid rgba(255,0,85,0.5)', background:'rgba(255,0,85,0.08)'} : {}}>
                                 <img 
                                     src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(gift.senderName || 'User')}&background=6366f1&color=fff`} 
                                     alt="" 
                                     className="profile-gift-log-avatar"
                                 />
                                 <div className="profile-gift-log-content">
-                                    <div className="profile-gift-log-sender">{gift.senderName || 'Unknown'}</div>
+                                    <div className="profile-gift-log-sender">
+                                        {gift.senderName || 'Unknown'}
+                                        {isMythicLog && <span style={{marginLeft:'4px',fontSize:'9px',color:'#ff0055'}}>🔮 Mythic</span>}
+                                    </div>
                                     <div className="profile-gift-log-details">
                                         <span className="profile-gift-log-emoji">{gift.giftEmoji || '🎁'}</span>
                                         <span className="profile-gift-log-name">
@@ -3972,13 +4298,14 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                                     </div>
                                 </div>
                                 <div className="profile-gift-log-stats">
-                                    <div className="profile-gift-log-charisma">+{gift.charisma || 0}</div>
+                                    <div className="profile-gift-log-charisma" style={isMythicLog ? {color:'#ff0055'} : {}}>+{gift.charisma || 0}</div>
                                     <div className="profile-gift-log-time">
                                         {gift.timestamp?.toDate ? formatTime(gift.timestamp) : ''}
                                     </div>
                                 </div>
                             </div>
-                        ))
+                            );
+                        })
                     ) : (
                         <div className="profile-gift-empty">
                             <span style={{ fontSize: '32px' }}>🎁</span>
@@ -4425,6 +4752,11 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
     const [submitting, setSubmitting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [reportSent, setReportSent] = useState(false);
+    const [showReportMomentModal, setShowReportMomentModal] = useState(false);
+    const [momentReportReason, setMomentReportReason] = useState('');
+    const [showReportCommentModal, setShowReportCommentModal] = useState(false);
+    const [reportTargetComment, setReportTargetComment] = useState(null);
+    const [commentReportReason, setCommentReportReason] = useState('');
 
     useEffect(() => {
         if (!moment.id) return;
@@ -4477,18 +4809,44 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
     };
 
     const handleReportMoment = async () => {
-        if (!currentUser || reportSent) return;
+        if (!currentUser || reportSent || !momentReportReason) return;
         try {
             await reportsCollection.add({
                 type: 'moment',
+                reason: momentReportReason,
                 targetId: moment.id,
                 targetOwnerUID: moment.authorUID,
+                momentType: moment.type,
+                momentContent: moment.type === 'text' ? (moment.content || '') : '',
+                momentMediaUrl: (moment.type === 'image' || moment.type === 'video') ? (moment.mediaUrl || '') : '',
                 reporterUID: currentUser.uid,
                 reporterName: currentUser.displayName || 'User',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             setReportSent(true);
-        } catch(e) {}
+            setShowReportMomentModal(false);
+            setMomentReportReason('');
+        } catch(e) { console.error(e); }
+    };
+
+    const handleReportCommentSubmit = async () => {
+        if (!currentUser || !reportTargetComment || !commentReportReason) return;
+        try {
+            await reportsCollection.add({
+                type: 'moment_comment',
+                reason: commentReportReason,
+                targetId: reportTargetComment.id,
+                momentId: moment.id,
+                commentText: reportTargetComment.text || '',
+                targetOwnerUID: reportTargetComment.authorUID,
+                reporterUID: currentUser.uid,
+                reporterName: currentUser.displayName || 'User',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            setShowReportCommentModal(false);
+            setReportTargetComment(null);
+            setCommentReportReason('');
+        } catch(e) { console.error(e); }
     };
 
     const handleReportComment = async (comment) => {
@@ -4523,7 +4881,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                         {/* Report button - shown to non-owners */}
                         {currentUser && !isOwnProfile && (
                             <button
-                                onClick={handleReportMoment}
+                                onClick={() => !reportSent && setShowReportMomentModal(true)}
                                 title={lang === 'ar' ? 'إبلاغ' : 'Report'}
                                 style={{background: reportSent ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.06)', border: reportSent ? '1px solid rgba(251,191,36,0.4)' : '1px solid rgba(255,255,255,0.1)', borderRadius:'6px', color: reportSent ? '#fbbf24' : '#6b7280', fontSize:'10px', padding:'3px 8px', cursor: reportSent ? 'default' : 'pointer', fontWeight:700}}
                             >
@@ -4604,7 +4962,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                                     )}
                                     {!isMyComment && !isMomentOwner && currentUser && (
                                         <button
-                                            onClick={() => handleReportComment(c)}
+                                            onClick={() => { setReportTargetComment(c); setShowReportCommentModal(true); }}
                                             title={lang === 'ar' ? 'إبلاغ' : 'Report'}
                                             style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'5px', color:'#6b7280', fontSize:'9px', padding:'2px 5px', cursor:'pointer', lineHeight:1}}
                                         >🚩</button>
@@ -4633,6 +4991,96 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                             {lang === 'ar' ? 'إرسال' : 'Send'}
                         </button>
                     </div>
+                )}
+
+                {/* ── REPORT MOMENT MODAL ── */}
+                {showReportMomentModal && (
+                    <PortalModal>
+                        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999999,padding:'16px'}} onClick={() => setShowReportMomentModal(false)}>
+                            <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'14px',padding:'20px',maxWidth:'300px',width:'100%'}} onClick={e => e.stopPropagation()}>
+                                <div style={{fontSize:'22px',textAlign:'center',marginBottom:'6px'}}>🚩</div>
+                                <div style={{fontSize:'14px',fontWeight:800,color:'white',textAlign:'center',marginBottom:'4px'}}>
+                                    {lang==='ar'?'إبلاغ عن اللحظة':'Report Moment'}
+                                </div>
+                                <div style={{fontSize:'11px',color:'#9ca3af',textAlign:'center',marginBottom:'14px'}}>
+                                    {lang==='ar'?'اختر سبب الإبلاغ:':'Select a reason:'}
+                                </div>
+                                <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'14px'}}>
+                                    {[
+                                        {key:'offensive_image', icon:'🖼️', ar:'صورة مسيئة/مهينة', en:'Offensive Image'},
+                                        {key:'verbal_abuse',    icon:'💬', ar:'شتيمة/إهانة',       en:'Verbal Abuse'},
+                                        {key:'spam',            icon:'📢', ar:'سبام',               en:'Spam'},
+                                        {key:'other',           icon:'❓', ar:'سبب آخر',            en:'Other'}
+                                    ].map(r => (
+                                        <button key={r.key} onClick={() => setMomentReportReason(r.key)} style={{
+                                            padding:'8px 12px', borderRadius:'8px', fontSize:'12px', cursor:'pointer',
+                                            display:'flex', alignItems:'center', gap:'8px', fontWeight:600, textAlign:'start',
+                                            background: momentReportReason===r.key ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.04)',
+                                            border: momentReportReason===r.key ? '1.5px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                                            color: momentReportReason===r.key ? '#fca5a5' : '#9ca3af'
+                                        }}>
+                                            <span>{r.icon}</span><span>{lang==='ar'?r.ar:r.en}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div style={{display:'flex',gap:'8px'}}>
+                                    <button onClick={() => { setShowReportMomentModal(false); setMomentReportReason(''); }} style={{flex:1,padding:'8px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',fontWeight:700,cursor:'pointer'}}>
+                                        {lang==='ar'?'إلغاء':'Cancel'}
+                                    </button>
+                                    <button onClick={handleReportMoment} disabled={!momentReportReason} style={{flex:1,padding:'8px',borderRadius:'8px',background: momentReportReason ? 'rgba(239,68,68,0.2)' : 'rgba(100,100,100,0.1)',border: momentReportReason ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.05)',color: momentReportReason ? '#f87171' : '#4b5563',fontSize:'12px',fontWeight:700,cursor: momentReportReason ? 'pointer' : 'default',opacity: momentReportReason ? 1 : 0.5}}>
+                                        {lang==='ar'?'إرسال':'Submit'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </PortalModal>
+                )}
+
+                {/* ── REPORT COMMENT MODAL ── */}
+                {showReportCommentModal && reportTargetComment && (
+                    <PortalModal>
+                        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999999,padding:'16px'}} onClick={() => { setShowReportCommentModal(false); setReportTargetComment(null); }}>
+                            <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'14px',padding:'20px',maxWidth:'300px',width:'100%'}} onClick={e => e.stopPropagation()}>
+                                <div style={{fontSize:'22px',textAlign:'center',marginBottom:'6px'}}>🚩</div>
+                                <div style={{fontSize:'14px',fontWeight:800,color:'white',textAlign:'center',marginBottom:'4px'}}>
+                                    {lang==='ar'?'إبلاغ عن تعليق':'Report Comment'}
+                                </div>
+                                {/* Show the comment content */}
+                                <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'8px',padding:'8px 10px',marginBottom:'12px',fontSize:'11px',color:'#cbd5e1',maxHeight:'60px',overflow:'hidden',textOverflow:'ellipsis'}}>
+                                    💬 {reportTargetComment.text}
+                                </div>
+                                <div style={{fontSize:'11px',color:'#9ca3af',textAlign:'center',marginBottom:'10px'}}>
+                                    {lang==='ar'?'اختر سبب الإبلاغ:':'Select a reason:'}
+                                </div>
+                                <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'14px'}}>
+                                    {[
+                                        {key:'verbal_abuse', icon:'💬', ar:'شتيمة/إهانة',    en:'Verbal Abuse'},
+                                        {key:'spam',         icon:'📢', ar:'سبام',            en:'Spam'},
+                                        {key:'harassment',   icon:'😡', ar:'مضايقة',          en:'Harassment'},
+                                        {key:'other',        icon:'❓', ar:'سبب آخر',         en:'Other'}
+                                    ].map(r => (
+                                        <button key={r.key} onClick={() => setCommentReportReason(r.key)} style={{
+                                            padding:'8px 12px', borderRadius:'8px', fontSize:'12px', cursor:'pointer',
+                                            display:'flex', alignItems:'center', gap:'8px', fontWeight:600,
+                                            background: commentReportReason===r.key ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.04)',
+                                            border: commentReportReason===r.key ? '1.5px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                                            color: commentReportReason===r.key ? '#fca5a5' : '#9ca3af'
+                                        }}>
+                                            <span>{r.icon}</span><span>{lang==='ar'?r.ar:r.en}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div style={{display:'flex',gap:'8px'}}>
+                                    <button onClick={() => { setShowReportCommentModal(false); setReportTargetComment(null); setCommentReportReason(''); }} style={{flex:1,padding:'8px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',fontWeight:700,cursor:'pointer'}}>
+                                        {lang==='ar'?'إلغاء':'Cancel'}
+                                    </button>
+                                    <button onClick={handleReportCommentSubmit} disabled={!commentReportReason} style={{flex:1,padding:'8px',borderRadius:'8px',background: commentReportReason ? 'rgba(239,68,68,0.2)' : 'rgba(100,100,100,0.1)',border: commentReportReason ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.05)',color: commentReportReason ? '#f87171' : '#4b5563',fontSize:'12px',fontWeight:700,cursor: commentReportReason ? 'pointer' : 'default',opacity: commentReportReason ? 1 : 0.5}}>
+                                        {lang==='ar'?'إرسال':'Submit'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </PortalModal>
                 )}
 
                 {/* Delete confirm - PortalModal to escape overflow:hidden */}
@@ -4953,7 +5401,8 @@ const ProfileV11 = ({
     isGuest: isGuestProp,
     sessionClaimedToday,
     onOpenLoginRewards,
-    currency: currencyProp
+    currency: currencyProp,
+    onOpenChat
 }) => {
     const t = TRANSLATIONS[lang] || {};
     
@@ -5262,7 +5711,15 @@ const ProfileV11 = ({
                         <div className="profile-identity">
                             <div className="profile-name-row">
                                 <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
-                                <h1 className="profile-name">{targetData?.displayName || 'Unknown'}</h1>
+                                <div style={{display:'flex', alignItems:'center', gap:'5px', justifyContent:'center'}}>
+                                    <h1 className="profile-name">{targetData?.displayName || 'Unknown'}</h1>
+                                    {targetData?.gender === 'male' && (
+                                        <span style={{fontSize:'13px', color:'#60a5fa', fontWeight:700, lineHeight:1}}>♂️</span>
+                                    )}
+                                    {targetData?.gender === 'female' && (
+                                        <span style={{fontSize:'13px', color:'#f472b6', fontWeight:700, lineHeight:1}}>♀️</span>
+                                    )}
+                                </div>
                             </div>
                             
                             <UserBadgesV11 equipped={targetData?.equipped} lang={lang} />
@@ -5292,25 +5749,44 @@ const ProfileV11 = ({
                             <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
                         </div>
 
-                        <div className="profile-stats-dashboard">
-                            <div className="profile-stats-main-row">
-                                <div className="profile-stat-box">
-                                    <span className="profile-stat-value wins">{wins}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? '🏆 فوز' : '🏆 Wins'}</span>
-                                </div>
-                                <div className="profile-stat-box">
-                                    <span className="profile-stat-value losses">{losses}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? '💀 خسارة' : '💀 Losses'}</span>
-                                </div>
+                        {/* ── STATS ROW ── */}
+                        <div style={{
+                            display:'flex', alignItems:'center', justifyContent:'space-evenly',
+                            width:'100%', padding:'10px 8px', boxSizing:'border-box',
+                            background:'rgba(0,0,0,0.15)', borderTop:'1px solid rgba(255,255,255,0.05)',
+                            borderBottom:'1px solid rgba(255,255,255,0.05)', margin:'8px 0'
+                        }}>
+                            {/* Wins */}
+                            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:'1',minWidth:0}}>
+                                <span style={{fontSize:'18px',fontWeight:900,color:'#4ade80',lineHeight:1}}>{wins}</span>
+                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>🏆 {lang==='ar'?'فوز':'Wins'}</span>
+                            </div>
+                            {/* Divider */}
+                            <div style={{width:'1px',height:'32px',background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
+                            {/* Losses */}
+                            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:'1',minWidth:0}}>
+                                <span style={{fontSize:'18px',fontWeight:900,color:'#f87171',lineHeight:1}}>{losses}</span>
+                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>💀 {lang==='ar'?'خسارة':'Losses'}</span>
+                            </div>
+                            {/* Divider */}
+                            <div style={{width:'1px',height:'32px',background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
+                            {/* Win Rate */}
+                            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:'1.2',minWidth:0}}>
                                 <WinRateCircleV11 wins={wins} losses={losses} lang={lang} />
-                                <div className="profile-stat-box">
-                                    <span className="profile-stat-value rank">#{charismaRank || '--'}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? '🎖️ رتبة' : '🎖️ Rank'}</span>
-                                </div>
-                                <div className="profile-stat-box">
-                                    <span className="profile-stat-value" style={{ color: '#a78bfa' }}>{level}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? '⚡ مستوى' : '⚡ Level'}</span>
-                                </div>
+                            </div>
+                            {/* Divider */}
+                            <div style={{width:'1px',height:'32px',background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
+                            {/* Rank */}
+                            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:'1',minWidth:0}}>
+                                <span style={{fontSize:'18px',fontWeight:900,color:'#fbbf24',lineHeight:1}}>#{charismaRank||'--'}</span>
+                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>🎖️ {lang==='ar'?'رتبة':'Rank'}</span>
+                            </div>
+                            {/* Divider */}
+                            <div style={{width:'1px',height:'32px',background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
+                            {/* Level */}
+                            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:'1',minWidth:0}}>
+                                <span style={{fontSize:'18px',fontWeight:900,color:'#a78bfa',lineHeight:1}}>{level}</span>
+                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>⚡ {lang==='ar'?'مستوى':'Level'}</span>
                             </div>
                         </div>
 
@@ -5341,9 +5817,18 @@ const ProfileV11 = ({
                         {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && (
                             <div className="profile-actions">
                                 {isAlreadyFriend ? (
-                                    <button disabled className="profile-action-btn friends">
-                                        <span>✓</span>
-                                        <span>{lang === 'ar' ? 'أصدقاء' : 'Friends'}</span>
+                                    /* Already friends → show Chat button */
+                                    <button
+                                        onClick={() => {
+                                            if (onOpenChat) {
+                                                onOpenChat({ uid: targetUID, displayName: targetData?.displayName, photoURL: targetData?.photoURL, equipped: targetData?.equipped, id: targetUID });
+                                            }
+                                        }}
+                                        className="profile-action-btn primary"
+                                        style={{background:'linear-gradient(135deg,rgba(0,242,255,0.25),rgba(112,0,255,0.2))', borderColor:'rgba(0,242,255,0.4)'}}
+                                    >
+                                        <span>💬</span>
+                                        <span>{lang === 'ar' ? 'محادثة' : 'Chat'}</span>
                                     </button>
                                 ) : hasPendingRequest ? (
                                     <button disabled className="profile-action-btn secondary">
@@ -5363,24 +5848,38 @@ const ProfileV11 = ({
                             </div>
                         )}
 
-                        {/* Send Gift to Self - only on own profile */}
+                        {/* Own profile action buttons */}
                         {isOwnProfile && (
-                            <div style={{padding:'0 12px 12px'}}>
+                            <div style={{padding:'0 12px 12px', display:'flex', gap:'8px'}}>
+                                {/* Personal Notes Chat */}
+                                <button
+                                    onClick={() => onOpenChat && onOpenChat('self')}
+                                    style={{
+                                        flex:1, padding:'11px', borderRadius:'12px',
+                                        background:'linear-gradient(135deg,rgba(0,242,255,0.12),rgba(112,0,255,0.1))',
+                                        border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff',
+                                        fontSize:'12px', fontWeight:800, cursor:'pointer',
+                                        display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
+                                        transition:'all 0.2s'
+                                    }}
+                                >
+                                    <span style={{fontSize:'16px'}}>📝</span>
+                                    <span>{lang === 'ar' ? 'ملاحظاتي' : 'My Notes'}</span>
+                                </button>
+                                {/* Self Gift */}
                                 <button
                                     onClick={() => setShowSelfGiftModal(true)}
                                     style={{
-                                        width:'100%', padding:'11px', borderRadius:'12px',
-                                        background:'linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,136,0,0.15))',
+                                        flex:1, padding:'11px', borderRadius:'12px',
+                                        background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,136,0,0.15))',
                                         border:'1px solid rgba(255,215,0,0.4)', color:'#facc15',
-                                        fontSize:'13px', fontWeight:800, cursor:'pointer',
-                                        display:'flex', alignItems:'center', justifyContent:'center', gap:'8px',
+                                        fontSize:'12px', fontWeight:800, cursor:'pointer',
+                                        display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
                                         transition:'all 0.2s'
                                     }}
-                                    onMouseEnter={e => e.currentTarget.style.background='linear-gradient(135deg, rgba(255,215,0,0.35), rgba(255,136,0,0.25))'}
-                                    onMouseLeave={e => e.currentTarget.style.background='linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,136,0,0.15))'}
                                 >
-                                    <span style={{fontSize:'18px'}}>🎁</span>
-                                    <span>{lang === 'ar' ? 'أرسل هدية لنفسك' : 'Send Gift to Yourself'}</span>
+                                    <span style={{fontSize:'16px'}}>🎁</span>
+                                    <span>{lang === 'ar' ? 'هدية لنفسي' : 'Gift Myself'}</span>
                                 </button>
                             </div>
                         )}
