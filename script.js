@@ -1964,8 +1964,17 @@ function App() {
                     const friends = snap.docs.map(d => { 
                         const data = d.data();
                         const lastActive = data.lastActive?.toDate?.() || new Date(0);
-                        const isOnline = (Date.now() - lastActive.getTime()) < 300000;
-                        return { id: d.id, ...data, isOnline };
+                        const timeSinceActive = Date.now() - lastActive.getTime();
+                        
+                        // ✅ NEW: Three status levels
+                        let status = 'offline'; // Gray - Last active > 30 min
+                        if (timeSinceActive < 300000) { // 5 minutes
+                            status = 'online'; // Green
+                        } else if (timeSinceActive < 1800000) { // 30 minutes
+                            status = 'away'; // Yellow/Amber
+                        }
+                        
+                        return { id: d.id, ...data, isOnline: status === 'online', onlineStatus: status };
                     });
                     setFriendsData(friends); 
                 }); 
@@ -3052,6 +3061,7 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
 
     if (!show) return null;
 
+    // ✅ MODIFIED: Mission completion verification system
     const handleClaimMission = async (mission, type) => {
         if (!user || claiming) return;
         const mKey = mission.id;
@@ -3060,6 +3070,33 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
             ? mData.lastCompleted === todayStr
             : mData.lastWeekCompleted === weekStr;
         if (alreadyClaimed) return;
+        
+        // ✅ NEW: Verify mission completion before allowing claim
+        const missionCompletionData = userData?.missionProgress?.[type] || {};
+        let missionCompleted = false;
+        
+        // Check if user actually completed the mission
+        switch(mission.id) {
+            case 'd1': missionCompleted = (missionCompletionData.gamesPlayed || 0) >= 1; break;  // Play 1 game
+            case 'd2': missionCompleted = (missionCompletionData.gamesWon || 0) >= 1; break;     // Win 1 game
+            case 'd3': missionCompleted = (missionCompletionData.spyGames || 0) >= 1; break;     // Play as Spy
+            case 'd4': missionCompleted = (missionCompletionData.giftsSent || 0) >= 1; break;    // Send gift
+            case 'd5': missionCompleted = (missionCompletionData.friendsAdded || 0) >= 1; break; // Add friend
+            case 'd6': missionCompleted = (missionCompletionData.momentsPosted || 0) >= 1; break;// Post moment
+            case 'd7': missionCompleted = (missionCompletionData.commentsPosted || 0) >= 1; break;// Comment
+            case 'w1': missionCompleted = (missionCompletionData.gamesPlayed || 0) >= 10; break; // Play 10 games
+            case 'w2': missionCompleted = (missionCompletionData.gamesWon || 0) >= 5; break;     // Win 5 games
+            case 'w3': missionCompleted = (missionCompletionData.giftsSent || 0) >= 5; break;    // Send 5 gifts
+            case 'w4': missionCompleted = (missionCompletionData.momentsPosted || 0) >= 3; break;// Post 3 moments
+            case 'w5': missionCompleted = (missionCompletionData.friendsChats || 0) >= 3; break; // Chat 3 friends
+            default: missionCompleted = false;
+        }
+        
+        if (!missionCompleted) {
+            onNotification(lang==='ar' ? '❌ لم تكمل المهمة بعد' : '❌ Mission not completed');
+            return;
+        }
+        
         setClaiming(mKey);
         try {
             const updates = {
@@ -3083,9 +3120,11 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
         if (currency < FUN_PASS_PRICE) { onNotification(lang==='ar'?'إنتل غير كافٍ!':'Not enough Intel!'); return; }
         setBuying(true);
         try {
+            // ✅ ENHANCED: Track purchase with date
             await usersCollection.doc(user.uid).update({
                 currency: firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE),
-                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true,
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: firebase.firestore.FieldValue.serverTimestamp(), // Added for tracking
             });
             onNotification(lang==='ar'?'🎫 تم شراء Fun Pass!':'🎫 Fun Pass purchased!');
         } catch(e) { onNotification(lang==='ar'?'خطأ':'Error'); }
@@ -4787,9 +4826,11 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
 // ==========================================
 // ✨ PROFILE EFFECT OVERLAY (standalone component - no hooks added to ProfileV11)
 // ==========================================
-const ProfileEffectOverlay = ({ effectId }) => {
+// ✅ ENHANCED: Profile Effect Overlay with Image Support
+const ProfileEffectOverlay = ({ effectId, profileImageUrl, profileImageAlt }) => {
     const [particles, setParticles] = useState([]);
     const [alive, setAlive] = useState(false);
+    const [showImage, setShowImage] = useState(!!profileImageUrl);
     const timerRef = useRef(null);
 
     useEffect(() => {
@@ -4813,9 +4854,31 @@ const ProfileEffectOverlay = ({ effectId }) => {
         return () => { if (timerRef.current) clearTimeout(timerRef.current); };
     }, [effectId]);
 
-    if (!alive || particles.length === 0) return null;
+    if (!alive) return null;
+    
     return (
         <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:99998,overflow:'hidden'}}>
+            {/* ✅ NEW: Image display with auto-resize */}
+            {showImage && profileImageUrl && (
+                <div style={{
+                    position:'fixed', top:'50%', left:'50%', transform:'translate(-50%, -50%)',
+                    width:'300px', height:'300px', borderRadius:'16px',
+                    overflow:'hidden', boxShadow:'0 0 40px rgba(0,242,255,0.4)',
+                    zIndex:99999, pointerEvents:'none'
+                }}>
+                    <img 
+                        src={profileImageUrl} 
+                        alt={profileImageAlt || 'Profile Effect'} 
+                        style={{
+                            width:'100%', height:'100%', objectFit:'cover',
+                            animation:'pef_pulse 0.5s ease-in-out'
+                        }}
+                        onError={() => setShowImage(false)}
+                    />
+                </div>
+            )}
+            
+            {/* Particle effects */}
             {particles.map(p => (
                 <div key={p.id} style={{
                     position:'absolute', left:`${p.x}%`, top:'-8%',
@@ -4824,7 +4887,10 @@ const ProfileEffectOverlay = ({ effectId }) => {
                     opacity: 0,
                 }}>{p.emoji}</div>
             ))}
-            <style>{`@keyframes pef_fall{0%{opacity:0;transform:translateY(0) rotate(0deg)}10%{opacity:1}80%{opacity:.9}100%{opacity:0;transform:translateY(105vh) rotate(380deg)}}`}</style>
+            <style>{`
+                @keyframes pef_fall{0%{opacity:0;transform:translateY(0) rotate(0deg)}10%{opacity:1}80%{opacity:.9}100%{opacity:0;transform:translateY(105vh) rotate(380deg)}}
+                @keyframes pef_pulse{0%{transform:scale(0.8);opacity:0}50%{opacity:1}100%{transform:scale(1);opacity:1}}
+            `}</style>
         </div>
     );
 };
@@ -5957,8 +6023,8 @@ const ProfileV11 = ({
                     {/* Spacer on left to push buttons to right */}
                     <div style={{ flex: 1 }}></div>
                     
-                    {/* Three dots menu (only for other users) */}
-                    {!isOwnProfile && !isTargetGuest && (
+                    {/* Three dots menu (only for other users, not guests viewing) */}
+                    {!isOwnProfile && !isTargetGuest && !isGuestViewer && (
                         <div className="profile-options-container" ref={optionsRef}>
                             <button 
                                 className="profile-options-btn"
@@ -6179,7 +6245,7 @@ const ProfileV11 = ({
                             </div>
                         )}
 
-                        {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && (
+                        {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && !isGuestViewer && (
                             <div className="profile-actions">
                                 {isAlreadyFriend ? (
                                     /* Already friends → show Chat button */
