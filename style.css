@@ -2915,20 +2915,20 @@ body {
 }
 .profile-achievement-v2.unlocked {
     background: rgba(255,215,0,0.10);
-    border-color: rgba(255,215,0,0.40);
-    box-shadow: 0 0 10px rgba(255,215,0,0.2), inset 0 0 15px rgba(255,215,0,0.05);
+    border-color: rgba(255,215,0,0.45);
+    box-shadow: 0 0 12px rgba(255,215,0,0.22), inset 0 0 16px rgba(255,215,0,0.06);
 }
 .profile-achievement-v2.locked {
-    opacity: 0.48;
-    filter: grayscale(80%);
+    opacity: 0.45;
+    filter: grayscale(85%);
 }
 .profile-achievement-v2.unlocked:hover {
     background: rgba(255,215,0,0.16);
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(255,215,0,0.3), inset 0 0 20px rgba(255,215,0,0.07);
+    box-shadow: 0 4px 18px rgba(255,215,0,0.35), inset 0 0 20px rgba(255,215,0,0.08);
 }
 .profile-achievement-v2.locked:hover {
-    opacity: 0.65;
+    opacity: 0.62;
     transform: translateY(-1px);
 }
 .profile-achievement-v2-icon {
@@ -2938,7 +2938,7 @@ body {
 }
 .profile-achievement-v2-name {
     font-size: 10px;
-    color: #9ca3af;
+    color: #6b7280;
     font-weight: 600;
     flex: 1;
     line-height: 1.3;
