@@ -362,6 +362,17 @@ const RARITY_CONFIG = {
     Mythic:    { name_en: 'Mythic',    name_ar: 'خرافي',   color: '#ff0055', bg: 'rgba(255,0,85,0.12)',    border: 'rgba(255,0,85,0.60)',    glow: true,   icon: '🔮', order: 3, special: true },
 };
 
+
+const getItemRarity = (item) => {
+    if (!item) return 'Common';
+    if (item.rarity) return item.rarity;
+    const cost = item.cost || 0;
+    if (cost >= 5000) return 'Mythic';
+    if (cost >= 500)  return 'Legendary';
+    if (cost >= 100)  return 'Epic';
+    return 'Common';
+};
+
 const getGiftRarity = (cost) => {
     if (cost >= 10000) return 'Mythic';
     if (cost >= 500)   return 'Legendary';
@@ -1405,10 +1416,17 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                         </div>
                                     );
                                 }
+                                const rKey2 = getItemRarity(item);
+                                const rarity2 = RARITY_CONFIG[rKey2];
                                 return (
-                                    <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`} onClick={() => { setSelectedItem(item); setShowPreview(true); }}>
+                                    <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`}
+                                        style={{ border: `1.5px solid ${rarity2.border}`, background: rarity2.bg, boxShadow: rarity2.glow ? `0 0 8px ${rarity2.color}44` : 'none', position:'relative' }}
+                                        onClick={() => { setSelectedItem(item); setShowPreview(true); }}
+                                    >
+                                        <span className="gift-rarity-badge" style={{ background: rarity2.color }}>{rarity2.icon}</span>
                                         <div className="inventory-item-preview">{renderPreview(item)}</div>
-                                        <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
+                                        <div className="inventory-item-name" style={{fontSize:'9px'}}>{lang === 'ar' ? item.name_ar : item.name_en}</div>
+                                        <div style={{fontSize:'8px', color: rarity2.color, fontWeight:700, marginBottom:'2px'}}>{lang==='ar'?rarity2.name_ar:rarity2.name_en}</div>
                                         {owned ? (equippedItem ? <button onClick={(e) => { e.stopPropagation(); onUnequip(item.type, item.id); }} className="btn-unequip w-full">{t.unequip}</button> : <button onClick={(e) => { e.stopPropagation(); onEquip(item); }} className="btn-success w-full text-[10px] py-0.5 rounded">{t.equip}</button>) : (<div className="text-yellow-400 font-bold text-xs">{item.cost}🧠</div>)}
                                     </div>
                                 );
@@ -1779,6 +1797,25 @@ const UserProfileModal = ({ show, onClose, targetUID, lang, currentUserUID, onSe
                     />
                 )}
 
+                {/* Self Gift Modal */}
+                {showSelfGiftModal && selfGift && (
+                    <SendGiftModal
+                        show={showSelfGiftModal}
+                        onClose={() => { setShowSelfGiftModal(false); setSelfGift(null); }}
+                        targetUser={{ uid: targetUID, displayName: targetData?.displayName || 'You', photoURL: targetData?.photoURL }}
+                        currentUser={userData}
+                        lang={lang}
+                        onSendGift={async (gift, targetUser) => {
+                            if (onSendGift) await onSendGift(gift, targetUser);
+                            setShowSelfGiftModal(false);
+                            setSelfGift(null);
+                        }}
+                        currency={userData?.currency || 0}
+                        friendsData={[]}
+                        preselectedGift={selfGift}
+                    />
+                )}
+
                 {/* Own Profile Footer Actions */}
                 {isOwnProfile && (isLoggedInProp !== undefined) && (
                     <div className="profile-own-footer">
@@ -1977,19 +2014,41 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                         })}
                         <div ref={messagesEndRef} />
                     </div>
-                    <div className="chat-input-container">
-                        {!(isBlocked || blockedByTarget) && (
-                            <>
-                                <div style={{ position: 'relative' }}>
-                                    <button 
-                                        className="emoji-picker-btn"
-                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                        style={{ fontSize: '24px' }}
-                                    >
-                                        😀
-                                    </button>
+                    <div className="chat-input-container" style={{position:'relative'}}>
+                        {showEmojiPicker && (
+                            <div style={{
+                                position:'absolute', bottom:'calc(100% + 6px)', left:0, right:0,
+                                background:'var(--bg-card)', border:'1px solid var(--border)',
+                                borderRadius:'12px', padding:'10px', zIndex:9999,
+                                boxShadow:'0 -10px 30px rgba(0,0,0,0.6)'
+                            }}>
+                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px',borderBottom:'1px solid var(--border)',paddingBottom:'6px'}}>
+                                    <span style={{fontSize:'11px',fontWeight:700,color:'var(--primary)'}}>
+                                        {lang==='ar'?'اختر إيموجي':'Select Emoji'}
+                                    </span>
+                                    <button onClick={() => setShowEmojiPicker(false)} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:'14px'}}>✕</button>
                                 </div>
-                                <div className="chat-input-row">
+                                <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:'4px',maxHeight:'160px',overflowY:'auto'}}>
+                                    {(EMOJI_CATEGORIES?.smiles || EMOJI_LIST || []).map((emoji, i) => (
+                                        <button key={i} onClick={() => { handleEmojiSelect(emoji); }}
+                                            style={{background:'none',border:'none',fontSize:'20px',cursor:'pointer',padding:'4px',borderRadius:'6px',transition:'background 0.15s'}}
+                                            onMouseEnter={e=>e.target.style.background='rgba(255,255,255,0.1)'}
+                                            onMouseLeave={e=>e.target.style.background='none'}
+                                        >{emoji}</button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {!(isBlocked || blockedByTarget) && (
+                            <div style={{display:'flex',alignItems:'center',gap:'6px',width:'100%'}}>
+                                <button 
+                                    className="emoji-picker-btn"
+                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                    style={{ fontSize: '22px' }}
+                                >
+                                    😀
+                                </button>
+                                <div className="chat-input-row" style={{flex:1}}>
                                     <input 
                                         ref={inputRef} 
                                         type="text" 
@@ -2001,7 +2060,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                                     />
                                     <button onClick={handleSend} disabled={sending || !newMsg.trim()} className="chat-send-btn">➤</button>
                                 </div>
-                            </>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -2018,14 +2077,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                     friendsData={friendsData}
                 />
             )}
-            {showEmojiPicker && (
-                <EmojiPicker
-                    show={showEmojiPicker}
-                    onClose={() => setShowEmojiPicker(false)}
-                    onSelect={handleEmojiSelect}
-                    lang={lang}
-                />
-            )}
+
         </>
     );
 };
@@ -3610,9 +3662,10 @@ const WinRateCircleV11 = ({ wins, losses, lang }) => {
 };
 
 // 🎁 GIFT WALL COMPONENT V11 - IMPROVED WITH SENDER PHOTOS
-const GiftWallV11 = ({ gifts, lang }) => {
+const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) => {
     const [activeTab, setActiveTab] = useState('wall');
     const totalGifts = gifts?.length || 0;
+    const [selectedGiftDetail, setSelectedGiftDetail] = useState(null);
 
     // Calculate gift counts and last sender info
     const giftData = useMemo(() => {
@@ -3670,7 +3723,8 @@ const GiftWallV11 = ({ gifts, lang }) => {
                                 key={gift.id} 
                                 className={`profile-gift-slot ${unlocked ? 'unlocked' : 'locked'}`}
                                 title={unlocked ? `${lang === 'ar' ? gift.name_ar : gift.name_en} x${count}` : (lang === 'ar' ? 'لم تُستلم بعد' : 'Not received')}
-                                style={unlocked ? { border: `1.5px solid ${rarity.border}`, boxShadow: rarity.glow ? `0 0 8px ${rarity.color}55` : 'none', background: rarity.bg } : {}}
+                                style={{ cursor:'pointer', ...(unlocked ? { border: `1.5px solid ${rarity.border}`, boxShadow: rarity.glow ? `0 0 8px ${rarity.color}55` : 'none', background: rarity.bg } : {}) }}
+                                onClick={() => setSelectedGiftDetail({ gift, count, rarity, rKey, unlocked })}
                             >
                                 <span style={{ position:'absolute', top:'2px', right:'2px', fontSize:'9px' }}>{rarity.icon}</span>
                                 <span className="profile-gift-icon">{gift.emoji || '🎁'}</span>
@@ -3679,6 +3733,57 @@ const GiftWallV11 = ({ gifts, lang }) => {
                             </div>
                         );
                     })}
+                </div>
+            )}
+
+            {/* Gift Detail Popup */}
+            {selectedGiftDetail && (
+                <div className="gift-detail-overlay" onClick={() => setSelectedGiftDetail(null)}>
+                    <div className="gift-detail-modal animate-pop" onClick={e => e.stopPropagation()}>
+                        <button className="gift-detail-close" onClick={() => setSelectedGiftDetail(null)}>✕</button>
+                        <div className="gift-detail-emoji">{selectedGiftDetail.gift.emoji || '🎁'}</div>
+                        <div className="gift-detail-name">
+                            {lang === 'ar' ? selectedGiftDetail.gift.name_ar : selectedGiftDetail.gift.name_en}
+                        </div>
+                        <div className="gift-detail-rarity" style={{ color: selectedGiftDetail.rarity.color, borderColor: selectedGiftDetail.rarity.border }}>
+                            {selectedGiftDetail.rarity.icon} {lang === 'ar' ? selectedGiftDetail.rarity.name_ar : selectedGiftDetail.rarity.name_en}
+                        </div>
+                        <div className="gift-detail-stats">
+                            <div className="gift-detail-stat">
+                                <span className="gift-detail-stat-label">⭐ {lang==='ar'?'كاريزما':'Charisma'}</span>
+                                <span className="gift-detail-stat-value" style={{color:'#fbbf24'}}>{(selectedGiftDetail.gift.charisma || 0).toLocaleString()}</span>
+                            </div>
+                            <div className="gift-detail-stat">
+                                <span className="gift-detail-stat-label">🍀 {lang==='ar'?'بونص':'Bonus'}</span>
+                                <span className="gift-detail-stat-value" style={{color:'#4ade80'}}>
+                                    {selectedGiftDetail.gift.minBonus} – {selectedGiftDetail.gift.maxBonus} 🧠
+                                </span>
+                            </div>
+                            <div className="gift-detail-stat">
+                                <span className="gift-detail-stat-label">💰 {lang==='ar'?'السعر':'Price'}</span>
+                                <span className="gift-detail-stat-value">{selectedGiftDetail.gift.cost} 🧠</span>
+                            </div>
+                            {selectedGiftDetail.count > 0 && (
+                                <div className="gift-detail-stat">
+                                    <span className="gift-detail-stat-label">📦 {lang==='ar'?'استلمت':'Received'}</span>
+                                    <span className="gift-detail-stat-value" style={{color:selectedGiftDetail.rarity.color}}>×{selectedGiftDetail.count}</span>
+                                </div>
+                            )}
+                        </div>
+                        {(lang==='ar'?selectedGiftDetail.gift.desc_ar:selectedGiftDetail.gift.desc_en) && (
+                            <div className="gift-detail-desc">
+                                {lang==='ar'?selectedGiftDetail.gift.desc_ar:selectedGiftDetail.gift.desc_en}
+                            </div>
+                        )}
+                        {isOwnProfile && onSendGiftToSelf && (
+                            <button 
+                                className="gift-detail-self-btn"
+                                onClick={() => { onSendGiftToSelf(selectedGiftDetail.gift); setSelectedGiftDetail(null); }}
+                            >
+                                🎁 {lang==='ar'?'أرسل لنفسك':'Send to Yourself'}
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
 
@@ -3796,7 +3901,9 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
         return 0;
     });
 
-    const displayAchievements = showAll ? sortedAchievements : sortedAchievements.slice(0, 12);
+    const [showMoreAch, setShowMoreAch] = useState(false);
+    const INITIAL_COUNT = 8;
+    const displayAchievements = showMoreAch ? sortedAchievements : sortedAchievements.slice(0, INITIAL_COUNT);
 
     return (
         <div className="profile-achievements-section">
@@ -3807,50 +3914,48 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                 <span className="profile-achievements-count">{unlockedAchievements.length}/{ACHIEVEMENTS.length}</span>
             </div>
             
-            <div className="profile-achievements-scroll-container">
-                {canScrollLeft && (
-                    <button className="profile-achievements-scroll-btn left" onClick={() => scroll('left')}>
-                        ◀
-                    </button>
-                )}
-                
-                <div className="profile-achievements-grid" ref={scrollRef}>
+            <div className="profile-achievements-v2-grid">
                     {displayAchievements.map((ach) => {
                         const isUnlocked = unlockedAchievements.includes(ach.id);
                         const progress = getProgress(ach);
 
+                        const achName = TRANSLATIONS[lang]?.[ach.nameKey] || ach.id;
                         return (
                             <div 
                                 key={ach.id} 
-                                className={`profile-achievement-item ${isUnlocked ? 'unlocked' : 'locked'}`}
+                                className={`profile-achievement-v2 ${isUnlocked ? 'unlocked' : 'locked'}`}
                                 onClick={() => setSelectedAchievement(ach)}
                             >
-                                <span className="profile-achievement-icon" style={{ 
-                                    fontSize: '20px',
+                                <span className="profile-achievement-v2-icon" style={{ 
+                                    fontSize: '22px',
                                     filter: isUnlocked ? 'none' : 'grayscale(100%)',
-                                    opacity: isUnlocked ? 1 : 0.4
+                                    opacity: isUnlocked ? 1 : 0.35
                                 }}>
                                     {ach.icon || '🏅'}
                                 </span>
-                                {isUnlocked && (
-                                    <span className="profile-achievement-badge">✓</span>
-                                )}
-                                {!isUnlocked && progress > 0 && (
-                                    <div className="profile-achievement-progress">
-                                        <div className="profile-achievement-progress-fill" style={{ width: `${progress}%` }}></div>
+                                <span className="profile-achievement-v2-name">{achName}</span>
+                                {isUnlocked ? (
+                                    <span className="profile-achievement-v2-badge">✓</span>
+                                ) : progress > 0 ? (
+                                    <div className="profile-achievement-v2-progress">
+                                        <div className="profile-achievement-v2-fill" style={{ width: `${progress}%` }}></div>
                                     </div>
-                                )}
+                                ) : null}
                             </div>
                         );
                     })}
-                </div>
-                
-                {canScrollRight && (
-                    <button className="profile-achievements-scroll-btn right" onClick={() => scroll('right')}>
-                        ▶
-                    </button>
-                )}
             </div>
+            {sortedAchievements.length > INITIAL_COUNT && (
+                <button 
+                    className="profile-achievements-more-btn"
+                    onClick={() => setShowMoreAch(!showMoreAch)}
+                >
+                    {showMoreAch 
+                        ? (lang==='ar'?'▲ أقل':'▲ Less')
+                        : `▼ ${lang==='ar'?'المزيد':'More'} (${sortedAchievements.length - INITIAL_COUNT})`
+                    }
+                </button>
+            )}
 
             {/* Achievement Detail Modal */}
             {selectedAchievement && (
@@ -4063,6 +4168,8 @@ const ProfileV11 = ({
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
     const [reportSending, setReportSending] = useState(false);
+    const [selfGift, setSelfGift] = useState(null);
+    const [showSelfGiftModal, setShowSelfGiftModal] = useState(false);
     
     const optionsRef = useRef(null);
 
@@ -4347,37 +4454,38 @@ const ProfileV11 = ({
                                 }
                             </span>
                             
-                            {/* Charisma Display Under ID */}
-                            <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
+                            {/* Charisma rank shown in stats dashboard below */}
                         </div>
 
                         <div className="profile-stats-dashboard">
-                            <div className="profile-stats-grid">
+                            <div className="profile-stats-row">
                                 <div className="profile-stat-box">
                                     <span className="profile-stat-value wins">{wins}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? 'فوز' : 'Wins'}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? '🏆 فوز' : '🏆 Wins'}</span>
                                 </div>
+                                <WinRateCircleV11 wins={wins} losses={losses} lang={lang} />
                                 <div className="profile-stat-box">
                                     <span className="profile-stat-value losses">{losses}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? 'خسارة' : 'Losses'}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? '💀 خسارة' : '💀 Losses'}</span>
                                 </div>
                             </div>
-                            
-                            <WinRateCircleV11 wins={wins} losses={losses} lang={lang} />
-                            
-                            <div className="profile-stats-grid">
+                            <div className="profile-stats-row" style={{marginTop:'8px'}}>
                                 <div className="profile-stat-box">
                                     <span className="profile-stat-value rank">#{charismaRank || '--'}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? 'الترتيب' : 'Rank'}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? '🎖️ الترتيب' : '🎖️ Rank'}</span>
                                 </div>
                                 <div className="profile-stat-box">
                                     <span className="profile-stat-value" style={{ color: '#a78bfa' }}>{level}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? 'المستوى' : 'Level'}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? '⚡ المستوى' : '⚡ Level'}</span>
+                                </div>
+                                <div className="profile-stat-box">
+                                    <span className="profile-stat-value" style={{color:'#fbbf24'}}>{(targetData?.charisma||0) > 0 ? formatCharisma(targetData.charisma) : '0'}</span>
+                                    <span className="profile-stat-label">{lang==='ar'?'⭐ كاريزما':'⭐ Charisma'}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <GiftWallV11 gifts={gifts} lang={lang} />
+                        <GiftWallV11 gifts={gifts} lang={lang} isOwnProfile={isOwnProfile} userData={userData} onSendGiftToSelf={(gift) => { setSelfGift(gift); setShowSelfGiftModal(true); }} />
 
                         <AchievementsDisplayV11 userData={targetData} lang={lang} />
 
