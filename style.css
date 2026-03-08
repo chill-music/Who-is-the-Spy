@@ -3522,3 +3522,69 @@ body {
 .mission-progress.completed {
     color: #4ade80;
 }
+
+/* ========== MISSING: STATUS DOT AWAY STATE ========== */
+.profile-status-dot.away { background: #facc15; box-shadow: 0 0 6px rgba(250,204,21,0.6); }
+
+/* ========== MISSING: DAILY TASKS 4-COLUMN GRID ========== */
+.daily-tasks-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+/* ========== MISSING: VIP TASK BOX ========== */
+.daily-task-box.vip {
+    background: rgba(245,158,11,0.08);
+    border-color: rgba(245,158,11,0.4);
+    color: #f59e0b;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* ========== MISSING: FRIENDS STATUS SECTION HEADERS ========== */
+.friends-status-section-header {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 8px 4px;
+    margin-top: 8px;
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.friends-status-section-header.online { color: #4ade80; }
+.friends-status-section-header.away   { color: #facc15; }
+.friends-status-section-header.offline{ color: #9ca3af; }
+
+/* ========== MISSING: PROGRESS BAR IN DAILY TASK ========== */
+.daily-task-progress-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 0 0 10px 10px;
+}
+.daily-task-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00f2ff, #7000ff);
+    border-radius: inherit;
+    transition: width 0.5s ease;
+}
+
+/* ========== MISSING: FUNPASS OWNED CHECK ON PURCHASE BUTTON ========== */
+.funpass-purchase-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    background: rgba(74,222,128,0.15);
+    border: 1px solid rgba(74,222,128,0.4);
+    border-radius: 10px;
+    color: #4ade80;
+    font-weight: 800;
+    font-size: 13px;
+}
