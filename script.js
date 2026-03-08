@@ -3801,7 +3801,12 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                         </button>
                     </div>
                 </div>
-            )} - FIXED VISIBILITY
+            )}
+        </div>
+    );
+};
+
+// 👤 USER TITLE COMPONENT V11 - FIXED VISIBILITY
 const UserTitleV11 = ({ equipped, lang }) => {
     const titleId = equipped?.titles;
     if (!titleId) return null;
