@@ -2835,7 +2835,6 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
                                 </div>
                             </div>
                         </div>
-                        </div>
                     )}
                     {/* Sound Toggle */}
                     <div className="settings-section">
