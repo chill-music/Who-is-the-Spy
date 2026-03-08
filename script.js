@@ -274,48 +274,6 @@ const getCharismaProgress = (charisma) => {
 };
 
 // ==========================================
-// 🎨 RARITY SYSTEM - EPIC / LEGENDARY / MYTHIC
-// ==========================================
-const RARITY = {
-    COMMON: 'common',
-    EPIC: 'epic',
-    LEGENDARY: 'legendary',
-    MYTHIC: 'mythic'
-};
-
-const RARITY_CONFIG = {
-    [RARITY.COMMON]: {
-        name: 'Common',
-        nameAr: 'عادي',
-        color: '#6b7280',
-        gradient: 'rgba(107, 114, 128, 0.3)',
-        glow: 'none'
-    },
-    [RARITY.EPIC]: {
-        name: 'Epic',
-        nameAr: 'ملحمي',
-        color: '#8b5cf6',
-        gradient: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(168, 85, 247, 0.2))',
-        glow: '0 0 20px rgba(139, 92, 246, 0.5)'
-    },
-    [RARITY.LEGENDARY]: {
-        name: 'Legendary',
-        nameAr: 'أسطوري',
-        color: '#f97316',
-        gradient: 'linear-gradient(135deg, rgba(255, 136, 0, 0.3), rgba(255, 193, 7, 0.2))',
-        glow: '0 0 25px rgba(255, 136, 0, 0.5)'
-    },
-    [RARITY.MYTHIC]: {
-        name: 'Mythic',
-        nameAr: 'خرافي',
-        color: '#ff0080',
-        gradient: 'linear-gradient(45deg, rgba(255, 0, 128, 0.3), rgba(128, 0, 255, 0.3), rgba(0, 242, 255, 0.3))',
-        glow: '0 0 30px rgba(255, 0, 128, 0.5)',
-        animated: true
-    }
-};
-
-// ==========================================
 // SHOP ITEMS - GIFTS WITH BONUS (NO CASHBACK)
 // ==========================================
 const SHOP_ITEMS = {
@@ -392,6 +350,23 @@ const SHOP_ITEMS = {
         { id: 'gift_multiverse', name_en: "Multiverse", name_ar: "متعدد أكوان", cost: 150000, type: 'gifts', charisma: 2500000, minBonus: 1, maxBonus: 120000, desc_ar: "متعدد أكوان خاص", desc_en: "Your multiverse", emoji: "🪐", imageUrl: "" },
         { id: 'gift_ultimate', name_en: "Ultimate Gift", name_ar: "الهدية المطلقة", cost: 150000, type: 'gifts', charisma: 3500000, minBonus: 1, maxBonus: 120000, desc_ar: "أعظم هدية", desc_en: "The ultimate gift", emoji: "🏆", imageUrl: "" },
     ]
+};
+
+// ==========================================
+// 🎨 GIFT RARITY SYSTEM
+// ==========================================
+const RARITY_CONFIG = {
+    Common:    { name_en: 'Common',    name_ar: 'عادي',    color: '#9ca3af', bg: 'rgba(156,163,175,0.07)', border: 'rgba(156,163,175,0.25)', glow: false,  icon: '⚪', order: 0 },
+    Epic:      { name_en: 'Epic',      name_ar: 'ملحمي',   color: '#8b5cf6', bg: 'rgba(139,92,246,0.10)',  border: 'rgba(139,92,246,0.45)',  glow: false,  icon: '💜', order: 1 },
+    Legendary: { name_en: 'Legendary', name_ar: 'أسطوري',  color: '#f59e0b', bg: 'rgba(245,158,11,0.10)',  border: 'rgba(245,158,11,0.50)',  glow: true,   icon: '⭐', order: 2 },
+    Mythic:    { name_en: 'Mythic',    name_ar: 'خرافي',   color: '#ff0055', bg: 'rgba(255,0,85,0.12)',    border: 'rgba(255,0,85,0.60)',    glow: true,   icon: '🔮', order: 3, special: true },
+};
+
+const getGiftRarity = (cost) => {
+    if (cost >= 10000) return 'Mythic';
+    if (cost >= 500)   return 'Legendary';
+    if (cost >= 50)    return 'Epic';
+    return 'Common';
 };
 
 // ==========================================
@@ -1334,13 +1309,21 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                             </div> 
                         )}
                         <div className="flex items-center gap-2 mb-2 text-[10px] text-yellow-400"><span>🧠 {currency} {CURRENCY_NAME}</span></div> 
-                        <div className="grid grid-cols-5 gap-1 max-h-[180px] overflow-y-auto"> 
-                            {SHOP_ITEMS.gifts.map(gift => ( 
-                                <button key={gift.id} onClick={() => { setSelectedGift(gift); setShowPreview(true); }} disabled={currency < gift.cost} className={`flex flex-col items-center p-1.5 rounded transition ${currency >= gift.cost ? 'hover:bg-yellow-500/10 border border-transparent hover:border-yellow-500/50' : 'opacity-40 cursor-not-allowed'}`}> 
-                                    <span className="text-lg">{gift.emoji}</span>
-                                    <span className="text-[9px] font-bold text-yellow-400">{gift.cost}</span>
-                                </button> 
-                            ))} 
+                        <div className="grid grid-cols-5 gap-1 max-h-[180px] overflow-y-auto">
+                            {SHOP_ITEMS.gifts.map(gift => {
+                                const rKey = getGiftRarity(gift.cost);
+                                const rarity = RARITY_CONFIG[rKey];
+                                return (
+                                    <button key={gift.id} onClick={() => { setSelectedGift(gift); setShowPreview(true); }} disabled={currency < gift.cost}
+                                        className="flex flex-col items-center p-1 rounded transition"
+                                        style={{ border: `1.5px solid ${currency >= gift.cost ? rarity.border : 'rgba(255,255,255,0.05)'}`, background: currency >= gift.cost ? rarity.bg : 'transparent', opacity: currency < gift.cost ? 0.4 : 1, cursor: currency < gift.cost ? 'not-allowed' : 'pointer', position: 'relative' }}
+                                    >
+                                        <span style={{fontSize:'18px'}}>{gift.emoji}</span>
+                                        <span style={{fontSize:'8px', fontWeight:'bold', color: rarity.color}}>{lang === 'ar' ? rarity.name_ar : rarity.name_en}</span>
+                                        <span style={{fontSize:'9px', fontWeight:'bold', color:'#facc15'}}>{gift.cost}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div> 
                 </div> 
@@ -1405,7 +1388,23 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                             {SHOP_ITEMS[activeTab]?.map(item => {
                                 const owned = isOwned(item);
                                 const equippedItem = isEquipped(item);
-                                if (activeTab === 'gifts') return (<div key={item.id} className="gift-card" onClick={() => { setSelectedItem(item); setShowPreview(true); }}>{item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="gift-icon-img" /> : <div className="text-xl mb-1">{item.emoji}</div>}<div className="gift-details"><div className="text-[10px] font-bold text-yellow-400">{item.cost}🧠</div><div className="gift-charisma">+{formatCharisma(item.charisma)} ⭐</div></div></div>);
+                                if (activeTab === 'gifts') {
+                                    const rKey = getGiftRarity(item.cost);
+                                    const rarity = RARITY_CONFIG[rKey];
+                                    return (
+                                        <div key={item.id} className="gift-card" onClick={() => { setSelectedItem(item); setShowPreview(true); }}
+                                            style={{ border: `1.5px solid ${rarity.border}`, background: rarity.bg, boxShadow: rarity.glow ? `0 0 8px ${rarity.color}55` : 'none', position:'relative' }}
+                                        >
+                                            <span className="gift-rarity-badge" style={{ background: rarity.color }}>{rarity.icon}</span>
+                                            {item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="gift-icon-img" /> : <div className="text-xl mb-1">{item.emoji}</div>}
+                                            <div className="gift-details">
+                                                <div className="text-[9px] font-bold mb-0.5" style={{color: rarity.color}}>{lang === 'ar' ? rarity.name_ar : rarity.name_en}</div>
+                                                <div className="text-[10px] font-bold text-yellow-400">{item.cost}🧠</div>
+                                                <div className="gift-charisma">+{formatCharisma(item.charisma)} ⭐</div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
                                 return (
                                     <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`} onClick={() => { setSelectedItem(item); setShowPreview(true); }}>
                                         <div className="inventory-item-preview">{renderPreview(item)}</div>
@@ -2194,6 +2193,9 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
     const [blockInput, setBlockInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [soundMutedLocal, setSoundMutedLocal] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
+    const [showEmailLocal, setShowEmailLocal] = useState(false);
+    const [editingName, setEditingName] = useState(false);
+    const [newName, setNewName] = useState('');
 
     useEffect(() => {
         if (show && userData) {
@@ -2271,6 +2273,63 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
                     <ModalCloseBtn onClose={onClose} />
                 </div>
                 <div className="modal-body">
+                    {/* Account Info Section */}
+                    {user && (
+                        <div className="settings-section">
+                            <div className="settings-section-title">
+                                <span>👤</span>
+                                <span>{lang === 'ar' ? 'معلومات الحساب' : 'Account Info'}</span>
+                            </div>
+                            <div className="settings-account-card">
+                                <div className="settings-account-row">
+                                    <span className="settings-account-label">📧 {lang === 'ar' ? 'البريد' : 'Email'}</span>
+                                    <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                        <span className="settings-account-value">{showEmailLocal ? (user?.email || 'N/A') : maskEmail(user?.email)}</span>
+                                        <button onClick={() => setShowEmailLocal(!showEmailLocal)} className="settings-eye-btn">{showEmailLocal ? '🙈' : '👁️'}</button>
+                                    </div>
+                                </div>
+                                <div className="settings-account-row">
+                                    <span className="settings-account-label">🪪 ID</span>
+                                    <span className="settings-account-value" onClick={() => navigator.clipboard.writeText(userData?.customId || '')} style={{cursor:'pointer'}}>
+                                        {userData?.customId || 'N/A'} 📋
+                                    </span>
+                                </div>
+                                <div className="settings-account-row">
+                                    <span className="settings-account-label">📅 {lang === 'ar' ? 'عضو منذ' : 'Member Since'}</span>
+                                    <span className="settings-account-value">{userData?.createdAt?.toDate?.() ? userData.createdAt.toDate().toLocaleDateString() : 'N/A'}</span>
+                                </div>
+                                <div className="settings-account-row">
+                                    <span className="settings-account-label">🔑 {lang === 'ar' ? 'نوع الحساب' : 'Account Type'}</span>
+                                    <span className="settings-account-value" style={{color:'#10b981'}}>Google ✓</span>
+                                </div>
+                                <div className="settings-account-row">
+                                    <span className="settings-account-label">✏️ {lang === 'ar' ? 'الاسم' : 'Name'}</span>
+                                    {editingName ? (
+                                        <div style={{display:'flex',gap:'4px'}}>
+                                            <input className="input-dark" style={{padding:'4px 8px',fontSize:'11px',borderRadius:'6px',width:'120px'}} value={newName} onChange={e => setNewName(e.target.value)} placeholder={userData?.displayName} />
+                                            <button className="btn-neon" style={{padding:'2px 8px',fontSize:'10px',borderRadius:'6px'}} onClick={async() => {
+                                                if(newName.trim() && user) {
+                                                    const now = new Date();
+                                                    const lastChange = userData?.lastChangedName?.toDate?.() || new Date(0);
+                                                    const diffDays = (now - lastChange) / (1000*60*60*24);
+                                                    if(diffDays < 30) { onNotification(lang==='ar'?'يمكن التغيير مرة شهريًا':'Can change once per month'); setEditingName(false); return; }
+                                                    await usersCollection.doc(user.uid).update({displayName:newName.trim(), lastChangedName:firebase.firestore.FieldValue.serverTimestamp()});
+                                                    onNotification(lang==='ar'?'تم تغيير الاسم!':'Name changed!');
+                                                    setEditingName(false);
+                                                }
+                                            }}>✓</button>
+                                            <button className="btn-ghost" style={{padding:'2px 6px',fontSize:'10px',borderRadius:'6px'}} onClick={() => setEditingName(false)}>✕</button>
+                                        </div>
+                                    ) : (
+                                        <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                            <span className="settings-account-value">{userData?.displayName}</span>
+                                            <button onClick={() => { setNewName(userData?.displayName || ''); setEditingName(true); }} className="settings-eye-btn">✏️</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {/* Sound Toggle */}
                     <div className="settings-section">
                         <div className="settings-row">
@@ -2362,6 +2421,122 @@ const BlockedUserItem = ({ uid, onUnblock, lang }) => {
     );
 };
 
+
+// ==========================================
+// 🎉 ONBOARDING MODAL - New User Setup
+// ==========================================
+const OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
+    const [displayName, setDisplayName] = useState(googleUser?.displayName || '');
+    const [gender, setGender] = useState('');
+    const [photoURL, setPhotoURL] = useState(googleUser?.photoURL || null);
+    const fileRef = useRef(null);
+
+    if (!show) return null;
+
+    const handlePhotoChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX = 300;
+                let w = img.width, h = img.height;
+                if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+                else { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                setPhotoURL(canvas.toDataURL('image/jpeg', 0.75));
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleComplete = () => {
+        if (!displayName.trim() || !gender) return;
+        onComplete({ displayName: displayName.trim(), gender, photoURL });
+    };
+
+    return (
+        <div className="onboarding-overlay" style={{ zIndex: 9999 }}>
+            <div className="onboarding-card animate-pop">
+                <div className="onboarding-header">
+                    <div className="onboarding-spy-icon">🕵️</div>
+                    <h2 className="onboarding-title">{lang === 'ar' ? 'مرحباً في PRO SPY!' : 'Welcome to PRO SPY!'}</h2>
+                    <p className="onboarding-subtitle">{lang === 'ar' ? 'أكمل ملفك الشخصي للبدء' : 'Complete your profile to start'}</p>
+                </div>
+
+                <div className="onboarding-body">
+                    {/* Photo Upload */}
+                    <div className="onboarding-photo-section">
+                        <div className="onboarding-photo-wrapper" onClick={() => fileRef.current?.click()}>
+                            <img
+                                src={photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || 'User')}&background=7000ff&color=fff&size=300`}
+                                alt="avatar"
+                                className="onboarding-photo"
+                            />
+                            <div className="onboarding-photo-overlay">
+                                <span className="onboarding-camera-icon">📷</span>
+                            </div>
+                        </div>
+                        <input type="file" ref={fileRef} style={{ display: 'none' }} accept="image/*" onChange={handlePhotoChange} />
+                        <p className="onboarding-photo-hint">{lang === 'ar' ? 'اضغط لتغيير الصورة' : 'Tap to change photo'}</p>
+                    </div>
+
+                    {/* Name Input */}
+                    <div className="onboarding-field">
+                        <label className="onboarding-label">
+                            {lang === 'ar' ? '✏️ اسمك في اللعبة' : '✏️ Your display name'}
+                        </label>
+                        <input
+                            className="onboarding-input"
+                            value={displayName}
+                            onChange={e => setDisplayName(e.target.value)}
+                            placeholder={lang === 'ar' ? 'أدخل اسمك...' : 'Enter your name...'}
+                            maxLength={20}
+                        />
+                    </div>
+
+                    {/* Gender Selection */}
+                    <div className="onboarding-field">
+                        <label className="onboarding-label">
+                            {lang === 'ar' ? '👤 الجنس' : '👤 Gender'}
+                        </label>
+                        <div className="onboarding-gender-row">
+                            <button
+                                className={`onboarding-gender-btn ${gender === 'male' ? 'active' : ''}`}
+                                onClick={() => setGender('male')}
+                            >
+                                <span style={{fontSize:'28px'}}>👨</span>
+                                <span>{lang === 'ar' ? 'ذكر' : 'Male'}</span>
+                            </button>
+                            <button
+                                className={`onboarding-gender-btn ${gender === 'female' ? 'active' : ''}`}
+                                onClick={() => setGender('female')}
+                            >
+                                <span style={{fontSize:'28px'}}>👩</span>
+                                <span>{lang === 'ar' ? 'أنثى' : 'Female'}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="onboarding-footer">
+                    <button
+                        onClick={handleComplete}
+                        disabled={!displayName.trim() || !gender}
+                        className={`onboarding-submit-btn ${(!displayName.trim() || !gender) ? 'disabled' : ''}`}
+                    >
+                        {lang === 'ar' ? '🚀 ابدأ اللعب!' : '🚀 Start Playing!'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ==========================================
 // 🎮 MAIN APP COMPONENT
 // ==========================================
@@ -2414,9 +2589,11 @@ function App() {
     const [showEmail, setShowEmail] = useState(false);
     const [showLoginRewards, setShowLoginRewards] = useState(false);
     const [sessionClaimedToday, setSessionClaimedToday] = useState(false); // Track if claimed in this session
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    const [onboardingGoogleUser, setOnboardingGoogleUser] = useState(null);
+    const [pendingNewUserRef, setPendingNewUserRef] = useState(null);
     const [showLobbyPassword, setShowLobbyPassword] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
-    const [showRegistrationPopup, setShowRegistrationPopup] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadNotifications, setUnreadNotifications] = useState(0);
     const notificationBellRef = useRef(null);
@@ -2473,10 +2650,12 @@ function App() {
                 setUser(u); setGuestData(null);
                 const userRef = usersCollection.doc(u.uid); 
                 const doc = await userRef.get();
-                if (!doc.exists) { 
-                    const newUserData = { uid: u.uid, email: u.email || null, displayName: u.displayName || u.uid.substring(0,5), photoURL: u.photoURL || null, customId: Math.floor(100000 + Math.random() * 900000).toString(), stats: { wins: 0, losses: 0, xp: 0 }, achievements: [], friends: [], friendRequests: [], createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastChangedName: null, lastActive: firebase.firestore.FieldValue.serverTimestamp(), isAnonymous: false, currency: 100, inventory: {frames: [], titles: [], themes: [], badges: [], gifts: []}, equipped: { badges: [] }, charisma: 0, loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: getCurrentCycleMonth() } }; 
-                    await userRef.set(newUserData); setUserData(newUserData); if (u.displayName) setNickname(u.displayName); 
+                if (!doc.exists) {
+                    // New user - show onboarding modal
+                    setOnboardingGoogleUser(u);
+                    setPendingNewUserRef(userRef);
                     setAuthLoading(false);
+                    setShowOnboarding(true);
                 } else {
                     const existingData = doc.data();
                     setUserData(existingData);
@@ -2506,13 +2685,6 @@ function App() {
             if (lastClaim !== today && loginData.currentDay < 30) setShowLoginRewards(true);
         }
     }, [isLoggedIn, userData?.loginRewards?.lastClaimDate, sessionClaimedToday]);
-
-    // Show registration popup for users without display name or for guests wanting to register
-    useEffect(() => {
-        if (isLoggedIn && userData && !userData.displayName && !userData.isGuest) {
-            setShowRegistrationPopup(true);
-        }
-    }, [isLoggedIn, userData]);
 
     // Notifications Listener
     useEffect(() => {
@@ -2585,6 +2757,49 @@ function App() {
     // Auth Functions
     const handleGoogleLogin = useCallback(async () => { const provider = new firebase.auth.GoogleAuthProvider(); try { await auth.signInWithPopup(provider); setShowDropdown(false); } catch (e) { console.error('Google login error:', e); } }, []);
     const handleLogout = useCallback(async () => { if (user) await auth.signOut(); setShowDropdown(false); setNickname(''); setGuestData(null); localStorage.removeItem('pro_spy_guest_uid'); localStorage.removeItem('pro_spy_nick'); }, [user]);
+
+    // Onboarding Complete Handler
+    const handleOnboardingComplete = useCallback(async ({ displayName, gender, photoURL }) => {
+        if (!onboardingGoogleUser || !pendingNewUserRef) return;
+        const u = onboardingGoogleUser;
+        const finalPhoto = photoURL || u.photoURL || null;
+        const newUserData = {
+            uid: u.uid,
+            email: u.email || null,
+            displayName: displayName,
+            photoURL: finalPhoto,
+            gender: gender,
+            customId: Math.floor(100000 + Math.random() * 900000).toString(),
+            stats: { wins: 0, losses: 0, xp: 0 },
+            achievements: [],
+            friends: [],
+            friendRequests: [],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            lastChangedName: null,
+            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+            isAnonymous: false,
+            currency: 100,
+            inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] },
+            equipped: { badges: [] },
+            charisma: 0,
+            bannerURL: null,
+            loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: getCurrentCycleMonth() }
+        };
+        await pendingNewUserRef.set(newUserData);
+        setUserData(newUserData);
+        setNickname(displayName);
+        setUser(u);
+        setGuestData(null);
+        setShowOnboarding(false);
+        setOnboardingGoogleUser(null);
+        setPendingNewUserRef(null);
+        // Start listening to user doc
+        pendingNewUserRef.onSnapshot(snap => {
+            if (snap.exists) { setUserData(snap.data()); if (snap.data().displayName) setNickname(snap.data().displayName); }
+        });
+        playSound('success');
+        setNotification(lang === 'ar' ? '🎉 مرحباً بك!' : '🎉 Welcome aboard!');
+    }, [onboardingGoogleUser, pendingNewUserRef, lang]);
 
     // Guest System
     useEffect(() => {
@@ -2931,6 +3146,15 @@ function App() {
         <div className="main-wrapper" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
             <NotificationToast message={notification} onClose={() => setNotification(null)} />
             
+            {showOnboarding && (
+                <OnboardingModal
+                    show={showOnboarding}
+                    googleUser={onboardingGoogleUser}
+                    onComplete={handleOnboardingComplete}
+                    lang={lang}
+                />
+            )}
+            
             {showLoginAlert && (
                 <div className="modal-overlay" onClick={() => setShowLoginAlert(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
@@ -2946,39 +3170,6 @@ function App() {
             
             <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
             <LoginRewards show={showLoginRewards} onClose={() => setShowLoginRewards(false)} userData={userData} onClaim={handleClaimLoginReward} lang={lang} />
-            
-            {/* Registration Popup for new users */}
-            <RegistrationPopup 
-                show={showRegistrationPopup} 
-                onComplete={async (data) => {
-                    try {
-                        if (user && !user.isAnonymous) {
-                            await usersCollection.doc(user.uid).update({
-                                displayName: data.displayName,
-                                gender: data.gender
-                            });
-                        } else if (isGuest && guestData) {
-                            // Convert guest to registered user
-                            const newUserData = {
-                                uid: guestData.uid,
-                                displayName: data.displayName,
-                                gender: data.gender,
-                                isGuest: false,
-                                stats: guestData.stats || { wins: 0, losses: 0, xp: 0 },
-                                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                currency: 100,
-                                charisma: 0
-                            };
-                            await usersCollection.doc(guestData.uid).set(newUserData);
-                            await guestsCollection.doc(guestData.uid).delete();
-                        }
-                        setShowRegistrationPopup(false);
-                    } catch (error) {
-                        console.error('Registration error:', error);
-                    }
-                }}
-                lang={lang}
-            />
             
             {showSummary && room && (
                 <div className="modal-overlay" onClick={() => setShowSummary(false)}>
@@ -3009,7 +3200,7 @@ function App() {
                                     <div className="profile-id" onClick={() => { navigator.clipboard.writeText(currentUserData?.customId || ''); }}><span>ID: {currentUserData?.customId || 'N/A'}</span><span className="text-[10px]">📋</span></div>
                                 </div>
                             </div>
-                            {isLoggedIn && (<div className="bg-white/5 rounded-lg p-3 mb-3"><div className="text-xs font-bold text-gray-400 mb-2">{t.accountInfo}</div><div className="flex items-center justify-between mb-2 p-2 bg-black/20 rounded-lg"><div className="flex items-center gap-2"><span className="text-gray-400">📧</span><span className="text-sm">{showEmail ? (user?.email || 'N/A') : maskEmail(user?.email)}</span></div><button onClick={() => setShowEmail(!showEmail)} className="text-xs bg-white/10 px-2 py-1 rounded">{showEmail ? t.hideEmail : t.showEmail}</button></div><div className="flex items-center justify-between p-2 bg-black/20 rounded-lg"><span className="text-sm">{t.memberSince}</span><span className="text-xs text-gray-300">{currentUserData?.createdAt?.toDate?.() ? currentUserData.createdAt.toDate().toLocaleDateString() : 'N/A'}</span></div></div>)}
+                            {/* Account info moved to Settings */}
                             <CharismaDisplay charisma={currentUserData?.charisma} lang={lang} />
                             <div className="profile-stats">
                                 <div className="profile-stat"><div className="profile-stat-value">{currentUserData?.stats?.wins || 0}</div><div className="profile-stat-label">{t.wins}</div></div>
@@ -3578,7 +3769,6 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
             {selectedAchievement && (
                 <div className="achievement-detail-overlay" onClick={() => setSelectedAchievement(null)}>
                     <div className="achievement-detail-modal" onClick={e => e.stopPropagation()}>
-                        <button className="achievement-detail-close" onClick={() => setSelectedAchievement(null)}>✕</button>
                         <div className="achievement-detail-icon">
                             {selectedAchievement.icon || '🏅'}
                         </div>
@@ -3606,14 +3796,12 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                                 </div>
                             </div>
                         )}
+                        <button className="achievement-detail-close-bottom" onClick={() => setSelectedAchievement(null)}>
+                            {lang === 'ar' ? 'إغلاق' : 'Close'} ✕
+                        </button>
                     </div>
                 </div>
-            )}
-        </div>
-    );
-};
-
-// 👤 USER TITLE COMPONENT V11 - FIXED VISIBILITY
+            )} - FIXED VISIBILITY
 const UserTitleV11 = ({ equipped, lang }) => {
     const titleId = equipped?.titles;
     if (!titleId) return null;
@@ -3766,6 +3954,9 @@ const ProfileV11 = ({
     const [gifts, setGifts] = useState([]);
     const [charismaRank, setCharismaRank] = useState(null);
     const [copiedId, setCopiedId] = useState(false);
+    const [bannerURL, setBannerURL] = useState(null);
+    const [bannerUploading, setBannerUploading] = useState(false);
+    const bannerFileRef = useRef(null);
     
     const optionsRef = useRef(null);
 
@@ -3783,6 +3974,7 @@ const ProfileV11 = ({
             if (doc.exists) {
                 const data = doc.data();
                 setTargetData({ id: doc.id, ...data, isGuest: false });
+                setBannerURL(data.bannerURL || null);
                 const theirBlockedUsers = data.blockedUsers || [];
                 setBlockedByTarget(theirBlockedUsers.includes(currentUserUID));
                 setLoading(false);
@@ -3948,18 +4140,61 @@ const ProfileV11 = ({
                     </button>
                 </div>
 
-                {/* Profile Banner with Camera Icon */}
-                <ProfileBanner 
-                    bannerUrl={targetData?.bannerUrl}
-                    isOwnProfile={isOwnProfile}
-                    onEdit={() => {/* TODO: Implement banner edit */}}
-                    lang={lang}
+                {/* Banner upload handler */}
+                <input
+                    type="file"
+                    ref={bannerFileRef}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !isOwnProfile) return;
+                        setBannerUploading(true);
+                        const reader = new FileReader();
+                        reader.onload = async (ev) => {
+                            const img = new Image();
+                            img.onload = async () => {
+                                const canvas = document.createElement('canvas');
+                                const W = 800, H = 200;
+                                canvas.width = W; canvas.height = H;
+                                const ctx = canvas.getContext('2d');
+                                const scale = Math.max(W / img.width, H / img.height);
+                                const sw = img.width * scale, sh = img.height * scale;
+                                ctx.drawImage(img, (W - sw) / 2, (H - sh) / 2, sw, sh);
+                                const base64 = canvas.toDataURL('image/jpeg', 0.55);
+                                try {
+                                    await usersCollection.doc(targetUID).update({ bannerURL: base64 });
+                                    setBannerURL(base64);
+                                } catch(err) { console.error('Banner upload error:', err); }
+                                setBannerUploading(false);
+                            };
+                            img.src = ev.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }}
                 />
-                
-                {/* Cover with centered Avatar */}
-                <div className="profile-cover">
+                {/* Cover with Banner + Avatar */}
+                <div
+                    className="profile-cover"
+                    style={bannerURL ? {
+                        backgroundImage: `url(${bannerURL})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                    } : {}}
+                >
+                    {/* Camera icon to change banner - only own profile */}
+                    {isOwnProfile && (
+                        <button
+                            className="profile-banner-camera"
+                            onClick={() => bannerFileRef.current?.click()}
+                            title={lang === 'ar' ? 'تغيير البنر' : 'Change banner'}
+                            disabled={bannerUploading}
+                        >
+                            {bannerUploading ? '⏳' : '📷'}
+                        </button>
+                    )}
                     <div className="profile-avatar-wrapper">
-                        <AvatarWithFrameV11 
+                        <AvatarWithFrameV11
                             photoURL={targetData?.photoURL}
                             equipped={targetData?.equipped}
                             size="lg"
@@ -3984,10 +4219,6 @@ const ProfileV11 = ({
                             <div className="profile-name-row">
                                 <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
                                 <h1 className="profile-name">{targetData?.displayName || 'Unknown'}</h1>
-                                {/* Gender Icon */}
-                                <GenderIcon gender={targetData?.gender} />
-                                {/* Guest Badge */}
-                                {isTargetGuest && <GuestBadge lang={lang} />}
                             </div>
                             
                             <UserBadgesV11 equipped={targetData?.equipped} lang={lang} />
@@ -4060,19 +4291,6 @@ const ProfileV11 = ({
                             </div>
                         )}
 
-                        {/* Account Details Section - Only for own profile */}
-                        {isOwnProfile && (
-                            <AccountDetailsSection userData={targetData} lang={lang} />
-                        )}
-
-                        {/* Send Gift to Self Button - Only for own profile */}
-                        {isOwnProfile && (
-                            <SendGiftToSelfButton 
-                                onClick={() => setShowGiftModal(true)} 
-                                lang={lang} 
-                            />
-                        )}
-
                         {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && (
                             <div className="profile-actions">
                                 {isAlreadyFriend ? (
@@ -4141,303 +4359,8 @@ const ProfileV11 = ({
     );
 };
 
-// ==========================================
-// 🚻 GENDER ICON COMPONENT
-// ==========================================
-const GenderIcon = ({ gender }) => {
-    if (!gender || gender === 'none') return null;
-    return (
-        <span className={`profile-gender-icon ${gender}`}>
-            {gender === 'male' ? '♂' : '♀'}
-        </span>
-    );
-};
-
-// ==========================================
-// 👤 GUEST BADGE COMPONENT
-// ==========================================
-const GuestBadge = ({ lang }) => {
-    return (
-        <span className="profile-guest-badge">
-            {lang === 'ar' ? 'ضيف' : 'Guest'}
-        </span>
-    );
-};
-
-// ==========================================
-// 🖼️ PROFILE BANNER COMPONENT
-// ==========================================
-const ProfileBanner = ({ bannerUrl, isOwnProfile, onEdit, lang }) => {
-    return (
-        <div className="profile-banner-container">
-            {bannerUrl ? (
-                <img src={bannerUrl} alt="" className="profile-banner-image" />
-            ) : (
-                <div className="profile-banner-placeholder" style={{
-                    width: '100%',
-                    height: '100%',
-                    background: 'linear-gradient(135deg, rgba(112, 0, 255, 0.3), rgba(0, 242, 255, 0.3))'
-                }} />
-            )}
-            {isOwnProfile && (
-                <button className="profile-banner-edit-btn" onClick={onEdit}>
-                    📷
-                </button>
-            )}
-        </div>
-    );
-};
-
-// ==========================================
-// 🎁 SEND GIFT TO SELF BUTTON
-// ==========================================
-const SendGiftToSelfButton = ({ onClick, lang }) => {
-    return (
-        <button className="profile-send-gift-self" onClick={onClick}>
-            <span className="profile-send-gift-self-icon">🎁</span>
-            <span>{lang === 'ar' ? 'أرسل هدية لنفسك' : 'Send Gift to Yourself'}</span>
-        </button>
-    );
-};
-
-// ==========================================
-// 📝 REGISTRATION POPUP COMPONENT
-// ==========================================
-const RegistrationPopup = ({ show, onComplete, lang }) => {
-    const [name, setName] = useState('');
-    const [gender, setGender] = useState('none');
-    const [loading, setLoading] = useState(false);
-
-    if (!show) return null;
-
-    const handleSubmit = async () => {
-        if (!name.trim()) return;
-        setLoading(true);
-        try {
-            await onComplete({
-                displayName: name.trim(),
-                gender: gender
-            });
-        } catch (error) {
-            console.error('Registration error:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="registration-popup-overlay">
-            <div className="registration-popup-content">
-                <div className="registration-popup-header">
-                    <h2 className="registration-popup-title">
-                        {lang === 'ar' ? 'مرحباً!' : 'Welcome!'}
-                    </h2>
-                    <p className="registration-popup-subtitle">
-                        {lang === 'ar' ? 'أكمل بياناتك للبدء' : 'Complete your profile to get started'}
-                    </p>
-                </div>
-                <div className="registration-input-group">
-                    <label className="registration-input-label">
-                        {lang === 'ar' ? 'اسمك' : 'Your Name'}
-                    </label>
-                    <input 
-                        className="registration-input"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder={lang === 'ar' ? 'اكتب اسمك...' : 'Enter your name...'}
-                        maxLength={20}
-                    />
-                </div>
-                <div className="registration-input-group">
-                    <label className="registration-input-label">
-                        {lang === 'ar' ? 'الجنس' : 'Gender'}
-                    </label>
-                    <div className="gender-selection-container">
-                        <div 
-                            className={`gender-option ${gender === 'male' ? 'selected male' : ''}`}
-                            onClick={() => setGender('male')}
-                        >
-                            <span className="gender-option-icon">♂</span>
-                            <span className="gender-option-label">{lang === 'ar' ? 'ذكر' : 'Male'}</span>
-                        </div>
-                        <div 
-                            className={`gender-option ${gender === 'female' ? 'selected female' : ''}`}
-                            onClick={() => setGender('female')}
-                        >
-                            <span className="gender-option-icon">♀</span>
-                            <span className="gender-option-label">{lang === 'ar' ? 'أنثى' : 'Female'}</span>
-                        </div>
-                    </div>
-                </div>
-                <button 
-                    className="registration-submit-btn"
-                    onClick={handleSubmit}
-                    disabled={!name.trim() || loading}
-                >
-                    {loading ? (
-                        <span>⏳ {lang === 'ar' ? 'جاري الحفظ...' : 'Saving...'}</span>
-                    ) : (
-                        <span>{lang === 'ar' ? 'حفظ' : 'Save'}</span>
-                    )}
-                </button>
-            </div>
-        </div>
-    );
-};
-
-// ==========================================
-// 📋 ACCOUNT DETAILS SECTION
-// ==========================================
-const AccountDetailsSection = ({ userData, lang }) => {
-    if (!userData) return null;
-
-    const formatDate = (timestamp) => {
-        if (!timestamp) return '--';
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    };
-
-    return (
-        <div className="account-details-section">
-            <h3 className="account-details-title">
-                <span>📋</span>
-                <span>{lang === 'ar' ? 'تفاصيل الحساب' : 'Account Details'}</span>
-            </h3>
-            <div className="account-details-item">
-                <span className="account-details-label">
-                    {lang === 'ar' ? 'تاريخ الإنشاء' : 'Created At'}
-                </span>
-                <span className="account-details-value">
-                    {formatDate(userData.createdAt)}
-                </span>
-            </div>
-            <div className="account-details-item">
-                <span className="account-details-label">
-                    {lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}
-                </span>
-                <span className="account-details-value">
-                    {userData.email || '--'}
-                </span>
-            </div>
-            <div className="account-details-item">
-                <span className="account-details-label">
-                    {lang === 'ar' ? 'نوع الحساب' : 'Account Type'}
-                </span>
-                <span className="account-details-value">
-                    {userData.isGuest 
-                        ? (lang === 'ar' ? 'ضيف' : 'Guest') 
-                        : (lang === 'ar' ? 'مسجل' : 'Registered')}
-                </span>
-            </div>
-            {userData.gender && userData.gender !== 'none' && (
-                <div className="account-details-item">
-                    <span className="account-details-label">
-                        {lang === 'ar' ? 'الجنس' : 'Gender'}
-                    </span>
-                    <span className="account-details-value">
-                        {userData.gender === 'male' 
-                            ? (lang === 'ar' ? 'ذكر' : 'Male')
-                            : (lang === 'ar' ? 'أنثى' : 'Female')}
-                    </span>
-                </div>
-            )}
-        </div>
-    );
-};
-
-// ==========================================
-// 🏆 ACHIEVEMENT DETAIL MODAL - X AT BOTTOM
-// ==========================================
-const AchievementDetailModal = ({ achievement, isUnlocked, progress, lang, onClose }) => {
-    if (!achievement) return null;
-
-    const rarityConfig = RARITY_CONFIG[achievement.rarity || RARITY.COMMON];
-
-    return (
-        <div className="achievement-detail-overlay" onClick={onClose}>
-            <div className="achievement-detail-modal animate-pop" onClick={e => e.stopPropagation()}>
-                <div className="achievement-detail-header">
-                    <div 
-                        className="achievement-detail-icon"
-                        style={{ 
-                            background: rarityConfig.gradient,
-                            boxShadow: rarityConfig.glow
-                        }}
-                    >
-                        {achievement.imageUrl ? (
-                            <img src={achievement.imageUrl} alt="" />
-                        ) : (
-                            <i className={achievement.icon} style={{ fontSize: '32px' }}></i>
-                        )}
-                    </div>
-                    <h3 className="achievement-detail-name">
-                        {TRANSLATIONS[lang]?.[achievement.nameKey] || achievement.id}
-                    </h3>
-                    {achievement.rarity && (
-                        <span className={`rarity-badge ${achievement.rarity}`}>
-                            {RARITY_CONFIG[achievement.rarity]?.[lang === 'ar' ? 'nameAr' : 'name'] || achievement.rarity}
-                        </span>
-                    )}
-                </div>
-                <div className="achievement-detail-body">
-                    <p className="achievement-detail-description">
-                        {TRANSLATIONS[lang]?.[achievement.descKey] || ''}
-                    </p>
-                    <div className={`achievement-detail-status ${isUnlocked ? 'unlocked' : 'locked'}`}>
-                        {isUnlocked ? (
-                            <>
-                                <span>✓</span>
-                                <span>{lang === 'ar' ? 'تم فتحه' : 'Unlocked'}</span>
-                            </>
-                        ) : (
-                            <>
-                                <span>🔒</span>
-                                <span>{lang === 'ar' ? 'مقفل' : 'Locked'}</span>
-                            </>
-                        )}
-                    </div>
-                    {!isUnlocked && (
-                        <div className="achievement-detail-progress">
-                            <div className="achievement-detail-progress-header">
-                                <span>{lang === 'ar' ? 'التقدم' : 'Progress'}</span>
-                                <span>{Math.round(progress)}%</span>
-                            </div>
-                            <div className="achievement-detail-progress-bar">
-                                <div 
-                                    className="achievement-detail-progress-fill" 
-                                    style={{ width: `${progress}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-                <div className="achievement-detail-footer">
-                    <button className="achievement-detail-close-btn" onClick={onClose}>
-                        <span>✕</span>
-                        <span>{lang === 'ar' ? 'إغلاق' : 'Close'}</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// Make components available globally
+// Make ProfileV11 available globally
 window.ProfileV11 = ProfileV11;
-window.GenderIcon = GenderIcon;
-window.GuestBadge = GuestBadge;
-window.ProfileBanner = ProfileBanner;
-window.SendGiftToSelfButton = SendGiftToSelfButton;
-window.RegistrationPopup = RegistrationPopup;
-window.AccountDetailsSection = AccountDetailsSection;
-window.AchievementDetailModal = AchievementDetailModal;
-window.RARITY = RARITY;
-window.RARITY_CONFIG = RARITY_CONFIG;
 
 // Wrap with ErrorBoundary
 const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
