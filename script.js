@@ -5,6 +5,17 @@
 // ==========================================
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
+const createPortal = ReactDOM.createPortal;
+
+// Portal helper - renders children on document.body to escape backdrop-filter stacking context
+const PortalModal = ({ children }) => {
+    const el = useRef(document.createElement('div'));
+    useEffect(() => {
+        document.body.appendChild(el.current);
+        return () => { if (el.current.parentNode) el.current.parentNode.removeChild(el.current); };
+    }, []);
+    return createPortal(children, el.current);
+};
 
 // --- Firebase Configuration ---
 const firebaseConfig = {
@@ -3737,10 +3748,10 @@ const WinRateCircleV11 = ({ wins, losses, lang }) => {
     const gradient = `conic-gradient(${getColor(rate)} ${rate}%, #1f2937 ${rate}%)`;
 
     return (
-        <div className="profile-winrate-circle" style={{ background: gradient }}>
+        <div className="profile-winrate-circle" style={{ background: gradient, width:'64px', height:'64px', flexShrink:0 }}>
             <div className="profile-winrate-content">
-                <span className="profile-winrate-value" style={{ color: getColor(rate) }}>{rate}%</span>
-                <span className="profile-winrate-label">{lang === 'ar' ? 'معدل' : 'Win Rate'}</span>
+                <span className="profile-winrate-value" style={{ color: getColor(rate), fontSize:'13px' }}>{rate}%</span>
+                <span className="profile-winrate-label" style={{fontSize:'7px'}}>{lang === 'ar' ? 'معدل' : 'Win%'}</span>
             </div>
         </div>
     );
@@ -3821,9 +3832,10 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                 </div>
             )}
 
-            {/* Gift Detail Popup */}
+            {/* Gift Detail Popup - PORTAL to escape backdrop-filter */}
             {selectedGiftDetail && (
-                <div className="gift-detail-overlay" onClick={() => setSelectedGiftDetail(null)}>
+                <PortalModal>
+                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999999,padding:'16px'}} onClick={() => setSelectedGiftDetail(null)}>
                     <div className="gift-detail-modal animate-pop" onClick={e => e.stopPropagation()}>
                         <button className="gift-detail-close" onClick={() => setSelectedGiftDetail(null)}>✕</button>
                         <div className="gift-detail-emoji">{selectedGiftDetail.gift.emoji || '🎁'}</div>
@@ -3863,6 +3875,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
 
                     </div>
                 </div>
+                </PortalModal>
             )}
 
             {activeTab === 'log' && (
@@ -4035,42 +4048,41 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                 </button>
             )}
 
-            {/* Achievement Detail Modal - FIXED CENTER */}
+            {/* Achievement Detail Modal - PORTAL to escape backdrop-filter */}
             {selectedAchievement && (
-                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:99999,padding:'16px'}} onClick={() => setSelectedAchievement(null)}>
-                    <div className="achievement-detail-modal" onClick={e => e.stopPropagation()}>
-                        <div className="achievement-detail-icon">
-                            {selectedAchievement.icon || '🏅'}
-                        </div>
-                        <div className="achievement-detail-name">
-                            {TRANSLATIONS[lang]?.[selectedAchievement.nameKey] || selectedAchievement.id}
-                        </div>
-                        <div className="achievement-detail-desc">
-                            {TRANSLATIONS[lang]?.[selectedAchievement.descKey] || ''}
-                        </div>
-                        {unlockedAchievements.includes(selectedAchievement.id) ? (
-                            <div className="achievement-detail-status unlocked">
-                                <span>✓</span>
-                                <span>{lang === 'ar' ? 'تم فتحه!' : 'Unlocked!'}</span>
+                <PortalModal>
+                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999999,padding:'16px'}} onClick={() => setSelectedAchievement(null)}>
+                        <div className="achievement-detail-modal animate-pop" onClick={e => e.stopPropagation()}>
+                            <div className="achievement-detail-icon">
+                                {selectedAchievement.icon || '🏅'}
                             </div>
-                        ) : (
-                            <div className="achievement-detail-progress-section">
-                                <div className="achievement-detail-progress-bar">
-                                    <div 
-                                        className="achievement-detail-progress-fill" 
-                                        style={{ width: `${getProgress(selectedAchievement)}%` }}
-                                    ></div>
-                                </div>
-                                <div className="achievement-detail-progress-text">
-                                    {getCurrentValue(selectedAchievement)} / {selectedAchievement.condition.value}
-                                </div>
+                            <div className="achievement-detail-name">
+                                {TRANSLATIONS[lang]?.[selectedAchievement.nameKey] || selectedAchievement.id}
                             </div>
-                        )}
-                        <button className="achievement-detail-close-bottom" onClick={() => setSelectedAchievement(null)}>
-                            {lang === 'ar' ? 'إغلاق' : 'Close'} ✕
-                        </button>
+                            <div className="achievement-detail-desc">
+                                {TRANSLATIONS[lang]?.[selectedAchievement.descKey] || ''}
+                            </div>
+                            {unlockedAchievements.includes(selectedAchievement.id) ? (
+                                <div className="achievement-detail-status unlocked">
+                                    <span>✓</span>
+                                    <span>{lang === 'ar' ? 'تم فتحه!' : 'Unlocked!'}</span>
+                                </div>
+                            ) : (
+                                <div className="achievement-detail-progress-section">
+                                    <div className="achievement-detail-progress-bar">
+                                        <div className="achievement-detail-progress-fill" style={{ width: `${getProgress(selectedAchievement)}%` }}></div>
+                                    </div>
+                                    <div className="achievement-detail-progress-text">
+                                        {getCurrentValue(selectedAchievement)} / {selectedAchievement.condition.value}
+                                    </div>
+                                </div>
+                            )}
+                            <button className="achievement-detail-close-bottom" onClick={() => setSelectedAchievement(null)}>
+                                {lang === 'ar' ? 'إغلاق' : 'Close'} ✕
+                            </button>
+                        </div>
                     </div>
-                </div>
+                </PortalModal>
             )}
         </div>
     );
@@ -4492,17 +4504,35 @@ const CreateMomentModal = ({ onClose, currentUser, lang }) => {
                 setError(lang === 'ar' ? 'حجم الصورة كبير جداً (الحد 2MB)' : 'Image too large (max 2MB)');
                 return;
             }
+            // Compress image with canvas to stay under Firestore 1MB doc limit
             const reader = new FileReader();
-            reader.onload = ev => setMediaPreview(ev.target.result);
+            reader.onload = ev => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_W = 800, MAX_H = 800;
+                    let w = img.width, h = img.height;
+                    if (w > MAX_W || h > MAX_H) {
+                        const ratio = Math.min(MAX_W / w, MAX_H / h);
+                        w = Math.round(w * ratio);
+                        h = Math.round(h * ratio);
+                    }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const compressed = canvas.toDataURL('image/jpeg', 0.6);
+                    setMediaPreview(compressed);
+                    setMediaFile(file);
+                };
+                img.src = ev.target.result;
+            };
             reader.readAsDataURL(file);
-            setMediaFile(file);
         } else if (momentType === 'video') {
             if (file.size > MAX_VIDEO_SIZE) {
                 setError(lang === 'ar' ? 'حجم الفيديو كبير جداً (الحد 5MB)' : 'Video too large (max 5MB)');
                 return;
             }
-            const video = document.createElement('video');
             const url = URL.createObjectURL(file);
+            const video = document.createElement('video');
             video.src = url;
             video.onloadedmetadata = () => {
                 URL.revokeObjectURL(url);
@@ -5077,29 +5107,22 @@ const ProfileV11 = ({
 
                         <div className="profile-stats-dashboard">
                             <div className="profile-stats-main-row">
-                                {/* Left: Wins + Losses stacked */}
-                                <div className="profile-stats-left-col">
-                                    <div className="profile-stat-box">
-                                        <span className="profile-stat-value wins">{wins}</span>
-                                        <span className="profile-stat-label">{lang === 'ar' ? '🏆 فوز' : '🏆 Wins'}</span>
-                                    </div>
-                                    <div className="profile-stat-box">
-                                        <span className="profile-stat-value losses">{losses}</span>
-                                        <span className="profile-stat-label">{lang === 'ar' ? '💀 خسارة' : '💀 Losses'}</span>
-                                    </div>
+                                <div className="profile-stat-box">
+                                    <span className="profile-stat-value wins">{wins}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? '🏆 فوز' : '🏆 Wins'}</span>
                                 </div>
-                                {/* Center: Win Rate */}
+                                <div className="profile-stat-box">
+                                    <span className="profile-stat-value losses">{losses}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? '💀 خسارة' : '💀 Losses'}</span>
+                                </div>
                                 <WinRateCircleV11 wins={wins} losses={losses} lang={lang} />
-                                {/* Right: Rank + Level stacked */}
-                                <div className="profile-stats-right-col">
-                                    <div className="profile-stat-box">
-                                        <span className="profile-stat-value rank">#{charismaRank || '--'}</span>
-                                        <span className="profile-stat-label">{lang === 'ar' ? '🎖️ ترتيب' : '🎖️ Rank'}</span>
-                                    </div>
-                                    <div className="profile-stat-box">
-                                        <span className="profile-stat-value" style={{ color: '#a78bfa' }}>{level}</span>
-                                        <span className="profile-stat-label">{lang === 'ar' ? '⚡ مستوى' : '⚡ Level'}</span>
-                                    </div>
+                                <div className="profile-stat-box">
+                                    <span className="profile-stat-value rank">#{charismaRank || '--'}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? '🎖️ رتبة' : '🎖️ Rank'}</span>
+                                </div>
+                                <div className="profile-stat-box">
+                                    <span className="profile-stat-value" style={{ color: '#a78bfa' }}>{level}</span>
+                                    <span className="profile-stat-label">{lang === 'ar' ? '⚡ مستوى' : '⚡ Level'}</span>
                                 </div>
                             </div>
                         </div>
@@ -5256,6 +5279,22 @@ const ProfileV11 = ({
                     onSendGift={onSendGift}
                     currency={userData?.currency || 0}
                     friendsData={friendsData}
+                />
+            )}
+
+            {showSelfGiftModal && userData && (
+                <SendGiftModal
+                    show={showSelfGiftModal}
+                    onClose={() => setShowSelfGiftModal(false)}
+                    targetUser={{ uid: userData?.uid, displayName: userData?.displayName || (lang==='ar'?'أنت':'You'), photoURL: userData?.photoURL }}
+                    currentUser={userData}
+                    lang={lang}
+                    onSendGift={async (gift, targetUser) => {
+                        if (onSendGift) await onSendGift(gift, targetUser);
+                        setShowSelfGiftModal(false);
+                    }}
+                    currency={userData?.currency || 0}
+                    friendsData={[]}
                 />
             )}
         </div>
