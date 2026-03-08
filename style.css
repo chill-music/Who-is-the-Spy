@@ -826,12 +826,13 @@ body {
     animation: pulse-badge 2s infinite;
 }
 
-.notification-center { position: relative; }
 .notification-dropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    width: 340px;
+    position: fixed;
+    top: 60px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-width: 380px;
     max-height: 450px;
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -839,6 +840,33 @@ body {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     z-index: 1000;
     overflow: hidden;
+}
+
+.notification-center { position: relative; }
+.notification-dropdown {
+    position: fixed;
+    top: 60px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-width: 380px;
+    max-height: 450px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    overflow: hidden;
+}
+@media (min-width: 480px) {
+    .notification-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        left: auto;
+        width: 340px;
+        max-width: none;
+    }
 }
 .notification-dropdown-header {
     display: flex;
@@ -2926,6 +2954,30 @@ body {
 
 
 /* ============================================================
+   📊 PROFILE STATS - NEW LAYOUT: Wins+Losses | WinRate | Rank+Level
+   ============================================================ */
+.profile-stats-main-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 12px;
+    margin: 14px 0;
+}
+.profile-stats-left-col,
+.profile-stats-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+.profile-stats-left-col .profile-stat-box,
+.profile-stats-right-col .profile-stat-box {
+    flex: none;
+    width: 100%;
+}
+
+/* ============================================================
    📊 PROFILE STATS ROW (new unified layout)
    ============================================================ */
 .profile-stats-row {
@@ -3151,3 +3203,55 @@ body {
     box-shadow: 0 6px 20px rgba(112,0,255,0.4);
 }
 
+
+/* ============================================================
+   📸 MOMENTS SYSTEM
+   ============================================================ */
+.moments-section {
+    padding: 0 12px 8px;
+}
+.moments-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+.moment-card {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(31, 41, 55, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.moment-card:hover {
+    transform: scale(1.03);
+    border-color: rgba(0, 242, 255, 0.3);
+}
+.moment-card-text {
+    padding: 6px;
+    font-size: 9px;
+    color: #e2e8f0;
+    text-align: center;
+    word-break: break-word;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+}
+.moment-likes-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 6px;
+    padding: 1px 5px;
+    font-size: 8px;
+    color: #f87171;
+    font-weight: 700;
+}
