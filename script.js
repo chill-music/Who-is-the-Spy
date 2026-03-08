@@ -21,11 +21,11 @@ const Z = {
 // 🎨 GRADIENT CONSTANTS - Reusable styles
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const GR = {
-    DARK_CARD:  GR.DARK_CARD,
-    NEON:       GR.NEON,
-    GOLD:       GR.GOLD,
-    GOLD_SOFT:  GR.GOLD_SOFT,
-    CYAN_SOFT:  GR.CYAN_SOFT,
+    DARK_CARD:  'linear-gradient(135deg, rgba(15,15,35,0.95), rgba(25,25,50,0.95))',
+    NEON:       'linear-gradient(135deg, rgba(0,242,255,0.15), rgba(112,0,255,0.15))',
+    GOLD:       'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,140,0,0.15))',
+    GOLD_SOFT:  'linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,140,0,0.08))',
+    CYAN_SOFT:  'linear-gradient(135deg, rgba(0,242,255,0.08), rgba(112,0,255,0.08))',
 };
 
 const createPortal = ReactDOM.createPortal;
