@@ -32,6 +32,7 @@ const roomsCollection = db.collection('artifacts').doc(appId).collection('public
 const historyCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('game_history');
 const notificationsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('notifications');
 const giftsLogCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('gifts_log');
+const momentsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('moments');
 
 // --- Constants ---
 const CURRENCY_NAME = "Intel";
@@ -1082,7 +1083,7 @@ const AchievementsDisplay = ({ userData, lang, showAll = false }) => {
 // ==========================================
 // 🎨 PROFESSIONAL EMOJI PICKER - NEW
 // ==========================================
-const EmojiPicker = ({ show, onClose, onSelect, lang }) => {
+const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
     const t = TRANSLATIONS[lang];
     const [activeCategory, setActiveCategory] = useState('smiles');
     
@@ -2572,13 +2573,22 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification }) 
                         </div>
                     </div>
 
+                    {/* Moments Section */}
+                    <div className="settings-section">
+                        <div className="settings-section-title">
+                            <span>📸</span>
+                            <span>{lang === 'ar' ? 'لحظاتي' : 'My Moments'}</span>
+                        </div>
+                        <MomentsSettingsSection currentUser={user} userData={userData} lang={lang} />
+                    </div>
+
                     {/* Achievements Section */}
                     <div className="settings-section">
                         <div className="settings-section-title">
                             <span>🏆</span>
                             <span>{t.achievements}</span>
                         </div>
-                        <AchievementsDisplay userData={userData} lang={lang} showAll={true} />
+                        <AchievementsDisplayV11 userData={userData} lang={lang} showAll={true} />
                     </div>
 
                     {/* Block Users Section */}
@@ -4191,6 +4201,517 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline }) => {
 };
 
 // ==========================================
+// 📸 MOMENTS SYSTEM - Complete Component
+// ==========================================
+
+// Max file size: 2MB images, 5MB videos (10 sec max)
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 5 * 1024 * 1024;
+const MAX_VIDEO_DURATION = 10;
+
+const MomentsSection = ({ ownerUID, currentUser, isOwnProfile, lang }) => {
+    const [moments, setMoments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedMoment, setSelectedMoment] = useState(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+
+    useEffect(() => {
+        if (!ownerUID) return;
+        setLoading(true);
+        const unsub = momentsCollection
+            .where('authorUID', '==', ownerUID)
+            .limit(20)
+            .onSnapshot(snap => {
+                const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                data.sort((a, b) => {
+                    const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
+                    const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+                    return tb - ta;
+                });
+                setMoments(data);
+                setLoading(false);
+            }, () => setLoading(false));
+        return unsub;
+    }, [ownerUID]);
+
+    return (
+        <div style={{padding:'0 12px 8px'}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>
+                <span style={{fontSize:'9px', fontWeight:700, color:'#64748b', textTransform:'uppercase', display:'flex', alignItems:'center', gap:'4px'}}>
+                    <span style={{color:'#00f2ff'}}>📸</span>
+                    {lang === 'ar' ? 'اللحظات' : 'Moments'}
+                    <span style={{color:'#00f2ff', fontWeight:700}}>{moments.length}</span>
+                </span>
+                {isOwnProfile && currentUser && (
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        style={{fontSize:'9px', color:'#00f2ff', background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.3)', borderRadius:'6px', padding:'3px 8px', cursor:'pointer', fontWeight:700}}
+                    >
+                        + {lang === 'ar' ? 'أضف' : 'Add'}
+                    </button>
+                )}
+            </div>
+
+            {loading ? (
+                <div style={{textAlign:'center', padding:'16px', color:'#64748b', fontSize:'11px'}}>...</div>
+            ) : moments.length === 0 ? (
+                <div style={{textAlign:'center', padding:'16px', color:'#64748b', fontSize:'11px'}}>
+                    {lang === 'ar' ? 'لا توجد لحظات بعد' : 'No moments yet'}
+                </div>
+            ) : (
+                <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'4px'}}>
+                    {moments.map(moment => (
+                        <div
+                            key={moment.id}
+                            onClick={() => setSelectedMoment(moment)}
+                            style={{
+                                aspectRatio:'1', borderRadius:'8px', overflow:'hidden',
+                                background:'rgba(31,41,55,0.6)', border:'1px solid rgba(255,255,255,0.08)',
+                                cursor:'pointer', position:'relative', transition:'all 0.2s',
+                                display:'flex', alignItems:'center', justifyContent:'center'
+                            }}
+                        >
+                            {moment.type === 'text' ? (
+                                <div style={{padding:'6px', fontSize:'9px', color:'#e2e8f0', textAlign:'center', wordBreak:'break-word', lineHeight:1.4, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical'}}>
+                                    {moment.content}
+                                </div>
+                            ) : moment.type === 'image' ? (
+                                <img src={moment.mediaUrl} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                            ) : moment.type === 'video' ? (
+                                <div style={{width:'100%', height:'100%', position:'relative', background:'#000'}}>
+                                    <video src={moment.mediaUrl} style={{width:'100%', height:'100%', objectFit:'cover'}} muted />
+                                    <div style={{position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.3)'}}>
+                                        <span style={{fontSize:'20px'}}>▶</span>
+                                    </div>
+                                </div>
+                            ) : null}
+                            {/* Likes count badge */}
+                            {(moment.likesCount || 0) > 0 && (
+                                <div style={{position:'absolute', bottom:'2px', right:'2px', background:'rgba(0,0,0,0.7)', borderRadius:'6px', padding:'1px 5px', fontSize:'8px', color:'#f87171', fontWeight:700}}>
+                                    ❤️ {moment.likesCount}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {selectedMoment && (
+                <MomentDetailModal
+                    moment={selectedMoment}
+                    onClose={() => setSelectedMoment(null)}
+                    currentUser={currentUser}
+                    isOwnProfile={isOwnProfile}
+                    lang={lang}
+                    onDelete={(id) => {
+                        momentsCollection.doc(id).delete();
+                        setSelectedMoment(null);
+                    }}
+                />
+            )}
+
+            {showCreateModal && (
+                <CreateMomentModal
+                    onClose={() => setShowCreateModal(false)}
+                    currentUser={currentUser}
+                    lang={lang}
+                />
+            )}
+        </div>
+    );
+};
+
+const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onDelete }) => {
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [liked, setLiked] = useState(false);
+    const [likesCount, setLikesCount] = useState(moment.likesCount || 0);
+    const [submitting, setSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (!moment.id) return;
+        const unsub = momentsCollection.doc(moment.id).collection('comments')
+            .limit(30)
+            .onSnapshot(snap => {
+                const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                data.sort((a, b) => {
+                    const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
+                    const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+                    return ta - tb;
+                });
+                setComments(data);
+            });
+        // Check if current user liked
+        if (currentUser) {
+            const likedBy = moment.likedBy || [];
+            setLiked(likedBy.includes(currentUser.uid));
+            setLikesCount(moment.likesCount || 0);
+        }
+        return unsub;
+    }, [moment.id]);
+
+    const handleLike = async () => {
+        if (!currentUser || !currentUser.uid) return;
+        const docRef = momentsCollection.doc(moment.id);
+        if (liked) {
+            await docRef.update({
+                likedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
+                likesCount: firebase.firestore.FieldValue.increment(-1)
+            });
+            setLiked(false);
+            setLikesCount(p => Math.max(0, p - 1));
+        } else {
+            await docRef.update({
+                likedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
+                likesCount: firebase.firestore.FieldValue.increment(1)
+            });
+            setLiked(true);
+            setLikesCount(p => p + 1);
+        }
+    };
+
+    const handleComment = async () => {
+        if (!newComment.trim() || !currentUser || submitting) return;
+        setSubmitting(true);
+        await momentsCollection.doc(moment.id).collection('comments').add({
+            authorUID: currentUser.uid,
+            authorName: currentUser.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
+            authorPhoto: currentUser.photoURL || null,
+            text: newComment.trim(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        setNewComment('');
+        setSubmitting(false);
+    };
+
+    return (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:99999, padding:'16px'}} onClick={onClose}>
+            <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)', border:'1px solid rgba(0,242,255,0.2)', borderRadius:'16px', width:'100%', maxWidth:'400px', maxHeight:'85vh', overflow:'hidden', display:'flex', flexDirection:'column'}} onClick={e => e.stopPropagation()}>
+                {/* Header */}
+                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                        {moment.authorPhoto && <img src={moment.authorPhoto} alt="" style={{width:'28px', height:'28px', borderRadius:'50%', objectFit:'cover'}} />}
+                        <span style={{fontSize:'12px', fontWeight:700, color:'white'}}>{moment.authorName}</span>
+                    </div>
+                    <div style={{display:'flex', gap:'6px', alignItems:'center'}}>
+                        {isOwnProfile && (
+                            <button onClick={() => onDelete(moment.id)} style={{background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:'6px', color:'#f87171', fontSize:'10px', padding:'3px 8px', cursor:'pointer'}}>
+                                🗑️
+                            </button>
+                        )}
+                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.1)', border:'none', color:'#9ca3af', fontSize:'16px', cursor:'pointer', borderRadius:'6px', padding:'4px 8px'}}>✕</button>
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div style={{flex:'0 0 auto', padding:'12px 14px', background:'rgba(0,0,0,0.2)'}}>
+                    {moment.type === 'text' && (
+                        <p style={{fontSize:'14px', color:'#e2e8f0', lineHeight:1.6, margin:0}}>{moment.content}</p>
+                    )}
+                    {moment.type === 'image' && (
+                        <img src={moment.mediaUrl} alt="" style={{width:'100%', borderRadius:'10px', maxHeight:'250px', objectFit:'cover'}} />
+                    )}
+                    {moment.type === 'video' && (
+                        <video src={moment.mediaUrl} controls style={{width:'100%', borderRadius:'10px', maxHeight:'250px'}} />
+                    )}
+                </div>
+
+                {/* Like button */}
+                <div style={{padding:'8px 14px', display:'flex', alignItems:'center', gap:'12px', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                    <button
+                        onClick={handleLike}
+                        style={{
+                            background: liked ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.05)',
+                            border: liked ? '1px solid rgba(248,113,113,0.4)' : '1px solid rgba(255,255,255,0.1)',
+                            borderRadius:'8px', padding:'5px 12px', color: liked ? '#f87171' : '#9ca3af',
+                            fontSize:'12px', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:'5px'
+                        }}
+                    >
+                        {liked ? '❤️' : '🤍'} {likesCount}
+                    </button>
+                    <span style={{fontSize:'10px', color:'#64748b'}}>💬 {comments.length}</span>
+                </div>
+
+                {/* Comments */}
+                <div style={{flex:1, overflowY:'auto', padding:'8px 14px', display:'flex', flexDirection:'column', gap:'8px'}}>
+                    {comments.length === 0 ? (
+                        <div style={{textAlign:'center', color:'#64748b', fontSize:'11px', padding:'12px 0'}}>
+                            {lang === 'ar' ? 'لا توجد تعليقات' : 'No comments yet'}
+                        </div>
+                    ) : comments.map(c => (
+                        <div key={c.id} style={{display:'flex', gap:'8px', alignItems:'flex-start'}}>
+                            {c.authorPhoto ? <img src={c.authorPhoto} alt="" style={{width:'24px', height:'24px', borderRadius:'50%', objectFit:'cover', flexShrink:0}} /> : <div style={{width:'24px', height:'24px', borderRadius:'50%', background:'#374151', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px'}}>👤</div>}
+                            <div style={{background:'rgba(255,255,255,0.05)', borderRadius:'10px', padding:'6px 10px', flex:1}}>
+                                <div style={{fontSize:'9px', fontWeight:700, color:'#00f2ff', marginBottom:'2px'}}>{c.authorName}</div>
+                                <div style={{fontSize:'11px', color:'#e2e8f0', lineHeight:1.4}}>{c.text}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Comment Input */}
+                {currentUser && (
+                    <div style={{padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.08)', display:'flex', gap:'8px'}}>
+                        <input
+                            value={newComment}
+                            onChange={e => setNewComment(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleComment()}
+                            placeholder={lang === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...'}
+                            style={{flex:1, background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'10px', padding:'8px 12px', color:'white', fontSize:'12px', outline:'none', fontFamily:'inherit'}}
+                        />
+                        <button
+                            onClick={handleComment}
+                            disabled={!newComment.trim() || submitting}
+                            style={{background:'linear-gradient(135deg,#7000ff,#00f2ff)', border:'none', borderRadius:'10px', color:'white', fontSize:'12px', fontWeight:700, padding:'8px 14px', cursor:'pointer', opacity: (!newComment.trim() || submitting) ? 0.5 : 1}}
+                        >
+                            {lang === 'ar' ? 'إرسال' : 'Send'}
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const CreateMomentModal = ({ onClose, currentUser, lang }) => {
+    const [momentType, setMomentType] = useState('text');
+    const [textContent, setTextContent] = useState('');
+    const [mediaFile, setMediaFile] = useState(null);
+    const [mediaPreview, setMediaPreview] = useState(null);
+    const [error, setError] = useState('');
+    const [uploading, setUploading] = useState(false);
+    const fileRef = useRef(null);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setError('');
+
+        if (momentType === 'image') {
+            if (file.size > MAX_IMAGE_SIZE) {
+                setError(lang === 'ar' ? 'حجم الصورة كبير جداً (الحد 2MB)' : 'Image too large (max 2MB)');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = ev => setMediaPreview(ev.target.result);
+            reader.readAsDataURL(file);
+            setMediaFile(file);
+        } else if (momentType === 'video') {
+            if (file.size > MAX_VIDEO_SIZE) {
+                setError(lang === 'ar' ? 'حجم الفيديو كبير جداً (الحد 5MB)' : 'Video too large (max 5MB)');
+                return;
+            }
+            const video = document.createElement('video');
+            const url = URL.createObjectURL(file);
+            video.src = url;
+            video.onloadedmetadata = () => {
+                URL.revokeObjectURL(url);
+                if (video.duration > MAX_VIDEO_DURATION) {
+                    setError(lang === 'ar' ? `الفيديو يجب أن يكون ${MAX_VIDEO_DURATION} ثواني فقط` : `Video must be max ${MAX_VIDEO_DURATION} seconds`);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = ev => setMediaPreview(ev.target.result);
+                reader.readAsDataURL(file);
+                setMediaFile(file);
+            };
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!currentUser) return;
+        if (momentType === 'text' && !textContent.trim()) return;
+        if ((momentType === 'image' || momentType === 'video') && !mediaFile) return;
+        setUploading(true);
+
+        try {
+            const momentData = {
+                authorUID: currentUser.uid,
+                authorName: currentUser.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
+                authorPhoto: currentUser.photoURL || null,
+                type: momentType,
+                content: momentType === 'text' ? textContent.trim() : '',
+                mediaUrl: (momentType === 'image' || momentType === 'video') ? mediaPreview : null,
+                likesCount: 0,
+                likedBy: [],
+                commentsCount: 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            await momentsCollection.add(momentData);
+            onClose();
+        } catch (e) {
+            setError(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, try again');
+        }
+        setUploading(false);
+    };
+
+    return (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:99999, padding:'16px'}} onClick={onClose}>
+            <div style={{background:'linear-gradient(180deg,#1e293b,#0f172a)', border:'1px solid rgba(0,242,255,0.25)', borderRadius:'16px', width:'100%', maxWidth:'360px', overflow:'hidden'}} onClick={e => e.stopPropagation()}>
+                {/* Header */}
+                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
+                    <span style={{fontWeight:800, fontSize:'15px', color:'white'}}>{lang === 'ar' ? '📸 لحظة جديدة' : '📸 New Moment'}</span>
+                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.1)', border:'none', color:'#9ca3af', fontSize:'16px', cursor:'pointer', borderRadius:'6px', padding:'4px 8px'}}>✕</button>
+                </div>
+
+                <div style={{padding:'16px'}}>
+                    {/* Type selector */}
+                    <div style={{display:'flex', gap:'6px', marginBottom:'14px'}}>
+                        {[
+                            {id:'text', icon:'✏️', ar:'نص', en:'Text'},
+                            {id:'image', icon:'🖼️', ar:'صورة', en:'Image'},
+                            {id:'video', icon:'🎥', ar:'فيديو', en:'Video'}
+                        ].map(t => (
+                            <button
+                                key={t.id}
+                                onClick={() => { setMomentType(t.id); setMediaFile(null); setMediaPreview(null); setError(''); }}
+                                style={{
+                                    flex:1, padding:'8px 4px', borderRadius:'10px', fontSize:'11px', fontWeight:700, cursor:'pointer',
+                                    background: momentType === t.id ? 'rgba(0,242,255,0.2)' : 'rgba(255,255,255,0.04)',
+                                    border: momentType === t.id ? '1.5px solid #00f2ff' : '1px solid rgba(255,255,255,0.1)',
+                                    color: momentType === t.id ? '#00f2ff' : '#9ca3af',
+                                    display:'flex', alignItems:'center', justifyContent:'center', gap:'4px'
+                                }}
+                            >
+                                {t.icon} {lang === 'ar' ? t.ar : t.en}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Content */}
+                    {momentType === 'text' && (
+                        <textarea
+                            value={textContent}
+                            onChange={e => setTextContent(e.target.value)}
+                            maxLength={280}
+                            placeholder={lang === 'ar' ? 'اكتب لحظتك هنا...' : 'Write your moment here...'}
+                            style={{width:'100%', background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'10px', padding:'10px 12px', color:'white', fontSize:'13px', fontFamily:'inherit', resize:'none', height:'100px', outline:'none'}}
+                        />
+                    )}
+
+                    {(momentType === 'image' || momentType === 'video') && (
+                        <div>
+                            <input ref={fileRef} type="file" accept={momentType === 'image' ? 'image/*' : 'video/*'} onChange={handleFileChange} style={{display:'none'}} />
+                            {mediaPreview ? (
+                                <div style={{position:'relative', borderRadius:'10px', overflow:'hidden', marginBottom:'8px'}}>
+                                    {momentType === 'image'
+                                        ? <img src={mediaPreview} alt="" style={{width:'100%', maxHeight:'180px', objectFit:'cover'}} />
+                                        : <video src={mediaPreview} controls style={{width:'100%', maxHeight:'180px'}} />
+                                    }
+                                    <button onClick={() => { setMediaFile(null); setMediaPreview(null); }} style={{position:'absolute', top:'6px', right:'6px', background:'rgba(0,0,0,0.7)', border:'none', color:'white', borderRadius:'50%', width:'24px', height:'24px', cursor:'pointer', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center'}}>✕</button>
+                                </div>
+                            ) : (
+                                <div
+                                    onClick={() => fileRef.current?.click()}
+                                    style={{border:'2px dashed rgba(0,242,255,0.3)', borderRadius:'10px', padding:'24px', textAlign:'center', cursor:'pointer', color:'#64748b', fontSize:'12px'}}
+                                >
+                                    <div style={{fontSize:'28px', marginBottom:'6px'}}>{momentType === 'image' ? '🖼️' : '🎥'}</div>
+                                    <div>{lang === 'ar' ? 'انقر لاختيار ملف' : 'Click to select file'}</div>
+                                    <div style={{fontSize:'9px', marginTop:'4px', color:'#475569'}}>
+                                        {momentType === 'image' ? (lang === 'ar' ? 'الحد الأقصى 2MB' : 'Max 2MB') : (lang === 'ar' ? 'الحد 10 ثواني / 5MB' : 'Max 10s / 5MB')}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {error && <div style={{color:'#f87171', fontSize:'11px', marginTop:'6px', textAlign:'center'}}>{error}</div>}
+
+                    <button
+                        onClick={handleSubmit}
+                        disabled={uploading || (momentType === 'text' ? !textContent.trim() : !mediaFile)}
+                        style={{
+                            width:'100%', marginTop:'14px', padding:'12px', borderRadius:'12px',
+                            background:'linear-gradient(135deg,#7000ff,#00f2ff)', color:'white',
+                            fontSize:'14px', fontWeight:800, border:'none', cursor:'pointer',
+                            opacity: (uploading || (momentType === 'text' ? !textContent.trim() : !mediaFile)) ? 0.5 : 1
+                        }}
+                    >
+                        {uploading ? '...' : (lang === 'ar' ? 'نشر اللحظة 🚀' : 'Post Moment 🚀')}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const MomentsSettingsSection = ({ currentUser, userData, lang }) => {
+    const [moments, setMoments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [selectedMoment, setSelectedMoment] = useState(null);
+
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+        const unsub = momentsCollection
+            .where('authorUID', '==', currentUser.uid)
+            .limit(20)
+            .onSnapshot(snap => {
+                const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                data.sort((a, b) => {
+                    const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
+                    const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+                    return tb - ta;
+                });
+                setMoments(data);
+                setLoading(false);
+            }, () => setLoading(false));
+        return unsub;
+    }, [currentUser?.uid]);
+
+    return (
+        <div>
+            <button
+                onClick={() => setShowCreateModal(true)}
+                style={{width:'100%', padding:'10px', borderRadius:'10px', background:'linear-gradient(135deg,rgba(0,242,255,0.15),rgba(112,0,255,0.1))', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', fontSize:'13px', fontWeight:800, cursor:'pointer', marginBottom:'12px', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}
+            >
+                <span>📸</span>
+                <span>{lang === 'ar' ? 'إضافة لحظة جديدة' : 'Add New Moment'}</span>
+            </button>
+
+            {loading ? (
+                <div style={{textAlign:'center', padding:'16px', color:'#64748b', fontSize:'12px'}}>...</div>
+            ) : moments.length === 0 ? (
+                <div style={{textAlign:'center', padding:'20px', color:'#64748b', fontSize:'12px'}}>
+                    {lang === 'ar' ? 'لا توجد لحظات بعد. أضف أول لحظة!' : 'No moments yet. Add your first moment!'}
+                </div>
+            ) : (
+                <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'6px'}}>
+                    {moments.map(moment => (
+                        <div key={moment.id} onClick={() => setSelectedMoment(moment)} style={{aspectRatio:'1', borderRadius:'8px', overflow:'hidden', background:'rgba(31,41,55,0.6)', border:'1px solid rgba(255,255,255,0.08)', cursor:'pointer', position:'relative', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                            {moment.type === 'text' ? (
+                                <div style={{padding:'6px', fontSize:'9px', color:'#e2e8f0', textAlign:'center', wordBreak:'break-word', lineHeight:1.4, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical'}}>{moment.content}</div>
+                            ) : moment.type === 'image' ? (
+                                <img src={moment.mediaUrl} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                            ) : (
+                                <div style={{width:'100%', height:'100%', position:'relative', background:'#000', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                                    <span style={{fontSize:'24px', opacity:0.7}}>🎥</span>
+                                </div>
+                            )}
+                            <div style={{position:'absolute', bottom:'2px', right:'2px', background:'rgba(0,0,0,0.7)', borderRadius:'6px', padding:'1px 5px', fontSize:'8px', color:'#f87171', fontWeight:700}}>
+                                ❤️ {moment.likesCount || 0}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {showCreateModal && <CreateMomentModal onClose={() => setShowCreateModal(false)} currentUser={currentUser} lang={lang} />}
+            {selectedMoment && (
+                <MomentDetailModal
+                    moment={selectedMoment}
+                    onClose={() => setSelectedMoment(null)}
+                    currentUser={currentUser}
+                    isOwnProfile={true}
+                    lang={lang}
+                    onDelete={(id) => { momentsCollection.doc(id).delete(); setSelectedMoment(null); }}
+                />
+            )}
+        </div>
+    );
+};
+
+// ==========================================
 // 🎯 PROFILE V11 - MAIN COMPONENT
 // ==========================================
 const ProfileV11 = ({ 
@@ -4428,7 +4949,7 @@ const ProfileV11 = ({
                                             <span>{lang === 'ar' ? 'حظر' : 'Block'}</span>
                                         </button>
                                     )}
-                                    <button onClick={() => { setShowReportModal(true); setShowOptionsMenu(false); }} className="profile-options-item report">
+                                    <button onClick={() => { setShowReportModal(true); setShowOptionsMenu(false); }} className="profile-options-item report" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',width:'100%',textAlign:'center'}}>
                                         <span>🚨</span>
                                         <span>{lang === 'ar' ? 'إبلاغ' : 'Report'}</span>
                                     </button>
@@ -4544,31 +5065,42 @@ const ProfileV11 = ({
                             </span>
                             
                             {/* Charisma Display */}
+                            {/* Moments Section - above Charisma */}
+                            <MomentsSection
+                                ownerUID={targetUID}
+                                currentUser={userData}
+                                isOwnProfile={isOwnProfile}
+                                lang={lang}
+                            />
                             <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
                         </div>
 
                         <div className="profile-stats-dashboard">
-                            <div className="profile-stats-row">
-                                <div className="profile-stat-box">
-                                    <span className="profile-stat-value wins">{wins}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? '🏆 فوز' : '🏆 Wins'}</span>
+                            <div className="profile-stats-main-row">
+                                {/* Left: Wins + Losses stacked */}
+                                <div className="profile-stats-left-col">
+                                    <div className="profile-stat-box">
+                                        <span className="profile-stat-value wins">{wins}</span>
+                                        <span className="profile-stat-label">{lang === 'ar' ? '🏆 فوز' : '🏆 Wins'}</span>
+                                    </div>
+                                    <div className="profile-stat-box">
+                                        <span className="profile-stat-value losses">{losses}</span>
+                                        <span className="profile-stat-label">{lang === 'ar' ? '💀 خسارة' : '💀 Losses'}</span>
+                                    </div>
                                 </div>
+                                {/* Center: Win Rate */}
                                 <WinRateCircleV11 wins={wins} losses={losses} lang={lang} />
-                                <div className="profile-stat-box">
-                                    <span className="profile-stat-value losses">{losses}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? '💀 خسارة' : '💀 Losses'}</span>
+                                {/* Right: Rank + Level stacked */}
+                                <div className="profile-stats-right-col">
+                                    <div className="profile-stat-box">
+                                        <span className="profile-stat-value rank">#{charismaRank || '--'}</span>
+                                        <span className="profile-stat-label">{lang === 'ar' ? '🎖️ ترتيب' : '🎖️ Rank'}</span>
+                                    </div>
+                                    <div className="profile-stat-box">
+                                        <span className="profile-stat-value" style={{ color: '#a78bfa' }}>{level}</span>
+                                        <span className="profile-stat-label">{lang === 'ar' ? '⚡ مستوى' : '⚡ Level'}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="profile-stats-row" style={{marginTop:'8px'}}>
-                                <div className="profile-stat-box">
-                                    <span className="profile-stat-value rank">#{charismaRank || '--'}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? '🎖️ الترتيب' : '🎖️ Rank'}</span>
-                                </div>
-                                <div className="profile-stat-box">
-                                    <span className="profile-stat-value" style={{ color: '#a78bfa' }}>{level}</span>
-                                    <span className="profile-stat-label">{lang === 'ar' ? '⚡ المستوى' : '⚡ Level'}</span>
-                                </div>
-
                             </div>
                         </div>
 
@@ -4617,6 +5149,28 @@ const ProfileV11 = ({
                                 <button onClick={() => setShowGiftModal(true)} className="profile-action-btn secondary">
                                     <span>🎁</span>
                                     <span>{lang === 'ar' ? 'أرسل هدية' : 'Send Gift'}</span>
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Send Gift to Self - only on own profile */}
+                        {isOwnProfile && (
+                            <div style={{padding:'0 12px 12px'}}>
+                                <button
+                                    onClick={() => setShowSelfGiftModal(true)}
+                                    style={{
+                                        width:'100%', padding:'11px', borderRadius:'12px',
+                                        background:'linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,136,0,0.15))',
+                                        border:'1px solid rgba(255,215,0,0.4)', color:'#facc15',
+                                        fontSize:'13px', fontWeight:800, cursor:'pointer',
+                                        display:'flex', alignItems:'center', justifyContent:'center', gap:'8px',
+                                        transition:'all 0.2s'
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background='linear-gradient(135deg, rgba(255,215,0,0.35), rgba(255,136,0,0.25))'}
+                                    onMouseLeave={e => e.currentTarget.style.background='linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,136,0,0.15))'}
+                                >
+                                    <span style={{fontSize:'18px'}}>🎁</span>
+                                    <span>{lang === 'ar' ? 'أرسل هدية لنفسك' : 'Send Gift to Yourself'}</span>
                                 </button>
                             </div>
                         )}
