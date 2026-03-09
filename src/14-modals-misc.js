@@ -1,4 +1,4 @@
-const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
+const LoginRewards = ({ show, onClose, userData, onClaim, lang, onOpenInventory }) => {
     const t = TRANSLATIONS[lang];
     const [claiming, setClaiming] = useState(false);
     const [countdown, setCountdown] = useState('');
@@ -49,6 +49,10 @@ const LoginRewards = ({ show, onClose, userData, onClaim, lang }) => {
         setClaiming(true);
         playRewardSound();
         await onClaim(currentDay + 1);
+        // 📦 If reward is an item (frame/badge/title), go to inventory
+        if (currentReward && (currentReward.type === 'frame' || currentReward.type === 'badge' || currentReward.type === 'title')) {
+            setTimeout(() => { onClose(); if (onOpenInventory) onOpenInventory(); }, 500);
+        }
         setClaiming(false);
     };
 
