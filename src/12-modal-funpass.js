@@ -1,4 +1,4 @@
-const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) => {
+const FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpenInventory }) => {
     const [activeTab, setActiveTab] = useState('pass'); // 'pass' | 'missions'
     const [buying, setBuying] = useState(false);
     const [claiming, setClaiming] = useState(null);
@@ -153,6 +153,10 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
             }
             await usersCollection.doc(user.uid).update(updates);
             onNotification(`${lang==='ar'?'تم استلام':'Claimed'} ${lang==='ar'?reward.name_ar:reward.name_en}! 🎉`);
+            // 📦 If reward is an item (frame/badge/title), go to inventory
+            if (reward.type === 'frame' || reward.type === 'badge' || reward.type === 'title') {
+                setTimeout(() => { onClose(); if (onOpenInventory) onOpenInventory(); }, 400);
+            }
         } catch(e) { }
         setClaiming(null);
     };
@@ -560,4 +564,3 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
         </div>
     );
 };
-
