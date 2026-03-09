@@ -646,9 +646,24 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
         return !(lastDate.getMonth() === now.getMonth() && lastDate.getFullYear() === now.getFullYear());
     };
 
+    // Validate exact digit count based on VIP level
+    // VIP6=6, VIP7=5, VIP8=4, VIP9=3, VIP10=2
+    const validateIdInput = (id) => {
+        if (!customIdLen || !id) return null;
+        const onlyDigits = /^\d+$/.test(id);
+        if (!onlyDigits) return lang === 'ar' ? `❌ أرقام فقط` : `❌ Digits only`;
+        if (id.length !== customIdLen) return lang === 'ar'
+            ? `❌ يجب أن يكون ${customIdLen} أرقام بالضبط (VIP ${level})`
+            : `❌ Must be exactly ${customIdLen} digits (VIP ${level})`;
+        return null; // valid
+    };
+
+    const idValidationError = validateIdInput(desiredId);
+
     // Check uniqueness in Firestore
     const checkIdAvailability = async (id) => {
-        if (!id || id.length < 1) { setIdCheckStatus(null); return; }
+        const err = validateIdInput(id);
+        if (err) { setIdCheckStatus('invalid'); return; }
         setIdCheckStatus('checking');
         try {
             const snap = await usersCollection.where('customId', '==', id).limit(1).get();
@@ -656,17 +671,24 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
         } catch { setIdCheckStatus(null); }
     };
 
-    // Submit custom ID request
+    // Submit custom ID request — ALL VIP 6-10 go through request system
     const handleIdRequest = async () => {
-        if (!user || !desiredId.trim() || idCheckStatus !== 'available' || idRequestSending) return;
+        const err = validateIdInput(desiredId.trim());
+        if (err || idCheckStatus !== 'available' || idRequestSending || !user) return;
         setIdRequestSending(true);
         try {
             await vip10IdRequestsCollection.add({
-                uid:       user.uid,
+                uid:         user.uid,
                 displayName: userData?.displayName || '',
-                desiredId: desiredId.trim(),
-                currentId: userData?.customId || '',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                desiredId:   desiredId.trim(),
+                currentId:   userData?.customId || '',
+                vipLevel:    level,
+                // 🔧 STATUS FIELD:
+                // 0 = pending (default, طلب قيد المراجعة)
+                // 1 = approved (اتقبل — غيّر القيمة للـ 1 في Firestore لقبول الطلب)
+                // 2 = rejected (اترفض — غيّر القيمة للـ 2 في Firestore لرفض الطلب)
+                status:      0,
+                createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
             });
             await usersCollection.doc(user.uid).update({ 'vip.lastIdRequest': firebase.firestore.FieldValue.serverTimestamp() });
             onNotification(lang === 'ar' ? '✅ تم إرسال طلب الـ ID!' : '✅ ID request sent!');
@@ -835,28 +857,19 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                             <span style={{ color:'#fbbf24', fontWeight:700 }}>×{cfg.xpMultiplier}</span>
                         </div>
 
-                        {/* Custom ID — VIP 6-9: toggle عشوائي, VIP 10: form طلب */}
-                        {customIdLen && level < 10 && (
-                            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:'12px' }}>
-                                <span style={{ color:'#9ca3af' }}>🪪 {lang === 'ar' ? `ID مخصص (${customIdLen} أرقام)` : `Custom ID (${customIdLen} digits)`}</span>
-                                <button
-                                    onClick={toggleCustomId}
-                                    className={`settings-toggle ${customIdEnabled ? 'on' : 'off'}`}
-                                    style={{ fontSize:'11px', padding:'3px 10px' }}
-                                >
-                                    {customIdEnabled ? (lang === 'ar' ? 'مفعّل' : 'ON') : (lang === 'ar' ? 'معطّل' : 'OFF')}
-                                </button>
-                            </div>
-                        )}
-                        {/* VIP 10 — Custom ID Request Form */}
-                        {customIdLen && level === 10 && (
+                        {/* Custom ID Request — VIP 6+ (all levels go through request system) */}
+                        {customIdLen && (
                             <div style={{
-                                background: 'linear-gradient(135deg,rgba(239,68,68,0.08),rgba(15,15,26,0.95))',
-                                border: '1px solid rgba(239,68,68,0.3)',
+                                background: level === 10
+                                    ? 'linear-gradient(135deg,rgba(239,68,68,0.08),rgba(15,15,26,0.95))'
+                                    : 'linear-gradient(135deg,rgba(96,165,250,0.08),rgba(15,15,26,0.95))',
+                                border: `1px solid ${level === 10 ? 'rgba(239,68,68,0.3)' : 'rgba(96,165,250,0.3)'}`,
                                 borderRadius: '10px', padding: '12px', marginTop: '4px'
                             }}>
-                                <div style={{ fontSize:'11px', fontWeight:800, color:'#ef4444', marginBottom:'8px' }}>
-                                    🪪 {lang === 'ar' ? `طلب ID مخصص (${customIdLen} أرقام) — مرة كل شهر` : `Custom ID Request (${customIdLen} digits) — once/month`}
+                                <div style={{ fontSize:'11px', fontWeight:800, color: level === 10 ? '#ef4444' : '#60a5fa', marginBottom:'8px' }}>
+                                    🪪 {lang === 'ar'
+                                        ? `طلب ID مخصص (${customIdLen} أرقام بالضبط) — مرة كل شهر`
+                                        : `Custom ID Request (exactly ${customIdLen} digits) — once/month`}
                                 </div>
                                 {userData?.customId && (
                                     <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'6px' }}>
@@ -868,47 +881,73 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                                         <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
                                             <input
                                                 className="input-dark"
-                                                placeholder={lang === 'ar' ? `أدخل الـ ID المطلوب (${customIdLen} أرقام)` : `Enter desired ID (${customIdLen} digits)`}
+                                                placeholder={lang === 'ar' ? `أدخل ${customIdLen} أرقام فقط` : `Enter exactly ${customIdLen} digits`}
                                                 value={desiredId}
                                                 maxLength={customIdLen}
-                                                onChange={e => { setDesiredId(e.target.value); setIdCheckStatus(null); }}
-                                                style={{ flex:1, fontSize:'12px', fontWeight:700, letterSpacing:'2px' }}
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                onChange={e => {
+                                                    const v = e.target.value.replace(/\D/g,'');
+                                                    setDesiredId(v);
+                                                    setIdCheckStatus(null);
+                                                }}
+                                                style={{ flex:1, fontSize:'13px', fontWeight:700, letterSpacing:'3px', textAlign:'center' }}
                                             />
                                             <button
                                                 onClick={() => checkIdAvailability(desiredId.trim())}
-                                                disabled={!desiredId.trim() || idCheckStatus === 'checking'}
+                                                disabled={desiredId.length !== customIdLen || idCheckStatus === 'checking'}
                                                 style={{
                                                     padding:'6px 10px', borderRadius:'7px', fontSize:'11px',
                                                     fontWeight:700, cursor:'pointer', border:'none', whiteSpace:'nowrap',
-                                                    background: 'rgba(96,165,250,0.2)', color:'#60a5fa'
+                                                    background: desiredId.length === customIdLen ? 'rgba(96,165,250,0.2)' : 'rgba(100,100,100,0.15)',
+                                                    color: desiredId.length === customIdLen ? '#60a5fa' : '#6b7280'
                                                 }}
                                             >
                                                 {idCheckStatus === 'checking' ? '⏳' : (lang === 'ar' ? 'تحقق' : 'Check')}
                                             </button>
                                         </div>
-                                        {idCheckStatus === 'taken' && (
-                                            <div style={{ fontSize:'10px', color:'#f87171', fontWeight:700 }}>
-                                                ❌ {lang === 'ar' ? 'هذا الـ ID مأخوذ بالفعل' : 'This ID is already taken'}
+                                        {/* Digit progress dots */}
+                                        <div style={{ display:'flex', gap:'3px', justifyContent:'center' }}>
+                                            {Array.from({length: customIdLen}).map((_,i) => (
+                                                <div key={i} style={{
+                                                    width:'18px', height:'4px', borderRadius:'2px',
+                                                    background: i < desiredId.length ? '#60a5fa' : 'rgba(255,255,255,0.1)',
+                                                    transition:'background 0.2s'
+                                                }} />
+                                            ))}
+                                        </div>
+                                        {/* Validation */}
+                                        {desiredId.length > 0 && desiredId.length !== customIdLen && (
+                                            <div style={{ fontSize:'10px', color:'#fbbf24', fontWeight:700 }}>
+                                                ⚠️ {lang === 'ar'
+                                                    ? `يجب أن يكون ${customIdLen} أرقام بالضبط (أدخلت ${desiredId.length})`
+                                                    : `Must be exactly ${customIdLen} digits (you entered ${desiredId.length})`}
                                             </div>
                                         )}
+                                        {idCheckStatus === 'taken' && (
+                                            <div style={{ fontSize:'10px', color:'#f87171', fontWeight:700 }}>❌ {lang === 'ar' ? 'هذا الـ ID مأخوذ بالفعل' : 'This ID is already taken'}</div>
+                                        )}
                                         {idCheckStatus === 'available' && (
-                                            <div style={{ fontSize:'10px', color:'#4ade80', fontWeight:700 }}>
-                                                ✅ {lang === 'ar' ? 'الـ ID متاح!' : 'ID is available!'}
-                                            </div>
+                                            <div style={{ fontSize:'10px', color:'#4ade80', fontWeight:700 }}>✅ {lang === 'ar' ? 'الـ ID متاح!' : 'ID is available!'}</div>
                                         )}
                                         <button
                                             onClick={handleIdRequest}
-                                            disabled={idCheckStatus !== 'available' || idRequestSending}
+                                            disabled={idCheckStatus !== 'available' || idRequestSending || desiredId.length !== customIdLen}
                                             style={{
                                                 padding:'8px', borderRadius:'8px', fontSize:'12px', fontWeight:700,
-                                                cursor: idCheckStatus === 'available' ? 'pointer' : 'not-allowed',
-                                                background: idCheckStatus === 'available' ? 'linear-gradient(135deg,#ef4444,#b91c1c)' : 'rgba(100,100,100,0.2)',
-                                                color: idCheckStatus === 'available' ? '#fff' : '#6b7280',
+                                                cursor: idCheckStatus === 'available' && desiredId.length === customIdLen ? 'pointer' : 'not-allowed',
+                                                background: idCheckStatus === 'available' && desiredId.length === customIdLen
+                                                    ? (level === 10 ? 'linear-gradient(135deg,#ef4444,#b91c1c)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)')
+                                                    : 'rgba(100,100,100,0.2)',
+                                                color: idCheckStatus === 'available' && desiredId.length === customIdLen ? '#fff' : '#6b7280',
                                                 border: 'none', opacity: idRequestSending ? 0.6 : 1
                                             }}
                                         >
                                             {idRequestSending ? '⏳' : (lang === 'ar' ? '📨 إرسال الطلب' : '📨 Send Request')}
                                         </button>
+                                        <div style={{ fontSize:'9px', color:'#6b7280', textAlign:'center' }}>
+                                            {lang === 'ar' ? '⚡ سيتم مراجعة طلبك وتطبيقه خلال 24 ساعة' : '⚡ Request reviewed & applied within 24h'}
+                                        </div>
                                     </div>
                                 ) : (
                                     <div style={{ fontSize:'10px', color:'#fbbf24', fontWeight:700, textAlign:'center', padding:'6px' }}>
