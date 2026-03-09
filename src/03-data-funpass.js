@@ -10,7 +10,7 @@ const FUN_PASS_LEVELS = [
   // level, xpRequired, free reward, premium reward
   // free: {type, icon, name_en, name_ar, amount?, itemId?, rarity?}
   // premium: {type, icon, name_en, name_ar, amount?, itemId?, rarity?}
-  { level:1,  xp:0,    free:{type:'currency',icon:'🧠',imageUrl:'',name_en:'200 Intel',name_ar:'200 إنتل',amount:200},                           premium:{type:'currency',icon:'🧠',imageUrl:'',name_en:'500 Intel',name_ar:'500 إنتل',amount:500} },
+  { level:1,  xp:0,    free:{type:'currency',icon:'🧠',imageUrl:'',name_en:'200 Intel',name_ar:'200 إنتل',amount:200},                           premium:{type:'Frame',icon:'',imageUrl:'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/ice%20dragon%20frame.png',name_en:'ice Dragon',name_ar:'التنين الجليدي',itemId:'ice_dragon_frame',rarity:'Epic'} },
   { level:2,  xp:100,  free:{type:'currency',icon:'🧠',imageUrl:'',name_en:'250 Intel',name_ar:'250 إنتل',amount:250},                           premium:{type:'badge',icon:'🔰',imageUrl:'',name_en:'Rookie Badge',name_ar:'شارة مبتدئ',itemId:'fp_badge_rookie',rarity:'Common'} },
   { level:3,  xp:250,  free:{type:'currency',icon:'🧠',imageUrl:'',name_en:'300 Intel',name_ar:'300 إنتل',amount:300},                           premium:{type:'currency',icon:'🧠',imageUrl:'',name_en:'700 Intel',name_ar:'700 إنتل',amount:700} },
   { level:4,  xp:450,  free:{type:'badge',icon:'⚡',imageUrl:'',name_en:'Speed Badge',name_ar:'شارة السرعة',itemId:'fp_badge_speed',rarity:'Common'}, premium:{type:'currency',icon:'🧠',imageUrl:'',name_en:'900 Intel',name_ar:'900 إنتل',amount:900} },
