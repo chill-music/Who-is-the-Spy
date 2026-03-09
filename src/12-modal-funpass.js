@@ -91,8 +91,10 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
         setClaiming(mKey);
         try {
             const updates = {};
-            // Add XP
-            updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.xp`] = firebase.firestore.FieldValue.increment(mission.xp);
+            // Add XP with VIP multiplier
+            const vipMult = getVIPXPMultiplier(userData);
+            const finalXP = Math.round(mission.xp * vipMult);
+            updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.xp`] = firebase.firestore.FieldValue.increment(finalXP);
             // Mark claimed with date
             if (type === 'daily') {
                 updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.missions.${mKey}.lastCompleted`] = todayStr;
@@ -100,7 +102,7 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification }) =
                 updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.missions.${mKey}.lastWeekCompleted`] = weekStr;
             }
             await usersCollection.doc(user.uid).update(updates);
-            onNotification(`🎉 +${mission.xp} XP ${lang==='ar'?'تم الاستلام!':'Claimed!'}`);
+            onNotification(`🎉 +${finalXP} XP${vipMult > 1 ? ` (×${vipMult} VIP)` : ''} ${lang==='ar'?'تم الاستلام!':'Claimed!'}`);
         } catch(e) {
             console.error('Mission claim error:', e);
             onNotification(lang==='ar'?'❌ حدث خطأ، حاول مجدداً':'❌ Error, please try again');

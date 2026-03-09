@@ -22,7 +22,7 @@ const WinRateCircleV11 = ({ wins, losses, lang }) => {
 };
 
 // 🎁 GIFT WALL COMPONENT V11 - IMPROVED WITH SENDER PHOTOS
-const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) => {
+const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpenProfile }) => {
     const [activeTab, setActiveTab] = useState('wall');
     const totalGifts = gifts?.length || 0;
     const [selectedGiftDetail, setSelectedGiftDetail] = useState(null);
@@ -193,6 +193,8 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData }) 
                                     src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(gift.senderName || 'User')}&background=6366f1&color=fff`}
                                     alt=""
                                     className="profile-gift-log-avatar"
+                                    onClick={() => gift.senderId && onOpenProfile && onOpenProfile(gift.senderId)}
+                                    title={gift.senderName || 'Unknown'}
                                 />
                                 <div className="profile-gift-log-content">
                                     <div className="profile-gift-log-sender">
@@ -1079,7 +1081,14 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
 
     return (
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.MODAL, padding:'16px'}} onClick={onClose}>
-            <div style={{background:GR.DARK_CARD, border:'1px solid rgba(0,242,255,0.2)', borderRadius:'16px', width:'100%', maxWidth:'400px', maxHeight:'85vh', overflow:'hidden', display:'flex', flexDirection:'column'}} onClick={e => e.stopPropagation()}>
+            <div style={{background:GR.DARK_CARD, border:'1px solid rgba(0,242,255,0.2)', borderRadius:'16px', width:'100%', maxWidth:'400px', maxHeight:'85vh', overflow:'hidden', display:'flex', flexDirection:'column', position:'relative'}} onClick={e => e.stopPropagation()}>
+                {/* VIP Moment Background */}
+                {(() => {
+                    const authorVipLevel = moment.authorVipLevel || 0;
+                    const bgUrl = authorVipLevel >= 2 ? VIP_MOMENT_BG_URLS[authorVipLevel] : null;
+                    if (!bgUrl) return null;
+                    return <div className="moment-vip-bg" style={{backgroundImage:`url(${bgUrl})`}} />;
+                })()}
 
                 {/* Header */}
                 <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
@@ -1435,6 +1444,7 @@ const CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
                 authorUID: currentUser.uid,
                 authorName: currentUser.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
                 authorPhoto: currentUser.photoURL || null,
+                authorVipLevel: getVIPLevel(currentUser) || 0,
                 type: momentType,
                 content: textContent.trim(), // caption for image/video, full text for text type
                 mediaUrl: (momentType === 'image' || momentType === 'video') ? mediaPreview : null,
@@ -1983,14 +1993,25 @@ const ProfileV11 = ({
                         <div className="profile-identity">
                             <div className="profile-name-row">
                                 <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
-                                <div style={{display:'flex', alignItems:'center', gap:'5px', justifyContent:'center'}}>
-                                    <h1 className="profile-name">{targetData?.displayName || 'Unknown'}</h1>
+                                <div style={{display:'flex', alignItems:'center', gap:'5px', justifyContent:'center', flexWrap:'wrap'}}>
+                                    <VIPName
+                                        displayName={targetData?.displayName || 'Unknown'}
+                                        userData={targetData}
+                                        className="profile-name"
+                                    />
                                     {targetData?.gender === 'male' && (
                                         <span style={{fontSize:'13px', color:'#60a5fa', fontWeight:700, lineHeight:1}}>♂️</span>
                                     )}
                                     {targetData?.gender === 'female' && (
                                         <span style={{fontSize:'13px', color:'#f472b6', fontWeight:700, lineHeight:1}}>♀️</span>
                                     )}
+                                    {targetData?.country?.flag && (
+                                        <span title={lang === 'ar' ? targetData.country.name_ar : targetData.country.name_en}
+                                            style={{fontSize:'16px', lineHeight:1, cursor:'default'}}>
+                                            {targetData.country.flag}
+                                        </span>
+                                    )}
+                                    <VIPBadge userData={targetData} size="sm" onClick={(lvl) => {}} />
                                 </div>
                             </div>
 
@@ -2063,7 +2084,7 @@ const ProfileV11 = ({
                             </div>
                         </div>
 
-                        <GiftWallV11 gifts={gifts} lang={lang} isOwnProfile={isOwnProfile} userData={userData} onSendGiftToSelf={isGuestProp ? null : (gift) => { setSelfGift(gift); setShowSelfGiftModal(true); }} />
+                        <GiftWallV11 gifts={gifts} lang={lang} isOwnProfile={isOwnProfile} userData={userData} onOpenProfile={onOpenProfile} onSendGiftToSelf={isGuestProp ? null : (gift) => { setSelfGift(gift); setShowSelfGiftModal(true); }} />
 
                         <AchievementsDisplayV11 userData={targetData} lang={lang} />
 

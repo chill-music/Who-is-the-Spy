@@ -1,0 +1,619 @@
+// ════════════════════════════════════════════════════════
+// 👑 VIP SYSTEM — 10 Levels
+//    كل بادجات VIP قابلة للتخصيص من هنا
+// ════════════════════════════════════════════════════════
+
+// 🔧 VIP BADGE IMAGES — ضع روابط صور البادجات هنا
+const VIP_BADGE_URLS = {
+    1:  '',   // رابط بادج VIP 1
+    2:  '',   // رابط بادج VIP 2
+    3:  '',   // رابط بادج VIP 3
+    4:  '',   // رابط بادج VIP 4
+    5:  '',   // رابط بادج VIP 5
+    6:  '',   // رابط بادج VIP 6
+    7:  '',   // رابط بادج VIP 7
+    8:  '',   // رابط بادج VIP 8
+    9:  '',   // رابط بادج VIP 9
+    10: '',   // رابط بادج VIP 10
+};
+
+// 🔧 VIP CHAT TITLE IMAGES — صور Title في الشات خلف اسم المستخدم
+const VIP_CHAT_TITLE_URLS = {
+    1:  '',
+    2:  '',
+    3:  '',
+    4:  '',
+    5:  '',
+    6:  '',
+    7:  '',
+    8:  '',
+    9:  '',
+    10: '',
+};
+
+// 🔧 VIP MOMENT BACKGROUNDS — خلفية الـ Moments من ليفل 2 لـ 10
+const VIP_MOMENT_BG_URLS = {
+    2:  '',   // رابط خلفية Moments لـ VIP 2
+    3:  '',
+    4:  '',
+    5:  '',
+    6:  '',
+    7:  '',
+    8:  '',
+    9:  '',
+    10: '',
+};
+
+// ════ VIP CONFIG — الإعدادات الكاملة لكل مستوى ════
+const VIP_CONFIG = [
+    {
+        level: 1,
+        name_en: 'VIP I',       name_ar: 'في آي بي 1',
+        // اللون: أحمر لـ 1-5
+        nameColor: '#ef4444',
+        glowColor: null,
+        gradientAnim: false,
+        xpMultiplier: 1.2,           // x1.2 XP
+        idLength: 6,                  // طول ID عادي
+        customIdLength: null,         // لا custom ID
+        exclusiveGifts: false,
+        vipDailyTasks: true,
+        exclusiveForm: false,
+        benefits_en: ['1.2× XP Multiplier', 'VIP Badge'],
+        benefits_ar: ['مضاعف XP × 1.2', 'بادج VIP'],
+    },
+    {
+        level: 2,
+        name_en: 'VIP II',      name_ar: 'في آي بي 2',
+        nameColor: '#ef4444',
+        glowColor: null,
+        gradientAnim: false,
+        xpMultiplier: 1.3,
+        idLength: 6,
+        customIdLength: null,
+        exclusiveGifts: true,         // 🎁 هدايا حصرية من هنا
+        vipDailyTasks: true,          // ✅ تفعيل Daily Tasks VIP
+        exclusiveForm: false,
+        benefits_en: ['1.3× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+        benefits_ar: ['مضاعف XP × 1.3', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
+    },
+    {
+        level: 3,
+        name_en: 'VIP III',     name_ar: 'في آي بي 3',
+        nameColor: '#ef4444',
+        glowColor: null,
+        gradientAnim: false,
+        xpMultiplier: 1.4,
+        idLength: 6,
+        customIdLength: null,
+        exclusiveGifts: true,
+        vipDailyTasks: true,
+        exclusiveForm: false,
+        benefits_en: ['1.4× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+        benefits_ar: ['مضاعف XP × 1.4', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
+    },
+    {
+        level: 4,
+        name_en: 'VIP IV',      name_ar: 'في آي بي 4',
+        nameColor: '#ef4444',
+        glowColor: null,
+        gradientAnim: false,
+        xpMultiplier: 1.5,
+        idLength: 6,
+        customIdLength: null,
+        exclusiveGifts: true,
+        vipDailyTasks: true,
+        exclusiveForm: false,
+        benefits_en: ['1.5× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+        benefits_ar: ['مضاعف XP × 1.5', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
+    },
+    {
+        level: 5,
+        name_en: 'VIP V',       name_ar: 'في آي بي 5',
+        nameColor: '#ef4444',
+        glowColor: null,
+        gradientAnim: false,
+        xpMultiplier: 1.6,
+        idLength: 6,
+        customIdLength: null,
+        exclusiveGifts: true,
+        vipDailyTasks: true,
+        exclusiveForm: false,
+        benefits_en: ['1.6× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+        benefits_ar: ['مضاعف XP × 1.6', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
+    },
+    {
+        level: 6,
+        name_en: 'VIP VI',      name_ar: 'في آي بي 6',
+        // Yellow + Glow لـ 6-8
+        nameColor: '#eab308',
+        glowColor: 'rgba(234,179,8,0.8)',
+        gradientAnim: false,
+        xpMultiplier: 1.7,
+        idLength: 6,
+        customIdLength: 6,            // Custom 6-digit ID
+        exclusiveGifts: true,
+        vipDailyTasks: true,
+        exclusiveForm: false,
+        benefits_en: ['1.7× XP', 'Gold Name Glow', 'Custom 6-Digit ID', 'Exclusive Gifts', 'VIP Daily Tasks'],
+        benefits_ar: ['مضاعف XP × 1.7', 'توهج اسم ذهبي', 'ID مخصص 6 أرقام', 'هدايا حصرية', 'مهام يومية VIP'],
+    },
+    {
+        level: 7,
+        name_en: 'VIP VII',     name_ar: 'في آي بي 7',
+        nameColor: '#eab308',
+        glowColor: 'rgba(234,179,8,0.9)',
+        gradientAnim: false,
+        xpMultiplier: 1.8,
+        idLength: 6,
+        customIdLength: 5,            // Custom 5-digit ID
+        exclusiveGifts: true,
+        vipDailyTasks: true,
+        exclusiveForm: false,
+        benefits_en: ['1.8× XP', 'Gold Name Glow', 'Custom 5-Digit ID', 'Exclusive Gifts'],
+        benefits_ar: ['مضاعف XP × 1.8', 'توهج اسم ذهبي', 'ID مخصص 5 أرقام', 'هدايا حصرية'],
+    },
+    {
+        level: 8,
+        name_en: 'VIP VIII',    name_ar: 'في آي بي 8',
+        nameColor: '#eab308',
+        glowColor: 'rgba(234,179,8,1)',
+        gradientAnim: false,
+        xpMultiplier: 1.9,
+        idLength: 6,
+        customIdLength: 4,            // Custom 4-digit ID
+        exclusiveGifts: true,
+        vipDailyTasks: true,
+        exclusiveForm: false,
+        benefits_en: ['1.9× XP', 'Gold Name Glow', 'Custom 4-Digit ID', 'Exclusive Gifts'],
+        benefits_ar: ['مضاعف XP × 1.9', 'توهج اسم ذهبي', 'ID مخصص 4 أرقام', 'هدايا حصرية'],
+    },
+    {
+        level: 9,
+        name_en: 'VIP IX',      name_ar: 'في آي بي 9',
+        // Red + Gradient Animation لـ 9-10
+        nameColor: '#ef4444',
+        glowColor: 'rgba(239,68,68,0.9)',
+        gradientAnim: true,
+        xpMultiplier: 2.0,
+        idLength: 6,
+        customIdLength: 3,            // Custom 3-digit ID
+        exclusiveGifts: true,
+        vipDailyTasks: true,
+        exclusiveForm: false,
+        benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 3-Digit ID', 'Exclusive Gifts'],
+        benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص 3 أرقام', 'هدايا حصرية'],
+    },
+    {
+        level: 10,
+        name_en: 'VIP X',       name_ar: 'في آي بي 10',
+        nameColor: '#ef4444',
+        glowColor: 'rgba(239,68,68,1)',
+        gradientAnim: true,
+        xpMultiplier: 2.0,
+        idLength: 6,
+        customIdLength: 2,            // Custom 2-digit ID
+        exclusiveGifts: true,
+        vipDailyTasks: true,
+        exclusiveForm: true,          // 📋 فورم هدايا مخصصة
+        benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 2-Digit ID', 'Exclusive Gifts', 'Custom Gift Request'],
+        benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص رقمين', 'هدايا حصرية', 'طلب هدية مخصصة'],
+    },
+];
+
+// ════ HELPER FUNCTIONS ════
+
+const getVIPData = (userData) => {
+    const level = userData?.vip?.level || 0;
+    if (!level) return null;
+    return VIP_CONFIG.find(v => v.level === level) || null;
+};
+
+const getVIPLevel = (userData) => userData?.vip?.level || 0;
+
+const hasVIP = (userData) => (userData?.vip?.level || 0) >= 1;
+
+const hasVIPExclusiveGifts = (userData) => {
+    const cfg = getVIPData(userData);
+    return cfg?.exclusiveGifts === true;
+};
+
+const hasVIPDailyTasks = (userData) => {
+    const cfg = getVIPData(userData);
+    return cfg?.vipDailyTasks === true;
+};
+
+const getVIPXPMultiplier = (userData) => {
+    const cfg = getVIPData(userData);
+    return cfg?.xpMultiplier || 1;
+};
+
+const getVIPCustomIdLength = (userData) => {
+    const cfg = getVIPData(userData);
+    return cfg?.customIdLength || null;
+};
+
+// ════ VIP BADGE COMPONENT ════
+const VIPBadge = ({ userData, onClick, size = 'sm' }) => {
+    const level = getVIPLevel(userData);
+    if (!level) return null;
+
+    const cfg = VIP_CONFIG[level - 1];
+    const badgeUrl = VIP_BADGE_URLS[level];
+    const sz = size === 'lg' ? 28 : size === 'md' ? 22 : 18;
+
+    const handleClick = (e) => {
+        e.stopPropagation();
+        if (onClick) onClick(level);
+    };
+
+    return (
+        <span
+            onClick={handleClick}
+            title={`${cfg.name_en}`}
+            style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
+        >
+            {badgeUrl ? (
+                <img src={badgeUrl} alt={cfg.name_en} style={{ width: sz, height: sz, objectFit: 'contain' }} />
+            ) : (
+                <span
+                    className={`vip-badge-icon vip-level-${level}`}
+                    style={{
+                        fontSize: sz * 0.65,
+                        background: `linear-gradient(135deg, ${cfg.nameColor}, ${cfg.nameColor}99)`,
+                        color: '#fff',
+                        fontWeight: 900,
+                        padding: '1px 5px',
+                        borderRadius: '6px',
+                        border: `1.5px solid ${cfg.nameColor}`,
+                        lineHeight: 1.4,
+                        letterSpacing: '-0.3px',
+                        boxShadow: cfg.glowColor ? `0 0 8px ${cfg.glowColor}` : 'none',
+                        minWidth: sz,
+                        textAlign: 'center',
+                    }}
+                >
+                    {level}
+                </span>
+            )}
+        </span>
+    );
+};
+
+// ════ VIP NAME COMPONENT — اسم الـ VIP بالتأثيرات الصح ════
+const VIPName = ({ displayName, userData, className = '', style = {} }) => {
+    const level = getVIPLevel(userData);
+    if (!level) {
+        return <span className={className} style={style}>{displayName}</span>;
+    }
+    const cfg = VIP_CONFIG[level - 1];
+
+    if (cfg.gradientAnim) {
+        // VIP 9-10: animated gradient
+        return (
+            <span
+                className={`vip-name-animated ${className}`}
+                style={{
+                    color: cfg.nameColor,
+                    textShadow: `0 0 10px ${cfg.glowColor}, 0 0 20px ${cfg.glowColor}`,
+                    position: 'relative',
+                    ...style
+                }}
+            >
+                {displayName}
+                <span className="vip-name-gradient-overlay" aria-hidden="true">{displayName}</span>
+            </span>
+        );
+    }
+    if (cfg.glowColor) {
+        // VIP 6-8: yellow + glow
+        return (
+            <span
+                className={className}
+                style={{
+                    color: cfg.nameColor,
+                    textShadow: `0 0 8px ${cfg.glowColor}, 0 0 16px ${cfg.glowColor}55`,
+                    ...style
+                }}
+            >
+                {displayName}
+            </span>
+        );
+    }
+    // VIP 1-5: red
+    return (
+        <span className={className} style={{ color: cfg.nameColor, ...style }}>
+            {displayName}
+        </span>
+    );
+};
+
+// ════ VIP CHAT TITLE COMPONENT ════
+const VIPChatTitle = ({ userData }) => {
+    const level = getVIPLevel(userData);
+    if (!level) return null;
+    const titleUrl = VIP_CHAT_TITLE_URLS[level];
+    if (!titleUrl) return null;
+    return (
+        <span className="vip-chat-title-container" style={{
+            display: 'inline-block',
+            backgroundImage: `url(${titleUrl})`,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+        }} />
+    );
+};
+
+// ════ VIP BADGE POPUP ════
+const VIPBadgePopup = ({ level, onClose }) => {
+    if (!level) return null;
+    const cfg = VIP_CONFIG[level - 1];
+    return (
+        <div
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: Z.TOOLTIP }}
+            onClick={onClose}
+        >
+            <div
+                className="animate-pop"
+                style={{ background: 'linear-gradient(135deg,#0f0f1a,#1a0010)', border: `2px solid ${cfg.nameColor}`, borderRadius: '16px', padding: '24px', textAlign: 'center', minWidth: '220px', boxShadow: `0 0 30px ${cfg.nameColor}55` }}
+                onClick={e => e.stopPropagation()}
+            >
+                <div style={{ fontSize: '40px', marginBottom: '10px' }}>👑</div>
+                <div style={{ color: cfg.nameColor, fontWeight: 900, fontSize: '20px', marginBottom: '6px' }}>
+                    VIP Level {level}
+                </div>
+                <div style={{ color: '#9ca3af', fontSize: '12px', marginBottom: '14px' }}>{cfg.name_ar}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
+                    {cfg.benefits_ar.map((b, i) => (
+                        <div key={i} style={{ fontSize: '11px', color: '#d1d5db', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ color: cfg.nameColor }}>✓</span> {b}
+                        </div>
+                    ))}
+                </div>
+                <button onClick={onClose} style={{ background: cfg.nameColor, color: '#000', fontWeight: 800, padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px' }}>
+                    OK
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// ════ VIP INFO TABLE MODAL ════
+const VIPInfoModal = ({ onClose, lang }) => {
+    const t = TRANSLATIONS[lang] || TRANSLATIONS['en'];
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">👑 {lang === 'ar' ? 'مميزات VIP' : 'VIP Benefits'}</h2>
+                    <ModalCloseBtn onClose={onClose} />
+                </div>
+                <div className="modal-body" style={{ padding: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {VIP_CONFIG.map(cfg => (
+                            <div key={cfg.level} className="vip-info-card" style={{
+                                background: `linear-gradient(135deg, ${cfg.nameColor}11, rgba(15,15,26,0.95))`,
+                                border: `1px solid ${cfg.nameColor}44`,
+                                borderRadius: '10px', padding: '10px 12px',
+                                display: 'flex', flexDirection: 'column', gap: '4px'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{
+                                        background: cfg.nameColor, color: '#000', fontWeight: 900,
+                                        padding: '2px 8px', borderRadius: '6px', fontSize: '12px'
+                                    }}>
+                                        VIP {cfg.level}
+                                    </span>
+                                    <span style={{ color: cfg.nameColor, fontWeight: 700, fontSize: '13px' }}>
+                                        {lang === 'ar' ? cfg.name_ar : cfg.name_en}
+                                    </span>
+                                    {cfg.xpMultiplier >= 2 && <span style={{ fontSize: '10px', color: '#fbbf24' }}>⚡ ×2</span>}
+                                </div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '3px' }}>
+                                    {(lang === 'ar' ? cfg.benefits_ar : cfg.benefits_en).map((b, i) => (
+                                        <span key={i} style={{
+                                            fontSize: '10px', color: '#d1d5db',
+                                            background: 'rgba(255,255,255,0.05)',
+                                            borderRadius: '4px', padding: '2px 6px',
+                                            border: '1px solid rgba(255,255,255,0.08)'
+                                        }}>{b}</span>
+                                    ))}
+                                    {cfg.customIdLength && (
+                                        <span style={{
+                                            fontSize: '10px', color: '#60a5fa',
+                                            background: 'rgba(96,165,250,0.1)',
+                                            borderRadius: '4px', padding: '2px 6px',
+                                            border: '1px solid rgba(96,165,250,0.3)'
+                                        }}>ID: {cfg.customIdLength} {lang === 'ar' ? 'أرقام' : 'digits'}</span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ════ VIP 10 EXCLUSIVE REQUEST FORM ════
+const VIP10RequestForm = ({ user, lang, onNotification }) => {
+    const [giftName, setGiftName]       = useState('');
+    const [giftShape, setGiftShape]     = useState('');
+    const [giftCharisma, setGiftCharisma] = useState('');
+    const [sending, setSending]         = useState(false);
+
+    const handleSubmit = async () => {
+        if (!giftName.trim() || !user) return;
+        setSending(true);
+        try {
+            await db.collection('artifacts').doc(appId).collection('public').doc('data')
+                .collection('vip10_requests').add({
+                    uid: user.uid,
+                    giftName: giftName.trim(),
+                    giftShape: giftShape.trim(),
+                    giftCharisma: parseInt(giftCharisma) || 0,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                });
+            onNotification(lang === 'ar' ? '✅ تم إرسال طلبك!' : '✅ Request sent!');
+            setGiftName(''); setGiftShape(''); setGiftCharisma('');
+        } catch (e) {
+            onNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
+        }
+        setSending(false);
+    };
+
+    return (
+        <div style={{
+            background: 'linear-gradient(135deg,rgba(239,68,68,0.08),rgba(15,15,26,0.95))',
+            border: '1px solid rgba(239,68,68,0.35)',
+            borderRadius: '12px', padding: '14px', marginTop: '6px'
+        }}>
+            <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '13px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                👑 {lang === 'ar' ? 'طلب هدية مخصصة (VIP 10 فقط)' : 'Custom Gift Request (VIP 10 only)'}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <input
+                    className="input-dark"
+                    placeholder={lang === 'ar' ? 'اسم الهدية' : 'Gift name'}
+                    value={giftName} onChange={e => setGiftName(e.target.value)}
+                    style={{ fontSize: '12px' }}
+                />
+                <input
+                    className="input-dark"
+                    placeholder={lang === 'ar' ? 'وصف الشكل / الإيموجي' : 'Shape description / emoji'}
+                    value={giftShape} onChange={e => setGiftShape(e.target.value)}
+                    style={{ fontSize: '12px' }}
+                />
+                <input
+                    className="input-dark"
+                    type="number"
+                    placeholder={lang === 'ar' ? 'الكاريزما المقترحة' : 'Suggested charisma value'}
+                    value={giftCharisma} onChange={e => setGiftCharisma(e.target.value)}
+                    style={{ fontSize: '12px' }}
+                />
+                <button
+                    onClick={handleSubmit}
+                    disabled={sending || !giftName.trim()}
+                    className="btn-neon"
+                    style={{ padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, opacity: sending ? 0.6 : 1 }}
+                >
+                    {sending ? '⏳' : (lang === 'ar' ? '📨 إرسال الطلب' : '📨 Send Request')}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// ════ VIP CENTER SECTION (for Settings) ════
+const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
+    const [showInfoModal, setShowInfoModal] = useState(false);
+    const [showBadgePopup, setShowBadgePopup] = useState(false);
+    const [customIdEnabled, setCustomIdEnabled] = useState(userData?.vip?.customIdEnabled || false);
+
+    const level = getVIPLevel(userData);
+    const cfg = level ? VIP_CONFIG[level - 1] : null;
+    const customIdLen = getVIPCustomIdLength(userData);
+
+    const toggleCustomId = async () => {
+        if (!user || !customIdLen) return;
+        const newVal = !customIdEnabled;
+        setCustomIdEnabled(newVal);
+        // Generate/restore custom ID
+        if (newVal) {
+            const max = Math.pow(10, customIdLen) - 1;
+            const min = Math.pow(10, customIdLen - 1);
+            const newId = Math.floor(min + Math.random() * (max - min + 1)).toString();
+            await usersCollection.doc(user.uid).update({
+                'vip.customIdEnabled': true,
+                customId: newId,
+            });
+        } else {
+            // Restore 6-digit ID
+            const normalId = Math.floor(100000 + Math.random() * 900000).toString();
+            await usersCollection.doc(user.uid).update({
+                'vip.customIdEnabled': false,
+                customId: normalId,
+            });
+        }
+        onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
+    };
+
+    return (
+        <div className="settings-section">
+            <div className="settings-section-title">
+                <span>👑</span>
+                <span>VIP Center</span>
+                <button
+                    onClick={() => setShowInfoModal(true)}
+                    style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: '16px', padding: '0 2px' }}
+                    title={lang === 'ar' ? 'معلومات VIP' : 'VIP Info'}
+                >ℹ️</button>
+            </div>
+
+            {!level ? (
+                <div style={{
+                    background: 'linear-gradient(135deg,rgba(0,10,30,0.6),rgba(20,0,50,0.4))',
+                    border: '1px solid rgba(0,242,255,0.15)',
+                    borderRadius: '12px', padding: '16px', textAlign: 'center'
+                }}>
+                    <div style={{ fontSize: '30px', marginBottom: '6px' }}>👑</div>
+                    <div style={{ color: '#9ca3af', fontSize: '12px' }}>
+                        {lang === 'ar' ? 'لا يوجد VIP نشط. تواصل مع الإدارة للحصول على VIP.' : 'No active VIP. Contact admin to get VIP.'}
+                    </div>
+                </div>
+            ) : (
+                <div style={{
+                    background: `linear-gradient(135deg, ${cfg.nameColor}11, rgba(15,15,26,0.95))`,
+                    border: `1px solid ${cfg.nameColor}44`,
+                    borderRadius: '12px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px'
+                }}>
+                    {/* Level display */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                            background: cfg.nameColor, color: '#000', fontWeight: 900,
+                            padding: '4px 12px', borderRadius: '8px', fontSize: '14px'
+                        }}>
+                            VIP {level}
+                        </div>
+                        <span style={{ color: cfg.nameColor, fontWeight: 700, fontSize: '14px' }}>
+                            {lang === 'ar' ? cfg.name_ar : cfg.name_en}
+                        </span>
+                        <button onClick={() => setShowBadgePopup(true)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>
+                            <VIPBadge userData={userData} size="md" />
+                        </button>
+                    </div>
+
+                    {/* XP Multiplier */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                        <span style={{ color: '#9ca3af' }}>⚡ {lang === 'ar' ? 'مضاعف XP' : 'XP Multiplier'}</span>
+                        <span style={{ color: '#fbbf24', fontWeight: 700 }}>×{cfg.xpMultiplier}</span>
+                    </div>
+
+                    {/* Custom ID toggle - VIP 6+ */}
+                    {customIdLen && (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                            <span style={{ color: '#9ca3af' }}>🪪 {lang === 'ar' ? `ID مخصص (${customIdLen} أرقام)` : `Custom ID (${customIdLen} digits)`}</span>
+                            <button
+                                onClick={toggleCustomId}
+                                className={`settings-toggle ${customIdEnabled ? 'on' : 'off'}`}
+                                style={{ fontSize: '11px', padding: '3px 10px' }}
+                            >
+                                {customIdEnabled ? (lang === 'ar' ? 'مفعّل' : 'ON') : (lang === 'ar' ? 'معطّل' : 'OFF')}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* VIP 10 form */}
+                    {cfg.exclusiveForm && (
+                        <VIP10RequestForm user={user} lang={lang} onNotification={onNotification} />
+                    )}
+                </div>
+            )}
+
+            {showInfoModal && <VIPInfoModal onClose={() => setShowInfoModal(false)} lang={lang} />}
+            {showBadgePopup && <VIPBadgePopup level={level} onClose={() => setShowBadgePopup(false)} />}
+        </div>
+    );
+};

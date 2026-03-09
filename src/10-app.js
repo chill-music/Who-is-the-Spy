@@ -460,11 +460,13 @@ function App() {
                     if (isSpy && (spyEscaped || mrwhiteWon)) iWon = true;
                     if (!isSpy && agentsWon) iWon = true;
 
-                    // Stats updates
+                    // Stats updates — apply VIP XP multiplier
+                    const vipXpMult = getVIPXPMultiplier(userData);
+                    const gameXP = Math.round((iWon ? 20 : 5) * vipXpMult);
                     const statUpdates = {
                         'stats.losses': firebase.firestore.FieldValue.increment(iWon ? 0 : 1),
                         'stats.wins': firebase.firestore.FieldValue.increment(iWon ? 1 : 0),
-                        'stats.xp': firebase.firestore.FieldValue.increment(iWon ? 20 : 5),
+                        'stats.xp': firebase.firestore.FieldValue.increment(gameXP),
                     };
                     if (isSpy && iWon) statUpdates['stats.spy_wins'] = firebase.firestore.FieldValue.increment(1);
                     if (!isSpy && iWon) statUpdates['stats.agent_wins'] = firebase.firestore.FieldValue.increment(1);
@@ -559,7 +561,7 @@ function App() {
     const handleLogout = useCallback(async () => { if (user) await auth.signOut(); setShowDropdown(false); setNickname(''); setGuestData(null); localStorage.removeItem('pro_spy_guest_uid'); localStorage.removeItem('pro_spy_nick'); }, [user]);
 
     // Onboarding Complete Handler
-    const handleOnboardingComplete = useCallback(async ({ displayName, gender, photoURL }) => {
+    const handleOnboardingComplete = useCallback(async ({ displayName, gender, country, photoURL }) => {
         if (!onboardingGoogleUser || !pendingNewUserRef) return;
         const u = onboardingGoogleUser;
         const finalPhoto = photoURL || u.photoURL || null;
@@ -569,6 +571,7 @@ function App() {
             displayName: displayName,
             photoURL: finalPhoto,
             gender: gender,
+            country: country ? { code: country.code, flag: country.flag, name_ar: country.name_ar, name_en: country.name_en } : null,
             customId: Math.floor(100000 + Math.random() * 900000).toString(),
             stats: { wins: 0, losses: 0, xp: 0 },
             achievements: [],

@@ -48,6 +48,7 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                 senderId: user.uid,
                 senderName: currentUser?.displayName || 'User',
                 senderPhoto: currentUser?.photoURL || null,
+                senderVipLevel: getVIPLevel(currentUser) || 0,
                 text: newMsg.trim(),
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -147,9 +148,20 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                                         <div
                                             className="chat-message-sender"
                                             onClick={() => handleOpenProfile(isMine ? user.uid : (msg.senderId || friend.uid))}
-                                            style={{ cursor: 'pointer' }}
+                                            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                                         >
-                                            {isMine ? (currentUser?.displayName || 'You') : msg.senderName}
+                                            {/* VIP Chat Title */}
+                                            {msg.senderVipLevel && VIP_CHAT_TITLE_URLS[msg.senderVipLevel] && (
+                                                <span className="vip-chat-title-container" style={{
+                                                    display: 'inline-block',
+                                                    backgroundImage: `url(${VIP_CHAT_TITLE_URLS[msg.senderVipLevel]})`,
+                                                    backgroundSize: 'contain',
+                                                    backgroundRepeat: 'no-repeat',
+                                                    backgroundPosition: 'center',
+                                                    width: '40px', height: '16px'
+                                                }} />
+                                            )}
+                                            <span>{isMine ? (currentUser?.displayName || 'You') : msg.senderName}</span>
                                         </div>
                                         {isGift ? (
                                             <div className="gift-message-content">

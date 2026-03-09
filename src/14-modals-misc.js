@@ -500,8 +500,36 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, is
                                     >♀️ {lang === 'ar' ? 'أنثى' : 'Female'}</button>
                                 </div>
                             </div>
+                            {/* Country row */}
+                            <div className="settings-account-row" style={{marginTop:'4px', flexDirection:'column', alignItems:'flex-start', gap:'6px'}}>
+                                <span className="settings-account-label">
+                                    🌍 {lang === 'ar' ? 'البلد' : 'Country'}
+                                    {userData?.country && <span style={{marginRight:'6px', marginLeft:'6px'}}>{userData.country.flag} {lang === 'ar' ? userData.country.name_ar : userData.country.name_en}</span>}
+                                </span>
+                                <CountryPicker
+                                    selected={userData?.country?.code}
+                                    onSelect={async (c) => {
+                                        if (!user) return;
+                                        await usersCollection.doc(user.uid).update({
+                                            country: { code: c.code, flag: c.flag, name_ar: c.name_ar, name_en: c.name_en }
+                                        });
+                                        onNotification(lang === 'ar' ? 'تم حفظ البلد ✓' : 'Country saved ✓');
+                                    }}
+                                    lang={lang}
+                                />
+                            </div>
                         </div>
                     )}
+                    {/* VIP Center */}
+                    {user && !isGuestPropForSettings && (
+                        <VIPCenterSection
+                            userData={userData}
+                            user={user}
+                            lang={lang}
+                            onNotification={onNotification}
+                        />
+                    )}
+
                     {/* Sound Toggle */}
                     <div className="settings-section">
                         <div className="settings-row">
