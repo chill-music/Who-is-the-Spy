@@ -2363,8 +2363,8 @@ const ProfileV11 = ({
                     currentUser={userData}
                     lang={lang}
                     onSendGift={async (gift, targetUser) => {
+                        // لا نغلق المودال هنا — الكومبو أوفرلاي بيتحكم في الإغلاق
                         if (onSendGift) await onSendGift(gift, targetUser);
-                        setShowSelfGiftModal(false);
                     }}
                     currency={userData?.currency || 0}
                     friendsData={[]}
