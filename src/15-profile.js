@@ -49,7 +49,9 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
         return { counts, lastSenders };
     }, [gifts]);
 
-    const allGifts = SHOP_ITEMS.gifts;
+    const allRegular = SHOP_ITEMS.gifts || [];
+    const allVIP     = SHOP_ITEMS.gifts_vip || [];
+    const allGifts   = [...allRegular, ...allVIP];
     const displayGifts = showAllGifts ? allGifts : allGifts.slice(0, GIFTS_LIMIT);
     const hasMoreGifts = allGifts.length > GIFTS_LIMIT;
 
@@ -82,19 +84,28 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
 
                         const rKey = getGiftRarity(gift.cost);
                         const rarity = RARITY_CONFIG[rKey];
+                        const isVIPGift = gift.type === 'gifts_vip';
+                        const vipCfg    = isVIPGift && gift.vipMinLevel > 0 ? VIP_CONFIG[gift.vipMinLevel - 1] : null;
+                        const vipColor  = vipCfg ? vipCfg.nameColor : null;
+                        const glowClass = unlocked && gift.vipGlowType ? `glow-${gift.vipGlowType}` : '';
                         return (
                             <div
                                 key={gift.id}
-                                className={`profile-gift-slot ${unlocked ? 'unlocked' : 'locked'}${unlocked && rKey === 'Mythic' ? ' mythic-glow' : ''}`}
+                                className={`profile-gift-slot ${unlocked ? 'unlocked' : 'locked'}${unlocked && rKey === 'Mythic' ? ' mythic-glow' : ''} ${glowClass}`}
                                 title={unlocked ? `${lang === 'ar' ? gift.name_ar : gift.name_en} x${count}` : (lang === 'ar' ? 'لم تُستلم بعد' : 'Not received')}
                                 style={{ cursor:'pointer', ...(unlocked ? {
-                                    border: `1.5px solid ${rarity.border}`,
+                                    border: vipColor ? `1.5px solid ${vipColor}88` : `1.5px solid ${rarity.border}`,
                                     boxShadow: rKey === 'Mythic' ? `0 0 12px rgba(255,0,85,0.6), 0 0 24px rgba(255,0,85,0.25)` : (rarity.glow ? `0 0 8px ${rarity.color}55` : 'none'),
-                                    background: rarity.bg
+                                    background: vipColor ? `linear-gradient(135deg,${vipColor}11,rgba(15,15,26,0.97))` : rarity.bg
                                 } : {}) }}
                                 onClick={() => setSelectedGiftDetail({ gift, count, rarity, rKey, unlocked })}
                             >
                                 <span style={{ position:'absolute', top:'2px', right:'2px', fontSize:'9px' }}>{rarity.icon}</span>
+                                {isVIPGift && vipColor && (
+                                    <span style={{ position:'absolute', top:'2px', left:'2px', fontSize:'6px', fontWeight:900, background:vipColor, color:'#000', padding:'1px 3px', borderRadius:'3px', lineHeight:1.2 }}>
+                                        V{gift.vipMinLevel}
+                                    </span>
+                                )}
                                 <span className="profile-gift-icon">{gift.emoji || '🎁'}</span>
                                 {count > 0 && <span className="profile-gift-count-badge">{count}</span>}
                                 {unlocked && <div className="profile-gift-glow"></div>}
@@ -161,8 +172,35 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
                             </div>
                             <div className="gift-detail-stat">
                                 <span className="gift-detail-stat-label">💰 {lang==='ar'?'السعر':'Price'}</span>
-                                <span className="gift-detail-stat-value">{selectedGiftDetail.gift.cost} 🧠</span>
+                                <span className="gift-detail-stat-value">{(selectedGiftDetail.gift.cost || 0).toLocaleString()} 🧠</span>
                             </div>
+                            {/* VIP Required */}
+                            {selectedGiftDetail.gift.vipMinLevel > 0 && (
+                                <div className="gift-detail-stat">
+                                    <span className="gift-detail-stat-label">👑 {lang==='ar'?'يتطلب':'Requires'}</span>
+                                    <span className="gift-detail-stat-value" style={{color: VIP_CONFIG[selectedGiftDetail.gift.vipMinLevel - 1]?.nameColor || '#ef4444', fontWeight:900}}>
+                                        VIP {selectedGiftDetail.gift.vipMinLevel}+
+                                    </span>
+                                </div>
+                            )}
+                            {/* Event */}
+                            {selectedGiftDetail.gift.isEvent && (
+                                <div className="gift-detail-stat">
+                                    <span className="gift-detail-stat-label">⚡ {lang==='ar'?'نوع':'Type'}</span>
+                                    <span className="gift-detail-stat-value" style={{color:'#a78bfa', fontWeight:800}}>
+                                        {lang==='ar' ? '🎉 إيفنت' : '🎉 Event'}
+                                    </span>
+                                </div>
+                            )}
+                            {/* Limited Time */}
+                            {selectedGiftDetail.gift.limitedTime && (
+                                <div className="gift-detail-stat">
+                                    <span className="gift-detail-stat-label">⏳ {lang==='ar'?'متاح':'Available'}</span>
+                                    <span className="gift-detail-stat-value" style={{color:'#f97316', fontWeight:800}}>
+                                        {lang==='ar' ? 'لوقت محدود' : 'Limited Time'}
+                                    </span>
+                                </div>
+                            )}
                             {selectedGiftDetail.count > 0 && (
                                 <div className="gift-detail-stat">
                                     <span className="gift-detail-stat-label">📦 {lang==='ar'?'استلمت':'Received'}</span>
@@ -2032,7 +2070,7 @@ const ProfileV11 = ({
                                         userData={targetData}
                                         className="profile-name"
                                     />
-                                    <VIPBadge userData={targetData} size="sm" onClick={(lvl) => {}} />
+                                    <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
                                     {targetData?.gender === 'male' && (
                                         <span style={{fontSize:'13px', color:'#60a5fa', fontWeight:700, lineHeight:1}}>♂️</span>
                                     )}
