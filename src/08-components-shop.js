@@ -129,7 +129,9 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                 <div style={{
                     display:'flex',overflowX:'auto',gap:'4px',padding:'8px 8px 0',
                     borderBottom:'1px solid rgba(255,255,255,0.06)',
-                    scrollbarWidth:'none'
+                    scrollbarWidth:'none', flexShrink:0,
+                    position:'sticky', top:0, zIndex:10,
+                    background:'var(--bg-card)',
                 }}>
                     {tabs.map(tab => (
                         <button
@@ -152,7 +154,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                 </div>
 
                 {/* Body */}
-                <div className="modal-body" style={{padding:'10px', overflowY:'auto'}}>
+                <div className="modal-body" style={{padding:'10px', overflowY:'auto', minHeight:0}}>
 
                     {/* ════ VIP TAB ════ */}
                     {activeTab === 'vip' && (

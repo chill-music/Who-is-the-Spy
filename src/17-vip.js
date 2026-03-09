@@ -64,7 +64,9 @@ const VIP_XP_THRESHOLDS = {
 const VIP_XP_PER_CHARISMA_RATE = 0.05; // 5% من الـ charisma → VIP XP
 
 // حساب VIP XP من هدية معينة
+// ✅ لو الهدية عندها vipXP محدد يدوياً يُستخدم، غير كده يُحسب 5% من الكاريزما
 const getGiftVIPXP = (gift) => {
+    if (gift.vipXP !== undefined && gift.vipXP !== null) return Math.max(1, gift.vipXP);
     const xp = Math.round((gift.charisma || 0) * VIP_XP_PER_CHARISMA_RATE);
     return Math.max(1, xp); // minimum 1 XP per gift
 };
@@ -735,6 +737,20 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
         if (err || idCheckStatus !== 'available' || idRequestSending || !user) return;
         setIdRequestSending(true);
         try {
+            // ✅ Check for existing PENDING requests with same desiredId
+            const pendingSnap = await vip10IdRequestsCollection
+                .where('desiredId', '==', desiredId.trim())
+                .where('status', '==', 0)
+                .limit(1)
+                .get();
+            if (!pendingSnap.empty) {
+                onNotification(lang === 'ar'
+                    ? '❌ هذا الـ ID محجوز حالياً من مستخدم آخر'
+                    : '❌ This ID is already reserved by another user');
+                setIdRequestSending(false);
+                return;
+            }
+
             await vip10IdRequestsCollection.add({
                 uid:         user.uid,
                 displayName: userData?.displayName || '',

@@ -1077,44 +1077,58 @@ function App() {
     const handleBuyVIP = useCallback(async () => {
         if (!user || !isLoggedIn) { setShowLoginAlert(true); return; }
         const VIP_SHOP_COST = 50000;
-        const VIP_SHOP_XP   = 5000;   // XP الممنوحة عند الشراء
+        const VIP_SHOP_XP   = 5000;   // XP الممنوحة فقط عند أول شراء
         const currency = userData?.currency || 0;
         if (currency < VIP_SHOP_COST) {
             setNotification(lang === 'ar' ? `❌ تحتاج ${VIP_SHOP_COST.toLocaleString()} 🧠` : `❌ Need ${VIP_SHOP_COST.toLocaleString()} 🧠`);
             return;
         }
         try {
-            // ✅ Subscription: 30 days from now
-            const expiresAt = new Date();
-            expiresAt.setDate(expiresAt.getDate() + 30);
+            // ✅ هل هذه أول مرة يشتري فيها VIP؟ (XP يُعطى مرة واحدة فقط)
+            const isFirstPurchase = !userData?.vip?.xp || userData.vip.xp === 0;
 
-            // ✅ Get current VIP level + vipItems for that level
-            const currentXP  = (userData?.vip?.xp || 0) + VIP_SHOP_XP;
-            const newLevel   = getVIPLevelFromXP(currentXP);
-            const levelCfg   = VIP_CONFIG.find(v => v.level === newLevel);
-            const vipItems   = levelCfg?.vipItems || [];
+            // ✅ تمديد من تاريخ الانتهاء الحالي لو لسه نشط، غير كده من اليوم
+            const now = new Date();
+            const currentExpiry = userData?.vip?.expiresAt?.toDate ? userData.vip.expiresAt.toDate() : null;
+            const baseDate = (userData?.vip?.isActive && currentExpiry && currentExpiry > now)
+                ? new Date(currentExpiry.getTime())
+                : new Date(now.getTime());
+            baseDate.setDate(baseDate.getDate() + 30);
 
             const updates = {
-                currency:        firebase.firestore.FieldValue.increment(-VIP_SHOP_COST),
-                'vip.xp':        firebase.firestore.FieldValue.increment(VIP_SHOP_XP),
-                'vip.isActive':  true,
-                'vip.expiresAt': firebase.firestore.Timestamp.fromDate(expiresAt),
-                'vip.purchasedAt': firebase.firestore.FieldValue.serverTimestamp(),
+                currency:            firebase.firestore.FieldValue.increment(-VIP_SHOP_COST),
+                'vip.isActive':      true,
+                'vip.expiresAt':     firebase.firestore.Timestamp.fromDate(baseDate),
+                'vip.purchasedAt':   firebase.firestore.FieldValue.serverTimestamp(),
             };
 
-            // ✅ Add vipItems to inventory
-            for (const item of vipItems) {
-                if (item.type === 'frames')  updates['inventory.frames']  = firebase.firestore.FieldValue.arrayUnion(item.id);
-                if (item.type === 'badges')  updates['inventory.badges']  = firebase.firestore.FieldValue.arrayUnion(item.id);
-                if (item.type === 'titles')  updates['inventory.titles']  = firebase.firestore.FieldValue.arrayUnion(item.id);
+            if (isFirstPurchase) {
+                // ✅ أول شراء: أضف XP وafItems الـ VIP 1
+                updates['vip.xp'] = firebase.firestore.FieldValue.increment(VIP_SHOP_XP);
+                const newLevel   = getVIPLevelFromXP(VIP_SHOP_XP);
+                const levelCfg   = VIP_CONFIG.find(v => v.level === newLevel);
+                const vipItems   = levelCfg?.vipItems || [];
+                for (const item of vipItems) {
+                    if (item.type === 'frames')  updates['inventory.frames']  = firebase.firestore.FieldValue.arrayUnion(item.id);
+                    if (item.type === 'badges')  updates['inventory.badges']  = firebase.firestore.FieldValue.arrayUnion(item.id);
+                    if (item.type === 'titles')  updates['inventory.titles']  = firebase.firestore.FieldValue.arrayUnion(item.id);
+                }
             }
+            // ❌ تجديد: بدون XP — فقط تمديد الأيام
 
             await usersCollection.doc(user.uid).update(updates);
             playSound('success');
-            setNotification(lang === 'ar'
-                ? `👑 تم شراء VIP! +${VIP_SHOP_XP.toLocaleString()} XP — صالح 30 يوم`
-                : `👑 VIP Purchased! +${VIP_SHOP_XP.toLocaleString()} XP — Valid 30 days`
-            );
+            if (isFirstPurchase) {
+                setNotification(lang === 'ar'
+                    ? `👑 تم شراء VIP! +${VIP_SHOP_XP.toLocaleString()} XP — صالح 30 يوم`
+                    : `👑 VIP Purchased! +${VIP_SHOP_XP.toLocaleString()} XP — Valid 30 days`
+                );
+            } else {
+                setNotification(lang === 'ar'
+                    ? `👑 تم تجديد VIP! +30 يوم إضافية`
+                    : `👑 VIP Renewed! +30 days added`
+                );
+            }
         } catch(e) {
             setNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
         }

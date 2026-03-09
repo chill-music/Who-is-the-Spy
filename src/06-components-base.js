@@ -61,11 +61,12 @@ const NotificationToast = ({ message, onClose }) => {
             position: 'fixed',
             top: '14px',
             left: '50%',
+            right: 'auto',
             transform: 'translateX(-50%)',
             zIndex: 9999999,
             animation: exiting ? 'toast-slide-up 0.35s ease-in forwards' : 'toast-slide-down 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards',
-            maxWidth: '92vw',
-            width: '360px',
+            width: 'min(360px, calc(100vw - 24px))',
+            pointerEvents: 'auto',
         }}>
             <div style={{
                 background: ts.bg,

@@ -145,6 +145,12 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onO
                 updates['inventory.badges'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
             } else if (reward.type === 'title') {
                 updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+            } else if (reward.type === 'gift') {
+                // ✅ إضافة الهدية لـ inventory.gifts مع عداد الكمية
+                const giftCounts = userData?.inventory?.giftCounts || {};
+                const currentCount = giftCounts[reward.itemId] || 0;
+                updates['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+                updates[`inventory.giftCounts.${reward.itemId}`] = currentCount + (reward.amount || 1);
             }
             if (type === 'free') {
                 updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.claimedFree`] = firebase.firestore.FieldValue.arrayUnion(level);
@@ -153,8 +159,8 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onO
             }
             await usersCollection.doc(user.uid).update(updates);
             onNotification(`${lang==='ar'?'تم استلام':'Claimed'} ${lang==='ar'?reward.name_ar:reward.name_en}! 🎉`);
-            // 📦 If reward is an item (frame/badge/title), go to inventory
-            if (reward.type === 'frame' || reward.type === 'badge' || reward.type === 'title') {
+            // 📦 If reward is an item (frame/badge/title/gift), go to inventory
+            if (reward.type === 'frame' || reward.type === 'badge' || reward.type === 'title' || reward.type === 'gift') {
                 setTimeout(() => { onClose(); if (onOpenInventory) onOpenInventory(); }, 400);
             }
         } catch(e) { }
