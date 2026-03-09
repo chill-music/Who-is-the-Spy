@@ -1683,7 +1683,8 @@ const ProfileV11 = ({
     sessionClaimedToday,
     onOpenLoginRewards,
     currency: currencyProp,
-    onOpenChat
+    onOpenChat,
+    onOpenProfile
 }) => {
     const t = TRANSLATIONS[lang] || {};
 
