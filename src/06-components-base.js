@@ -25,16 +25,90 @@ const GuestBanner = ({ lang }) => {
     return ( <div className="guest-banner"> <h3 className="guest-banner-title">{t.guestTitle}</h3> <p className="guest-banner-desc">{t.guestDesc}</p> </div> );
 };
 
-// Notification Toast
+// Notification Toast — Modern sliding pill from top
 const NotificationToast = ({ message, onClose }) => {
-    useEffect(() => { if (message) { const timer = setTimeout(() => { onClose(); }, 2500); return () => clearTimeout(timer); } }, [message, onClose]);
-    if(!message) return null;
+    const [visible, setVisible] = useState(false);
+    const [exiting, setExiting] = useState(false);
+
+    useEffect(() => {
+        if (message) {
+            setExiting(false);
+            setVisible(true);
+            const hideTimer = setTimeout(() => {
+                setExiting(true);
+                setTimeout(() => { setVisible(false); onClose(); }, 350);
+            }, 2000);
+            return () => clearTimeout(hideTimer);
+        }
+    }, [message]);
+
+    if (!message || !visible) return null;
+
+    // Auto-detect icon type from message prefix
+    const getToastStyle = (msg) => {
+        if (msg.startsWith('✅') || msg.startsWith('👑') || msg.startsWith('🎉')) return { accent: '#4ade80', bg: 'rgba(10,30,20,0.97)', border: 'rgba(74,222,128,0.45)' };
+        if (msg.startsWith('❌')) return { accent: '#f87171', bg: 'rgba(30,10,10,0.97)', border: 'rgba(248,113,113,0.45)' };
+        if (msg.startsWith('⚠️')) return { accent: '#fbbf24', bg: 'rgba(30,25,5,0.97)', border: 'rgba(251,191,36,0.45)' };
+        if (msg.startsWith('🎁')) return { accent: '#a78bfa', bg: 'rgba(20,10,35,0.97)', border: 'rgba(167,139,250,0.45)' };
+        if (msg.startsWith('🧠') || msg.includes('Intel') || msg.includes('إنتل')) return { accent: '#00d4ff', bg: 'rgba(0,20,35,0.97)', border: 'rgba(0,212,255,0.45)' };
+        return { accent: '#00f2ff', bg: 'rgba(10,10,26,0.97)', border: 'rgba(0,242,255,0.4)' };
+    };
+
+    const ts = getToastStyle(message);
+
     return (
-        <div className="notification-toast">
-            <div className="notification-content">
-                <span className="notification-icon">🎉</span>
-                <span className="notification-text">{message}</span>
-                <button onClick={onClose} className="notification-close">&times;</button>
+        <div style={{
+            position: 'fixed',
+            top: '14px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999999,
+            animation: exiting ? 'toast-slide-up 0.35s ease-in forwards' : 'toast-slide-down 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards',
+            maxWidth: '92vw',
+            width: '360px',
+        }}>
+            <div style={{
+                background: ts.bg,
+                border: `1px solid ${ts.border}`,
+                borderRadius: '14px',
+                padding: '11px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 20px ${ts.accent}22`,
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                position: 'relative',
+                overflow: 'hidden',
+            }}>
+                {/* Accent bar */}
+                <div style={{
+                    position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px',
+                    background: `linear-gradient(180deg, ${ts.accent}, ${ts.accent}88)`,
+                    borderRadius: '14px 0 0 14px',
+                }} />
+                {/* Progress bar */}
+                <div style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px',
+                    background: `rgba(255,255,255,0.06)`,
+                    borderRadius: '0 0 14px 14px',
+                }}>
+                    <div style={{
+                        height: '100%', background: ts.accent, borderRadius: 'inherit',
+                        animation: 'toast-progress 2s linear forwards',
+                        transformOrigin: 'left',
+                    }} />
+                </div>
+                <span style={{ fontSize: '18px', lineHeight: 1, flexShrink: 0, marginLeft: '6px' }}>
+                    {message.match(/^(\p{Emoji})/u)?.[1] || '💬'}
+                </span>
+                <span style={{ flex: 1, fontSize: '12.5px', fontWeight: 600, color: '#f1f5f9', lineHeight: 1.4 }}>
+                    {message.replace(/^(\p{Emoji}\s?)/u, '')}
+                </span>
+                <button onClick={() => { setExiting(true); setTimeout(() => { setVisible(false); onClose(); }, 350); }}
+                    style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '15px', padding: '2px', lineHeight: 1, flexShrink: 0 }}>
+                    ×
+                </button>
             </div>
         </div>
     );
