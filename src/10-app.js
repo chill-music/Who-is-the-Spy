@@ -851,7 +851,7 @@ function App() {
         // ✅ Generate bonus for RECEIVER only
         const minBonus = gift.minBonus || 1;
         const maxBonus = gift.maxBonus || Math.floor(gift.cost * 0.1);
-        const bonusForReceiver = generateRandomBonus(minBonus, maxBonus, gift.cost);
+        const bonusForReceiver = generateRandomBonus(minBonus, maxBonus);
 
         const giftName = lang === 'ar' ? gift.name_ar : gift.name_en;
 
@@ -1248,7 +1248,7 @@ function App() {
                 </div>
             )}
 
-            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} onOpenInventory={isLoggedIn ? () => { setShowShop(false); setShowInventory(true); } : null} />
+            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} />
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
             <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} />
 
@@ -1396,6 +1396,7 @@ function App() {
                                     <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>👤</span> {t.myAccount}</button>
                                     {isLoggedIn && (<>
                                         <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🛒</span> {t.shop}</button>
+                                        <button onClick={() => { setShowInventory(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>📦</span> {t.inventory}</button>
                                         <button onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); setShowDropdown(false); }} className={`w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 ${sessionClaimedToday ? 'opacity-50' : ''}`}><span>🎁</span> {t.loginRewards} {sessionClaimedToday && <span className="text-[8px] text-green-400">✓</span>}</button>
                                     </>)}
                                     <button onClick={() => { setShowSettings(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>⚙️</span> {t.settings}</button>
@@ -1473,8 +1474,7 @@ function App() {
                                             ) : (
                                                 <span className="w-6 text-xs font-bold text-gray-500">{rank}</span>
                                             )}
-                                            <AvatarWithFrame photoURL={player.photoURL} equipped={player.equipped} size="sm" />
-                                            <span className="flex-1 text-sm font-medium truncate">{player.displayName}</span>
+                                            <div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={player} lang={lang} size="sm" /></div>
                                             <div className="text-right">
                                                 {leaderboardTab === 'charisma' ? (
                                                     <div className="text-xs font-bold text-yellow-400">⭐ {formatCharisma(player.charisma || 0)}</div>
@@ -1501,8 +1501,7 @@ function App() {
                                     <div className="friend-requests-header">{t.incomingRequests}</div>
                                     {friendRequests.map(req => (
                                         <div key={req.id} className="friend-request-item">
-                                            <AvatarWithFrame photoURL={req.photoURL} equipped={req.equipped} size="sm" />
-                                            <div className="friend-request-info"><div className="friend-request-name">{req.displayName}</div></div>
+                                            <div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={req} lang={lang} size="sm" /></div>
                                             <div className="friend-request-actions"><button onClick={() => handleAcceptRequest(req.id)} className="btn-success px-3 py-1 rounded text-xs">{t.accept}</button><button onClick={() => handleRejectRequest(req.id)} className="btn-danger px-3 py-1 rounded text-xs">{t.reject}</button></div>
                                         </div>
                                     ))}
@@ -1515,27 +1514,11 @@ function App() {
                                     const online = friendsData.filter(f => f.onlineStatus === 'online');
                                     const away = friendsData.filter(f => f.onlineStatus === 'away');
                                     const offline = friendsData.filter(f => !f.onlineStatus || f.onlineStatus === 'offline');
+                                    const statusColor = (f) => f.onlineStatus==='online' ? '#4ade80' : f.onlineStatus==='away' ? '#facc15' : '#6b7280';
                                     const renderFriend = (friend) => (
                                         <div key={friend.id} className="friend-item">
-                                            <div style={{position:'relative'}}>
-                                                <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                                                <div style={{
-                                                    position:'absolute', bottom:'-1px', right:'-1px',
-                                                    width:'10px', height:'10px', borderRadius:'50%',
-                                                    background: friend.onlineStatus==='online' ? '#4ade80' : friend.onlineStatus==='away' ? '#facc15' : '#6b7280',
-                                                    border:'2px solid #0a0a14'
-                                                }} />
-                                            </div>
-                                            <div className="friend-info">
-                                                <div className="friend-name">{friend.displayName}</div>
-                                                <div className="friend-status">
-                                                    {friend.onlineStatus === 'online'
-                                                        ? <span style={{color:'#4ade80'}}>● {t.online}</span>
-                                                        : friend.onlineStatus === 'away'
-                                                            ? <span style={{color:'#facc15'}}>● {lang==='ar'?'بعيد':'Away'}</span>
-                                                            : <span style={{color:'#6b7280'}}>● {t.offline}</span>
-                                                    }
-                                                </div>
+                                            <div className="flex-1" style={{minWidth:0}}>
+                                                <PlayerNameTag player={friend} lang={lang} size="sm" showStatus={statusColor(friend)} />
                                             </div>
                                             <div className="friend-actions">
                                                 <button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-xs">💬</button>
@@ -1599,7 +1582,7 @@ function App() {
                     {room.status === 'waiting' && (
                         <div className="card-container">
                             <h3 className="text-sm font-bold mb-3 text-center">{t.lobbyTitle}</h3>
-                            <div className="grid grid-cols-2 gap-2 mb-4">{room.players.map(p => (<div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10" onClick={() => openProfile(p.uid)}><AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" /><span className="text-xs truncate">{p.name}</span>{p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded">HOST</span>}</div>))}</div>
+                            <div className="flex flex-col gap-2 mb-4">{room.players.map(p => (<div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10" onClick={() => openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>{p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded flex-shrink-0">HOST</span>}</div>))}</div>
                             <div className="flex gap-2">{room.admin === currentUID ? (<button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>) : (<p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>)}<button onClick={handleLeaveRoom} className="btn-danger px-4 py-2 rounded-lg text-sm">{t.leaveRoom}</button></div>
                         </div>
                     )}
@@ -1615,7 +1598,7 @@ function App() {
 
                     {room.status === 'discussing' && (
                         <div className="flex-1 flex flex-col gap-2">
-                            <div className="card-container"><div className="grid grid-cols-3 gap-2">{room.players.filter(p => p.status === 'active').map(p => (<div key={p.uid} className={`player-card ${room.currentTurnUID === p.uid ? 'active' : ''} ${p.uid === currentUID ? 'border-primary' : ''}`} onClick={() => openProfile(p.uid)}><AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" /><span className="text-[10px] truncate mt-1">{p.name}</span>{room.currentTurnUID === p.uid && <span className="text-[8px] text-primary">Speaking</span>}</div>))}</div></div>
+                            <div className="card-container"><div className="flex flex-col gap-2">{room.players.filter(p => p.status === 'active').map(p => (<div key={p.uid} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer bg-white/5 ${room.currentTurnUID === p.uid ? 'border border-primary bg-primary/5' : ''} ${p.uid === currentUID ? 'border border-primary/50' : ''}`} onClick={() => openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>{room.currentTurnUID === p.uid && <span className="text-[8px] text-primary flex-shrink-0">🎙 Speaking</span>}</div>))}</div></div>
                             {!isSpectator && me && (
                                 <div className={`identity-square identity-${myRole === 'spy' ? 'spy' : myRole === 'mrwhite' ? 'mrwhite' : myRole === 'informant' ? 'informant' : 'agent'}`}>
                                     <div className="text-4xl mb-2">{myRole === 'spy' ? '🕵️' : myRole === 'mrwhite' ? '👻' : myRole === 'informant' ? '👁️' : '🤵'}</div>
@@ -1635,7 +1618,7 @@ function App() {
                         <div className="card-container">
                             <h3 className="text-sm font-bold mb-2 text-center">{t.vote}</h3>
                             <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {votingTimer}s</div>
-                            <div className="grid grid-cols-2 gap-2 mb-4">{room.players.filter(p => p.status === 'active').map(p => (<button key={p.uid} onClick={() => submitVote(p.uid)} disabled={hasVoted} className={`player-card ${hasVoted === p.uid ? 'border-primary bg-primary/10' : ''}`}><AvatarWithFrame photoURL={p.photo} equipped={p.equipped} size="sm" /><span className="text-xs truncate mt-1">{p.name}</span></button>))}</div>
+                            <div className="flex flex-col gap-2 mb-4">{room.players.filter(p => p.status === 'active').map(p => (<button key={p.uid} onClick={() => submitVote(p.uid)} disabled={hasVoted} className={`flex items-center gap-2 p-2 rounded-lg w-full text-left bg-white/5 hover:bg-white/10 border ${hasVoted === p.uid ? 'border-primary bg-primary/10' : 'border-transparent'}`}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div></button>))}</div>
                         </div>
                     )}
 
