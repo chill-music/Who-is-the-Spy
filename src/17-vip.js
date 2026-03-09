@@ -5,7 +5,7 @@
 
 // 🔧 VIP BADGE IMAGES — ضع روابط صور البادجات هنا
 const VIP_BADGE_URLS = {
-    1:  '',   // رابط بادج VIP 1
+    1:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip1.png',   // رابط بادج VIP 1
     2:  '',   // رابط بادج VIP 2
     3:  '',   // رابط بادج VIP 3
     4:  '',   // رابط بادج VIP 4
