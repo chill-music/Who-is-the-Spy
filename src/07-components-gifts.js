@@ -516,8 +516,8 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         </div>
                     )}
                 </div>
-                {/* ✅ QUANTITY SELECTOR — يظهر فقط لو maxSendOptions موجودة */}
-                {isGiftItem && isSending && gift.maxSendOptions && gift.maxSendOptions.length > 0 && (
+                {/* ✅ QUANTITY SELECTOR — يظهر دائماً عند الإرسال */}
+                {isGiftItem && isSending && (
                     <div style={{
                         padding:'8px 14px',
                         borderTop:'1px solid rgba(255,255,255,0.06)',
@@ -527,7 +527,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             {lang === 'ar' ? '📦 كم هدية عايز تبعت؟' : '📦 How many to send?'}
                         </div>
                         <div style={{ display:'flex', gap:'5px', justifyContent:'center' }}>
-                            {gift.maxSendOptions.map(qty => (
+                            {[1, 3, 5, 10].map(qty => (
                                 <button
                                     key={qty}
                                     onClick={() => setSelectedQty(qty)}
@@ -750,17 +750,26 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
     const [ringProgress, setRingProgress] = useState(1);
     const [comboActive, setComboActive] = useState(true);
     const [totalBonus, setTotalBonus] = useState(0);
+    const [totalCharisma, setTotalCharisma] = useState(0);
     const [closing, setClosing] = useState(false);
-    const COMBO_DURATION = 3000;
+    const [comboLog, setComboLog] = useState([]);
+    const [showFinalLog, setShowFinalLog] = useState(false);
+    const COMBO_DURATION = 5000; // 5 ثواني بدلاً من 3
     const ringIntervalRef = React.useRef(null);
     const timerRef = React.useRef(null);
     const ringStartRef = React.useRef(null);
+    const comboCountRef = React.useRef(0);
 
     const close = React.useCallback(() => {
         setClosing(true);
         clearInterval(ringIntervalRef.current);
         clearTimeout(timerRef.current);
-        setTimeout(onClose, 350);
+        if (comboCountRef.current > 0) {
+            setShowFinalLog(true);
+            setTimeout(onClose, 2500);
+        } else {
+            setTimeout(onClose, 350);
+        }
     }, [onClose]);
 
     const startCountdown = React.useCallback(() => {
@@ -797,18 +806,82 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
     const handleTap = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!comboActive && comboCount > 0) return; // timer expired
+        if (!comboActive && comboCount > 0) return;
         if (currency < gift.cost) return;
         onSend(gift, target, 1);
-        const bonus = generateRandomBonus(gift.minBonus || 1, gift.maxBonus || Math.floor(gift.cost * 0.1));
+        const bonus = generateRandomBonus(gift.minBonus || 1, gift.maxBonus || Math.floor(gift.cost * 0.1), gift.cost);
+        const charisma = gift.charisma || 0;
         setTotalBonus(prev => prev + bonus);
-        setComboCount(c => c + 1);
+        setTotalCharisma(prev => prev + charisma);
+        setComboLog(prev => [...prev, { bonus, charisma }]);
+        const newCount = comboCount + 1;
+        comboCountRef.current = newCount;
+        setComboCount(newCount);
         startCountdown();
     };
 
     const RING_R = 52;
     const RING_C = 2 * Math.PI * RING_R;
     const ringColor = comboCount >= 10 ? '#f59e0b' : comboCount >= 5 ? '#a78bfa' : '#00d4ff';
+
+    // اللوج النهائي بعد انتهاء الكومبو
+    if (showFinalLog && comboCount > 0) {
+        return (
+            <div style={{
+                position: 'fixed', inset: 0, zIndex: 9999998,
+                background: 'rgba(0,0,0,0.88)',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                backdropFilter: 'blur(8px)',
+                animation: 'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+                padding: '20px',
+            }}>
+                <div style={{
+                    background: 'linear-gradient(135deg,rgba(20,20,40,0.98),rgba(10,10,25,0.99))',
+                    border: `1px solid ${ringColor}55`,
+                    borderRadius: '18px', padding: '20px', maxWidth: '340px', width: '100%',
+                    boxShadow: `0 0 40px ${ringColor}33`,
+                }}>
+                    <div style={{textAlign:'center', marginBottom:'14px'}}>
+                        <div style={{fontSize:'36px', marginBottom:'4px'}}>
+                            {gift.imageUrl ? <img src={gift.imageUrl} alt="" style={{width:'44px',height:'44px',objectFit:'contain'}} /> : gift.emoji}
+                        </div>
+                        <div style={{fontSize:'18px', fontWeight:900, color:ringColor, textShadow:`0 0 15px ${ringColor}`}}>
+                            ×{comboCount} COMBO! 🎉
+                        </div>
+                        <div style={{fontSize:'11px', color:'#9ca3af'}}>
+                            {lang === 'ar' ? gift.name_ar : gift.name_en}
+                        </div>
+                    </div>
+                    <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginBottom:'12px'}}>
+                        <div style={{background:'rgba(74,222,128,0.08)',border:'1px solid rgba(74,222,128,0.25)',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
+                            <div style={{fontSize:'9px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'💰 إجمالي البونص':'💰 Total Bonus'}</div>
+                            <div style={{fontSize:'17px',fontWeight:900,color:'#4ade80'}}>+{totalBonus>=1000?`${(totalBonus/1000).toFixed(1)}k`:totalBonus} 🧠</div>
+                        </div>
+                        <div style={{background:'rgba(251,191,36,0.08)',border:'1px solid rgba(251,191,36,0.25)',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
+                            <div style={{fontSize:'9px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'⭐ إجمالي الكاريزما':'⭐ Total Charisma'}</div>
+                            <div style={{fontSize:'17px',fontWeight:900,color:'#fbbf24'}}>+{formatCharisma(totalCharisma)} ⭐</div>
+                        </div>
+                    </div>
+                    <div style={{maxHeight:'160px',overflowY:'auto',display:'flex',flexDirection:'column',gap:'3px',scrollbarWidth:'none'}}>
+                        {comboLog.map((entry, i) => (
+                            <div key={i} style={{
+                                display:'flex',alignItems:'center',justifyContent:'space-between',
+                                padding:'4px 10px',borderRadius:'7px',
+                                background: i%2===0?'rgba(255,255,255,0.03)':'transparent',
+                            }}>
+                                <span style={{fontSize:'9px',color:'#6b7280'}}>#{i+1} {lang==='ar'?gift.name_ar:gift.name_en}</span>
+                                <div style={{display:'flex',gap:'8px'}}>
+                                    <span style={{fontSize:'9px',fontWeight:700,color:'#4ade80'}}>+{entry.bonus} 🧠</span>
+                                    <span style={{fontSize:'9px',fontWeight:700,color:'#fbbf24'}}>+{formatCharisma(entry.charisma)} ⭐</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div
