@@ -976,6 +976,7 @@ function App() {
                     giftsReceived: firebase.firestore.FieldValue.increment(1)
                 });
             }
+        } catch(e) { throw e; } // end try inside sendOnce
         }; // end sendOnce
 
         try {
