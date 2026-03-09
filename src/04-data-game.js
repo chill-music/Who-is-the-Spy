@@ -2,11 +2,11 @@ const DAILY_TASKS_CONFIG = [
     { id: 1, label_en: '1 min',   label_ar: '١ دقيقة',   duration: 60000,   reward: { type:'currency', amount:50,  icon:'🧠'}, comingSoon: false },
     { id: 2, label_en: '5 min',   label_ar: '٥ دقائق',   duration: 300000,  reward: { type:'currency', amount:100, icon:'🧠'}, comingSoon: false },
     { id: 3, label_en: '10 min',  label_ar: '١٠ دقائق',  duration: 600000,  reward: { type:'currency', amount:150, icon:'🧠'}, comingSoon: false },
-    { id: 4, label_en: 'VIP',     label_ar: 'VIP',        duration: null,    reward: { type:'currency', amount:300, icon:'👑'}, comingSoon: true  },
+    { id: 4, label_en: 'VIP',     label_ar: 'VIP',        duration: null,    reward: { type:'currency', amount:300, icon:'👑'}, comingSoon: false  },
     { id: 5, label_en: '20 min',  label_ar: '٢٠ دقيقة',  duration: 1200000, reward: { type:'currency', amount:200, icon:'🧠'}, comingSoon: false },
     { id: 6, label_en: '30 min',  label_ar: '٣٠ دقيقة',  duration: 1800000, reward: { type:'currency', amount:300, icon:'🧠'}, comingSoon: false },
     { id: 7, label_en: '60 min',  label_ar: '٦٠ دقيقة',  duration: 3600000, reward: { type:'currency', amount:500, icon:'🧠'}, comingSoon: false },
-    { id: 8, label_en: 'VIP',     label_ar: 'VIP',        duration: null,    reward: { type:'currency', amount:800, icon:'👑'}, comingSoon: true  },
+    { id: 8, label_en: 'VIP',     label_ar: 'VIP',        duration: null,    reward: { type:'currency', amount:800, icon:'👑'}, comingSoon: false  },
 ];
 
 // CHARISMA LEVELS - 21 Levels
@@ -61,7 +61,7 @@ const SHOP_ITEMS = {
         { id: 'frame_neon', name_en: "Neon Frame", name_ar: "إطار نيون", cost: 300, type: 'frames', preview: 'linear-gradient(45deg, #00f2ff, #7000ff)' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false },
         { id: 'frame_fire', name_en: "Fire Frame", name_ar: "إطار نار", cost: 400, type: 'frames', preview: 'linear-gradient(45deg, #ff0055, #ff8800)' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false },
         { id: 'frame_img', name_en: "Image Frame", name_ar: "إطار صورة", cost: 100, type: 'frames', preview: 'https://i.ibb.co/mVQTLr2D/Untitled-3.png' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false },
-        { id: 'frame_1', name_en: " Frame", name_ar: "إطار متحرك", cost: 0, type: 'frames', preview: 'https://i.ibb.co/4Rj8jzWS/0202.png' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false },
+        { id: 'ice_dragon_frame', name_en: " ice Dragon", name_ar: "التنين الجليدي", cost: 0, type: 'frames', preview: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/ice%20dragon%20frame.png' , hidden: true, isEvent: true, limitedTime: false, eventOnly: false },
         { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false },
         { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false },
     ],
