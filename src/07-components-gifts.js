@@ -280,7 +280,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     const [selectedFriend, setSelectedFriend] = useState(null);
     const [sendMode, setSendMode] = useState(directTarget ? 'direct' : 'self');
     const [previewBonus, setPreviewBonus] = useState(0);
-    const isGiftItem = gift?.type === 'gifts';
+    const isGiftItem = gift?.type === 'gifts' || gift?.type === 'gifts_vip';
 
     useEffect(() => {
         if (show && gift) {
@@ -421,6 +421,40 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                                     🍀 {lang === 'ar' ? 'مفاجأة!' : 'Surprise!'}
                                 </div>
                             </div>
+                            {/* VIP Required */}
+                            {gift.vipMinLevel > 0 && (
+                                <div className="gift-preview-stat">
+                                    <div className="gift-preview-stat-label">👑 {lang === 'ar' ? 'يتطلب' : 'Requires'}</div>
+                                    <div className="gift-preview-stat-value" style={{color: VIP_CONFIG[gift.vipMinLevel - 1]?.nameColor || '#ef4444', fontWeight:800}}>
+                                        VIP {gift.vipMinLevel}+
+                                    </div>
+                                </div>
+                            )}
+                            {/* Event */}
+                            {gift.isEvent && (
+                                <div className="gift-preview-stat">
+                                    <div className="gift-preview-stat-label">⚡ {lang === 'ar' ? 'نوع' : 'Type'}</div>
+                                    <div className="gift-preview-stat-value" style={{color:'#a78bfa', fontWeight:800}}>
+                                        {lang === 'ar' ? '🎉 إيفنت' : '🎉 Event'}
+                                    </div>
+                                </div>
+                            )}
+                            {/* Limited Time */}
+                            {gift.limitedTime && (
+                                <div className="gift-preview-stat">
+                                    <div className="gift-preview-stat-label">⏳ {lang === 'ar' ? 'متاح' : 'Available'}</div>
+                                    <div className="gift-preview-stat-value" style={{color:'#f97316', fontWeight:800}}>
+                                        {lang === 'ar' ? 'لوقت محدود' : 'Limited Time'}
+                                    </div>
+                                </div>
+                            )}
+                            {/* Price */}
+                            <div className="gift-preview-stat">
+                                <div className="gift-preview-stat-label">💰 {lang === 'ar' ? 'السعر' : 'Price'}</div>
+                                <div className="gift-preview-stat-value" style={{color:'#fbbf24', fontWeight:800}}>
+                                    {gift.cost.toLocaleString()} 🧠
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -517,37 +551,105 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
     const t = TRANSLATIONS[lang];
     const [selectedGift, setSelectedGift] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
+    const [activeGiftTab, setActiveGiftTab] = useState('all');
 
     if(!show) return null;
 
-    // Determine if we have a direct target (from profile)
     const hasDirectTarget = targetUser && targetUser.uid !== 'self';
+    const vipLevel = currentUser ? (getVIPLevel ? getVIPLevel(currentUser) : 0) : 0;
+
+    // All gifts combined: regular + VIP (sorted by cost)
+    const regularGifts = (SHOP_ITEMS.gifts || []).filter(g => !g.hidden && !g.eventOnly);
+    const vipGifts     = (SHOP_ITEMS.gifts_vip || []).filter(g => !g.hidden);
+    const allGifts     = activeGiftTab === 'vip' ? vipGifts : activeGiftTab === 'regular' ? regularGifts : [...regularGifts, ...vipGifts];
 
     return (
         <>
             <div className="modal-overlay" onClick={onClose}>
-                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header"><h2 className="modal-title">{t.sendGift}</h2><ModalCloseBtn onClose={onClose} /></div>
+                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{maxWidth:'400px', width:'96vw'}}>
+                    <div className="modal-header">
+                        <h2 className="modal-title">{t.sendGift}</h2>
+                        <ModalCloseBtn onClose={onClose} />
+                    </div>
                     <div className="modal-body py-3">
                         {hasDirectTarget && (
                             <div className="flex items-center gap-2 mb-2 p-1.5 bg-white/5 rounded">
                                 <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
-                                <div><div className="font-bold text-xs">{targetUser.displayName}</div><div className="text-[9px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div></div>
+                                <div>
+                                    <div className="font-bold text-xs">{targetUser.displayName}</div>
+                                    <div className="text-[9px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div>
+                                </div>
                             </div>
                         )}
-                        <div className="flex items-center gap-2 mb-2 text-[10px] text-yellow-400"><span>🧠 {currency} {CURRENCY_NAME}</span></div>
-                        <div className="grid grid-cols-5 gap-1 max-h-[180px] overflow-y-auto">
-                            {SHOP_ITEMS.gifts.map(gift => {
-                                const rKey = getGiftRarity(gift.cost);
-                                const rarity = RARITY_CONFIG[rKey];
+                        <div className="flex items-center gap-2 mb-2 text-[10px] text-yellow-400">
+                            <span>🧠 {currency} {CURRENCY_NAME}</span>
+                        </div>
+                        {/* Gift type tabs */}
+                        <div style={{display:'flex', gap:'4px', marginBottom:'8px'}}>
+                            {[
+                                {id:'all',     label: lang==='ar' ? '🎁 الكل' : '🎁 All'},
+                                {id:'regular', label: lang==='ar' ? '🎀 عادية' : '🎀 Regular'},
+                                {id:'vip',     label: lang==='ar' ? '👑 VIP' : '👑 VIP'},
+                            ].map(tab => (
+                                <button key={tab.id} onClick={() => setActiveGiftTab(tab.id)}
+                                    style={{
+                                        flex:1, padding:'4px 6px', borderRadius:'6px', fontSize:'10px',
+                                        fontWeight:700, cursor:'pointer', border:'none',
+                                        background: activeGiftTab === tab.id ? 'rgba(0,242,255,0.15)' : 'rgba(255,255,255,0.05)',
+                                        color: activeGiftTab === tab.id ? '#00f2ff' : '#6b7280',
+                                        borderBottom: activeGiftTab === tab.id ? '2px solid #00f2ff' : '2px solid transparent'
+                                    }}
+                                >{tab.label}</button>
+                            ))}
+                        </div>
+                        {/* Gifts grid — 5 columns, scrollable */}
+                        <div style={{display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'5px', maxHeight:'260px', overflowY:'auto'}}>
+                            {allGifts.map(gift => {
+                                const isVIPGift   = gift.type === 'gifts_vip';
+                                const vipRequired = gift.vipMinLevel || 0;
+                                const isVIPLocked = isVIPGift && vipLevel < vipRequired;
+                                const canAfford   = currency >= gift.cost;
+                                const glowType    = gift.vipGlowType;
+                                const rKey        = getGiftRarity(gift.cost);
+                                const rarity      = RARITY_CONFIG[rKey];
+                                const vipCfg      = vipRequired > 0 ? VIP_CONFIG[vipRequired - 1] : null;
+                                const vipColor    = vipCfg ? vipCfg.nameColor : '#7c3aed';
                                 return (
-                                    <button key={gift.id} onClick={() => { setSelectedGift(gift); setShowPreview(true); }} disabled={currency < gift.cost}
-                                        className="flex flex-col items-center p-1 rounded transition"
-                                        style={{ border: `1.5px solid ${currency >= gift.cost ? rarity.border : 'rgba(255,255,255,0.05)'}`, background: currency >= gift.cost ? rarity.bg : 'transparent', opacity: currency < gift.cost ? 0.4 : 1, cursor: currency < gift.cost ? 'not-allowed' : 'pointer', position: 'relative' }}
+                                    <button key={gift.id}
+                                        onClick={() => { if (!isVIPLocked) { setSelectedGift(gift); setShowPreview(true); } }}
+                                        disabled={!canAfford && !isVIPLocked}
+                                        className={glowType && !isVIPLocked ? `glow-${glowType}` : ''}
+                                        style={{
+                                            display:'flex', flexDirection:'column', alignItems:'center',
+                                            padding:'5px 3px', borderRadius:'8px', cursor: isVIPLocked ? 'default' : 'pointer',
+                                            border: isVIPGift ? `1.5px solid ${vipColor}77` : `1.5px solid ${canAfford ? rarity.border : 'rgba(255,255,255,0.05)'}`,
+                                            background: isVIPGift ? `linear-gradient(135deg,${vipColor}11,rgba(15,15,26,0.97))` : (canAfford ? rarity.bg : 'transparent'),
+                                            opacity: (!canAfford && !isVIPLocked) ? 0.35 : isVIPLocked ? 0.6 : 1,
+                                            position:'relative', transition:'transform 0.12s',
+                                        }}
+                                        onMouseEnter={e => { if(!isVIPLocked) e.currentTarget.style.transform='scale(1.07)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}
                                     >
-                                        <span style={{fontSize:'18px'}}>{gift.emoji}</span>
-                                        <span style={{fontSize:'8px', fontWeight:'bold', color: rarity.color}}>{lang === 'ar' ? rarity.name_ar : rarity.name_en}</span>
-                                        <span style={{fontSize:'9px', fontWeight:'bold', color:'#facc15'}}>{gift.cost}</span>
+                                        {/* VIP badge */}
+                                        {isVIPGift && (
+                                            <span style={{
+                                                position:'absolute', top:'2px', right:'2px',
+                                                fontSize:'6px', fontWeight:900, background:vipColor, color:'#000',
+                                                padding:'1px 3px', borderRadius:'3px', lineHeight:1.2
+                                            }}>VIP{vipRequired}</span>
+                                        )}
+                                        {/* Event/Limited tags */}
+                                        {gift.isEvent && !isVIPGift && <span style={{position:'absolute',top:'2px',left:'2px',fontSize:'7px',color:'#a78bfa'}}>⚡</span>}
+                                        {gift.limitedTime && !isVIPGift && <span style={{position:'absolute',top:'2px',left:'2px',fontSize:'7px',color:'#f97316'}}>⏳</span>}
+                                        <span style={{fontSize:'20px', lineHeight:1}}>{gift.emoji}</span>
+                                        <span style={{fontSize:'7px', fontWeight:700, color:'#fbbf24', marginTop:'2px'}}>{gift.cost >= 1000 ? `${(gift.cost/1000).toFixed(gift.cost%1000===0?0:1)}k` : gift.cost}</span>
+                                        {/* VIP lock overlay */}
+                                        {isVIPLocked && (
+                                            <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.6)',borderRadius:'7px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'1px'}}>
+                                                <span style={{fontSize:'10px'}}>🔒</span>
+                                                <span style={{fontSize:'6px',color:vipColor,fontWeight:800}}>VIP{vipRequired}</span>
+                                            </div>
+                                        )}
                                     </button>
                                 );
                             })}
