@@ -1,4 +1,4 @@
-const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP }) => {
+const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedItem, setSelectedItem] = useState(null);
@@ -8,6 +8,8 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     const [giftRarityFilter, setGiftRarityFilter] = useState('all'); // 'all' | 'Common' | 'Rare' | 'Epic' | 'Legendary' | 'Mythic'
     const [giftVIPOnly, setGiftVIPOnly] = useState(false);
     const [showGiftFilter, setShowGiftFilter] = useState(false);
+    // ✅ VIP confirmation dialog
+    const [showVIPConfirm, setShowVIPConfirm] = useState(false);
 
     if (!show) return null;
 
@@ -121,6 +123,23 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                             </div>
                         )}
                         <span style={{color:'#fbbf24',fontWeight:700,fontSize:'12px'}}>🧠 {currency.toLocaleString()}</span>
+                        {/* 🎒 Inventory bag button */}
+                        {onOpenInventory && (
+                            <button
+                                onClick={() => { onClose(); setTimeout(onOpenInventory, 100); }}
+                                title={lang === 'ar' ? 'مخزوني' : 'My Inventory'}
+                                style={{
+                                    background:'rgba(0,242,255,0.1)',
+                                    border:'1px solid rgba(0,242,255,0.3)',
+                                    borderRadius:'8px', padding:'4px 8px',
+                                    fontSize:'16px', cursor:'pointer', lineHeight:1,
+                                    display:'flex', alignItems:'center', justifyContent:'center',
+                                    transition:'all 0.15s'
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background='rgba(0,242,255,0.2)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background='rgba(0,242,255,0.1)'; }}
+                            >🎒</button>
+                        )}
                         <ModalCloseBtn onClose={onClose} />
                     </div>
                 </div>
@@ -248,38 +267,85 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                 {/* Price + Buy button */}
                                 {vipLevel >= 1 ? (
                                     <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
-                                        {/* ✅ Days remaining display */}
+                                        {/* ✅ Modern days remaining display */}
                                         {vipDaysLeft !== null && (
                                             <div style={{
-                                                display:'flex', alignItems:'center', justifyContent:'space-between',
-                                                padding:'8px 12px', borderRadius:'8px',
-                                                background: vipDaysLeft <= 5 ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.08)',
-                                                border: `1px solid ${vipDaysLeft <= 5 ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.25)'}`,
+                                                borderRadius:'12px', overflow:'hidden',
+                                                background: vipDaysLeft <= 5
+                                                    ? 'linear-gradient(135deg,rgba(239,68,68,0.15),rgba(15,15,26,0.97))'
+                                                    : 'linear-gradient(135deg,rgba(74,222,128,0.12),rgba(15,15,26,0.97))',
+                                                border: vipDaysLeft <= 5 ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(74,222,128,0.3)',
                                             }}>
-                                                <span style={{fontSize:'11px', color: vipDaysLeft <= 5 ? '#f87171' : '#4ade80', fontWeight:700}}>
-                                                    {vipDaysLeft <= 5 ? '⚠️' : '✅'} {lang==='ar'
-                                                        ? `${vipDaysLeft} يوم متبقي`
-                                                        : `${vipDaysLeft} days remaining`}
-                                                </span>
-                                                {vipDaysLeft <= 10 && (
-                                                    <span style={{fontSize:'9px',color:'#6b7280'}}>
-                                                        {lang==='ar'?'قريباً ينتهي':'Expiring soon'}
-                                                    </span>
-                                                )}
+                                                <div style={{
+                                                    padding:'10px 14px',
+                                                    display:'flex', alignItems:'center', justifyContent:'space-between'
+                                                }}>
+                                                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                                        <span style={{fontSize:'20px'}}>{vipDaysLeft <= 5 ? '⚠️' : '🛡️'}</span>
+                                                        <div>
+                                                            <div style={{fontSize:'10px', color: vipDaysLeft <= 5 ? '#f87171' : '#4ade80', fontWeight:700}}>
+                                                                {lang === 'ar' ? 'الوقت المتبقي' : 'Time Remaining'}
+                                                            </div>
+                                                            <div style={{fontSize:'8px', color:'#6b7280'}}>
+                                                                {vipDaysLeft <= 5 ? (lang === 'ar' ? '⚡ قريباً ينتهي!' : '⚡ Expiring soon!') : (lang === 'ar' ? 'VIP نشط ✓' : 'VIP Active ✓')}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {/* Day counter badges */}
+                                                    <div style={{display:'flex', alignItems:'baseline', gap:'2px'}}>
+                                                        <span style={{
+                                                            fontSize:'28px', fontWeight:900, lineHeight:1,
+                                                            color: vipDaysLeft <= 5 ? '#f87171' : '#4ade80',
+                                                            textShadow: vipDaysLeft <= 5
+                                                                ? '0 0 15px rgba(239,68,68,0.6)'
+                                                                : '0 0 15px rgba(74,222,128,0.5)',
+                                                            fontFamily: 'monospace',
+                                                        }}>{vipDaysLeft}</span>
+                                                        <span style={{fontSize:'11px', color:'#9ca3af', fontWeight:700}}>
+                                                            {lang === 'ar' ? ' يوم' : 'd'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                {/* Progress bar */}
+                                                <div style={{height:'3px', background:'rgba(255,255,255,0.06)'}}>
+                                                    <div style={{
+                                                        height:'100%',
+                                                        width:`${Math.min(100, (vipDaysLeft / 30) * 100)}%`,
+                                                        background: vipDaysLeft <= 5
+                                                            ? 'linear-gradient(90deg,#dc2626,#f87171)'
+                                                            : 'linear-gradient(90deg,#16a34a,#4ade80)',
+                                                        transition:'width 0.5s ease'
+                                                    }}/>
+                                                </div>
                                             </div>
                                         )}
+                                        {/* VIP Active / Deactivated status */}
                                         <div style={{
-                                            display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',
+                                            display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',
                                             padding:'10px',borderRadius:'10px',
-                                            background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)'
+                                            background: (vipDaysLeft !== null && vipDaysLeft > 0)
+                                                ? 'linear-gradient(135deg,rgba(74,222,128,0.12),rgba(16,185,129,0.06))'
+                                                : 'rgba(239,68,68,0.08)',
+                                            border: (vipDaysLeft !== null && vipDaysLeft > 0)
+                                                ? '1px solid rgba(74,222,128,0.35)'
+                                                : '1px solid rgba(239,68,68,0.3)',
                                         }}>
-                                            <span style={{color:'#4ade80',fontWeight:800,fontSize:'14px'}}>
-                                                ✅ {lang==='ar'?'لديك VIP بالفعل!':'You already have VIP!'}
+                                            <span style={{fontSize:'16px'}}>
+                                                {(vipDaysLeft !== null && vipDaysLeft > 0) ? '✅' : '❌'}
+                                            </span>
+                                            <span style={{
+                                                fontWeight:900, fontSize:'13px',
+                                                color: (vipDaysLeft !== null && vipDaysLeft > 0) ? '#4ade80' : '#f87171',
+                                                letterSpacing:'0.5px'
+                                            }}>
+                                                {(vipDaysLeft !== null && vipDaysLeft > 0)
+                                                    ? (lang === 'ar' ? '🔥 VIP مفعّل' : '🔥 VIP ACTIVE')
+                                                    : (lang === 'ar' ? 'VIP منتهي' : 'VIP DEACTIVATED')}
                                             </span>
                                         </div>
-                                        {/* ✅ Renewal button */}
+                                        {/* ✅ Renewal button with confirm */}
                                         <button
-                                            onClick={onBuyVIP}
+                                            onClick={() => { if (currency >= 50000) setShowVIPConfirm(true); }}
                                             disabled={currency < 50000}
                                             style={{
                                                 width:'100%',padding:'10px',borderRadius:'10px',
@@ -302,7 +368,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={onBuyVIP}
+                                        onClick={() => { if (currency >= 50000) setShowVIPConfirm(true); }}
                                         disabled={currency < 50000}
                                         style={{
                                             width:'100%',padding:'12px',borderRadius:'10px',
@@ -608,6 +674,41 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                 </div>
             </div>
         </div>
+
+        {/* VIP Confirm Dialog */}
+        {showVIPConfirm && ReactDOM.createPortal(
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999 }}
+                onClick={() => setShowVIPConfirm(false)}>
+                <div style={{ background:'linear-gradient(135deg,#1a0533,#0d0d2b)', border:'2px solid #a855f7', borderRadius:'16px', padding:'24px', maxWidth:'300px', width:'90%', textAlign:'center' }}
+                    onClick={e => e.stopPropagation()}>
+                    <div style={{ fontSize:'40px', marginBottom:'8px' }}>👑</div>
+                    <div style={{ color:'#e9d5ff', fontWeight:700, fontSize:'18px', marginBottom:'8px' }}>
+                        {hasVIP ? (t.renewVIP || 'Renew VIP?') : (t.activateVIP || 'Activate VIP?')}
+                    </div>
+                    <div style={{ color:'#a78bfa', fontSize:'13px', marginBottom:'16px' }}>
+                        {hasVIP
+                            ? (t.renewVIPDesc || 'Add 30 more days to your VIP status.')
+                            : (t.activateVIPDesc || 'Get 30 days of VIP perks + 5,000 XP bonus!')}
+                    </div>
+                    <div style={{ color:'#fbbf24', fontWeight:700, fontSize:'16px', marginBottom:'20px' }}>
+                        50,000 🧠
+                    </div>
+                    <div style={{ display:'flex', gap:'10px', justifyContent:'center' }}>
+                        <button
+                            onClick={() => setShowVIPConfirm(false)}
+                            style={{ padding:'10px 20px', borderRadius:'10px', border:'1px solid #6b7280', background:'transparent', color:'#9ca3af', fontWeight:600, cursor:'pointer' }}>
+                            {t.cancel || 'Cancel'}
+                        </button>
+                        <button
+                            onClick={() => { setShowVIPConfirm(false); onBuyVIP(); }}
+                            style={{ padding:'10px 20px', borderRadius:'10px', border:'none', background:'linear-gradient(135deg,#7c3aed,#a855f7)', color:'#fff', fontWeight:700, cursor:'pointer', boxShadow:'0 0 16px rgba(168,85,247,0.5)' }}>
+                            {t.confirm || 'Confirm'}
+                        </button>
+                    </div>
+                </div>
+            </div>,
+            document.body
+        )}
 
         {/* Gift Preview Modal portal */}
         {showPreview && selectedItem && ReactDOM.createPortal(
