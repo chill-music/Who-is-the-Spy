@@ -280,6 +280,12 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     const [selectedFriend, setSelectedFriend] = useState(null);
     const [sendMode, setSendMode] = useState(directTarget ? 'direct' : 'self');
     const [previewBonus, setPreviewBonus] = useState(0);
+    // ✅ Quantity system
+    const [selectedQty, setSelectedQty] = useState(1);
+    // ✅ Combo system
+    const [comboCount, setComboCount] = useState(0);
+    const [comboActive, setComboActive] = useState(false);
+    const comboTimerRef = React.useRef(null);
     const isGiftItem = gift?.type === 'gifts' || gift?.type === 'gifts_vip';
 
     useEffect(() => {
@@ -287,14 +293,52 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
             setSelectedFriend(directTarget || null);
             setSendMode(directTarget ? 'direct' : 'self');
             setShowFriendSelect(false);
-            // Generate preview bonus
+            setSelectedQty(1);
+            setComboCount(0);
+            setComboActive(false);
+            if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
             if (gift.minBonus && gift.maxBonus) {
                 setPreviewBonus(generateRandomBonus(gift.minBonus, gift.maxBonus));
             }
         }
+        return () => { if (comboTimerRef.current) clearTimeout(comboTimerRef.current); };
     }, [show, gift, directTarget]);
 
     if(!show || !gift) return null;
+
+    // ── Combo hit handler ──
+    const handleComboHit = () => {
+        const target = directTarget || (sendMode === 'self' ? { uid: 'self' } : selectedFriend);
+        if (!target) return;
+        if (currency < gift.cost) return;
+        // Trigger 1 gift immediately
+        if (onBuy) onBuy(gift, target, 1);
+        setComboCount(prev => {
+            const next = prev + 1;
+            return next;
+        });
+        setComboActive(true);
+        // Reset combo after 1.8s of no taps
+        if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
+        comboTimerRef.current = setTimeout(() => {
+            setComboActive(false);
+            setComboCount(0);
+        }, 1800);
+    };
+
+    // ── Quantity buy handler ──
+    const handleBuyWithQty = (qty) => {
+        if (!onBuy) return;
+        const target = directTarget
+            ? directTarget
+            : sendMode === 'self'
+            ? { uid: 'self', displayName: currentUserData?.displayName || 'Me' }
+            : selectedFriend;
+        if (!target) return;
+        onBuy(gift, target, qty || selectedQty);
+    };
+
+    const handleBuy = () => handleBuyWithQty(selectedQty);
 
     // ── Profile Effect special view ──
     if (gift.type === 'profileEffects') {
@@ -377,27 +421,14 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
 
     const handleSendFromInventory = () => {
         if (!onSendFromInventory) return;
-        if (directTarget) {
-            onSendFromInventory(gift, directTarget);
-            onClose();
-        } else if (sendMode === 'self') {
-            onSendFromInventory(gift, { uid: user?.uid || 'self', displayName: currentUserData?.displayName || 'Me', photoURL: currentUserData?.photoURL });
-            onClose();
-        } else if (selectedFriend) {
-            onSendFromInventory(gift, selectedFriend);
-            onClose();
-        }
-    };
-
-    const handleBuy = () => {
-        if (!onBuy) return;
-        if (directTarget) {
-            onBuy(gift, directTarget);
-        } else if (sendMode === 'self') {
-            onBuy(gift, { uid: 'self', displayName: currentUserData?.displayName || 'Me' });
-        } else if (selectedFriend) {
-            onBuy(gift, selectedFriend);
-        }
+        const target = directTarget
+            ? directTarget
+            : sendMode === 'self'
+            ? { uid: user?.uid || 'self', displayName: currentUserData?.displayName || 'Me', photoURL: currentUserData?.photoURL }
+            : selectedFriend;
+        if (!target) return;
+        onSendFromInventory(gift, target);
+        onClose();
     };
 
     return (
@@ -513,6 +544,92 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         </div>
                     )}
                 </div>
+                {/* ✅ QUANTITY SELECTOR — يظهر فقط لو maxSendOptions موجودة */}
+                {isGiftItem && isSending && gift.maxSendOptions && gift.maxSendOptions.length > 0 && (
+                    <div style={{
+                        padding:'8px 14px',
+                        borderTop:'1px solid rgba(255,255,255,0.06)',
+                        display:'flex', flexDirection:'column', gap:'6px'
+                    }}>
+                        <div style={{ fontSize:'10px', color:'#9ca3af', fontWeight:600, textAlign:'center' }}>
+                            {lang === 'ar' ? '📦 كم هدية عايز تبعت؟' : '📦 How many to send?'}
+                        </div>
+                        <div style={{ display:'flex', gap:'5px', justifyContent:'center' }}>
+                            {gift.maxSendOptions.map(qty => (
+                                <button
+                                    key={qty}
+                                    onClick={() => setSelectedQty(qty)}
+                                    disabled={currency < gift.cost * qty}
+                                    style={{
+                                        padding:'5px 12px', borderRadius:'8px', fontSize:'12px', fontWeight:800,
+                                        border: selectedQty === qty ? 'none' : '1px solid rgba(255,255,255,0.12)',
+                                        background: selectedQty === qty
+                                            ? 'linear-gradient(135deg,#a78bfa,#7c3aed)'
+                                            : 'rgba(255,255,255,0.05)',
+                                        color: selectedQty === qty ? '#fff' : currency >= gift.cost * qty ? '#e2e8f0' : '#4b5563',
+                                        cursor: currency >= gift.cost * qty ? 'pointer' : 'not-allowed',
+                                        boxShadow: selectedQty === qty ? '0 0 10px rgba(167,139,250,0.5)' : 'none',
+                                        transition: 'all 0.15s',
+                                    }}
+                                >
+                                    ×{qty}
+                                </button>
+                            ))}
+                        </div>
+                        {selectedQty > 1 && (
+                            <div style={{ textAlign:'center', fontSize:'10px', color:'#facc15', fontWeight:700 }}>
+                                💰 {(gift.cost * selectedQty).toLocaleString()} 🧠
+                                {' · '}⭐ +{formatCharisma(gift.charisma * selectedQty)}
+                            </div>
+                        )}
+                    </div>
+                )}
+                {/* ✅ COMBO BUTTON — يظهر فقط لو hasDirectTarget (من البروفايل) والهدية قابلة للإرسال */}
+                {isGiftItem && isSending && directTarget && (
+                    <div style={{
+                        padding:'8px 14px',
+                        borderTop:'1px solid rgba(255,255,255,0.06)',
+                        display:'flex', flexDirection:'column', gap:'5px', alignItems:'center'
+                    }}>
+                        <div style={{ fontSize:'10px', color:'#9ca3af', fontWeight:600 }}>
+                            {lang === 'ar' ? '⚡ كومبو — اضغط بسرعة لإرسال متتالي' : '⚡ Combo — tap fast for rapid send'}
+                        </div>
+                        {comboCount > 0 && (
+                            <div style={{
+                                fontSize:'22px', fontWeight:900,
+                                color: comboCount >= 10 ? '#f59e0b' : comboCount >= 5 ? '#a78bfa' : '#00d4ff',
+                                animation: 'mythic-pulse 0.5s ease-in-out',
+                                textShadow: `0 0 20px currentColor`,
+                            }}>
+                                ×{comboCount} COMBO!
+                            </div>
+                        )}
+                        <button
+                            onPointerDown={e => { e.preventDefault(); handleComboHit(); }}
+                            disabled={currency < gift.cost}
+                            style={{
+                                padding:'10px 24px',
+                                borderRadius:'12px',
+                                fontSize:'14px', fontWeight:900,
+                                border:'none', cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
+                                background: comboActive
+                                    ? 'linear-gradient(135deg,#f59e0b,#dc2626)'
+                                    : currency >= gift.cost
+                                    ? 'linear-gradient(135deg,#7c3aed,#a855f7)'
+                                    : 'rgba(100,100,100,0.2)',
+                                color: currency >= gift.cost ? '#fff' : '#6b7280',
+                                boxShadow: comboActive ? '0 0 24px rgba(245,158,11,0.7)' : '0 0 14px rgba(124,58,237,0.4)',
+                                transform: comboActive ? 'scale(0.95)' : 'scale(1)',
+                                transition:'all 0.1s',
+                                userSelect:'none',
+                                WebkitUserSelect:'none',
+                                touchAction:'manipulation',
+                            }}
+                        >
+                            🎁 {lang === 'ar' ? 'اضغط!' : 'TAP!'}
+                        </button>
+                    </div>
+                )}
                 <div className="modal-footer py-2">
                     {isFromInventory ? (
                         <div className="flex gap-2">
@@ -530,12 +647,12 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.reportCancel}</button>
                             <button
                                 onClick={handleBuy}
-                                disabled={currency < gift.cost || (!directTarget && sendMode === 'others' && !selectedFriend && isGiftItem)}
-                                className={`flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+                                disabled={currency < gift.cost * selectedQty || (!directTarget && sendMode === 'others' && !selectedFriend && isGiftItem)}
+                                className={`flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost * selectedQty ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
                             >
                                 {isGiftItem && !directTarget && sendMode === 'self'
-                                    ? `🎒 ${lang === 'ar' ? 'أضف للمخزون' : 'Add to Inventory'} (${gift.cost}🧠)`
-                                    : `${isSending || directTarget ? t.sendGift : t.buy} (${gift.cost}🧠)`
+                                    ? `🎒 ${lang === 'ar' ? 'أضف للمخزون' : 'Add to Inventory'} (${(gift.cost * selectedQty).toLocaleString()}🧠)`
+                                    : `${isSending || directTarget ? t.sendGift : t.buy}${selectedQty > 1 ? ` ×${selectedQty}` : ''} (${(gift.cost * selectedQty).toLocaleString()}🧠)`
                                 }
                             </button>
                         </div>
@@ -662,7 +779,7 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                 onClose={() => setShowPreview(false)}
                 gift={selectedGift}
                 lang={lang}
-                onBuy={(gift, target) => { onSendGift(gift, target); onClose(); }}
+                onBuy={(gift, target, qty) => { onSendGift(gift, target, qty || 1); if (qty === undefined || qty === 1) onClose(); }}
                 currency={currency}
                 isSending={true}
                 directTarget={hasDirectTarget ? targetUser : null}
