@@ -644,22 +644,26 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
     const customIdLen = getVIPCustomIdLength(userData);
     const xpInfo      = getVIPXPProgress(totalVIPXP);
 
-    // ✅ Real-time listener على آخر طلب ID للمستخدم
+    // ✅ Real-time listener على آخر طلب ID للمستخدم (بدون orderBy لتجنب index)
     useEffect(() => {
         if (!user || !level || !customIdLen) return;
         const unsub = vip10IdRequestsCollection
             .where('uid', '==', user.uid)
-            .orderBy('createdAt', 'desc')
-            .limit(1)
+            .limit(10)
             .onSnapshot(snap => {
                 if (!snap.empty) {
-                    const doc = snap.docs[0];
-                    const data = { id: doc.id, ...doc.data() };
-                    setPendingRequest(data);
+                    // Sort on client by createdAt descending
+                    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    docs.sort((a, b) => {
+                        const aTime = a.createdAt?.toMillis?.() || a.createdAt || 0;
+                        const bTime = b.createdAt?.toMillis?.() || b.createdAt || 0;
+                        return bTime - aTime;
+                    });
+                    setPendingRequest(docs[0]);
                 } else {
                     setPendingRequest(null);
                 }
-            }, () => {});
+            }, (err) => { console.warn('ID request listener error:', err); });
         return unsub;
     }, [user?.uid, level]);
 
@@ -919,12 +923,14 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                                         {lang === 'ar' ? 'الـ ID الحالي:' : 'Current ID:'} <span style={{color:'#fbbf24', fontWeight:700}}>{userData.customId}</span>
                                     </div>
                                 )}
-                                {canRequestIdThisMonth() ? (
+                                {/* ✅ Show status box if there's ANY request (pending/approved/rejected)
+                                    Show form only if no request this month */}
+                                {pendingRequest ? (
                                     <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                                         <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
                                             <input
                                                 className="input-dark"
-                                                placeholder={lang === 'ar' ? `أدخل ${customIdLen} أرقام فقط` : `Enter exactly ${customIdLen} digits`}
+                                                placeholder={lang === 'ar' ? `${customIdLen} أرقام` : `${customIdLen} digits`}
                                                 value={desiredId}
                                                 maxLength={customIdLen}
                                                 inputMode="numeric"
@@ -934,7 +940,7 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                                                     setDesiredId(v);
                                                     setIdCheckStatus(null);
                                                 }}
-                                                style={{ flex:1, fontSize:'13px', fontWeight:700, letterSpacing:'3px', textAlign:'center' }}
+                                                style={{ flex:1, fontSize:'16px', fontWeight:800, letterSpacing:'4px', textAlign:'center', padding:'8px' }}
                                             />
                                             <button
                                                 onClick={() => checkIdAvailability(desiredId.trim())}
