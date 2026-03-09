@@ -784,9 +784,11 @@ function App() {
 
             if (targetUser?.uid === 'self' || targetUser?.uid === user.uid) {
                 // Sending to self
+                const vipXpGain = getGiftVIPXP(gift);
                 await usersCollection.doc(user.uid).update({
                     charisma: firebase.firestore.FieldValue.increment(gift.charisma),
-                    currency: firebase.firestore.FieldValue.increment(bonusForReceiver)
+                    currency: firebase.firestore.FieldValue.increment(bonusForReceiver),
+                    'vip.xp': firebase.firestore.FieldValue.increment(vipXpGain),
                 });
 
                 // ✅ Log self-sent gift to gifts_log collection too
@@ -831,6 +833,10 @@ function App() {
                 } catch(e) { }
             } else {
                 // Sending to another person - add charisma AND bonus
+                const vipXpGain = getGiftVIPXP(gift);
+                await usersCollection.doc(user.uid).update({
+                    'vip.xp': firebase.firestore.FieldValue.increment(vipXpGain),
+                });
                 await usersCollection.doc(targetUser.uid).update({
                     charisma: firebase.firestore.FieldValue.increment(gift.charisma),
                     currency: firebase.firestore.FieldValue.increment(bonusForReceiver)
@@ -957,6 +963,31 @@ function App() {
         } catch (error) { }
     }, [user, userData, isLoggedIn, t, handleSendGiftToUser]);
 
+    // 👑 شراء VIP من الشوب
+    const handleBuyVIP = useCallback(async () => {
+        if (!user || !isLoggedIn) { setShowLoginAlert(true); return; }
+        const VIP_SHOP_COST = 50000;
+        const VIP_SHOP_XP   = 5000;   // XP الممنوحة عند الشراء
+        const currency = userData?.currency || 0;
+        if (currency < VIP_SHOP_COST) {
+            setNotification(lang === 'ar' ? `❌ تحتاج ${VIP_SHOP_COST.toLocaleString()} 🧠` : `❌ Need ${VIP_SHOP_COST.toLocaleString()} 🧠`);
+            return;
+        }
+        try {
+            await usersCollection.doc(user.uid).update({
+                currency: firebase.firestore.FieldValue.increment(-VIP_SHOP_COST),
+                'vip.xp':  firebase.firestore.FieldValue.increment(VIP_SHOP_XP),
+            });
+            playSound('success');
+            setNotification(lang === 'ar'
+                ? `👑 تم شراء VIP! +${VIP_SHOP_XP.toLocaleString()} VIP XP`
+                : `👑 VIP Purchased! +${VIP_SHOP_XP.toLocaleString()} VIP XP`
+            );
+        } catch(e) {
+            setNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
+        }
+    }, [user, userData, isLoggedIn, lang]);
+
     const handleEquip = useCallback(async (item) => {
         if (!user || !isLoggedIn) return;
         try {
@@ -1071,7 +1102,7 @@ function App() {
                 </div>
             )}
 
-            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} />
+            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} />
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
             <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} />
 
