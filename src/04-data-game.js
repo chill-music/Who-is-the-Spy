@@ -143,13 +143,14 @@ const SHOP_ITEMS = {
         { id: 'gift_limited_crown', name_en: "Limited Crown", name_ar: "تاج محدود", cost: 999, type: 'gifts', charisma: 15000, minBonus: 1, maxBonus: 50000, desc_ar: "تاج لمحدود الوقت", desc_en: "Limited time crown", emoji: "👸", imageUrl: "", hidden: false, isEvent: false, limitedTime: true, eventOnly: false },
         { id: 'gift_event_hidden', name_en: "Event Only Gift", name_ar: "هدية الحدث فقط", cost: 1500, type: 'gifts', charisma: 20000, minBonus: 1, maxBonus: 75000, desc_ar: "تظهر في الشوب لكن للحدث فقط", desc_en: "Visible but event-only purchase", emoji: "🗝️", imageUrl: "", hidden: false, isEvent: true, limitedTime: false, eventOnly: true },
     ],
-    // 👑 VIP EXCLUSIVE GIFTS — يظهر فقط لـ VIP Level 2+
+    // 👑 VIP EXCLUSIVE GIFTS — مدمجة مع تاب الهدايا العادية، مقفوله لحين الوصول للمستوى
+    // لتحويل هدية VIP لهدية عادية: غير vipExclusive إلى false
     gifts_vip: [
-        { id: 'vgift_vip_rose',    name_en: "VIP Rose",     name_ar: "وردة VIP",     cost: 50,   type: 'gifts_vip', charisma: 800,   minBonus: 1, maxBonus: 2500,  desc_ar: "وردة حصرية للـ VIP",      desc_en: "Exclusive VIP rose",    emoji: "🌹", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, vipMinLevel: 2 },
-        { id: 'vgift_vip_star',    name_en: "VIP Star",     name_ar: "نجمة VIP",     cost: 150,  type: 'gifts_vip', charisma: 2500,  minBonus: 1, maxBonus: 7500,  desc_ar: "نجمة ذهبية حصرية",       desc_en: "Exclusive gold star",   emoji: "⭐", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, vipMinLevel: 2 },
-        { id: 'vgift_vip_crown',   name_en: "VIP Crown",    name_ar: "تاج VIP",      cost: 500,  type: 'gifts_vip', charisma: 8000,  minBonus: 1, maxBonus: 25000, desc_ar: "تاج ملكي حصري",          desc_en: "Exclusive royal crown", emoji: "👑", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, vipMinLevel: 2 },
-        { id: 'vgift_vip_diamond', name_en: "VIP Diamond",  name_ar: "ماسة VIP",     cost: 1000, type: 'gifts_vip', charisma: 18000, minBonus: 1, maxBonus: 50000, desc_ar: "ماسة حصرية للـ VIP",     desc_en: "Exclusive VIP diamond", emoji: "💠", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, vipMinLevel: 2 },
-        { id: 'vgift_vip_dragon',  name_en: "VIP Dragon",   name_ar: "تنين VIP",     cost: 2500, type: 'gifts_vip', charisma: 40000, minBonus: 1, maxBonus: 120000,desc_ar: "تنين أسطوري حصري",       desc_en: "Exclusive legendary dragon", emoji: "🐉", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, vipMinLevel: 2 },
+        { id: 'vgift_vip_rose',    name_en: "VIP Rose",     name_ar: "وردة VIP",     cost: 50,   type: 'gifts_vip', charisma: 800,   minBonus: 1, maxBonus: 2500,  desc_ar: "وردة حصرية للـ VIP",           desc_en: "Exclusive VIP rose",         emoji: "🌹", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, vipMinLevel: 2,  vipExclusive: true },
+        { id: 'vgift_vip_star',    name_en: "VIP Star",     name_ar: "نجمة VIP",     cost: 150,  type: 'gifts_vip', charisma: 2500,  minBonus: 1, maxBonus: 7500,  desc_ar: "نجمة ذهبية حصرية",             desc_en: "Exclusive gold star",        emoji: "⭐", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, vipMinLevel: 2,  vipExclusive: true },
+        { id: 'vgift_vip_crown',   name_en: "VIP Crown",    name_ar: "تاج VIP",      cost: 500,  type: 'gifts_vip', charisma: 8000,  minBonus: 1, maxBonus: 25000, desc_ar: "تاج ملكي حصري",               desc_en: "Exclusive royal crown",      emoji: "👑", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, vipMinLevel: 2,  vipExclusive: true },
+        { id: 'vgift_vip_diamond', name_en: "VIP Diamond",  name_ar: "ماسة VIP",     cost: 1000, type: 'gifts_vip', charisma: 18000, minBonus: 1, maxBonus: 50000, desc_ar: "ماسة حصرية للـ VIP",           desc_en: "Exclusive VIP diamond",      emoji: "💠", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, vipMinLevel: 5,  vipExclusive: true },
+        { id: 'vgift_vip_dragon',  name_en: "VIP Dragon",   name_ar: "تنين VIP",     cost: 2500, type: 'gifts_vip', charisma: 40000, minBonus: 1, maxBonus: 120000, desc_ar: "تنين أسطوري حصري",            desc_en: "Exclusive legendary dragon", emoji: "🐉", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, vipMinLevel: 10, vipExclusive: true },
     ]
 };
 
@@ -180,13 +181,8 @@ const getGiftRarity = (cost) => {
     return 'Common';
 };
 
-// ════════════════════════════════════════════
-// PATCH for 04-data-game.js
-// REPLACE the entire ACHIEVEMENTS array (from "// 🏆 ACHIEVEMENTS SYSTEM" to the closing "];")
-// ════════════════════════════════════════════
-
-// 🏆 ACHIEVEMENTS SYSTEM — Leveled (4 tiers per category)
-// Tier 1: Normal | Tier 2: Natural | Tier 3: Red/Legendary | Tier 4: Multi-color Glow
+// 🏆 ACHIEVEMENTS SYSTEM — Leveled (4 tiers per group)
+// tier 1: Bronze/Normal | tier 2: Silver/Natural | tier 3: Red/Legendary | tier 4: Multi-color Glow/Ultimate
 const ACHIEVEMENTS = [
 
     // ══ 🎁 GIFTS RECEIVED ══
@@ -255,6 +251,7 @@ const ACHIEVEMENTS = [
     { id: 'ach_charisma_3', group: 'charisma', tier: 3, nameKey: 'achCharisma3', descKey: 'achCharisma3Desc', icon: '🌠', imageUrl: '', condition: { type: 'charisma', value: 500000 } },
     { id: 'ach_charisma_4', group: 'charisma', tier: 4, nameKey: 'achCharisma4', descKey: 'achCharisma4Desc', icon: '🌌', imageUrl: '', condition: { type: 'charisma', value: 1000000 } },
 ];
+
 // --- Scenarios ---
 const SCENARIOS = [
     { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
