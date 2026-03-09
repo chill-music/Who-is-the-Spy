@@ -550,7 +550,6 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, is
                         </div>
                     </div>
 
-                    )} {/* end logged-in account section */}
                     {/* Moments Section - only for logged-in users */}
                     {user && !isGuestPropForSettings && (
                     <div className="settings-section">
