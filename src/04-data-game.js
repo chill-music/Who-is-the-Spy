@@ -180,48 +180,81 @@ const getGiftRarity = (cost) => {
     return 'Common';
 };
 
-// 🏆 ACHIEVEMENTS SYSTEM
+// ════════════════════════════════════════════
+// PATCH for 04-data-game.js
+// REPLACE the entire ACHIEVEMENTS array (from "// 🏆 ACHIEVEMENTS SYSTEM" to the closing "];")
+// ════════════════════════════════════════════
+
+// 🏆 ACHIEVEMENTS SYSTEM — Leveled (4 tiers per category)
+// Tier 1: Normal | Tier 2: Natural | Tier 3: Red/Legendary | Tier 4: Multi-color Glow
 const ACHIEVEMENTS = [
-    // Gift Achievements
-    { id: 'ach_first_gift', nameKey: 'achFirstGift', descKey: 'achFirstGiftDesc', icon: '🎁', imageUrl: '', condition: { type: 'gifts_received', value: 1 } },
-    { id: 'ach_gift_collector', nameKey: 'achGiftCollector', descKey: 'achGiftCollectorDesc', icon: '💝', imageUrl: '', condition: { type: 'gifts_received', value: 10 } },
-    { id: 'ach_gift_master', nameKey: 'achGiftMaster', descKey: 'achGiftMasterDesc', icon: '💎', imageUrl: '', condition: { type: 'gifts_received', value: 50 } },
-    { id: 'ach_gift_legend', nameKey: 'achGiftLegend', descKey: 'achGiftLegendDesc', icon: '👑', imageUrl: '', condition: { type: 'gifts_received', value: 100 } },
-    { id: 'ach_gift_king', nameKey: 'achGiftKing', descKey: 'achGiftKingDesc', icon: '🏆', imageUrl: '', condition: { type: 'gifts_received', value: 500 } },
 
-    // Game Achievements
-    { id: 'ach_first_win', nameKey: 'achFirstWin', descKey: 'achFirstWinDesc', icon: '🏆', imageUrl: '', condition: { type: 'wins', value: 1 } },
-    { id: 'ach_veteran', nameKey: 'achVeteran', descKey: 'achVeteranDesc', icon: '🎖️', imageUrl: '', condition: { type: 'games_played', value: 10 } },
-    { id: 'ach_pro', nameKey: 'achPro', descKey: 'achProDesc', icon: '⭐', imageUrl: '', condition: { type: 'games_played', value: 25 } },
-    { id: 'ach_master', nameKey: 'achMaster', descKey: 'achMasterDesc', icon: '🌟', imageUrl: '', condition: { type: 'games_played', value: 50 } },
-    { id: 'ach_legend_player', nameKey: 'achLegendPlayer', descKey: 'achLegendPlayerDesc', icon: '🏅', imageUrl: '', condition: { type: 'games_played', value: 100 } },
-    { id: 'ach_win_streak_5', nameKey: 'achWinStreak5', descKey: 'achWinStreak5Desc', icon: '🔥', imageUrl: '', condition: { type: 'win_streak', value: 5 } },
-    { id: 'ach_win_streak_10', nameKey: 'achWinStreak10', descKey: 'achWinStreak10Desc', icon: '💥', imageUrl: '', condition: { type: 'win_streak', value: 10 } },
+    // ══ 🎁 GIFTS RECEIVED ══
+    { id: 'ach_recv_1', group: 'gifts_recv', tier: 1, nameKey: 'achRecv1', descKey: 'achRecv1Desc', icon: '🎁', imageUrl: '', condition: { type: 'gifts_received', value: 1 } },
+    { id: 'ach_recv_2', group: 'gifts_recv', tier: 2, nameKey: 'achRecv2', descKey: 'achRecv2Desc', icon: '💝', imageUrl: '', condition: { type: 'gifts_received', value: 50 } },
+    { id: 'ach_recv_3', group: 'gifts_recv', tier: 3, nameKey: 'achRecv3', descKey: 'achRecv3Desc', icon: '💎', imageUrl: '', condition: { type: 'gifts_received', value: 200 } },
+    { id: 'ach_recv_4', group: 'gifts_recv', tier: 4, nameKey: 'achRecv4', descKey: 'achRecv4Desc', icon: '👑', imageUrl: '', condition: { type: 'gifts_received', value: 500 } },
 
-    // Login Achievements
-    { id: 'ach_week_streak', nameKey: 'achWeekStreak', descKey: 'achWeekStreakDesc', icon: '🔥', imageUrl: '', condition: { type: 'login_streak', value: 7 } },
-    { id: 'ach_month_streak', nameKey: 'achMonthStreak', descKey: 'achMonthStreakDesc', icon: '📅', imageUrl: '', condition: { type: 'total_logins', value: 30 } },
-    { id: 'ach_dedicated', nameKey: 'achDedicated', descKey: 'achDedicatedDesc', icon: '💎', imageUrl: '', condition: { type: 'total_logins', value: 100 } },
+    // ══ 📤 GIFTS SENT ══
+    { id: 'ach_sent_1', group: 'gifts_sent', tier: 1, nameKey: 'achSent1', descKey: 'achSent1Desc', icon: '💌', imageUrl: '', condition: { type: 'gifts_sent', value: 10 } },
+    { id: 'ach_sent_2', group: 'gifts_sent', tier: 2, nameKey: 'achSent2', descKey: 'achSent2Desc', icon: '🎅', imageUrl: '', condition: { type: 'gifts_sent', value: 50 } },
+    { id: 'ach_sent_3', group: 'gifts_sent', tier: 3, nameKey: 'achSent3', descKey: 'achSent3Desc', icon: '🎁', imageUrl: '', condition: { type: 'gifts_sent', value: 150 } },
+    { id: 'ach_sent_4', group: 'gifts_sent', tier: 4, nameKey: 'achSent4', descKey: 'achSent4Desc', icon: '✨', imageUrl: '', condition: { type: 'gifts_sent', value: 500 } },
 
-    // Role Achievements
-    { id: 'ach_first_spy', nameKey: 'achFirstSpy', descKey: 'achFirstSpyDesc', icon: '🕵️', imageUrl: '', condition: { type: 'spy_wins', value: 1 } },
-    { id: 'ach_spy_master', nameKey: 'achSpyMaster', descKey: 'achSpyMasterDesc', icon: '🥷', imageUrl: '', condition: { type: 'spy_wins', value: 10 } },
-    { id: 'ach_spy_legend', nameKey: 'achSpyLegend', descKey: 'achSpyLegendDesc', icon: '👤', imageUrl: '', condition: { type: 'spy_wins', value: 25 } },
-    { id: 'ach_agent_pro', nameKey: 'achAgentPro', descKey: 'achAgentProDesc', icon: '🤵', imageUrl: '', condition: { type: 'agent_wins', value: 10 } },
-    { id: 'ach_agent_legend', nameKey: 'achAgentLegend', descKey: 'achAgentLegendDesc', icon: '🛡️', imageUrl: '', condition: { type: 'agent_wins', value: 25 } },
+    // ══ 🎮 GAMES PLAYED ══
+    { id: 'ach_games_1', group: 'games_played', tier: 1, nameKey: 'achGames1', descKey: 'achGames1Desc', icon: '🎮', imageUrl: '', condition: { type: 'games_played', value: 10 } },
+    { id: 'ach_games_2', group: 'games_played', tier: 2, nameKey: 'achGames2', descKey: 'achGames2Desc', icon: '🎖️', imageUrl: '', condition: { type: 'games_played', value: 50 } },
+    { id: 'ach_games_3', group: 'games_played', tier: 3, nameKey: 'achGames3', descKey: 'achGames3Desc', icon: '⭐', imageUrl: '', condition: { type: 'games_played', value: 200 } },
+    { id: 'ach_games_4', group: 'games_played', tier: 4, nameKey: 'achGames4', descKey: 'achGames4Desc', icon: '🏆', imageUrl: '', condition: { type: 'games_played', value: 500 } },
 
-    // Social Achievements
-    { id: 'ach_social', nameKey: 'achSocial', descKey: 'achSocialDesc', icon: '🦋', imageUrl: '', condition: { type: 'friends', value: 10 } },
-    { id: 'ach_popular', nameKey: 'achPopular', descKey: 'achPopularDesc', icon: '⭐', imageUrl: '', condition: { type: 'friends', value: 25 } },
-    { id: 'ach_generous', nameKey: 'achGenerous', descKey: 'achGenerousDesc', icon: '💌', imageUrl: '', condition: { type: 'gifts_sent', value: 10 } },
-    { id: 'ach_santa', nameKey: 'achSanta', descKey: 'achSantaDesc', icon: '🎅', imageUrl: '', condition: { type: 'gifts_sent', value: 50 } },
+    // ══ 🏆 WINS ══
+    { id: 'ach_wins_1', group: 'wins', tier: 1, nameKey: 'achWins1', descKey: 'achWins1Desc', icon: '🏆', imageUrl: '', condition: { type: 'wins', value: 5 } },
+    { id: 'ach_wins_2', group: 'wins', tier: 2, nameKey: 'achWins2', descKey: 'achWins2Desc', icon: '🥇', imageUrl: '', condition: { type: 'wins', value: 25 } },
+    { id: 'ach_wins_3', group: 'wins', tier: 3, nameKey: 'achWins3', descKey: 'achWins3Desc', icon: '💥', imageUrl: '', condition: { type: 'wins', value: 100 } },
+    { id: 'ach_wins_4', group: 'wins', tier: 4, nameKey: 'achWins4', descKey: 'achWins4Desc', icon: '⚡', imageUrl: '', condition: { type: 'wins', value: 300 } },
 
-    // Charisma Achievements
-    { id: 'ach_charisma_10k', nameKey: 'achCharisma10k', descKey: 'achCharisma10kDesc', icon: '✨', imageUrl: '', condition: { type: 'charisma', value: 10000 } },
-    { id: 'ach_charisma_100k', nameKey: 'achCharisma100k', descKey: 'achCharisma100kDesc', icon: '🌟', imageUrl: '', condition: { type: 'charisma', value: 100000 } },
-    { id: 'ach_charisma_1m', nameKey: 'achCharisma1m', descKey: 'achCharisma1mDesc', icon: '💫', imageUrl: '', condition: { type: 'charisma', value: 1000000 } },
+    // ══ 🔥 WIN STREAK ══
+    { id: 'ach_streak_1', group: 'win_streak', tier: 1, nameKey: 'achStreak1', descKey: 'achStreak1Desc', icon: '🔥', imageUrl: '', condition: { type: 'win_streak', value: 3 } },
+    { id: 'ach_streak_2', group: 'win_streak', tier: 2, nameKey: 'achStreak2', descKey: 'achStreak2Desc', icon: '🌟', imageUrl: '', condition: { type: 'win_streak', value: 5 } },
+    { id: 'ach_streak_3', group: 'win_streak', tier: 3, nameKey: 'achStreak3', descKey: 'achStreak3Desc', icon: '💢', imageUrl: '', condition: { type: 'win_streak', value: 10 } },
+    { id: 'ach_streak_4', group: 'win_streak', tier: 4, nameKey: 'achStreak4', descKey: 'achStreak4Desc', icon: '🌪️', imageUrl: '', condition: { type: 'win_streak', value: 20 } },
+
+    // ══ 🕵️ SPY WINS ══
+    { id: 'ach_spy_1', group: 'spy_wins', tier: 1, nameKey: 'achSpy1', descKey: 'achSpy1Desc', icon: '🕵️', imageUrl: '', condition: { type: 'spy_wins', value: 1 } },
+    { id: 'ach_spy_2', group: 'spy_wins', tier: 2, nameKey: 'achSpy2', descKey: 'achSpy2Desc', icon: '🥷', imageUrl: '', condition: { type: 'spy_wins', value: 10 } },
+    { id: 'ach_spy_3', group: 'spy_wins', tier: 3, nameKey: 'achSpy3', descKey: 'achSpy3Desc', icon: '👤', imageUrl: '', condition: { type: 'spy_wins', value: 30 } },
+    { id: 'ach_spy_4', group: 'spy_wins', tier: 4, nameKey: 'achSpy4', descKey: 'achSpy4Desc', icon: '🌑', imageUrl: '', condition: { type: 'spy_wins', value: 75 } },
+
+    // ══ 🤵 AGENT WINS ══
+    { id: 'ach_agent_1', group: 'agent_wins', tier: 1, nameKey: 'achAgent1', descKey: 'achAgent1Desc', icon: '🤵', imageUrl: '', condition: { type: 'agent_wins', value: 1 } },
+    { id: 'ach_agent_2', group: 'agent_wins', tier: 2, nameKey: 'achAgent2', descKey: 'achAgent2Desc', icon: '🛡️', imageUrl: '', condition: { type: 'agent_wins', value: 10 } },
+    { id: 'ach_agent_3', group: 'agent_wins', tier: 3, nameKey: 'achAgent3', descKey: 'achAgent3Desc', icon: '⚔️', imageUrl: '', condition: { type: 'agent_wins', value: 30 } },
+    { id: 'ach_agent_4', group: 'agent_wins', tier: 4, nameKey: 'achAgent4', descKey: 'achAgent4Desc', icon: '🏛️', imageUrl: '', condition: { type: 'agent_wins', value: 75 } },
+
+    // ══ 🦋 FRIENDS ══
+    { id: 'ach_friends_1', group: 'friends', tier: 1, nameKey: 'achFriends1', descKey: 'achFriends1Desc', icon: '🦋', imageUrl: '', condition: { type: 'friends', value: 5 } },
+    { id: 'ach_friends_2', group: 'friends', tier: 2, nameKey: 'achFriends2', descKey: 'achFriends2Desc', icon: '⭐', imageUrl: '', condition: { type: 'friends', value: 15 } },
+    { id: 'ach_friends_3', group: 'friends', tier: 3, nameKey: 'achFriends3', descKey: 'achFriends3Desc', icon: '🌟', imageUrl: '', condition: { type: 'friends', value: 30 } },
+    { id: 'ach_friends_4', group: 'friends', tier: 4, nameKey: 'achFriends4', descKey: 'achFriends4Desc', icon: '🌐', imageUrl: '', condition: { type: 'friends', value: 75 } },
+
+    // ══ 🔥 LOGIN STREAK (consecutive days) ══
+    { id: 'ach_login_str_1', group: 'login_streak', tier: 1, nameKey: 'achLoginStr1', descKey: 'achLoginStr1Desc', icon: '🔥', imageUrl: '', condition: { type: 'login_streak', value: 7 } },
+    { id: 'ach_login_str_2', group: 'login_streak', tier: 2, nameKey: 'achLoginStr2', descKey: 'achLoginStr2Desc', icon: '📅', imageUrl: '', condition: { type: 'login_streak', value: 30 } },
+    { id: 'ach_login_str_3', group: 'login_streak', tier: 3, nameKey: 'achLoginStr3', descKey: 'achLoginStr3Desc', icon: '🗓️', imageUrl: '', condition: { type: 'login_streak', value: 100 } },
+    { id: 'ach_login_str_4', group: 'login_streak', tier: 4, nameKey: 'achLoginStr4', descKey: 'achLoginStr4Desc', icon: '♾️', imageUrl: '', condition: { type: 'login_streak', value: 365 } },
+
+    // ══ 📅 TOTAL LOGIN DAYS ══
+    { id: 'ach_logins_1', group: 'total_logins', tier: 1, nameKey: 'achLogins1', descKey: 'achLogins1Desc', icon: '📅', imageUrl: '', condition: { type: 'total_logins', value: 30 } },
+    { id: 'ach_logins_2', group: 'total_logins', tier: 2, nameKey: 'achLogins2', descKey: 'achLogins2Desc', icon: '💎', imageUrl: '', condition: { type: 'total_logins', value: 100 } },
+    { id: 'ach_logins_3', group: 'total_logins', tier: 3, nameKey: 'achLogins3', descKey: 'achLogins3Desc', icon: '🏅', imageUrl: '', condition: { type: 'total_logins', value: 300 } },
+    { id: 'ach_logins_4', group: 'total_logins', tier: 4, nameKey: 'achLogins4', descKey: 'achLogins4Desc', icon: '👑', imageUrl: '', condition: { type: 'total_logins', value: 365 } },
+
+    // ══ ⭐ CHARISMA ══
+    { id: 'ach_charisma_1', group: 'charisma', tier: 1, nameKey: 'achCharisma1', descKey: 'achCharisma1Desc', icon: '⭐', imageUrl: '', condition: { type: 'charisma', value: 10000 } },
+    { id: 'ach_charisma_2', group: 'charisma', tier: 2, nameKey: 'achCharisma2', descKey: 'achCharisma2Desc', icon: '💫', imageUrl: '', condition: { type: 'charisma', value: 100000 } },
+    { id: 'ach_charisma_3', group: 'charisma', tier: 3, nameKey: 'achCharisma3', descKey: 'achCharisma3Desc', icon: '🌠', imageUrl: '', condition: { type: 'charisma', value: 500000 } },
+    { id: 'ach_charisma_4', group: 'charisma', tier: 4, nameKey: 'achCharisma4', descKey: 'achCharisma4Desc', icon: '🌌', imageUrl: '', condition: { type: 'charisma', value: 1000000 } },
 ];
-
 // --- Scenarios ---
 const SCENARIOS = [
     { loc_ar: "محطة فضاء", words_ar: ["فضاء", "صاروخ", "zero-g", "قمر"], loc_en: "Space Station", words_en: ["Space", "Rocket", "Zero-g", "Moon"] },
