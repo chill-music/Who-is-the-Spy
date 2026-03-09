@@ -304,29 +304,40 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                     const vipRequired  = item.vipMinLevel || 0;
                                     const isVIPLocked  = isVIPGift && vipLevel < vipRequired;
                                     const isVIPMaxGift = isVIPGift && vipRequired >= 10;
+                                    const vipGlowType  = item.vipGlowType || null;
                                     const rKey   = getGiftRarity(item.cost);
                                     const rarity = RARITY_CONFIG[rKey];
                                     const vipCfg        = vipRequired > 0 ? VIP_CONFIG[vipRequired - 1] : null;
                                     const vipGlowColor  = vipCfg ? vipCfg.nameColor : '#7c3aed';
                                     const cardBorder    = isVIPGift ? `1.5px solid ${vipGlowColor}88` : `1.5px solid ${rarity.border}`;
                                     const cardBg        = isVIPGift && !isVIPLocked ? `linear-gradient(135deg, ${vipGlowColor}11, rgba(15,15,26,0.97))` : rarity.bg;
-                                    const cardShadow    = isVIPGift && !isVIPLocked
-                                        ? (isVIPMaxGift ? `0 0 14px ${vipGlowColor}99, 0 0 28px ${vipGlowColor}44` : `0 0 8px ${vipGlowColor}66`)
-                                        : (rarity.glow && rKey==='Mythic' ? '0 0 14px rgba(255,0,85,0.7)' : rarity.glow ? `0 0 8px ${rarity.color}55` : 'none');
+                                    // box shadow: use CSS class for special glows, inline for others
+                                    const hasSpecialGlow = !isVIPLocked && vipGlowType;
+                                    const cardShadow    = hasSpecialGlow ? 'none'
+                                        : isVIPGift && !isVIPLocked
+                                            ? (isVIPMaxGift ? `0 0 14px ${vipGlowColor}99, 0 0 28px ${vipGlowColor}44` : `0 0 8px ${vipGlowColor}66`)
+                                            : (rarity.glow && rKey==='Mythic' ? '0 0 14px rgba(255,0,85,0.7)' : rarity.glow ? `0 0 8px ${rarity.color}55` : 'none');
+                                    // CSS animation class
+                                    const glowClass = hasSpecialGlow ? `glow-${vipGlowType}` : '';
+                                    // card animation (inline) only for mythic non-special
+                                    const cardAnim = !hasSpecialGlow && (
+                                        (isVIPMaxGift && !isVIPLocked) ? 'mythic-pulse 2s ease-in-out infinite'
+                                        : (rKey==='Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none')
+                                    );
                                     return (
                                         <div
                                             key={item.id}
-                                            onClick={() => { if (!isEventOnly && !isVIPLocked) { setSelectedItem(item); setShowPreview(true); } }}
+                                            className={glowClass}
+                                            onClick={() => { if (!isEventOnly) { setSelectedItem(item); setShowPreview(true); } }}
                                             style={{
-                                                position:'relative', cursor: (isEventOnly || isVIPLocked) ? 'default' : 'pointer',
+                                                position:'relative', cursor: isEventOnly ? 'default' : 'pointer',
                                                 border: cardBorder, background: cardBg, boxShadow: cardShadow,
                                                 borderRadius:'10px', padding:'8px 4px',
                                                 display:'flex', flexDirection:'column',
                                                 alignItems:'center', justifyContent:'center',
                                                 minHeight:'80px',
                                                 opacity: (isEventOnly || isVIPLocked) ? 0.65 : 1,
-                                                animation: (isVIPMaxGift && !isVIPLocked) ? 'mythic-pulse 2s ease-in-out infinite'
-                                                    : (rKey==='Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none'),
+                                                animation: cardAnim || 'none',
                                                 transition:'transform 0.15s',
                                             }}
                                             onMouseEnter={e => { if (!isEventOnly && !isVIPLocked) e.currentTarget.style.transform='scale(1.04)'; }}
@@ -549,6 +560,3 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
         </>
     );
 };
-
-// 👤 USER PROFILE MODAL - WITH GIFT LOG
-// Blocked User Item Component
