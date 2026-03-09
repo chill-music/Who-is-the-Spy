@@ -424,6 +424,102 @@ const VIPChatTitle = ({ userData }) => {
     );
 };
 
+// ════════════════════════════════════════════════════════════
+// 🏷️  PLAYER NAME TAG
+// الكومبوننت الموحّد لعرض اللاعب في كل مكان:
+//   لوبي · ليدر بورد · أصدقاء · تصويت · أي مكان تاني
+//
+// Props:
+//   player      — { photoURL|photo, displayName|name, equipped, vip }
+//   lang        — 'ar' | 'en'
+//   size        — 'sm' (default) | 'md'
+//   showStatus  — لون نقطة الستاتوس (مثلاً '#4ade80') أو null
+// ════════════════════════════════════════════════════════════
+const PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
+    if (!player) return null;
+
+    const photoURL  = player.photoURL || player.photo || null;
+    const name      = player.displayName || player.name || '—';
+    const equipped  = player.equipped || {};
+    const vipActive = getVIPLevel(player) > 0;
+
+    // Title
+    const titleId   = equipped.titles;
+    const titleItem = titleId ? SHOP_ITEMS.titles.find(t => t.id === titleId) : null;
+
+    // Badges — max 3
+    const badgeIds  = equipped.badges || [];
+
+    const avatarSz  = size === 'md' ? 'md' : 'sm';
+    const nameSz    = size === 'md' ? '13px' : '12px';
+
+    return (
+        <div style={{ display:'flex', alignItems:'center', gap: size==='md'?'10px':'8px', minWidth:0 }}>
+
+            {/* ── Avatar ── */}
+            <div style={{ position:'relative', flexShrink:0 }}>
+                <AvatarWithFrame photoURL={photoURL} equipped={equipped} size={avatarSz} />
+                {showStatus && (
+                    <div style={{
+                        position:'absolute', bottom:'-1px', right:'-1px',
+                        width:'9px', height:'9px', borderRadius:'50%',
+                        background: showStatus, border:'2px solid #0a0a14'
+                    }} />
+                )}
+            </div>
+
+            {/* ── Info ── */}
+            <div style={{ display:'flex', flexDirection:'column', gap:'2px', minWidth:0 }}>
+
+                {/* Row 1 — Name + VIP badge */}
+                <div style={{ display:'flex', alignItems:'center', gap:'4px', flexWrap:'nowrap' }}>
+                    <VIPName
+                        displayName={name}
+                        userData={player}
+                        style={{ fontSize: nameSz, fontWeight:700,
+                                 overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                                 maxWidth:'120px' }}
+                    />
+                    {vipActive && (
+                        <VIPBadge userData={player} size="sm" onClick={() => {}} />
+                    )}
+                </div>
+
+                {/* Row 2 — Badges (max 3) */}
+                {badgeIds.length > 0 && (
+                    <div style={{ display:'flex', alignItems:'center', gap:'2px' }}>
+                        {badgeIds.slice(0, 3).map((bid, idx) => {
+                            const b = SHOP_ITEMS.badges.find(b => b.id === bid);
+                            if (!b) return null;
+                            return b.imageUrl && b.imageUrl.trim() !== '' ? (
+                                <img key={idx} src={b.imageUrl} alt=""
+                                    style={{ width:13, height:13, objectFit:'contain' }} />
+                            ) : (
+                                <span key={idx} style={{ fontSize:'11px', lineHeight:1 }}>{b.preview}</span>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Row 3 — Title with 🌐 */}
+                {titleItem && (
+                    <div style={{ display:'flex', alignItems:'center', gap:'2px' }}>
+                        {titleItem.imageUrl && titleItem.imageUrl.trim() !== '' ? (
+                            <img src={titleItem.imageUrl} alt=""
+                                style={{ maxWidth:'70px', maxHeight:'13px', objectFit:'contain' }} />
+                        ) : (
+                            <span style={{ fontSize:'9px', color:'#a78bfa', lineHeight:1, whiteSpace:'nowrap' }}>
+                                🌐 {titleItem.preview} {lang==='ar' ? titleItem.name_ar : titleItem.name_en}
+                            </span>
+                        )}
+                    </div>
+                )}
+
+            </div>
+        </div>
+    );
+};
+
 // ════ VIP BADGE POPUP ════
 const VIPBadgePopup = ({ level, onClose }) => {
     if (!level) return null;
