@@ -824,10 +824,27 @@ function App() {
     const handleRejectRequest = useCallback(async (fromUid) => { if (!user || !isLoggedIn) return; await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); }, [user, isLoggedIn]);
 
     // 🎁 GIFT FUNCTIONS - NO CASHBACK, BONUS FOR RECEIVER ONLY
-    const handleSendGiftToUser = useCallback(async (gift, targetUser, qty = 1) => {
+    const handleSendGiftToUser = useCallback(async (gift, targetUser, qty = 1, fromInventory = false) => {
         const currency = userData?.currency || 0;
-        const totalCost = gift.cost * qty;
-        if (currency < totalCost) return;
+        const totalCost = fromInventory ? 0 : gift.cost * qty; // من الانفنتري مجاني (مدفوع مسبقاً)
+        if (!fromInventory && currency < totalCost) return;
+
+        // ✅ If sending from inventory, check and decrement gift count
+        if (fromInventory) {
+            const giftCounts = userData?.inventory?.giftCounts || {};
+            const currentCount = giftCounts[gift.id] || 0;
+            if (currentCount <= 0) {
+                setNotification(lang === 'ar' ? '❌ ليس لديك هذه الهدية في المخزون' : '❌ Gift not in inventory');
+                return;
+            }
+            const newCount = currentCount - 1;
+            const updates = { [`inventory.giftCounts.${gift.id}`]: newCount };
+            if (newCount <= 0) {
+                // Remove from gifts array too
+                updates['inventory.gifts'] = firebase.firestore.FieldValue.arrayRemove(gift.id);
+            }
+            try { await usersCollection.doc(user.uid).update(updates); } catch(e) {}
+        }
 
         // ✅ For multi-qty: send qty times
         const sendOnce = async () => {
@@ -1003,21 +1020,32 @@ function App() {
         if (currency < item.cost) { setNotification(t.purchaseFail); return; }
         const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
 
-        if (item.type === 'gifts') {
-            // ✅ FIX: if targetUser is specified (send to friend) → keep old flow
-            // If buying for self (no target or target=self) → add to inventory instead of instant charisma
+        // ✅ VIP Gift Lock — حد أدنى من مستوى VIP
+        if (item.vipMinLevel && item.vipMinLevel > 0) {
+            const userVipLevel = getVIPLevel(userData);
+            if (userVipLevel < item.vipMinLevel) {
+                setNotification(lang === 'ar'
+                    ? `🔒 يتطلب VIP ${item.vipMinLevel} على الأقل`
+                    : `🔒 Requires VIP ${item.vipMinLevel}+`
+                );
+                return;
+            }
+        }
+
+        if (item.type === 'gifts' || item.type === 'gifts_vip') {
+            // ✅ If targetUser is specified (send to friend) → direct send
             if (targetUser && targetUser.uid !== 'self' && targetUser.uid !== user?.uid) {
                 await handleSendGiftToUser(item, targetUser, qty || 1);
                 return;
             }
-            // Buying for self → add to inventory
-            const currency = userData?.currency || 0;
-            if (currency < item.cost) { setNotification(t.purchaseFail); return; }
-            const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
+            // Buying for self → add to inventory with quantity counter
+            const giftCounts = userData?.inventory?.giftCounts || {};
+            const currentCount = giftCounts[item.id] || 0;
             try {
                 await usersCollection.doc(user.uid).update({
                     currency: firebase.firestore.FieldValue.increment(-item.cost),
-                    'inventory.gifts': firebase.firestore.FieldValue.arrayUnion(item.id)
+                    'inventory.gifts': firebase.firestore.FieldValue.arrayUnion(item.id),
+                    [`inventory.giftCounts.${item.id}`]: currentCount + 1,
                 });
                 playSound('success');
                 const giftName = lang === 'ar' ? item.name_ar : item.name_en;
@@ -1033,7 +1061,7 @@ function App() {
             playSound('success');
             setNotification(t.purchaseSuccess);
         } catch (error) { }
-    }, [user, userData, isLoggedIn, t, handleSendGiftToUser]);
+    }, [user, userData, isLoggedIn, t, lang, handleSendGiftToUser]);
 
     // 👑 شراء VIP من الشوب
     const handleBuyVIP = useCallback(async () => {
@@ -1197,7 +1225,7 @@ function App() {
             )}
 
             <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} />
-            <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={handleSendGiftToUser} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
+            <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
             <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} />
 
             {showMyAccount && currentUID && (
