@@ -108,6 +108,9 @@ const VIP_CONFIG = [
         exclusiveGifts: false,
         vipDailyTasks: false,
         exclusiveForm: false,
+        // 🎁 VIP Items — عناصر تُضاف للإنفنتري عند الشراء وتختفي لما VIP ينتهي
+        // مثال: [{ id: 'frame_vip1_gold', type: 'frames' }, { id: 'badge_vip1_star', type: 'badges' }]
+        vipItems: [],  // ← VIP 1 أضف هنا عناصر المستوى الأول
         benefits_en: ['1.2× XP Multiplier', 'VIP Badge'],
         benefits_ar: ['مضاعف XP × 1.2', 'بادج VIP'],
     },
@@ -123,6 +126,8 @@ const VIP_CONFIG = [
         exclusiveGifts: true,         // 🎁 هدايا حصرية من هنا
         vipDailyTasks: true,          // ✅ تفعيل Daily Tasks VIP
         exclusiveForm: false,
+        // 🎁 VIP Items Level 2 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip2', type: 'frames' }]
         benefits_en: ['1.3× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.3', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -138,6 +143,8 @@ const VIP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
+        // 🎁 VIP Items Level 3 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip3', type: 'frames' }]
         benefits_en: ['1.4× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.4', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -153,6 +160,8 @@ const VIP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
+        // 🎁 VIP Items Level 4 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip4', type: 'frames' }]
         benefits_en: ['1.5× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.5', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -168,6 +177,8 @@ const VIP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
+        // 🎁 VIP Items Level 5 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip5', type: 'frames' }]
         benefits_en: ['1.6× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.6', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -184,6 +195,8 @@ const VIP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
+        // 🎁 VIP Items Level 6 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip6', type: 'frames' }]
         benefits_en: ['1.7× XP', 'Gold Name Glow', 'Custom 6-Digit ID', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.7', 'توهج اسم ذهبي', 'ID مخصص 6 أرقام', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -199,6 +212,8 @@ const VIP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
+        // 🎁 VIP Items Level 7 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip7', type: 'frames' }]
         benefits_en: ['1.8× XP', 'Gold Name Glow', 'Custom 5-Digit ID', 'Exclusive Gifts'],
         benefits_ar: ['مضاعف XP × 1.8', 'توهج اسم ذهبي', 'ID مخصص 5 أرقام', 'هدايا حصرية'],
     },
@@ -214,6 +229,8 @@ const VIP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
+        // 🎁 VIP Items Level 8 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip8', type: 'frames' }]
         benefits_en: ['1.9× XP', 'Gold Name Glow', 'Custom 4-Digit ID', 'Exclusive Gifts'],
         benefits_ar: ['مضاعف XP × 1.9', 'توهج اسم ذهبي', 'ID مخصص 4 أرقام', 'هدايا حصرية'],
     },
@@ -230,6 +247,8 @@ const VIP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
+        // 🎁 VIP Items Level 9 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip9', type: 'frames' }]
         benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 3-Digit ID', 'Exclusive Gifts'],
         benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص 3 أرقام', 'هدايا حصرية'],
     },
@@ -245,6 +264,8 @@ const VIP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: true,          // 📋 فورم هدايا مخصصة
+        // 🎁 VIP Items Level 10 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip10', type: 'frames' }]
         benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 2-Digit ID', 'Exclusive Gifts', 'Custom Gift Request'],
         benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص رقمين', 'هدايا حصرية', 'طلب هدية مخصصة'],
     },
@@ -609,16 +630,38 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
     const [showInfoModal, setShowInfoModal]       = useState(false);
     const [showBadgePopup, setShowBadgePopup]     = useState(false);
     const [customIdEnabled, setCustomIdEnabled]   = useState(userData?.vip?.customIdEnabled || false);
-    // VIP 10 custom ID request states
+    // VIP custom ID request states
     const [desiredId, setDesiredId]               = useState('');
     const [idCheckStatus, setIdCheckStatus]       = useState(null); // null | 'checking' | 'taken' | 'available'
     const [idRequestSending, setIdRequestSending] = useState(false);
+    // ✅ Pending request listener — يتابع حالة الطلب في real-time
+    const [pendingRequest, setPendingRequest]     = useState(null); // null | { status, adminNote, desiredId }
+    const [seenRequestId, setSeenRequestId]       = useState(null); // last request we've shown result for
 
     const totalVIPXP  = userData?.vip?.xp || 0;
     const level       = getVIPLevel(userData);
     const cfg         = level ? VIP_CONFIG[level - 1] : null;
     const customIdLen = getVIPCustomIdLength(userData);
     const xpInfo      = getVIPXPProgress(totalVIPXP);
+
+    // ✅ Real-time listener على آخر طلب ID للمستخدم
+    useEffect(() => {
+        if (!user || !level || !customIdLen) return;
+        const unsub = vip10IdRequestsCollection
+            .where('uid', '==', user.uid)
+            .orderBy('createdAt', 'desc')
+            .limit(1)
+            .onSnapshot(snap => {
+                if (!snap.empty) {
+                    const doc = snap.docs[0];
+                    const data = { id: doc.id, ...doc.data() };
+                    setPendingRequest(data);
+                } else {
+                    setPendingRequest(null);
+                }
+            }, () => {});
+        return unsub;
+    }, [user?.uid, level]);
 
     // For VIP 6-9: random toggle (keep as before)
     const toggleCustomId = async () => {
@@ -950,8 +993,69 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div style={{ fontSize:'10px', color:'#fbbf24', fontWeight:700, textAlign:'center', padding:'6px' }}>
-                                        ⏳ {lang === 'ar' ? 'يمكنك الطلب مرة كل شهر — طلبك قيد المراجعة' : 'You can request once per month — request under review'}
+                                    /* ✅ Real-time Request Status Box */
+                                    <div style={{
+                                        borderRadius:'10px', padding:'12px',
+                                        background: pendingRequest?.status === 1
+                                            ? 'rgba(74,222,128,0.08)'
+                                            : pendingRequest?.status === 2
+                                            ? 'rgba(248,113,113,0.08)'
+                                            : 'rgba(251,191,36,0.07)',
+                                        border: `1px solid ${
+                                            pendingRequest?.status === 1 ? 'rgba(74,222,128,0.35)'
+                                            : pendingRequest?.status === 2 ? 'rgba(248,113,113,0.35)'
+                                            : 'rgba(251,191,36,0.3)'
+                                        }`,
+                                        display:'flex', flexDirection:'column', gap:'6px'
+                                    }}>
+                                        {/* Status row */}
+                                        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                                            <span style={{ fontSize:'18px' }}>
+                                                {pendingRequest?.status === 1 ? '✅' : pendingRequest?.status === 2 ? '❌' : '⏳'}
+                                            </span>
+                                            <div>
+                                                <div style={{ fontSize:'11px', fontWeight:800, color:
+                                                    pendingRequest?.status === 1 ? '#4ade80'
+                                                    : pendingRequest?.status === 2 ? '#f87171' : '#fbbf24'
+                                                }}>
+                                                    {pendingRequest?.status === 1
+                                                        ? (lang === 'ar' ? 'تم قبول طلبك!' : 'Request Approved!')
+                                                        : pendingRequest?.status === 2
+                                                        ? (lang === 'ar' ? 'تم رفض طلبك' : 'Request Rejected')
+                                                        : (lang === 'ar' ? 'طلبك قيد المراجعة…' : 'Request under review…')
+                                                    }
+                                                </div>
+                                                {pendingRequest?.desiredId && (
+                                                    <div style={{ fontSize:'10px', color:'#9ca3af', marginTop:'2px' }}>
+                                                        {lang === 'ar' ? 'الـ ID المطلوب:' : 'Requested ID:'}{' '}
+                                                        <span style={{ color:'#fbbf24', fontWeight:700, letterSpacing:'2px' }}>
+                                                            {pendingRequest.desiredId}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {/* Admin note */}
+                                        {pendingRequest?.adminNote && (
+                                            <div style={{
+                                                background:'rgba(255,255,255,0.04)', borderRadius:'7px',
+                                                padding:'8px 10px', borderLeft:'3px solid #60a5fa',
+                                                fontSize:'11px', color:'#e2e8f0', lineHeight:1.5
+                                            }}>
+                                                <span style={{ fontSize:'9px', color:'#60a5fa', fontWeight:800, display:'block', marginBottom:'2px' }}>
+                                                    {lang === 'ar' ? '📋 رسالة من الإدارة:' : '📋 Admin Note:'}
+                                                </span>
+                                                {pendingRequest.adminNote}
+                                            </div>
+                                        )}
+                                        {!pendingRequest?.adminNote && pendingRequest?.status === 0 && (
+                                            <div style={{ fontSize:'9px', color:'#6b7280', textAlign:'center' }}>
+                                                {lang === 'ar' ? 'في انتظار رد من المسؤولين…' : 'Waiting for admin response…'}
+                                            </div>
+                                        )}
+                                        <div style={{ fontSize:'9px', color:'#6b7280', textAlign:'center', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'5px' }}>
+                                            {lang === 'ar' ? 'يمكنك الطلب مرة واحدة في الشهر' : 'You can request once per month'}
+                                        </div>
                                     </div>
                                 )}
                             </div>
