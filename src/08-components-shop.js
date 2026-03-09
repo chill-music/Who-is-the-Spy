@@ -472,7 +472,15 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
 
     const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
     const equipped = userData?.equipped || {};
-    const getOwnedItems = (type) => { const ownedIds = inventory[type] || []; return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || []; };
+    const giftCounts = inventory.giftCounts || {};
+    const getOwnedItems = (type) => {
+        const ownedIds = inventory[type] || [];
+        if (type === 'gifts') {
+            // Only show gifts that still have count > 0
+            return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id) && (giftCounts[item.id] || 0) > 0) || [];
+        }
+        return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || [];
+    };
     const isEquipped = (item) => { if (item.type === 'badges') { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.includes(item.id) : equipped.badges === item.id; } return equipped[item.type] === item.id; };
     const getEquippedBadgeCount = () => { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.length : (equipped.badges ? 1 : 0); };
 
@@ -505,7 +513,18 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                     {ownedItems.map(item => {
                                         const equippedItem = isEquipped(item);
                                         if (activeTab === 'gifts') return (
-                                            <div key={item.id} className="inventory-item">
+                                            <div key={item.id} className="inventory-item" style={{ position:'relative' }}>
+                                                {/* Quantity badge */}
+                                                {(giftCounts[item.id] || 0) > 0 && (
+                                                    <div style={{
+                                                        position:'absolute', top:'3px', right:'3px',
+                                                        background:'linear-gradient(135deg,#7c3aed,#a855f7)',
+                                                        color:'#fff', fontWeight:900, fontSize:'9px',
+                                                        padding:'1px 5px', borderRadius:'8px',
+                                                        boxShadow:'0 0 6px rgba(124,58,237,0.5)',
+                                                        zIndex:1,
+                                                    }}>×{giftCounts[item.id]}</div>
+                                                )}
                                                 <div className="inventory-item-preview">{renderPreview(item)}</div>
                                                 <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
                                                 <button
@@ -560,3 +579,6 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
         </>
     );
 };
+
+// 👤 USER PROFILE MODAL - WITH GIFT LOG
+// Blocked User Item Component
