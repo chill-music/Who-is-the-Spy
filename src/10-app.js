@@ -337,6 +337,23 @@ function App() {
         return unsubAuth;
     }, []);
 
+    // ✅ Auto-check achievements whenever relevant stats change (e.g. manual Firestore update)
+    useEffect(() => {
+        if (!isLoggedIn || !user || !userData) return;
+        checkAndUnlockAchievements(userData);
+    }, [
+        userData?.stats?.wins,
+        userData?.stats?.losses,
+        userData?.stats?.spy_wins,
+        userData?.stats?.agent_wins,
+        userData?.stats?.win_streak,
+        userData?.giftsReceived,
+        userData?.giftsSent,
+        userData?.charisma,
+        userData?.friends?.length,
+        userData?.loginRewards?.streak,
+        userData?.loginRewards?.totalClaims,
+    ]);
     useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && isLoggedIn) setShowTutorial(true); }, [isLoggedIn]);
     useEffect(() => {
         if (!user || isGuest) return;
