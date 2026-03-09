@@ -38,7 +38,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
         return <span style={{fontSize:'18px'}}>🎨</span>;
     };
 
-    // Tabs — تبويبات الشوب
+    // Tabs — تبويبات الشوب (هدايا VIP مدمجة مع تاب الهدايا)
     const tabs = [
         { id: 'vip',           label: '👑 VIP',   icon: '👑' },
         { id: 'gifts',         label: t.gifts,    icon: '🎁' },
@@ -47,11 +47,15 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
         { id: 'badges',        label: t.badges,   icon: '🏅' },
         { id: 'profileEffects',label: lang === 'ar' ? 'تأثيرات' : 'Effects', icon: '✨' },
     ];
-    if (hasVIPExclusiveGifts(userData)) {
-        tabs.splice(2, 0, { id: 'gifts_vip', label: '🎁 VIP', icon: '💎' });
-    }
 
-    const getTabItems = (tab) => (SHOP_ITEMS[tab] || []).filter(item => !item.hidden);
+    const getTabItems = (tab) => {
+        if (tab === 'gifts') {
+            const regular  = (SHOP_ITEMS.gifts     || []).filter(item => !item.hidden);
+            const vipGifts = (SHOP_ITEMS.gifts_vip || []).filter(item => !item.hidden && item.vipExclusive !== false);
+            return [...regular, ...vipGifts];
+        }
+        return (SHOP_ITEMS[tab] || []).filter(item => !item.hidden);
+    };
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -283,7 +287,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                     {activeTab !== 'vip' && (
                         <div style={{
                             display:'grid',
-                            gridTemplateColumns: (activeTab === 'gifts' || activeTab === 'gifts_vip')
+                            gridTemplateColumns: activeTab === 'gifts'
                                 ? 'repeat(auto-fill, minmax(80px, 1fr))'
                                 : 'repeat(auto-fill, minmax(100px, 1fr))',
                             gap:'8px'
@@ -295,48 +299,81 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                 const isLimited   = item.limitedTime;
                                 const isEventOnly = item.eventOnly;
 
-                                if (activeTab === 'gifts' || activeTab === 'gifts_vip') {
+                                if (activeTab === 'gifts') {
+                                    const isVIPGift    = item.type === 'gifts_vip';
+                                    const vipRequired  = item.vipMinLevel || 0;
+                                    const isVIPLocked  = isVIPGift && vipLevel < vipRequired;
+                                    const isVIPMaxGift = isVIPGift && vipRequired >= 10;
                                     const rKey   = getGiftRarity(item.cost);
                                     const rarity = RARITY_CONFIG[rKey];
+                                    const vipCfg        = vipRequired > 0 ? VIP_CONFIG[vipRequired - 1] : null;
+                                    const vipGlowColor  = vipCfg ? vipCfg.nameColor : '#7c3aed';
+                                    const cardBorder    = isVIPGift ? `1.5px solid ${vipGlowColor}88` : `1.5px solid ${rarity.border}`;
+                                    const cardBg        = isVIPGift && !isVIPLocked ? `linear-gradient(135deg, ${vipGlowColor}11, rgba(15,15,26,0.97))` : rarity.bg;
+                                    const cardShadow    = isVIPGift && !isVIPLocked
+                                        ? (isVIPMaxGift ? `0 0 14px ${vipGlowColor}99, 0 0 28px ${vipGlowColor}44` : `0 0 8px ${vipGlowColor}66`)
+                                        : (rarity.glow && rKey==='Mythic' ? '0 0 14px rgba(255,0,85,0.7)' : rarity.glow ? `0 0 8px ${rarity.color}55` : 'none');
                                     return (
                                         <div
                                             key={item.id}
-                                            onClick={() => { if (!isEventOnly) { setSelectedItem(item); setShowPreview(true); } }}
+                                            onClick={() => { if (!isEventOnly && !isVIPLocked) { setSelectedItem(item); setShowPreview(true); } }}
                                             style={{
-                                                position:'relative', cursor: isEventOnly ? 'default' : 'pointer',
-                                                border:`1.5px solid ${rarity.border}`,
-                                                background: rarity.bg,
-                                                boxShadow: rarity.glow && rKey==='Mythic'
-                                                    ? '0 0 14px rgba(255,0,85,0.7)'
-                                                    : rarity.glow ? `0 0 8px ${rarity.color}55` : 'none',
+                                                position:'relative', cursor: (isEventOnly || isVIPLocked) ? 'default' : 'pointer',
+                                                border: cardBorder, background: cardBg, boxShadow: cardShadow,
                                                 borderRadius:'10px', padding:'8px 4px',
-                                                display:'flex',flexDirection:'column',
-                                                alignItems:'center',justifyContent:'center',
+                                                display:'flex', flexDirection:'column',
+                                                alignItems:'center', justifyContent:'center',
                                                 minHeight:'80px',
-                                                opacity: isEventOnly ? 0.65 : 1,
-                                                animation: rKey==='Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none',
+                                                opacity: (isEventOnly || isVIPLocked) ? 0.65 : 1,
+                                                animation: (isVIPMaxGift && !isVIPLocked) ? 'mythic-pulse 2s ease-in-out infinite'
+                                                    : (rKey==='Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none'),
                                                 transition:'transform 0.15s',
                                             }}
-                                            onMouseEnter={e => { if (!isEventOnly) e.currentTarget.style.transform='scale(1.04)'; }}
+                                            onMouseEnter={e => { if (!isEventOnly && !isVIPLocked) e.currentTarget.style.transform='scale(1.04)'; }}
                                             onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}
                                         >
                                             <span style={{position:'absolute',top:'2px',left:'2px',fontSize:'8px'}}>{rarity.icon}</span>
                                             {isEventItem && <span className="shop-event-tag">⚡</span>}
                                             {isLimited   && <span className="shop-limited-tag">⏳</span>}
+                                            {/* VIP badge tag */}
+                                            {isVIPGift && (
+                                                <span style={{
+                                                    position:'absolute', top:'2px', right:'2px',
+                                                    fontSize:'7px', fontWeight:900,
+                                                    background: vipGlowColor, color:'#000',
+                                                    padding:'1px 4px', borderRadius:'4px',
+                                                    boxShadow: isVIPMaxGift ? `0 0 8px ${vipGlowColor}` : 'none',
+                                                    animation: isVIPMaxGift ? 'mythic-pulse 2s ease-in-out infinite' : 'none'
+                                                }}>
+                                                    VIP {vipRequired}
+                                                </span>
+                                            )}
                                             {item.imageUrl
                                                 ? <img src={item.imageUrl} alt="" style={{width:'28px',height:'28px',objectFit:'contain',marginBottom:'3px'}}/>
                                                 : <span style={{fontSize:'24px',lineHeight:1,marginBottom:'3px'}}>{item.emoji}</span>
                                             }
                                             <div style={{fontSize:'9px',fontWeight:700,color:'#fbbf24'}}>{item.cost.toLocaleString()}🧠</div>
                                             <div style={{fontSize:'8px',color:'#9ca3af'}}>+{formatCharisma(item.charisma)}⭐</div>
-                                            {/* VIP XP gain */}
                                             <div style={{fontSize:'7px',color:'#7c3aed',fontWeight:700,marginTop:'1px'}}>
                                                 +{getGiftVIPXP(item)} VXP
                                             </div>
-                                            {isEventOnly && (
+                                            {/* Lock overlay for VIP locked gifts */}
+                                            {isVIPLocked && (
                                                 <div style={{
-                                                    position:'absolute',inset:0,background:'rgba(0,0,0,0.5)',
-                                                    borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center'
+                                                    position:'absolute', inset:0,
+                                                    background:'rgba(0,0,0,0.55)', borderRadius:'8px',
+                                                    display:'flex', flexDirection:'column',
+                                                    alignItems:'center', justifyContent:'center', gap:'2px'
+                                                }}>
+                                                    <span style={{fontSize:'16px'}}>🔒</span>
+                                                    <span style={{fontSize:'7px', color: vipGlowColor, fontWeight:800}}>VIP {vipRequired}+</span>
+                                                </div>
+                                            )}
+                                            {/* Event only overlay */}
+                                            {isEventOnly && !isVIPLocked && (
+                                                <div style={{
+                                                    position:'absolute', inset:0, background:'rgba(0,0,0,0.5)',
+                                                    borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center'
                                                 }}>
                                                     <span style={{fontSize:'18px'}}>🔒</span>
                                                 </div>
