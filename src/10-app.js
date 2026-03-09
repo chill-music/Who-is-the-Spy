@@ -1107,7 +1107,7 @@ function App() {
             )}
 
             <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
-            <LoginRewards show={showLoginRewards} onClose={() => setShowLoginRewards(false)} userData={userData} onClaim={handleClaimLoginReward} lang={lang} />
+            <LoginRewards show={showLoginRewards} onClose={() => setShowLoginRewards(false)} userData={userData} onClaim={handleClaimLoginReward} lang={lang} onOpenInventory={() => { setShowLoginRewards(false); setShowInventory(true); }} />
 
             {showSummary && room && (
                 <div className="modal-overlay" onClick={() => setShowSummary(false)}>
@@ -1215,6 +1215,7 @@ function App() {
                     user={user}
                     lang={lang}
                     onNotification={setNotification}
+                    onOpenInventory={() => { setShowFunPass(false); setShowInventory(true); }}
                 />
             )}
 
