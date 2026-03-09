@@ -306,12 +306,12 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
     // Tier visual config
     const TIER_STYLE = {
         1: { color: '#9ca3af',  glow: false, label: TRANSLATIONS[lang]?.achTier1 || 'Bronze' },
-        2: { color: '#d1d5db',  glow: false, label: TRANSLATIONS[lang]?.achTier2 || 'Silver' },
-        3: { color: '#ef4444',  glow: true,  label: TRANSLATIONS[lang]?.achTier3 || 'Legendary' },
+        2: { color: '#60a5fa',  glow: false, label: TRANSLATIONS[lang]?.achTier2 || 'Silver' },   // ✨ Blue
+        3: { color: '#fbbf24',  glow: true,  label: TRANSLATIONS[lang]?.achTier3 || 'Legendary' }, // ✨ Yellow/Gold
         // ✨ Tier 4 → Divine (Celestial Cyan)
         4: { color: '#00d4ff',  glow: true,  label: TRANSLATIONS[lang]?.achTier4 || 'Divine', ultimate: true, isDivine: true },
     };
-    const TIER_DOT_COLOR = { 1: '#78716c', 2: '#d1d5db', 3: '#ef4444', 4: '#00d4ff' };
+    const TIER_DOT_COLOR = { 1: '#78716c', 2: '#60a5fa', 3: '#fbbf24', 4: '#00d4ff' };
 
     // Group achievements by group field
     const groups = React.useMemo(() => {
