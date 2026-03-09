@@ -667,6 +667,17 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
         return unsub;
     }, [user?.uid, level]);
 
+    // ✅ Auto-apply customId when admin approves request (status = 1)
+    useEffect(() => {
+        if (!pendingRequest || pendingRequest.status !== 1 || !user) return;
+        // Only apply if the desired ID isn't already set
+        const desiredIdToApply = pendingRequest.desiredId;
+        if (!desiredIdToApply || userData?.customId === desiredIdToApply) return;
+        // Apply the approved ID
+        usersCollection.doc(user.uid).update({ customId: desiredIdToApply, 'vip.customIdEnabled': true })
+            .catch(e => console.warn('Auto-apply ID failed:', e));
+    }, [pendingRequest?.status, pendingRequest?.desiredId, user?.uid]);
+
     // For VIP 6-9: random toggle (keep as before)
     const toggleCustomId = async () => {
         if (!user || !customIdLen || level === 10) return;
@@ -923,9 +934,9 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                                         {lang === 'ar' ? 'الـ ID الحالي:' : 'Current ID:'} <span style={{color:'#fbbf24', fontWeight:700}}>{userData.customId}</span>
                                     </div>
                                 )}
-                                {/* ✅ Show status box if there's ANY request (pending/approved/rejected)
-                                    Show form only if no request this month */}
-                                {pendingRequest ? (
+                                {/* ✅ Show form when no pending request (or after approved/rejected + new month)
+                                    Show status box when request is pending/active */}
+                                {!pendingRequest ? (
                                     <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                                         <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
                                             <input
@@ -1025,10 +1036,10 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                                                     : pendingRequest?.status === 2 ? '#f87171' : '#fbbf24'
                                                 }}>
                                                     {pendingRequest?.status === 1
-                                                        ? (lang === 'ar' ? 'تم قبول طلبك!' : 'Request Approved!')
+                                                        ? (lang === 'ar' ? '✅ تم قبول طلبك وتطبيق الـ ID!' : '✅ Request Approved & Applied!')
                                                         : pendingRequest?.status === 2
-                                                        ? (lang === 'ar' ? 'تم رفض طلبك' : 'Request Rejected')
-                                                        : (lang === 'ar' ? 'طلبك قيد المراجعة…' : 'Request under review…')
+                                                        ? (lang === 'ar' ? '❌ تم رفض طلبك' : '❌ Request Rejected')
+                                                        : (lang === 'ar' ? '⏳ طلبك قيد المراجعة…' : '⏳ Request under review…')
                                                     }
                                                 </div>
                                                 {pendingRequest?.desiredId && (
@@ -1058,6 +1069,19 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                                             <div style={{ fontSize:'9px', color:'#6b7280', textAlign:'center' }}>
                                                 {lang === 'ar' ? 'في انتظار رد من المسؤولين…' : 'Waiting for admin response…'}
                                             </div>
+                                        )}
+                                        {/* If rejected: allow new request */}
+                                        {(pendingRequest?.status === 2) && canRequestIdThisMonth() && (
+                                            <button
+                                                onClick={() => { setDesiredId(''); setIdCheckStatus(null); }}
+                                                style={{
+                                                    padding:'6px', borderRadius:'7px', fontSize:'11px', fontWeight:700,
+                                                    background:'rgba(96,165,250,0.15)', color:'#60a5fa',
+                                                    border:'1px solid rgba(96,165,250,0.3)', cursor:'pointer'
+                                                }}
+                                            >
+                                                {lang === 'ar' ? '🔄 طلب ID جديد' : '🔄 Request New ID'}
+                                            </button>
                                         )}
                                         <div style={{ fontSize:'9px', color:'#6b7280', textAlign:'center', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'5px' }}>
                                             {lang === 'ar' ? 'يمكنك الطلب مرة واحدة في الشهر' : 'You can request once per month'}
