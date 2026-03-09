@@ -308,9 +308,10 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
         1: { color: '#9ca3af',  glow: false, label: TRANSLATIONS[lang]?.achTier1 || 'Bronze' },
         2: { color: '#d1d5db',  glow: false, label: TRANSLATIONS[lang]?.achTier2 || 'Silver' },
         3: { color: '#ef4444',  glow: true,  label: TRANSLATIONS[lang]?.achTier3 || 'Legendary' },
-        4: { color: '#ff0055',  glow: true,  label: TRANSLATIONS[lang]?.achTier4 || 'Ultimate',  ultimate: true },
+        // ✨ Tier 4 → Divine (Celestial Cyan)
+        4: { color: '#00d4ff',  glow: true,  label: TRANSLATIONS[lang]?.achTier4 || 'Divine', ultimate: true, isDivine: true },
     };
-    const TIER_DOT_COLOR = { 1: '#78716c', 2: '#d1d5db', 3: '#ef4444', 4: '#ff0055' };
+    const TIER_DOT_COLOR = { 1: '#78716c', 2: '#d1d5db', 3: '#ef4444', 4: '#00d4ff' };
 
     // Group achievements by group field
     const groups = React.useMemo(() => {
@@ -385,7 +386,7 @@ const AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                                     : 'none',
                                 padding:'10px 8px',
                                 display:'flex', flexDirection:'column', alignItems:'center', gap:'5px',
-                                animation: ts.ultimate && isUnlocked ? 'mythic-pulse 2.5s ease-in-out infinite' : 'none',
+                                animation: ts.isDivine && isUnlocked ? 'divine-aura 3s ease-in-out infinite' : ts.ultimate && isUnlocked ? 'mythic-pulse 2.5s ease-in-out infinite' : 'none',
                                 opacity: isUnlocked ? 1 : 0.5,
                             }}
                             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
