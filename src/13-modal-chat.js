@@ -93,23 +93,12 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                     <div className="chat-header-bar">
                         <div
                             onClick={() => handleOpenProfile(friend.uid)}
-                            style={{ cursor: 'pointer' }}
+                            style={{ cursor: 'pointer', flex:1, minWidth:0 }}
                         >
-                            <AvatarWithFrame
-                                photoURL={friend.photoURL}
-                                equipped={friend.equipped}
-                                size="sm"
-                            />
+                            <PlayerNameTag player={friend} lang={lang} size="sm" />
                         </div>
-                        <div
-                            className="chat-header-info"
-                            onClick={() => handleOpenProfile(friend.uid)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <div className="chat-header-name">{friend.displayName}</div>
-                            <div className="chat-header-status">
-                                {isBlocked ? (lang === 'ar' ? 'محظور' : 'Blocked') : blockedByTarget ? (lang === 'ar' ? 'تم حظرك' : 'You are blocked') : t.online}
-                            </div>
+                        <div className="chat-header-status" style={{fontSize:'10px',color:'#9ca3af'}}>
+                            {isBlocked ? (lang === 'ar' ? 'محظور' : 'Blocked') : blockedByTarget ? (lang === 'ar' ? 'تم حظرك' : 'You are blocked') : t.online}
                         </div>
                         <button onClick={() => setShowGiftModal(true)} className="gift-chat-btn" disabled={isBlocked || blockedByTarget} title={t.sendGift}>🎁</button>
                         <ModalCloseBtn onClose={onClose} />
