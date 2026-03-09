@@ -354,6 +354,48 @@ function App() {
         userData?.loginRewards?.streak,
         userData?.loginRewards?.totalClaims,
     ]);
+
+    // ✅ VIP Expiry Check — يتحقق كل دقيقة إذا انتهت صلاحية الـ VIP
+    useEffect(() => {
+        if (!user || !isLoggedIn || !userData) return;
+        const checkVIPExpiry = async () => {
+            const vip = userData?.vip;
+            if (!vip?.isActive) return; // not active, nothing to do
+            const expiresAt = vip.expiresAt?.toDate?.();
+            if (!expiresAt) return;
+            if (new Date() < expiresAt) return; // still valid
+
+            // VIP expired — remove benefits but keep level/xp/customId
+            const levelCfg = VIP_CONFIG.find(v => v.level === getVIPLevelFromXP(vip.xp || 0));
+            const vipItems = levelCfg?.vipItems || [];
+
+            const updates = {
+                'vip.isActive': false,
+            };
+
+            // ✅ Remove vipItems from inventory (keep customId forever)
+            const inv = userData?.inventory || {};
+            for (const item of vipItems) {
+                if (item.type === 'frames') {
+                    const arr = (inv.frames || []).filter(id => id !== item.id);
+                    updates['inventory.frames'] = arr;
+                }
+                if (item.type === 'badges') {
+                    const arr = (inv.badges || []).filter(id => id !== item.id);
+                    updates['inventory.badges'] = arr;
+                }
+                if (item.type === 'titles') {
+                    const arr = (inv.titles || []).filter(id => id !== item.id);
+                    updates['inventory.titles'] = arr;
+                }
+            }
+
+            try { await usersCollection.doc(user.uid).update(updates); } catch(e) {}
+        };
+        checkVIPExpiry();
+        const interval = setInterval(checkVIPExpiry, 60000);
+        return () => clearInterval(interval);
+    }, [userData?.vip?.isActive, userData?.vip?.expiresAt, user, isLoggedIn]);
     useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && isLoggedIn) setShowTutorial(true); }, [isLoggedIn]);
     useEffect(() => {
         if (!user || isGuest) return;
@@ -782,10 +824,13 @@ function App() {
     const handleRejectRequest = useCallback(async (fromUid) => { if (!user || !isLoggedIn) return; await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); }, [user, isLoggedIn]);
 
     // 🎁 GIFT FUNCTIONS - NO CASHBACK, BONUS FOR RECEIVER ONLY
-    const handleSendGiftToUser = useCallback(async (gift, targetUser) => {
+    const handleSendGiftToUser = useCallback(async (gift, targetUser, qty = 1) => {
         const currency = userData?.currency || 0;
-        if (currency < gift.cost) return;
+        const totalCost = gift.cost * qty;
+        if (currency < totalCost) return;
 
+        // ✅ For multi-qty: send qty times
+        const sendOnce = async () => {
         // ✅ Generate bonus for RECEIVER only
         const minBonus = gift.minBonus || 1;
         const maxBonus = gift.maxBonus || Math.floor(gift.cost * 0.1);
@@ -916,8 +961,6 @@ function App() {
                 );
             }
 
-            playGiftSound();
-            setNotification(`${t.giftSent}!`);
             // ✅ Mission: giftsSent + giftsSent stat for achievements
             await incrementMissionProgress('giftsSent', 1);
             await usersCollection.doc(user.uid).update({
@@ -929,11 +972,22 @@ function App() {
                     giftsReceived: firebase.firestore.FieldValue.increment(1)
                 });
             } else {
-                // self gift counts as received too
                 await usersCollection.doc(user.uid).update({
                     giftsReceived: firebase.firestore.FieldValue.increment(1)
                 });
             }
+        }; // end sendOnce
+
+        try {
+            // ✅ Send qty times (for multi-quantity support)
+            for (let i = 0; i < qty; i++) {
+                await sendOnce();
+            }
+            // ✅ Gift sound removed — only notification toast
+            setNotification(qty > 1
+                ? `🎁 ${t.giftSent} ×${qty}!`
+                : `🎁 ${t.giftSent}!`
+            );
             // ✅ Check achievements after gifting
             const updDoc = await usersCollection.doc(user.uid).get();
             if (updDoc.exists) await checkAndUnlockAchievements(updDoc.data());
@@ -942,7 +996,7 @@ function App() {
     }, [userData, user, t, createNotification, lang, incrementMissionProgress, checkAndUnlockAchievements]);
 
     // Shop Functions
-    const handlePurchase = useCallback(async (item, targetUser = null) => {
+    const handlePurchase = useCallback(async (item, targetUser = null, qty = 1) => {
         if (!user || !isLoggedIn) { setShowLoginAlert(true); return; }
         const currency = userData?.currency || 0;
         if (currency < item.cost) { setNotification(t.purchaseFail); return; }
@@ -952,7 +1006,7 @@ function App() {
             // ✅ FIX: if targetUser is specified (send to friend) → keep old flow
             // If buying for self (no target or target=self) → add to inventory instead of instant charisma
             if (targetUser && targetUser.uid !== 'self' && targetUser.uid !== user?.uid) {
-                await handleSendGiftToUser(item, targetUser);
+                await handleSendGiftToUser(item, targetUser, qty || 1);
                 return;
             }
             // Buying for self → add to inventory
@@ -991,14 +1045,36 @@ function App() {
             return;
         }
         try {
-            await usersCollection.doc(user.uid).update({
-                currency: firebase.firestore.FieldValue.increment(-VIP_SHOP_COST),
-                'vip.xp':  firebase.firestore.FieldValue.increment(VIP_SHOP_XP),
-            });
+            // ✅ Subscription: 30 days from now
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 30);
+
+            // ✅ Get current VIP level + vipItems for that level
+            const currentXP  = (userData?.vip?.xp || 0) + VIP_SHOP_XP;
+            const newLevel   = getVIPLevelFromXP(currentXP);
+            const levelCfg   = VIP_CONFIG.find(v => v.level === newLevel);
+            const vipItems   = levelCfg?.vipItems || [];
+
+            const updates = {
+                currency:        firebase.firestore.FieldValue.increment(-VIP_SHOP_COST),
+                'vip.xp':        firebase.firestore.FieldValue.increment(VIP_SHOP_XP),
+                'vip.isActive':  true,
+                'vip.expiresAt': firebase.firestore.Timestamp.fromDate(expiresAt),
+                'vip.purchasedAt': firebase.firestore.FieldValue.serverTimestamp(),
+            };
+
+            // ✅ Add vipItems to inventory
+            for (const item of vipItems) {
+                if (item.type === 'frames')  updates['inventory.frames']  = firebase.firestore.FieldValue.arrayUnion(item.id);
+                if (item.type === 'badges')  updates['inventory.badges']  = firebase.firestore.FieldValue.arrayUnion(item.id);
+                if (item.type === 'titles')  updates['inventory.titles']  = firebase.firestore.FieldValue.arrayUnion(item.id);
+            }
+
+            await usersCollection.doc(user.uid).update(updates);
             playSound('success');
             setNotification(lang === 'ar'
-                ? `👑 تم شراء VIP! +${VIP_SHOP_XP.toLocaleString()} VIP XP`
-                : `👑 VIP Purchased! +${VIP_SHOP_XP.toLocaleString()} VIP XP`
+                ? `👑 تم شراء VIP! +${VIP_SHOP_XP.toLocaleString()} XP — صالح 30 يوم`
+                : `👑 VIP Purchased! +${VIP_SHOP_XP.toLocaleString()} XP — Valid 30 days`
             );
         } catch(e) {
             setNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
