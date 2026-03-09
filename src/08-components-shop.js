@@ -3,6 +3,11 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedItem, setSelectedItem] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
+    // ✅ Gift filter state
+    const [giftSort, setGiftSort] = useState('default'); // 'default' | 'price_asc' | 'price_desc'
+    const [giftRarityFilter, setGiftRarityFilter] = useState('all'); // 'all' | 'Common' | 'Rare' | 'Epic' | 'Legendary' | 'Mythic'
+    const [giftVIPOnly, setGiftVIPOnly] = useState(false);
+    const [showGiftFilter, setShowGiftFilter] = useState(false);
 
     if (!show) return null;
 
@@ -11,6 +16,16 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     const equipped     = userData?.equipped  || {};
     const vipLevel     = getVIPLevel(userData);
     const vipXpInfo    = getVIPXPProgress(userData?.vip?.xp || 0);
+
+    // ✅ VIP days remaining
+    const vipExpiresAt = userData?.vip?.expiresAt;
+    const vipDaysLeft = (() => {
+        if (!vipExpiresAt) return null;
+        const expDate = vipExpiresAt.toDate ? vipExpiresAt.toDate() : new Date(vipExpiresAt);
+        const now = new Date();
+        const diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+        return diff > 0 ? diff : 0;
+    })();
 
     const isOwned  = (item) => inventory[item.type]?.includes(item.id);
     const isEquipped = (item) => {
@@ -52,7 +67,27 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
         if (tab === 'gifts') {
             const regular  = (SHOP_ITEMS.gifts     || []).filter(item => !item.hidden);
             const vipGifts = (SHOP_ITEMS.gifts_vip || []).filter(item => !item.hidden && item.vipExclusive !== false);
-            return [...regular, ...vipGifts];
+            let items = giftVIPOnly ? vipGifts : [...regular, ...vipGifts];
+            // Rarity filter
+            if (giftRarityFilter !== 'all') {
+                items = items.filter(item => {
+                    const rKey = item.type === 'gifts_vip' ? 'Legendary' : getGiftRarity(item.cost);
+                    return rKey === giftRarityFilter;
+                });
+            }
+            // Sort
+            if (giftSort === 'price_desc') items = [...items].sort((a,b) => b.cost - a.cost);
+            else if (giftSort === 'price_asc') items = [...items].sort((a,b) => a.cost - b.cost);
+            else {
+                // Default: sort by rarity priority
+                const RARITY_ORDER = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
+                items = [...items].sort((a,b) => {
+                    const rA = RARITY_ORDER.indexOf(a.type==='gifts_vip'?'Legendary':getGiftRarity(a.cost));
+                    const rB = RARITY_ORDER.indexOf(b.type==='gifts_vip'?'Legendary':getGiftRarity(b.cost));
+                    return rA - rB || a.cost - b.cost;
+                });
+            }
+            return items;
         }
         return (SHOP_ITEMS[tab] || []).filter(item => !item.hidden);
     };
@@ -209,14 +244,58 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 
                                 {/* Price + Buy button */}
                                 {vipLevel >= 1 ? (
-                                    <div style={{
-                                        display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',
-                                        padding:'10px',borderRadius:'10px',
-                                        background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)'
-                                    }}>
-                                        <span style={{color:'#4ade80',fontWeight:800,fontSize:'14px'}}>
-                                            ✅ {lang==='ar'?'لديك VIP بالفعل!':'You already have VIP!'}
-                                        </span>
+                                    <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+                                        {/* ✅ Days remaining display */}
+                                        {vipDaysLeft !== null && (
+                                            <div style={{
+                                                display:'flex', alignItems:'center', justifyContent:'space-between',
+                                                padding:'8px 12px', borderRadius:'8px',
+                                                background: vipDaysLeft <= 5 ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.08)',
+                                                border: `1px solid ${vipDaysLeft <= 5 ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.25)'}`,
+                                            }}>
+                                                <span style={{fontSize:'11px', color: vipDaysLeft <= 5 ? '#f87171' : '#4ade80', fontWeight:700}}>
+                                                    {vipDaysLeft <= 5 ? '⚠️' : '✅'} {lang==='ar'
+                                                        ? `${vipDaysLeft} يوم متبقي`
+                                                        : `${vipDaysLeft} days remaining`}
+                                                </span>
+                                                {vipDaysLeft <= 10 && (
+                                                    <span style={{fontSize:'9px',color:'#6b7280'}}>
+                                                        {lang==='ar'?'قريباً ينتهي':'Expiring soon'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                        <div style={{
+                                            display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',
+                                            padding:'10px',borderRadius:'10px',
+                                            background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)'
+                                        }}>
+                                            <span style={{color:'#4ade80',fontWeight:800,fontSize:'14px'}}>
+                                                ✅ {lang==='ar'?'لديك VIP بالفعل!':'You already have VIP!'}
+                                            </span>
+                                        </div>
+                                        {/* ✅ Renewal button */}
+                                        <button
+                                            onClick={onBuyVIP}
+                                            disabled={currency < 50000}
+                                            style={{
+                                                width:'100%',padding:'10px',borderRadius:'10px',
+                                                background: currency >= 50000
+                                                    ? 'linear-gradient(135deg,#7c3aed,#a855f7)'
+                                                    : 'rgba(100,100,100,0.2)',
+                                                border: currency >= 50000
+                                                    ? '1px solid rgba(167,139,250,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                                                color: currency >= 50000 ? '#fff' : '#6b7280',
+                                                fontWeight:800, fontSize:'13px', cursor: currency >= 50000 ? 'pointer' : 'default',
+                                                boxShadow: currency >= 50000 ? '0 0 16px rgba(167,139,250,0.4)' : 'none',
+                                                transition:'all 0.2s'
+                                            }}
+                                        >
+                                            {currency >= 50000
+                                                ? `🔄 ${lang==='ar'?'تجديد +30 يوم':'Renew +30 days'} — 50,000 🧠`
+                                                : `❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠`
+                                            }
+                                        </button>
                                     </div>
                                 ) : (
                                     <button
@@ -285,6 +364,93 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 
                     {/* ════ ITEMS GRID ════ */}
                     {activeTab !== 'vip' && (
+                        <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+
+                        {/* ✅ Gift filter panel — only for gifts tab */}
+                        {activeTab === 'gifts' && (
+                            <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                                <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                    <button
+                                        onClick={() => setShowGiftFilter(p => !p)}
+                                        style={{
+                                            display:'flex',alignItems:'center',gap:'4px',
+                                            padding:'4px 10px',borderRadius:'7px',fontSize:'10px',fontWeight:700,
+                                            background: showGiftFilter ? 'rgba(0,242,255,0.12)' : 'rgba(255,255,255,0.06)',
+                                            border: showGiftFilter ? '1px solid rgba(0,242,255,0.3)' : '1px solid rgba(255,255,255,0.1)',
+                                            color: showGiftFilter ? '#00f2ff' : '#9ca3af', cursor:'pointer'
+                                        }}
+                                    >
+                                        🔍 {lang==='ar'?'فلتر':'Filter'}
+                                        {(giftRarityFilter !== 'all' || giftVIPOnly || giftSort !== 'default') && (
+                                            <span style={{
+                                                background:'#ef4444',color:'#fff',borderRadius:'50%',
+                                                width:'14px',height:'14px',fontSize:'8px',fontWeight:900,
+                                                display:'flex',alignItems:'center',justifyContent:'center'
+                                            }}>!</span>
+                                        )}
+                                    </button>
+                                    {/* Quick sort buttons */}
+                                    {['default','price_asc','price_desc'].map(s => (
+                                        <button key={s} onClick={() => setGiftSort(s)} style={{
+                                            padding:'4px 8px',borderRadius:'6px',fontSize:'9px',fontWeight:700,
+                                            background: giftSort===s ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)',
+                                            border: giftSort===s ? '1px solid rgba(251,191,36,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                                            color: giftSort===s ? '#fbbf24' : '#6b7280', cursor:'pointer'
+                                        }}>
+                                            {s==='default'?(lang==='ar'?'افتراضي':'Default'):s==='price_asc'?'↑ '+( lang==='ar'?'سعر':'Price'):'↓ '+(lang==='ar'?'سعر':'Price')}
+                                        </button>
+                                    ))}
+                                </div>
+                                {showGiftFilter && (
+                                    <div style={{
+                                        background:'rgba(0,0,0,0.25)',border:'1px solid rgba(255,255,255,0.07)',
+                                        borderRadius:'10px',padding:'10px',display:'flex',flexDirection:'column',gap:'8px'
+                                    }}>
+                                        {/* Rarity filter */}
+                                        <div>
+                                            <div style={{fontSize:'9px',color:'#6b7280',fontWeight:700,marginBottom:'4px'}}>
+                                                {lang==='ar'?'🎨 اللون/النادرية':'🎨 Rarity'}
+                                            </div>
+                                            <div style={{display:'flex',flexWrap:'wrap',gap:'4px'}}>
+                                                {['all','Common','Uncommon','Rare','Epic','Legendary','Mythic'].map(r => {
+                                                    const rc = RARITY_CONFIG[r] || {};
+                                                    return (
+                                                        <button key={r} onClick={() => setGiftRarityFilter(r)} style={{
+                                                            padding:'3px 8px',borderRadius:'6px',fontSize:'9px',fontWeight:700,cursor:'pointer',
+                                                            background: giftRarityFilter===r ? (rc.bg||'rgba(0,242,255,0.15)') : 'rgba(255,255,255,0.04)',
+                                                            border: giftRarityFilter===r ? `1px solid ${rc.border||'#00f2ff'}` : '1px solid rgba(255,255,255,0.08)',
+                                                            color: giftRarityFilter===r ? (rc.color||'#00f2ff') : '#6b7280',
+                                                        }}>
+                                                            {r==='all'?(lang==='ar'?'الكل':'All'):(rc.icon||'')+' '+(lang==='ar'?(RARITY_CONFIG[r]?.name_ar||r):(RARITY_CONFIG[r]?.name_en||r))}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                        {/* VIP only toggle */}
+                                        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                            <button onClick={() => setGiftVIPOnly(p => !p)} style={{
+                                                padding:'4px 10px',borderRadius:'7px',fontSize:'10px',fontWeight:700,cursor:'pointer',
+                                                background: giftVIPOnly ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.05)',
+                                                border: giftVIPOnly ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                                                color: giftVIPOnly ? '#ef4444' : '#6b7280'
+                                            }}>
+                                                👑 {lang==='ar'?'هدايا VIP فقط':'VIP Gifts Only'}
+                                            </button>
+                                            {(giftRarityFilter !== 'all' || giftVIPOnly || giftSort !== 'default') && (
+                                                <button onClick={() => { setGiftRarityFilter('all'); setGiftVIPOnly(false); setGiftSort('default'); }} style={{
+                                                    padding:'4px 8px',borderRadius:'6px',fontSize:'9px',fontWeight:700,cursor:'pointer',
+                                                    background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',color:'#f87171'
+                                                }}>
+                                                    ✕ {lang==='ar'?'مسح الفلاتر':'Clear'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <div style={{
                             display:'grid',
                             gridTemplateColumns: activeTab === 'gifts'
@@ -434,29 +600,31 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                 );
                             })}
                         </div>
+                        </div> {/* end filter+grid wrapper */}
                     )}
                 </div>
-
-                {/* Gift Preview Modal */}
-                {showPreview && selectedItem && (
-                    <GiftPreviewModal
-                        show={showPreview}
-                        onClose={() => setShowPreview(false)}
-                        gift={selectedItem}
-                        lang={lang}
-                        onBuy={(item, target) => {
-                            if (currency >= item.cost) {
-                                onPurchase(item, target);
-                                setShowPreview(false);
-                            }
-                        }}
-                        currency={currency}
-                        friendsData={[]}
-                        user={{ uid: userData?.uid }}
-                        currentUserData={userData}
-                    />
-                )}
             </div>
+
+            {/* ✅ Gift Preview Modal — rendered outside modal-content to avoid z-index/overflow issues */}
+            {showPreview && selectedItem && ReactDOM.createPortal(
+                <GiftPreviewModal
+                    show={showPreview}
+                    onClose={() => setShowPreview(false)}
+                    gift={selectedItem}
+                    lang={lang}
+                    onBuy={(item, target) => {
+                        if (currency >= item.cost) {
+                            onPurchase(item, target);
+                            setShowPreview(false);
+                        }
+                    }}
+                    currency={currency}
+                    friendsData={[]}
+                    user={{ uid: userData?.uid }}
+                    currentUserData={userData}
+                />,
+                document.body
+            )}
         </div>
     );
 };
