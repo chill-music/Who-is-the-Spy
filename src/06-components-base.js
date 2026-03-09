@@ -51,24 +51,41 @@ const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
     const neededForNext = nextLevel ? nextLevel.threshold - (charisma || 0) : 0;
     const isMaxLevel = currentLevel.isMaxLevel;
     const hasGlow = currentLevel.hasGlow;
+    const isDivine = currentLevel.isDivine; // ✨ Level 21 — Divine style
 
     const renderIcon = () => {
         if (currentLevel.iconType === 'image' && currentLevel.iconUrl) {
-            return <img src={currentLevel.iconUrl} alt="level" className={`w-5 h-5 ${hasGlow ? 'animate-pulse' : ''}`} style={hasGlow ? {filter: 'drop-shadow(0 0 8px #ff6600)'} : {}} />;
+            return <img src={currentLevel.iconUrl} alt="level" className={`w-5 h-5 ${hasGlow ? 'animate-pulse' : ''}`} style={isDivine ? {filter:'drop-shadow(0 0 8px #00d4ff) drop-shadow(0 0 16px rgba(0,212,255,0.5))'} : hasGlow ? {filter: 'drop-shadow(0 0 8px #ff6600)'} : {}} />;
         }
         return <span className="charisma-icon">{currentLevel.icon}</span>;
     };
 
     return (
-        <div className={`charisma-container ${hasGlow ? 'has-glow' : ''}`}>
+        <div className={`charisma-container ${hasGlow ? 'has-glow' : ''} ${isDivine ? 'has-divine' : ''}`}
+            style={isDivine ? {boxShadow:'0 0 20px rgba(0,212,255,0.25), 0 0 40px rgba(0,212,255,0.1)', border:'1px solid rgba(0,212,255,0.2)', borderRadius:'10px', padding:'4px'} : {}}>
             <div className="charisma-header">
                 <span className="charisma-label">{renderIcon()}{t.charisma}</span>
-                <span className={`charisma-level-badge ${currentLevel.badge_class} ${hasGlow ? 'glow-badge' : ''}`} style={hasGlow ? {boxShadow: '0 0 15px ' + currentLevel.color} : {}}>{renderIcon()} Lv.{currentLevel.level}</span>
+                <span
+                    className={`charisma-level-badge ${currentLevel.badge_class} ${hasGlow ? 'glow-badge' : ''}`}
+                    style={isDivine
+                        ? {boxShadow:'0 0 15px rgba(0,212,255,0.7)', border:'1.5px solid rgba(0,212,255,0.7)', color:'#00d4ff', background:'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))'}
+                        : hasGlow ? {boxShadow: '0 0 15px ' + currentLevel.color} : {}}
+                >
+                    {renderIcon()} Lv.{currentLevel.level}
+                    {isDivine && <span style={{fontSize:'8px', marginLeft:'2px', animation:'divine-aura 3s ease-in-out infinite'}}>✦</span>}
+                </span>
             </div>
-            <div className="charisma-bar-bg"><div className="charisma-bar-fill" style={{ width: `${progress}%` }}></div></div>
+            <div className="charisma-bar-bg">
+                <div className="charisma-bar-fill" style={{
+                    width: `${progress}%`,
+                    background: isDivine ? 'linear-gradient(90deg,#00d4ff,#7c3aed,#00d4ff)' : undefined,
+                    backgroundSize: isDivine ? '200% 100%' : undefined,
+                    animation: isDivine ? 'divine-bar-flow 3s linear infinite' : undefined,
+                }} />
+            </div>
             <div className="charisma-info">
-                <span className="charisma-current">{formatCharisma(charisma || 0)}</span>
-                {isMaxLevel ? <span className="charisma-next text-yellow-400 font-bold">{t.maxLevel}</span> : nextLevel && showDetails && <span className="charisma-next">{t.nextLevel}: {formatCharisma(neededForNext)}</span>}
+                <span className="charisma-current" style={isDivine ? {color:'#00d4ff'} : {}}>{formatCharisma(charisma || 0)}</span>
+                {isMaxLevel ? <span className="charisma-next" style={isDivine ? {color:'#00d4ff', fontWeight:'bold', textShadow:'0 0 8px rgba(0,212,255,0.8)'} : {color:'#ffd700', fontWeight:'bold'}}>{isDivine ? '✦ ' : ''}{t.maxLevel}</span> : nextLevel && showDetails && <span className="charisma-next">{t.nextLevel}: {formatCharisma(neededForNext)}</span>}
             </div>
         </div>
     );
