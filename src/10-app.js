@@ -1099,6 +1099,7 @@ function App() {
                     sessionClaimedToday={sessionClaimedToday}
                     onOpenLoginRewards={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}
                     currency={currentUserData?.currency || 0}
+                    onOpenProfile={(uid) => { setShowMyAccount(false); openProfile(uid); }}
                     onOpenChat={(target) => {
                         setShowMyAccount(false);
                         if (target === 'self') {
@@ -1123,6 +1124,7 @@ function App() {
                 currentUserFriendRequests={userData?.friendRequests}
                 friendsData={friendsData}
                 isGuest={isGuest}
+                onOpenProfile={(uid) => { setTargetProfileUID(uid); }}
                 onOpenChat={(friendData) => {
                     openPrivateChat(friendData);
                     setShowUserProfile(false);
@@ -1475,4 +1477,3 @@ function App() {
         </div>
     );
 }
-
