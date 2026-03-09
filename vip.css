@@ -36,7 +36,7 @@
     justify-content: center;
     border-radius: 5px;
     font-weight: 900;
-    font-size: 10px;
+    font-size: 12px;
     transition: transform 0.15s ease;
 }
 .vip-badge-icon:hover { transform: scale(1.15); }
@@ -195,4 +195,85 @@
 .profile-gift-log-avatar:hover {
     transform: scale(1.12);
     box-shadow: 0 0 8px rgba(0,242,255,0.5);
+}
+
+/* ══════════════════════════════════════════════════════════
+   ✨ VIP GIFT SPECIAL GLOWS — Aurora / Inferno / Cosmic / Godlike
+   ══════════════════════════════════════════════════════════ */
+
+/* ── AURORA (VIP 7) — شفق قطبي: أخضر/بنفسجي/فيروزي متموج ── */
+@keyframes aurora-shift {
+    0%   { box-shadow: 0 0 12px #00f5a0, 0 0 24px #00d9f5,  0 0 5px #7c3aed;  border-color: #00f5a0aa; }
+    33%  { box-shadow: 0 0 16px #7c3aed, 0 0 28px #00f5a0,  0 0 8px #00d9f5;  border-color: #7c3aedaa; }
+    66%  { box-shadow: 0 0 14px #00d9f5, 0 0 22px #7c3aed,  0 0 6px #00f5a0;  border-color: #00d9f5aa; }
+    100% { box-shadow: 0 0 12px #00f5a0, 0 0 24px #00d9f5,  0 0 5px #7c3aed;  border-color: #00f5a0aa; }
+}
+@keyframes aurora-bg {
+    0%   { background: linear-gradient(135deg, rgba(0,245,160,0.13),  rgba(0,217,245,0.08),  rgba(124,58,237,0.10)); }
+    33%  { background: linear-gradient(135deg, rgba(124,58,237,0.13), rgba(0,245,160,0.10),  rgba(0,217,245,0.08)); }
+    66%  { background: linear-gradient(135deg, rgba(0,217,245,0.13),  rgba(124,58,237,0.10), rgba(0,245,160,0.08)); }
+    100% { background: linear-gradient(135deg, rgba(0,245,160,0.13),  rgba(0,217,245,0.08),  rgba(124,58,237,0.10)); }
+}
+.glow-aurora {
+    animation: aurora-shift 3s ease-in-out infinite, aurora-bg 3s ease-in-out infinite !important;
+    border: 1.5px solid #00f5a0aa !important;
+}
+
+/* ── INFERNO (VIP 8) — جهنم: أحمر/برتقال/أصفر مشتعل ── */
+@keyframes inferno-blaze {
+    0%   { box-shadow: 0 0 14px #ff4500, 0 0 28px #ff8c00, 0 0 6px  #ffd700; border-color: #ff4500cc; }
+    25%  { box-shadow: 0 0 20px #ffd700, 0 0 36px #ff4500, 0 0 10px #ff8c00; border-color: #ffd700cc; }
+    50%  { box-shadow: 0 0 16px #ff8c00, 0 0 32px #ffd700, 0 0 8px  #ff4500; border-color: #ff8c00cc; }
+    75%  { box-shadow: 0 0 22px #ff4500, 0 0 40px #ff8c00, 0 0 12px #ffd700; border-color: #ff4500cc; }
+    100% { box-shadow: 0 0 14px #ff4500, 0 0 28px #ff8c00, 0 0 6px  #ffd700; border-color: #ff4500cc; }
+}
+@keyframes inferno-bg {
+    0%,100% { background: linear-gradient(135deg, rgba(255,69,0,0.15),  rgba(255,140,0,0.10), rgba(255,215,0,0.08)); }
+    50%      { background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,69,0,0.12),  rgba(255,140,0,0.10)); }
+}
+.glow-inferno {
+    animation: inferno-blaze 1.8s ease-in-out infinite, inferno-bg 1.8s ease-in-out infinite !important;
+    border: 1.5px solid #ff4500cc !important;
+}
+
+/* ── COSMIC (VIP 9) — فضاء: أزرق عميق/بنفسجي/أبيض pulse ── */
+@keyframes cosmic-pulse {
+    0%   { box-shadow: 0 0 10px #1e3a8a, 0 0 22px #6d28d9, 0 0 40px #1e3a8a44, 0 0 4px #ffffffaa; border-color: #6d28d9bb; }
+    33%  { box-shadow: 0 0 18px #6d28d9, 0 0 35px #1e3a8a, 0 0 60px #6d28d933, 0 0 8px #fff9;      border-color: #1e3a8abb; }
+    66%  { box-shadow: 0 0 14px #2563eb, 0 0 28px #7c3aed, 0 0 50px #2563eb33, 0 0 6px #fff8;       border-color: #2563ebbb; }
+    100% { box-shadow: 0 0 10px #1e3a8a, 0 0 22px #6d28d9, 0 0 40px #1e3a8a44, 0 0 4px #ffffffaa; border-color: #6d28d9bb; }
+}
+@keyframes cosmic-bg {
+    0%,100% { background: linear-gradient(135deg, rgba(30,58,138,0.18),  rgba(109,40,217,0.12), rgba(37,99,235,0.08)); }
+    50%      { background: linear-gradient(135deg, rgba(109,40,217,0.18), rgba(37,99,235,0.14),  rgba(30,58,138,0.10)); }
+}
+.glow-cosmic {
+    animation: cosmic-pulse 2.5s ease-in-out infinite, cosmic-bg 2.5s ease-in-out infinite !important;
+    border: 1.5px solid #6d28d9bb !important;
+}
+
+/* ── GODLIKE (VIP 10) — إله: rainbow shimmer نهائي ── */
+@keyframes godlike-rainbow {
+    0%   { box-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055aa, 0 0 60px #ff005533; border-color: #ff0055; }
+    16%  { box-shadow: 0 0 20px #ff8c00, 0 0 40px #ff8c00aa, 0 0 60px #ff8c0033; border-color: #ff8c00; }
+    33%  { box-shadow: 0 0 20px #ffd700, 0 0 40px #ffd700aa, 0 0 60px #ffd70033; border-color: #ffd700; }
+    50%  { box-shadow: 0 0 20px #00f5a0, 0 0 40px #00f5a0aa, 0 0 60px #00f5a033; border-color: #00f5a0; }
+    66%  { box-shadow: 0 0 20px #00d9f5, 0 0 40px #00d9f5aa, 0 0 60px #00d9f533; border-color: #00d9f5; }
+    83%  { box-shadow: 0 0 20px #b300ff,  0 0 40px #b300ffaa, 0 0 60px #b300ff33; border-color: #b300ff; }
+    100% { box-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055aa, 0 0 60px #ff005533; border-color: #ff0055; }
+}
+@keyframes godlike-bg {
+    0%   { background: linear-gradient(135deg, rgba(255,0,85,0.15),  rgba(255,140,0,0.10)); }
+    25%  { background: linear-gradient(135deg, rgba(0,245,160,0.15), rgba(0,217,245,0.10)); }
+    50%  { background: linear-gradient(135deg, rgba(179,0,255,0.15), rgba(255,215,0,0.10)); }
+    75%  { background: linear-gradient(135deg, rgba(0,217,245,0.15), rgba(255,0,85,0.10));  }
+    100% { background: linear-gradient(135deg, rgba(255,0,85,0.15),  rgba(255,140,0,0.10)); }
+}
+@keyframes godlike-scale {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.02); }
+}
+.glow-godlike {
+    animation: godlike-rainbow 2s linear infinite, godlike-bg 2s linear infinite, godlike-scale 2s ease-in-out infinite !important;
+    border: 2px solid #ff0055 !important;
 }
