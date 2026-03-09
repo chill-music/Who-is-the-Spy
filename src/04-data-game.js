@@ -64,6 +64,26 @@ const SHOP_ITEMS = {
         { id: 'frame_1', name_en: " Frame", name_ar: "إطار متحرك", cost: 0, type: 'frames', preview: 'https://i.ibb.co/4Rj8jzWS/0202.png' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        // ════ UNCOMMON ITEMS — لون أخضر ════
+        { id: 'frame_mint', name_en: "Mint Frame", name_ar: "إطار نعناعي", cost: 75, type: 'frames', rarity: 'Uncommon', preview: 'linear-gradient(45deg, #4ade80, #22d3ee)' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        // ════ FunPass Exclusive Frames — hidden in shop, from FunPass rewards ════
+        { id: 'fp_frame_neon',     name_en: "Neon Frame",     name_ar: "إطار نيون",        cost: 0, type: 'frames', rarity: 'Rare',      preview: 'linear-gradient(45deg,#00f2ff,#7000ff)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_star',     name_en: "Star Frame",     name_ar: "إطار نجمة",        cost: 0, type: 'frames', rarity: 'Epic',      preview: 'linear-gradient(45deg,#ffe066,#ff8800)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_crystal',  name_en: "Crystal Frame",  name_ar: "إطار كريستال",     cost: 0, type: 'frames', rarity: 'Epic',      preview: 'linear-gradient(45deg,#67e8f9,#a5f3fc)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_vortex',   name_en: "Vortex Frame",   name_ar: "إطار دوامة",       cost: 0, type: 'frames', rarity: 'Epic',      preview: 'linear-gradient(45deg,#818cf8,#a78bfa)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_gold',     name_en: "Gold Frame",     name_ar: "إطار ذهبي",        cost: 0, type: 'frames', rarity: 'Legendary', preview: 'linear-gradient(45deg,#ffd700,#ff8800)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_moon',     name_en: "Moon Frame",     name_ar: "إطار القمر",       cost: 0, type: 'frames', rarity: 'Legendary', preview: 'linear-gradient(45deg,#1e1b4b,#7c3aed)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_inferno',  name_en: "Inferno Frame",  name_ar: "إطار جهنم",        cost: 0, type: 'frames', rarity: 'Legendary', preview: 'linear-gradient(45deg,#ef4444,#f97316)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_thunder',  name_en: "Thunder Frame",  name_ar: "إطار الرعد",       cost: 0, type: 'frames', rarity: 'Legendary', preview: 'linear-gradient(45deg,#fbbf24,#1d4ed8)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_skull',    name_en: "Skull Frame",    name_ar: "إطار الجمجمة",     cost: 0, type: 'frames', rarity: 'Legendary', preview: 'linear-gradient(45deg,#111827,#374151)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_mystic',   name_en: "Mystic Frame",   name_ar: "إطار غامض",        cost: 0, type: 'frames', rarity: 'Legendary', preview: 'linear-gradient(45deg,#7c3aed,#4c1d95)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_rainbow',  name_en: "Rainbow Frame",  name_ar: "إطار قوس قزح",     cost: 0, type: 'frames', rarity: 'Legendary', preview: 'linear-gradient(90deg,#f87171,#fb923c,#fbbf24,#4ade80,#60a5fa,#c084fc)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_dark',     name_en: "Dark Frame",     name_ar: "إطار الظلام",      cost: 0, type: 'frames', rarity: 'Legendary', preview: 'linear-gradient(45deg,#030712,#111827)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_mythic',   name_en: "Mythic Frame",   name_ar: "إطار خرافي",       cost: 0, type: 'frames', rarity: 'Mythic',    preview: 'linear-gradient(45deg,#ff0055,#7c3aed)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_prism',    name_en: "Prism Frame",    name_ar: "إطار المنشور",     cost: 0, type: 'frames', rarity: 'Mythic',    preview: 'linear-gradient(90deg,#00d4ff,#ff0055,#00d4ff)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_void',     name_en: "Void Frame",     name_ar: "إطار الفراغ",      cost: 0, type: 'frames', rarity: 'Mythic',    preview: 'linear-gradient(45deg,#000000,#1e1b4b)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_phoenix',  name_en: "Phoenix Frame",  name_ar: "إطار الفينيكس",    cost: 0, type: 'frames', rarity: 'Mythic',    preview: 'linear-gradient(45deg,#dc2626,#fb923c)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_frame_nova',     name_en: "Nova Frame",     name_ar: "إطار النجم المتفجر", cost: 0, type: 'frames', rarity: 'Mythic', preview: 'linear-gradient(45deg,#fde68a,#fbbf24,#f59e0b)', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         // ══ SEASON EXCLUSIVE FRAMES ══
         // 🔧 لتغيير السيزون: غيّر season: '1' إلى '2' أو '3' إلخ
         { id: 'frame_s1_celestial', name_en: "Celestial Frame", name_ar: "إطار سماوي", cost: 0, type: 'frames', preview: 'linear-gradient(45deg,#00d4ff,#7c3aed,#00d4ff)', hidden: false, isEvent: false, limitedTime: true, eventOnly: true, durationDays: null, season: '1', rarity: 'Divine' },
@@ -82,6 +102,26 @@ const SHOP_ITEMS = {
         { id: 'title_legend', name_en: "Legend", name_ar: "أسطورة", cost: 1500, type: 'titles', preview: '👑', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'title_pro', name_en: "Pro Player", name_ar: "محترف", cost: 1000, type: 'titles', preview: '⭐', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'title_shadow', name_en: "Shadow", name_ar: "ظل", cost: 700, type: 'titles', preview: '', imageUrl: 'https://i.ibb.co/xqk8md71/122222.png' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        // ════ UNCOMMON TITLES ════
+        { id: 'title_rookie', name_en: "Rookie", name_ar: "مبتدئ", cost: 80, type: 'titles', rarity: 'Uncommon', preview: '🌱', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'title_scout', name_en: "Scout", name_ar: "كشاف", cost: 120, type: 'titles', rarity: 'Uncommon', preview: '🔭', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        // ════ FunPass Exclusive Titles — hidden in shop ════
+        { id: 'fp_title_agent',   name_en: "Agent",    name_ar: "عميل",          cost: 0, type: 'titles', rarity: 'Rare',      preview: '🕵️', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_star',    name_en: "Star",     name_ar: "نجمة",          cost: 0, type: 'titles', rarity: 'Epic',      preview: '🌟', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_warrior', name_en: "Warrior",  name_ar: "محارب",         cost: 0, type: 'titles', rarity: 'Epic',      preview: '⚔️', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_eye',     name_en: "The Eye",  name_ar: "العين",         cost: 0, type: 'titles', rarity: 'Epic',      preview: '👁️', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_shadow',  name_en: "Shadow",   name_ar: "الظل",          cost: 0, type: 'titles', rarity: 'Legendary', preview: '🌙', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_gold',    name_en: "Gold",     name_ar: "ذهبي",          cost: 0, type: 'titles', rarity: 'Legendary', preview: '🏅', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_ocean',   name_en: "Ocean",    name_ar: "المحيط",        cost: 0, type: 'titles', rarity: 'Legendary', preview: '🌊', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_king',    name_en: "King",     name_ar: "الملك",         cost: 0, type: 'titles', rarity: 'Legendary', preview: '👑', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_flame',   name_en: "Flame",    name_ar: "اللهب",         cost: 0, type: 'titles', rarity: 'Legendary', preview: '🔥', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_rainbow', name_en: "Rainbow",  name_ar: "قوس قزح",       cost: 0, type: 'titles', rarity: 'Legendary', preview: '🌈', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_watcher', name_en: "Watcher",  name_ar: "الراصد",        cost: 0, type: 'titles', rarity: 'Legendary', preview: '👁️', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_mystic',  name_en: "Mystic",   name_ar: "الغموض",        cost: 0, type: 'titles', rarity: 'Mythic',    preview: '🔮', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_prism',   name_en: "Prism",    name_ar: "المنشور",       cost: 0, type: 'titles', rarity: 'Mythic',    preview: '💠', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_void',    name_en: "Void",     name_ar: "الفراغ",        cost: 0, type: 'titles', rarity: 'Mythic',    preview: '🌀', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_phoenix', name_en: "Phoenix",  name_ar: "الفينيكس",      cost: 0, type: 'titles', rarity: 'Mythic',    preview: '🔥', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_title_god',     name_en: "GOD",      name_ar: "الإله",         cost: 0, type: 'titles', rarity: 'Mythic',    preview: '🔱', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         // ══ SEASON EXCLUSIVE TITLES ══
         // 🔧 لتغيير السيزون: غيّر season: '1' إلى '2' أو '3' إلخ
         { id: 'title_s1_pioneer', name_en: "Season Pioneer", name_ar: "رائد الموسم", cost: 0, type: 'titles', preview: '🌟', imageUrl: '', hidden: false, isEvent: false, limitedTime: true, eventOnly: true, durationDays: null, season: '1', rarity: 'Divine' },
@@ -95,6 +135,26 @@ const SHOP_ITEMS = {
         { id: 'badge_fire', name_en: "Fire Badge", name_ar: "شارة نار", cost: 1200, type: 'badges', preview: '🔥', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'badge_ice', name_en: "Ice Badge", name_ar: "شارة جليد", cost: 1200, type: 'badges', preview: '❄️', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'badge_diamond', name_en: "Diamond Badge", name_ar: "شارة ماسة", cost: 3000, type: 'badges', preview: '', imageUrl: 'https://i.ibb.co/ZR2rv0s3/awaw.png' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        // ════ UNCOMMON BADGES ════
+        { id: 'badge_leaf', name_en: "Leaf Badge", name_ar: "شارة الورقة", cost: 90, type: 'badges', rarity: 'Uncommon', preview: '🌿', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        // ════ FunPass Exclusive Badges — hidden in shop ════
+        { id: 'fp_badge_rookie',   name_en: "Rookie Badge",   name_ar: "شارة مبتدئ",       cost: 0, type: 'badges', rarity: 'Common',    preview: '🔰', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_speed',    name_en: "Speed Badge",    name_ar: "شارة السرعة",      cost: 0, type: 'badges', rarity: 'Common',    preview: '⚡', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_diamond',  name_en: "Diamond Badge",  name_ar: "شارة ألماس",       cost: 0, type: 'badges', rarity: 'Epic',      preview: '💎', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_fire',     name_en: "Fire Badge",     name_ar: "شارة النار",       cost: 0, type: 'badges', rarity: 'Epic',      preview: '🔥', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_sniper',   name_en: "Sniper Badge",   name_ar: "شارة القناص",      cost: 0, type: 'badges', rarity: 'Epic',      preview: '🎯', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_legend',   name_en: "Legend Badge",   name_ar: "شارة أسطورية",     cost: 0, type: 'badges', rarity: 'Legendary', preview: '⭐', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_galaxy',   name_en: "Galaxy Badge",   name_ar: "شارة المجرة",      cost: 0, type: 'badges', rarity: 'Legendary', preview: '🌌', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_gold',     name_en: "Gold Badge",     name_ar: "شارة ذهبية",       cost: 0, type: 'badges', rarity: 'Legendary', preview: '🏅', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_thunder',  name_en: "Thunder Badge",  name_ar: "شارة الرعد",       cost: 0, type: 'badges', rarity: 'Legendary', preview: '⚡', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_mystic',   name_en: "Mystic Badge",   name_ar: "شارة غامضة",       cost: 0, type: 'badges', rarity: 'Legendary', preview: '🔮', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_blast',    name_en: "Blast Badge",    name_ar: "شارة الانفجار",    cost: 0, type: 'badges', rarity: 'Legendary', preview: '💥', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_dark',     name_en: "Dark Badge",     name_ar: "شارة الظلام",      cost: 0, type: 'badges', rarity: 'Legendary', preview: '🌑', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_arrow',    name_en: "Arrow Badge",    name_ar: "شارة السهم",       cost: 0, type: 'badges', rarity: 'Legendary', preview: '🏹', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_prism',    name_en: "Prism Badge",    name_ar: "شارة المنشور",     cost: 0, type: 'badges', rarity: 'Mythic',    preview: '💠', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_void',     name_en: "Void Badge",     name_ar: "شارة الفراغ",      cost: 0, type: 'badges', rarity: 'Mythic',    preview: '🌀', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_phoenix',  name_en: "Phoenix Badge",  name_ar: "شارة الفينيكس",    cost: 0, type: 'badges', rarity: 'Mythic',    preview: '🔥', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'fp_badge_nova',     name_en: "Nova Badge",     name_ar: "شارة النجم المتفجر", cost: 0, type: 'badges', rarity: 'Mythic', preview: '🌟', imageUrl: '', hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
     ],
     themes: [
         { id: 'theme_dark', name_en: "Midnight", name_ar: "منتصف الليل", cost: 200, type: 'themes' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
@@ -215,6 +275,7 @@ const getGiftRarity = (cost) => {
     if (cost >= 10000) return 'Mythic';
     if (cost >= 500)   return 'Legendary';
     if (cost >= 50)    return 'Epic';
+    if (cost >= 15)    return 'Uncommon';
     return 'Common';
 };
 
@@ -316,6 +377,63 @@ const EMOJI_LIST = Object.values(EMOJI_CATEGORIES).flat();
 const formatTime = (timestamp) => { if (!timestamp) return ''; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
 const formatCharisma = (num) => { if (num === undefined || num === null) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
 const maskEmail = (email) => { if (!email) return 'N/A'; const [localPart, domain] = email.split('@'); if (!domain) return email; const visibleChars = Math.min(2, localPart.length); return localPart.substring(0, visibleChars) + '***@' + domain; };
-const generateRandomBonus = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+// 🎯 SMART BONUS SYSTEM — بونص ذكي يراعي قيمة الهدية
+// ══════════════════════════════════════════════════════
+// 🔧 BONUS_CONFIG — عدّل القيم هنا لضبط السلوك:
+const BONUS_CONFIG = {
+    // الأوزان الرئيسية: [منخفض, متوسط, عالي, جاكبوت]
+    // الجمع = 1.0  (مثلاً: 70% + 18% + 9% + 3% = 100%)
+    ZONE_WEIGHTS: [0.70, 0.18, 0.09, 0.03],
+
+    // نطاقات كل منطقة كنسبة من maxBonus المعدَّل
+    ZONE_RANGES: [
+        [0.00, 0.08], // منخفض: 0-8% من maxBonus (70% من الوقت)
+        [0.08, 0.22], // متوسط: 8-22% (18% من الوقت)
+        [0.22, 0.50], // عالي: 22-50% (9% من الوقت)
+        [0.50, 1.00], // 🎰 جاكبوت: 50-100% (3% فقط!)
+    ],
+
+    // سقف البونص بحسب فئة سعر الهدية (كنسبة من maxBonus)
+    // كلما كانت الهدية أغلى، كلما قَلَّ السقف الطبيعي
+    GIFT_COST_CAP: [
+        { maxCost: 20,    cap: 1.00 }, // رخيصة جداً: كامل maxBonus
+        { maxCost: 100,   cap: 0.40 }, // رخيصة: 40% فقط من maxBonus
+        { maxCost: 500,   cap: 0.25 }, // متوسطة: 25% فقط
+        { maxCost: 2000,  cap: 0.15 }, // غالية: 15% فقط
+        { maxCost: 10000, cap: 0.10 }, // غالية جداً: 10% فقط
+        { maxCost: Infinity, cap: 0.06 }, // أسطورية: 6% فقط
+    ],
+
+    // استثناء الجاكبوت: يجتاز السقف دائماً؟ (true = نعم)
+    JACKPOT_BYPASSES_CAP: true,
+};
+
+const generateRandomBonus = (min, max, giftCost = 0) => {
+    const { ZONE_WEIGHTS, ZONE_RANGES, GIFT_COST_CAP, JACKPOT_BYPASSES_CAP } = BONUS_CONFIG;
+
+    // احسب السقف بناءً على سعر الهدية
+    const capEntry = GIFT_COST_CAP.find(e => giftCost <= e.maxCost) || GIFT_COST_CAP[GIFT_COST_CAP.length - 1];
+    const capFactor = capEntry.cap;
+
+    // اختيار المنطقة
+    const r = Math.random();
+    let zone = ZONE_WEIGHTS.length - 1;
+    let cumulative = 0;
+    for (let i = 0; i < ZONE_WEIGHTS.length; i++) {
+        cumulative += ZONE_WEIGHTS[i];
+        if (r < cumulative) { zone = i; break; }
+    }
+
+    const isJackpot = zone === ZONE_WEIGHTS.length - 1;
+    const [lo, hi] = ZONE_RANGES[zone];
+
+    // طبّق السقف على الجاكبوت أو لا؟
+    const effectiveMax = (isJackpot && JACKPOT_BYPASSES_CAP)
+        ? max
+        : Math.max(min, Math.floor(max * capFactor));
+
+    const range = effectiveMax - min;
+    return Math.max(min, Math.min(effectiveMax, Math.floor(min + range * (lo + Math.random() * (hi - lo)))));
+};
 
 // --- Translations ---
