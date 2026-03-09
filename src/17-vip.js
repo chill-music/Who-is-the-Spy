@@ -495,25 +495,34 @@ const VIPInfoModal = ({ onClose, lang }) => {
 
 // ════ VIP 10 EXCLUSIVE REQUEST FORM ════
 const VIP10RequestForm = ({ user, lang, onNotification }) => {
-    const [giftName, setGiftName]       = useState('');
-    const [giftShape, setGiftShape]     = useState('');
-    const [giftCharisma, setGiftCharisma] = useState('');
-    const [sending, setSending]         = useState(false);
+    const [giftName,    setGiftName]    = useState('');
+    const [giftImage,   setGiftImage]   = useState('');   // base64
+    const [giftEmail,   setGiftEmail]   = useState('');
+    const [luckyNumber, setLuckyNumber] = useState('');
+    const [sending,     setSending]     = useState(false);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => setGiftImage(ev.target.result);
+        reader.readAsDataURL(file);
+    };
 
     const handleSubmit = async () => {
         if (!giftName.trim() || !user) return;
         setSending(true);
         try {
-            await db.collection('artifacts').doc(appId).collection('public').doc('data')
-                .collection('vip10_requests').add({
-                    uid: user.uid,
-                    giftName: giftName.trim(),
-                    giftShape: giftShape.trim(),
-                    giftCharisma: parseInt(giftCharisma) || 0,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                });
+            await vip10RequestsCollection.add({
+                uid:         user.uid,
+                giftName:    giftName.trim(),
+                giftImage:   giftImage || '',
+                giftEmail:   giftEmail.trim(),
+                luckyNumber: parseInt(luckyNumber) || 0,
+                createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+            });
             onNotification(lang === 'ar' ? '✅ تم إرسال طلبك!' : '✅ Request sent!');
-            setGiftName(''); setGiftShape(''); setGiftCharisma('');
+            setGiftName(''); setGiftImage(''); setGiftEmail(''); setLuckyNumber('');
         } catch (e) {
             onNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
         }
@@ -530,25 +539,58 @@ const VIP10RequestForm = ({ user, lang, onNotification }) => {
                 👑 {lang === 'ar' ? 'طلب هدية مخصصة (VIP 10 فقط)' : 'Custom Gift Request (VIP 10 only)'}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* Gift Name */}
                 <input
                     className="input-dark"
                     placeholder={lang === 'ar' ? 'اسم الهدية' : 'Gift name'}
                     value={giftName} onChange={e => setGiftName(e.target.value)}
                     style={{ fontSize: '12px' }}
                 />
+
+                {/* Image Upload */}
+                <div>
+                    <label style={{ fontSize: '11px', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>
+                        🖼️ {lang === 'ar' ? 'صورة الهدية (اختياري)' : 'Gift image (optional)'}
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        style={{ fontSize: '11px', color: '#d1d5db', background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px',
+                            padding: '4px 6px', width: '100%', cursor: 'pointer' }}
+                    />
+                    {giftImage && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                            <img src={giftImage} alt="preview"
+                                style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.4)' }} />
+                            <button
+                                onClick={() => setGiftImage('')}
+                                style={{ fontSize: '10px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' }}>
+                                ✕ {lang === 'ar' ? 'حذف' : 'Remove'}
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Email */}
                 <input
                     className="input-dark"
-                    placeholder={lang === 'ar' ? 'وصف الشكل / الإيموجي' : 'Shape description / emoji'}
-                    value={giftShape} onChange={e => setGiftShape(e.target.value)}
+                    type="email"
+                    placeholder={lang === 'ar' ? 'بريدك الإلكتروني' : 'Your email'}
+                    value={giftEmail} onChange={e => setGiftEmail(e.target.value)}
                     style={{ fontSize: '12px' }}
                 />
+
+                {/* Lucky Number */}
                 <input
                     className="input-dark"
                     type="number"
-                    placeholder={lang === 'ar' ? 'الكاريزما المقترحة' : 'Suggested charisma value'}
-                    value={giftCharisma} onChange={e => setGiftCharisma(e.target.value)}
+                    placeholder={lang === 'ar' ? 'رقمك المحظوظ 🍀' : 'Your lucky number 🍀'}
+                    value={luckyNumber} onChange={e => setLuckyNumber(e.target.value)}
                     style={{ fontSize: '12px' }}
                 />
+
                 <button
                     onClick={handleSubmit}
                     disabled={sending || !giftName.trim()}
@@ -655,13 +697,14 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                     )}
                 </div>
 
-                {/* ── XP Progress Bar ── */}
+                {/* ── XP Progress Bar or CTA ── */}
+                {level > 0 ? (
                 <div>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'5px' }}>
                         <span style={{ fontSize:'11px', color:'#9ca3af' }}>
                             🔥 VIP XP
                         </span>
-                        <span style={{ fontSize:'11px', fontWeight:700, color: level ? barColor : '#7c3aed' }}>
+                        <span style={{ fontSize:'11px', fontWeight:700, color: barColor }}>
                             {totalVIPXP.toLocaleString()}
                             {level < 10 && (
                                 <span style={{ color:'#6b7280', fontWeight:400 }}>
@@ -686,7 +729,7 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                                     ? `linear-gradient(90deg, #eab308, #fbbf24)`
                                     : `linear-gradient(90deg, #7c3aed, ${barColor})`,
                             transition:'width 0.6s ease',
-                            boxShadow: level ? `0 0 8px ${barColor}88` : 'none',
+                            boxShadow: `0 0 8px ${barColor}88`,
                             animation: level >= 9 ? 'vip-shimmer 2s linear infinite' : 'none',
                             backgroundSize: level >= 9 ? '200% 100%' : 'auto'
                         }} />
@@ -697,7 +740,7 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                             {lang === 'ar' ? `المستوى ${level}` : `Level ${level}`}
                         </span>
                         {level < 10 ? (
-                            <span style={{ fontSize:'9px', color: level ? barColor : '#7c3aed' }}>
+                            <span style={{ fontSize:'9px', color: barColor }}>
                                 {lang === 'ar'
                                     ? `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP للمستوى ${nextLevel} 👑`
                                     : `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP to Level ${nextLevel} 👑`
@@ -710,8 +753,28 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                         )}
                     </div>
                 </div>
+                ) : (
+                /* No VIP — CTA to shop */
+                <div style={{
+                    textAlign:'center', padding:'12px 10px',
+                    background:'rgba(112,0,255,0.08)',
+                    border:'1px solid rgba(112,0,255,0.25)',
+                    borderRadius:'10px'
+                }}>
+                    <div style={{ fontSize:'22px', marginBottom:'6px' }}>🛒</div>
+                    <div style={{ fontSize:'12px', color:'#c4b5fd', fontWeight:700, marginBottom:'4px' }}>
+                        {lang === 'ar' ? 'اذهب للشوب لشراء VIP' : 'Go to Shop to buy VIP'}
+                    </div>
+                    <div style={{ fontSize:'10px', color:'#6b7280' }}>
+                        {lang === 'ar'
+                            ? 'احصل على اسم ملون، بادج حصري، ومميزات أكثر!'
+                            : 'Get a colored name, exclusive badge, and more!'}
+                    </div>
+                </div>
+                )}
 
-                {/* ── Tip: كل هدية تزيد XP ── */}
+                {/* ── Tip: كل هدية تزيد XP ── (تظهر فقط لو عنده VIP) */}
+                {level > 0 && (
                 <div style={{
                     fontSize:'10px', color:'#6b7280', textAlign:'center',
                     padding:'6px 10px', background:'rgba(255,255,255,0.03)',
@@ -721,6 +784,7 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                         ? 'أرسل هدايا لتحصل على VIP XP وترتفع لمستوى أعلى!'
                         : 'Send gifts to earn VIP XP and level up!'}
                 </div>
+                )}
 
                 {/* ── Level perks if active ── */}
                 {level > 0 && (
