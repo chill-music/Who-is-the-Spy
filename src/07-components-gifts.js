@@ -285,6 +285,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     // ✅ Combo system
     const [comboCount, setComboCount] = useState(0);
     const [comboActive, setComboActive] = useState(false);
+    const [comboTotalBonus, setComboTotalBonus] = useState(0); // cumulative bonus display
     const comboTimerRef = React.useRef(null);
     const isGiftItem = gift?.type === 'gifts' || gift?.type === 'gifts_vip';
 
@@ -296,6 +297,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
             setSelectedQty(1);
             setComboCount(0);
             setComboActive(false);
+            setComboTotalBonus(0);
             if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
             if (gift.minBonus && gift.maxBonus) {
                 setPreviewBonus(generateRandomBonus(gift.minBonus, gift.maxBonus));
@@ -311,18 +313,19 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
         const target = directTarget || (sendMode === 'self' ? { uid: 'self' } : selectedFriend);
         if (!target) return;
         if (currency < gift.cost) return;
-        // Trigger 1 gift immediately
+        // Trigger 1 gift
         if (onBuy) onBuy(gift, target, 1);
-        setComboCount(prev => {
-            const next = prev + 1;
-            return next;
-        });
+        // Simulate bonus for display (actual bonus calculated server-side)
+        const bonusSim = generateRandomBonus(gift.minBonus || 1, gift.maxBonus || Math.floor(gift.cost * 0.1));
+        setComboTotalBonus(prev => prev + bonusSim);
+        setComboCount(prev => prev + 1);
         setComboActive(true);
         // Reset combo after 1.8s of no taps
         if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
         comboTimerRef.current = setTimeout(() => {
             setComboActive(false);
             setComboCount(0);
+            setComboTotalBonus(0);
         }, 1800);
     };
 
@@ -589,26 +592,65 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                     <div style={{
                         padding:'8px 14px',
                         borderTop:'1px solid rgba(255,255,255,0.06)',
-                        display:'flex', flexDirection:'column', gap:'5px', alignItems:'center'
+                        display:'flex', flexDirection:'column', gap:'6px', alignItems:'center'
                     }}>
                         <div style={{ fontSize:'10px', color:'#9ca3af', fontWeight:600 }}>
                             {lang === 'ar' ? '⚡ كومبو — اضغط بسرعة لإرسال متتالي' : '⚡ Combo — tap fast for rapid send'}
                         </div>
+
+                        {/* Combo counter + bonus box */}
                         {comboCount > 0 && (
-                            <div style={{
-                                fontSize:'22px', fontWeight:900,
-                                color: comboCount >= 10 ? '#f59e0b' : comboCount >= 5 ? '#a78bfa' : '#00d4ff',
-                                animation: 'mythic-pulse 0.5s ease-in-out',
-                                textShadow: `0 0 20px currentColor`,
-                            }}>
-                                ×{comboCount} COMBO!
+                            <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                                {/* Combo counter */}
+                                <div style={{
+                                    fontSize:'20px', fontWeight:900,
+                                    color: comboCount >= 10 ? '#f59e0b' : comboCount >= 5 ? '#a78bfa' : '#00d4ff',
+                                    textShadow: `0 0 16px currentColor`,
+                                    minWidth:'80px', textAlign:'center',
+                                }}>
+                                    ×{comboCount} COMBO!
+                                </div>
+                                {/* Bonus box */}
+                                <div style={{
+                                    position:'relative',
+                                    background: comboTotalBonus >= 30000
+                                        ? 'linear-gradient(135deg,rgba(234,179,8,0.15),rgba(180,83,9,0.15))'
+                                        : 'rgba(255,255,255,0.06)',
+                                    border: comboTotalBonus >= 30000
+                                        ? '1px solid rgba(234,179,8,0.6)'
+                                        : '1px solid rgba(255,255,255,0.12)',
+                                    borderRadius:'10px',
+                                    padding:'6px 12px',
+                                    display:'flex', flexDirection:'column', alignItems:'center',
+                                    boxShadow: comboTotalBonus >= 30000
+                                        ? '0 0 20px rgba(234,179,8,0.5), 0 0 40px rgba(234,179,8,0.2)'
+                                        : 'none',
+                                    minWidth:'80px',
+                                }}>
+                                    <div style={{ fontSize:'8px', color: comboTotalBonus >= 30000 ? '#fbbf24' : '#9ca3af', fontWeight:700, marginBottom:'2px' }}>
+                                        {lang === 'ar' ? '🎁 مردود' : '🎁 BONUS'}
+                                    </div>
+                                    <div style={{
+                                        fontSize:'13px', fontWeight:900,
+                                        color: comboTotalBonus >= 30000 ? '#fbbf24' : '#4ade80',
+                                        textShadow: comboTotalBonus >= 30000 ? '0 0 12px #fbbf24' : 'none',
+                                    }}>
+                                        +{comboTotalBonus >= 1000 ? `${(comboTotalBonus/1000).toFixed(1)}k` : comboTotalBonus} 🧠
+                                    </div>
+                                    {comboTotalBonus >= 30000 && (
+                                        <div style={{ fontSize:'8px', color:'#f59e0b', fontWeight:800, animation:'mythic-pulse 1s ease-in-out infinite' }}>
+                                            ✨ {lang === 'ar' ? 'مردود ذهبي!' : 'GOLDEN BONUS!'}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
+
                         <button
                             onPointerDown={e => { e.preventDefault(); handleComboHit(); }}
                             disabled={currency < gift.cost}
                             style={{
-                                padding:'10px 24px',
+                                padding:'10px 30px',
                                 borderRadius:'12px',
                                 fontSize:'14px', fontWeight:900,
                                 border:'none', cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
@@ -621,9 +663,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                                 boxShadow: comboActive ? '0 0 24px rgba(245,158,11,0.7)' : '0 0 14px rgba(124,58,237,0.4)',
                                 transform: comboActive ? 'scale(0.95)' : 'scale(1)',
                                 transition:'all 0.1s',
-                                userSelect:'none',
-                                WebkitUserSelect:'none',
-                                touchAction:'manipulation',
+                                userSelect:'none', WebkitUserSelect:'none', touchAction:'manipulation',
                             }}
                         >
                             🎁 {lang === 'ar' ? 'اضغط!' : 'TAP!'}
