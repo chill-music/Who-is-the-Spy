@@ -71,9 +71,9 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
         inputRef.current?.focus();
     };
 
-    const handleSendGiftToChat = async (gift, targetUser) => {
+    const handleSendGiftToChat = async (gift, targetUser, qty = 1) => {
         if (!onSendGift || isBlocked || blockedByTarget) return;
-        await onSendGift(gift, targetUser);
+        await onSendGift(gift, targetUser, qty);
         setShowGiftModal(false);
     };
 
@@ -165,11 +165,18 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
                                         </div>
                                         {isGift ? (
                                             <div className="gift-message-content">
-                                                <div className="gift-message-icon">{msg.giftEmoji || '🎁'}</div>
-                                                <div className="gift-message-name">{msg.giftName || 'Gift'}</div>
+                                                {msg.giftImageUrl ? (
+                                                    <img src={msg.giftImageUrl} alt={msg.giftName} style={{width:'32px',height:'32px',objectFit:'contain',marginBottom:'2px'}} />
+                                                ) : (
+                                                    <div className="gift-message-icon">{msg.giftEmoji || '🎁'}</div>
+                                                )}
+                                                <div className="gift-message-name">
+                                                    {lang === 'ar' ? msg.giftNameAr : msg.giftNameEn || msg.giftName || 'Gift'}
+                                                </div>
                                                 <div className="gift-message-details">
                                                     <span className="gift-charisma-badge">+{formatCharisma(msg.giftCharisma)} ⭐</span>
                                                     {msg.giftBonus > 0 && <span className="gift-bonus-badge">+{msg.giftBonus} 🧠</span>}
+                                                    {msg.giftCost > 0 && <span style={{fontSize:'9px',color:'#6b7280'}}>{msg.giftCost}🧠</span>}
                                                 </div>
                                             </div>
                                         ) : <div className="chat-message-bubble">{msg.text}</div>}
@@ -242,4 +249,3 @@ const PrivateChatModal = ({ show, onClose, friend, currentUser, user, lang, onSe
 };
 
 // 📅 LOGIN REWARDS COMPONENT
-
