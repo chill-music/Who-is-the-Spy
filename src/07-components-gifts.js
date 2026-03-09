@@ -282,11 +282,15 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     const [previewBonus, setPreviewBonus] = useState(0);
     // ✅ Quantity system
     const [selectedQty, setSelectedQty] = useState(1);
-    // ✅ Combo system
+    // ✅ Combo system — redesigned with circular timer
     const [comboCount, setComboCount] = useState(0);
     const [comboActive, setComboActive] = useState(false);
-    const [comboTotalBonus, setComboTotalBonus] = useState(0); // cumulative bonus display
+    const [comboTotalBonus, setComboTotalBonus] = useState(0);
+    const [ringProgress, setRingProgress] = useState(0); // 0-1 for SVG ring
     const comboTimerRef = React.useRef(null);
+    const ringIntervalRef = React.useRef(null);
+    const ringStartRef = React.useRef(null);
+    const COMBO_DURATION = 3000; // 3 seconds
     const isGiftItem = gift?.type === 'gifts' || gift?.type === 'gifts_vip';
 
     useEffect(() => {
@@ -298,35 +302,61 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
             setComboCount(0);
             setComboActive(false);
             setComboTotalBonus(0);
+            setRingProgress(0);
             if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
+            if (ringIntervalRef.current) clearInterval(ringIntervalRef.current);
             if (gift.minBonus && gift.maxBonus) {
                 setPreviewBonus(generateRandomBonus(gift.minBonus, gift.maxBonus));
             }
         }
-        return () => { if (comboTimerRef.current) clearTimeout(comboTimerRef.current); };
+        return () => {
+            if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
+            if (ringIntervalRef.current) clearInterval(ringIntervalRef.current);
+        };
     }, [show, gift, directTarget]);
 
     if(!show || !gift) return null;
 
-    // ── Combo hit handler ──
+    // ── Combo hit handler — circular ring timer ──
     const handleComboHit = () => {
         const target = directTarget || (sendMode === 'self' ? { uid: 'self' } : selectedFriend);
         if (!target) return;
         if (currency < gift.cost) return;
         // Trigger 1 gift
         if (onBuy) onBuy(gift, target, 1);
-        // Simulate bonus for display (actual bonus calculated server-side)
+        // Simulate bonus for display
         const bonusSim = generateRandomBonus(gift.minBonus || 1, gift.maxBonus || Math.floor(gift.cost * 0.1));
         setComboTotalBonus(prev => prev + bonusSim);
         setComboCount(prev => prev + 1);
         setComboActive(true);
-        // Reset combo after 1.8s of no taps
+        setRingProgress(1); // reset ring to full on each tap
+
+        // Start ring countdown interval
+        if (ringIntervalRef.current) clearInterval(ringIntervalRef.current);
+        ringStartRef.current = Date.now();
+        ringIntervalRef.current = setInterval(() => {
+            const elapsed = Date.now() - ringStartRef.current;
+            const progress = 1 - (elapsed / COMBO_DURATION);
+            if (progress <= 0) {
+                clearInterval(ringIntervalRef.current);
+                setRingProgress(0);
+                setComboActive(false);
+                setComboCount(0);
+                setComboTotalBonus(0);
+            } else {
+                setRingProgress(progress);
+            }
+        }, 50);
+
+        // Safety fallback timeout
         if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
         comboTimerRef.current = setTimeout(() => {
+            if (ringIntervalRef.current) clearInterval(ringIntervalRef.current);
             setComboActive(false);
             setComboCount(0);
             setComboTotalBonus(0);
-        }, 1800);
+            setRingProgress(0);
+        }, COMBO_DURATION + 100);
     };
 
     // ── Quantity buy handler ──
@@ -598,76 +628,95 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             {lang === 'ar' ? '⚡ كومبو — اضغط بسرعة لإرسال متتالي' : '⚡ Combo — tap fast for rapid send'}
                         </div>
 
-                        {/* Combo counter + bonus box */}
+                        {/* Combo counter + bonus */}
                         {comboCount > 0 && (
                             <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                                {/* Combo counter */}
                                 <div style={{
-                                    fontSize:'20px', fontWeight:900,
+                                    fontSize:'18px', fontWeight:900,
                                     color: comboCount >= 10 ? '#f59e0b' : comboCount >= 5 ? '#a78bfa' : '#00d4ff',
-                                    textShadow: `0 0 16px currentColor`,
-                                    minWidth:'80px', textAlign:'center',
+                                    textShadow:`0 0 16px currentColor`,
+                                    minWidth:'70px', textAlign:'center',
+                                    animation: comboCount >= 5 ? 'mythic-pulse 0.6s ease-in-out infinite' : 'none'
                                 }}>
                                     ×{comboCount} COMBO!
                                 </div>
-                                {/* Bonus box */}
-                                <div style={{
-                                    position:'relative',
-                                    background: comboTotalBonus >= 30000
-                                        ? 'linear-gradient(135deg,rgba(234,179,8,0.15),rgba(180,83,9,0.15))'
-                                        : 'rgba(255,255,255,0.06)',
-                                    border: comboTotalBonus >= 30000
-                                        ? '1px solid rgba(234,179,8,0.6)'
-                                        : '1px solid rgba(255,255,255,0.12)',
-                                    borderRadius:'10px',
-                                    padding:'6px 12px',
-                                    display:'flex', flexDirection:'column', alignItems:'center',
-                                    boxShadow: comboTotalBonus >= 30000
-                                        ? '0 0 20px rgba(234,179,8,0.5), 0 0 40px rgba(234,179,8,0.2)'
-                                        : 'none',
-                                    minWidth:'80px',
-                                }}>
-                                    <div style={{ fontSize:'8px', color: comboTotalBonus >= 30000 ? '#fbbf24' : '#9ca3af', fontWeight:700, marginBottom:'2px' }}>
-                                        {lang === 'ar' ? '🎁 مردود' : '🎁 BONUS'}
-                                    </div>
+                                {comboTotalBonus > 0 && (
                                     <div style={{
-                                        fontSize:'13px', fontWeight:900,
-                                        color: comboTotalBonus >= 30000 ? '#fbbf24' : '#4ade80',
-                                        textShadow: comboTotalBonus >= 30000 ? '0 0 12px #fbbf24' : 'none',
+                                        background: comboTotalBonus >= 30000 ? 'linear-gradient(135deg,rgba(234,179,8,0.15),rgba(180,83,9,0.15))' : 'rgba(255,255,255,0.06)',
+                                        border: comboTotalBonus >= 30000 ? '1px solid rgba(234,179,8,0.6)' : '1px solid rgba(255,255,255,0.12)',
+                                        borderRadius:'10px', padding:'4px 10px',
+                                        display:'flex', flexDirection:'column', alignItems:'center',
+                                        boxShadow: comboTotalBonus >= 30000 ? '0 0 20px rgba(234,179,8,0.5)' : 'none',
+                                        minWidth:'70px',
                                     }}>
-                                        +{comboTotalBonus >= 1000 ? `${(comboTotalBonus/1000).toFixed(1)}k` : comboTotalBonus} 🧠
-                                    </div>
-                                    {comboTotalBonus >= 30000 && (
-                                        <div style={{ fontSize:'8px', color:'#f59e0b', fontWeight:800, animation:'mythic-pulse 1s ease-in-out infinite' }}>
-                                            ✨ {lang === 'ar' ? 'مردود ذهبي!' : 'GOLDEN BONUS!'}
+                                        <div style={{ fontSize:'7px', color: comboTotalBonus >= 30000 ? '#fbbf24' : '#9ca3af', fontWeight:700 }}>
+                                            {lang === 'ar' ? '🎁 مردود' : '🎁 BONUS'}
                                         </div>
-                                    )}
-                                </div>
+                                        <div style={{ fontSize:'12px', fontWeight:900, color: comboTotalBonus >= 30000 ? '#fbbf24' : '#4ade80' }}>
+                                            +{comboTotalBonus >= 1000 ? `${(comboTotalBonus/1000).toFixed(1)}k` : comboTotalBonus} 🧠
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
-                        <button
-                            onPointerDown={e => { e.preventDefault(); handleComboHit(); }}
-                            disabled={currency < gift.cost}
-                            style={{
-                                padding:'10px 30px',
-                                borderRadius:'12px',
-                                fontSize:'14px', fontWeight:900,
-                                border:'none', cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
-                                background: comboActive
-                                    ? 'linear-gradient(135deg,#f59e0b,#dc2626)'
-                                    : currency >= gift.cost
-                                    ? 'linear-gradient(135deg,#7c3aed,#a855f7)'
-                                    : 'rgba(100,100,100,0.2)',
-                                color: currency >= gift.cost ? '#fff' : '#6b7280',
-                                boxShadow: comboActive ? '0 0 24px rgba(245,158,11,0.7)' : '0 0 14px rgba(124,58,237,0.4)',
-                                transform: comboActive ? 'scale(0.95)' : 'scale(1)',
-                                transition:'all 0.1s',
-                                userSelect:'none', WebkitUserSelect:'none', touchAction:'manipulation',
-                            }}
-                        >
-                            🎁 {lang === 'ar' ? 'اضغط!' : 'TAP!'}
-                        </button>
+                        {/* ✅ Circular ring timer + tap button */}
+                        {(() => {
+                            const RING_R = 38;
+                            const RING_C = 2 * Math.PI * RING_R;
+                            const ringColor = comboCount >= 10 ? '#f59e0b' : comboCount >= 5 ? '#a78bfa' : '#00d4ff';
+                            return (
+                                <div style={{position:'relative', width:'96px', height:'96px', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                                    {/* SVG Ring */}
+                                    <svg width="96" height="96" style={{position:'absolute', top:0, left:0, transform:'rotate(-90deg)'}}>
+                                        <circle cx="48" cy="48" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5"/>
+                                        {comboActive && (
+                                            <circle
+                                                cx="48" cy="48" r={RING_R} fill="none"
+                                                stroke={ringColor}
+                                                strokeWidth="5"
+                                                strokeDasharray={RING_C}
+                                                strokeDashoffset={RING_C * (1 - ringProgress)}
+                                                strokeLinecap="round"
+                                                style={{filter:`drop-shadow(0 0 6px ${ringColor})`}}
+                                            />
+                                        )}
+                                    </svg>
+                                    {/* Tap button */}
+                                    <button
+                                        onPointerDown={e => { e.preventDefault(); handleComboHit(); }}
+                                        disabled={currency < gift.cost}
+                                        style={{
+                                            width:'74px', height:'74px', borderRadius:'50%',
+                                            fontSize:'13px', fontWeight:900, border:'none',
+                                            cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
+                                            background: comboActive
+                                                ? `linear-gradient(135deg,${ringColor}cc,${ringColor}88)`
+                                                : currency >= gift.cost
+                                                ? 'linear-gradient(135deg,#7c3aed,#a855f7)'
+                                                : 'rgba(100,100,100,0.2)',
+                                            color: currency >= gift.cost ? '#fff' : '#6b7280',
+                                            boxShadow: comboActive ? `0 0 24px ${ringColor}99` : '0 0 14px rgba(124,58,237,0.4)',
+                                            transform: comboActive ? 'scale(0.93)' : 'scale(1)',
+                                            transition:'background 0.1s, transform 0.1s',
+                                            userSelect:'none', WebkitUserSelect:'none', touchAction:'manipulation',
+                                            position:'relative', zIndex:1,
+                                            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px'
+                                        }}
+                                    >
+                                        <span style={{fontSize:'18px', lineHeight:1}}>{gift.emoji || '🎁'}</span>
+                                        <span style={{fontSize:'9px', fontWeight:700, opacity:0.9}}>
+                                            {lang === 'ar' ? 'اضغط!' : 'TAP!'}
+                                        </span>
+                                    </button>
+                                </div>
+                            );
+                        })()}
+
+                        {/* Cost hint */}
+                        <div style={{ fontSize:'9px', color:'#6b7280', textAlign:'center' }}>
+                            {gift.cost} 🧠 {lang === 'ar' ? 'لكل ضغطة' : 'per tap'} · {lang === 'ar' ? 'رصيدك:' : 'Balance:'} {currency.toLocaleString()} 🧠
+                        </div>
                     </div>
                 )}
                 <div className="modal-footer py-2">
