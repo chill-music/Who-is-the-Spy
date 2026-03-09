@@ -3688,3 +3688,241 @@ body {
     font-weight: 800;
     font-size: 13px;
 }
+
+/* ==========================================
+   NOTIFICATION TOAST — CENTERED + RESPONSIVE
+   ========================================== */
+/* Force notification toast to always center regardless of RTL */
+[dir="rtl"] div[style*="translateX(-50%)"] {
+    right: auto !important;
+}
+
+/* ==========================================
+   MOBILE-FIRST COMPREHENSIVE RESPONSIVE FIXES
+   ========================================== */
+
+/* Base: Ensure all modals are properly contained */
+.modal-content {
+    /* Already has display:flex;flex-direction:column;overflow:hidden */
+}
+
+/* Modal body must never overflow its container */
+.modal-body {
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* Header actions wrapping on very small screens */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+}
+
+@media (max-width: 380px) {
+    .header-actions {
+        gap: 3px;
+    }
+    .header-actions button {
+        padding: 3px 5px !important;
+        font-size: 10px !important;
+    }
+    .site-header h1 {
+        font-size: 13px !important;
+    }
+    .tab-button {
+        padding: 5px 8px;
+        font-size: 11px;
+    }
+    .card-container {
+        padding: var(--spacing-sm) !important;
+    }
+    .modal-content {
+        border-radius: 12px;
+    }
+    .gift-wall-grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+    }
+    .profile-name {
+        font-size: 14px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Root padding */
+    #root {
+        padding: 8px;
+    }
+
+    /* Modals fullscreen on small mobile */
+    .modal-overlay {
+        padding: 8px;
+        align-items: flex-end;
+    }
+    .modal-content {
+        max-height: 92vh;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 16px 16px 8px 8px;
+    }
+
+    /* Shop tabs horizontal scroll */
+    .shop-tabs-container {
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Gift grid on mobile */
+    .gift-wall-grid {
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 4px !important;
+    }
+
+    /* Login rewards grid */
+    .login-rewards-grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 3px !important;
+    }
+
+    /* Inventory grid */
+    .inventory-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    /* Profile stats */
+    .profile-stats {
+        grid-template-columns: repeat(3, 1fr) !important;
+        font-size: 10px;
+    }
+
+    /* Prevent buttons from overflowing */
+    .btn-neon, .btn-gold, .btn-ghost {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Notification dropdown */
+    .notification-dropdown {
+        width: calc(100vw - 16px) !important;
+        right: -8px !important;
+        left: auto !important;
+        max-height: 70vh;
+    }
+
+    /* Friends section */
+    .friends-list-item {
+        padding: 8px !important;
+    }
+
+    /* In-game messages */
+    .message-bubble {
+        max-width: 85% !important;
+    }
+
+    /* Player list */
+    .player-card {
+        padding: 6px 8px !important;
+    }
+
+    /* Tab buttons */
+    .tab-button {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    /* Main input fields */
+    .input-dark {
+        font-size: 14px; /* Prevents iOS zoom */
+    }
+
+    /* Leaderboard */
+    .leaderboard-row {
+        padding: 6px 8px !important;
+    }
+
+    /* Room/game area */
+    .game-header {
+        padding: 6px 8px !important;
+    }
+
+    /* Profile modal */
+    .profile-modal {
+        height: 95vh !important;
+    }
+}
+
+@media (max-width: 360px) {
+    body {
+        font-size: 12px;
+    }
+    .modal-title {
+        font-size: 13px !important;
+    }
+    .gift-wall-grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+    }
+    .login-rewards-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+}
+
+/* Touch-friendly tap targets */
+@media (hover: none) {
+    button, .clickable {
+        min-height: 36px;
+    }
+    .gift-wall-item {
+        min-height: 50px !important;
+    }
+    .emoji-picker-item {
+        min-height: 40px !important;
+        font-size: 22px !important;
+    }
+    /* Prevent double-tap zoom */
+    button, a, input {
+        touch-action: manipulation;
+    }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .modal-content {
+        max-height: 95vh;
+    }
+    .modal-overlay {
+        align-items: center;
+    }
+    .profile-header-top {
+        flex-direction: row !important;
+        gap: 12px !important;
+    }
+}
+
+/* Scrollbar hide for mobile */
+@media (max-width: 640px) {
+    ::-webkit-scrollbar {
+        width: 3px;
+        height: 3px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+    }
+}
+
+/* Ensure the notification dropdown doesn't escape viewport in RTL */
+[dir="rtl"] .notification-dropdown {
+    right: 0 !important;
+    left: auto !important;
+}
+[dir="rtl"] .dropdown-menu {
+    right: 0 !important;
+    left: auto !important;
+}
