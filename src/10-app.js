@@ -863,12 +863,16 @@ function App() {
 
             if (targetUser?.uid === 'self' || targetUser?.uid === user.uid) {
                 // Sending to self
-                const vipXpGain = getGiftVIPXP(gift);
-                await usersCollection.doc(user.uid).update({
+                const selfUpdates = {
                     charisma: firebase.firestore.FieldValue.increment(gift.charisma),
                     currency: firebase.firestore.FieldValue.increment(bonusForReceiver),
-                    'vip.xp': firebase.firestore.FieldValue.increment(vipXpGain),
-                });
+                };
+                // ✅ VIP XP: only if user already has VIP (purchased)
+                if (hasVIP(userData)) {
+                    const vipXpGain = getGiftVIPXP(gift);
+                    selfUpdates['vip.xp'] = firebase.firestore.FieldValue.increment(vipXpGain);
+                }
+                await usersCollection.doc(user.uid).update(selfUpdates);
 
                 // ✅ Log self-sent gift to gifts_log collection too
                 await giftsLogCollection.add({
@@ -912,10 +916,13 @@ function App() {
                 } catch(e) { }
             } else {
                 // Sending to another person - add charisma AND bonus
-                const vipXpGain = getGiftVIPXP(gift);
-                await usersCollection.doc(user.uid).update({
-                    'vip.xp': firebase.firestore.FieldValue.increment(vipXpGain),
-                });
+                // ✅ VIP XP: only if sender already has VIP (purchased)
+                if (hasVIP(userData)) {
+                    const vipXpGain = getGiftVIPXP(gift);
+                    await usersCollection.doc(user.uid).update({
+                        'vip.xp': firebase.firestore.FieldValue.increment(vipXpGain),
+                    });
+                }
                 await usersCollection.doc(targetUser.uid).update({
                     charisma: firebase.firestore.FieldValue.increment(gift.charisma),
                     currency: firebase.firestore.FieldValue.increment(bonusForReceiver)
@@ -928,14 +935,17 @@ function App() {
                     senderId: user.uid,
                     senderName: userData?.displayName || 'User',
                     senderPhoto: userData?.photoURL || null,
+                    senderVipLevel: getVIPLevel(userData) || 0,
                     type: 'gift',
                     giftId: gift.id,
                     giftName: giftName,
                     giftNameEn: gift.name_en,
                     giftNameAr: gift.name_ar,
                     giftEmoji: gift.emoji,
+                    giftImageUrl: gift.imageUrl || '',
                     giftCharisma: gift.charisma,
                     giftBonus: bonusForReceiver,
+                    giftCost: gift.cost,
                     text: `🎁 ${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji}`,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
