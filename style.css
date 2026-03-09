@@ -395,7 +395,75 @@ body {
 .charisma-level-badge.level-10-12 { background: linear-gradient(135deg, #f97316, #fb923c); color: #fff; }
 .charisma-level-badge.level-13-15 { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: #fff; }
 .charisma-level-badge.level-16-21 { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; }
+/* ✨ DIVINE — Ultimate Legend level 21 */
+.charisma-level-badge.level-divine {
+    background: linear-gradient(135deg, #00d4ff22, #0a0a2e, #00d4ff33);
+    border: 1.5px solid #00d4ff88;
+    color: #00d4ff;
+    animation: divine-aura 3s ease-in-out infinite;
+    box-shadow: 0 0 12px rgba(0,212,255,0.5), 0 0 24px rgba(0,212,255,0.2);
+}
+@keyframes divine-aura {
+    0%, 100% { box-shadow: 0 0 12px rgba(0,212,255,0.5), 0 0 24px rgba(0,212,255,0.2); }
+    50%       { box-shadow: 0 0 20px rgba(0,212,255,0.8), 0 0 40px rgba(0,212,255,0.4), 0 0 60px rgba(0,212,255,0.15); }
+}
 .glow-badge { animation: glow-pulse 2s infinite; }
+
+/* ═══════════════════════════════════════════
+   🎨 NEW RARITY TIERS (beyond Mythic)
+   ═══════════════════════════════════════════ */
+
+/* ARTIFACT — Deep Burnt Orange + subtle pulse */
+.rarity-artifact {
+    border-color: rgba(194,65,12,0.75) !important;
+    animation: artifact-pulse 2.5s ease-in-out infinite;
+}
+@keyframes artifact-pulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(194,65,12,0.4); border-color: rgba(194,65,12,0.65); }
+    50%       { box-shadow: 0 0 14px rgba(194,65,12,0.7), 0 0 28px rgba(194,65,12,0.25); border-color: rgba(220,80,20,0.9); }
+}
+
+/* TRANSCENDENT — Metallic Purple/Magenta gradient + glowing border */
+.rarity-transcendent {
+    border-color: rgba(192,38,211,0.75) !important;
+    animation: transcendent-glow 2s linear infinite;
+    background: linear-gradient(135deg, rgba(192,38,211,0.13), rgba(15,15,26,0.97)) !important;
+}
+@keyframes transcendent-glow {
+    0%   { box-shadow: 0 0 8px rgba(192,38,211,0.6), 0 0 0px rgba(219,39,119,0); }
+    33%  { box-shadow: 0 0 14px rgba(219,39,119,0.7), 0 0 20px rgba(192,38,211,0.3); }
+    66%  { box-shadow: 0 0 14px rgba(147,51,234,0.7), 0 0 20px rgba(192,38,211,0.3); }
+    100% { box-shadow: 0 0 8px rgba(192,38,211,0.6), 0 0 0px rgba(219,39,119,0); }
+}
+
+/* IMMORTAL — Radiant White/Silver shimmer (Glitter) */
+.rarity-immortal {
+    border-color: rgba(226,232,240,0.75) !important;
+    animation: immortal-shimmer 1.8s linear infinite;
+    position: relative;
+}
+@keyframes immortal-shimmer {
+    0%   { box-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 0 rgba(226,232,240,0); }
+    25%  { box-shadow: 0 0 16px rgba(255,255,255,0.8), 0 0 30px rgba(226,232,240,0.3); }
+    50%  { box-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 0 rgba(226,232,240,0); }
+    75%  { box-shadow: 0 0 20px rgba(255,255,255,0.9), 0 0 40px rgba(226,232,240,0.4); }
+    100% { box-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 0 rgba(226,232,240,0); }
+}
+
+/* DIVINE — Celestial Light Blue/Cyan + soft aura outer shadow */
+.rarity-divine {
+    border-color: rgba(0,212,255,0.80) !important;
+    animation: divine-item-aura 3s ease-in-out infinite;
+    background: linear-gradient(135deg, rgba(0,212,255,0.10), rgba(15,15,26,0.97), rgba(0,212,255,0.06)) !important;
+}
+@keyframes divine-item-aura {
+    0%, 100% { box-shadow: 0 0 10px rgba(0,212,255,0.5), 0 0 0 rgba(0,212,255,0); }
+    50%       { box-shadow: 0 0 20px rgba(0,212,255,0.8), 0 0 40px rgba(0,212,255,0.3), 0 0 80px rgba(0,212,255,0.1); }
+}
+@keyframes divine-bar-flow {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
 .charisma-bar-bg { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; }
 .charisma-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8800, var(--gold)); background-size: 200% 100%; animation: shimmer 2s linear infinite; transition: width 0.5s ease; }
 .charisma-info { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
