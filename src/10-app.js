@@ -1388,7 +1388,7 @@ function App() {
                     )}
                     <div className="relative">
                         <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-1 bg-white/5 rounded-lg px-2 py-1">
-                            {isLoggedIn || isGuest ? (<><AvatarWithFrame photoURL={currentUserData?.photoURL} equipped={currentUserData?.equipped} size="sm" /><span className="text-[10px] text-gray-300 max-w-[60px] truncate">{currentUserData?.displayName}</span></>) : (<span className="text-xs px-2 py-1">{t.loginGoogle}</span>)}
+                            {isLoggedIn || isGuest ? <PlayerNameTag player={currentUserData} lang={lang} size="sm" /> : <span className="text-xs px-2 py-1">{t.loginGoogle}</span>}
                         </button>
                         {showDropdown && (
                             <div className="dropdown-menu glass-panel rounded-lg p-1 min-w-[160px]">
