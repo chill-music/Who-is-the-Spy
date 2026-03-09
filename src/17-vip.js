@@ -44,6 +44,55 @@ const VIP_MOMENT_BG_URLS = {
     10: '',
 };
 
+// ════ VIP XP SYSTEM ════
+// XP مطلوب للوصول لكل مستوى (يحسب تراكمي — مجموع الـ XP الكلي)
+const VIP_XP_THRESHOLDS = {
+    0: 0,        // عادي
+    1: 5000,     // VIP 1 — 5,000 XP
+    2: 15000,    // VIP 2 — 15,000 XP
+    3: 35000,    // VIP 3 — 35,000 XP
+    4: 70000,    // VIP 4 — 70,000 XP
+    5: 120000,   // VIP 5 — 120,000 XP
+    6: 200000,   // VIP 6 — 200,000 XP
+    7: 320000,   // VIP 7 — 320,000 XP
+    8: 480000,   // VIP 8 — 480,000 XP
+    9: 700000,   // VIP 9 — 700,000 XP
+    10: 1000000, // VIP 10 — 1,000,000 XP
+};
+
+// XP اللي يكسبه اللاعب من كل هدية يبعتها = نسبة من الـ charisma بتاع الهدية
+const VIP_XP_PER_CHARISMA_RATE = 0.05; // 5% من الـ charisma → VIP XP
+
+// حساب VIP XP من هدية معينة
+const getGiftVIPXP = (gift) => {
+    const xp = Math.round((gift.charisma || 0) * VIP_XP_PER_CHARISMA_RATE);
+    return Math.max(1, xp); // minimum 1 XP per gift
+};
+
+// حساب مستوى VIP من الـ XP الكلي
+const getVIPLevelFromXP = (totalXP) => {
+    let level = 0;
+    for (let lvl = 10; lvl >= 1; lvl--) {
+        if (totalXP >= VIP_XP_THRESHOLDS[lvl]) {
+            level = lvl;
+            break;
+        }
+    }
+    return level;
+};
+
+// Progress للمستوى القادم
+const getVIPXPProgress = (totalXP) => {
+    const currentLevel = getVIPLevelFromXP(totalXP);
+    if (currentLevel >= 10) return { currentLevel: 10, progress: 100, xpInLevel: 0, xpNeeded: 0, totalXP };
+    const currentThreshold = VIP_XP_THRESHOLDS[currentLevel];
+    const nextThreshold    = VIP_XP_THRESHOLDS[currentLevel + 1];
+    const xpInLevel = totalXP - currentThreshold;
+    const xpNeeded  = nextThreshold - currentThreshold;
+    const progress  = Math.min(100, Math.round((xpInLevel / xpNeeded) * 100));
+    return { currentLevel, progress, xpInLevel, xpNeeded, totalXP };
+};
+
 // ════ VIP CONFIG — الإعدادات الكاملة لكل مستوى ════
 const VIP_CONFIG = [
     {
@@ -57,7 +106,7 @@ const VIP_CONFIG = [
         idLength: 6,                  // طول ID عادي
         customIdLength: null,         // لا custom ID
         exclusiveGifts: false,
-        vipDailyTasks: true,
+        vipDailyTasks: false,
         exclusiveForm: false,
         benefits_en: ['1.2× XP Multiplier', 'VIP Badge'],
         benefits_ar: ['مضاعف XP × 1.2', 'بادج VIP'],
@@ -203,15 +252,22 @@ const VIP_CONFIG = [
 
 // ════ HELPER FUNCTIONS ════
 
+// getVIPData — يرجع config الـ VIP بناءً على الـ XP
 const getVIPData = (userData) => {
-    const level = userData?.vip?.level || 0;
+    const totalXP = userData?.vip?.xp || 0;
+    const level = getVIPLevelFromXP(totalXP);
     if (!level) return null;
     return VIP_CONFIG.find(v => v.level === level) || null;
 };
 
-const getVIPLevel = (userData) => userData?.vip?.level || 0;
+// getVIPLevel — يحسب الليفل من الـ XP (أو fallback للـ manual level)
+const getVIPLevel = (userData) => {
+    const totalXP = userData?.vip?.xp || 0;
+    if (totalXP > 0) return getVIPLevelFromXP(totalXP);
+    return userData?.vip?.level || 0; // fallback للـ manual admin assign
+};
 
-const hasVIP = (userData) => (userData?.vip?.level || 0) >= 1;
+const hasVIP = (userData) => getVIPLevel(userData) >= 1;
 
 const hasVIPExclusiveGifts = (userData) => {
     const cfg = getVIPData(userData);
@@ -508,19 +564,20 @@ const VIP10RequestForm = ({ user, lang, onNotification }) => {
 
 // ════ VIP CENTER SECTION (for Settings) ════
 const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
-    const [showInfoModal, setShowInfoModal] = useState(false);
-    const [showBadgePopup, setShowBadgePopup] = useState(false);
+    const [showInfoModal, setShowInfoModal]     = useState(false);
+    const [showBadgePopup, setShowBadgePopup]   = useState(false);
     const [customIdEnabled, setCustomIdEnabled] = useState(userData?.vip?.customIdEnabled || false);
 
-    const level = getVIPLevel(userData);
-    const cfg = level ? VIP_CONFIG[level - 1] : null;
+    const totalVIPXP  = userData?.vip?.xp || 0;
+    const level       = getVIPLevel(userData);
+    const cfg         = level ? VIP_CONFIG[level - 1] : null;
     const customIdLen = getVIPCustomIdLength(userData);
+    const xpInfo      = getVIPXPProgress(totalVIPXP);
 
     const toggleCustomId = async () => {
         if (!user || !customIdLen) return;
         const newVal = !customIdEnabled;
         setCustomIdEnabled(newVal);
-        // Generate/restore custom ID
         if (newVal) {
             const max = Math.pow(10, customIdLen) - 1;
             const min = Math.pow(10, customIdLen - 1);
@@ -530,7 +587,6 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                 customId: newId,
             });
         } else {
-            // Restore 6-digit ID
             const normalId = Math.floor(100000 + Math.random() * 900000).toString();
             await usersCollection.doc(user.uid).update({
                 'vip.customIdEnabled': false,
@@ -540,79 +596,164 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
         onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
     };
 
+    // ─── الألوان بناءً على الليفل ───
+    const barColor  = cfg ? cfg.nameColor : '#7c3aed';
+    const nextLevel = level < 10 ? level + 1 : 10;
+    const nextCfg   = VIP_CONFIG.find(v => v.level === nextLevel);
+
     return (
         <div className="settings-section">
+            {/* ── Header ── */}
             <div className="settings-section-title">
                 <span>👑</span>
                 <span>VIP Center</span>
                 <button
                     onClick={() => setShowInfoModal(true)}
-                    style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: '16px', padding: '0 2px' }}
+                    style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', color:'#60a5fa', fontSize:'16px', padding:'0 2px' }}
                     title={lang === 'ar' ? 'معلومات VIP' : 'VIP Info'}
                 >ℹ️</button>
             </div>
 
-            {!level ? (
-                <div style={{
-                    background: 'linear-gradient(135deg,rgba(0,10,30,0.6),rgba(20,0,50,0.4))',
-                    border: '1px solid rgba(0,242,255,0.15)',
-                    borderRadius: '12px', padding: '16px', textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '30px', marginBottom: '6px' }}>👑</div>
-                    <div style={{ color: '#9ca3af', fontSize: '12px' }}>
-                        {lang === 'ar' ? 'لا يوجد VIP نشط. تواصل مع الإدارة للحصول على VIP.' : 'No active VIP. Contact admin to get VIP.'}
-                    </div>
-                </div>
-            ) : (
-                <div style={{
-                    background: `linear-gradient(135deg, ${cfg.nameColor}11, rgba(15,15,26,0.95))`,
-                    border: `1px solid ${cfg.nameColor}44`,
-                    borderRadius: '12px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px'
-                }}>
-                    {/* Level display */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{
-                            background: cfg.nameColor, color: '#000', fontWeight: 900,
-                            padding: '4px 12px', borderRadius: '8px', fontSize: '14px'
-                        }}>
-                            VIP {level}
-                        </div>
-                        <span style={{ color: cfg.nameColor, fontWeight: 700, fontSize: '14px' }}>
-                            {lang === 'ar' ? cfg.name_ar : cfg.name_en}
-                        </span>
-                        <button onClick={() => setShowBadgePopup(true)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>
-                            <VIPBadge userData={userData} size="md" />
-                        </button>
-                    </div>
+            {/* ── VIP XP Card ── (تظهر دايمًا) */}
+            <div style={{
+                background: level
+                    ? `linear-gradient(135deg, ${barColor}14, rgba(15,15,26,0.97))`
+                    : 'linear-gradient(135deg,rgba(112,0,255,0.08),rgba(15,15,26,0.97))',
+                border: `1px solid ${level ? barColor + '44' : 'rgba(112,0,255,0.25)'}`,
+                borderRadius: '14px', padding: '14px 16px',
+                display: 'flex', flexDirection: 'column', gap: '10px'
+            }}>
 
-                    {/* XP Multiplier */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
-                        <span style={{ color: '#9ca3af' }}>⚡ {lang === 'ar' ? 'مضاعف XP' : 'XP Multiplier'}</span>
-                        <span style={{ color: '#fbbf24', fontWeight: 700 }}>×{cfg.xpMultiplier}</span>
-                    </div>
-
-                    {/* Custom ID toggle - VIP 6+ */}
-                    {customIdLen && (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
-                            <span style={{ color: '#9ca3af' }}>🪪 {lang === 'ar' ? `ID مخصص (${customIdLen} أرقام)` : `Custom ID (${customIdLen} digits)`}</span>
-                            <button
-                                onClick={toggleCustomId}
-                                className={`settings-toggle ${customIdEnabled ? 'on' : 'off'}`}
-                                style={{ fontSize: '11px', padding: '3px 10px' }}
-                            >
-                                {customIdEnabled ? (lang === 'ar' ? 'مفعّل' : 'ON') : (lang === 'ar' ? 'معطّل' : 'OFF')}
+                {/* Level badge + name row */}
+                <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                    {level ? (
+                        <>
+                            <div style={{
+                                background: barColor, color:'#000', fontWeight:900,
+                                padding:'4px 12px', borderRadius:'8px', fontSize:'14px',
+                                boxShadow: `0 0 10px ${barColor}66`
+                            }}>VIP {level}</div>
+                            <span style={{ color: barColor, fontWeight:700, fontSize:'14px' }}>
+                                {lang === 'ar' ? cfg.name_ar : cfg.name_en}
+                            </span>
+                            <button onClick={() => setShowBadgePopup(true)}
+                                style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer' }}>
+                                <VIPBadge userData={userData} size="md" />
                             </button>
-                        </div>
-                    )}
-
-                    {/* VIP 10 form */}
-                    {cfg.exclusiveForm && (
-                        <VIP10RequestForm user={user} lang={lang} onNotification={onNotification} />
+                        </>
+                    ) : (
+                        <>
+                            <div style={{
+                                background:'rgba(112,0,255,0.25)', color:'#c4b5fd', fontWeight:900,
+                                padding:'4px 12px', borderRadius:'8px', fontSize:'13px',
+                                border:'1px solid rgba(112,0,255,0.4)'
+                            }}>VIP 0</div>
+                            <span style={{ color:'#9ca3af', fontSize:'13px' }}>
+                                {lang === 'ar' ? 'غير مُفعَّل' : 'Not Active'}
+                            </span>
+                        </>
                     )}
                 </div>
-            )}
 
-            {showInfoModal && <VIPInfoModal onClose={() => setShowInfoModal(false)} lang={lang} />}
+                {/* ── XP Progress Bar ── */}
+                <div>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'5px' }}>
+                        <span style={{ fontSize:'11px', color:'#9ca3af' }}>
+                            🔥 VIP XP
+                        </span>
+                        <span style={{ fontSize:'11px', fontWeight:700, color: level ? barColor : '#7c3aed' }}>
+                            {totalVIPXP.toLocaleString()}
+                            {level < 10 && (
+                                <span style={{ color:'#6b7280', fontWeight:400 }}>
+                                    {' '}/ {VIP_XP_THRESHOLDS[level + 1]?.toLocaleString()}
+                                </span>
+                            )}
+                        </span>
+                    </div>
+                    {/* Bar */}
+                    <div style={{
+                        width:'100%', height:'10px', borderRadius:'6px',
+                        background:'rgba(255,255,255,0.07)',
+                        border:'1px solid rgba(255,255,255,0.06)',
+                        overflow:'hidden', position:'relative'
+                    }}>
+                        <div style={{
+                            width: `${xpInfo.progress}%`,
+                            height:'100%', borderRadius:'6px',
+                            background: level >= 9
+                                ? `linear-gradient(90deg, #ef4444, #fbbf24, #ef4444)`
+                                : level >= 6
+                                    ? `linear-gradient(90deg, #eab308, #fbbf24)`
+                                    : `linear-gradient(90deg, #7c3aed, ${barColor})`,
+                            transition:'width 0.6s ease',
+                            boxShadow: level ? `0 0 8px ${barColor}88` : 'none',
+                            animation: level >= 9 ? 'vip-shimmer 2s linear infinite' : 'none',
+                            backgroundSize: level >= 9 ? '200% 100%' : 'auto'
+                        }} />
+                    </div>
+                    {/* Level labels */}
+                    <div style={{ display:'flex', justifyContent:'space-between', marginTop:'4px' }}>
+                        <span style={{ fontSize:'9px', color:'#6b7280' }}>
+                            {lang === 'ar' ? `المستوى ${level}` : `Level ${level}`}
+                        </span>
+                        {level < 10 ? (
+                            <span style={{ fontSize:'9px', color: level ? barColor : '#7c3aed' }}>
+                                {lang === 'ar'
+                                    ? `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP للمستوى ${nextLevel} 👑`
+                                    : `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP to Level ${nextLevel} 👑`
+                                }
+                            </span>
+                        ) : (
+                            <span style={{ fontSize:'9px', color:'#fbbf24', fontWeight:700 }}>
+                                ✨ MAX LEVEL
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Tip: كل هدية تزيد XP ── */}
+                <div style={{
+                    fontSize:'10px', color:'#6b7280', textAlign:'center',
+                    padding:'6px 10px', background:'rgba(255,255,255,0.03)',
+                    borderRadius:'8px', border:'1px solid rgba(255,255,255,0.05)'
+                }}>
+                    🎁 {lang === 'ar'
+                        ? 'أرسل هدايا لتحصل على VIP XP وترتفع لمستوى أعلى!'
+                        : 'Send gifts to earn VIP XP and level up!'}
+                </div>
+
+                {/* ── Level perks if active ── */}
+                {level > 0 && (
+                    <>
+                        {/* XP Multiplier */}
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:'12px' }}>
+                            <span style={{ color:'#9ca3af' }}>⚡ {lang === 'ar' ? 'مضاعف XP الألعاب' : 'Game XP Multiplier'}</span>
+                            <span style={{ color:'#fbbf24', fontWeight:700 }}>×{cfg.xpMultiplier}</span>
+                        </div>
+
+                        {/* Custom ID toggle - VIP 6+ */}
+                        {customIdLen && (
+                            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:'12px' }}>
+                                <span style={{ color:'#9ca3af' }}>🪪 {lang === 'ar' ? `ID مخصص (${customIdLen} أرقام)` : `Custom ID (${customIdLen} digits)`}</span>
+                                <button
+                                    onClick={toggleCustomId}
+                                    className={`settings-toggle ${customIdEnabled ? 'on' : 'off'}`}
+                                    style={{ fontSize:'11px', padding:'3px 10px' }}
+                                >
+                                    {customIdEnabled ? (lang === 'ar' ? 'مفعّل' : 'ON') : (lang === 'ar' ? 'معطّل' : 'OFF')}
+                                </button>
+                            </div>
+                        )}
+
+                        {/* VIP 10 form */}
+                        {cfg.exclusiveForm && (
+                            <VIP10RequestForm user={user} lang={lang} onNotification={onNotification} />
+                        )}
+                    </>
+                )}
+            </div>
+
+            {showInfoModal  && <VIPInfoModal onClose={() => setShowInfoModal(false)} lang={lang} />}
             {showBadgePopup && <VIPBadgePopup level={level} onClose={() => setShowBadgePopup(false)} />}
         </div>
     );
