@@ -93,6 +93,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     };
 
     return (
+    <React.Fragment>
         <div className="modal-overlay" onClick={onClose}>
             <div
                 className="modal-content animate-pop"
@@ -600,32 +601,33 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                 );
                             })}
                         </div>
-                        </div> {/* end filter+grid wrapper */}
+                        </div>
                     )}
                 </div>
             </div>
-
-            {/* ✅ Gift Preview Modal — rendered outside modal-content to avoid z-index/overflow issues */}
-            {showPreview && selectedItem && ReactDOM.createPortal(
-                <GiftPreviewModal
-                    show={showPreview}
-                    onClose={() => setShowPreview(false)}
-                    gift={selectedItem}
-                    lang={lang}
-                    onBuy={(item, target) => {
-                        if (currency >= item.cost) {
-                            onPurchase(item, target);
-                            setShowPreview(false);
-                        }
-                    }}
-                    currency={currency}
-                    friendsData={[]}
-                    user={{ uid: userData?.uid }}
-                    currentUserData={userData}
-                />,
-                document.body
-            )}
         </div>
+
+        {/* Gift Preview Modal portal */}
+        {showPreview && selectedItem && ReactDOM.createPortal(
+            <GiftPreviewModal
+                show={showPreview}
+                onClose={() => setShowPreview(false)}
+                gift={selectedItem}
+                lang={lang}
+                onBuy={(item, target) => {
+                    if (currency >= item.cost) {
+                        onPurchase(item, target);
+                        setShowPreview(false);
+                    }
+                }}
+                currency={currency}
+                friendsData={[]}
+                user={{ uid: userData?.uid }}
+                currentUserData={userData}
+            />,
+            document.body
+        )}
+    </React.Fragment>
     );
 };
 
