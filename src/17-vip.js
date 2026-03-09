@@ -296,7 +296,7 @@ const VIPBadge = ({ userData, onClick, size = 'sm' }) => {
 
     const cfg = VIP_CONFIG[level - 1];
     const badgeUrl = VIP_BADGE_URLS[level];
-    const sz = size === 'lg' ? 28 : size === 'md' ? 22 : 18;
+    const sz = size === 'lg' ? 32 : size === 'md' ? 26 : 22;
 
     const handleClick = (e) => {
         e.stopPropagation();
@@ -606,9 +606,13 @@ const VIP10RequestForm = ({ user, lang, onNotification }) => {
 
 // ════ VIP CENTER SECTION (for Settings) ════
 const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
-    const [showInfoModal, setShowInfoModal]     = useState(false);
-    const [showBadgePopup, setShowBadgePopup]   = useState(false);
-    const [customIdEnabled, setCustomIdEnabled] = useState(userData?.vip?.customIdEnabled || false);
+    const [showInfoModal, setShowInfoModal]       = useState(false);
+    const [showBadgePopup, setShowBadgePopup]     = useState(false);
+    const [customIdEnabled, setCustomIdEnabled]   = useState(userData?.vip?.customIdEnabled || false);
+    // VIP 10 custom ID request states
+    const [desiredId, setDesiredId]               = useState('');
+    const [idCheckStatus, setIdCheckStatus]       = useState(null); // null | 'checking' | 'taken' | 'available'
+    const [idRequestSending, setIdRequestSending] = useState(false);
 
     const totalVIPXP  = userData?.vip?.xp || 0;
     const level       = getVIPLevel(userData);
@@ -616,26 +620,62 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
     const customIdLen = getVIPCustomIdLength(userData);
     const xpInfo      = getVIPXPProgress(totalVIPXP);
 
+    // For VIP 6-9: random toggle (keep as before)
     const toggleCustomId = async () => {
-        if (!user || !customIdLen) return;
+        if (!user || !customIdLen || level === 10) return;
         const newVal = !customIdEnabled;
         setCustomIdEnabled(newVal);
         if (newVal) {
             const max = Math.pow(10, customIdLen) - 1;
             const min = Math.pow(10, customIdLen - 1);
             const newId = Math.floor(min + Math.random() * (max - min + 1)).toString();
-            await usersCollection.doc(user.uid).update({
-                'vip.customIdEnabled': true,
-                customId: newId,
-            });
+            await usersCollection.doc(user.uid).update({ 'vip.customIdEnabled': true, customId: newId });
         } else {
             const normalId = Math.floor(100000 + Math.random() * 900000).toString();
-            await usersCollection.doc(user.uid).update({
-                'vip.customIdEnabled': false,
-                customId: normalId,
-            });
+            await usersCollection.doc(user.uid).update({ 'vip.customIdEnabled': false, customId: normalId });
         }
         onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
+    };
+
+    // Check if user already made a request this month
+    const canRequestIdThisMonth = () => {
+        const lastReq = userData?.vip?.lastIdRequest;
+        if (!lastReq) return true;
+        const lastDate = lastReq?.toDate ? lastReq.toDate() : new Date(lastReq);
+        const now = new Date();
+        return !(lastDate.getMonth() === now.getMonth() && lastDate.getFullYear() === now.getFullYear());
+    };
+
+    // Check uniqueness in Firestore
+    const checkIdAvailability = async (id) => {
+        if (!id || id.length < 1) { setIdCheckStatus(null); return; }
+        setIdCheckStatus('checking');
+        try {
+            const snap = await usersCollection.where('customId', '==', id).limit(1).get();
+            setIdCheckStatus(snap.empty ? 'available' : 'taken');
+        } catch { setIdCheckStatus(null); }
+    };
+
+    // Submit custom ID request
+    const handleIdRequest = async () => {
+        if (!user || !desiredId.trim() || idCheckStatus !== 'available' || idRequestSending) return;
+        setIdRequestSending(true);
+        try {
+            await vip10IdRequestsCollection.add({
+                uid:       user.uid,
+                displayName: userData?.displayName || '',
+                desiredId: desiredId.trim(),
+                currentId: userData?.customId || '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            await usersCollection.doc(user.uid).update({ 'vip.lastIdRequest': firebase.firestore.FieldValue.serverTimestamp() });
+            onNotification(lang === 'ar' ? '✅ تم إرسال طلب الـ ID!' : '✅ ID request sent!');
+            setDesiredId('');
+            setIdCheckStatus(null);
+        } catch (e) {
+            onNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
+        }
+        setIdRequestSending(false);
     };
 
     // ─── الألوان بناءً على الليفل ───
@@ -795,8 +835,8 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                             <span style={{ color:'#fbbf24', fontWeight:700 }}>×{cfg.xpMultiplier}</span>
                         </div>
 
-                        {/* Custom ID toggle - VIP 6+ */}
-                        {customIdLen && (
+                        {/* Custom ID — VIP 6-9: toggle عشوائي, VIP 10: form طلب */}
+                        {customIdLen && level < 10 && (
                             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:'12px' }}>
                                 <span style={{ color:'#9ca3af' }}>🪪 {lang === 'ar' ? `ID مخصص (${customIdLen} أرقام)` : `Custom ID (${customIdLen} digits)`}</span>
                                 <button
@@ -806,6 +846,75 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                                 >
                                     {customIdEnabled ? (lang === 'ar' ? 'مفعّل' : 'ON') : (lang === 'ar' ? 'معطّل' : 'OFF')}
                                 </button>
+                            </div>
+                        )}
+                        {/* VIP 10 — Custom ID Request Form */}
+                        {customIdLen && level === 10 && (
+                            <div style={{
+                                background: 'linear-gradient(135deg,rgba(239,68,68,0.08),rgba(15,15,26,0.95))',
+                                border: '1px solid rgba(239,68,68,0.3)',
+                                borderRadius: '10px', padding: '12px', marginTop: '4px'
+                            }}>
+                                <div style={{ fontSize:'11px', fontWeight:800, color:'#ef4444', marginBottom:'8px' }}>
+                                    🪪 {lang === 'ar' ? `طلب ID مخصص (${customIdLen} أرقام) — مرة كل شهر` : `Custom ID Request (${customIdLen} digits) — once/month`}
+                                </div>
+                                {userData?.customId && (
+                                    <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'6px' }}>
+                                        {lang === 'ar' ? 'الـ ID الحالي:' : 'Current ID:'} <span style={{color:'#fbbf24', fontWeight:700}}>{userData.customId}</span>
+                                    </div>
+                                )}
+                                {canRequestIdThisMonth() ? (
+                                    <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                                        <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
+                                            <input
+                                                className="input-dark"
+                                                placeholder={lang === 'ar' ? `أدخل الـ ID المطلوب (${customIdLen} أرقام)` : `Enter desired ID (${customIdLen} digits)`}
+                                                value={desiredId}
+                                                maxLength={customIdLen}
+                                                onChange={e => { setDesiredId(e.target.value); setIdCheckStatus(null); }}
+                                                style={{ flex:1, fontSize:'12px', fontWeight:700, letterSpacing:'2px' }}
+                                            />
+                                            <button
+                                                onClick={() => checkIdAvailability(desiredId.trim())}
+                                                disabled={!desiredId.trim() || idCheckStatus === 'checking'}
+                                                style={{
+                                                    padding:'6px 10px', borderRadius:'7px', fontSize:'11px',
+                                                    fontWeight:700, cursor:'pointer', border:'none', whiteSpace:'nowrap',
+                                                    background: 'rgba(96,165,250,0.2)', color:'#60a5fa'
+                                                }}
+                                            >
+                                                {idCheckStatus === 'checking' ? '⏳' : (lang === 'ar' ? 'تحقق' : 'Check')}
+                                            </button>
+                                        </div>
+                                        {idCheckStatus === 'taken' && (
+                                            <div style={{ fontSize:'10px', color:'#f87171', fontWeight:700 }}>
+                                                ❌ {lang === 'ar' ? 'هذا الـ ID مأخوذ بالفعل' : 'This ID is already taken'}
+                                            </div>
+                                        )}
+                                        {idCheckStatus === 'available' && (
+                                            <div style={{ fontSize:'10px', color:'#4ade80', fontWeight:700 }}>
+                                                ✅ {lang === 'ar' ? 'الـ ID متاح!' : 'ID is available!'}
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={handleIdRequest}
+                                            disabled={idCheckStatus !== 'available' || idRequestSending}
+                                            style={{
+                                                padding:'8px', borderRadius:'8px', fontSize:'12px', fontWeight:700,
+                                                cursor: idCheckStatus === 'available' ? 'pointer' : 'not-allowed',
+                                                background: idCheckStatus === 'available' ? 'linear-gradient(135deg,#ef4444,#b91c1c)' : 'rgba(100,100,100,0.2)',
+                                                color: idCheckStatus === 'available' ? '#fff' : '#6b7280',
+                                                border: 'none', opacity: idRequestSending ? 0.6 : 1
+                                            }}
+                                        >
+                                            {idRequestSending ? '⏳' : (lang === 'ar' ? '📨 إرسال الطلب' : '📨 Send Request')}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div style={{ fontSize:'10px', color:'#fbbf24', fontWeight:700, textAlign:'center', padding:'6px' }}>
+                                        ⏳ {lang === 'ar' ? 'يمكنك الطلب مرة كل شهر — طلبك قيد المراجعة' : 'You can request once per month — request under review'}
+                                    </div>
+                                )}
                             </div>
                         )}
 
