@@ -6,24 +6,14 @@
     <title>PRO SPY | Covert Arena</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕵️</text></svg>">
 
-    <!-- ⚡ DNS prefetch + preconnect for faster external resource loading -->
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
-    <link rel="preconnect" href="https://unpkg.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://www.gstatic.com">
-    <link rel="preconnect" href="https://firestore.googleapis.com">
-    <link rel="dns-prefetch" href="https://i.ibb.co">
-    <link rel="dns-prefetch" href="https://ui-avatars.com">
-
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Fonts — display=swap prevents render blocking -->
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;500;700;900&display=swap&font-display=swap" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
@@ -33,7 +23,49 @@
 </head>
 <body>
     <canvas id="bg-canvas"></canvas>
+
+    <!-- ⚡ Instant loading screen — shows before React boots, hides after -->
+    <div id="app-loader" style="
+        position:fixed;inset:0;z-index:999999;
+        background:linear-gradient(160deg,#05051a,#0a081f);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    ">
+        <div style="font-size:52px;animation:ldr_pulse 1.2s ease-in-out infinite">🕵️</div>
+        <div style="
+            font-size:22px;font-weight:900;letter-spacing:2px;
+            background:linear-gradient(90deg,#00f2ff,#7000ff);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+        ">PRO SPY</div>
+        <div style="width:160px;height:3px;background:rgba(255,255,255,0.07);border-radius:9px;overflow:hidden">
+            <div id="ldr-bar" style="height:100%;width:0%;border-radius:9px;background:linear-gradient(90deg,#00f2ff,#7000ff);transition:width 0.4s ease"></div>
+        </div>
+        <div id="ldr-txt" style="font-size:11px;color:#4b5563;letter-spacing:1px">LOADING...</div>
+        <style>@keyframes ldr_pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}</style>
+    </div>
+
     <div id="root"></div>
+
+    <script>
+        // Progress bar simulation while scripts load
+        let _p = 0;
+        const _bar = document.getElementById('ldr-bar');
+        const _txt = document.getElementById('ldr-txt');
+        const _iv  = setInterval(() => {
+            _p = Math.min(_p + (Math.random() * 8), 88);
+            if (_bar) _bar.style.width = _p + '%';
+        }, 200);
+        window._hideLoader = () => {
+            clearInterval(_iv);
+            const loader = document.getElementById('app-loader');
+            if (!loader) return;
+            if (_bar) _bar.style.width = '100%';
+            setTimeout(() => {
+                loader.style.transition = 'opacity 0.4s ease';
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 420);
+            }, 200);
+        };
+    </script>
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
