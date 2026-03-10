@@ -631,7 +631,7 @@ function App() {
             photoURL: finalPhoto,
             gender: gender,
             country: country ? { code: country.code, flag: country.flag, name_ar: country.name_ar, name_en: country.name_en } : null,
-            customId: Math.floor(100000 + Math.random() * 900000).toString(),
+            customId: Math.floor(100000000 + Math.random() * 900000000).toString(),
             stats: { wins: 0, losses: 0, xp: 0 },
             achievements: [],
             friends: [],
@@ -673,7 +673,7 @@ function App() {
             const savedNick = localStorage.getItem('pro_spy_nick');
             const guestNick = savedNick || ('Player_' + Math.random().toString(36).substring(2, 6));
             const guestUID = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-            const newGuestData = { uid: guestUID, displayName: guestNick, photoURL: null, customId: Math.floor(100000 + Math.random() * 900000).toString(), stats: { wins: 0, losses: 0, xp: 0 }, currency: 0, charisma: 0, equipped: { badges: [] }, inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] }, isAnonymous: true, isGuest: true, createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastActive: firebase.firestore.FieldValue.serverTimestamp() };
+            const newGuestData = { uid: guestUID, displayName: guestNick, photoURL: null, customId: Math.floor(100000000 + Math.random() * 900000000).toString(), stats: { wins: 0, losses: 0, xp: 0 }, currency: 0, charisma: 0, equipped: { badges: [] }, inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] }, isAnonymous: true, isGuest: true, createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastActive: firebase.firestore.FieldValue.serverTimestamp() };
             try { await guestsCollection.doc(guestUID).set(newGuestData); setGuestData(newGuestData); setNickname(guestNick); localStorage.setItem('pro_spy_guest_uid', guestUID); localStorage.setItem('pro_spy_nick', guestNick); } catch (e) { }
         };
         initGuest();
