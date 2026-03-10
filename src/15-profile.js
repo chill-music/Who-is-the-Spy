@@ -997,23 +997,18 @@ const ProfileEffectOverlay = ({ effectId }) => {
     const imageUrl = particlesIsUrl ? effect.particles : (effect?.imageUrl || null);
     const isImageEffect = !!imageUrl;
 
-    // ── Image/GIF overlay: fade-in → show → fade-out → repeat ──
+    // ── Image/GIF overlay: fade-in → show once → fade-out ──
     useEffect(() => {
         if (!effect || !isImageEffect) return;
-        const duration  = effect.duration || 2500;
-        const pause     = 1200; // pause between cycles
-
-        const runCycle = () => {
-            setImgVisible(true);
-            timerRef.current = setTimeout(() => {
-                setImgVisible(false);
-                imgCycleRef.current = setTimeout(runCycle, pause);
-            }, duration);
-        };
-        runCycle();
+        const duration = effect.duration || 2500;
+        // Show immediately
+        setImgVisible(true);
+        // Fade out after duration
+        timerRef.current = setTimeout(() => {
+            setImgVisible(false);
+        }, duration);
         return () => {
             clearTimeout(timerRef.current);
-            clearTimeout(imgCycleRef.current);
             setImgVisible(false);
         };
     }, [effectId]);
