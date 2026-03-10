@@ -355,20 +355,32 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
             {/* ✅ Full Wall Modal — opens when banner is tapped */}
             {showWallModal && (
                 <PortalModal>
-                    <div style={{
-                        position:'fixed', inset:0, background:'rgba(0,0,0,0.88)',
-                        zIndex: Z.MODAL, display:'flex', flexDirection:'column',
-                        padding:'0',
+                    {/* Backdrop */}
+                    <div onClick={()=>setShowWallModal(false)} style={{
+                        position:'fixed', inset:0, background:'rgba(0,0,0,0.78)',
+                        zIndex: Z.MODAL, display:'flex', alignItems:'center', justifyContent:'center',
+                        padding:'16px',
+                    }}>
+                    {/* Inner centered modal */}
+                    <div onClick={e=>e.stopPropagation()} style={{
+                        display:'flex', flexDirection:'column',
+                        width:'100%', maxWidth:'420px',
+                        maxHeight:'82vh',
+                        background:'linear-gradient(160deg,rgba(6,6,18,0.99),rgba(10,10,30,0.99))',
+                        borderRadius:'18px',
+                        border:'1px solid rgba(255,255,255,0.1)',
+                        boxShadow:'0 24px 60px rgba(0,0,0,0.8), 0 0 40px rgba(112,0,255,0.15)',
+                        overflow:'hidden',
                     }}>
                         {/* Modal header */}
                         <div style={{
                             display:'flex',alignItems:'center',justifyContent:'space-between',
-                            padding:'14px 16px',
+                            padding:'12px 14px',
                             background:'linear-gradient(135deg,rgba(8,8,22,1),rgba(20,10,40,1))',
                             borderBottom:'1px solid rgba(255,255,255,0.08)',
                             flexShrink:0,
                         }}>
-                            <span style={{fontSize:'15px',fontWeight:900,color:'white'}}>🎁 {lang==='ar'?'جدار الهدايا':'Gift Wall'}</span>
+                            <span style={{fontSize:'14px',fontWeight:900,color:'white'}}>🎁 {lang==='ar'?'جدار الهدايا':'Gift Wall'}</span>
                             <button onClick={()=>setShowWallModal(false)} style={{
                                 background:'rgba(255,255,255,0.08)',border:'none',color:'#9ca3af',
                                 fontSize:'16px',cursor:'pointer',borderRadius:'50%',
@@ -394,7 +406,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
                             ))}
                         </div>
 
-                        {/* Scrollable content */}
+                            {/* Scrollable content */}
                         <div style={{flex:1,overflowY:'auto',padding:'12px 14px',background:'linear-gradient(160deg,#060612,#0a0a1e)'}}>
 
                             {/* ── Gift Wall Grid ── */}
@@ -539,7 +551,8 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </div>{/* end inner modal */}
+                    </div>{/* end backdrop */}
 
                     {/* ── Gift Detail Modal (on top of wall modal) ── */}
                     {selectedGiftDetail&&(
