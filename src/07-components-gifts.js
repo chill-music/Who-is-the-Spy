@@ -596,13 +596,13 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
     const [showPreview, setShowPreview] = useState(false);
     // ✅ Combo overlay state
     const [comboOverlay, setComboOverlay] = useState(null); // { gift, target } | null
+    // ✅ Gift filter tab — MUST be before early return (Rules of Hooks)
+    const [activeGiftTab, setActiveGiftTab] = useState('all');
 
     if(!show) return null;
 
     const hasDirectTarget = targetUser && targetUser.uid !== 'self';
     const vipLevel = currentUser ? (getVIPLevel ? getVIPLevel(currentUser) : 0) : 0;
-    // Gift filter tabs
-    const [activeGiftTab, setActiveGiftTab] = useState('all');
 
     // All gifts combined: regular + VIP (sorted by cost)
     const regularGifts = (SHOP_ITEMS.gifts || []).filter(g => !g.hidden && !g.eventOnly);
@@ -710,15 +710,15 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                 lang={lang}
                 onBuy={(gift, target, qty) => {
                     const actualTarget = target || (hasDirectTarget ? targetUser : null);
-                    const sendQty = qty || 1;
-                    // ✅ Send all in one call
+                    const sendQty = qty && qty > 0 ? qty : 1;
+                    // ✅ Always send the gift first
                     onSendGift(gift, actualTarget, sendQty);
                     setShowPreview(false);
-                    // ✅ Show combo overlay only for qty=1 direct sends (user can keep tapping)
+                    // ✅ Open combo only for single direct sends to others
                     if (sendQty === 1 && actualTarget && actualTarget.uid !== 'self') {
                         setComboOverlay({ gift, target: actualTarget });
                     } else {
-                        // multi-qty or self-send → just close modal
+                        // multi-qty OR self-send → close modal
                         onClose();
                     }
                 }}
@@ -808,10 +808,9 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
     }, []);
 
     const handleTap = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!comboActive && comboCount > 0) return;
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         if (currency < gift.cost) return;
+        // Allow tapping even if comboActive is false — restart the combo
         onSend(gift, target, 1);
         const bonus = generateRandomBonus(gift.minBonus || 1, gift.maxBonus || Math.floor(gift.cost * 0.1), gift.cost);
         const charisma = gift.charisma || 0;
@@ -918,7 +917,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
 
             {/* Ring timer + tap button */}
             <div style={{position:'relative',width:'100px',height:'100px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <svg width="100" height="100" style={{position:'absolute',top:0,left:0,transform:'rotate(-90deg)'}}>
+                <svg width="100" height="100" style={{position:'absolute',top:0,left:0,transform:'rotate(-90deg)',pointerEvents:'none',zIndex:1}}>
                     <circle cx="50" cy="50" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5"/>
                     <circle
                         cx="50" cy="50" r={RING_R} fill="none"
@@ -931,9 +930,11 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                     />
                 </svg>
                 <button
-                    onPointerDown={handleTap}
+                    onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handleTap(e); }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                     disabled={currency < gift.cost}
                     style={{
+                        position:'relative', zIndex:2,
                         width:'76px', height:'76px', borderRadius:'50%',
                         fontSize:'13px', fontWeight:900, border:'none',
                         cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
