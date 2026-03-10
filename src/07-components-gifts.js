@@ -710,11 +710,12 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                 lang={lang}
                 onBuy={(gift, target, qty) => {
                     const actualTarget = target || (hasDirectTarget ? targetUser : null);
-                    const sendQty = qty || 1;
+                    const sendQty = qty || selectedQty || 1;
+                    // Send all quantities in one call — app.js loops internally
                     onSendGift(gift, actualTarget, sendQty);
                     setShowPreview(false);
-                    // Show combo overlay for direct sends (qty=1 only - multi already sent)
-                    if (actualTarget && actualTarget.uid !== 'self' && sendQty === 1) {
+                    // Show combo overlay for all direct sends
+                    if (actualTarget && actualTarget.uid !== 'self') {
                         setComboOverlay({ gift, target: actualTarget });
                     } else {
                         onClose();
