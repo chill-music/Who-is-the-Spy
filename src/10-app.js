@@ -823,13 +823,19 @@ function App() {
     }, [user, isLoggedIn, t, userData, createNotification, lang]);
     const handleRejectRequest = useCallback(async (fromUid) => { if (!user || !isLoggedIn) return; await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); }, [user, isLoggedIn]);
 
-    // 🎁 GIFT FUNCTIONS - NO CASHBACK, BONUS FOR RECEIVER ONLY
+    // 🎁 GIFT FUNCTIONS — BATCHED (one write per step, parallel logs)
     const handleSendGiftToUser = useCallback(async (gift, targetUser, qty = 1, fromInventory = false) => {
+        if (!user || !isLoggedIn) return;
         const currency = userData?.currency || 0;
-        const totalCost = fromInventory ? 0 : gift.cost * qty; // من الانفنتري مجاني (مدفوع مسبقاً)
-        if (!fromInventory && currency < totalCost) return;
+        const totalCost = fromInventory ? 0 : gift.cost * qty;
 
-        // ✅ If sending from inventory, check and decrement gift count
+        // ✅ Currency check
+        if (!fromInventory && currency < totalCost) {
+            setNotification(lang === 'ar' ? '❌ رصيدك غير كافي' : '❌ Insufficient balance');
+            return;
+        }
+
+        // ✅ Inventory: deduct ONE item (qty ignored for inventory sends)
         if (fromInventory) {
             const giftCounts = userData?.inventory?.giftCounts || {};
             const currentCount = giftCounts[gift.id] || 0;
@@ -838,190 +844,144 @@ function App() {
                 return;
             }
             const newCount = currentCount - 1;
-            const updates = { [`inventory.giftCounts.${gift.id}`]: newCount };
-            if (newCount <= 0) {
-                // Remove from gifts array too
-                updates['inventory.gifts'] = firebase.firestore.FieldValue.arrayRemove(gift.id);
-            }
-            try { await usersCollection.doc(user.uid).update(updates); } catch(e) {}
+            const invUpdates = { [`inventory.giftCounts.${gift.id}`]: newCount };
+            if (newCount <= 0) invUpdates['inventory.gifts'] = firebase.firestore.FieldValue.arrayRemove(gift.id);
+            try { await usersCollection.doc(user.uid).update(invUpdates); } catch(e) {}
         }
 
-        // ✅ For multi-qty: send qty times
-        const sendOnce = async () => {
-        // ✅ Generate bonus for RECEIVER only
-        const minBonus = gift.minBonus || 1;
-        const maxBonus = gift.maxBonus || Math.floor(gift.cost * 0.1);
-        const bonusForReceiver = generateRandomBonus(minBonus, maxBonus);
-
+        const isSelfSend = !targetUser || targetUser.uid === 'self' || targetUser.uid === user.uid;
         const giftName = lang === 'ar' ? gift.name_ar : gift.name_en;
 
+        // ✅ Pre-calculate bonuses for each send
+        const bonuses = [];
+        let totalBonus = 0;
+        for (let i = 0; i < qty; i++) {
+            const b = Math.floor(
+                (gift.minBonus || 1) +
+                Math.random() * ((gift.maxBonus || Math.floor(gift.cost * 0.1)) - (gift.minBonus || 1))
+            );
+            bonuses.push(b);
+            totalBonus += b;
+        }
+        const totalCharisma = gift.charisma * qty;
+
         try {
-            // Deduct from sender (NO cashback)
-            await usersCollection.doc(user.uid).update({
-                currency: firebase.firestore.FieldValue.increment(-gift.cost)
-            });
+            // ═══ STEP 1: Deduct sender (ONE write) ═══
+            const senderUpdate = {
+                currency:   firebase.firestore.FieldValue.increment(-totalCost),
+                giftsSent:  firebase.firestore.FieldValue.increment(qty),
+            };
+            if (hasVIP(userData)) {
+                senderUpdate['vip.xp'] = firebase.firestore.FieldValue.increment(getGiftVIPXP(gift) * qty);
+            }
+            await usersCollection.doc(user.uid).update(senderUpdate);
 
-            if (targetUser?.uid === 'self' || targetUser?.uid === user.uid) {
-                // Sending to self
-                const selfUpdates = {
-                    charisma: firebase.firestore.FieldValue.increment(gift.charisma),
-                    currency: firebase.firestore.FieldValue.increment(bonusForReceiver),
-                };
-                // ✅ VIP XP: only if user already has VIP (purchased)
-                if (hasVIP(userData)) {
-                    const vipXpGain = getGiftVIPXP(gift);
-                    selfUpdates['vip.xp'] = firebase.firestore.FieldValue.increment(vipXpGain);
-                }
-                await usersCollection.doc(user.uid).update(selfUpdates);
-
-                // ✅ Log self-sent gift to gifts_log collection too
-                await giftsLogCollection.add({
-                    senderId: user.uid,
-                    senderName: userData?.displayName || 'User',
-                    senderPhoto: userData?.photoURL || null,
-                    receiverId: user.uid,
-                    receiverName: userData?.displayName || 'User',
-                    giftId: gift.id,
-                    giftName: giftName,
-                    giftNameEn: gift.name_en,
-                    giftNameAr: gift.name_ar,
-                    giftEmoji: gift.emoji,
-                    giftImageUrl: gift.imageUrl || '',
-                    charisma: gift.charisma,
-                    bonus: bonusForReceiver,
-                    cost: gift.cost,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // 📝 Also log gift card to SelfChat
-                try {
-                    const selfChatId = `${user.uid}_self`;
-                    const selfChatRef = chatsCollection.doc(selfChatId);
-                    await selfChatRef.set({
-                        participants: [user.uid, user.uid],
-                        type: 'self',
-                        lastMessage: `🎁 ${giftName}`,
-                        lastAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
-                    await selfChatRef.collection('messages').add({
-                        type: 'gift',
-                        giftEmoji: gift.emoji || '🎁',
-                        giftName: `${gift.name_en} / ${gift.name_ar}`,
-                        giftCost: gift.cost,
-                        charismaGain: gift.charisma,
-                        bonusIntel: bonusForReceiver,
-                        senderId: user.uid,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                } catch(e) { }
+            // ═══ STEP 2: Credit receiver (ONE write) ═══
+            const receiverUpdates = {
+                charisma:      firebase.firestore.FieldValue.increment(totalCharisma),
+                currency:      firebase.firestore.FieldValue.increment(totalBonus),
+                giftsReceived: firebase.firestore.FieldValue.increment(qty),
+            };
+            if (isSelfSend) {
+                // self-send: merge receiver update into same doc
+                await usersCollection.doc(user.uid).update(receiverUpdates);
             } else {
-                // Sending to another person - add charisma AND bonus
-                // ✅ VIP XP: only if sender already has VIP (purchased)
-                if (hasVIP(userData)) {
-                    const vipXpGain = getGiftVIPXP(gift);
-                    await usersCollection.doc(user.uid).update({
-                        'vip.xp': firebase.firestore.FieldValue.increment(vipXpGain),
-                    });
-                }
-                await usersCollection.doc(targetUser.uid).update({
-                    charisma: firebase.firestore.FieldValue.increment(gift.charisma),
-                    currency: firebase.firestore.FieldValue.increment(bonusForReceiver)
-                });
+                await usersCollection.doc(targetUser.uid).update(receiverUpdates);
+            }
 
+            // ═══ STEP 3: Parallel log writes ═══
+            const parallelOps = [];
+
+            // Gift logs (one per qty)
+            for (let i = 0; i < qty; i++) {
+                parallelOps.push(giftsLogCollection.add({
+                    senderId:     user.uid,
+                    senderName:   userData?.displayName || 'User',
+                    senderPhoto:  userData?.photoURL || null,
+                    receiverId:   isSelfSend ? user.uid : targetUser.uid,
+                    receiverName: isSelfSend ? (userData?.displayName || 'User') : (targetUser.displayName || 'User'),
+                    giftId:       gift.id,
+                    giftName,
+                    giftNameEn:   gift.name_en,
+                    giftNameAr:   gift.name_ar,
+                    giftEmoji:    gift.emoji,
+                    giftImageUrl: gift.imageUrl || '',
+                    charisma:     gift.charisma,
+                    bonus:        bonuses[i],
+                    cost:         gift.cost,
+                    timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
+                }));
+            }
+
+            // Chat message
+            const chatMsgBase = {
+                senderId:      user.uid,
+                senderName:    userData?.displayName || 'User',
+                senderPhoto:   userData?.photoURL || null,
+                senderVipLevel: getVIPLevel(userData) || 0,
+                type:          'gift',
+                giftId:        gift.id,
+                giftName,
+                giftNameEn:    gift.name_en,
+                giftNameAr:    gift.name_ar,
+                giftEmoji:     gift.emoji,
+                giftImageUrl:  gift.imageUrl || '',
+                giftCharisma:  totalCharisma,
+                giftBonus:     totalBonus,
+                giftCost:      totalCost,
+                giftQty:       qty,
+                text:          `🎁 ${qty > 1 ? `×${qty} ` : ''}${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji}`,
+                timestamp:     firebase.firestore.FieldValue.serverTimestamp(),
+            };
+
+            if (isSelfSend) {
+                const selfChatId  = `${user.uid}_self`;
+                const selfChatRef = chatsCollection.doc(selfChatId);
+                parallelOps.push(selfChatRef.set({
+                    participants: [user.uid, user.uid],
+                    type:         'self',
+                    lastMessage:  `🎁 ${giftName}${qty > 1 ? ` ×${qty}` : ''}`,
+                    lastAt:       firebase.firestore.FieldValue.serverTimestamp(),
+                }, { merge: true }));
+                parallelOps.push(selfChatRef.collection('messages').add(chatMsgBase));
+            } else {
                 const chatId = [user.uid, targetUser.uid].sort().join('_');
-
-                // Add gift message to chat
-                await chatsCollection.doc(chatId).collection('messages').add({
-                    senderId: user.uid,
-                    senderName: userData?.displayName || 'User',
-                    senderPhoto: userData?.photoURL || null,
-                    senderVipLevel: getVIPLevel(userData) || 0,
-                    type: 'gift',
-                    giftId: gift.id,
-                    giftName: giftName,
-                    giftNameEn: gift.name_en,
-                    giftNameAr: gift.name_ar,
-                    giftEmoji: gift.emoji,
-                    giftImageUrl: gift.imageUrl || '',
-                    giftCharisma: gift.charisma,
-                    giftBonus: bonusForReceiver,
-                    giftCost: gift.cost,
-                    text: `🎁 ${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji}`,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // Update chat metadata
-                await chatsCollection.doc(chatId).set({
-                    members: [user.uid, targetUser.uid],
-                    lastMessage: `🎁 ${giftName}`,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    [`unread.${targetUser.uid}`]: firebase.firestore.FieldValue.increment(1)
-                }, { merge: true });
-
-                // ✅ Log gift to gifts_log collection
-                await giftsLogCollection.add({
-                    senderId: user.uid,
-                    senderName: userData?.displayName || 'User',
-                    senderPhoto: userData?.photoURL || null,
-                    receiverId: targetUser.uid,
-                    receiverName: targetUser.displayName || 'User',
-                    giftId: gift.id,
-                    giftName: giftName,
-                    giftNameEn: gift.name_en,
-                    giftNameAr: gift.name_ar,
-                    giftEmoji: gift.emoji,
-                    giftImageUrl: gift.imageUrl || '',
-                    charisma: gift.charisma,
-                    bonus: bonusForReceiver,
-                    cost: gift.cost,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // Send notification to receiver
-                await createNotification(
+                parallelOps.push(chatsCollection.doc(chatId).collection('messages').add(chatMsgBase));
+                parallelOps.push(chatsCollection.doc(chatId).set({
+                    members:                    [user.uid, targetUser.uid],
+                    lastMessage:                `🎁 ${giftName}${qty > 1 ? ` ×${qty}` : ''}`,
+                    timestamp:                  firebase.firestore.FieldValue.serverTimestamp(),
+                    [`unread.${targetUser.uid}`]: firebase.firestore.FieldValue.increment(1),
+                }, { merge: true }));
+                // Notification
+                parallelOps.push(createNotification(
                     targetUser.uid,
                     'gift',
-                    `${userData?.displayName || 'User'} ${t.sentAGift}: ${gift.emoji} (+${formatCharisma(gift.charisma)} ⭐, +${bonusForReceiver} 🧠)`,
+                    `${userData?.displayName || 'User'} ${t.sentAGift}: ${gift.emoji}${qty > 1 ? ` ×${qty}` : ''} (+${formatCharisma(totalCharisma)} ⭐, +${totalBonus} 🧠)`,
                     user.uid,
                     userData?.displayName || 'User',
-                    { giftId: gift.id, giftEmoji: gift.emoji, giftName, charisma: gift.charisma, bonus: bonusForReceiver }
-                );
+                    { giftId: gift.id, giftEmoji: gift.emoji, giftName, charisma: totalCharisma, bonus: totalBonus, qty },
+                ));
             }
 
-            // ✅ Mission: giftsSent + giftsSent stat for achievements
-            await incrementMissionProgress('giftsSent', 1);
-            await usersCollection.doc(user.uid).update({
-                giftsSent: firebase.firestore.FieldValue.increment(1)
-            });
-            // ✅ giftsReceived for the receiver
-            if (targetUser?.uid && targetUser.uid !== 'self' && targetUser.uid !== user.uid) {
-                await usersCollection.doc(targetUser.uid).update({
-                    giftsReceived: firebase.firestore.FieldValue.increment(1)
-                });
-            } else {
-                await usersCollection.doc(user.uid).update({
-                    giftsReceived: firebase.firestore.FieldValue.increment(1)
-                });
-            }
-        } catch(e) { throw e; } // end try inside sendOnce
-        }; // end sendOnce
+            // Mission progress
+            parallelOps.push(incrementMissionProgress('giftsSent', qty));
 
-        try {
-            // ✅ Send qty times (for multi-quantity support)
-            for (let i = 0; i < qty; i++) {
-                await sendOnce();
-            }
-            // ✅ Gift sound removed — only notification toast
-            setNotification(qty > 1
-                ? `🎁 ${t.giftSent} ×${qty}!`
-                : `🎁 ${t.giftSent}!`
-            );
-            // ✅ Check achievements after gifting
+            // ═══ STEP 4: Run all parallel ops ═══
+            await Promise.all(parallelOps);
+
+            // ✅ Notification toast
+            setNotification(qty > 1 ? `🎁 ${t.giftSent} ×${qty}!` : `🎁 ${t.giftSent}!`);
+
+            // ✅ Achievements check
             const updDoc = await usersCollection.doc(user.uid).get();
             if (updDoc.exists) await checkAndUnlockAchievements(updDoc.data());
-        } catch (error) {
-            }
-    }, [userData, user, t, createNotification, lang, incrementMissionProgress, checkAndUnlockAchievements]);
+
+        } catch(error) {
+            console.error('Gift send error:', error);
+            setNotification(lang === 'ar' ? '❌ خطأ في الإرسال، حاول مرة أخرى' : '❌ Send error, try again');
+        }
+    }, [userData, user, t, createNotification, lang, incrementMissionProgress, checkAndUnlockAchievements, isLoggedIn]);
 
     // Shop Functions
     const handlePurchase = useCallback(async (item, targetUser = null, qty = 1) => {
