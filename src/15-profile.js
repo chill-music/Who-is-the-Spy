@@ -355,32 +355,20 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
             {/* ✅ Full Wall Modal — opens when banner is tapped */}
             {showWallModal && (
                 <PortalModal>
-                    {/* Backdrop */}
-                    <div onClick={()=>setShowWallModal(false)} style={{
-                        position:'fixed', inset:0, background:'rgba(0,0,0,0.78)',
-                        zIndex: Z.MODAL, display:'flex', alignItems:'center', justifyContent:'center',
-                        padding:'16px',
-                    }}>
-                    {/* Inner centered modal */}
-                    <div onClick={e=>e.stopPropagation()} style={{
-                        display:'flex', flexDirection:'column',
-                        width:'100%', maxWidth:'420px',
-                        maxHeight:'82vh',
-                        background:'linear-gradient(160deg,rgba(6,6,18,0.99),rgba(10,10,30,0.99))',
-                        borderRadius:'18px',
-                        border:'1px solid rgba(255,255,255,0.1)',
-                        boxShadow:'0 24px 60px rgba(0,0,0,0.8), 0 0 40px rgba(112,0,255,0.15)',
-                        overflow:'hidden',
+                    <div style={{
+                        position:'fixed', inset:0, background:'rgba(0,0,0,0.88)',
+                        zIndex: Z.MODAL, display:'flex', flexDirection:'column',
+                        padding:'0',
                     }}>
                         {/* Modal header */}
                         <div style={{
                             display:'flex',alignItems:'center',justifyContent:'space-between',
-                            padding:'12px 14px',
+                            padding:'14px 16px',
                             background:'linear-gradient(135deg,rgba(8,8,22,1),rgba(20,10,40,1))',
                             borderBottom:'1px solid rgba(255,255,255,0.08)',
                             flexShrink:0,
                         }}>
-                            <span style={{fontSize:'14px',fontWeight:900,color:'white'}}>🎁 {lang==='ar'?'جدار الهدايا':'Gift Wall'}</span>
+                            <span style={{fontSize:'15px',fontWeight:900,color:'white'}}>🎁 {lang==='ar'?'جدار الهدايا':'Gift Wall'}</span>
                             <button onClick={()=>setShowWallModal(false)} style={{
                                 background:'rgba(255,255,255,0.08)',border:'none',color:'#9ca3af',
                                 fontSize:'16px',cursor:'pointer',borderRadius:'50%',
@@ -406,7 +394,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
                             ))}
                         </div>
 
-                            {/* Scrollable content */}
+                        {/* Scrollable content */}
                         <div style={{flex:1,overflowY:'auto',padding:'12px 14px',background:'linear-gradient(160deg,#060612,#0a0a1e)'}}>
 
                             {/* ── Gift Wall Grid ── */}
@@ -551,8 +539,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
                                 </div>
                             )}
                         </div>
-                    </div>{/* end inner modal */}
-                    </div>{/* end backdrop */}
+                    </div>
 
                     {/* ── Gift Detail Modal (on top of wall modal) ── */}
                     {selectedGiftDetail&&(
@@ -996,64 +983,96 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectI
 
 // ✨ PROFILE EFFECT OVERLAY (standalone component - no hooks added to ProfileV11)
 const ProfileEffectOverlay = ({ effectId }) => {
-    const [particles, setParticles] = useState([]);
-    const [alive, setAlive] = useState(false);
-    const timerRef = useRef(null);
+    const [particles, setParticles]   = useState([]);
+    const [alive, setAlive]           = useState(false);
+    const [imgVisible, setImgVisible] = useState(false);
+    const timerRef   = useRef(null);
+    const imgCycleRef = useRef(null);
 
     const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
 
+    // ── Detect if particles field is a URL (image/GIF overlay) ──
+    const particlesIsUrl = effect && typeof effect.particles === 'string' &&
+        (effect.particles.startsWith('http') || effect.particles.startsWith('data:'));
+    const imageUrl = particlesIsUrl ? effect.particles : (effect?.imageUrl || null);
+    const isImageEffect = !!imageUrl;
+
+    // ── Image/GIF overlay: fade-in → show → fade-out → repeat ──
     useEffect(() => {
-        if (!effect) return;
+        if (!effect || !isImageEffect) return;
+        const duration  = effect.duration || 2500;
+        const pause     = 1200; // pause between cycles
+
+        const runCycle = () => {
+            setImgVisible(true);
+            timerRef.current = setTimeout(() => {
+                setImgVisible(false);
+                imgCycleRef.current = setTimeout(runCycle, pause);
+            }, duration);
+        };
+        runCycle();
+        return () => {
+            clearTimeout(timerRef.current);
+            clearTimeout(imgCycleRef.current);
+            setImgVisible(false);
+        };
+    }, [effectId]);
+
+    // ── Emoji/particle rain ──
+    useEffect(() => {
+        if (!effect || isImageEffect) return;
+        const particlesArr = Array.isArray(effect.particles) ? effect.particles : [];
         const all = [];
-        (effect.particles || []).forEach(p => {
+        particlesArr.forEach(p => {
             for (let i = 0; i < p.count; i++) all.push({
-                id: `${p.emoji}-${i}-${Math.random().toString(36).slice(2)}`,
+                id:    `${p.emoji}-${i}-${Math.random().toString(36).slice(2)}`,
                 emoji: p.emoji,
-                x: 5 + Math.random() * 90,
+                x:     5 + Math.random() * 90,
                 delay: Math.random() * 1.4,
-                size: 13 + Math.random() * 17,
-                dur: 1.5 + Math.random() * 0.9,
+                size:  13 + Math.random() * 17,
+                dur:   1.5 + Math.random() * 0.9,
             });
         });
         setParticles(all);
         setAlive(true);
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => setAlive(false), (effect.duration || 2200) + 1200);
-        return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+        return () => { clearTimeout(timerRef.current); };
     }, [effectId]);
 
     if (!effect) return null;
 
-    // Support for image/GIF effects (imageUrl field in effect)
-    if (effect.imageUrl && effect.imageUrl.trim() !== '') {
+    // ── IMAGE / GIF overlay mode ──
+    if (isImageEffect) {
         return (
             <div style={{
-                position:'absolute', inset:0, borderRadius:'inherit',
-                overflow:'hidden', pointerEvents:'none', zIndex:2
+                position: 'fixed', inset: 0,
+                pointerEvents: 'none', zIndex: 99998,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
                 <img
-                    src={effect.imageUrl}
-                    alt={effect.name_en}
+                    src={imageUrl}
+                    alt=""
                     style={{
-                        position:'absolute', inset:0,
-                        width:'100%', height:'100%',
-                        objectFit:'cover', objectPosition:'center',
-                        borderRadius:'inherit',
-                        opacity: 0.85
+                        position:   'absolute',
+                        inset:      0,
+                        width:      '100%',
+                        height:     '100%',
+                        objectFit:  'contain',
+                        opacity:    imgVisible ? 0.72 : 0,
+                        transition: imgVisible
+                            ? 'opacity 0.4s ease-in'
+                            : 'opacity 0.6s ease-out',
+                        // ✅ No mix-blend-mode crash — plain transparent overlay
+                        pointerEvents: 'none',
                     }}
                 />
-                {effect.hasGlow && (
-                    <div style={{
-                        position:'absolute', inset:0,
-                        background:'radial-gradient(circle at center, rgba(0,242,255,0.25) 0%, transparent 70%)',
-                        pointerEvents:'none'
-                    }} />
-                )}
+                <style>{`@keyframes pef_pulse{0%,100%{opacity:0.5}50%{opacity:0.85}}`}</style>
             </div>
         );
     }
 
-    // Default: particle effect
+    // ── EMOJI RAIN mode ──
     if (!alive || particles.length === 0) return null;
     return (
         <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:99998,overflow:'hidden'}}>
