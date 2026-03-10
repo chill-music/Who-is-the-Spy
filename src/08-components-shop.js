@@ -51,7 +51,13 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
         if (item.type === 'gifts' || item.type === 'gifts_vip') return item.imageUrl
             ? <img src={item.imageUrl} alt="" style={{width:'26px',height:'26px',objectFit:'contain'}} />
             : <span style={{fontSize:'22px'}}>{item.emoji}</span>;
-        if (item.type === 'profileEffects') return <span style={{fontSize:'22px'}}>{item.preview}</span>;
+        if (item.type === 'profileEffects') {
+            const src = typeof item.particles === 'string' && item.particles.startsWith('http')
+                ? item.particles : (item.imageUrl || null);
+            return src
+                ? <img src={src} alt={item.name_en} style={{width:'26px',height:'26px',objectFit:'contain',borderRadius:'4px'}} />
+                : <span style={{fontSize:'22px'}}>{item.preview}</span>;
+        }
         return <span style={{fontSize:'18px'}}>🎨</span>;
     };
 
@@ -762,7 +768,13 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
         if (item.type === 'badges') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.preview}</span>;
         if (item.type === 'titles') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-6 h-6 object-contain" /> : <span className="text-xl">{item.preview}</span>;
         if (item.type === 'gifts') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.emoji}</span>;
-        if (item.type === 'profileEffects') return <span style={{fontSize:'26px',lineHeight:1}}>{item.preview}</span>;
+        if (item.type === 'profileEffects') {
+            const src = typeof item.particles === 'string' && item.particles.startsWith('http')
+                ? item.particles : (item.imageUrl || null);
+            return src
+                ? <img src={src} alt={item.name_en} style={{width:'38px',height:'38px',objectFit:'contain',borderRadius:'6px'}} />
+                : <span style={{fontSize:'26px',lineHeight:1}}>{item.preview}</span>;
+        }
         return <span className="text-xl">🎨</span>;
     };
 
