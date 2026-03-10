@@ -355,10 +355,21 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
             {/* ✅ Full Wall Modal — opens when banner is tapped */}
             {showWallModal && (
                 <PortalModal>
-                    <div style={{
-                        position:'fixed', inset:0, background:'rgba(0,0,0,0.88)',
-                        zIndex: Z.MODAL, display:'flex', flexDirection:'column',
-                        padding:'0',
+                    {/* Backdrop — click outside to close */}
+                    <div onClick={()=>setShowWallModal(false)} style={{
+                        position:'fixed', inset:0, background:'rgba(0,0,0,0.82)',
+                        zIndex: Z.MODAL,
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        padding:'16px',
+                    }}>
+                    {/* Centered dialog */}
+                    <div onClick={e=>e.stopPropagation()} style={{
+                        width:'100%', maxWidth:'420px', maxHeight:'82vh',
+                        borderRadius:'18px', overflow:'hidden',
+                        display:'flex', flexDirection:'column',
+                        background:'linear-gradient(160deg,#060612,#0a0a1e)',
+                        border:'1px solid rgba(255,255,255,0.09)',
+                        boxShadow:'0 24px 60px rgba(0,0,0,0.9)',
                     }}>
                         {/* Modal header */}
                         <div style={{
@@ -540,6 +551,8 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
                             )}
                         </div>
                     </div>
+                    </div>{/* end centered dialog */}
+                    </div>{/* end backdrop */}
 
                     {/* ── Gift Detail Modal (on top of wall modal) ── */}
                     {selectedGiftDetail&&(
@@ -992,7 +1005,7 @@ const ProfileEffectOverlay = ({ effectId }) => {
     useEffect(() => {
         if (!effect) return;
         const all = [];
-        (Array.isArray(effect.particles) ? effect.particles : []).forEach(p => {
+        (effect.particles || []).forEach(p => {
             for (let i = 0; i < p.count; i++) all.push({
                 id: `${p.emoji}-${i}-${Math.random().toString(36).slice(2)}`,
                 emoji: p.emoji,
