@@ -355,10 +355,18 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
             {/* ✅ Full Wall Modal — opens when banner is tapped */}
             {showWallModal && (
                 <PortalModal>
-                    <div style={{
-                        position:'fixed', inset:0, background:'rgba(0,0,0,0.88)',
-                        zIndex: Z.MODAL, display:'flex', flexDirection:'column',
-                        padding:'0',
+                    <div onClick={()=>setShowWallModal(false)} style={{
+                        position:'fixed', inset:0, background:'rgba(0,0,0,0.82)',
+                        zIndex: Z.MODAL, display:'flex', alignItems:'center', justifyContent:'center',
+                        padding:'16px',
+                    }}>
+                    <div onClick={e=>e.stopPropagation()} style={{
+                        width:'100%', maxWidth:'420px', maxHeight:'82vh',
+                        borderRadius:'18px', overflow:'hidden',
+                        display:'flex', flexDirection:'column',
+                        background:'linear-gradient(160deg,#060612,#0a0a1e)',
+                        border:'1px solid rgba(255,255,255,0.09)',
+                        boxShadow:'0 24px 60px rgba(0,0,0,0.9)',
                     }}>
                         {/* Modal header */}
                         <div style={{
@@ -539,6 +547,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
                                 </div>
                             )}
                         </div>
+                    </div>
                     </div>
 
                     {/* ── Gift Detail Modal (on top of wall modal) ── */}
@@ -983,91 +992,64 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectI
 
 // ✨ PROFILE EFFECT OVERLAY (standalone component - no hooks added to ProfileV11)
 const ProfileEffectOverlay = ({ effectId }) => {
-    const [particles, setParticles]   = useState([]);
-    const [alive, setAlive]           = useState(false);
-    const [imgVisible, setImgVisible] = useState(false);
-    const timerRef   = useRef(null);
-    const imgCycleRef = useRef(null);
+    const [particles, setParticles] = useState([]);
+    const [alive, setAlive] = useState(false);
+    const timerRef = useRef(null);
 
     const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
 
-    // ── Detect if particles field is a URL (image/GIF overlay) ──
-    const particlesIsUrl = effect && typeof effect.particles === 'string' &&
-        (effect.particles.startsWith('http') || effect.particles.startsWith('data:'));
-    const imageUrl = particlesIsUrl ? effect.particles : (effect?.imageUrl || null);
-    const isImageEffect = !!imageUrl;
-
-    // ── Image/GIF overlay: fade-in → show once → fade-out ──
     useEffect(() => {
-        if (!effect || !isImageEffect) return;
-        const duration = effect.duration || 2500;
-        // Show immediately
-        setImgVisible(true);
-        // Fade out after duration
-        timerRef.current = setTimeout(() => {
-            setImgVisible(false);
-        }, duration);
-        return () => {
-            clearTimeout(timerRef.current);
-            setImgVisible(false);
-        };
-    }, [effectId]);
-
-    // ── Emoji/particle rain ──
-    useEffect(() => {
-        if (!effect || isImageEffect) return;
-        const particlesArr = Array.isArray(effect.particles) ? effect.particles : [];
+        if (!effect) return;
         const all = [];
-        particlesArr.forEach(p => {
+        (effect.particles || []).forEach(p => {
             for (let i = 0; i < p.count; i++) all.push({
-                id:    `${p.emoji}-${i}-${Math.random().toString(36).slice(2)}`,
+                id: `${p.emoji}-${i}-${Math.random().toString(36).slice(2)}`,
                 emoji: p.emoji,
-                x:     5 + Math.random() * 90,
+                x: 5 + Math.random() * 90,
                 delay: Math.random() * 1.4,
-                size:  13 + Math.random() * 17,
-                dur:   1.5 + Math.random() * 0.9,
+                size: 13 + Math.random() * 17,
+                dur: 1.5 + Math.random() * 0.9,
             });
         });
         setParticles(all);
         setAlive(true);
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => setAlive(false), (effect.duration || 2200) + 1200);
-        return () => { clearTimeout(timerRef.current); };
+        return () => { if (timerRef.current) clearTimeout(timerRef.current); };
     }, [effectId]);
 
     if (!effect) return null;
 
-    // ── IMAGE / GIF overlay mode ──
-    if (isImageEffect) {
+    // Support for image/GIF effects (imageUrl field in effect)
+    if (effect.imageUrl && effect.imageUrl.trim() !== '') {
         return (
             <div style={{
-                position: 'fixed', inset: 0,
-                pointerEvents: 'none', zIndex: 99998,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                position:'absolute', inset:0, borderRadius:'inherit',
+                overflow:'hidden', pointerEvents:'none', zIndex:2
             }}>
                 <img
-                    src={imageUrl}
-                    alt=""
+                    src={effect.imageUrl}
+                    alt={effect.name_en}
                     style={{
-                        position:   'absolute',
-                        inset:      0,
-                        width:      '100%',
-                        height:     '100%',
-                        objectFit:  'contain',
-                        opacity:    imgVisible ? 0.72 : 0,
-                        transition: imgVisible
-                            ? 'opacity 0.4s ease-in'
-                            : 'opacity 0.6s ease-out',
-                        // ✅ No mix-blend-mode crash — plain transparent overlay
-                        pointerEvents: 'none',
+                        position:'absolute', inset:0,
+                        width:'100%', height:'100%',
+                        objectFit:'cover', objectPosition:'center',
+                        borderRadius:'inherit',
+                        opacity: 0.85
                     }}
                 />
-                <style>{`@keyframes pef_pulse{0%,100%{opacity:0.5}50%{opacity:0.85}}`}</style>
+                {effect.hasGlow && (
+                    <div style={{
+                        position:'absolute', inset:0,
+                        background:'radial-gradient(circle at center, rgba(0,242,255,0.25) 0%, transparent 70%)',
+                        pointerEvents:'none'
+                    }} />
+                )}
             </div>
         );
     }
 
-    // ── EMOJI RAIN mode ──
+    // Default: particle effect
     if (!alive || particles.length === 0) return null;
     return (
         <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:99998,overflow:'hidden'}}>
