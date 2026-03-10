@@ -326,26 +326,41 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                     </div>
                     <div className="modal-body text-center py-3">
                         {/* Effect Preview Box */}
-                        <div style={{
-                            width:'100%', height:'140px', borderRadius:'12px', marginBottom:'12px',
-                            background: rarity.bg, border: `2px solid ${rarity.border}`,
-                            display:'flex', alignItems:'center', justifyContent:'center',
-                            position:'relative', overflow:'hidden',
-                            boxShadow: rarity.glow ? `0 0 20px ${rarity.color}55` : 'none'
-                        }}>
-                            {gift.imageUrl && gift.imageUrl.trim() !== '' ? (
-                                <img src={gift.imageUrl} alt={gift.name_en} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'10px'}} />
-                            ) : (
-                                <span style={{fontSize:'56px'}}>{gift.preview}</span>
-                            )}
-                            {gift.hasGlow && (
-                                <div style={{position:'absolute',inset:0,background:'radial-gradient(circle at center, rgba(0,242,255,0.25), transparent 70%)',pointerEvents:'none'}} />
-                            )}
-                            {/* Rarity badge */}
-                            <div style={{position:'absolute',top:'8px',right:'8px',background:rarity.color,color:'#000',fontSize:'9px',fontWeight:800,padding:'2px 7px',borderRadius:'8px'}}>
-                                {rarity.icon} {lang==='ar'?rarity.name_ar:rarity.name_en}
-                            </div>
-                        </div>
+                        {(() => {
+                            // ✅ Support: particles as URL, imageUrl, or emoji preview
+                            const effectSrc = (typeof gift.particles === 'string' && gift.particles.startsWith('http'))
+                                ? gift.particles
+                                : (gift.imageUrl && gift.imageUrl.trim() !== '' ? gift.imageUrl : null);
+                            return (
+                                <div style={{
+                                    width:'100%', height:'160px', borderRadius:'12px', marginBottom:'12px',
+                                    background: rarity.bg, border: `2px solid ${rarity.border}`,
+                                    display:'flex', alignItems:'center', justifyContent:'center',
+                                    position:'relative', overflow:'hidden',
+                                    boxShadow: rarity.glow ? `0 0 20px ${rarity.color}55` : 'none'
+                                }}>
+                                    {effectSrc ? (
+                                        <img
+                                            src={effectSrc}
+                                            alt={gift.name_en}
+                                            style={{
+                                                width:'100%', height:'100%',
+                                                objectFit:'contain', borderRadius:'10px',
+                                            }}
+                                        />
+                                    ) : (
+                                        <span style={{fontSize:'56px'}}>{gift.preview}</span>
+                                    )}
+                                    {gift.hasGlow && (
+                                        <div style={{position:'absolute',inset:0,background:'radial-gradient(circle at center, rgba(0,242,255,0.25), transparent 70%)',pointerEvents:'none'}} />
+                                    )}
+                                    {/* Rarity badge */}
+                                    <div style={{position:'absolute',top:'8px',right:'8px',background:rarity.color,color:'#000',fontSize:'9px',fontWeight:800,padding:'2px 7px',borderRadius:'8px'}}>
+                                        {rarity.icon} {lang==='ar'?rarity.name_ar:rarity.name_en}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                         <h3 style={{fontSize:'15px',fontWeight:800,color:'white',marginBottom:'6px'}}>{lang==='ar'?gift.name_ar:gift.name_en}</h3>
                         {/* Details */}
                         <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'10px',textAlign:'right',direction:'ltr'}}>
