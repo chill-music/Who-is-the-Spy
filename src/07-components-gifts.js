@@ -710,14 +710,15 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                 lang={lang}
                 onBuy={(gift, target, qty) => {
                     const actualTarget = target || (hasDirectTarget ? targetUser : null);
-                    const sendQty = qty || selectedQty || 1;
-                    // Send all quantities in one call — app.js loops internally
+                    const sendQty = qty || 1;
+                    // ✅ Send all in one call
                     onSendGift(gift, actualTarget, sendQty);
                     setShowPreview(false);
-                    // Show combo overlay for all direct sends
-                    if (actualTarget && actualTarget.uid !== 'self') {
+                    // ✅ Show combo overlay only for qty=1 direct sends (user can keep tapping)
+                    if (sendQty === 1 && actualTarget && actualTarget.uid !== 'self') {
                         setComboOverlay({ gift, target: actualTarget });
                     } else {
+                        // multi-qty or self-send → just close modal
                         onClose();
                     }
                 }}
@@ -728,23 +729,25 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                 user={{ uid: currentUser?.uid }}
                 currentUserData={currentUser}
             />
-            {/* ✅ Combo overlay after first send */}
+            {/* ✅ ComboSendOverlay via PortalModal — renders at body level, no backdrop */}
             {comboOverlay && (
-                <ComboSendOverlay
-                    gift={comboOverlay.gift}
-                    target={comboOverlay.target}
-                    currency={currency}
-                    onSend={(g, t, qty) => onSendGift(g, t, qty)}
-                    onClose={() => { setComboOverlay(null); onClose(); }}
-                    lang={lang}
-                />
+                <PortalModal>
+                    <ComboSendOverlay
+                        gift={comboOverlay.gift}
+                        target={comboOverlay.target}
+                        currency={currency}
+                        onSend={(g, t, qty) => onSendGift(g, t, qty)}
+                        onClose={() => setComboOverlay(null)}
+                        lang={lang}
+                    />
+                </PortalModal>
             )}
         </>
     );
 };
 
 // ══════════════════════════════════════════════════
-// 🔥 COMBO SEND OVERLAY — يظهر بعد أول إرسال فوري
+// 🔥 COMBO SEND OVERLAY — bottom-right floating card, no backdrop
 // ══════════════════════════════════════════════════
 const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => {
     const [comboCount, setComboCount] = useState(0);
@@ -755,7 +758,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
     const [closing, setClosing] = useState(false);
     const [comboLog, setComboLog] = useState([]);
     const [showFinalLog, setShowFinalLog] = useState(false);
-    const COMBO_DURATION = 5000; // 5 ثواني بدلاً من 3
+    const COMBO_DURATION = 5000;
     const ringIntervalRef = React.useRef(null);
     const timerRef = React.useRef(null);
     const ringStartRef = React.useRef(null);
@@ -821,180 +824,144 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
         startCountdown();
     };
 
-    const RING_R = 52;
+    const RING_R = 42;
     const RING_C = 2 * Math.PI * RING_R;
     const ringColor = comboCount >= 10 ? '#f59e0b' : comboCount >= 5 ? '#a78bfa' : '#00d4ff';
 
-    // اللوج النهائي بعد انتهاء الكومبو
+    // ✅ Final log — small card, no full-screen overlay
     if (showFinalLog && comboCount > 0) {
         return (
             <div style={{
-                position: 'fixed', inset: 0, zIndex: 9999998,
-                background: 'rgba(0,0,0,0.88)',
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                backdropFilter: 'blur(8px)',
+                position: 'fixed',
+                bottom: '80px',
+                right: '12px',
+                zIndex: Z.OVERLAY,
+                width: '200px',
+                background: 'linear-gradient(135deg,rgba(20,20,40,0.98),rgba(10,10,25,0.99))',
+                border: `1px solid ${ringColor}55`,
+                borderRadius: '16px',
+                padding: '14px',
+                boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 20px ${ringColor}22`,
                 animation: 'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-                padding: '20px',
             }}>
-                <div style={{
-                    background: 'linear-gradient(135deg,rgba(20,20,40,0.98),rgba(10,10,25,0.99))',
-                    border: `1px solid ${ringColor}55`,
-                    borderRadius: '18px', padding: '20px', maxWidth: '340px', width: '100%',
-                    boxShadow: `0 0 40px ${ringColor}33`,
-                }}>
-                    <div style={{textAlign:'center', marginBottom:'14px'}}>
-                        <div style={{fontSize:'36px', marginBottom:'4px'}}>
-                            {gift.imageUrl ? <img src={gift.imageUrl} alt="" style={{width:'44px',height:'44px',objectFit:'contain'}} /> : gift.emoji}
-                        </div>
-                        <div style={{fontSize:'18px', fontWeight:900, color:ringColor, textShadow:`0 0 15px ${ringColor}`}}>
-                            ×{comboCount} COMBO! 🎉
-                        </div>
-                        <div style={{fontSize:'11px', color:'#9ca3af'}}>
-                            {lang === 'ar' ? gift.name_ar : gift.name_en}
-                        </div>
+                <div style={{textAlign:'center', marginBottom:'10px'}}>
+                    <div style={{fontSize:'28px', marginBottom:'2px'}}>
+                        {gift.imageUrl ? <img src={gift.imageUrl} alt="" style={{width:'34px',height:'34px',objectFit:'contain'}} /> : gift.emoji}
                     </div>
-                    <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginBottom:'12px'}}>
-                        <div style={{background:'rgba(74,222,128,0.08)',border:'1px solid rgba(74,222,128,0.25)',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
-                            <div style={{fontSize:'9px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'💰 إجمالي البونص':'💰 Total Bonus'}</div>
-                            <div style={{fontSize:'17px',fontWeight:900,color:'#4ade80'}}>+{totalBonus>=1000?`${(totalBonus/1000).toFixed(1)}k`:totalBonus} 🧠</div>
-                        </div>
-                        <div style={{background:'rgba(251,191,36,0.08)',border:'1px solid rgba(251,191,36,0.25)',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
-                            <div style={{fontSize:'9px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'⭐ إجمالي الكاريزما':'⭐ Total Charisma'}</div>
-                            <div style={{fontSize:'17px',fontWeight:900,color:'#fbbf24'}}>+{formatCharisma(totalCharisma)} ⭐</div>
-                        </div>
+                    <div style={{fontSize:'15px', fontWeight:900, color:ringColor, textShadow:`0 0 12px ${ringColor}`}}>
+                        ×{comboCount} COMBO! 🎉
                     </div>
-                    <div style={{maxHeight:'160px',overflowY:'auto',display:'flex',flexDirection:'column',gap:'3px',scrollbarWidth:'none'}}>
-                        {comboLog.map((entry, i) => (
-                            <div key={i} style={{
-                                display:'flex',alignItems:'center',justifyContent:'space-between',
-                                padding:'4px 10px',borderRadius:'7px',
-                                background: i%2===0?'rgba(255,255,255,0.03)':'transparent',
-                            }}>
-                                <span style={{fontSize:'9px',color:'#6b7280'}}>#{i+1} {lang==='ar'?gift.name_ar:gift.name_en}</span>
-                                <div style={{display:'flex',gap:'8px'}}>
-                                    <span style={{fontSize:'9px',fontWeight:700,color:'#4ade80'}}>+{entry.bonus} 🧠</span>
-                                    <span style={{fontSize:'9px',fontWeight:700,color:'#fbbf24'}}>+{formatCharisma(entry.charisma)} ⭐</span>
-                                </div>
-                            </div>
-                        ))}
+                </div>
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px', marginBottom:'8px'}}>
+                    <div style={{background:'rgba(74,222,128,0.08)',border:'1px solid rgba(74,222,128,0.25)',borderRadius:'8px',padding:'6px',textAlign:'center'}}>
+                        <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'بونص':'Bonus'}</div>
+                        <div style={{fontSize:'13px',fontWeight:900,color:'#4ade80'}}>+{totalBonus>=1000?`${(totalBonus/1000).toFixed(1)}k`:totalBonus}🧠</div>
+                    </div>
+                    <div style={{background:'rgba(251,191,36,0.08)',border:'1px solid rgba(251,191,36,0.25)',borderRadius:'8px',padding:'6px',textAlign:'center'}}>
+                        <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'نجوم':'Stars'}</div>
+                        <div style={{fontSize:'13px',fontWeight:900,color:'#fbbf24'}}>+{formatCharisma(totalCharisma)}⭐</div>
                     </div>
                 </div>
             </div>
         );
     }
 
+    // ✅ Main combo card — floating bottom-right, NO background overlay
     return (
         <div
-            onClick={close}
             style={{
-                position: 'fixed', inset: 0, zIndex: 9999998,
-                background: 'rgba(0,0,0,0.75)',
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                backdropFilter: 'blur(4px)',
-                animation: closing ? 'toast-slide-up 0.35s ease forwards' : 'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-                gap: '18px',
+                position: 'fixed',
+                bottom: '80px',
+                right: '12px',
+                zIndex: Z.OVERLAY,
+                width: '160px',
+                background: 'linear-gradient(135deg,rgba(15,15,35,0.97),rgba(8,8,22,0.98))',
+                border: `1.5px solid ${ringColor}66`,
+                borderRadius: '18px',
+                padding: '14px 12px',
+                boxShadow: `0 8px 32px rgba(0,0,0,0.65), 0 0 24px ${ringColor}22`,
+                animation: closing
+                    ? 'toast-slide-up 0.35s ease forwards'
+                    : 'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '10px',
             }}
+            onClick={e => e.stopPropagation()}
         >
-            {/* Stop propagation on the interactive area */}
-            <div onClick={e => e.stopPropagation()} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'16px'}}>
-
-                {/* Gift image */}
-                <div style={{
-                    display:'flex', flexDirection:'column', alignItems:'center', gap:'6px',
-                    background: 'rgba(255,255,255,0.05)', borderRadius:'16px', padding:'14px 24px',
-                    border: `1px solid ${ringColor}44`,
-                    boxShadow: `0 0 30px ${ringColor}33`,
-                }}>
-                    {gift.imageUrl ? (
-                        <img src={gift.imageUrl} alt={gift.name_en} style={{width:'64px',height:'64px',objectFit:'contain'}} />
-                    ) : (
-                        <span style={{fontSize:'52px',lineHeight:1}}>{gift.emoji || '🎁'}</span>
-                    )}
-                    <div style={{fontSize:'12px',fontWeight:800,color:'#f1f5f9'}}>
-                        {lang === 'ar' ? gift.name_ar : gift.name_en}
-                    </div>
-                    <div style={{fontSize:'10px',color:'#fbbf24',fontWeight:700}}>
-                        {gift.cost} 🧠 {lang === 'ar' ? 'لكل إرسال' : 'per send'}
-                    </div>
-                </div>
-
-                {/* Combo counter */}
-                {comboCount > 0 && (
-                    <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-                        <div style={{
-                            fontSize:'22px', fontWeight:900, color:ringColor,
-                            textShadow: `0 0 20px ${ringColor}`,
-                            animation: comboCount >= 5 ? 'mythic-pulse 0.6s ease-in-out infinite' : 'none',
-                            minWidth:'80px', textAlign:'center',
-                        }}>
-                            ×{comboCount} COMBO!
-                        </div>
-                        {totalBonus > 0 && (
-                            <div style={{
-                                background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',
-                                borderRadius:'10px',padding:'5px 12px',textAlign:'center'
-                            }}>
-                                <div style={{fontSize:'8px',color:'#9ca3af',fontWeight:700}}>
-                                    {lang === 'ar' ? '🎁 مردود' : '🎁 BONUS'}
-                                </div>
-                                <div style={{fontSize:'13px',fontWeight:900,color:'#4ade80'}}>
-                                    +{totalBonus >= 1000 ? `${(totalBonus/1000).toFixed(1)}k` : totalBonus} 🧠
-                                </div>
-                            </div>
-                        )}
-                    </div>
+            {/* Gift image + name */}
+            <div style={{textAlign:'center'}}>
+                {gift.imageUrl ? (
+                    <img src={gift.imageUrl} alt={gift.name_en} style={{width:'48px',height:'48px',objectFit:'contain'}} />
+                ) : (
+                    <span style={{fontSize:'38px',lineHeight:1}}>{gift.emoji || '🎁'}</span>
                 )}
-
-                {/* Ring timer + tap button */}
-                <div style={{position:'relative',width:'128px',height:'128px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                    <svg width="128" height="128" style={{position:'absolute',top:0,left:0,transform:'rotate(-90deg)'}}>
-                        <circle cx="64" cy="64" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6"/>
-                        <circle
-                            cx="64" cy="64" r={RING_R} fill="none"
-                            stroke={comboActive ? ringColor : 'rgba(255,255,255,0.15)'}
-                            strokeWidth="6"
-                            strokeDasharray={RING_C}
-                            strokeDashoffset={RING_C * (1 - ringProgress)}
-                            strokeLinecap="round"
-                            style={{filter: comboActive ? `drop-shadow(0 0 8px ${ringColor})` : 'none', transition:'stroke 0.3s'}}
-                        />
-                    </svg>
-                    <button
-                        onPointerDown={handleTap}
-                        disabled={currency < gift.cost}
-                        style={{
-                            width:'96px', height:'96px', borderRadius:'50%',
-                            fontSize:'14px', fontWeight:900, border:'none',
-                            cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
-                            background: comboActive
-                                ? `linear-gradient(135deg,${ringColor}cc,${ringColor}88)`
-                                : 'rgba(100,100,100,0.2)',
-                            color: '#fff',
-                            boxShadow: comboActive ? `0 0 30px ${ringColor}88` : 'none',
-                            transform: 'scale(1)',
-                            transition: 'background 0.15s, box-shadow 0.15s',
-                            userSelect:'none', WebkitUserSelect:'none', touchAction:'manipulation',
-                            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px'
-                        }}
-                        onPointerEnter={e => { if(currency >= gift.cost) e.currentTarget.style.transform = 'scale(1.06)'; }}
-                        onPointerLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-                    >
-                        <span style={{fontSize:'24px',lineHeight:1}}>{gift.emoji || '🎁'}</span>
-                        <span style={{fontSize:'10px',fontWeight:800,opacity:0.9}}>
-                            {lang === 'ar' ? 'اضغط!' : 'TAP!'}
-                        </span>
-                    </button>
+                <div style={{fontSize:'10px',fontWeight:800,color:'#f1f5f9',marginTop:'3px'}}>
+                    {lang === 'ar' ? gift.name_ar : gift.name_en}
                 </div>
-
-                {/* Close hint */}
-                <div style={{fontSize:'10px',color:'#4b5563',textAlign:'center'}}>
-                    {lang === 'ar' ? 'اضغط خارج الدائرة للإغلاق' : 'Tap outside to close'}
+                <div style={{fontSize:'9px',color:'#fbbf24',fontWeight:700}}>
+                    {gift.cost} 🧠 {lang === 'ar' ? 'لكل إرسال' : 'each'}
                 </div>
             </div>
+
+            {/* Combo counter */}
+            {comboCount > 0 && (
+                <div style={{
+                    fontSize:'16px', fontWeight:900, color:ringColor,
+                    textShadow: `0 0 16px ${ringColor}`,
+                    animation: comboCount >= 5 ? 'mythic-pulse 0.6s ease-in-out infinite' : 'none',
+                }}>
+                    ×{comboCount} COMBO!
+                </div>
+            )}
+
+            {/* Ring timer + tap button */}
+            <div style={{position:'relative',width:'100px',height:'100px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <svg width="100" height="100" style={{position:'absolute',top:0,left:0,transform:'rotate(-90deg)'}}>
+                    <circle cx="50" cy="50" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5"/>
+                    <circle
+                        cx="50" cy="50" r={RING_R} fill="none"
+                        stroke={comboActive ? ringColor : 'rgba(255,255,255,0.15)'}
+                        strokeWidth="5"
+                        strokeDasharray={RING_C}
+                        strokeDashoffset={RING_C * (1 - ringProgress)}
+                        strokeLinecap="round"
+                        style={{filter: comboActive ? `drop-shadow(0 0 6px ${ringColor})` : 'none', transition:'stroke 0.3s'}}
+                    />
+                </svg>
+                <button
+                    onPointerDown={handleTap}
+                    disabled={currency < gift.cost}
+                    style={{
+                        width:'76px', height:'76px', borderRadius:'50%',
+                        fontSize:'13px', fontWeight:900, border:'none',
+                        cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
+                        background: comboActive
+                            ? `linear-gradient(135deg,${ringColor}cc,${ringColor}88)`
+                            : 'rgba(100,100,100,0.2)',
+                        color: '#fff',
+                        boxShadow: comboActive ? `0 0 24px ${ringColor}88` : 'none',
+                        transition: 'background 0.15s, box-shadow 0.15s',
+                        userSelect:'none', WebkitUserSelect:'none', touchAction:'manipulation',
+                        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px'
+                    }}
+                >
+                    <span style={{fontSize:'20px',lineHeight:1}}>{gift.emoji || '🎁'}</span>
+                    <span style={{fontSize:'9px',fontWeight:800,opacity:0.9}}>
+                        {lang === 'ar' ? 'اضغط!' : 'TAP!'}
+                    </span>
+                </button>
+            </div>
+
+            {totalBonus > 0 && (
+                <div style={{fontSize:'10px',fontWeight:800,color:'#4ade80',textAlign:'center'}}>
+                    +{totalBonus >= 1000 ? `${(totalBonus/1000).toFixed(1)}k` : totalBonus} 🧠
+                </div>
+            )}
         </div>
     );
 };
+
 
 // 🛒 SHOP MODAL
