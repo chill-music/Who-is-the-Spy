@@ -612,13 +612,53 @@ const VIPInfoModal = ({ onClose, lang }) => {
     );
 };
 
-// ════ VIP 10 EXCLUSIVE REQUEST FORM ════
-const VIP10RequestForm = ({ user, lang, onNotification }) => {
+// ════ VIP 10 EXCLUSIVE REQUEST FORM — with full approval system ════
+const VIP10RequestForm = ({ user, lang, onNotification, userData }) => {
     const [giftName,    setGiftName]    = useState('');
     const [giftImage,   setGiftImage]   = useState('');   // base64
     const [giftEmail,   setGiftEmail]   = useState('');
     const [luckyNumber, setLuckyNumber] = useState('');
     const [sending,     setSending]     = useState(false);
+
+    // ✅ Real-time pending request listener — same pattern as custom ID
+    const [pendingRequest, setPendingRequest] = useState(null);
+    const [loadingReq,     setLoadingReq]     = useState(true);
+
+    // STATUS FIELD (same as vip10IdRequests):
+    // 0 = pending (قيد المراجعة)
+    // 1 = approved (تم القبول)
+    // 2 = rejected (تم الرفض)
+
+    useEffect(() => {
+        if (!user?.uid) { setLoadingReq(false); return; }
+        const unsub = vip10RequestsCollection
+            .where('uid', '==', user.uid)
+            .limit(10)
+            .onSnapshot(snap => {
+                if (!snap.empty) {
+                    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    docs.sort((a, b) => {
+                        const aT = a.createdAt?.toMillis?.() || a.createdAt || 0;
+                        const bT = b.createdAt?.toMillis?.() || b.createdAt || 0;
+                        return bT - aT;
+                    });
+                    setPendingRequest(docs[0]);
+                } else {
+                    setPendingRequest(null);
+                }
+                setLoadingReq(false);
+            }, () => setLoadingReq(false));
+        return unsub;
+    }, [user?.uid]);
+
+    // Check if user can submit another request this month
+    const canRequestThisMonth = () => {
+        const lastReq = userData?.vip?.lastGiftRequest;
+        if (!lastReq) return true;
+        const lastDate = lastReq?.toDate ? lastReq.toDate() : new Date(lastReq);
+        const now = new Date();
+        return !(lastDate.getMonth() === now.getMonth() && lastDate.getFullYear() === now.getFullYear());
+    };
 
     const handleImageChange = (e) => {
         const file = e.target.files?.[0];
@@ -634,11 +674,19 @@ const VIP10RequestForm = ({ user, lang, onNotification }) => {
         try {
             await vip10RequestsCollection.add({
                 uid:         user.uid,
+                displayName: userData?.displayName || '',
                 giftName:    giftName.trim(),
                 giftImage:   giftImage || '',
                 giftEmail:   giftEmail.trim(),
                 luckyNumber: parseInt(luckyNumber) || 0,
+                // STATUS: 0=pending, 1=approved, 2=rejected
+                status:      0,
+                adminNote:   '',
                 createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            // ✅ Store last request date for monthly throttle
+            await usersCollection.doc(user.uid).update({
+                'vip.lastGiftRequest': firebase.firestore.FieldValue.serverTimestamp()
             });
             onNotification(lang === 'ar' ? '✅ تم إرسال طلبك!' : '✅ Request sent!');
             setGiftName(''); setGiftImage(''); setGiftEmail(''); setLuckyNumber('');
@@ -647,6 +695,8 @@ const VIP10RequestForm = ({ user, lang, onNotification }) => {
         }
         setSending(false);
     };
+
+    if (loadingReq) return null;
 
     return (
         <div style={{
@@ -657,68 +707,153 @@ const VIP10RequestForm = ({ user, lang, onNotification }) => {
             <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '13px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 👑 {lang === 'ar' ? 'طلب هدية مخصصة (VIP 10 فقط)' : 'Custom Gift Request (VIP 10 only)'}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {/* Gift Name */}
-                <input
-                    className="input-dark"
-                    placeholder={lang === 'ar' ? 'اسم الهدية' : 'Gift name'}
-                    value={giftName} onChange={e => setGiftName(e.target.value)}
-                    style={{ fontSize: '12px' }}
-                />
 
-                {/* Image Upload */}
-                <div>
-                    <label style={{ fontSize: '11px', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>
-                        🖼️ {lang === 'ar' ? 'صورة الهدية (اختياري)' : 'Gift image (optional)'}
-                    </label>
+            {/* ✅ Show form OR status box based on pending request */}
+            {!pendingRequest ? (
+                /* ── Form: no pending request yet ── */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {/* Gift Name */}
                     <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        style={{ fontSize: '11px', color: '#d1d5db', background: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px',
-                            padding: '4px 6px', width: '100%', cursor: 'pointer' }}
+                        className="input-dark"
+                        placeholder={lang === 'ar' ? 'اسم الهدية' : 'Gift name'}
+                        value={giftName} onChange={e => setGiftName(e.target.value)}
+                        style={{ fontSize: '12px' }}
                     />
-                    {giftImage && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                            <img src={giftImage} alt="preview"
-                                style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.4)' }} />
-                            <button
-                                onClick={() => setGiftImage('')}
-                                style={{ fontSize: '10px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' }}>
-                                ✕ {lang === 'ar' ? 'حذف' : 'Remove'}
-                            </button>
+
+                    {/* Image Upload */}
+                    <div>
+                        <label style={{ fontSize: '11px', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>
+                            🖼️ {lang === 'ar' ? 'صورة الهدية (اختياري)' : 'Gift image (optional)'}
+                        </label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            style={{ fontSize: '11px', color: '#d1d5db', background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px',
+                                padding: '4px 6px', width: '100%', cursor: 'pointer' }}
+                        />
+                        {giftImage && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                                <img src={giftImage} alt="preview"
+                                    style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.4)' }} />
+                                <button onClick={() => setGiftImage('')}
+                                    style={{ fontSize: '10px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' }}>
+                                    ✕ {lang === 'ar' ? 'حذف' : 'Remove'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Email */}
+                    <input
+                        className="input-dark"
+                        type="email"
+                        placeholder={lang === 'ar' ? 'بريدك الإلكتروني' : 'Your email'}
+                        value={giftEmail} onChange={e => setGiftEmail(e.target.value)}
+                        style={{ fontSize: '12px' }}
+                    />
+
+                    {/* Lucky Number */}
+                    <input
+                        className="input-dark"
+                        type="number"
+                        placeholder={lang === 'ar' ? 'رقمك المحظوظ 🍀' : 'Your lucky number 🍀'}
+                        value={luckyNumber} onChange={e => setLuckyNumber(e.target.value)}
+                        style={{ fontSize: '12px' }}
+                    />
+
+                    <button
+                        onClick={handleSubmit}
+                        disabled={sending || !giftName.trim()}
+                        className="btn-neon"
+                        style={{ padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, opacity: sending || !giftName.trim() ? 0.5 : 1 }}
+                    >
+                        {sending ? '⏳' : (lang === 'ar' ? '📨 إرسال الطلب' : '📨 Send Request')}
+                    </button>
+                    <div style={{ fontSize: '9px', color: '#6b7280', textAlign: 'center' }}>
+                        ⚡ {lang === 'ar' ? 'سيتم مراجعة طلبك وتطبيقه خلال 24 ساعة' : 'Request reviewed & applied within 24h'}
+                    </div>
+                </div>
+            ) : (
+                /* ── Status Box: pending / approved / rejected ── */
+                <div style={{
+                    borderRadius: '10px', padding: '12px',
+                    background: pendingRequest.status === 1
+                        ? 'rgba(74,222,128,0.08)'
+                        : pendingRequest.status === 2
+                        ? 'rgba(248,113,113,0.08)'
+                        : 'rgba(251,191,36,0.07)',
+                    border: `1px solid ${
+                        pendingRequest.status === 1 ? 'rgba(74,222,128,0.35)'
+                        : pendingRequest.status === 2 ? 'rgba(248,113,113,0.35)'
+                        : 'rgba(251,191,36,0.3)'}`,
+                    display: 'flex', flexDirection: 'column', gap: '6px'
+                }}>
+                    {/* Status Row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '18px' }}>
+                            {pendingRequest.status === 1 ? '✅' : pendingRequest.status === 2 ? '❌' : '⏳'}
+                        </span>
+                        <div>
+                            <div style={{ fontSize: '11px', fontWeight: 800, color:
+                                pendingRequest.status === 1 ? '#4ade80'
+                                : pendingRequest.status === 2 ? '#f87171' : '#fbbf24' }}>
+                                {pendingRequest.status === 1
+                                    ? (lang === 'ar' ? '✅ تم قبول طلب الهدية!' : '✅ Gift Request Approved!')
+                                    : pendingRequest.status === 2
+                                    ? (lang === 'ar' ? '❌ تم رفض طلبك' : '❌ Request Rejected')
+                                    : (lang === 'ar' ? '⏳ طلبك قيد المراجعة…' : '⏳ Request under review…')
+                                }
+                            </div>
+                            {pendingRequest.giftName && (
+                                <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>
+                                    {lang === 'ar' ? 'الهدية المطلوبة:' : 'Requested gift:'}{' '}
+                                    <span style={{ color: '#fbbf24', fontWeight: 700 }}>{pendingRequest.giftName}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Admin note */}
+                    {pendingRequest.adminNote && (
+                        <div style={{
+                            background: 'rgba(255,255,255,0.04)', borderRadius: '7px',
+                            padding: '8px 10px', borderLeft: '3px solid #ef4444',
+                            fontSize: '11px', color: '#e2e8f0', lineHeight: 1.5
+                        }}>
+                            <span style={{ fontSize: '9px', color: '#ef4444', fontWeight: 800, display: 'block', marginBottom: '2px' }}>
+                                {lang === 'ar' ? '📋 رسالة من الإدارة:' : '📋 Admin Note:'}
+                            </span>
+                            {pendingRequest.adminNote}
                         </div>
                     )}
+
+                    {!pendingRequest.adminNote && pendingRequest.status === 0 && (
+                        <div style={{ fontSize: '9px', color: '#6b7280', textAlign: 'center' }}>
+                            {lang === 'ar' ? 'في انتظار رد من المسؤولين…' : 'Waiting for admin response…'}
+                        </div>
+                    )}
+
+                    {/* If rejected + can request again this month → show new request button */}
+                    {pendingRequest.status === 2 && canRequestThisMonth() && (
+                        <button
+                            onClick={() => { setPendingRequest(null); }}
+                            style={{
+                                padding: '6px', borderRadius: '7px', fontSize: '11px', fontWeight: 700,
+                                background: 'rgba(239,68,68,0.15)', color: '#f87171',
+                                border: '1px solid rgba(239,68,68,0.3)', cursor: 'pointer'
+                            }}
+                        >
+                            {lang === 'ar' ? '🔄 طلب هدية جديدة' : '🔄 Request New Gift'}
+                        </button>
+                    )}
+
+                    <div style={{ fontSize: '9px', color: '#6b7280', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '5px' }}>
+                        {lang === 'ar' ? 'يمكنك الطلب مرة واحدة في الشهر' : 'You can request once per month'}
+                    </div>
                 </div>
-
-                {/* Email */}
-                <input
-                    className="input-dark"
-                    type="email"
-                    placeholder={lang === 'ar' ? 'بريدك الإلكتروني' : 'Your email'}
-                    value={giftEmail} onChange={e => setGiftEmail(e.target.value)}
-                    style={{ fontSize: '12px' }}
-                />
-
-                {/* Lucky Number */}
-                <input
-                    className="input-dark"
-                    type="number"
-                    placeholder={lang === 'ar' ? 'رقمك المحظوظ 🍀' : 'Your lucky number 🍀'}
-                    value={luckyNumber} onChange={e => setLuckyNumber(e.target.value)}
-                    style={{ fontSize: '12px' }}
-                />
-
-                <button
-                    onClick={handleSubmit}
-                    disabled={sending || !giftName.trim()}
-                    className="btn-neon"
-                    style={{ padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, opacity: sending ? 0.6 : 1 }}
-                >
-                    {sending ? '⏳' : (lang === 'ar' ? '📨 إرسال الطلب' : '📨 Send Request')}
-                </button>
-            </div>
+            )}
         </div>
     );
 };
@@ -1205,7 +1340,7 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
 
                         {/* VIP 10 form */}
                         {cfg.exclusiveForm && (
-                            <VIP10RequestForm user={user} lang={lang} onNotification={onNotification} />
+                            <VIP10RequestForm user={user} lang={lang} onNotification={onNotification} userData={userData} />
                         )}
                     </>
                 )}
