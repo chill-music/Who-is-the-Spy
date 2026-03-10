@@ -3,55 +3,57 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
     const [inputText, setInputText] = useState('');
     const [sending, setSending] = useState(false);
 
-    const uid = currentUser?.uid || null;
-    const selfChatId = uid ? `${uid}_self` : null;
+    const uid         = currentUser?.uid || null;
     const displayName = currentUser?.displayName || userData?.displayName || (lang==='ar'?'أنا':'Me');
-    const photoURL = currentUser?.photoURL || userData?.photoURL || null;
+    const photoURL    = currentUser?.photoURL || userData?.photoURL || null;
 
+    // ── localStorage key per user ──
+    const _storageKey = uid ? `prospy_selfchat_${uid}` : null;
+
+    const _load = () => {
+        if (!_storageKey) return [];
+        try { const r = localStorage.getItem(_storageKey); return r ? JSON.parse(r) : []; }
+        catch { return []; }
+    };
+    const _save = (msgs) => {
+        if (!_storageKey) return;
+        try { localStorage.setItem(_storageKey, JSON.stringify(msgs.slice(-300))); }
+        catch {}
+    };
+
+    // ── Load messages from localStorage when modal opens ──
     useEffect(() => {
-        if (!show || !selfChatId) return;
-        const unsub = chatsCollection
-            .doc(selfChatId)
-            .collection('messages')
-            .orderBy('timestamp', 'asc')
-            .limit(100)
-            .onSnapshot(snap => {
-                setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            });
-        return () => unsub();
-    }, [show, selfChatId]);
+        if (!show || !uid) return;
+        setMessages(_load());
+    }, [show, uid]);
 
-    const sendNote = async () => {
-        if (!inputText.trim() || !selfChatId || sending || !uid) return;
+    const sendNote = () => {
+        if (!inputText.trim() || sending || !uid) return;
         setSending(true);
-        try {
-            const chatRef = chatsCollection.doc(selfChatId);
-            await chatRef.set({
-                participants: [uid, uid],
-                type: 'self',
-                lastMessage: inputText.trim(),
-                lastAt: firebase.firestore.FieldValue.serverTimestamp(),
-                ownerUID: uid,
-                ownerName: displayName,
-                ownerPhoto: photoURL || null
-            }, { merge: true });
-            await chatRef.collection('messages').add({
-                text: inputText.trim(),
-                senderId: uid,
-                senderName: displayName,
-                senderPhoto: photoURL || null,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                type: 'note'
-            });
-            setInputText('');
-        } catch(e) { }
+        const msg = {
+            id:          `sc_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
+            text:        inputText.trim(),
+            senderId:    uid,
+            senderName:  displayName,
+            senderPhoto: photoURL || null,
+            timestamp:   Date.now(),
+            type:        'note',
+        };
+        const updated = [...messages, msg];
+        setMessages(updated);
+        _save(updated);
+        setInputText('');
         setSending(false);
     };
 
     const formatMsgTime = (ts) => {
-        if (!ts?.toDate) return '';
-        const d = ts.toDate();
-        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (!ts) return '';
+        const d = new Date(ts);
+        if (isNaN(d)) return '';
+        const now = new Date();
+        if (d.toDateString() === now.toDateString())
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
     };
 
     if (!show) return null;
@@ -127,8 +129,7 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
                                     <div style={{fontSize:'20px', marginBottom:'4px'}}>{msg.giftEmoji || '🎁'}</div>
                                     <div style={{fontSize:'12px', color:'#f3f4f6', fontWeight:700}}>{msg.giftName}</div>
                                     <div style={{fontSize:'10px', color:'#9ca3af', marginTop:'2px'}}>{lang==='ar'?'تكلفة:':'Cost:'} {msg.giftCost} 🧠</div>
-                                    <div style={{fontSize:'10px', color:'#9ca3af'}}>{lang==='ar'?'كاريزما:':'Charisma:'} +{msg.charismaGain}</div>
-                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{formatMsgTime(msg.timestamp)}</div>
+                                    <div style={{fontSize:'10px', color:'#9ca3af'}}>{lang==='ar'?'كاريزما:':'Charisma:'} +{msg.charismaGain}</div>                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{formatMsgTime(msg.timestamp)}</div>
                                 </div>
                             ) : (
                                 /* Regular note bubble */
