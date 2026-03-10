@@ -709,12 +709,12 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                 gift={selectedGift}
                 lang={lang}
                 onBuy={(gift, target, qty) => {
-                    // Send first gift
                     const actualTarget = target || (hasDirectTarget ? targetUser : null);
-                    onSendGift(gift, actualTarget, 1);
+                    const sendQty = qty || 1;
+                    onSendGift(gift, actualTarget, sendQty);
                     setShowPreview(false);
-                    // ✅ Show combo overlay if there's a real target
-                    if (actualTarget && actualTarget.uid !== 'self') {
+                    // Show combo overlay for direct sends (qty=1 only - multi already sent)
+                    if (actualTarget && actualTarget.uid !== 'self' && sendQty === 1) {
                         setComboOverlay({ gift, target: actualTarget });
                     } else {
                         onClose();
