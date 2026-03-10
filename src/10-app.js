@@ -48,19 +48,10 @@ function App() {
     const [showLoginAlert, setShowLoginAlert] = useState(false);
     const [forcedLogoutMsg, setForcedLogoutMsg] = useState(false);
 
-    // ── Session token: stored in localStorage so it survives mobile background/refresh ──
-    // Uses localStorage (not sessionStorage) to avoid false logouts when mobile
-    // backgrounded. Token is device-persistent — one token per device.
+    // Single-session token: unique per browser tab/session
     const SESSION_TOKEN = React.useRef(
-        (() => {
-            const KEY = 'pro_spy_device_token';
-            let t = localStorage.getItem(KEY);
-            if (!t) { t = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem(KEY, t); }
-            return t;
-        })()
+        (() => { let t = sessionStorage.getItem('pro_spy_st'); if(!t){ t=Math.random().toString(36).slice(2)+Date.now(); sessionStorage.setItem('pro_spy_st',t); } return t; })()
     ).current;
-    // Debounce ref — prevents false forced-logout from network jitter
-    const _sessionConflictTimer = React.useRef(null);
     const [guestData, setGuestData] = useState(null);
     const [showEmail, setShowEmail] = useState(false);
     const [showLoginRewards, setShowLoginRewards] = useState(false);
@@ -114,7 +105,7 @@ function App() {
                 achievements: firebase.firestore.FieldValue.arrayUnion(badgeId)
             });
         } catch (error) {
-            console.error('Achievement unlock error:', error);
+
         }
     }, [isLoggedIn, user, userData]);
 
@@ -160,7 +151,7 @@ function App() {
                     achievements: firebase.firestore.FieldValue.arrayUnion(...toUnlock)
                 });
             } catch (e) {
-                console.error('Batch achievement error:', e);
+
                 // Fallback: unlock one by one
                 for (const id of toUnlock) {
                     try { await unlockAchievement(id); } catch {}
@@ -215,7 +206,7 @@ function App() {
 
             await usersCollection.doc(user.uid).update(updates);
         } catch (error) {
-            console.error('Mission increment error:', error);
+
         }
     }, [isLoggedIn, user, userData]);
 
@@ -226,7 +217,7 @@ function App() {
                 lastActive: firebase.firestore.FieldValue.serverTimestamp()
             });
         } catch (error) {
-            console.error('LastActive update error:', error);
+
         }
     };
 
@@ -321,10 +312,7 @@ function App() {
                     setUserData(existingData);
                     if (existingData.displayName) setNickname(existingData.displayName);
                     // Write session token (single-session enforcement)
-                    userRef.update({
-                        activeSession:   SESSION_TOKEN,
-                        activeSessionAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    }).catch(() => {});
+                    userRef.update({ activeSession: SESSION_TOKEN }).catch(() => {});
                     if (checkLoginRewardsCycle(existingData)) {
                         await userRef.update({ 'loginRewards.currentDay': 0, 'loginRewards.streak': 0, 'loginRewards.cycleMonth': getCurrentCycleMonth() });
                     }
@@ -333,33 +321,10 @@ function App() {
                             const d = snap.data();
                             setUserData(d);
                             if (d.displayName) setNickname(d.displayName);
-                            // ── Single-session guard (debounced + timestamp-protected) ──
-                            // Only force logout if:
-                            //   1. activeSession is different from ours
-                            //   2. The other session was written recently (< 60s ago)
-                            //   3. After a 6s debounce (prevents false positives from network jitter)
+                            // Single-session: if activeSession changed by another device, force logout
                             if (d.activeSession && d.activeSession !== SESSION_TOKEN) {
-                                const writtenAt = d.activeSessionAt?.toMillis?.() || 0;
-                                const ageMs     = Date.now() - writtenAt;
-                                // Ignore stale sessions (> 60s old) — likely abandoned tabs
-                                if (ageMs < 60000) {
-                                    clearTimeout(_sessionConflictTimer.current);
-                                    _sessionConflictTimer.current = setTimeout(() => {
-                                        // Re-read from Firestore before acting (avoid race conditions)
-                                        userRef.get().then(fresh => {
-                                            if (fresh.exists) {
-                                                const fd = fresh.data();
-                                                if (fd.activeSession && fd.activeSession !== SESSION_TOKEN) {
-                                                    setForcedLogoutMsg(true);
-                                                    auth.signOut();
-                                                }
-                                            }
-                                        }).catch(() => {});
-                                    }, 6000); // 6s debounce
-                                }
-                            } else if (d.activeSession === SESSION_TOKEN) {
-                                // Our session is confirmed — cancel any pending conflict timer
-                                clearTimeout(_sessionConflictTimer.current);
+                                setForcedLogoutMsg(true);
+                                auth.signOut();
                             }
                         }
                     });
@@ -681,8 +646,7 @@ function App() {
             charisma: 0,
             bannerURL: null,
             loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: getCurrentCycleMonth() },
-            activeSession:   SESSION_TOKEN,
-            activeSessionAt: firebase.firestore.FieldValue.serverTimestamp()
+            activeSession: SESSION_TOKEN
         };
         await pendingNewUserRef.set(newUserData);
         setUserData(newUserData);
@@ -1014,7 +978,7 @@ function App() {
             if (updDoc.exists) await checkAndUnlockAchievements(updDoc.data());
 
         } catch(error) {
-            console.error('Gift send error:', error);
+
             setNotification(lang === 'ar' ? '❌ خطأ في الإرسال، حاول مرة أخرى' : '❌ Send error, try again');
         }
     }, [userData, user, t, createNotification, lang, incrementMissionProgress, checkAndUnlockAchievements, isLoggedIn]);
