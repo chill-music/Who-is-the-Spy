@@ -749,7 +749,7 @@ function App() {
         const uid = currentUID; const tempUserData = currentUserData;
         if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; }
         const id = Math.random().toString(36).substring(2, 7).toUpperCase();
-        await roomsCollection.doc(id).set({ id, admin: uid, status: 'waiting', players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {} }], scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null, summaryShown: false });
+        await roomsCollection.doc(id).set({ id, admin: uid, status: 'waiting', players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {}, vip: tempUserData?.vip || {} }], scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null, summaryShown: false });
         setRoomId(id); setLoading(false); setShowSetupModal(false); setActiveView('lobby');
         navigator.clipboard.writeText(id); setCopied(true); setTimeout(() => setCopied(false), 2000);
     }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, getDefaultPhoto]);
@@ -766,7 +766,7 @@ function App() {
             const data = snap.data();
             if(data.isPrivate && data.password !== pwd) { setJoinError(lang === 'ar' ? 'كلمة السر غير صحيحة' : "Incorrect Password"); setLoading(false); return; }
             const exists = data.players.find(p => p.uid === uid);
-            if (!exists) { await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {} }] }); }
+            if (!exists) { await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {}, vip: tempUserData?.vip || {} }] }); }
             setRoomId(id.toUpperCase()); setActiveView('lobby'); setShowBrowseRooms(false);
         } else { setJoinError(lang === 'ar' ? 'الغرفة غير موجودة' : "Room not found"); }
         setLoading(false);
@@ -790,7 +790,7 @@ function App() {
     const declineVote = useCallback(async () => { if (!room || !room.votingRequest) return; playSound('click'); const currentVotes = room.votingRequest.votes || {}; const newVotes = { ...currentVotes, [currentUID]: false }; const activePlayers = room.players.filter(p => p.status === 'active'); const declineCount = Object.values(newVotes).filter(v => v === false).length; const majorityCount = Math.floor(activePlayers.length / 2) + 1; if (declineCount >= majorityCount) { await roomsCollection.doc(roomId).update({ votingRequest: null }); } else { await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); } }, [room, currentUID, roomId]);
     const triggerVoting = useCallback(async () => { playSound('click'); const sysMsg = { sender: 'system', name: 'SYSTEM', text: t.votingStarted, time: Date.now() }; await roomsCollection.doc(roomId).update({ status: 'voting', currentTurnUID: null, turnEndTime: null, votingEndTime: Date.now() + 30000, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg), votingRequest: null }); }, [roomId, t]);
     const submitVote = useCallback(async (targetUID) => { if (!targetUID || !currentUID || (room.votes && room.votes[currentUID])) return; playSound('click'); const voteUpdate = {}; voteUpdate[`votes.${currentUID}`] = targetUID; await roomsCollection.doc(roomId).update(voteUpdate); }, [room, currentUID, roomId]);
-    const resetGame = useCallback(async () => { playSound('click'); await roomsCollection.doc(roomId).update({ status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0, votes: {}, messages: [], votingEndTime: null, turnEndTime: null, players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo, role: null })), wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, startedAt: null, finishedAt: null, summaryShown: false }); setShowSummary(false); }, [room, roomId]);
+    const resetGame = useCallback(async () => { playSound('click'); await roomsCollection.doc(roomId).update({ status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0, votes: {}, messages: [], votingEndTime: null, turnEndTime: null, players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo, role: null, equipped: p.equipped || {}, vip: p.vip || {} })), wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, startedAt: null, finishedAt: null, summaryShown: false }); setShowSummary(false); }, [room, roomId]);
 
     // Friend Functions
     const openProfile = useCallback((uid) => { if(!uid) return; setTargetProfileUID(uid); setShowUserProfile(true); }, []);
@@ -1508,6 +1508,25 @@ function App() {
                                 </div>
                             )}
                             <div className="friends-list-section">
+                                {/* ── My Chat (self) ── */}
+                                {isLoggedIn && currentUserData && (
+                                    <div
+                                        onClick={() => setShowSelfChat(true)}
+                                        className="friend-item"
+                                        style={{ cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)', marginBottom:'8px', paddingBottom:'8px' }}
+                                    >
+                                        <div className="flex-1" style={{minWidth:0}}>
+                                            <PlayerNameTag player={currentUserData} lang={lang} size="sm" />
+                                        </div>
+                                        <div style={{
+                                            fontSize:'9px', fontWeight:700, color:'#00f2ff',
+                                            background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)',
+                                            borderRadius:'6px', padding:'2px 7px', flexShrink:0
+                                        }}>
+                                            {lang==='ar' ? '💬 شاتي' : '💬 My Chat'}
+                                        </div>
+                                    </div>
+                                )}
                                 {friendsData.length === 0 ? (
                                     <div className="text-center py-6"><div className="text-4xl mb-2">👥</div><p className="text-gray-400">{t.noFriends}</p></div>
                                 ) : (() => {
