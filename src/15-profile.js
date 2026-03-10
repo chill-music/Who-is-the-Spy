@@ -1001,7 +1001,7 @@ const ProfileEffectOverlay = ({ effectId }) => {
     useEffect(() => {
         if (!effect) return;
         const all = [];
-        (effect.particles || []).forEach(p => {
+        (Array.isArray(effect.particles) ? effect.particles : []).forEach(p => {
             for (let i = 0; i < p.count; i++) all.push({
                 id: `${p.emoji}-${i}-${Math.random().toString(36).slice(2)}`,
                 emoji: p.emoji,
