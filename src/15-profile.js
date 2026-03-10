@@ -355,14 +355,11 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
             {/* ✅ Full Wall Modal — opens when banner is tapped */}
             {showWallModal && (
                 <PortalModal>
-                    {/* Backdrop — click outside to close */}
                     <div onClick={()=>setShowWallModal(false)} style={{
                         position:'fixed', inset:0, background:'rgba(0,0,0,0.82)',
-                        zIndex: Z.MODAL,
-                        display:'flex', alignItems:'center', justifyContent:'center',
+                        zIndex: Z.MODAL, display:'flex', alignItems:'center', justifyContent:'center',
                         padding:'16px',
                     }}>
-                    {/* Centered dialog */}
                     <div onClick={e=>e.stopPropagation()} style={{
                         width:'100%', maxWidth:'420px', maxHeight:'82vh',
                         borderRadius:'18px', overflow:'hidden',
@@ -550,8 +547,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
                                 </div>
                             )}
                         </div>
-                    </div>
-                    </div>{/* end centered dialog */}
+                    </div>{/* end inner dialog */}
                     </div>{/* end backdrop */}
 
                     {/* ── Gift Detail Modal (on top of wall modal) ── */}
