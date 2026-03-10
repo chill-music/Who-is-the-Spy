@@ -48,10 +48,19 @@ function App() {
     const [showLoginAlert, setShowLoginAlert] = useState(false);
     const [forcedLogoutMsg, setForcedLogoutMsg] = useState(false);
 
-    // Single-session token: unique per browser tab/session
+    // ── Session token: stored in localStorage so it survives mobile background/refresh ──
+    // Uses localStorage (not sessionStorage) to avoid false logouts when mobile
+    // backgrounded. Token is device-persistent — one token per device.
     const SESSION_TOKEN = React.useRef(
-        (() => { let t = sessionStorage.getItem('pro_spy_st'); if(!t){ t=Math.random().toString(36).slice(2)+Date.now(); sessionStorage.setItem('pro_spy_st',t); } return t; })()
+        (() => {
+            const KEY = 'pro_spy_device_token';
+            let t = localStorage.getItem(KEY);
+            if (!t) { t = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem(KEY, t); }
+            return t;
+        })()
     ).current;
+    // Debounce ref — prevents false forced-logout from network jitter
+    const _sessionConflictTimer = React.useRef(null);
     const [guestData, setGuestData] = useState(null);
     const [showEmail, setShowEmail] = useState(false);
     const [showLoginRewards, setShowLoginRewards] = useState(false);
@@ -312,7 +321,10 @@ function App() {
                     setUserData(existingData);
                     if (existingData.displayName) setNickname(existingData.displayName);
                     // Write session token (single-session enforcement)
-                    userRef.update({ activeSession: SESSION_TOKEN }).catch(() => {});
+                    userRef.update({
+                        activeSession:   SESSION_TOKEN,
+                        activeSessionAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    }).catch(() => {});
                     if (checkLoginRewardsCycle(existingData)) {
                         await userRef.update({ 'loginRewards.currentDay': 0, 'loginRewards.streak': 0, 'loginRewards.cycleMonth': getCurrentCycleMonth() });
                     }
@@ -321,10 +333,33 @@ function App() {
                             const d = snap.data();
                             setUserData(d);
                             if (d.displayName) setNickname(d.displayName);
-                            // Single-session: if activeSession changed by another device, force logout
+                            // ── Single-session guard (debounced + timestamp-protected) ──
+                            // Only force logout if:
+                            //   1. activeSession is different from ours
+                            //   2. The other session was written recently (< 60s ago)
+                            //   3. After a 6s debounce (prevents false positives from network jitter)
                             if (d.activeSession && d.activeSession !== SESSION_TOKEN) {
-                                setForcedLogoutMsg(true);
-                                auth.signOut();
+                                const writtenAt = d.activeSessionAt?.toMillis?.() || 0;
+                                const ageMs     = Date.now() - writtenAt;
+                                // Ignore stale sessions (> 60s old) — likely abandoned tabs
+                                if (ageMs < 60000) {
+                                    clearTimeout(_sessionConflictTimer.current);
+                                    _sessionConflictTimer.current = setTimeout(() => {
+                                        // Re-read from Firestore before acting (avoid race conditions)
+                                        userRef.get().then(fresh => {
+                                            if (fresh.exists) {
+                                                const fd = fresh.data();
+                                                if (fd.activeSession && fd.activeSession !== SESSION_TOKEN) {
+                                                    setForcedLogoutMsg(true);
+                                                    auth.signOut();
+                                                }
+                                            }
+                                        }).catch(() => {});
+                                    }, 6000); // 6s debounce
+                                }
+                            } else if (d.activeSession === SESSION_TOKEN) {
+                                // Our session is confirmed — cancel any pending conflict timer
+                                clearTimeout(_sessionConflictTimer.current);
                             }
                         }
                     });
@@ -646,7 +681,8 @@ function App() {
             charisma: 0,
             bannerURL: null,
             loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: getCurrentCycleMonth() },
-            activeSession: SESSION_TOKEN
+            activeSession:   SESSION_TOKEN,
+            activeSessionAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         await pendingNewUserRef.set(newUserData);
         setUserData(newUserData);
@@ -935,30 +971,15 @@ function App() {
             };
 
             if (isSelfSend) {
-                // ✅ Self-chat → localStorage only (no Firestore)
-                try {
-                    const selfKey  = `prospy_selfchat_${user.uid}`;
-                    const existing = (() => { try { const r = localStorage.getItem(selfKey); return r ? JSON.parse(r) : []; } catch { return []; } })();
-                    const selfMsg  = {
-                        id:           `sc_gift_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
-                        type:         'gift',
-                        senderId:     user.uid,
-                        senderName:   userData?.displayName || 'User',
-                        senderPhoto:  userData?.photoURL || null,
-                        giftEmoji:    chatMsgBase.giftEmoji,
-                        giftName,
-                        giftNameEn:   chatMsgBase.giftNameEn,
-                        giftNameAr:   chatMsgBase.giftNameAr,
-                        giftImageUrl: chatMsgBase.giftImageUrl,
-                        giftCost:     chatMsgBase.giftCost,
-                        giftQty:      qty,
-                        charismaGain: totalCharisma,
-                        bonusGain:    totalBonus,
-                        timestamp:    Date.now(),
-                    };
-                    const updated = [...existing, selfMsg].slice(-300);
-                    localStorage.setItem(selfKey, JSON.stringify(updated));
-                } catch(e) {}
+                const selfChatId  = `${user.uid}_self`;
+                const selfChatRef = chatsCollection.doc(selfChatId);
+                parallelOps.push(selfChatRef.set({
+                    participants: [user.uid, user.uid],
+                    type:         'self',
+                    lastMessage:  `🎁 ${giftName}${qty > 1 ? ` ×${qty}` : ''}`,
+                    lastAt:       firebase.firestore.FieldValue.serverTimestamp(),
+                }, { merge: true }));
+                parallelOps.push(selfChatRef.collection('messages').add(chatMsgBase));
             } else {
                 const chatId = [user.uid, targetUser.uid].sort().join('_');
                 parallelOps.push(chatsCollection.doc(chatId).collection('messages').add(chatMsgBase));
