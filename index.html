@@ -24,47 +24,36 @@
 <body>
     <canvas id="bg-canvas"></canvas>
 
-    <!-- ⚡ Instant loading screen — shows before React boots, hides after -->
-    <div id="app-loader" style="
-        position:fixed;inset:0;z-index:999999;
-        background:linear-gradient(160deg,#05051a,#0a081f);
-        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
-    ">
+    <!-- ⚡ Instant loading screen -->
+    <div id="app-loader" style="position:fixed;inset:0;z-index:999999;background:linear-gradient(160deg,#05051a,#0a081f);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
         <div style="font-size:52px;animation:ldr_pulse 1.2s ease-in-out infinite">🕵️</div>
-        <div style="
-            font-size:22px;font-weight:900;letter-spacing:2px;
-            background:linear-gradient(90deg,#00f2ff,#7000ff);
-            -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-        ">PRO SPY</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:2px;background:linear-gradient(90deg,#00f2ff,#7000ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">PRO SPY</div>
         <div style="width:160px;height:3px;background:rgba(255,255,255,0.07);border-radius:9px;overflow:hidden">
-            <div id="ldr-bar" style="height:100%;width:0%;border-radius:9px;background:linear-gradient(90deg,#00f2ff,#7000ff);transition:width 0.4s ease"></div>
+            <div id="ldr-bar" style="height:100%;width:0%;border-radius:9px;background:linear-gradient(90deg,#00f2ff,#7000ff);transition:width 0.15s ease"></div>
         </div>
-        <div id="ldr-txt" style="font-size:11px;color:#4b5563;letter-spacing:1px">LOADING...</div>
         <style>@keyframes ldr_pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}</style>
     </div>
 
     <div id="root"></div>
 
     <script>
-        // Progress bar simulation while scripts load
-        let _p = 0;
-        const _bar = document.getElementById('ldr-bar');
-        const _txt = document.getElementById('ldr-txt');
-        const _iv  = setInterval(() => {
-            _p = Math.min(_p + (Math.random() * 8), 88);
-            if (_bar) _bar.style.width = _p + '%';
-        }, 200);
-        window._hideLoader = () => {
-            clearInterval(_iv);
-            const loader = document.getElementById('app-loader');
-            if (!loader) return;
-            if (_bar) _bar.style.width = '100%';
-            setTimeout(() => {
-                loader.style.transition = 'opacity 0.4s ease';
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 420);
-            }, 200);
+        var _lp = 0;
+        var _lb = document.getElementById('ldr-bar');
+        var _li = setInterval(function() {
+            _lp = Math.min(_lp + Math.random() * 14 + 5, 90);
+            if (_lb) _lb.style.width = _lp + '%';
+        }, 100);
+        window._hideLoader = function() {
+            clearInterval(_li);
+            var el = document.getElementById('app-loader');
+            if (!el) return;
+            if (_lb) _lb.style.width = '100%';
+            el.style.transition = 'opacity 0.3s ease';
+            el.style.opacity = '0';
+            setTimeout(function() { if (el.parentNode) el.remove(); }, 320);
         };
+        // Fallback: hide after 10s
+        setTimeout(function() { if (window._hideLoader) window._hideLoader(); }, 10000);
     </script>
 
     <!-- Firebase -->
