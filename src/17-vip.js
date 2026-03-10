@@ -14,7 +14,7 @@ const VIP_BADGE_URLS = {
     7:  '',   // رابط بادج VIP 7
     8:  '',   // رابط بادج VIP 8
     9:  '',   // رابط بادج VIP 9
-    10: '',   // رابط بادج VIP 10
+    10: 'https://img1.picmix.com/output/pic/normal/4/2/2/9/7479224_ca7d2.gif',   // رابط بادج VIP 10
 };
 
 // 🔧 VIP CHAT TITLE IMAGES — صور Title في الشات خلف اسم المستخدم
