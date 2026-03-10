@@ -157,7 +157,7 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
                         value={inputText}
                         onChange={e => setInputText(e.target.value)}
                         onKeyDown={e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendNote(); } }}
-                        placeholder={lang==='ar' ? 'اكتب ملاحظة...' : 'Write a note...'}
+                        placeholder={lang==='ar' ? 'اكتب رسالة...' : 'Write a message...'}
                         style={{
                             flex:1, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)',
                             borderRadius:'10px', padding:'10px 12px', color:'white', fontSize:'13px', outline:'none'
@@ -183,4 +183,3 @@ const SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency })
 };
 
 // 🎫 FUN PASS MODAL COMPONENT
-
