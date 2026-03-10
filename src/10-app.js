@@ -46,12 +46,6 @@ function App() {
     const [showFunPass, setShowFunPass] = useState(false);
     const [chatFriend, setChatFriend] = useState(null);
     const [showLoginAlert, setShowLoginAlert] = useState(false);
-    const [forcedLogoutMsg, setForcedLogoutMsg] = useState(false);
-
-    // Single-session token: unique per browser tab/session
-    const SESSION_TOKEN = React.useRef(
-        (() => { let t = sessionStorage.getItem('pro_spy_st'); if(!t){ t=Math.random().toString(36).slice(2)+Date.now(); sessionStorage.setItem('pro_spy_st',t); } return t; })()
-    ).current;
     const [guestData, setGuestData] = useState(null);
     const [showEmail, setShowEmail] = useState(false);
     const [showLoginRewards, setShowLoginRewards] = useState(false);
@@ -105,7 +99,7 @@ function App() {
                 achievements: firebase.firestore.FieldValue.arrayUnion(badgeId)
             });
         } catch (error) {
-
+            console.error('Achievement unlock error:', error);
         }
     }, [isLoggedIn, user, userData]);
 
@@ -151,7 +145,7 @@ function App() {
                     achievements: firebase.firestore.FieldValue.arrayUnion(...toUnlock)
                 });
             } catch (e) {
-
+                console.error('Batch achievement error:', e);
                 // Fallback: unlock one by one
                 for (const id of toUnlock) {
                     try { await unlockAchievement(id); } catch {}
@@ -206,7 +200,7 @@ function App() {
 
             await usersCollection.doc(user.uid).update(updates);
         } catch (error) {
-
+            console.error('Mission increment error:', error);
         }
     }, [isLoggedIn, user, userData]);
 
@@ -217,7 +211,7 @@ function App() {
                 lastActive: firebase.firestore.FieldValue.serverTimestamp()
             });
         } catch (error) {
-
+            console.error('LastActive update error:', error);
         }
     };
 
@@ -311,8 +305,7 @@ function App() {
                     const existingData = doc.data();
                     setUserData(existingData);
                     if (existingData.displayName) setNickname(existingData.displayName);
-                    // Write session token (single-session enforcement)
-                    userRef.update({ activeSession: SESSION_TOKEN }).catch(() => {});
+
                     if (checkLoginRewardsCycle(existingData)) {
                         await userRef.update({ 'loginRewards.currentDay': 0, 'loginRewards.streak': 0, 'loginRewards.cycleMonth': getCurrentCycleMonth() });
                     }
@@ -321,11 +314,6 @@ function App() {
                             const d = snap.data();
                             setUserData(d);
                             if (d.displayName) setNickname(d.displayName);
-                            // Single-session: if activeSession changed by another device, force logout
-                            if (d.activeSession && d.activeSession !== SESSION_TOKEN) {
-                                setForcedLogoutMsg(true);
-                                auth.signOut();
-                            }
                         }
                     });
                     setAuthLoading(false);
@@ -646,7 +634,6 @@ function App() {
             charisma: 0,
             bannerURL: null,
             loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: getCurrentCycleMonth() },
-            activeSession: SESSION_TOKEN
         };
         await pendingNewUserRef.set(newUserData);
         setUserData(newUserData);
@@ -978,7 +965,7 @@ function App() {
             if (updDoc.exists) await checkAndUnlockAchievements(updDoc.data());
 
         } catch(error) {
-
+            console.error('Gift send error:', error);
             setNotification(lang === 'ar' ? '❌ خطأ في الإرسال، حاول مرة أخرى' : '❌ Send error, try again');
         }
     }, [userData, user, t, createNotification, lang, incrementMissionProgress, checkAndUnlockAchievements, isLoggedIn]);
@@ -1167,34 +1154,7 @@ function App() {
                 />
             )}
 
-            {forcedLogoutMsg && (
-                <div className="modal-overlay" style={{zIndex:Z.FORCED}}>
-                    <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
-                        background:'linear-gradient(180deg,#1a0a0a,#0f0f1a)',
-                        border:'1px solid rgba(239,68,68,0.4)',
-                        borderRadius:'18px', width:'100%', maxWidth:'340px',
-                        padding:'28px 24px', textAlign:'center',
-                        boxShadow:'0 0 40px rgba(239,68,68,0.2)'
-                    }}>
-                        <div style={{fontSize:'44px', marginBottom:'12px'}}>⚠️</div>
-                        <div style={{fontSize:'15px', fontWeight:900, color:'#ef4444', marginBottom:'8px'}}>
-                            {lang === 'ar' ? 'تم تسجيل خروجك' : 'Signed Out'}
-                        </div>
-                        <div style={{fontSize:'12px', color:'#9ca3af', marginBottom:'20px', lineHeight:1.6}}>
-                            {lang === 'ar'
-                                ? 'تم فتح حسابك على جهاز آخر. لا يمكن تسجيل الدخول في مكانين في نفس الوقت.'
-                                : 'Your account was opened on another device. You cannot be logged in on two devices simultaneously.'}
-                        </div>
-                        <button onClick={() => setForcedLogoutMsg(false)} style={{
-                            background:GR.NEON,
-                            border:'none', borderRadius:'10px', color:'white',
-                            fontWeight:700, fontSize:'13px', padding:'10px 24px', cursor:'pointer', width:'100%'
-                        }}>
-                            {lang === 'ar' ? 'حسناً' : 'OK'}
-                        </button>
-                    </div>
-                </div>
-            )}
+
             {showLoginAlert && (
                 <div className="modal-overlay" onClick={() => setShowLoginAlert(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
