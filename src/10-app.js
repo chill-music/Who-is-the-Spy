@@ -485,9 +485,9 @@ function App() {
         }
     }, [isLoggedIn, userData?.loginRewards?.lastClaimDate, sessionClaimedToday]);
 
-    // Notifications Listener
+    // Notifications Listener — deferred after userData is ready
     useEffect(() => {
-        if (!user || !isLoggedIn) return;
+        if (!user || !isLoggedIn || !userData) return;
         let previousCount = -1;
         const unsub = notificationsCollection.where('toUserId', '==', user.uid).limit(50).onSnapshot(snap => {
             let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -499,7 +499,7 @@ function App() {
             setUnreadNotifications(newUnread);
         }, error => { });
         return () => unsub();
-    }, [user, isLoggedIn]);
+    }, [user, isLoggedIn, userData?.uid]);
 
     // Room Listener
     useEffect(() => { if (!roomId) return; const unsub = roomsCollection.doc(roomId).onSnapshot(async doc => { if (doc.exists) { const data = doc.data(); setRoom(data); if(data.status?.includes('finished') && !data.summaryShown) { setShowSummary(true); historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); roomsCollection.doc(roomId).update({summaryShown: true});
@@ -1179,7 +1179,20 @@ function App() {
     const requireLogin = useCallback(() => { setShowLoginAlert(true); }, []);
 
     // RENDER
-    if (authLoading) { return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl animate-bounce mb-4">🕵️</div><div className="text-lg font-bold">{t.loading}</div></div></div>; }
+    if (authLoading) {
+        return (
+            <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(160deg,#060612,#0a0a1e)',flexDirection:'column',gap:'16px'}}>
+                <div style={{fontSize:'48px',animation:'gw-float 2s ease-in-out infinite'}}>🕵️</div>
+                <div style={{
+                    width:'40px',height:'40px',borderRadius:'50%',
+                    border:'3px solid rgba(0,242,255,0.15)',
+                    borderTop:'3px solid #00f2ff',
+                    animation:'spin 0.8s linear infinite'
+                }}/>
+                <style>{`@keyframes spin{to{transform:rotate(360deg)}}@keyframes gw-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
+            </div>
+        );
+    }
 
     return (
         <div className="main-wrapper" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
