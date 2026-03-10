@@ -2245,8 +2245,8 @@ const ProfileV11 = ({
                                         transition:'all 0.2s'
                                     }}
                                 >
-                                    <span style={{fontSize:'16px'}}>📝</span>
-                                    <span>{lang === 'ar' ? 'ملاحظاتي' : 'My Notes'}</span>
+                                    <span style={{fontSize:'16px'}}>💬</span>
+                                    <span>{lang === 'ar' ? 'شاتي' : 'My Chat'}</span>
                                 </button>
                                 {/* Self Gift */}
                                 <button
@@ -2363,8 +2363,8 @@ const ProfileV11 = ({
                     currentUser={userData}
                     lang={lang}
                     onSendGift={async (gift, targetUser) => {
-                        // لا نغلق المودال هنا — الكومبو أوفرلاي بيتحكم في الإغلاق
                         if (onSendGift) await onSendGift(gift, targetUser);
+                        setShowSelfGiftModal(false);
                     }}
                     currency={userData?.currency || 0}
                     friendsData={[]}
