@@ -562,7 +562,7 @@ const SupportTicketSection = ({ user, userData, lang, onNotification }) => {
 
 // ════════════════════════════════════════════════════════
 
-const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle, onOpenAdminPanel }) => {
+const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle, onOpenAdminPanel }) => {
     const t = TRANSLATIONS[lang];
     const [blockedUsers, setBlockedUsers] = useState([]);
     const [blockInput, setBlockInput] = useState('');
