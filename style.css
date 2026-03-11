@@ -4826,3 +4826,91 @@ body {
 .bottom-nav-new[style*="repeat(4"] {
     grid-template-columns: repeat(4, 1fr) !important;
 }
+
+/* ════════════════════════════════════════════════════
+   📱 MOBILE RESPONSIVE — PRO SPY LOBBY + ADMIN PANEL
+   ════════════════════════════════════════════════════ */
+
+/* ── Very small screens (≤ 380px) ── */
+@media (max-width: 380px) {
+    .new-header { padding: 10px 12px 8px; }
+    .new-logo { font-size: 18px; letter-spacing: 1px; }
+    .new-hbtn { width: 32px; height: 32px; font-size: 13px; }
+    .new-avatar-btn { width: 32px; height: 32px; }
+
+    .lobby-hero-new { padding: 12px; margin: 6px 10px 0; }
+    .hero-title-new { font-size: 19px; }
+    .hero-input { padding: 8px 10px; font-size: 12px; }
+    .hero-btn-primary { padding: 8px 10px; font-size: 11px; }
+    .hero-input-row { gap: 6px; }
+    .hero-join-row { gap: 6px; }
+
+    .stats-strip-new { gap: 6px; padding: 6px 10px; }
+    .stat-pill-new { padding: 6px 8px; gap: 3px; font-size: 8px; min-width: 54px; }
+    .stat-pill-new .sval { font-size: 11px; }
+
+    .fp-promo-new { padding: 10px 12px; margin: 8px 10px 0; }
+    .fp-promo-title { font-size: 11px; }
+    .fp-promo-emoji { font-size: 20px; }
+
+    .sec-head-new { padding: 10px 10px 4px; }
+    .sec-title-new { font-size: 11px; }
+
+    .room-card-new { width: 130px; }
+}
+
+/* ── Mobile (≤ 480px) ── */
+@media (max-width: 480px) {
+    /* Header: tighten gaps */
+    .new-header-right { gap: 6px; }
+
+    /* Lobby hero: ensure input row doesn't overflow */
+    .hero-input-row {
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+    .hero-input-row .hero-input {
+        min-width: 0;
+        flex: 1;
+    }
+    .hero-btn-primary {
+        flex-shrink: 0;
+        padding: 10px 12px;
+        font-size: 11px;
+    }
+
+    /* Join row */
+    .hero-join-row {
+        flex-wrap: nowrap;
+    }
+    .hero-code-input {
+        font-size: 14px;
+        letter-spacing: 3px;
+    }
+
+    /* Stats pills: allow horizontal scroll */
+    .stats-strip-new {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Fun Pass promo */
+    .fp-promo-new {
+        margin: 8px 12px 0;
+    }
+
+    /* Section headers */
+    .sec-head-new {
+        padding: 10px 12px 4px;
+    }
+
+    /* Room cards scroll */
+    .rooms-scroll-new {
+        padding: 4px 12px 4px;
+    }
+}
+
+/* ── Landscape mobile ── */
+@media (max-width: 768px) and (orientation: landscape) {
+    .lobby-hero-new { padding: 10px 14px; }
+    .hero-title-new { font-size: 18px; margin-bottom: 8px; }
+}
