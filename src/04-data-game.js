@@ -64,6 +64,8 @@ const SHOP_ITEMS = {
         { id: 'frame_1', name_en: " Frame", name_ar: "إطار متحرك", cost: 0, type: 'frames', preview: 'https://i.ibb.co/4Rj8jzWS/0202.png' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'frame_rainbow', name_en: "Rainbow Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/1tvtgmD8/ezgif-com-optimize.gif' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'frame_shehab', name_en: "Shehab Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/xKgsYCZ3/shehab.gif' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+
         // ════ UNCOMMON ITEMS — لون أخضر ════
         { id: 'frame_mint', name_en: "Mint Frame", name_ar: "إطار نعناعي", cost: 75, type: 'frames', rarity: 'Uncommon', preview: 'linear-gradient(45deg, #4ade80, #22d3ee)' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         // ════ FunPass Exclusive Frames — hidden in shop, from FunPass rewards ════
