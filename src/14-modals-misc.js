@@ -270,7 +270,7 @@ const TutorialModal = ({ show, onClose, lang }) => {
 
 // ⚙️ SETTINGS MODAL
 
-const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle }) => {
+const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle, onOpenAdminPanel }) => {
     const t = TRANSLATIONS[lang];
     const [blockedUsers, setBlockedUsers] = useState([]);
     const [blockInput, setBlockInput] = useState('');
@@ -532,6 +532,58 @@ const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, is
                             lang={lang}
                             onNotification={onNotification}
                         />
+                    )}
+
+                    {/* 🛡️ ADMIN PANEL BUTTON — Staff only */}
+                    {user && !isGuestPropForSettings && getUserRole(userData, user?.uid) && (
+                        <div className="settings-section">
+                            <button
+                                onClick={() => { onClose(); if (onOpenAdminPanel) onOpenAdminPanel(); }}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    borderRadius: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    cursor: 'pointer',
+                                    border: '1px solid rgba(255,215,0,0.3)',
+                                    background: 'linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,140,0,0.06))',
+                                    color: 'white',
+                                    transition: 'all 0.2s',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,140,0,0.1))'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,140,0,0.06))'}
+                            >
+                                <div style={{ fontSize: '24px' }}>
+                                    {ROLE_CONFIG[getUserRole(userData, user?.uid)]?.icon || '🛡️'}
+                                </div>
+                                <div style={{ flex: 1, textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffd700' }}>
+                                        {lang === 'ar' ? 'لوحة الإدارة' : 'Admin Panel'}
+                                    </div>
+                                    <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '1px' }}>
+                                        {lang === 'ar'
+                                            ? `دخول كـ ${ROLE_CONFIG[getUserRole(userData, user?.uid)]?.label_ar}`
+                                            : `Access as ${ROLE_CONFIG[getUserRole(userData, user?.uid)]?.label_en}`
+                                        }
+                                    </div>
+                                </div>
+                                <div style={{
+                                    fontSize: '10px', padding: '3px 8px', borderRadius: '4px', fontWeight: 700,
+                                    background: `${ROLE_CONFIG[getUserRole(userData, user?.uid)]?.color || '#ffd700'}22`,
+                                    border: `1px solid ${ROLE_CONFIG[getUserRole(userData, user?.uid)]?.color || '#ffd700'}44`,
+                                    color: ROLE_CONFIG[getUserRole(userData, user?.uid)]?.color || '#ffd700'
+                                }}>
+                                    {lang === 'ar'
+                                        ? ROLE_CONFIG[getUserRole(userData, user?.uid)]?.label_ar
+                                        : ROLE_CONFIG[getUserRole(userData, user?.uid)]?.label_en
+                                    }
+                                </div>
+                            </button>
+                        </div>
                     )}
 
                     {/* Sound Toggle */}
