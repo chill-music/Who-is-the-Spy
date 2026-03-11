@@ -2885,26 +2885,12 @@ const ProfileV11 = ({
                                 borderRadius: '12px',
                                 background: 'linear-gradient(135deg, rgba(220,0,0,0.18), rgba(139,0,0,0.12))',
                                 border: '1.5px solid rgba(239,68,68,0.5)',
-                                display: 'flex', alignItems: 'flex-start', gap: '10px',
+                                display: 'flex', alignItems: 'center', gap: '10px',
                                 boxShadow: '0 0 20px rgba(220,0,0,0.15)',
                             }}>
                                 <span style={{ fontSize: '22px', flexShrink: 0, lineHeight: 1 }}>🚫</span>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: '12px', fontWeight: 900, color: '#f87171', marginBottom: '3px', letterSpacing: '0.3px' }}>
-                                        {lang === 'ar' ? 'هذا الحساب محظور' : 'This Account is Banned'}
-                                    </div>
-                                    {targetData?.ban?.reason && (
-                                        <div style={{ fontSize: '10px', color: '#fca5a5', marginBottom: '3px' }}>
-                                            <span style={{ color: '#9ca3af' }}>{lang === 'ar' ? 'السبب: ' : 'Reason: '}</span>
-                                            {targetData.ban.reason}
-                                        </div>
-                                    )}
-                                    <div style={{ fontSize: '10px', color: '#9ca3af' }}>
-                                        <span>{lang === 'ar' ? 'ينتهي: ' : 'Expires: '}</span>
-                                        <span style={{ color: targetData?.ban?.expiresAt ? '#fbbf24' : '#f87171', fontWeight: 700 }}>
-                                            {formatBanExpiry(targetData, lang)}
-                                        </span>
-                                    </div>
+                                <div style={{ fontSize: '13px', fontWeight: 900, color: '#f87171', letterSpacing: '0.3px' }}>
+                                    {lang === 'ar' ? 'تم حظر هذا الحساب' : 'This Account is Banned'}
                                 </div>
                             </div>
                         )}
