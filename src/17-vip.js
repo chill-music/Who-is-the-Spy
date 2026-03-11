@@ -427,28 +427,33 @@ const VIPChatTitle = ({ userData }) => {
 // ════════════════════════════════════════════════════════════
 // 👑 STAFF ROLE BADGE — يظهر في كل مكان
 // ════════════════════════════════════════════════════════════
-const StaffRoleBadge = ({ userData, uid, lang, size = 'sm' }) => {
+const StaffRoleBadge = ({ userData, uid, lang, size = 'sm', onClick }) => {
     const role = getUserRole(userData, uid);
     if (!role) return null;
     const cfg = ROLE_CONFIG[role];
     const isMd = size === 'md';
 
     return (
-        <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '2px',
-            fontSize: isMd ? '10px' : '8px',
-            fontWeight: 900,
-            color: cfg.color,
-            background: cfg.bg,
-            border: `1px solid ${cfg.border}`,
-            borderRadius: '5px',
-            padding: isMd ? '2px 7px' : '1px 5px',
-            letterSpacing: '0.3px',
-            boxShadow: `0 0 8px ${cfg.glow}`,
-            whiteSpace: 'nowrap',
-            lineHeight: 1.4,
-            flexShrink: 0,
-        }}>
+        <span
+            onClick={onClick}
+            style={{
+                display: 'inline-flex', alignItems: 'center', gap: '2px',
+                fontSize: isMd ? '10px' : '8px',
+                fontWeight: 900,
+                color: cfg.color,
+                background: cfg.bg,
+                border: `1px solid ${cfg.border}`,
+                borderRadius: '5px',
+                padding: isMd ? '2px 7px' : '1px 5px',
+                letterSpacing: '0.3px',
+                boxShadow: `0 0 8px ${cfg.glow}`,
+                whiteSpace: 'nowrap',
+                lineHeight: 1.4,
+                flexShrink: 0,
+                cursor: onClick ? 'pointer' : 'default',
+                transition: onClick ? 'all 0.15s' : 'none',
+            }}
+        >
             {cfg.icon} {lang === 'ar' ? cfg.label_ar : cfg.label_en}
         </span>
     );
