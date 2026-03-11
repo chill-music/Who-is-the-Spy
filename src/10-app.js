@@ -1208,7 +1208,13 @@ function App() {
     }
 
     return (
-        <div className="main-wrapper" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+        <div className="app-shell" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+            {/* Background blobs */}
+            <div className="bg-blobs">
+                <div className="bg-blob-item bg-blob-1"></div>
+                <div className="bg-blob-item bg-blob-2"></div>
+                <div className="bg-blob-item bg-blob-3"></div>
+            </div>
             <NotificationToast message={notification} onClose={() => setNotification(null)} />
 
             {showOnboarding && (
@@ -1377,34 +1383,40 @@ function App() {
                 </div>
             )}
 
-            {/* Header */}
-            <header className="site-header">
-                <div className="logo-container">
-                    <div className="logo-icon">🕵️</div>
-                    <div>
-                        <h1 className="game-title">{t.appName}</h1>
-                        <p className="text-[8px] text-gray-400 uppercase tracking-widest">{t.tagline}</p>
-                    </div>
-                </div>
-                <div className="header-actions">
-                    <button onClick={() => { if(isLoggedIn) setShowFunPass(true); else requireLogin(); }} title="Fun Pass" style={{background:GR.GOLD,border:'1px solid rgba(255,215,0,0.35)',color:'#ffd700',fontWeight:900,borderRadius:'6px',padding:'4px 8px',fontSize:'12px',cursor:'pointer'}}>🎫</button>
-                    <button onClick={() => { const nl = lang==='en'?'ar':'en'; setLang(nl); localStorage.setItem('pro_spy_lang', nl); }} className="text-xs bg-white/10 px-2 py-1 rounded">{t.langBtn}</button>
+            {/* ── NEW HEADER ── */}
+            <header className="new-header">
+                <div className="new-logo">PRO SPY</div>
+                <div className="new-header-right">
+                    {/* Fun Pass */}
+                    <button className="new-funpass-btn" onClick={() => { if(isLoggedIn) setShowFunPass(true); else requireLogin(); }} title="Fun Pass">🎫</button>
+                    {/* Language */}
+                    <button className="new-lang-btn" onClick={() => { const nl = lang==='en'?'ar':'en'; setLang(nl); localStorage.setItem('pro_spy_lang', nl); }}>{t.langBtn}</button>
+                    {/* Notifications */}
                     {isLoggedIn && (
-                        <div className="notification-center">
-                            <div ref={notificationBellRef} className="notification-bell" onClick={() => setShowNotifications(!showNotifications)}><span className="notification-bell-icon">🔔</span>{unreadNotifications > 0 && <span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>}</div>
+                        <div className="new-notif-center notification-center" ref={notificationBellRef}>
+                            <div className="new-notif-bell notification-bell" onClick={() => setShowNotifications(!showNotifications)}>
+                                🔔{unreadNotifications > 0 && <span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>}
+                            </div>
                             <NotificationDropdown show={showNotifications} onClose={() => setShowNotifications(false)} notifications={notifications} onMarkRead={markNotificationRead} onClearAll={clearAllNotifications} onNotificationClick={handleNotificationClick} lang={lang} />
                         </div>
                     )}
+                    {/* Shop */}
+                    {isLoggedIn && (
+                        <div className="new-hbtn" onClick={() => setShowShop(true)} title={t.shop}>🛒</div>
+                    )}
+                    {/* Avatar / Profile button */}
                     <div className="relative">
-                        <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-1 bg-white/5 rounded-lg px-2 py-1">
-                            {isLoggedIn || isGuest ? <PlayerNameTag player={currentUserData} lang={lang} size="sm" /> : <span className="text-xs px-2 py-1">{t.loginGoogle}</span>}
-                        </button>
+                        <div className="new-avatar-btn" onClick={() => setShowDropdown(!showDropdown)} title="Profile">
+                            {(isLoggedIn || isGuest) && currentUserData?.photoURL
+                                ? <img src={currentUserData.photoURL} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} alt="" />
+                                : <span style={{fontSize:'16px'}}>😎</span>
+                            }
+                        </div>
                         {showDropdown && (
-                            <div className="dropdown-menu glass-panel rounded-lg p-1 min-w-[160px]">
+                            <div className="new-header-dropdown dropdown-menu glass-panel rounded-lg p-1">
                                 {isLoggedIn || isGuest ? (<>
                                     <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>👤</span> {t.myAccount}</button>
                                     {isLoggedIn && (<>
-                                        <button onClick={() => { setShowShop(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🛒</span> {t.shop}</button>
                                         <button onClick={() => { setShowInventory(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>📦</span> {t.inventory}</button>
                                         <button onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); setShowDropdown(false); }} className={`w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 ${sessionClaimedToday ? 'opacity-50' : ''}`}><span>🎁</span> {t.loginRewards} {sessionClaimedToday && <span className="text-[8px] text-green-400">✓</span>}</button>
                                     </>)}
@@ -1417,89 +1429,174 @@ function App() {
                 </div>
             </header>
 
-            {/* Main Content */}
-            {!room && (
-                <main className="main-content">
-                    <div className="tab-container mb-3">
-                        <button onClick={() => setActiveView('lobby')} className={`tab-button ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby}</button>
-                        <button onClick={() => setActiveView('leaderboard')} className={`tab-button ${activeView === 'leaderboard' ? 'active' : ''}`}>{t.tabLeaderboard}</button>
-                        <button onClick={() => { if(isLoggedIn) setActiveView('friends'); else requireLogin(); }} className={`tab-button relative ${activeView === 'friends' ? 'active' : ''}`}>{t.tabFriends}{totalFriendsUnread > 0 && <span className="friends-tab-badge">{totalFriendsUnread > 9 ? '9+' : totalFriendsUnread}</span>}</button>
-                    </div>
+            {/* ── NEW PAGE CONTENT ── */}
+            <div className="new-page-content">
 
+            {/* ── LOBBY / LEADERBOARD / FRIENDS / EXPLORE views ── */}
+            {!room && (
+                <>
+                    {/* ══ LOBBY VIEW ══ */}
                     {activeView === 'lobby' && (
-                        <div className="card-container">
-                            {isGuest && <GuestBanner lang={lang} />}
-                            <div className="space-y-3">
-                                <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className="input-dark w-full p-3 rounded-lg font-bold" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} /></div>
-                                <div className="flex gap-2"><button onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()} className="btn-neon flex-1 py-3 rounded-lg font-bold text-sm">{t.create}</button><button onClick={() => setShowBrowseRooms(true)} className="btn-ghost px-4 py-3 rounded-lg text-sm">{t.browse}</button></div>
-                                <div className="flex items-center gap-2"><input className="input-dark flex-1 p-3 rounded-lg text-center font-mono uppercase tracking-wider" value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder={t.codePlaceholder} maxLength={6} /><button onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()} className="btn-neon px-4 py-3 rounded-lg font-bold text-sm">{loading ? '...' : t.join}</button></div>
-                                {joinError && <p className="text-xs text-red-400 text-center">{joinError}</p>}
+                        <div style={{paddingBottom:'8px'}}>
+                            {/* Stats Strip */}
+                            {(isLoggedIn || isGuest) && currentUserData && (
+                                <>
+                                    <div className="sec-head-new">
+                                        <span className="sec-title-new">{lang==='ar' ? `مرحباً، ${currentUserData.displayName || currentUserData.name || ''}` : `Hi, ${currentUserData.displayName || currentUserData.name || ''}`} 👋</span>
+                                        <button className="sec-action-new" onClick={() => setShowMyAccount(true)}>{lang==='ar'?'ملفي':'Profile'}</button>
+                                    </div>
+                                    <div className="stats-strip-new">
+                                        <div className="stat-pill-new"><span>🏆</span><span className="sval">{currentUserData?.stats?.wins || 0}</span><span>{lang==='ar'?'انتصار':t.wins}</span></div>
+                                        <div className="stat-pill-new"><span>⭐</span><span className="sval gold">{((currentUserData?.charisma || 0) >= 1000 ? ((currentUserData.charisma/1000).toFixed(1)+'K') : (currentUserData?.charisma || 0))}</span><span>{lang==='ar'?'كاريزما':'Charisma'}</span></div>
+                                        <div className="stat-pill-new"><span>🔥</span><span className="sval green">{currentUserData?.loginRewards?.streak || 0}</span><span>Streak</span></div>
+                                        <div className="stat-pill-new"><span>💎</span><span className="sval">{currentUserData?.currency || 0}</span><span>{lang==='ar'?'جوهرة':'Gems'}</span></div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Fun Pass Promo */}
+                            <div className="fp-promo-new" onClick={() => { if(isLoggedIn) setShowFunPass(true); else requireLogin(); }}>
+                                <div className="fp-promo-emoji">🎟️</div>
+                                <div className="fp-promo-body">
+                                    <div className="fp-promo-title">{lang==='ar'?'Fun Pass — الموسم الجديد!':'Fun Pass — New Season!'}</div>
+                                    <div className="fp-promo-sub">{lang==='ar'?'أكمل المهام واكسب مكافآت حصرية':'Complete tasks and earn exclusive rewards'}</div>
+                                </div>
+                                <div className="fp-promo-arr">→</div>
                             </div>
-                            {/* Daily Tasks - only for logged in users */}
+
+                            {/* Lobby Hero */}
+                            <div className="sec-head-new"><span className="sec-title-new">{lang==='ar'?'العب دلوقتي':t.tabLobby}</span></div>
+                            <div className="lobby-hero-new">
+                                <div className="hero-label-new">{lang==='ar'?'ابدأ أو انضم لأوضة':t.codePlaceholder}</div>
+                                <div className="hero-title-new">{lang==='ar'?'أنت الجاسوس؟':'Are You the Spy?'}</div>
+                                {isGuest && <GuestBanner lang={lang} />}
+                                <div className="hero-input-row">
+                                    <input className="hero-input" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} />
+                                    <button className="hero-btn-primary" onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()}>+ {t.create}</button>
+                                    <button className="hero-btn-ghost" onClick={() => setShowBrowseRooms(true)}>🔍</button>
+                                </div>
+                                <div className="hero-join-row">
+                                    <input className="hero-input hero-code-input" style={{flex:1}} value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder={t.codePlaceholder} maxLength={6} />
+                                    <button className="hero-btn-primary" onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()}>{loading ? '...' : t.join}</button>
+                                </div>
+                                {joinError && <p style={{fontSize:'11px',color:'#ff4d4d',textAlign:'center',marginTop:'6px'}}>{joinError}</p>}
+                            </div>
+
+                            {/* Active Rooms */}
+                            <div className="sec-head-new">
+                                <span className="sec-title-new">🟢 {lang==='ar'?'الأوض المفتوحة':'Open Rooms'}</span>
+                                <button className="sec-action-new" onClick={() => setShowBrowseRooms(true)}>{lang==='ar'?'الكل':'All'}</button>
+                            </div>
+                            <div className="rooms-scroll-new">
+                                <div className="room-card-new" onClick={() => setShowBrowseRooms(true)}>
+                                    <div className="rc-mode">🕵️</div>
+                                    <div className="rc-name">{lang==='ar'?'تصفّح الأوض':'Browse Rooms'}</div>
+                                    <div className="rc-info" style={{color:'var(--primary)',marginTop:'6px',fontSize:'11px'}}>→ {lang==='ar'?'عرض الكل':'View all'}</div>
+                                </div>
+                                <div className="room-card-new" onClick={() => setShowSetupModal(true)} style={{border:'1px dashed rgba(0,242,255,0.3)'}}>
+                                    <div className="rc-mode">➕</div>
+                                    <div className="rc-name">{t.create}</div>
+                                    <div className="rc-info" style={{marginTop:'6px',fontSize:'10px',color:'var(--text-muted)'}}>{lang==='ar'?'أوضة جديدة':'New room'}</div>
+                                </div>
+                            </div>
+
+                            {/* Daily Tasks */}
                             {isLoggedIn && userData && (
-                                <DailyTasksComponent
-                                    userData={userData}
-                                    user={user}
-                                    lang={lang}
-                                    onClaim={() => {}}
-                                    onNotification={setNotification}
-                                />
+                                <>
+                                    <div className="sec-head-new">
+                                        <span className="sec-title-new">📋 {lang==='ar'?'مهام اليوم':'Daily Tasks'}</span>
+                                    </div>
+                                    <div className="tasks-card-new">
+                                        <DailyTasksComponent
+                                            userData={userData}
+                                            user={user}
+                                            lang={lang}
+                                            onClaim={() => {}}
+                                            onNotification={setNotification}
+                                        />
+                                    </div>
+                                </>
                             )}
                         </div>
                     )}
 
+                    {/* ══ LEADERBOARD VIEW ══ */}
                     {activeView === 'leaderboard' && (
-                        <div className="card-container">
-                            {/* Leaderboard Tabs */}
-                            <div className="leaderboard-tabs">
-                                <button
-                                    onClick={() => setLeaderboardTab('wins')}
-                                    className={`leaderboard-tab ${leaderboardTab === 'wins' ? 'active' : ''}`}
-                                >
-                                    🏆 {t.wins}
-                                </button>
-                                <button
-                                    onClick={() => setLeaderboardTab('charisma')}
-                                    className={`leaderboard-tab gold ${leaderboardTab === 'charisma' ? 'active' : ''}`}
-                                >
-                                    ⭐ {t.charismaRank}
-                                </button>
+                        <div style={{paddingBottom:'8px'}}>
+                            {/* Tabs */}
+                            <div className="lb-tabs-new">
+                                <button className={`lb-tab-new ${leaderboardTab==='wins'?'active':''}`} onClick={() => setLeaderboardTab('wins')}>🏆 {t.wins}</button>
+                                <button className={`lb-tab-new ${leaderboardTab==='charisma'?'active':''}`} onClick={() => setLeaderboardTab('charisma')}>⭐ {t.charismaRank}</button>
                             </div>
 
-                            <div className="overflow-y-auto max-h-[60vh]">
-                                {(leaderboardTab === 'charisma' ? charismaLeaderboard : leaderboardData).map((player, i) => {
-                                    const rank = i + 1;
-                                    const isTop3 = rank <= 3;
-                                    return (
-                                        <div
-                                            key={player.id}
-                                            onClick={() => openProfile(player.id)}
-                                            className={`leaderboard-row cursor-pointer ${isTop3 && leaderboardTab === 'charisma' ? 'rank-' + rank : ''}`}
-                                        >
-                                            {isTop3 && leaderboardTab === 'charisma' ? (
-                                                <div className="charisma-rank-position">
-                                                    {rank === 1 ? '👑' : rank === 2 ? '🥈' : '🥉'}
-                                                </div>
-                                            ) : (
-                                                <span className="w-6 text-xs font-bold text-gray-500">{rank}</span>
-                                            )}
-                                            <div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={player} lang={lang} size="sm" /></div>
-                                            <div className="text-right">
-                                                {leaderboardTab === 'charisma' ? (
-                                                    <div className="text-xs font-bold text-yellow-400">⭐ {formatCharisma(player.charisma || 0)}</div>
-                                                ) : (
-                                                    <div className="text-xs font-bold text-primary">{player.stats?.wins || 0} {t.wins}</div>
-                                                )}
+                            {/* Podium (top 3) */}
+                            {(() => {
+                                const data = leaderboardTab === 'charisma' ? charismaLeaderboard : leaderboardData;
+                                const top3 = data.slice(0,3);
+                                const rest = data.slice(3);
+                                const getVal = (p) => leaderboardTab === 'charisma' ? (p.charisma || 0) : (p.stats?.wins || 0);
+                                const fmt = (v) => v >= 1000 ? (v/1000).toFixed(1)+'K' : v;
+                                const getAvatar = (p) => p.photoURL || p.photo || null;
+                                const getEmoji = (i) => ['😎','🦊','🐺'][i] || '👤';
+                                const podiumOrder = top3.length >= 2 ? [top3[1], top3[0], top3[2]].filter(Boolean) : top3;
+                                const podiumClass = (p, orig) => {
+                                    if(orig === 0) return 'ps-1';
+                                    if(orig === 1) return 'ps-2';
+                                    return 'ps-3';
+                                };
+                                // Reorder: 2nd, 1st, 3rd
+                                const slots = top3.length >= 3
+                                    ? [{p:top3[1],cls:'ps-2',medal:'🥈'},{p:top3[0],cls:'ps-1',medal:'👑',crown:true},{p:top3[2],cls:'ps-3',medal:'🥉'}]
+                                    : top3.map((p,i)=>[{cls:'ps-1',medal:'👑',crown:true},{cls:'ps-2',medal:'🥈'},{cls:'ps-3',medal:'🥉'}][i] ? {...[{cls:'ps-1',medal:'👑',crown:true},{cls:'ps-2',medal:'🥈'},{cls:'ps-3',medal:'🥉'}][i], p} : null).filter(Boolean);
+                                return (
+                                    <>
+                                        {top3.length > 0 && (
+                                            <div className="podium-new">
+                                                {slots.map((slot,i) => slot && (
+                                                    <div key={i} className={`podium-slot-new ${slot.cls}`} onClick={() => openProfile(slot.p.id)}>
+                                                        {slot.crown && <div style={{fontSize:'18px',marginBottom:'2px'}}>👑</div>}
+                                                        <div className="p-avatar-new">
+                                                            {getAvatar(slot.p) ? <img src={getAvatar(slot.p)} alt="" /> : <span>{getEmoji(top3.indexOf(slot.p))}</span>}
+                                                        </div>
+                                                        <div className="p-name-new">{slot.p.displayName || slot.p.name}</div>
+                                                        <div className="p-score-new">{fmt(getVal(slot.p))}</div>
+                                                        <div className="p-stand-new">{slot.medal}</div>
+                                                    </div>
+                                                ))}
                                             </div>
+                                        )}
+
+                                        {/* List (rank 4+, plus show user's rank) */}
+                                        <div className="lb-list-new">
+                                            {rest.map((player,i) => {
+                                                const rank = i + 4;
+                                                const isMe = player.id === currentUID;
+                                                return (
+                                                    <div key={player.id} className={`lb-row-new ${isMe?'me-row':''}`} onClick={() => openProfile(player.id)}>
+                                                        <div className="lb-num-new">#{rank}</div>
+                                                        <div className="lb-av-new">
+                                                            {getAvatar(player) ? <img src={getAvatar(player)} alt="" /> : <span>{getEmoji(rank-1)}</span>}
+                                                        </div>
+                                                        <div className="lb-info-new">
+                                                            <div className="lb-name-new">{player.displayName || player.name}{isMe && <span className="lb-me-tag">{lang==='ar'?'أنت':'You'}</span>}</div>
+                                                            <div className="lb-sub-new">{player.stats?.wins||0} {t.wins} · {Math.round((player.stats?.wins||0)/Math.max(1,(player.stats?.wins||0)+(player.stats?.losses||0))*100)}% {lang==='ar'?'فوز':'wr'}</div>
+                                                        </div>
+                                                        <div className={`lb-val-new ${leaderboardTab==='charisma'?'gold':''}`}>{fmt(getVal(player))}</div>
+                                                    </div>
+                                                );
+                                            })}
+                                            {/* Also show top 3 in the list */}
+                                            {data.length === 0 && <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>🏆 {lang==='ar'?'لا توجد بيانات بعد':'No data yet'}</div>}
                                         </div>
-                                    );
-                                })}
-                            </div>
+                                    </>
+                                );
+                            })()}
                         </div>
                     )}
 
+                    {/* ══ FRIENDS VIEW ══ */}
                     {activeView === 'friends' && (
-                        <div className="card-container friends-container">
+                        <div className="card-container" style={{margin:'12px 12px 8px'}}>
                             <div className="add-friend-section">
                                 <div className="add-friend-title">{t.addFriend}</div>
                                 <div className="add-friend-input-row"><input type="text" className="add-friend-input" value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} /><button onClick={handleAddFriendById} disabled={!addFriendId.trim()} className="btn-neon px-4 py-2 rounded-lg text-xs">{t.addFriend}</button></div>
@@ -1517,23 +1614,10 @@ function App() {
                                 </div>
                             )}
                             <div className="friends-list-section">
-                                {/* ── My Chat (self) ── */}
                                 {isLoggedIn && currentUserData && (
-                                    <div
-                                        onClick={() => setShowSelfChat(true)}
-                                        className="friend-item"
-                                        style={{ cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)', marginBottom:'8px', paddingBottom:'8px' }}
-                                    >
-                                        <div className="flex-1" style={{minWidth:0}}>
-                                            <PlayerNameTag player={currentUserData} lang={lang} size="sm" />
-                                        </div>
-                                        <div style={{
-                                            fontSize:'9px', fontWeight:700, color:'#00f2ff',
-                                            background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)',
-                                            borderRadius:'6px', padding:'2px 7px', flexShrink:0
-                                        }}>
-                                            {lang==='ar' ? '💬 شاتي' : '💬 My Chat'}
-                                        </div>
+                                    <div onClick={() => setShowSelfChat(true)} className="friend-item" style={{cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.06)',marginBottom:'8px',paddingBottom:'8px'}}>
+                                        <div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={currentUserData} lang={lang} size="sm" /></div>
+                                        <div style={{fontSize:'9px',fontWeight:700,color:'#00f2ff',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',borderRadius:'6px',padding:'2px 7px',flexShrink:0}}>{lang==='ar'?'💬 شاتي':'💬 My Chat'}</div>
                                     </div>
                                 )}
                                 {friendsData.length === 0 ? (
@@ -1545,56 +1629,37 @@ function App() {
                                     const statusColor = (f) => f.onlineStatus==='online' ? '#4ade80' : f.onlineStatus==='away' ? '#facc15' : '#6b7280';
                                     const renderFriend = (friend) => (
                                         <div key={friend.id} className="friend-item">
-                                            <div className="flex-1" style={{minWidth:0}}>
-                                                <PlayerNameTag player={friend} lang={lang} size="sm" showStatus={statusColor(friend)} />
-                                            </div>
+                                            <div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={friend} lang={lang} size="sm" showStatus={statusColor(friend)} /></div>
                                             <div className="friend-actions">
                                                 <button onClick={() => openPrivateChat(friend)} className="btn-ghost px-2 py-1 rounded text-xs">💬</button>
                                                 <button onClick={() => openProfile(friend.id)} className="btn-ghost px-2 py-1 rounded text-xs">👤</button>
                                             </div>
                                         </div>
                                     );
-                                    return (
-                                        <>
-                                            {online.length > 0 && (
-                                                <>
-                                                    <div style={{fontSize:'9px',fontWeight:700,color:'#4ade80',textTransform:'uppercase',padding:'4px 0 6px',display:'flex',alignItems:'center',gap:'5px'}}>
-                                                        <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block'}}/>
-                                                        {t.online} ({online.length})
-                                                    </div>
-                                                    {online.map(renderFriend)}
-                                                </>
-                                            )}
-                                            {away.length > 0 && (
-                                                <>
-                                                    <div style={{fontSize:'9px',fontWeight:700,color:'#facc15',textTransform:'uppercase',padding:'8px 0 6px',display:'flex',alignItems:'center',gap:'5px',borderTop:'1px solid rgba(255,255,255,0.06)',marginTop:'6px'}}>
-                                                        <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#facc15',display:'inline-block'}}/>
-                                                        {lang==='ar'?'بعيد':'Away'} ({away.length})
-                                                    </div>
-                                                    {away.map(renderFriend)}
-                                                </>
-                                            )}
-                                            {offline.length > 0 && (
-                                                <>
-                                                    <div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',textTransform:'uppercase',padding:'8px 0 6px',display:'flex',alignItems:'center',gap:'5px',borderTop:(online.length||away.length)?'1px solid rgba(255,255,255,0.06)':'none',marginTop:(online.length||away.length)?'6px':0}}>
-                                                        <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#6b7280',display:'inline-block'}}/>
-                                                        {t.offline} ({offline.length})
-                                                    </div>
-                                                    {offline.map(renderFriend)}
-                                                </>
-                                            )}
-                                        </>
-                                    );
+                                    return (<>
+                                        {online.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#4ade80',textTransform:'uppercase',padding:'4px 0 6px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block'}}/>{t.online} ({online.length})</div>{online.map(renderFriend)}</>)}
+                                        {away.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#facc15',textTransform:'uppercase',padding:'8px 0 6px',display:'flex',alignItems:'center',gap:'5px',borderTop:'1px solid rgba(255,255,255,0.06)',marginTop:'6px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#facc15',display:'inline-block'}}/>{lang==='ar'?'بعيد':'Away'} ({away.length})</div>{away.map(renderFriend)}</>)}
+                                        {offline.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',textTransform:'uppercase',padding:'8px 0 6px',display:'flex',alignItems:'center',gap:'5px',borderTop:(online.length||away.length)?'1px solid rgba(255,255,255,0.06)':'none',marginTop:(online.length||away.length)?'6px':0}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#6b7280',display:'inline-block'}}/>{t.offline} ({offline.length})</div>{offline.map(renderFriend)}</>)}
+                                    </>);
                                 })()}
                             </div>
                         </div>
                     )}
-                </main>
+
+                    {/* ══ EXPLORE VIEW ══ */}
+                    {activeView === 'explore' && (
+                        <div className="explore-coming-soon">
+                            <div className="explore-icon">🚀</div>
+                            <div className="explore-title">{lang==='ar'?'قريباً!':'Coming Soon!'}</div>
+                            <div className="explore-desc">{lang==='ar'?'البطولات · أحداث خاصة\nمتجر اللايف · تحديات يومية':'Tournaments · Special Events\nLive Shop · Daily Challenges'}</div>
+                        </div>
+                    )}
+                </>
             )}
 
-            {/* Room View */}
+            {/* ── ROOM VIEW ── */}
             {room && (
-                <main className="main-content">
+                <div className="new-room-content">
                     <div className="glass-panel rounded-lg p-2 mb-2 flex items-center justify-between">
                         <div className="lobby-code-container">
                             <button onClick={handleCopy} className={`lobby-code-btn ${copied ? 'copied' : ''}`}><span className="font-mono">{roomId}</span><span>{copied ? '✓' : '📋'}</span></button>
@@ -1625,7 +1690,7 @@ function App() {
                     )}
 
                     {room.status === 'discussing' && (
-                        <div className="flex-1 flex flex-col gap-2">
+                        <div className="flex flex-col gap-2">
                             <div className="card-container"><div className="flex flex-col gap-2">{room.players.filter(p => p.status === 'active').map(p => (<div key={p.uid} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer bg-white/5 ${room.currentTurnUID === p.uid ? 'border border-primary bg-primary/5' : ''} ${p.uid === currentUID ? 'border border-primary/50' : ''}`} onClick={() => openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>{room.currentTurnUID === p.uid && <span className="text-[8px] text-primary flex-shrink-0">🎙 Speaking</span>}</div>))}</div></div>
                             {!isSpectator && me && (
                                 <div className={`identity-square identity-${myRole === 'spy' ? 'spy' : myRole === 'mrwhite' ? 'mrwhite' : myRole === 'informant' ? 'informant' : 'agent'}`}>
@@ -1658,9 +1723,34 @@ function App() {
                             <button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm mt-2">{t.leaveRoom}</button>
                         </div>
                     )}
-                </main>
+                </div>
             )}
 
+            </div>{/* end new-page-content */}
+
+            {/* ── BOTTOM NAV (only when not in a room) ── */}
+            {!room && (
+                <nav className="bottom-nav-new">
+                    <div className={`nav-item-new ${activeView==='lobby'?'active':''}`} onClick={() => setActiveView('lobby')}>
+                        <div className="nav-icon-new">🏠</div>
+                        <div className="nav-label-new">{lang==='ar'?'اللوبي':t.tabLobby}</div>
+                    </div>
+                    <div className={`nav-item-new ${activeView==='leaderboard'?'active':''}`} onClick={() => setActiveView('leaderboard')}>
+                        <div className="nav-icon-new">🏆</div>
+                        <div className="nav-label-new">{lang==='ar'?'التصنيف':t.tabLeaderboard}</div>
+                    </div>
+                    <button className="nav-fab-new" onClick={() => nickname.trim() ? setShowSetupModal(true) : requireLogin()}>⚔️</button>
+                    <div className={`nav-item-new ${activeView==='friends'?'active':''}`} onClick={() => { if(isLoggedIn) setActiveView('friends'); else requireLogin(); }}>
+                        <div className="nav-icon-new">👥</div>
+                        <div className="nav-label-new">{lang==='ar'?'الأصدقاء':t.tabFriends}</div>
+                        {totalFriendsUnread > 0 && <div className="nav-pip-new"></div>}
+                    </div>
+                    <div className={`nav-item-new ${activeView==='explore'?'active':''}`} onClick={() => setActiveView('explore')}>
+                        <div className="nav-icon-new">🔥</div>
+                        <div className="nav-label-new">{lang==='ar'?'اكتشف':'Explore'}</div>
+                    </div>
+                </nav>
+            )}
             {showDropdown && <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)}></div>}
         </div>
     );
