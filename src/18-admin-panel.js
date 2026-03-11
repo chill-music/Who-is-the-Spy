@@ -1760,6 +1760,10 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenP
         else if (role === 'moderator') setActiveSection('reports');
     }, [show, role]);
 
+
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
+    const [mobileNav, setMobileNav] = useState(false);
+
     // ── Early return AFTER all hooks ─────────────────────
     if (!show || !role) return null;
 
@@ -1800,9 +1804,6 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenP
             default: return null;
         }
     };
-
-        const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
-    const [mobileNav, setMobileNav] = React.useState(false);
 
     return (
         <PortalModal>
