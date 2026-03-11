@@ -66,23 +66,6 @@ function App() {
     const [userFamily, setUserFamily] = useState(null);
     const [showFamilyChat, setShowFamilyChat] = useState(false);
 
-    // ── Listen to current user's family ──
-    useEffect(() => {
-        if (!currentUID || !isLoggedIn) { setUserFamily(null); return; }
-        const unsub = familiesCollection
-            .where('members', 'array-contains', currentUID)
-            .limit(1)
-            .onSnapshot(snap => {
-                if (!snap.empty) {
-                    const doc = snap.docs[0];
-                    setUserFamily({ id: doc.id, ...doc.data() });
-                } else {
-                    setUserFamily(null);
-                }
-            }, () => {});
-        return () => unsub();
-    }, [currentUID, isLoggedIn]);
-
     // Click outside handler for notification dropdown
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -107,6 +90,23 @@ function App() {
     const isNotLoggedIn = useMemo(() => user === null && guestData === null, [user, guestData]);
     const currentUID = useMemo(() => { if (user && !user.isAnonymous) return user.uid; if (guestData) return guestData.uid; return null; }, [user, guestData]);
     const currentUserData = useMemo(() => { if (isLoggedIn) return userData; if (isGuest) return guestData; return null; }, [isLoggedIn, userData, isGuest, guestData]);
+
+    // ── Listen to current user's family ──
+    useEffect(() => {
+        if (!currentUID || !isLoggedIn) { setUserFamily(null); return; }
+        const unsub = familiesCollection
+            .where('members', 'array-contains', currentUID)
+            .limit(1)
+            .onSnapshot(snap => {
+                if (!snap.empty) {
+                    const doc = snap.docs[0];
+                    setUserFamily({ id: doc.id, ...doc.data() });
+                } else {
+                    setUserFamily(null);
+                }
+            }, () => {});
+        return () => unsub();
+    }, [currentUID, isLoggedIn]);
 
     // Saves achievement IDs as simple strings in userData.achievements[]
     const unlockAchievement = useCallback(async (badgeId) => {
