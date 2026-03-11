@@ -805,7 +805,7 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, on
             {loading ? (
                 <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'30px'}}>⏳ {lang==='ar'?'جاري التحميل...':'Loading...'}</div>
             ) : (
-                <div style={{ display:'flex', flexDirection:'column', gap:'10px', maxHeight:'55vh', overflowY:'auto' }}>
+                <div style={{ display:'flex', flexDirection:'column', gap:'10px', maxHeight:'55vh', overflowY:'auto', paddingBottom:'8px' }}>
                     {filtered.length === 0 && (
                         <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'30px'}}>
                             {lang==='ar'?'لا توجد بلاغات في هذا التصنيف':'No reports in this category'}
@@ -826,11 +826,11 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, on
                             <div key={report.id} style={{
                                 background:'rgba(255,255,255,0.03)',
                                 border:`1px solid ${isResolved?'rgba(16,185,129,0.2)':isEscalated?'rgba(245,158,11,0.25)':'rgba(239,68,68,0.2)'}`,
-                                borderRadius:'12px', overflow:'hidden',
+                                borderRadius:'12px',
                                 borderLeft:`3px solid ${isResolved?'#10b981':isEscalated?'#f59e0b':'#ef4444'}`
                             }}>
                                 {/* ── Top: User card ── */}
-                                <div style={{ padding:'12px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ padding:'10px 12px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
                                     <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                                         {/* Avatar — clickable to open profile */}
                                         <div style={{ position:'relative', flexShrink:0 }}>
@@ -875,7 +875,7 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, on
                                 </div>
 
                                 {/* ── Middle: Report details ── */}
-                                <div style={{ padding:'10px 12px', borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                                <div style={{ padding:'8px 12px', borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
                                     {/* Reason */}
                                     <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'5px' }}>
                                         <span style={{ fontSize:'10px', color:'#9ca3af' }}>{lang==='ar'?'السبب:':'Reason:'}</span>
@@ -893,18 +893,21 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, on
                                     <div style={{ fontSize:'10px', color:'#6b7280' }}>
                                         {lang==='ar'?'بلاغ من:':'Reported by:'} <span style={{color:'#9ca3af'}}>{report.reporterName || report.reporterUID?.slice(0,12) || '—'}</span>
                                     </div>
-                                    {/* Attached image evidence */}
+                                    {/* Attached image evidence — thumbnail */}
                                     {report.imageBase64 && (
-                                        <div style={{ marginTop:'8px' }}>
-                                            <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'4px' }}>📎 {lang==='ar'?'صورة مرفقة:':'Attached evidence:'}</div>
-                                            <img src={report.imageBase64} style={{ maxWidth:'100%', maxHeight:'140px', objectFit:'contain', borderRadius:'7px', border:'1px solid rgba(255,255,255,0.1)', cursor:'pointer' }}
-                                                onClick={() => window.open(report.imageBase64)} />
+                                        <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'5px' }}>
+                                            <span style={{ fontSize:'10px', color:'#9ca3af' }}>📎 {lang==='ar'?'دليل:':'Evidence:'}</span>
+                                            <img src={report.imageBase64}
+                                                style={{ width:'48px', height:'48px', objectFit:'cover', borderRadius:'6px', border:'1px solid rgba(255,255,255,0.15)', cursor:'pointer', flexShrink:0 }}
+                                                onClick={() => window.open(report.imageBase64)}
+                                                title={lang==='ar'?'اضغط للتكبير':'Click to enlarge'} />
+                                            <span style={{ fontSize:'10px', color:'#6b7280' }}>{lang==='ar'?'(اضغط للتكبير)':'(click to enlarge)'}</span>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* ── Bottom: Action buttons ── */}
-                                <div style={{ padding:'8px 12px' }}>
+                                <div style={{ padding:'10px 12px 14px 12px' }}>
                                     {isEscalated && !isResolved && (
                                         <div style={{ fontSize:'10px', color:'#f59e0b', marginBottom:'7px' }}>
                                             🔺 {lang==='ar'?'تم التصعيد':'Escalated'}{report.escalatedNote ? ` — ${report.escalatedNote}` : ''}
@@ -1878,7 +1881,7 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenP
                         </div>
 
                         {/* Main Content */}
-                        <div style={{ flex:1, padding:'20px', overflowY:'auto', minWidth:0 }}>
+                        <div style={{ flex:1, padding:'20px', paddingBottom:'32px', overflowY:'auto', minWidth:0 }}>
                             {renderSection()}
                         </div>
                     </div>
