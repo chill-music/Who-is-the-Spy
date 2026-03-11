@@ -72,7 +72,7 @@ const COUNTRIES = [
     { code:'PH', flag:'🇵🇭', name_ar:'الفلبين',       name_en:'Philippines' },
 ];
 
-// 🌍 Country Picker Component
+// 🌍 Country Picker Component — Flag Grid
 const CountryPicker = ({ selected, onSelect, lang }) => {
     const [search, setSearch] = useState('');
     const filtered = COUNTRIES.filter(c => {
@@ -82,21 +82,37 @@ const CountryPicker = ({ selected, onSelect, lang }) => {
     return (
         <div>
             <input
-                className="country-search-input"
-                placeholder={lang === 'ar' ? '🔍 ابحث عن دولتك...' : '🔍 Search your country...'}
+                style={{
+                    width:'100%', padding:'7px 12px', borderRadius:'10px', fontSize:'11px',
+                    background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)',
+                    color:'white', outline:'none', marginBottom:'10px'
+                }}
+                placeholder={lang === 'ar' ? '🔍 ابحث...' : '🔍 Search...'}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
             />
-            <div className="country-picker-grid">
+            <div style={{
+                display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:'6px',
+                maxHeight:'180px', overflowY:'auto',
+                scrollbarWidth:'thin', scrollbarColor:'rgba(255,255,255,0.1) transparent'
+            }}>
                 {filtered.map(c => (
-                    <div
+                    <button
                         key={c.code}
-                        className={`country-item ${selected === c.code ? 'selected' : ''}`}
                         onClick={() => onSelect(c)}
+                        title={lang==='ar'?c.name_ar:c.name_en}
+                        style={{
+                            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+                            gap:'3px', padding:'7px 4px', borderRadius:'10px', cursor:'pointer', border:'none',
+                            background: selected===c.code ? 'rgba(0,242,255,0.18)' : 'rgba(255,255,255,0.04)',
+                            outline: selected===c.code ? '1.5px solid rgba(0,242,255,0.6)' : '1.5px solid transparent',
+                            transition:'all 0.15s',
+                            boxShadow: selected===c.code ? '0 0 8px rgba(0,242,255,0.2)' : 'none'
+                        }}
                     >
-                        <span className="flag">{c.flag}</span>
-                        <span className="cname">{lang === 'ar' ? c.name_ar : c.name_en}</span>
-                    </div>
+                        <span style={{ fontSize:'22px', lineHeight:1 }}>{c.flag}</span>
+                        <span style={{ fontSize:'8px', color: selected===c.code?'#00f2ff':'#6b7280', fontWeight:600, letterSpacing:'0.3px' }}>{c.code}</span>
+                    </button>
                 ))}
             </div>
         </div>
@@ -259,8 +275,6 @@ const OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
 
 const DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) => {
     const [tick, setTick] = React.useState(0);
-
-    // Tick every 30 seconds to update progress
     React.useEffect(() => {
         const t = setInterval(() => setTick(p => p + 1), 30000);
         return () => clearInterval(t);
@@ -270,13 +284,23 @@ const DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) 
     const sessionStart = userTasks.sessionStartTime?.toDate?.() || new Date();
     const minutesOnline = Math.floor((Date.now() - sessionStart.getTime()) / 60000);
 
+    const claimedCount = DAILY_TASKS_CONFIG.filter(box => userTasks.boxes?.[box.id-1]?.status === 'claimed').length;
+    const availableCount = DAILY_TASKS_CONFIG.filter(box => {
+        if (userTasks.boxes?.[box.id-1]?.status === 'claimed') return false;
+        if (box.comingSoon) {
+            if (!hasVIPDailyTasks(userData)) return false;
+            if (!box.duration) return true;
+            return minutesOnline >= Math.ceil(box.duration/60000);
+        }
+        if (!box.duration) return false;
+        return minutesOnline >= Math.ceil(box.duration/60000);
+    }).length;
+
     const getTaskStatus = (box) => {
         const claimed = userTasks.boxes?.[box.id - 1]?.status === 'claimed';
         if (claimed) return 'claimed';
-        // VIP tasks — only available for VIP users
         if (box.comingSoon) {
             if (!hasVIPDailyTasks(userData)) return 'vip_locked';
-            // VIP user — treat as normal time-based task but with VIP reward
             if (!box.duration) return 'available';
             if (minutesOnline >= Math.ceil(box.duration / 60000)) return 'available';
             return 'locked';
@@ -288,132 +312,131 @@ const DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) 
 
     const handleClaimTask = async (box) => {
         const status = getTaskStatus(box);
-        if (status === 'claimed') { onNotification(lang === 'ar' ? '✅ استلمت بالفعل' : '✅ Already claimed'); return; }
-        if (status === 'vip_locked') { onNotification(lang === 'ar' ? '👑 حصري لـ VIP' : '👑 VIP Exclusive'); return; }
-        if (status === 'coming_soon') { onNotification(lang === 'ar' ? '🔜 قريباً جداً' : '🔜 Coming soon'); return; }
+        if (status === 'claimed') { onNotification(lang==='ar'?'✅ استلمت بالفعل':'✅ Already claimed'); return; }
+        if (status === 'vip_locked') { onNotification(lang==='ar'?'👑 حصري لـ VIP':'👑 VIP Exclusive'); return; }
         if (status === 'locked') {
-            const requiredMin = Math.ceil(box.duration / 60000);
+            const requiredMin = Math.ceil(box.duration/60000);
             const remaining = requiredMin - minutesOnline;
-            onNotification(lang === 'ar' ? `⏳ بعد ${remaining} دقيقة` : `⏳ In ${remaining} min`);
+            onNotification(lang==='ar'?`⏳ بعد ${remaining} دقيقة`:`⏳ In ${remaining} min`);
             return;
         }
         try {
             const updates = {};
-            updates[`dailyTasks.boxes.${box.id - 1}.status`] = 'claimed';
-            updates[`dailyTasks.boxes.${box.id - 1}.claimedAt`] = firebase.firestore.FieldValue.serverTimestamp();
-            if (box.reward.type === 'currency') {
-                updates['currency'] = firebase.firestore.FieldValue.increment(box.reward.amount);
-            }
+            updates[`dailyTasks.boxes.${box.id-1}.status`] = 'claimed';
+            updates[`dailyTasks.boxes.${box.id-1}.claimedAt`] = firebase.firestore.FieldValue.serverTimestamp();
+            if (box.reward.type === 'currency') updates['currency'] = firebase.firestore.FieldValue.increment(box.reward.amount);
             await usersCollection.doc(user.uid).update(updates);
             onNotification(`✅ +${box.reward.amount} 🧠`);
-        } catch (err) {
-            onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
-        }
+        } catch(err) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
     };
 
     return (
-        <div style={{
-            marginTop: '16px',
-            padding: '14px',
-            background: 'linear-gradient(135deg, rgba(0,242,255,0.05), rgba(112,0,255,0.04))',
-            borderRadius: '14px',
-            border: '1px solid rgba(0,242,255,0.15)'
-        }}>
-            {/* Header */}
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                    <span style={{fontSize:'16px'}}>📦</span>
+        <div style={{ padding:'0' }}>
+            {/* ── Header row ── */}
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'14px' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                    <div style={{ width:'38px', height:'38px', borderRadius:'10px', background:'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.15))', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px' }}>📦</div>
                     <div>
-                        <div style={{fontSize:'13px', fontWeight:800, color:'#00f2ff'}}>
-                            {lang === 'ar' ? 'المهام اليومية' : 'Daily Tasks'}
-                        </div>
-                        <div style={{fontSize:'10px', color:'#64748b'}}>
-                            {lang === 'ar' ? `أون لاين منذ ${minutesOnline} دقيقة` : `Online for ${minutesOnline} min`}
+                        <div style={{ fontSize:'13px', fontWeight:800, color:'#e2e8f0' }}>{lang==='ar'?'مهام اليوم':'Daily Tasks'}</div>
+                        <div style={{ fontSize:'10px', color:'#64748b', marginTop:'1px' }}>
+                            {lang==='ar'?`${minutesOnline} دقيقة أون لاين`:`${minutesOnline} min online`}
                         </div>
                     </div>
                 </div>
+                <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                    {availableCount > 0 && (
+                        <div style={{ fontSize:'9px', fontWeight:800, background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.35)', color:'#00f2ff', borderRadius:'20px', padding:'2px 8px' }}>
+                            {availableCount} {lang==='ar'?'متاح':'ready'}
+                        </div>
+                    )}
+                    <div style={{ fontSize:'10px', color:'#6b7280' }}>{claimedCount}/{DAILY_TASKS_CONFIG.length}</div>
+                </div>
             </div>
 
-            {/* 8 Boxes - 4 per row */}
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'8px' }}>
+            {/* ── Progress bar total ── */}
+            <div style={{ height:'4px', background:'rgba(255,255,255,0.06)', borderRadius:'4px', marginBottom:'14px', overflow:'hidden' }}>
+                <div style={{ height:'100%', width:`${(claimedCount/DAILY_TASKS_CONFIG.length)*100}%`, background:'linear-gradient(90deg,#00f2ff,#7000ff)', transition:'width 0.6s ease' }} />
+            </div>
+
+            {/* ── 8 Chest Boxes ── */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px' }}>
                 {DAILY_TASKS_CONFIG.map(box => {
                     const status = getTaskStatus(box);
-                    const reqMin = box.duration ? Math.ceil(box.duration / 60000) : null;
-                    const progress = reqMin ? Math.min(100, Math.floor((minutesOnline / reqMin) * 100)) : 0;
-
-                    const isVip = box.comingSoon;
+                    const isAvailable = status === 'available';
+                    const isClaimed   = status === 'claimed';
                     const isVipLocked = status === 'vip_locked';
-                    const bgColor =
-                        status === 'claimed'     ? 'rgba(74,222,128,0.18)' :
-                        status === 'available'   ? 'rgba(0,242,255,0.18)' :
-                        isVip && !isVipLocked    ? 'rgba(0,242,255,0.12)' :
-                        isVip                    ? 'rgba(239,68,68,0.08)' :
-                                                   'rgba(255,255,255,0.04)';
-                    const borderColor =
-                        status === 'claimed'     ? 'rgba(74,222,128,0.6)' :
-                        status === 'available'   ? 'rgba(0,242,255,0.6)' :
-                        isVip && !isVipLocked    ? 'rgba(0,242,255,0.4)' :
-                        isVip                    ? 'rgba(239,68,68,0.35)' :
-                                                   'rgba(255,255,255,0.08)';
+                    const isLocked    = status === 'locked';
+                    const isVip       = box.comingSoon;
+                    const reqMin      = box.duration ? Math.ceil(box.duration/60000) : null;
+                    const progress    = (isLocked && reqMin) ? Math.min(100, Math.floor((minutesOnline/reqMin)*100)) : 0;
+                    const timeLabel   = reqMin ? (reqMin>=60?`${reqMin/60}h`:`${reqMin}m`) : '';
 
                     return (
                         <button
                             key={box.id}
                             onClick={() => handleClaimTask(box)}
                             style={{
-                                padding:'10px 4px', borderRadius:'10px',
-                                border:`1.5px solid ${borderColor}`,
-                                background: bgColor,
-                                cursor: status === 'available' ? 'pointer' : 'default',
-                                textAlign:'center', position:'relative', overflow:'hidden',
-                                transition:'all 0.2s',
-                                boxShadow: status === 'available' ? '0 0 10px rgba(0,242,255,0.2)' :
-                                           status === 'claimed'   ? '0 0 8px rgba(74,222,128,0.15)' : 'none'
+                                position:'relative', padding:'10px 4px 8px', borderRadius:'12px',
+                                border: isClaimed   ? '1.5px solid rgba(74,222,128,0.45)' :
+                                        isAvailable ? '1.5px solid rgba(0,242,255,0.7)' :
+                                        isVipLocked ? '1.5px solid rgba(239,68,68,0.35)' :
+                                                      '1.5px solid rgba(255,255,255,0.07)',
+                                background: isClaimed   ? 'linear-gradient(160deg,rgba(74,222,128,0.12),rgba(16,185,129,0.06))' :
+                                            isAvailable ? 'linear-gradient(160deg,rgba(0,242,255,0.14),rgba(112,0,255,0.09))' :
+                                            isVipLocked ? 'rgba(239,68,68,0.05)' :
+                                                          'rgba(255,255,255,0.03)',
+                                cursor: isAvailable ? 'pointer' : 'default',
+                                textAlign:'center', overflow:'hidden', transition:'all 0.2s',
+                                boxShadow: isAvailable ? '0 0 14px rgba(0,242,255,0.2)' :
+                                           isClaimed   ? '0 0 8px rgba(74,222,128,0.1)' : 'none',
                             }}
                         >
-                            {/* Reward icon */}
-                            <div style={{fontSize:'20px', lineHeight:1, marginBottom:'4px'}}>
-                                {isVip ? '👑' : box.reward.icon}
+                            {/* Chest Icon */}
+                            <div style={{ fontSize:'22px', lineHeight:1, marginBottom:'5px' }}>
+                                {isClaimed ? '📭' : isAvailable ? '📬' : isVipLocked ? '🔒' : '📪'}
                             </div>
-                            {/* Amount or VIP label */}
+
+                            {/* Reward */}
                             <div style={{
-                                fontSize:'9px', fontWeight:800,
-                                color: status === 'claimed'   ? '#4ade80' :
-                                       status === 'available' ? '#00f2ff' :
-                                       isVipLocked            ? '#ef4444' :
-                                       isVip                  ? '#00f2ff' : '#6b7280',
-                                marginBottom:'2px'
+                                fontSize:'9px', fontWeight:900, marginBottom:'2px',
+                                color: isClaimed ? '#4ade80' : isAvailable ? '#00f2ff' : isVipLocked ? '#f87171' : '#4b5563'
                             }}>
-                                {isVipLocked ? 'VIP' : isVip ? `+${box.reward.amount}` : `+${box.reward.amount}`}
+                                {isClaimed ? '✓' : isVipLocked ? 'VIP' : `+${box.reward.amount}`}
                             </div>
-                            {/* Time label */}
-                            <div style={{fontSize:'8px', color:'#4b5563', marginBottom:'4px'}}>
-                                {isVipLocked ? '🔒' : isVip ? (reqMin ? (reqMin >= 60 ? `${reqMin/60}h` : `${reqMin}m`) : 'VIP') : (reqMin ? (reqMin >= 60 ? `${reqMin/60}h` : `${reqMin}m`) : '')}
+
+                            {/* Time / icon */}
+                            <div style={{ fontSize:'8px', color: isClaimed?'#4ade8099':isAvailable?'#00f2ff88':'#374151' }}>
+                                {isClaimed ? box.reward.icon : isVipLocked ? '👑' : timeLabel || box.reward.icon}
                             </div>
-                            {/* Status icon */}
-                            <div style={{fontSize:'11px'}}>
-                                {status === 'claimed'     ? <span style={{color:'#4ade80', fontWeight:900}}>✓</span> :
-                                 status === 'available'   ? <span style={{fontSize:'13px'}}>📦</span> :
-                                 isVipLocked              ? <span style={{color:'#ef4444'}}>👑</span> :
-                                                            <span style={{color:'#6b7280'}}>🔒</span>}
-                            </div>
-                            {/* Progress bar for locked/in-progress */}
-                            {status === 'locked' && !isVip && progress > 0 && (
+
+                            {/* Available badge — pulsing dot */}
+                            {isAvailable && (
                                 <div style={{
-                                    position:'absolute', bottom:0, left:0, right:0, height:'3px',
-                                    background:'rgba(255,255,255,0.08)', borderRadius:'0 0 10px 10px'
-                                }}>
-                                    <div style={{
-                                        height:'100%', width:`${progress}%`,
-                                        background:'linear-gradient(90deg,#00f2ff,#7000ff)',
-                                        borderRadius:'inherit', transition:'width 0.5s ease'
-                                    }} />
+                                    position:'absolute', top:'5px', right:'5px',
+                                    width:'9px', height:'9px', borderRadius:'50%',
+                                    background:'#00f2ff',
+                                    boxShadow:'0 0 6px #00f2ff',
+                                    animation:'dtPulse 1.4s ease-in-out infinite'
+                                }} />
+                            )}
+
+                            {/* Progress bar */}
+                            {isLocked && !isVip && progress > 0 && (
+                                <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'3px', background:'rgba(255,255,255,0.06)' }}>
+                                    <div style={{ height:'100%', width:`${progress}%`, background:'linear-gradient(90deg,#7000ff,#00f2ff)', transition:'width 0.5s' }} />
                                 </div>
                             )}
                         </button>
                     );
                 })}
             </div>
+
+            <style>{`
+                @keyframes dtPulse {
+                    0%,100% { opacity:1; transform:scale(1); }
+                    50%      { opacity:0.6; transform:scale(1.3); }
+                }
+            `}</style>
         </div>
     );
 };
@@ -487,3 +510,257 @@ const LoginRewardsComponent = ({ userData, user, lang, onNotification }) => {
 // AchievementsDisplayComponent removed - use AchievementsDisplayV11 instead
 
 // 🎮 MAIN APP COMPONENT
+
+// ════════════════════════════════════════════════════════
+// 👨‍👩‍👧 GROUPS SECTION — Group Chat System
+// ════════════════════════════════════════════════════════
+const groupsCollection = db.collection('artifacts').doc('pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('group_chats');
+
+const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, lang, onNotification, isLoggedIn }) => {
+    const [groups, setGroups] = React.useState([]);
+    const [activeGroup, setActiveGroup] = React.useState(null);
+    const [messages, setMessages] = React.useState([]);
+    const [msgText, setMsgText] = React.useState('');
+    const [showCreate, setShowCreate] = React.useState(false);
+    const [showInvite, setShowInvite] = React.useState(false);
+    const [groupName, setGroupName] = React.useState('');
+    const [creating, setCreating] = React.useState(false);
+    const [loadingGroups, setLoadingGroups] = React.useState(true);
+    const messagesEndRef = React.useRef(null);
+
+    React.useEffect(() => {
+        if (!currentUID) { setLoadingGroups(false); return; }
+        const unsub = groupsCollection
+            .where('members', 'array-contains', currentUID)
+            .orderBy('lastMessageAt', 'desc')
+            .onSnapshot(snap => {
+                setGroups(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                setLoadingGroups(false);
+            }, () => setLoadingGroups(false));
+        return () => unsub();
+    }, [currentUID]);
+
+    React.useEffect(() => {
+        if (!activeGroup) return;
+        const unsub = groupsCollection.doc(activeGroup.id).collection('messages')
+            .orderBy('createdAt', 'asc').limitToLast(100)
+            .onSnapshot(snap => {
+                setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+            });
+        groupsCollection.doc(activeGroup.id).update({
+            [`readBy.${currentUID}`]: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(() => {});
+        return () => unsub();
+    }, [activeGroup?.id]);
+
+    const createGroup = async () => {
+        if (!groupName.trim() || !currentUID || creating) return;
+        setCreating(true);
+        try {
+            const now = firebase.firestore.FieldValue.serverTimestamp();
+            await groupsCollection.add({
+                name: groupName.trim(),
+                createdBy: currentUID,
+                creatorName: currentUserData?.displayName || 'User',
+                members: [currentUID],
+                admins: [currentUID],
+                lastMessage: lang === 'ar' ? 'تم إنشاء الجروب' : 'Group created',
+                lastMessageAt: now,
+                createdAt: now,
+                readBy: {}
+            });
+            setGroupName(''); setShowCreate(false);
+            onNotification(lang === 'ar' ? '✅ تم إنشاء الجروب!' : '✅ Group created!');
+        } catch (e) {
+            onNotification(lang === 'ar' ? '❌ خطأ في الإنشاء' : '❌ Error creating group');
+        }
+        setCreating(false);
+    };
+
+    const inviteFriend = async (friendId) => {
+        if (!activeGroup) return;
+        if (activeGroup.members?.includes(friendId)) {
+            onNotification(lang === 'ar' ? 'هذا الشخص موجود بالفعل' : 'Already a member'); return;
+        }
+        try {
+            await groupsCollection.doc(activeGroup.id).update({
+                members: firebase.firestore.FieldValue.arrayUnion(friendId)
+            });
+            const friend = friendsData.find(f => f.id === friendId);
+            await groupsCollection.doc(activeGroup.id).collection('messages').add({
+                text: lang === 'ar' ? `تمت إضافة ${friend?.displayName || 'عضو'}` : `${friend?.displayName || 'Member'} was added`,
+                senderId: 'system', senderName: 'System',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(), type: 'system'
+            });
+            onNotification(lang === 'ar' ? '✅ تمت الدعوة!' : '✅ Invited!');
+            setShowInvite(false);
+            setActiveGroup(g => ({ ...g, members: [...(g.members || []), friendId] }));
+        } catch (e) { onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+    };
+
+    const sendMessage = async () => {
+        if (!msgText.trim() || !activeGroup || !currentUID) return;
+        const text = msgText.trim();
+        setMsgText('');
+        try {
+            const now = firebase.firestore.FieldValue.serverTimestamp();
+            await groupsCollection.doc(activeGroup.id).collection('messages').add({
+                text, senderId: currentUID,
+                senderName: currentUserData?.displayName || 'User',
+                senderPhoto: currentUserData?.photoURL || null,
+                createdAt: now, type: 'text'
+            });
+            await groupsCollection.doc(activeGroup.id).update({
+                lastMessage: text, lastSenderId: currentUID,
+                lastSenderName: currentUserData?.displayName || 'User',
+                lastMessageAt: now,
+                [`readBy.${currentUID}`]: now
+            });
+        } catch (e) {}
+    };
+
+    const hasUnread = (group) => {
+        const readAt = group.readBy?.[currentUID];
+        if (!readAt || !group.lastMessageAt) return false;
+        const readTime = readAt.toDate ? readAt.toDate() : new Date(readAt);
+        const lastTime = group.lastMessageAt.toDate ? group.lastMessageAt.toDate() : new Date(group.lastMessageAt);
+        return lastTime > readTime && group.lastSenderId !== currentUID;
+    };
+
+    const fmtTime = (ts) => {
+        if (!ts) return '';
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleTimeString(lang==='ar'?'ar-EG':'en-US',{hour:'2-digit',minute:'2-digit'});
+    };
+
+    if (!isLoggedIn) return (
+        <div style={{padding:'32px 16px',textAlign:'center',color:'#6b7280'}}>
+            <div style={{fontSize:'32px',marginBottom:'10px'}}>🔐</div>
+            <div style={{fontSize:'12px'}}>{lang==='ar'?'سجّل دخول للوصول للجروبات':'Login to access groups'}</div>
+        </div>
+    );
+
+    /* ── CHAT VIEW ── */
+    if (activeGroup) {
+        const isAdm = activeGroup.admins?.includes(currentUID);
+        return (
+            <div style={{display:'flex',flexDirection:'column',height:'calc(100vh - 160px)',minHeight:'380px',position:'relative'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
+                    <button onClick={()=>setActiveGroup(null)} style={{background:'none',border:'none',color:'#00f2ff',fontSize:'18px',cursor:'pointer',padding:'0 4px'}}>‹</button>
+                    <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(167,139,250,0.3),rgba(112,0,255,0.2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>👨‍👩‍👧</div>
+                    <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{activeGroup.name}</div>
+                        <div style={{fontSize:'10px',color:'#6b7280'}}>{activeGroup.members?.length||1} {lang==='ar'?'عضو':'members'}</div>
+                    </div>
+                    {isAdm && <button onClick={()=>setShowInvite(true)} style={{background:'rgba(167,139,250,0.15)',border:'1px solid rgba(167,139,250,0.3)',borderRadius:'8px',padding:'5px 10px',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>+ {lang==='ar'?'دعوة':'Invite'}</button>}
+                </div>
+                {showInvite && (
+                    <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,background:'rgba(5,5,20,0.96)',zIndex:50,display:'flex',flexDirection:'column',padding:'16px'}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
+                            <div style={{fontSize:'14px',fontWeight:800,color:'#a78bfa'}}>👥 {lang==='ar'?'دعوة صديق':'Invite Friend'}</div>
+                            <button onClick={()=>setShowInvite(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>✕</button>
+                        </div>
+                        <div style={{overflowY:'auto',flex:1}}>
+                            {friendsData.filter(f=>!(activeGroup.members||[]).includes(f.id)).length===0
+                                ? <div style={{textAlign:'center',padding:'20px',color:'#6b7280',fontSize:'12px'}}>{lang==='ar'?'لا يوجد أصدقاء لدعوتهم':'No friends to invite'}</div>
+                                : friendsData.filter(f=>!(activeGroup.members||[]).includes(f.id)).map(friend=>(
+                                    <div key={friend.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                                        <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0}}>
+                                            {friend.photoURL?<img src={friend.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>😎</div>}
+                                        </div>
+                                        <div style={{flex:1,fontSize:'13px',color:'#e2e8f0',fontWeight:600}}>{friend.displayName}</div>
+                                        <button onClick={()=>inviteFriend(friend.id)} style={{background:'rgba(167,139,250,0.2)',border:'1px solid rgba(167,139,250,0.4)',borderRadius:'8px',padding:'5px 12px',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>+ {lang==='ar'?'أضف':'Add'}</button>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    </div>
+                )}
+                <div style={{flex:1,overflowY:'auto',padding:'12px 16px',display:'flex',flexDirection:'column',gap:'8px'}}>
+                    {messages.map(msg=>{
+                        if(msg.type==='system') return(
+                            <div key={msg.id} style={{textAlign:'center',fontSize:'10px',color:'#6b7280',padding:'3px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'20px',alignSelf:'center',maxWidth:'80%'}}>{msg.text}</div>
+                        );
+                        const isMe=msg.senderId===currentUID;
+                        return(
+                            <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'8px',alignItems:'flex-end'}}>
+                                {!isMe&&<div style={{width:'26px',height:'26px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0}}>{msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px'}}>😎</div>}</div>}
+                                <div style={{maxWidth:'72%'}}>
+                                    {!isMe&&<div style={{fontSize:'9px',color:'#a78bfa',fontWeight:700,marginBottom:'2px',paddingLeft:'4px'}}>{msg.senderName}</div>}
+                                    <div style={{padding:'8px 12px',borderRadius:isMe?'14px 4px 14px 14px':'4px 14px 14px 14px',background:isMe?'linear-gradient(135deg,rgba(112,0,255,0.45),rgba(0,242,255,0.2))':'rgba(255,255,255,0.08)',border:isMe?'1px solid rgba(0,242,255,0.2)':'1px solid rgba(255,255,255,0.09)',fontSize:'12px',color:'#e2e8f0',lineHeight:1.5}}>{msg.text}</div>
+                                    <div style={{fontSize:'9px',color:'#374151',marginTop:'2px',textAlign:isMe?'right':'left',paddingLeft:'4px',paddingRight:'4px'}}>{fmtTime(msg.createdAt)}</div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {messages.length===0&&<div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'8px',color:'#4b5563',paddingTop:'40px'}}><div style={{fontSize:'32px'}}>💬</div><div style={{fontSize:'12px'}}>{lang==='ar'?'ابدأ المحادثة!':'Say hi!'}</div></div>}
+                    <div ref={messagesEndRef}/>
+                </div>
+                <div style={{display:'flex',gap:'8px',padding:'10px 16px',borderTop:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
+                    <input value={msgText} onChange={e=>setMsgText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),sendMessage())}
+                        style={{flex:1,padding:'9px 14px',borderRadius:'12px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'13px',outline:'none'}}
+                        placeholder={lang==='ar'?'اكتب رسالة...':'Type a message...'}/>
+                    <button onClick={sendMessage} disabled={!msgText.trim()} style={{width:'40px',height:'40px',borderRadius:'12px',border:'none',cursor:'pointer',flexShrink:0,background:msgText.trim()?'linear-gradient(135deg,#7000ff,#00f2ff)':'rgba(255,255,255,0.06)',color:msgText.trim()?'white':'#6b7280',fontSize:'18px',transition:'all 0.2s'}}>➤</button>
+                </div>
+            </div>
+        );
+    }
+
+    /* ── GROUPS LIST ── */
+    return (
+        <div style={{padding:'0 16px'}}>
+            <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
+                <button onClick={()=>setShowCreate(!showCreate)} style={{display:'flex',alignItems:'center',gap:'6px',padding:'7px 14px',borderRadius:'10px',border:'1px solid rgba(167,139,250,0.4)',background:'rgba(167,139,250,0.12)',color:'#a78bfa',fontSize:'12px',fontWeight:700,cursor:'pointer'}}>
+                    ➕ {lang==='ar'?'جروب جديد':'New Group'}
+                </button>
+            </div>
+            {showCreate&&(
+                <div style={{marginBottom:'14px',padding:'14px',background:'rgba(167,139,250,0.06)',border:'1px solid rgba(167,139,250,0.2)',borderRadius:'14px'}}>
+                    <div style={{fontSize:'12px',fontWeight:700,color:'#a78bfa',marginBottom:'10px'}}>👨‍👩‍👧 {lang==='ar'?'إنشاء جروب جديد':'Create New Group'}</div>
+                    <div style={{display:'flex',gap:'8px'}}>
+                        <input value={groupName} onChange={e=>setGroupName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&createGroup()}
+                            style={{flex:1,padding:'8px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',color:'white',fontSize:'12px',outline:'none'}}
+                            placeholder={lang==='ar'?'اسم الجروب...':'Group name...'}/>
+                        <button onClick={createGroup} disabled={!groupName.trim()||creating}
+                            style={{padding:'8px 14px',borderRadius:'10px',border:'none',fontWeight:700,fontSize:'12px',cursor:'pointer',background:groupName.trim()?'linear-gradient(135deg,#7000ff,#a78bfa)':'rgba(255,255,255,0.06)',color:groupName.trim()?'white':'#6b7280'}}>
+                            {creating?'...':(lang==='ar'?'إنشاء':'Create')}
+                        </button>
+                    </div>
+                </div>
+            )}
+            {loadingGroups?(
+                <div style={{textAlign:'center',padding:'32px',color:'#6b7280'}}>⏳</div>
+            ):groups.length===0?(
+                <div style={{textAlign:'center',padding:'32px',color:'#6b7280'}}>
+                    <div style={{fontSize:'36px',marginBottom:'10px'}}>👨‍👩‍👧</div>
+                    <div style={{fontSize:'13px',fontWeight:600,color:'#4b5563',marginBottom:'6px'}}>{lang==='ar'?'لا جروبات بعد':'No groups yet'}</div>
+                    <div style={{fontSize:'11px'}}>{lang==='ar'?'أنشئ جروب وادعو أصدقاءك':'Create a group and invite your friends'}</div>
+                </div>
+            ):(
+                <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                    {groups.map(group=>{
+                        const unread=hasUnread(group);
+                        return(
+                            <div key={group.id} onClick={()=>setActiveGroup(group)} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',cursor:'pointer',background:unread?'linear-gradient(135deg,rgba(167,139,250,0.1),rgba(112,0,255,0.06))':'rgba(255,255,255,0.04)',border:unread?'1px solid rgba(167,139,250,0.3)':'1px solid rgba(255,255,255,0.07)',transition:'all 0.2s'}}>
+                                <div style={{position:'relative',flexShrink:0}}>
+                                    <div style={{width:'44px',height:'44px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(167,139,250,0.25),rgba(112,0,255,0.2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👨‍👩‍👧</div>
+                                    {unread&&<div style={{position:'absolute',top:'-2px',right:'-2px',width:'12px',height:'12px',borderRadius:'50%',background:'#a78bfa',border:'2px solid var(--bg-main)',boxShadow:'0 0 6px rgba(167,139,250,0.8)'}}/>}
+                                </div>
+                                <div style={{flex:1,minWidth:0}}>
+                                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'3px'}}>
+                                        <div style={{fontSize:'13px',fontWeight:unread?800:600,color:unread?'#e2e8f0':'#9ca3af',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{group.name}</div>
+                                        <div style={{fontSize:'9px',color:'#6b7280',flexShrink:0,marginLeft:'6px'}}>{fmtTime(group.lastMessageAt)}</div>
+                                    </div>
+                                    <div style={{fontSize:'11px',color:'#6b7280',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{group.lastMessage||(lang==='ar'?'لا رسائل':'No messages')}</div>
+                                    <div style={{fontSize:'9px',color:'#4b5563',marginTop:'2px'}}>{group.members?.length||1} {lang==='ar'?'عضو':'members'}</div>
+                                </div>
+                                <div style={{fontSize:'16px',color:'#6b7280',flexShrink:0}}>›</div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
