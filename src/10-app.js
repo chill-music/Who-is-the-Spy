@@ -62,7 +62,7 @@ function App() {
     const [soundMuted, setSoundMuted] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [showFriendsMoments, setShowFriendsMoments] = useState(false);
-    const [showTribeModal, setShowTribeModal] = useState(false);
+    const [showFamilyModal, setShowFamilyModal] = useState(false);
 
     // Click outside handler for notification dropdown
     useEffect(() => {
@@ -1290,11 +1290,11 @@ function App() {
                 />
             )}
 
-            {/* ⚔️ Tribe Modal */}
-            {showTribeModal && (
-                <TribeModal
-                    show={showTribeModal}
-                    onClose={() => setShowTribeModal(false)}
+            {/* 🏠 Family Modal */}
+            {showFamilyModal && (
+                <FamilyModal
+                    show={showFamilyModal}
+                    onClose={() => setShowFamilyModal(false)}
                     currentUser={user}
                     currentUserData={currentUserData}
                     currentUID={currentUID}
@@ -1797,13 +1797,13 @@ function App() {
                             </div>
 
                             {/* Tribe Card — Active */}
-                            <div className="discover-card-cs" style={{'--dc-color':'rgba(255,136,0,0.1)','--dc-border':'rgba(255,136,0,0.2)',cursor:'pointer'}} onClick={()=>setShowTribeModal(true)}>
+                            <div className="discover-card-cs" style={{'--dc-color':'rgba(255,136,0,0.1)','--dc-border':'rgba(255,136,0,0.2)',cursor:'pointer'}} onClick={()=>setShowFamilyModal(true)}>
                                 <div className="dc-left">
-                                    <div className="dc-icon" style={{background:'rgba(255,136,0,0.15)'}}>⚔️</div>
+                                    <div className="dc-icon" style={{background:'rgba(255,136,0,0.15)'}}>🏠</div>
                                 </div>
                                 <div className="dc-body">
-                                    <div className="dc-title">{lang==='ar'?'القبيلة':'Tribe'}</div>
-                                    <div className="dc-desc">{lang==='ar'?'انضم أو أنشئ قبيلتك وتنافس':'Join or create your tribe and compete'}</div>
+                                    <div className="dc-title">{lang==='ar'?'العائلة':'Family'}</div>
+                                    <div className="dc-desc">{lang==='ar'?'انضم أو أنشئ عائلتك وتنافس':'Join or create your family and compete'}</div>
                                 </div>
                                 <div style={{fontSize:'16px',color:'#f97316'}}>›</div>
                             </div>
