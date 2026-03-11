@@ -510,17 +510,104 @@ const ActivityLogSection = ({ lang }) => {
     );
 };
 
+// ── Inline Ban Panel (used inside Reports) ───────────────
+const BanPanelInline = ({ reportedUID, reportedName, reportId, currentUser, currentUserData, lang, onDone, onCancel }) => {
+    const [banReason, setBanReason]     = useState('');
+    const [banDuration, setBanDuration] = useState('7d');
+    const [banning, setBanning]         = useState(false);
+
+    const durations = [
+        { val:'1d',   ar:'يوم واحد',   en:'1 Day'    },
+        { val:'3d',   ar:'3 أيام',     en:'3 Days'   },
+        { val:'7d',   ar:'أسبوع',      en:'1 Week'   },
+        { val:'30d',  ar:'شهر',        en:'1 Month'  },
+        { val:'perm', ar:'دائم',       en:'Permanent'},
+    ];
+
+    const handleBan = async () => {
+        if (!banReason.trim()) return;
+        setBanning(true);
+        try {
+            let expiresAt = null;
+            if (banDuration !== 'perm') {
+                const days = parseInt(banDuration);
+                expiresAt = new Date(Date.now() + days * 864e5);
+            }
+            await usersCollection.doc(reportedUID).update({
+                ban: {
+                    isBanned:  true,
+                    bannedBy:  currentUser.uid,
+                    bannedByName: currentUserData?.displayName || 'Admin',
+                    reason:    banReason.trim(),
+                    expiresAt: expiresAt ? firebase.firestore.Timestamp.fromDate(expiresAt) : null,
+                    bannedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+                    permanent: banDuration === 'perm',
+                }
+            });
+            await logStaffAction(currentUser.uid, currentUserData?.displayName, 'BAN_USER',
+                reportedUID, reportedName,
+                `Reason: ${banReason} | Duration: ${banDuration} | From report: ${reportId}`
+            );
+            onDone(`🔨 ${lang==='ar'?`تم حظر ${reportedName}`:`${reportedName} banned`}`);
+        } catch(e) {
+            onDone('❌ Error banning user');
+        }
+        setBanning(false);
+    };
+
+    return (
+        <div style={{ background:'rgba(239,68,68,0.06)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:'10px', padding:'12px', marginTop:'8px' }}>
+            <div style={{ fontSize:'11px', color:'#ef4444', fontWeight:700, marginBottom:'10px' }}>
+                🔨 {lang==='ar'?`حظر ${reportedName}`:`Ban ${reportedName}`}
+            </div>
+            {/* Duration */}
+            <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'5px' }}>{lang==='ar'?'مدة الحظر:':'Duration:'}</div>
+            <div style={{ display:'flex', gap:'5px', flexWrap:'wrap', marginBottom:'8px' }}>
+                {durations.map(d => (
+                    <button key={d.val} onClick={() => setBanDuration(d.val)}
+                        style={{ padding:'4px 9px', borderRadius:'5px', fontSize:'10px', cursor:'pointer', fontWeight:banDuration===d.val?700:400,
+                            background:banDuration===d.val?'rgba(239,68,68,0.25)':'rgba(255,255,255,0.05)',
+                            border:banDuration===d.val?'1px solid rgba(239,68,68,0.5)':'1px solid rgba(255,255,255,0.1)',
+                            color:banDuration===d.val?'#ef4444':'#9ca3af' }}>
+                        {lang==='ar'?d.ar:d.en}
+                    </button>
+                ))}
+            </div>
+            {/* Reason */}
+            <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'5px' }}>{lang==='ar'?'سبب الحظر:':'Ban reason:'}</div>
+            <input className="input-dark"
+                style={{ width:'100%', padding:'7px 10px', borderRadius:'6px', fontSize:'11px', marginBottom:'8px' }}
+                placeholder={lang==='ar'?'اكتب سبب الحظر...':'Enter ban reason...'}
+                value={banReason} onChange={e => setBanReason(e.target.value)} />
+            <div style={{ display:'flex', gap:'6px' }}>
+                <button onClick={handleBan} disabled={banning || !banReason.trim()}
+                    style={{ flex:1, padding:'6px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                        background:'rgba(239,68,68,0.25)', border:'1px solid rgba(239,68,68,0.5)', color:'#ef4444',
+                        opacity:banReason.trim()?1:0.4 }}>
+                    {banning?'⏳':`🔨 ${lang==='ar'?'تأكيد الحظر':'Confirm Ban'}`}
+                </button>
+                <button onClick={onCancel}
+                    style={{ padding:'6px 10px', borderRadius:'6px', fontSize:'11px', cursor:'pointer',
+                        background:'rgba(107,114,128,0.15)', border:'1px solid rgba(107,114,128,0.3)', color:'#9ca3af' }}>
+                    ✕
+                </button>
+            </div>
+        </div>
+    );
+};
+
 // ════════════════════════════════════════════════════════
 // 🚨 REPORTS SECTION (Moderator + Admin + Owner)
 // ════════════════════════════════════════════════════════
-const ReportsSection = ({ currentUser, currentUserData, lang, onNotification }) => {
+const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, onOpenProfile }) => {
     const [reports, setReports]           = useState([]);
     const [loading, setLoading]           = useState(true);
     const [filter, setFilter]             = useState('open');
-    const [escalating, setEscalating]     = useState(null); // reportId being escalated
+    const [escalating, setEscalating]     = useState(null);
     const [escalateNote, setEscalateNote] = useState('');
     const [staffList, setStaffList]       = useState([]);
     const [selectedEscalateTo, setSelectedEscalateTo] = useState('');
+    const [banningUID, setBanningUID]     = useState(null); // report.id of the one being banned
 
     const myRole = getUserRole(currentUserData, currentUser?.uid);
 
@@ -718,7 +805,7 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification }) 
             {loading ? (
                 <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'30px'}}>⏳ {lang==='ar'?'جاري التحميل...':'Loading...'}</div>
             ) : (
-                <div style={{ display:'flex', flexDirection:'column', gap:'8px', maxHeight:'55vh', overflowY:'auto' }}>
+                <div style={{ display:'flex', flexDirection:'column', gap:'10px', maxHeight:'55vh', overflowY:'auto' }}>
                     {filtered.length === 0 && (
                         <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'30px'}}>
                             {lang==='ar'?'لا توجد بلاغات في هذا التصنيف':'No reports in this category'}
@@ -726,125 +813,189 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification }) 
                     )}
 
                     {filtered.map(report => {
-                        const typeInfo = getReportType(report);
-                        const isResolved = report.resolved || report.status === 'resolved';
-                        const isEscalated = !!report.escalated;
+                        const typeInfo      = getReportType(report);
+                        const isResolved    = report.resolved || report.status === 'resolved';
+                        const isEscalated   = !!report.escalated;
                         const isEscalatingThis = escalating === report.id;
+                        const reportedUID   = report.reportedUID || report.targetOwnerUID;
+                        const reportedName  = getReportedName(report);
+                        const reportedPhoto = report.reportedPhoto || null;
+                        const reasonLabels  = { abusive:'🤬 سلوك مسيء', verbal_abuse:'💬 شتيمة', cheating:'🎮 غش', fraud:'💰 احتيال', avatar:'🖼️ صورة مسيئة', spam:'📢 سبام', other:'❓ أخرى' };
 
                         return (
                             <div key={report.id} style={{
                                 background:'rgba(255,255,255,0.03)',
                                 border:`1px solid ${isResolved?'rgba(16,185,129,0.2)':isEscalated?'rgba(245,158,11,0.25)':'rgba(239,68,68,0.2)'}`,
-                                borderRadius:'10px', padding:'12px',
+                                borderRadius:'12px', overflow:'hidden',
                                 borderLeft:`3px solid ${isResolved?'#10b981':isEscalated?'#f59e0b':'#ef4444'}`
                             }}>
-                                {/* Header row */}
-                                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'8px' }}>
-                                    <div style={{ display:'flex', gap:'6px', alignItems:'center', flexWrap:'wrap' }}>
-                                        {/* Type badge */}
-                                        <span style={{ fontSize:'10px', padding:'2px 7px', borderRadius:'4px', fontWeight:700,
-                                            background:`${typeInfo.color}18`, border:`1px solid ${typeInfo.color}35`, color:typeInfo.color }}>
-                                            {typeInfo.icon} {typeInfo.label}
+                                {/* ── Top: User card ── */}
+                                <div style={{ padding:'12px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+                                    <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                                        {/* Avatar — clickable to open profile */}
+                                        <div style={{ position:'relative', flexShrink:0 }}>
+                                            <img
+                                                src={reportedPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(reportedName)}&background=7000ff&color=fff&size=80`}
+                                                style={{ width:'44px', height:'44px', borderRadius:'50%', objectFit:'cover', border:`2px solid ${isResolved?'#10b981':'#ef4444'}40`, cursor: reportedUID?'pointer':'default' }}
+                                                onClick={() => { if (reportedUID && onOpenProfile) onOpenProfile(reportedUID); }}
+                                                title={lang==='ar'?'فتح البروفايل':'Open Profile'}
+                                            />
+                                            {!isResolved && !isEscalated && (
+                                                <span style={{ position:'absolute', bottom:0, right:0, width:'12px', height:'12px', borderRadius:'50%', background:'#ef4444', border:'2px solid rgba(10,10,25,0.98)' }} />
+                                            )}
+                                        </div>
+                                        {/* Name + UID + type */}
+                                        <div style={{ flex:1, minWidth:0 }}>
+                                            <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
+                                                <span style={{ fontSize:'13px', fontWeight:800, color:'white', cursor: reportedUID?'pointer':'default' }}
+                                                    onClick={() => { if (reportedUID && onOpenProfile) onOpenProfile(reportedUID); }}>
+                                                    {reportedName}
+                                                </span>
+                                                <span style={{ fontSize:'10px', padding:'1px 6px', borderRadius:'4px', fontWeight:700,
+                                                    background:`${typeInfo.color}18`, border:`1px solid ${typeInfo.color}35`, color:typeInfo.color }}>
+                                                    {typeInfo.icon} {typeInfo.label}
+                                                </span>
+                                            </div>
+                                            {reportedUID && (
+                                                <div style={{ fontSize:'10px', color:'#6b7280', fontFamily:'monospace', marginTop:'2px' }}>
+                                                    ID: {reportedUID}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Status + time */}
+                                        <div style={{ textAlign:'right', flexShrink:0 }}>
+                                            <div style={{ fontSize:'10px', fontWeight:700, padding:'2px 7px', borderRadius:'4px',
+                                                background: isResolved?'rgba(16,185,129,0.12)':isEscalated?'rgba(245,158,11,0.12)':'rgba(239,68,68,0.1)',
+                                                color: isResolved?'#10b981':isEscalated?'#f59e0b':'#ef4444', marginBottom:'3px' }}>
+                                                {isResolved?'✅':isEscalated?'🔺':'⚠️'} {isResolved?(lang==='ar'?'محلول':'Resolved'):isEscalated?(lang==='ar'?'مُصعَّد':'Escalated'):(lang==='ar'?'مفتوح':'Open')}
+                                            </div>
+                                            <div style={{ fontSize:'10px', color:'#6b7280' }}>{getReportTime(report)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* ── Middle: Report details ── */}
+                                <div style={{ padding:'10px 12px', borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                                    {/* Reason */}
+                                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'5px' }}>
+                                        <span style={{ fontSize:'10px', color:'#9ca3af' }}>{lang==='ar'?'السبب:':'Reason:'}</span>
+                                        <span style={{ fontSize:'11px', fontWeight:700, color:'#f3f4f6', background:'rgba(239,68,68,0.08)', padding:'2px 8px', borderRadius:'4px' }}>
+                                            {reasonLabels[report.reason] || report.reason || '—'}
                                         </span>
-                                        {/* Status badge */}
-                                        <span style={{ fontSize:'10px', padding:'2px 7px', borderRadius:'4px', fontWeight:700,
-                                            background: isResolved?'rgba(16,185,129,0.12)':isEscalated?'rgba(245,158,11,0.12)':'rgba(239,68,68,0.1)',
-                                            border: `1px solid ${isResolved?'rgba(16,185,129,0.3)':isEscalated?'rgba(245,158,11,0.3)':'rgba(239,68,68,0.25)'}`,
-                                            color: isResolved?'#10b981':isEscalated?'#f59e0b':'#ef4444' }}>
-                                            {isResolved ? (lang==='ar'?'✅ محلول':'✅ Resolved') : isEscalated ? (lang==='ar'?'🔺 مُصعَّد':'🔺 Escalated') : (lang==='ar'?'⚠️ مفتوح':'⚠️ Open')}
-                                        </span>
                                     </div>
-                                    <span style={{ fontSize:'10px', color:'#6b7280', whiteSpace:'nowrap' }}>{getReportTime(report)}</span>
+                                    {/* Description */}
+                                    {report.description && (
+                                        <div style={{ fontSize:'11px', color:'#d1d5db', background:'rgba(255,255,255,0.03)', borderRadius:'6px', padding:'7px 9px', marginBottom:'5px', lineHeight:1.6 }}>
+                                            "{report.description}"
+                                        </div>
+                                    )}
+                                    {/* Reporter */}
+                                    <div style={{ fontSize:'10px', color:'#6b7280' }}>
+                                        {lang==='ar'?'بلاغ من:':'Reported by:'} <span style={{color:'#9ca3af'}}>{report.reporterName || report.reporterUID?.slice(0,12) || '—'}</span>
+                                    </div>
+                                    {/* Attached image evidence */}
+                                    {report.imageBase64 && (
+                                        <div style={{ marginTop:'8px' }}>
+                                            <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'4px' }}>📎 {lang==='ar'?'صورة مرفقة:':'Attached evidence:'}</div>
+                                            <img src={report.imageBase64} style={{ maxWidth:'100%', maxHeight:'140px', objectFit:'contain', borderRadius:'7px', border:'1px solid rgba(255,255,255,0.1)', cursor:'pointer' }}
+                                                onClick={() => window.open(report.imageBase64)} />
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Reported user/content */}
-                                <div style={{ fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px' }}>
-                                    <span style={{color:'#9ca3af'}}>{lang==='ar'?'المُبلَّغ عنه:':'Reported:'}</span>
-                                    <span style={{color:'white', fontWeight:700}}>{getReportedName(report)}</span>
-                                </div>
+                                {/* ── Bottom: Action buttons ── */}
+                                <div style={{ padding:'8px 12px' }}>
+                                    {isEscalated && !isResolved && (
+                                        <div style={{ fontSize:'10px', color:'#f59e0b', marginBottom:'7px' }}>
+                                            🔺 {lang==='ar'?'تم التصعيد':'Escalated'}{report.escalatedNote ? ` — ${report.escalatedNote}` : ''}
+                                        </div>
+                                    )}
 
-                                {/* Reason */}
-                                {report.reason && (
-                                    <div style={{ fontSize:'11px', color:'#9ca3af', marginBottom:'4px' }}>
-                                        {lang==='ar'?'السبب:':'Reason:'} <span style={{color:'#f3f4f6'}}>{report.reason}</span>
-                                    </div>
-                                )}
-
-                                {/* Reporter */}
-                                <div style={{ fontSize:'10px', color:'#6b7280', marginBottom:'8px' }}>
-                                    {lang==='ar'?'مُبلِّغ:':'By:'} {report.reporterName || report.reporterUID?.slice(0,12) || '—'}
-                                </div>
-
-                                {/* Escalation info */}
-                                {isEscalated && (
-                                    <div style={{ background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:'6px', padding:'8px', marginBottom:'8px', fontSize:'11px' }}>
-                                        🔺 <span style={{color:'#f59e0b', fontWeight:700}}>{lang==='ar'?'تم التصعيد':'Escalated'}</span>
-                                        {report.escalatedNote && <span style={{color:'#9ca3af'}}> — {report.escalatedNote}</span>}
-                                    </div>
-                                )}
-
-                                {/* Action buttons */}
-                                {!isResolved && !isEscalatingThis && (
-                                    <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
-                                        <button onClick={() => resolveReport(report.id, report)}
-                                            style={{ padding:'5px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
-                                                background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.4)', color:'#10b981' }}>
-                                            ✅ {lang==='ar'?'حل البلاغ':'Resolve'}
-                                        </button>
-                                        {/* Escalate — فقط للـ Moderator (مش Admin/Owner لأنهم فوق) */}
-                                        {myRole === 'moderator' && !isEscalated && (
-                                            <button onClick={() => { setEscalating(report.id); setEscalateNote(''); setSelectedEscalateTo(''); }}
+                                    {!isResolved && !isEscalatingThis && (
+                                        <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
+                                            {/* Resolve */}
+                                            <button onClick={() => resolveReport(report.id, report)}
                                                 style={{ padding:'5px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
-                                                    background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.4)', color:'#f59e0b' }}>
-                                                🔺 {lang==='ar'?'تصعيد للأعلى':'Escalate'}
+                                                    background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.4)', color:'#10b981' }}>
+                                                ✅ {lang==='ar'?'حل البلاغ':'Resolve'}
                                             </button>
-                                        )}
-                                    </div>
-                                )}
 
-                                {/* Escalate Panel */}
-                                {isEscalatingThis && (
-                                    <div style={{ background:'rgba(245,158,11,0.06)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:'8px', padding:'10px', marginTop:'8px' }}>
-                                        <div style={{ fontSize:'11px', color:'#f59e0b', fontWeight:700, marginBottom:'8px' }}>
-                                            🔺 {lang==='ar'?'تصعيد البلاغ':'Escalate Report'}
+                                            {/* View Profile */}
+                                            {reportedUID && onOpenProfile && (
+                                                <button onClick={() => onOpenProfile(reportedUID)}
+                                                    style={{ padding:'5px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                                                        background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff' }}>
+                                                    👤 {lang==='ar'?'البروفايل':'Profile'}
+                                                </button>
+                                            )}
+
+                                            {/* Ban — Admin/Owner only */}
+                                            {(myRole === 'owner' || myRole === 'admin') && reportedUID && (
+                                                <button onClick={() => setBanningUID(report.id)}
+                                                    style={{ padding:'5px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                                                        background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.4)', color:'#ef4444' }}>
+                                                    🔨 {lang==='ar'?'حظر':'Ban'}
+                                                </button>
+                                            )}
+
+                                            {/* Escalate — Moderator only */}
+                                            {myRole === 'moderator' && !isEscalated && (
+                                                <button onClick={() => { setEscalating(report.id); setEscalateNote(''); setSelectedEscalateTo(''); }}
+                                                    style={{ padding:'5px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                                                        background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.4)', color:'#f59e0b' }}>
+                                                    🔺 {lang==='ar'?'تصعيد':'Escalate'}
+                                                </button>
+                                            )}
                                         </div>
-                                        <select
-                                            value={selectedEscalateTo}
-                                            onChange={e => setSelectedEscalateTo(e.target.value)}
-                                            style={{ width:'100%', padding:'6px 10px', borderRadius:'6px', fontSize:'11px',
-                                                background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.15)',
-                                                color:'white', marginBottom:'6px' }}>
-                                            <option value=''>{lang==='ar'?'— اختر المسؤول —':'— Select staff member —'}</option>
-                                            {staffList
-                                                .filter(s => s.id !== currentUser?.uid)
-                                                .map(s => (
-                                                    <option key={s.id} value={s.id}>
-                                                        {s.displayName} ({s.staffRole?.role || 'owner'})
-                                                    </option>
-                                                ))}
-                                        </select>
-                                        <input className="input-dark"
-                                            style={{ width:'100%', padding:'6px 10px', borderRadius:'6px', fontSize:'11px', marginBottom:'8px' }}
-                                            placeholder={lang==='ar'?'ملاحظة (اختياري)':'Note (optional)'}
-                                            value={escalateNote}
-                                            onChange={e => setEscalateNote(e.target.value)}
+                                    )}
+
+                                    {/* Ban Panel */}
+                                    {banningUID === report.id && (
+                                        <BanPanelInline
+                                            reportedUID={reportedUID}
+                                            reportedName={reportedName}
+                                            reportId={report.id}
+                                            currentUser={currentUser}
+                                            currentUserData={currentUserData}
+                                            lang={lang}
+                                            onDone={(msg) => { setBanningUID(null); resolveReport(report.id, report); onNotification(msg); }}
+                                            onCancel={() => setBanningUID(null)}
                                         />
-                                        <div style={{ display:'flex', gap:'6px' }}>
-                                            <button onClick={() => handleEscalate(report.id, report)}
-                                                disabled={!selectedEscalateTo}
-                                                style={{ flex:1, padding:'6px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
-                                                    background:'rgba(245,158,11,0.25)', border:'1px solid rgba(245,158,11,0.5)', color:'#f59e0b',
-                                                    opacity: selectedEscalateTo?1:0.5 }}>
-                                                🔺 {lang==='ar'?'تأكيد التصعيد':'Confirm Escalate'}
-                                            </button>
-                                            <button onClick={() => setEscalating(null)}
-                                                style={{ padding:'6px 10px', borderRadius:'6px', fontSize:'11px', cursor:'pointer',
-                                                    background:'rgba(107,114,128,0.15)', border:'1px solid rgba(107,114,128,0.3)', color:'#9ca3af' }}>
-                                                ✕
-                                            </button>
+                                    )}
+
+                                    {/* Escalate Panel */}
+                                    {isEscalatingThis && (
+                                        <div style={{ background:'rgba(245,158,11,0.06)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:'8px', padding:'10px', marginTop:'6px' }}>
+                                            <div style={{ fontSize:'11px', color:'#f59e0b', fontWeight:700, marginBottom:'8px' }}>
+                                                🔺 {lang==='ar'?'تصعيد البلاغ':'Escalate Report'}
+                                            </div>
+                                            <select value={selectedEscalateTo} onChange={e => setSelectedEscalateTo(e.target.value)}
+                                                style={{ width:'100%', padding:'6px 10px', borderRadius:'6px', fontSize:'11px',
+                                                    background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.15)', color:'white', marginBottom:'6px' }}>
+                                                <option value=''>{lang==='ar'?'— اختر المسؤول —':'— Select staff member —'}</option>
+                                                {staffList.filter(s => s.id !== currentUser?.uid).map(s => (
+                                                    <option key={s.id} value={s.id}>{s.displayName} ({s.staffRole?.role || 'owner'})</option>
+                                                ))}
+                                            </select>
+                                            <input className="input-dark"
+                                                style={{ width:'100%', padding:'6px 10px', borderRadius:'6px', fontSize:'11px', marginBottom:'8px' }}
+                                                placeholder={lang==='ar'?'ملاحظة (اختياري)':'Note (optional)'}
+                                                value={escalateNote} onChange={e => setEscalateNote(e.target.value)} />
+                                            <div style={{ display:'flex', gap:'6px' }}>
+                                                <button onClick={() => handleEscalate(report.id, report)} disabled={!selectedEscalateTo}
+                                                    style={{ flex:1, padding:'6px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                                                        background:'rgba(245,158,11,0.25)', border:'1px solid rgba(245,158,11,0.5)', color:'#f59e0b', opacity:selectedEscalateTo?1:0.5 }}>
+                                                    🔺 {lang==='ar'?'تأكيد':'Confirm'}
+                                                </button>
+                                                <button onClick={() => setEscalating(null)}
+                                                    style={{ padding:'6px 10px', borderRadius:'6px', fontSize:'11px', cursor:'pointer',
+                                                        background:'rgba(107,114,128,0.15)', border:'1px solid rgba(107,114,128,0.3)', color:'#9ca3af' }}>
+                                                    ✕
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         );
                     })}
@@ -1299,29 +1450,60 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
 
 
 // ════════════════════════════════════════════════════════
-// 📸 MOMENTS MODERATION (Moderator + Admin + Owner)
+// 🔍 CONTENT REVIEW (Admin + Owner) — Reported Moments + User Bans
 // ════════════════════════════════════════════════════════
-const MomentsModerationSection = ({ currentUser, currentUserData, lang, onNotification }) => {
-    const [moments, setMoments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('recent');
+const MomentsModerationSection = ({ currentUser, currentUserData, lang, onNotification, onOpenProfile }) => {
+    const [moments, setMoments]   = useState([]);
+    const [users, setUsers]       = useState([]);
+    const [loading, setLoading]   = useState(true);
+    const [tab, setTab]           = useState('moments'); // 'moments' | 'banned'
+    const [banningMoment, setBanningMoment] = useState(null); // momentId
 
+    const myRole = getUserRole(currentUserData, currentUser?.uid);
+
+    // Reported moments
     useEffect(() => {
-        const q = filter === 'reported'
-            ? momentsCollection.where('reportCount', '>', 0).orderBy('reportCount', 'desc').limit(40)
-            : momentsCollection.orderBy('createdAt', 'desc').limit(40);
-        const unsub = q.onSnapshot(snap => {
-            setMoments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            setLoading(false);
-        }, () => setLoading(false));
-        return unsub;
-    }, [filter]);
+        if (tab !== 'moments') return;
+        setLoading(true);
+        // جيب اللحظات المبلَّغ عنها — بدون composite index
+        momentsCollection.limit(100).get()
+            .then(snap => {
+                const data = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(m => (m.reportCount > 0) || m.hidden)
+                    .sort((a, b) => (b.reportCount || 0) - (a.reportCount || 0));
+                setMoments(data);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, [tab]);
+
+    // Banned users
+    useEffect(() => {
+        if (tab !== 'banned') return;
+        setLoading(true);
+        usersCollection.limit(300).get()
+            .then(snap => {
+                const data = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(u => u.ban?.isBanned)
+                    .sort((a, b) => {
+                        const ta = a.ban?.bannedAt?.toMillis?.() || 0;
+                        const tb = b.ban?.bannedAt?.toMillis?.() || 0;
+                        return tb - ta;
+                    });
+                setUsers(data);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, [tab]);
 
     const deleteMoment = async (momentId, authorName) => {
-        if (!window.confirm(lang==='ar'?'هل تريد حذف هذه اللحظة؟':'Delete this moment?')) return;
+        if (!window.confirm(lang==='ar'?'حذف هذه اللحظة؟':'Delete this moment?')) return;
         try {
             await momentsCollection.doc(momentId).delete();
-            await logStaffAction(currentUser.uid, currentUserData?.displayName, 'DELETE_MOMENT', null, authorName, `Moment ID: ${momentId}`);
+            await logStaffAction(currentUser.uid, currentUserData?.displayName, 'DELETE_MOMENT', null, authorName, `Moment: ${momentId}`);
+            setMoments(p => p.filter(m => m.id !== momentId));
             onNotification(`✅ ${lang==='ar'?'تم الحذف':'Deleted'}`);
         } catch(e) { onNotification('❌ Error'); }
     };
@@ -1329,58 +1511,165 @@ const MomentsModerationSection = ({ currentUser, currentUserData, lang, onNotifi
     const hideMoment = async (momentId, currentHidden) => {
         try {
             await momentsCollection.doc(momentId).update({ hidden: !currentHidden });
-            onNotification(`✅ ${!currentHidden ? (lang==='ar'?'تم الإخفاء':'Hidden') : (lang==='ar'?'تم الإظهار':'Unhidden')}`);
+            setMoments(p => p.map(m => m.id === momentId ? {...m, hidden: !currentHidden} : m));
+            onNotification(`✅ ${!currentHidden?(lang==='ar'?'مخفي':'Hidden'):(lang==='ar'?'مرئي':'Visible')}`);
         } catch(e) {}
+    };
+
+    const unbanUser = async (uid, name) => {
+        try {
+            await usersCollection.doc(uid).update({ ban: { isBanned: false } });
+            await logStaffAction(currentUser.uid, currentUserData?.displayName, 'UNBAN_USER', uid, name, 'Unbanned from Content Review');
+            setUsers(p => p.filter(u => u.id !== uid));
+            onNotification(`✅ ${lang==='ar'?`تم رفع حظر ${name}`:`${name} unbanned`}`);
+        } catch(e) { onNotification('❌ Error'); }
     };
 
     return (
         <div>
             <div style={{ fontSize:'13px', fontWeight:700, color:'#8b5cf6', marginBottom:'12px' }}>
-                📸 {lang==='ar'?'إشراف على المحتوى':'Content Moderation'}
+                🔍 {lang==='ar'?'مراجعة المحتوى':'Content Review'}
             </div>
+
+            {/* Tab switcher */}
             <div style={{ display:'flex', gap:'6px', marginBottom:'14px' }}>
-                {['recent','reported'].map(f => (
-                    <button key={f} onClick={() => setFilter(f)}
-                        style={{ padding:'4px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer',
-                            background: filter===f?'rgba(139,92,246,0.2)':'rgba(255,255,255,0.05)',
-                            border: filter===f?'1px solid rgba(139,92,246,0.5)':'1px solid rgba(255,255,255,0.1)',
-                            color: filter===f?'#8b5cf6':'#9ca3af', fontWeight: filter===f?700:400 }}>
-                        {f==='recent'?(lang==='ar'?'الأحدث':'Recent'):(lang==='ar'?'مُبلَّغ عنها':'Reported')}
+                {[
+                    { id:'moments', icon:'📸', ar:'لحظات مُبلَّغ عنها', en:'Reported Moments' },
+                    { id:'banned',  icon:'🔨', ar:'المستخدمون المحظورون', en:'Banned Users' },
+                ].map(t => (
+                    <button key={t.id} onClick={() => setTab(t.id)}
+                        style={{ padding:'5px 14px', borderRadius:'7px', fontSize:'11px', cursor:'pointer', fontWeight:tab===t.id?700:400,
+                            background:tab===t.id?'rgba(139,92,246,0.2)':'rgba(255,255,255,0.05)',
+                            border:tab===t.id?'1px solid rgba(139,92,246,0.5)':'1px solid rgba(255,255,255,0.1)',
+                            color:tab===t.id?'#8b5cf6':'#9ca3af' }}>
+                        {t.icon} {lang==='ar'?t.ar:t.en}
                     </button>
                 ))}
             </div>
-            {loading ? <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'20px'}}>⏳</div> : (
-                <div style={{ display:'flex', flexDirection:'column', gap:'8px', maxHeight:'50vh', overflowY:'auto' }}>
-                    {moments.length === 0 && <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'20px'}}>{lang==='ar'?'لا يوجد محتوى':'No content'}</div>}
-                    {moments.map(m => (
-                        <div key={m.id} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'12px', opacity: m.hidden ? 0.5 : 1 }}>
-                            <div style={{ display:'flex', alignItems:'flex-start', gap:'10px' }}>
-                                {m.imageURL && <img src={m.imageURL} style={{ width:'60px', height:'60px', borderRadius:'8px', objectFit:'cover', flexShrink:0 }} />}
-                                <div style={{ flex:1, minWidth:0 }}>
-                                    <div style={{ fontSize:'11px', fontWeight:700, marginBottom:'3px' }}>{m.authorName || 'Unknown'}</div>
-                                    <div style={{ fontSize:'11px', color:'#9ca3af', marginBottom:'4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                                        {m.caption || m.text || '—'}
+
+            {loading ? <div style={{color:'#6b7280',textAlign:'center',padding:'30px'}}>⏳</div> : (
+
+                /* ── Reported Moments ── */
+                tab === 'moments' ? (
+                    <div style={{ display:'flex', flexDirection:'column', gap:'10px', maxHeight:'55vh', overflowY:'auto' }}>
+                        {moments.length === 0 && (
+                            <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'30px'}}>
+                                {lang==='ar'?'لا توجد لحظات مُبلَّغ عنها ✨':'No reported moments ✨'}
+                            </div>
+                        )}
+                        {moments.map(m => (
+                            <div key={m.id} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${m.hidden?'rgba(107,114,128,0.2)':'rgba(139,92,246,0.2)'}`, borderRadius:'10px', overflow:'hidden', opacity:m.hidden?0.6:1 }}>
+                                {/* Author row */}
+                                <div style={{ padding:'10px 12px', borderBottom:'1px solid rgba(255,255,255,0.05)', display:'flex', alignItems:'center', gap:'10px' }}>
+                                    <img src={m.authorPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.authorName||'U')}&background=7000ff&color=fff&size=50`}
+                                        style={{ width:'34px', height:'34px', borderRadius:'50%', objectFit:'cover', cursor:'pointer' }}
+                                        onClick={() => m.authorUID && onOpenProfile && onOpenProfile(m.authorUID)} />
+                                    <div style={{ flex:1 }}>
+                                        <div style={{ fontSize:'12px', fontWeight:700, cursor:'pointer', color:'white' }}
+                                            onClick={() => m.authorUID && onOpenProfile && onOpenProfile(m.authorUID)}>
+                                            {m.authorName || 'Unknown'}
+                                        </div>
+                                        {m.authorUID && <div style={{ fontSize:'10px', color:'#6b7280', fontFamily:'monospace' }}>{m.authorUID.slice(0,20)}...</div>}
                                     </div>
-                                    {m.reportCount > 0 && <div style={{ fontSize:'10px', color:'#ef4444', fontWeight:700 }}>🚨 {m.reportCount} {lang==='ar'?'بلاغ':'reports'}</div>}
-                                    {m.hidden && <div style={{ fontSize:'10px', color:'#6b7280' }}>🙈 {lang==='ar'?'مخفي':'Hidden'}</div>}
+                                    {m.reportCount > 0 && (
+                                        <span style={{ fontSize:'11px', padding:'2px 8px', borderRadius:'4px', fontWeight:700, background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.3)', color:'#ef4444' }}>
+                                            🚨 {m.reportCount} {lang==='ar'?'بلاغ':'reports'}
+                                        </span>
+                                    )}
+                                    {m.hidden && <span style={{ fontSize:'10px', color:'#6b7280' }}>🙈 {lang==='ar'?'مخفي':'Hidden'}</span>}
                                 </div>
-                                <div style={{ display:'flex', flexDirection:'column', gap:'4px', flexShrink:0 }}>
+                                {/* Content preview */}
+                                <div style={{ padding:'10px 12px', display:'flex', gap:'10px', alignItems:'flex-start' }}>
+                                    {(m.imageURL || m.mediaUrl) && (
+                                        <img src={m.imageURL || m.mediaUrl} style={{ width:'70px', height:'70px', objectFit:'cover', borderRadius:'7px', flexShrink:0, cursor:'pointer' }}
+                                            onClick={() => window.open(m.imageURL || m.mediaUrl)} />
+                                    )}
+                                    <div style={{ flex:1, fontSize:'11px', color:'#9ca3af', lineHeight:1.6 }}>
+                                        {m.caption || m.text || m.content || <em>({lang==='ar'?'بدون نص':'No text'})</em>}
+                                    </div>
+                                </div>
+                                {/* Actions */}
+                                <div style={{ padding:'8px 12px', borderTop:'1px solid rgba(255,255,255,0.04)', display:'flex', gap:'6px', flexWrap:'wrap' }}>
                                     <button onClick={() => hideMoment(m.id, m.hidden)}
-                                        style={{ padding:'4px 8px', borderRadius:'6px', fontSize:'10px', cursor:'pointer',
+                                        style={{ padding:'4px 10px', borderRadius:'6px', fontSize:'10px', cursor:'pointer', fontWeight:700,
                                             background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.3)', color:'#f59e0b' }}>
-                                        {m.hidden?(lang==='ar'?'إظهار':'Show'):(lang==='ar'?'إخفاء':'Hide')}
+                                        {m.hidden?(lang==='ar'?'👁️ إظهار':'👁️ Show'):(lang==='ar'?'🙈 إخفاء':'🙈 Hide')}
                                     </button>
                                     <button onClick={() => deleteMoment(m.id, m.authorName)}
-                                        style={{ padding:'4px 8px', borderRadius:'6px', fontSize:'10px', cursor:'pointer',
+                                        style={{ padding:'4px 10px', borderRadius:'6px', fontSize:'10px', cursor:'pointer', fontWeight:700,
                                             background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.3)', color:'#ef4444' }}>
-                                        {lang==='ar'?'حذف':'Delete'}
+                                        🗑️ {lang==='ar'?'حذف':'Delete'}
                                     </button>
+                                    {/* Ban author — Admin/Owner only */}
+                                    {(myRole === 'owner' || myRole === 'admin') && m.authorUID && (
+                                        <button onClick={() => setBanningMoment(banningMoment===m.id?null:m.id)}
+                                            style={{ padding:'4px 10px', borderRadius:'6px', fontSize:'10px', cursor:'pointer', fontWeight:700,
+                                                background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.4)', color:'#ef4444' }}>
+                                            🔨 {lang==='ar'?'حظر الكاتب':'Ban Author'}
+                                        </button>
+                                    )}
+                                </div>
+                                {/* Inline ban panel */}
+                                {banningMoment === m.id && (
+                                    <div style={{ padding:'0 12px 12px' }}>
+                                        <BanPanelInline
+                                            reportedUID={m.authorUID}
+                                            reportedName={m.authorName || 'User'}
+                                            reportId={m.id}
+                                            currentUser={currentUser}
+                                            currentUserData={currentUserData}
+                                            lang={lang}
+                                            onDone={(msg) => { setBanningMoment(null); onNotification(msg); }}
+                                            onCancel={() => setBanningMoment(null)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+
+                /* ── Banned Users ── */
+                <div style={{ display:'flex', flexDirection:'column', gap:'8px', maxHeight:'55vh', overflowY:'auto' }}>
+                    {users.length === 0 && (
+                        <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'30px'}}>
+                            {lang==='ar'?'لا يوجد مستخدمون محظورون':'No banned users'}
+                        </div>
+                    )}
+                    {users.map(u => {
+                        const ban = u.ban;
+                        const exp = ban?.expiresAt?.toDate?.();
+                        const isPerm = ban?.permanent;
+                        return (
+                            <div key={u.id} style={{ background:'rgba(239,68,68,0.04)', border:'1px solid rgba(239,68,68,0.15)', borderRadius:'10px', padding:'12px' }}>
+                                <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                                    <img src={u.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName||'U')}&background=ef4444&color=fff&size=50`}
+                                        style={{ width:'38px', height:'38px', borderRadius:'50%', objectFit:'cover', opacity:0.7, cursor:'pointer' }}
+                                        onClick={() => onOpenProfile && onOpenProfile(u.id)} />
+                                    <div style={{ flex:1, minWidth:0 }}>
+                                        <div style={{ fontSize:'12px', fontWeight:700, color:'#f3f4f6', cursor:'pointer' }}
+                                            onClick={() => onOpenProfile && onOpenProfile(u.id)}>
+                                            🔨 {u.displayName}
+                                        </div>
+                                        <div style={{ fontSize:'10px', color:'#6b7280', fontFamily:'monospace' }}>{u.id.slice(0,20)}...</div>
+                                        <div style={{ fontSize:'10px', color:'#9ca3af', marginTop:'3px' }}>
+                                            {lang==='ar'?'السبب:':'Reason:'} {ban?.reason || '—'}
+                                            {' • '}{isPerm?(lang==='ar'?'🔒 دائم':'🔒 Permanent'):(exp?(lang==='ar'?`ينتهي: ${exp.toLocaleDateString('ar-EG')}`:`Expires: ${exp.toLocaleDateString()}`):'')}
+                                        </div>
+                                    </div>
+                                    {(myRole === 'owner' || myRole === 'admin') && (
+                                        <button onClick={() => unbanUser(u.id, u.displayName)}
+                                            style={{ padding:'5px 10px', borderRadius:'6px', fontSize:'10px', cursor:'pointer', fontWeight:700, flexShrink:0,
+                                                background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.4)', color:'#10b981' }}>
+                                            🔓 {lang==='ar'?'رفع الحظر':'Unban'}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
-            )}
+            ))}
         </div>
     );
 };
@@ -1446,7 +1735,7 @@ const FinancialLogSection = ({ lang }) => {
 // ════════════════════════════════════════════════════════
 // 🎮 MAIN ADMIN PANEL COMPONENT
 // ════════════════════════════════════════════════════════
-const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang }) => {
+const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenProfile }) => {
     const [activeSection, setActiveSection] = useState('overview');
     const [notification, setNotification] = useState(null);
 
@@ -1487,9 +1776,9 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang }) => {
         navItems.push({ id:'activitylog',icon:'📋',label_en:'Activity Log',  label_ar:'سجل النشاط',  color:'#3b82f6', roles:['owner','admin'] });
     }
     navItems.push(
-        { id:'reports',  icon:'🚨', label_en:'Reports',        label_ar:'البلاغات',    color:'#ef4444', roles:['owner','admin','moderator'] },
-        { id:'tickets',  icon:'🎫', label_en:'Tickets',        label_ar:'التذاكر',     color:'#6366f1', roles:['owner','admin','moderator'] },
-        { id:'moments',  icon:'📸', label_en:'Moderation',     label_ar:'الإشراف',     color:'#8b5cf6', roles:['owner','admin','moderator'] }
+        { id:'reports',  icon:'🚨', label_en:'Reports',        label_ar:'البلاغات',      color:'#ef4444', roles:['owner','admin','moderator'] },
+        { id:'tickets',  icon:'🎫', label_en:'Tickets',        label_ar:'التذاكر',       color:'#6366f1', roles:['owner','admin','moderator'] },
+        { id:'moments',  icon:'🔍', label_en:'Content Review', label_ar:'مراجعة المحتوى', color:'#8b5cf6', roles:['owner','admin'] }
     );
 
     const rc = ROLE_CONFIG[role];
@@ -1502,9 +1791,9 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang }) => {
             case 'users':      return <UserManagementSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} />;
             case 'broadcast':  return <BroadcastSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} />;
             case 'activitylog':return <ActivityLogSection lang={lang} />;
-            case 'reports':    return <ReportsSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} />;
+            case 'reports':    return <ReportsSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} onOpenProfile={onOpenProfile} />;
             case 'tickets':    return <TicketsSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} />;
-            case 'moments':    return <MomentsModerationSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} />;
+            case 'moments':    return <MomentsModerationSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} onOpenProfile={onOpenProfile} />;
             default: return null;
         }
     };
