@@ -891,13 +891,24 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang }) => {
 
     const role = getUserRole(currentUserData, currentUser?.uid);
 
-    // إذا مكانش عنده صلاحيات ما يتعرضش
-    if (!show || !role) return null;
+    // ✅ ALL hooks MUST come before any early return — Rules of Hooks
 
-    // Notification toast
+    // Notification toast auto-dismiss
     useEffect(() => {
-        if (notification) { const t = setTimeout(() => setNotification(null), 3000); return () => clearTimeout(t); }
+        if (!notification) return;
+        const t = setTimeout(() => setNotification(null), 3000);
+        return () => clearTimeout(t);
     }, [notification]);
+
+    // Set default section whenever panel opens or role changes
+    useEffect(() => {
+        if (!show) return;
+        if (role === 'owner' || role === 'admin') setActiveSection('overview');
+        else if (role === 'moderator') setActiveSection('reports');
+    }, [show, role]);
+
+    // ── Early return AFTER all hooks ─────────────────────
+    if (!show || !role) return null;
 
     // ── Sidebar nav items based on role ──────────────────
     const navItems = [];
@@ -919,14 +930,6 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang }) => {
         { id:'tickets',  icon:'🎫', label_en:'Tickets',        label_ar:'التذاكر',     color:'#6366f1', roles:['owner','admin','moderator'] },
         { id:'moments',  icon:'📸', label_en:'Moderation',     label_ar:'الإشراف',     color:'#8b5cf6', roles:['owner','admin','moderator'] }
     );
-
-    // Set default section based on role
-    useEffect(() => {
-        if (show) {
-            if (role === 'owner' || role === 'admin') setActiveSection('overview');
-            else setActiveSection('reports');
-        }
-    }, [show, role]);
 
     const rc = ROLE_CONFIG[role];
 
