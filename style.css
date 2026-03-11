@@ -3926,3 +3926,30 @@ body {
     right: 0 !important;
     left: auto !important;
 }
+
+/* ==========================================
+   🚫 BAN SYSTEM STYLES
+   ========================================== */
+
+/* Ban overlay on avatar — pulse animation */
+@keyframes ban-badge-pulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(220,0,0,0.6); }
+    50%       { box-shadow: 0 0 14px rgba(220,0,0,0.9); }
+}
+
+/* Leaderboard / Name Tag banned indicator */
+.banned-name-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 9px;
+    font-weight: 800;
+    color: #f87171;
+    background: rgba(220,0,0,0.15);
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 5px;
+    padding: 1px 5px;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+    margin-left: 4px;
+}
