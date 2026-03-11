@@ -442,6 +442,7 @@ const PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
     const name      = player.displayName || player.name || '—';
     const equipped  = player.equipped || {};
     const vipActive = getVIPLevel(player) > 0;
+    const banData   = player.ban || null;
 
     // Title
     const titleId   = equipped.titles;
@@ -458,7 +459,7 @@ const PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
 
             {/* ── Avatar ── */}
             <div style={{ position:'relative', flexShrink:0 }}>
-                <AvatarWithFrame photoURL={photoURL} equipped={equipped} size={avatarSz} />
+                <AvatarWithFrame photoURL={photoURL} equipped={equipped} size={avatarSz} banData={banData} lang={lang} />
                 {showStatus && (
                     <div style={{
                         position:'absolute', bottom:'-1px', right:'-1px',
@@ -471,7 +472,7 @@ const PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
             {/* ── Info ── */}
             <div style={{ display:'flex', flexDirection:'column', gap:'2px', minWidth:0 }}>
 
-                {/* Row 1 — Name + VIP badge */}
+                {/* Row 1 — Name + VIP badge + ban indicator */}
                 <div style={{ display:'flex', alignItems:'center', gap:'4px', flexWrap:'nowrap' }}>
                     <VIPName
                         displayName={name}
@@ -482,6 +483,9 @@ const PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
                     />
                     {vipActive && (
                         <VIPBadge userData={player} size="sm" onClick={() => {}} />
+                    )}
+                    {banData?.isBanned && (!banData.expiresAt || new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))) && (
+                        <span className="banned-name-indicator">🚫</span>
                     )}
                 </div>
 
