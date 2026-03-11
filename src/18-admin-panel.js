@@ -1801,6 +1801,9 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenP
         }
     };
 
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
+    const [mobileNav, setMobileNav] = React.useState(false);
+
     return (
         <PortalModal>
             <div style={{
@@ -1813,75 +1816,146 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenP
                     width:'100%', maxWidth:'900px', margin:'auto',
                     background:'linear-gradient(135deg, rgba(10,10,25,0.98), rgba(18,10,40,0.98))',
                     border:'1px solid rgba(255,255,255,0.08)',
-                    borderRadius:'16px', overflow:'hidden',
+                    borderRadius: isMobile ? '0' : '16px', overflow:'hidden',
                     display:'flex', flexDirection:'column',
-                    maxHeight:'95vh', boxShadow:'0 0 60px rgba(0,0,0,0.8)'
+                    maxHeight: isMobile ? '100dvh' : '95vh',
+                    height: isMobile ? '100dvh' : 'auto',
+                    boxShadow:'0 0 60px rgba(0,0,0,0.8)'
                 }} onClick={e => e.stopPropagation()}>
 
                     {/* ── Header ── */}
                     <div style={{
-                        padding:'14px 20px', display:'flex', alignItems:'center', justifyContent:'space-between',
+                        padding: isMobile ? '10px 14px' : '14px 20px',
+                        display:'flex', alignItems:'center', justifyContent:'space-between',
                         borderBottom:'1px solid rgba(255,255,255,0.08)',
-                        background: `linear-gradient(90deg, ${rc?.bg||'rgba(0,0,0,0)'}, transparent)`
+                        background: `linear-gradient(90deg, ${rc?.bg||'rgba(0,0,0,0)'}, transparent)`,
+                        flexShrink: 0,
                     }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-                            <div style={{ fontSize:'24px' }}>{rc?.icon || '🛡️'}</div>
+                        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                            <div style={{ fontSize: isMobile ? '18px' : '24px' }}>{rc?.icon || '🛡️'}</div>
                             <div>
-                                <div style={{ fontSize:'14px', fontWeight:900, color:'white', letterSpacing:'0.05em' }}>
+                                <div style={{ fontSize: isMobile ? '12px' : '14px', fontWeight:900, color:'white', letterSpacing:'0.05em', display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
                                     {lang==='ar'?'لوحة الإدارة':'Admin Panel'}
-                                    <span style={{ marginLeft:'8px', marginRight:'8px', fontSize:'10px', padding:'2px 8px', borderRadius:'4px',
+                                    <span style={{ fontSize:'9px', padding:'2px 6px', borderRadius:'4px',
                                         background:`${rc?.color||'#fff'}20`, border:`1px solid ${rc?.color||'#fff'}40`, color:rc?.color||'#fff' }}>
                                         {lang==='ar'?rc?.label_ar:rc?.label_en}
                                     </span>
                                 </div>
-                                <div style={{ fontSize:'10px', color:'#6b7280', marginTop:'1px' }}>PRO SPY Control Center</div>
+                                {!isMobile && <div style={{ fontSize:'10px', color:'#6b7280', marginTop:'1px' }}>PRO SPY Control Center</div>}
                             </div>
                         </div>
-                        <button onClick={onClose} style={{
-                            background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)',
-                            color:'white', borderRadius:'8px', padding:'6px 10px', cursor:'pointer', fontSize:'14px'
-                        }}>✕</button>
+                        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                            {isMobile && (
+                                <button onClick={() => setMobileNav(v => !v)} style={{
+                                    background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.15)',
+                                    color:'white', borderRadius:'8px', padding:'6px 10px', cursor:'pointer', fontSize:'12px', fontWeight:700
+                                }}>☰ {lang==='ar'?'القائمة':'Menu'}</button>
+                            )}
+                            <button onClick={onClose} style={{
+                                background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)',
+                                color:'white', borderRadius:'8px', padding:'6px 10px', cursor:'pointer', fontSize:'14px'
+                            }}>✕</button>
+                        </div>
                     </div>
 
                     {/* ── Notification ── */}
                     {notification && (
-                        <div style={{ background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)', padding:'8px 16px', fontSize:'12px', color:'#10b981', textAlign:'center' }}>
+                        <div style={{ background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)', padding:'8px 16px', fontSize:'12px', color:'#10b981', textAlign:'center', flexShrink:0 }}>
                             {notification}
                         </div>
                     )}
 
-                    {/* ── Body: Sidebar + Content ── */}
-                    <div style={{ display:'flex', flex:1, overflow:'hidden', minHeight:0 }}>
-
-                        {/* Sidebar */}
+                    {/* ── Mobile Nav Drawer (overlay) ── */}
+                    {isMobile && mobileNav && (
                         <div style={{
-                            width:'160px', minWidth:'140px',
-                            borderRight:'1px solid rgba(255,255,255,0.06)',
-                            padding:'12px 8px',
-                            display:'flex', flexDirection:'column', gap:'4px',
-                            overflowY:'auto'
-                        }}>
-                            {navItems.map(item => (
-                                <button key={item.id} onClick={() => setActiveSection(item.id)}
-                                    style={{
-                                        width:'100%', padding:'9px 10px', borderRadius:'8px',
-                                        display:'flex', alignItems:'center', gap:'8px',
-                                        fontSize:'11px', fontWeight: activeSection===item.id ? 700 : 500,
-                                        cursor:'pointer', textAlign:'left', transition:'all 0.15s',
-                                        background: activeSection===item.id ? `${item.color}18` : 'transparent',
-                                        border: activeSection===item.id ? `1px solid ${item.color}35` : '1px solid transparent',
-                                        color: activeSection===item.id ? item.color : '#9ca3af',
-                                    }}>
-                                    <span style={{ fontSize:'14px' }}>{item.icon}</span>
-                                    <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                                        {lang==='ar' ? item.label_ar : item.label_en}
-                                    </span>
-                                </button>
-                            ))}
+                            position:'absolute', top:0, left:0, right:0, bottom:0, zIndex:10,
+                            background:'rgba(0,0,0,0.7)', display:'flex'
+                        }} onClick={() => setMobileNav(false)}>
+                            <div style={{
+                                width:'220px', height:'100%',
+                                background:'linear-gradient(135deg, rgba(10,10,25,0.99), rgba(18,10,40,0.99))',
+                                borderRight:'1px solid rgba(255,255,255,0.1)',
+                                padding:'16px 10px', display:'flex', flexDirection:'column', gap:'4px',
+                                overflowY:'auto'
+                            }} onClick={e => e.stopPropagation()}>
+                                <div style={{ fontSize:'11px', color:'#6b7280', fontWeight:700, padding:'4px 8px', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+                                    {lang==='ar'?'الأقسام':'Sections'}
+                                </div>
+                                {navItems.map(item => (
+                                    <button key={item.id} onClick={() => { setActiveSection(item.id); setMobileNav(false); }}
+                                        style={{
+                                            width:'100%', padding:'10px 12px', borderRadius:'8px',
+                                            display:'flex', alignItems:'center', gap:'10px',
+                                            fontSize:'12px', fontWeight: activeSection===item.id ? 700 : 500,
+                                            cursor:'pointer', textAlign:'left', transition:'all 0.15s',
+                                            background: activeSection===item.id ? `${item.color}20` : 'transparent',
+                                            border: activeSection===item.id ? `1px solid ${item.color}40` : '1px solid transparent',
+                                            color: activeSection===item.id ? item.color : '#9ca3af',
+                                        }}>
+                                        <span style={{ fontSize:'16px' }}>{item.icon}</span>
+                                        <span>{lang==='ar' ? item.label_ar : item.label_en}</span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
+                    )}
+
+                    {/* ── Body: Sidebar + Content ── */}
+                    <div style={{ display:'flex', flex:1, overflow:'hidden', minHeight:0, position:'relative' }}>
+
+                        {/* Desktop Sidebar */}
+                        {!isMobile && (
+                            <div style={{
+                                width:'160px', minWidth:'140px',
+                                borderRight:'1px solid rgba(255,255,255,0.06)',
+                                padding:'12px 8px',
+                                display:'flex', flexDirection:'column', gap:'4px',
+                                overflowY:'auto'
+                            }}>
+                                {navItems.map(item => (
+                                    <button key={item.id} onClick={() => setActiveSection(item.id)}
+                                        style={{
+                                            width:'100%', padding:'9px 10px', borderRadius:'8px',
+                                            display:'flex', alignItems:'center', gap:'8px',
+                                            fontSize:'11px', fontWeight: activeSection===item.id ? 700 : 500,
+                                            cursor:'pointer', textAlign:'left', transition:'all 0.15s',
+                                            background: activeSection===item.id ? `${item.color}18` : 'transparent',
+                                            border: activeSection===item.id ? `1px solid ${item.color}35` : '1px solid transparent',
+                                            color: activeSection===item.id ? item.color : '#9ca3af',
+                                        }}>
+                                        <span style={{ fontSize:'14px' }}>{item.icon}</span>
+                                        <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                                            {lang==='ar' ? item.label_ar : item.label_en}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Mobile: current section label */}
+                        {isMobile && (
+                            <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:1,
+                                background:'rgba(0,0,0,0.4)', padding:'6px 14px',
+                                display:'flex', alignItems:'center', gap:'6px',
+                                fontSize:'11px', color:'#9ca3af', borderBottom:'1px solid rgba(255,255,255,0.06)',
+                                pointerEvents:'none'
+                            }}>
+                                <span>{navItems.find(n=>n.id===activeSection)?.icon}</span>
+                                <span style={{ color: navItems.find(n=>n.id===activeSection)?.color || '#fff', fontWeight:700 }}>
+                                    {lang==='ar'
+                                        ? navItems.find(n=>n.id===activeSection)?.label_ar
+                                        : navItems.find(n=>n.id===activeSection)?.label_en}
+                                </span>
+                            </div>
+                        )}
 
                         {/* Main Content */}
-                        <div style={{ flex:1, padding:'20px', paddingBottom:'32px', overflowY:'auto', minWidth:0 }}>
+                        <div style={{
+                            flex:1,
+                            padding: isMobile ? '38px 12px 20px' : '20px',
+                            paddingBottom:'32px',
+                            overflowY:'auto', minWidth:0
+                        }}>
                             {renderSection()}
                         </div>
                     </div>
