@@ -888,7 +888,7 @@ const UserBadgesV11 = ({ equipped, lang }) => {
 };
 
 // 👤 AVATAR WITH FRAME V11 - FIXED CIRCULAR (Frame AROUND Avatar)
-const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId }) => {
+const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId, banData, lang }) => {
     const sizeMap = {
         sm: { wrapper: 64, avatar: 36, frameSize: 56 },
         md: { wrapper: 80, avatar: 48, frameSize: 72 },
@@ -904,6 +904,11 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectI
     const resolvedEffectId = effectId || equipped?.profileEffects;
     const effect = resolvedEffectId ? (SHOP_ITEMS.profileEffects || []).find(e => e.id === resolvedEffectId) : null;
     const hasImageEffect = effect && effect.imageUrl && effect.imageUrl.trim() !== '';
+
+    const showBan = banData?.isBanned && (
+        !banData.expiresAt ||
+        new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))
+    );
 
     return (
         <div className="profile-avatar-container" style={{
@@ -950,36 +955,27 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectI
                         width: '100%',
                         height: '100%',
                         borderRadius: '50%',
-                        display: 'block',
-                        border: '3px solid #0f172a',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                         objectFit: 'cover',
-                        background: '#0f172a'
+                        display: 'block',
+                        filter: showBan ? 'grayscale(70%) brightness(0.45)' : 'none',
                     }}
                 />
-                {/* Image/GIF effect directly ON the avatar */}
-                {hasImageEffect && (
-                    <>
-                        <img
-                            src={effect.imageUrl}
-                            alt=""
-                            style={{
-                                position:'absolute', inset:0,
-                                width:'100%', height:'100%',
-                                objectFit:'cover', objectPosition:'center',
-                                borderRadius:'50%',
-                                opacity: 0.85,
-                                pointerEvents:'none'
-                            }}
-                        />
-                        {effect.hasGlow && (
-                            <div style={{
-                                position:'absolute', inset:0, borderRadius:'50%',
-                                background:'radial-gradient(circle at center, rgba(0,242,255,0.3) 0%, transparent 70%)',
-                                pointerEvents:'none'
-                            }} />
-                        )}
-                    </>
+                {hasImageEffect && effect && (
+                    <ProfileEffectOverlayInline effectId={resolvedEffectId} />
+                )}
+                {/* 🚫 Ban Overlay on Profile Avatar */}
+                {showBan && (
+                    <div style={{
+                        position: 'absolute', inset: 0, borderRadius: '50%',
+                        background: 'rgba(200,0,0,0.6)',
+                        border: '2.5px solid rgba(255,60,60,0.95)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexDirection: 'column', zIndex: 11,
+                    }}>
+                        <span style={{ fontSize: '10px', fontWeight: 900, color: '#fff', textAlign: 'center', lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.9)', letterSpacing: '0px' }}>
+                            {lang === 'ar' ? 'محظور' : 'BANNED'}
+                        </span>
+                    </div>
                 )}
             </div>
 
@@ -2028,6 +2024,174 @@ const MomentsSettingsSection = ({ currentUser, userData, lang }) => {
     );
 };
 
+// ════════════════════════════════════════════════════════════
+// 🔒 ADMIN BAN MODAL — لوحة الحظر للأدمن
+// ════════════════════════════════════════════════════════════
+const AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
+    const [banDuration, setBanDuration] = useState('7'); // days or 'permanent'
+    const [banReason, setBanReason] = useState('');
+    const [applying, setApplying] = useState(false);
+    const [error, setError] = useState('');
+    const isBanned = isBannedUser(targetData);
+
+    const durationOptions = [
+        { value: '1',         label_ar: 'يوم واحد',   label_en: '1 Day' },
+        { value: '3',         label_ar: '3 أيام',      label_en: '3 Days' },
+        { value: '7',         label_ar: '7 أيام',      label_en: '7 Days' },
+        { value: '14',        label_ar: '14 يوم',      label_en: '14 Days' },
+        { value: '30',        label_ar: '30 يوم',      label_en: '30 Days' },
+        { value: 'permanent', label_ar: 'دائم',        label_en: 'Permanent' },
+    ];
+    const reasonOptions = [
+        { value: 'cheating',  label_ar: 'غش',           label_en: 'Cheating' },
+        { value: 'abuse',     label_ar: 'سلوك مسيء',    label_en: 'Abusive Behavior' },
+        { value: 'spam',      label_ar: 'سبام',          label_en: 'Spam' },
+        { value: 'other',     label_ar: 'سبب آخر',       label_en: 'Other' },
+    ];
+
+    const handleApplyBan = async () => {
+        if (!targetData?.id) return;
+        if (!banReason && !isBanned) { setError(lang === 'ar' ? 'اختر سبب الحظر' : 'Select a ban reason'); return; }
+        setApplying(true);
+        try {
+            if (isBanned) {
+                // Remove ban
+                await usersCollection.doc(targetData.id).update({
+                    'ban.isBanned': false,
+                    'ban.removedAt': firebase.firestore.FieldValue.serverTimestamp(),
+                    'ban.expiresAt': null,
+                });
+                onBanApplied({ isBanned: false });
+                onClose();
+            } else {
+                // Apply ban
+                const expiresAt = banDuration === 'permanent' ? null :
+                    new Date(Date.now() + parseInt(banDuration) * 24 * 60 * 60 * 1000);
+                const banData = {
+                    isBanned: true,
+                    reason: banReason,
+                    bannedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    expiresAt: expiresAt,
+                    duration: banDuration,
+                };
+                await usersCollection.doc(targetData.id).update({ ban: banData });
+                onBanApplied({ ...banData, expiresAt });
+                onClose();
+            }
+        } catch (e) {
+            setError(lang === 'ar' ? 'حدث خطأ، حاول مجدداً' : 'An error occurred, try again');
+        }
+        setApplying(false);
+    };
+
+    return (
+        <PortalModal>
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.88)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.TOOLTIP, padding:'16px' }}
+                onClick={onClose}>
+                <div style={{ background:'linear-gradient(160deg,#1a0005,#0f0f1e)', border:'1.5px solid rgba(239,68,68,0.4)', borderRadius:'18px', padding:'22px 18px', maxWidth:'340px', width:'100%', boxShadow:'0 20px 60px rgba(239,68,68,0.15)' }}
+                    onClick={e => e.stopPropagation()}>
+
+                    {/* Header */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'18px' }}>
+                        <span style={{ fontSize:'28px' }}>{isBanned ? '🔓' : '🔒'}</span>
+                        <div>
+                            <div style={{ fontSize:'14px', fontWeight:900, color:'#f87171' }}>
+                                {isBanned
+                                    ? (lang === 'ar' ? 'رفع الحظر' : 'Remove Ban')
+                                    : (lang === 'ar' ? 'حظر الحساب' : 'Ban Account')}
+                            </div>
+                            <div style={{ fontSize:'11px', color:'#9ca3af', marginTop:'2px' }}>
+                                {targetData?.displayName || targetData?.id}
+                            </div>
+                        </div>
+                    </div>
+
+                    {isBanned ? (
+                        /* Current ban info + remove option */
+                        <div style={{ marginBottom:'16px' }}>
+                            <div style={{ padding:'12px', borderRadius:'10px', background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', marginBottom:'12px' }}>
+                                <div style={{ fontSize:'11px', fontWeight:700, color:'#f87171', marginBottom:'4px' }}>
+                                    {lang === 'ar' ? '⚠️ هذا الحساب محظور حالياً' : '⚠️ This account is currently banned'}
+                                </div>
+                                {targetData?.ban?.reason && (
+                                    <div style={{ fontSize:'10px', color:'#fca5a5' }}>
+                                        {lang === 'ar' ? 'السبب: ' : 'Reason: '}{targetData.ban.reason}
+                                    </div>
+                                )}
+                                <div style={{ fontSize:'10px', color:'#9ca3af', marginTop:'2px' }}>
+                                    {lang === 'ar' ? 'ينتهي: ' : 'Expires: '}
+                                    <span style={{ color:'#fbbf24', fontWeight:700 }}>{formatBanExpiry(targetData, lang)}</span>
+                                </div>
+                            </div>
+                            <p style={{ fontSize:'11px', color:'#9ca3af', textAlign:'center' }}>
+                                {lang === 'ar' ? 'هل تريد رفع الحظر عن هذا الحساب؟' : 'Do you want to remove the ban from this account?'}
+                            </p>
+                        </div>
+                    ) : (
+                        /* Ban options */
+                        <div style={{ display:'flex', flexDirection:'column', gap:'12px', marginBottom:'16px' }}>
+                            {/* Duration */}
+                            <div>
+                                <div style={{ fontSize:'11px', fontWeight:700, color:'#9ca3af', marginBottom:'6px' }}>
+                                    {lang === 'ar' ? '⏱ مدة الحظر' : '⏱ Ban Duration'}
+                                </div>
+                                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
+                                    {durationOptions.map(opt => (
+                                        <button key={opt.value} onClick={() => setBanDuration(opt.value)} style={{
+                                            padding:'5px 10px', borderRadius:'8px', fontSize:'11px', fontWeight:700, cursor:'pointer', border:'none',
+                                            background: banDuration === opt.value ? (opt.value === 'permanent' ? 'rgba(239,68,68,0.35)' : 'rgba(239,68,68,0.25)') : 'rgba(255,255,255,0.06)',
+                                            color: banDuration === opt.value ? (opt.value === 'permanent' ? '#ff6b6b' : '#fca5a5') : '#6b7280',
+                                            border: banDuration === opt.value ? `1px solid rgba(239,68,68,0.5)` : '1px solid rgba(255,255,255,0.08)',
+                                        }}>
+                                            {lang === 'ar' ? opt.label_ar : opt.label_en}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            {/* Reason */}
+                            <div>
+                                <div style={{ fontSize:'11px', fontWeight:700, color:'#9ca3af', marginBottom:'6px' }}>
+                                    {lang === 'ar' ? '📋 سبب الحظر' : '📋 Ban Reason'}
+                                </div>
+                                <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+                                    {reasonOptions.map(opt => (
+                                        <button key={opt.value} onClick={() => setBanReason(lang === 'ar' ? opt.label_ar : opt.label_en)} style={{
+                                            padding:'7px 12px', borderRadius:'8px', fontSize:'12px', fontWeight:600, cursor:'pointer',
+                                            display:'flex', alignItems:'center', textAlign: lang==='ar'?'right':'left',
+                                            background: banReason === (lang === 'ar' ? opt.label_ar : opt.label_en) ? 'rgba(239,68,68,0.18)' : 'rgba(255,255,255,0.04)',
+                                            color: banReason === (lang === 'ar' ? opt.label_ar : opt.label_en) ? '#fca5a5' : '#9ca3af',
+                                            border: banReason === (lang === 'ar' ? opt.label_ar : opt.label_en) ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                                        }}>
+                                            {lang === 'ar' ? opt.label_ar : opt.label_en}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {error && <div style={{ fontSize:'11px', color:'#f87171', textAlign:'center', marginBottom:'10px' }}>{error}</div>}
+
+                    {/* Action buttons */}
+                    <div style={{ display:'flex', gap:'8px' }}>
+                        <button onClick={onClose} style={{ flex:1, padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>
+                            {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                        </button>
+                        <button onClick={handleApplyBan} disabled={applying}
+                            style={{ flex:1, padding:'10px', borderRadius:'10px', fontSize:'13px', fontWeight:800, cursor:applying?'not-allowed':'pointer', opacity:applying?0.6:1,
+                                background: isBanned ? 'rgba(74,222,128,0.2)' : 'rgba(239,68,68,0.25)',
+                                border: isBanned ? '1px solid rgba(74,222,128,0.4)' : '1px solid rgba(239,68,68,0.45)',
+                                color: isBanned ? '#4ade80' : '#f87171',
+                            }}>
+                            {applying ? '...' : isBanned ? (lang === 'ar' ? '✅ رفع الحظر' : '✅ Remove Ban') : (lang === 'ar' ? '🔒 تطبيق الحظر' : '🔒 Apply Ban')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </PortalModal>
+    );
+};
+
 // 🎯 PROFILE V11 - MAIN COMPONENT
 const ProfileV11 = ({
     show,
@@ -2076,6 +2240,8 @@ const ProfileV11 = ({
     const [reportSending, setReportSending] = useState(false);
     const [selfGift, setSelfGift] = useState(null);
     const [showSelfGiftModal, setShowSelfGiftModal] = useState(false);
+
+    const [showBanModal, setShowBanModal] = useState(false);
 
     const optionsRef = useRef(null);
 
@@ -2270,6 +2436,14 @@ const ProfileV11 = ({
                                         <span>🚨</span>
                                         <span>{lang === 'ar' ? 'إبلاغ' : 'Report'}</span>
                                     </button>
+                                    {/* 🔒 ADMIN ONLY - Ban/Unban */}
+                                    {isAdmin(currentUserUID) && !isTargetGuest && (
+                                        <button onClick={() => { setShowBanModal(true); setShowOptionsMenu(false); }}
+                                            style={{ display:'flex', alignItems:'center', gap:'6px', width:'100%', padding:'10px 14px', background:'rgba(239,68,68,0.12)', border:'none', borderTop:'1px solid rgba(239,68,68,0.2)', color:'#f87171', fontSize:'13px', fontWeight:700, cursor:'pointer', textAlign: lang==='ar'?'right':'left' }}>
+                                            <span>🔒</span>
+                                            <span>{isBannedUser(targetData) ? (lang === 'ar' ? 'رفع الحظر' : 'Remove Ban') : (lang === 'ar' ? 'حظر الحساب' : 'Ban Account')}</span>
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -2344,6 +2518,8 @@ const ProfileV11 = ({
                             size="lg"
                             isOnline={targetData?.isOnline}
                             effectId={targetData?.equipped?.profileEffects}
+                            banData={targetData?.ban}
+                            lang={lang}
                         />
                     </div>
                 </div>
@@ -2360,6 +2536,38 @@ const ProfileV11 = ({
                     </div>
                 ) : (
                     <>
+                        {/* 🚫 BAN NOTICE BANNER */}
+                        {isBannedUser(targetData) && (
+                            <div style={{
+                                margin: '0 12px 6px',
+                                padding: '10px 14px',
+                                borderRadius: '12px',
+                                background: 'linear-gradient(135deg, rgba(220,0,0,0.18), rgba(139,0,0,0.12))',
+                                border: '1.5px solid rgba(239,68,68,0.5)',
+                                display: 'flex', alignItems: 'flex-start', gap: '10px',
+                                boxShadow: '0 0 20px rgba(220,0,0,0.15)',
+                            }}>
+                                <span style={{ fontSize: '22px', flexShrink: 0, lineHeight: 1 }}>🚫</span>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '12px', fontWeight: 900, color: '#f87171', marginBottom: '3px', letterSpacing: '0.3px' }}>
+                                        {lang === 'ar' ? 'هذا الحساب محظور' : 'This Account is Banned'}
+                                    </div>
+                                    {targetData?.ban?.reason && (
+                                        <div style={{ fontSize: '10px', color: '#fca5a5', marginBottom: '3px' }}>
+                                            <span style={{ color: '#9ca3af' }}>{lang === 'ar' ? 'السبب: ' : 'Reason: '}</span>
+                                            {targetData.ban.reason}
+                                        </div>
+                                    )}
+                                    <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+                                        <span>{lang === 'ar' ? 'ينتهي: ' : 'Expires: '}</span>
+                                        <span style={{ color: targetData?.ban?.expiresAt ? '#fbbf24' : '#f87171', fontWeight: 700 }}>
+                                            {formatBanExpiry(targetData, lang)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="profile-identity">
                             <div className="profile-name-row">
                                 <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
@@ -2637,6 +2845,18 @@ const ProfileV11 = ({
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* 🔒 ADMIN BAN MODAL */}
+                {showBanModal && isAdmin(currentUserUID) && (
+                    <AdminBanModal
+                        targetData={targetData}
+                        lang={lang}
+                        onClose={() => setShowBanModal(false)}
+                        onBanApplied={(newBan) => {
+                            setTargetData(prev => ({ ...prev, ban: newBan }));
+                        }}
+                    />
                 )}
             </div>
 
