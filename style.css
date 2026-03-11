@@ -3953,3 +3953,34 @@ body {
     vertical-align: middle;
     margin-left: 4px;
 }
+
+/* ==========================================
+   👑 STAFF ROLE BADGE STYLES
+   ========================================== */
+
+/* Owner badge — gold glow */
+.role-badge-owner {
+    animation: role-owner-pulse 2.5s ease-in-out infinite;
+}
+@keyframes role-owner-pulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(255,215,0,0.5); }
+    50%       { box-shadow: 0 0 16px rgba(255,215,0,0.9), 0 0 28px rgba(255,140,0,0.4); }
+}
+
+/* Admin badge — red glow */
+.role-badge-admin {
+    animation: role-admin-pulse 2.5s ease-in-out infinite;
+}
+@keyframes role-admin-pulse {
+    0%, 100% { box-shadow: 0 0 5px rgba(239,68,68,0.4); }
+    50%       { box-shadow: 0 0 14px rgba(239,68,68,0.8); }
+}
+
+/* Moderator badge — blue glow */
+.role-badge-mod {
+    animation: role-mod-pulse 2.5s ease-in-out infinite;
+}
+@keyframes role-mod-pulse {
+    0%, 100% { box-shadow: 0 0 5px rgba(59,130,246,0.4); }
+    50%       { box-shadow: 0 0 12px rgba(59,130,246,0.7); }
+}
