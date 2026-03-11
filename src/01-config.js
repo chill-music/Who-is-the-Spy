@@ -71,7 +71,7 @@ const MAX_GIFT_LOG_DISPLAY = 10;
 // 🔒 ADMIN SYSTEM — ضع Firebase UID بتاعك هنا
 // ════════════════════════════════════════════════════════
 const ADMIN_UIDS = [
-    'REPLACE_WITH_YOUR_FIREBASE_UID', // ← ضع الـ UID بتاعك هنا (Owner)
+    'PfZAViU4swQdbBZOfqJDnPZSs9l2', // ← ضع الـ UID بتاعك هنا (Owner)
 ];
 // Owner = أول UID في القائمة — صلاحيات كاملة لا تُنتزع
 const OWNER_UID = ADMIN_UIDS[0];
