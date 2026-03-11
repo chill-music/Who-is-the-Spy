@@ -61,6 +61,8 @@ function App() {
     const [showSettings, setShowSettings] = useState(false);
     const [soundMuted, setSoundMuted] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
     const [showAdminPanel, setShowAdminPanel] = useState(false);
+    const [showFriendsMoments, setShowFriendsMoments] = useState(false);
+    const [showTribeModal, setShowTribeModal] = useState(false);
 
     // Click outside handler for notification dropdown
     useEffect(() => {
@@ -306,6 +308,11 @@ function App() {
                     const existingData = doc.data();
                     setUserData(existingData);
                     if (existingData.displayName) setNickname(existingData.displayName);
+                    // ✅ Load saved language from Firestore
+                    if (existingData.lang && (existingData.lang === 'ar' || existingData.lang === 'en')) {
+                        setLang(existingData.lang);
+                        localStorage.setItem('pro_spy_lang', existingData.lang);
+                    }
 
                     if (checkLoginRewardsCycle(existingData)) {
                         await userRef.update({ 'loginRewards.currentDay': 0, 'loginRewards.streak': 0, 'loginRewards.cycleMonth': getCurrentCycleMonth() });
@@ -788,15 +795,17 @@ function App() {
     const handleAddFriendById = useCallback(async () => {
         if (!addFriendId.trim() || !isLoggedIn) return;
         setFriendSearchMsg('');
-        const userQuery = await usersCollection.where('customId', '==', addFriendId.trim()).get();
-        if (userQuery.empty) { const uidQuery = await usersCollection.where(firebase.firestore.FieldPath.documentId(), '>=', addFriendId.trim()).where(firebase.firestore.FieldPath.documentId(), '<=', addFriendId.trim() + '\uf8ff').get(); if (uidQuery.empty) { setFriendSearchMsg(t.friendNotFound); return; } const targetUid = uidQuery.docs[0].id; if (targetUid === user.uid) { setFriendSearchMsg(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself'); return; } if (userData.friends?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'صديق بالفعل' : 'Already a friend'); return; } await handleSendRequest(targetUid); setFriendSearchMsg(t.requestSent); setAddFriendId(''); return; }
-        const targetUid = userQuery.docs[0].id;
-        if (targetUid === user.uid) { setFriendSearchMsg(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself'); return; }
-        if (userData.friends?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'صديق بالفعل' : 'Already a friend'); return; }
-        if (userData.friendRequests?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'لديك طلب من هذا المستخدم' : 'You have a request from this user'); return; }
-        await handleSendRequest(targetUid);
-        setFriendSearchMsg(t.requestSent);
-        setAddFriendId('');
+        try {
+            const userQuery = await usersCollection.where('customId', '==', addFriendId.trim()).get();
+            if (userQuery.empty) { setFriendSearchMsg(t.friendNotFound); return; }
+            const targetUid = userQuery.docs[0].id;
+            if (targetUid === user.uid) { setFriendSearchMsg(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself'); return; }
+            if (userData.friends?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'صديق بالفعل' : 'Already a friend'); return; }
+            if (userData.friendRequests?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'لديك طلب من هذا المستخدم' : 'You have a request from this user'); return; }
+            await handleSendRequest(targetUid);
+            setFriendSearchMsg(t.requestSent);
+            setAddFriendId('');
+        } catch (e) { console.error('addFriend error:', e); setFriendSearchMsg(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
     }, [addFriendId, isLoggedIn, userData, user, t, lang, handleSendRequest]);
     const handleAcceptRequest = useCallback(async (fromUid) => {
         if (!user || !isLoggedIn) return;
@@ -1267,6 +1276,34 @@ function App() {
                 onOpenProfile={(uid) => { setShowAdminPanel(false); openProfile(uid); }}
             />
 
+            {/* 📸 Friends Moments Modal */}
+            {showFriendsMoments && (
+                <FriendsMomentsModal
+                    show={showFriendsMoments}
+                    onClose={() => setShowFriendsMoments(false)}
+                    currentUser={user}
+                    currentUserData={currentUserData}
+                    currentUID={currentUID}
+                    friendsData={friendsData}
+                    lang={lang}
+                    onOpenProfile={(uid) => { setShowFriendsMoments(false); openProfile(uid); }}
+                />
+            )}
+
+            {/* ⚔️ Tribe Modal */}
+            {showTribeModal && (
+                <TribeModal
+                    show={showTribeModal}
+                    onClose={() => setShowTribeModal(false)}
+                    currentUser={user}
+                    currentUserData={currentUserData}
+                    currentUID={currentUID}
+                    lang={lang}
+                    isLoggedIn={isLoggedIn}
+                    onNotification={setNotification}
+                />
+            )}
+
             {showMyAccount && currentUID && (
                 <ProfileV11
                     show={showMyAccount}
@@ -1735,8 +1772,8 @@ function App() {
                                 <span className="sec-title-new">🔥 {lang==='ar'?'اكتشف':'Discover'}</span>
                             </div>
 
-                            {/* Moments Card - Coming Soon */}
-                            <div className="discover-card-cs" style={{'--dc-color':'rgba(0,242,255,0.12)','--dc-border':'rgba(0,242,255,0.2)'}}>
+                            {/* Moments Card — Active */}
+                            <div className="discover-card-cs" style={{'--dc-color':'rgba(0,242,255,0.12)','--dc-border':'rgba(0,242,255,0.2)',cursor:'pointer'}} onClick={()=>setShowFriendsMoments(true)}>
                                 <div className="dc-left">
                                     <div className="dc-icon" style={{background:'rgba(0,242,255,0.15)'}}>📸</div>
                                 </div>
@@ -1744,7 +1781,7 @@ function App() {
                                     <div className="dc-title">{lang==='ar'?'مومنت الأصدقاء':'Friends Moments'}</div>
                                     <div className="dc-desc">{lang==='ar'?'شارك لحظاتك مع أصدقائك':'Share your moments with friends'}</div>
                                 </div>
-                                <div className="dc-badge">{lang==='ar'?'قريباً':'Soon'}</div>
+                                <div style={{fontSize:'16px',color:'#00f2ff'}}>›</div>
                             </div>
 
                             {/* Passport Card - Coming Soon */}
@@ -1759,8 +1796,8 @@ function App() {
                                 <div className="dc-badge">{lang==='ar'?'قريباً':'Soon'}</div>
                             </div>
 
-                            {/* Tribe Card - Coming Soon */}
-                            <div className="discover-card-cs" style={{'--dc-color':'rgba(255,136,0,0.1)','--dc-border':'rgba(255,136,0,0.2)'}}>
+                            {/* Tribe Card — Active */}
+                            <div className="discover-card-cs" style={{'--dc-color':'rgba(255,136,0,0.1)','--dc-border':'rgba(255,136,0,0.2)',cursor:'pointer'}} onClick={()=>setShowTribeModal(true)}>
                                 <div className="dc-left">
                                     <div className="dc-icon" style={{background:'rgba(255,136,0,0.15)'}}>⚔️</div>
                                 </div>
@@ -1768,7 +1805,7 @@ function App() {
                                     <div className="dc-title">{lang==='ar'?'القبيلة':'Tribe'}</div>
                                     <div className="dc-desc">{lang==='ar'?'انضم أو أنشئ قبيلتك وتنافس':'Join or create your tribe and compete'}</div>
                                 </div>
-                                <div className="dc-badge">{lang==='ar'?'قريباً':'Soon'}</div>
+                                <div style={{fontSize:'16px',color:'#f97316'}}>›</div>
                             </div>
                         </div>
                     )}
