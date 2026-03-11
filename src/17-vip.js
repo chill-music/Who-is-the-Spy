@@ -425,6 +425,36 @@ const VIPChatTitle = ({ userData }) => {
 };
 
 // ════════════════════════════════════════════════════════════
+// 👑 STAFF ROLE BADGE — يظهر في كل مكان
+// ════════════════════════════════════════════════════════════
+const StaffRoleBadge = ({ userData, uid, lang, size = 'sm' }) => {
+    const role = getUserRole(userData, uid);
+    if (!role) return null;
+    const cfg = ROLE_CONFIG[role];
+    const isMd = size === 'md';
+
+    return (
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '2px',
+            fontSize: isMd ? '10px' : '8px',
+            fontWeight: 900,
+            color: cfg.color,
+            background: cfg.bg,
+            border: `1px solid ${cfg.border}`,
+            borderRadius: '5px',
+            padding: isMd ? '2px 7px' : '1px 5px',
+            letterSpacing: '0.3px',
+            boxShadow: `0 0 8px ${cfg.glow}`,
+            whiteSpace: 'nowrap',
+            lineHeight: 1.4,
+            flexShrink: 0,
+        }}>
+            {cfg.icon} {lang === 'ar' ? cfg.label_ar : cfg.label_en}
+        </span>
+    );
+};
+
+// ════════════════════════════════════════════════════════════
 // 🏷️  PLAYER NAME TAG
 // الكومبوننت الموحّد لعرض اللاعب في كل مكان:
 //   لوبي · ليدر بورد · أصدقاء · تصويت · أي مكان تاني
@@ -443,6 +473,8 @@ const PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
     const equipped  = player.equipped || {};
     const vipActive = getVIPLevel(player) > 0;
     const banData   = player.ban || null;
+    const playerUID = player.uid || player.id || null;
+    const playerRole = getUserRole(player, playerUID);
 
     // Title
     const titleId   = equipped.titles;
@@ -472,7 +504,7 @@ const PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
             {/* ── Info ── */}
             <div style={{ display:'flex', flexDirection:'column', gap:'2px', minWidth:0 }}>
 
-                {/* Row 1 — Name + VIP badge + ban indicator */}
+                {/* Row 1 — Name + VIP badge + role badge + ban indicator */}
                 <div style={{ display:'flex', alignItems:'center', gap:'4px', flexWrap:'nowrap' }}>
                     <VIPName
                         displayName={name}
@@ -483,6 +515,9 @@ const PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
                     />
                     {vipActive && (
                         <VIPBadge userData={player} size="sm" onClick={() => {}} />
+                    )}
+                    {playerRole && (
+                        <StaffRoleBadge userData={player} uid={playerUID} lang={lang} size="sm" />
                     )}
                     {banData?.isBanned && (!banData.expiresAt || new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))) && (
                         <span className="banned-name-indicator">🚫</span>
