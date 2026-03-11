@@ -553,7 +553,15 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
     const [groupName, setGroupName] = React.useState('');
     const [creating, setCreating] = React.useState(false);
     const [loadingGroups, setLoadingGroups] = React.useState(true);
+    const [showEmojiPicker, setShowEmojiPicker] = React.useState(false);
+    const [uploadingImg, setUploadingImg] = React.useState(false);
+    const [showDetails, setShowDetails] = React.useState(false);
+    const [membersData, setMembersData] = React.useState([]);
+    const [loadingMembers, setLoadingMembers] = React.useState(false);
     const messagesEndRef = React.useRef(null);
+    const chatInputRef = React.useRef(null);
+    const fileInputRef = React.useRef(null);
+    const groupImgInputRef = React.useRef(null);
 
     // ✅ No orderBy → no index needed, sort client-side
     React.useEffect(() => {
@@ -676,6 +684,77 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
         } catch (e) { console.error('sendMessage error:', e); }
     };
 
+    const handleImageSelect = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file || !file.type.startsWith('image/') || !activeGroup || !currentUID) return;
+        setUploadingImg(true);
+        try {
+            const base64 = await compressImageToBase64(file);
+            const nowMs = Date.now();
+            await groupsCollection.doc(activeGroup.id).collection('messages').add({
+                text: '📷', senderId: currentUID,
+                senderName: currentUserData?.displayName || 'User',
+                senderPhoto: currentUserData?.photoURL || null,
+                type: 'image', imageData: base64,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            await groupsCollection.doc(activeGroup.id).update({
+                lastMessage: '📷 Photo', lastSenderId: currentUID,
+                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastMessageAtMs: nowMs,
+                [`readBy.${currentUID}`]: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (e) { console.error('Image upload error:', e); }
+        setUploadingImg(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const handleGroupPhotoUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file || !file.type.startsWith('image/') || !activeGroup || !currentUID) return;
+        try {
+            const base64 = await compressImageToBase64(file);
+            await groupsCollection.doc(activeGroup.id).update({ photoURL: base64 });
+            setActiveGroup(g => ({ ...g, photoURL: base64 }));
+            onNotification(lang === 'ar' ? '✅ تم تغيير صورة الجروب' : '✅ Group photo updated');
+        } catch (e) { console.error('Group photo error:', e); }
+        if (groupImgInputRef.current) groupImgInputRef.current.value = '';
+    };
+
+    const makeAdmin = async (memberId) => {
+        if (!activeGroup || !currentUID) return;
+        try {
+            await groupsCollection.doc(activeGroup.id).update({
+                admins: firebase.firestore.FieldValue.arrayUnion(memberId)
+            });
+            setActiveGroup(g => ({ ...g, admins: [...(g.admins || []), memberId] }));
+            onNotification(lang === 'ar' ? '✅ تم ترقية العضو لأدمن' : '✅ Member promoted to admin');
+        } catch (e) { onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+    };
+
+    const removeAdmin = async (memberId) => {
+        if (!activeGroup || !currentUID) return;
+        try {
+            await groupsCollection.doc(activeGroup.id).update({
+                admins: firebase.firestore.FieldValue.arrayRemove(memberId)
+            });
+            setActiveGroup(g => ({ ...g, admins: (g.admins || []).filter(id => id !== memberId) }));
+            onNotification(lang === 'ar' ? '✅ تم إزالة الأدمن' : '✅ Admin removed');
+        } catch (e) { onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+    };
+
+    // Load member details when showing the details panel
+    React.useEffect(() => {
+        if (!showDetails || !activeGroup) return;
+        setLoadingMembers(true);
+        const memberIds = activeGroup.members || [];
+        if (memberIds.length === 0) { setMembersData([]); setLoadingMembers(false); return; }
+        Promise.all(memberIds.map(id =>
+            usersCollection.doc(id).get().then(d => d.exists ? { id, ...d.data() } : { id, displayName: 'Unknown' })
+                .catch(() => ({ id, displayName: 'Unknown' }))
+        )).then(ms => { setMembersData(ms); setLoadingMembers(false); });
+    }, [showDetails, activeGroup?.id]);
+
     const hasUnread = (group) => {
         const readAt = group.readBy?.[currentUID];
         if (!readAt || !group.lastMessageAt) return false;
@@ -697,74 +776,211 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
         </div>
     );
 
-    /* ── CHAT VIEW ── */
+    /* ── CHAT VIEW — as portal overlay so it doesn't affect parent layout ── */
     if (activeGroup) {
+        const isOwner = activeGroup.createdBy === currentUID;
         const isAdm = activeGroup.admins?.includes(currentUID);
         const grpLvl = getGroupLevel(activeGroup.xp || 0);
         return (
-            <div style={{display:'flex',flexDirection:'column',height:'calc(100vh - 160px)',minHeight:'380px',position:'relative'}}>
-                <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
-                    <button onClick={()=>setActiveGroup(null)} style={{background:'none',border:'none',color:'#00f2ff',fontSize:'18px',cursor:'pointer',padding:'0 4px'}}>‹</button>
-                    <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(167,139,250,0.3),rgba(112,0,255,0.2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>👨‍👩‍👧</div>
-                    <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{activeGroup.name}</div>
-                        <div style={{fontSize:'10px',color:'#6b7280',display:'flex',alignItems:'center',gap:'6px'}}>
-                            <span>{activeGroup.members?.length||1} {lang==='ar'?'عضو':'members'}</span>
-                            <span style={{color:grpLvl.color,fontWeight:700}}>{grpLvl.icon} Lv.{grpLvl.level}</span>
-                            <span style={{color:'#4b5563'}}>XP: {activeGroup.xp||0}</span>
-                        </div>
-                    </div>
-                    {isAdm && <button onClick={()=>setShowInvite(true)} style={{background:'rgba(167,139,250,0.15)',border:'1px solid rgba(167,139,250,0.3)',borderRadius:'8px',padding:'5px 10px',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>+ {lang==='ar'?'دعوة':'Invite'}</button>}
-                </div>
-                {showInvite && (
-                    <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,background:'rgba(5,5,20,0.96)',zIndex:50,display:'flex',flexDirection:'column',padding:'16px'}}>
-                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
-                            <div style={{fontSize:'14px',fontWeight:800,color:'#a78bfa'}}>👥 {lang==='ar'?'دعوة صديق':'Invite Friend'}</div>
-                            <button onClick={()=>setShowInvite(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>✕</button>
-                        </div>
-                        <div style={{overflowY:'auto',flex:1}}>
-                            {friendsData.filter(f=>!(activeGroup.members||[]).includes(f.id)).length===0
-                                ? <div style={{textAlign:'center',padding:'20px',color:'#6b7280',fontSize:'12px'}}>{lang==='ar'?'لا يوجد أصدقاء لدعوتهم':'No friends to invite'}</div>
-                                : friendsData.filter(f=>!(activeGroup.members||[]).includes(f.id)).map(friend=>(
-                                    <div key={friend.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
-                                        <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0}}>
-                                            {friend.photoURL?<img src={friend.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>😎</div>}
-                                        </div>
-                                        <div style={{flex:1,fontSize:'13px',color:'#e2e8f0',fontWeight:600}}>{friend.displayName}</div>
-                                        <button onClick={()=>inviteFriend(friend.id)} style={{background:'rgba(167,139,250,0.2)',border:'1px solid rgba(167,139,250,0.4)',borderRadius:'8px',padding:'5px 12px',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>+ {lang==='ar'?'أضف':'Add'}</button>
-                                    </div>
-                                ))
-                            }
-                        </div>
-                    </div>
-                )}
-                <div style={{flex:1,overflowY:'auto',padding:'12px 16px',display:'flex',flexDirection:'column',gap:'8px'}}>
-                    {messages.map(msg=>{
-                        if(msg.type==='system') return(
-                            <div key={msg.id} style={{textAlign:'center',fontSize:'10px',color:'#6b7280',padding:'3px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'20px',alignSelf:'center',maxWidth:'80%'}}>{msg.text}</div>
-                        );
-                        const isMe=msg.senderId===currentUID;
-                        return(
-                            <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'8px',alignItems:'flex-end'}}>
-                                {!isMe&&<div style={{width:'26px',height:'26px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0}}>{msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px'}}>😎</div>}</div>}
-                                <div style={{maxWidth:'72%'}}>
-                                    {!isMe&&<div style={{fontSize:'9px',color:'#a78bfa',fontWeight:700,marginBottom:'2px',paddingLeft:'4px'}}>{msg.senderName}</div>}
-                                    <div style={{padding:'8px 12px',borderRadius:isMe?'14px 4px 14px 14px':'4px 14px 14px 14px',background:isMe?'linear-gradient(135deg,rgba(112,0,255,0.45),rgba(0,242,255,0.2))':'rgba(255,255,255,0.08)',border:isMe?'1px solid rgba(0,242,255,0.2)':'1px solid rgba(255,255,255,0.09)',fontSize:'12px',color:'#e2e8f0',lineHeight:1.5}}>{msg.text}</div>
-                                    <div style={{fontSize:'9px',color:'#374151',marginTop:'2px',textAlign:isMe?'right':'left',paddingLeft:'4px',paddingRight:'4px'}}>{fmtTime(msg.createdAt)}</div>
+            <PortalModal>
+                {/* hidden inputs */}
+                <input ref={fileInputRef} type="file" accept="image/*" style={{display:'none'}} onChange={handleImageSelect} />
+                <input ref={groupImgInputRef} type="file" accept="image/*" style={{display:'none'}} onChange={handleGroupPhotoUpload} />
+
+                <div style={{
+                    position:'fixed', inset:0, zIndex:Z.MODAL_HIGH,
+                    background:'rgba(0,0,0,0.7)',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                }}>
+                    <div style={{
+                        display:'flex', flexDirection:'column',
+                        width:'100%', maxWidth:'440px',
+                        height:'88vh', maxHeight:'700px',
+                        background:'linear-gradient(160deg,rgba(5,5,18,0.99),rgba(9,8,26,0.99))',
+                        border:'1px solid rgba(255,255,255,0.09)',
+                        borderRadius:'20px', overflow:'hidden',
+                        boxShadow:'0 28px 70px rgba(0,0,0,0.9)',
+                        margin:'auto', position:'relative',
+                    }}>
+                        {/* ── HEADER ── */}
+                        <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 14px',background:'rgba(7,7,22,1)',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
+                            <button onClick={()=>setActiveGroup(null)} style={{background:'none',border:'none',color:'#00f2ff',fontSize:'20px',cursor:'pointer',padding:'0 4px',lineHeight:1}}>‹</button>
+                            <div
+                                onClick={()=>setShowDetails(true)}
+                                style={{width:'38px',height:'38px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(167,139,250,0.3),rgba(112,0,255,0.2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',flexShrink:0,overflow:'hidden',cursor:'pointer'}}
+                            >
+                                {activeGroup.photoURL
+                                    ? <img src={activeGroup.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                    : '👨‍👩‍👧'}
+                            </div>
+                            <div style={{flex:1,minWidth:0,cursor:'pointer'}} onClick={()=>setShowDetails(true)}>
+                                <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{activeGroup.name}</div>
+                                <div style={{fontSize:'10px',color:'#6b7280',display:'flex',alignItems:'center',gap:'6px'}}>
+                                    <span>{activeGroup.members?.length||1} {lang==='ar'?'عضو':'members'}</span>
+                                    <span style={{color:grpLvl.color,fontWeight:700}}>{grpLvl.icon} Lv.{grpLvl.level}</span>
                                 </div>
                             </div>
-                        );
-                    })}
-                    {messages.length===0&&<div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'8px',color:'#4b5563',paddingTop:'40px'}}><div style={{fontSize:'32px'}}>💬</div><div style={{fontSize:'12px'}}>{lang==='ar'?'ابدأ المحادثة!':'Say hi!'}</div></div>}
-                    <div ref={messagesEndRef}/>
+                            {isAdm && <button onClick={()=>setShowInvite(true)} style={{background:'rgba(167,139,250,0.15)',border:'1px solid rgba(167,139,250,0.3)',borderRadius:'8px',padding:'5px 10px',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>+ {lang==='ar'?'دعوة':'Invite'}</button>}
+                        </div>
+
+                        {/* ── INVITE OVERLAY ── */}
+                        {showInvite && (
+                            <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,background:'rgba(5,5,20,0.97)',zIndex:50,display:'flex',flexDirection:'column',padding:'16px'}}>
+                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
+                                    <div style={{fontSize:'14px',fontWeight:800,color:'#a78bfa'}}>👥 {lang==='ar'?'دعوة صديق':'Invite Friend'}</div>
+                                    <button onClick={()=>setShowInvite(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>✕</button>
+                                </div>
+                                <div style={{overflowY:'auto',flex:1}}>
+                                    {friendsData.filter(f=>!(activeGroup.members||[]).includes(f.id)).length===0
+                                        ? <div style={{textAlign:'center',padding:'20px',color:'#6b7280',fontSize:'12px'}}>{lang==='ar'?'لا يوجد أصدقاء لدعوتهم':'No friends to invite'}</div>
+                                        : friendsData.filter(f=>!(activeGroup.members||[]).includes(f.id)).map(friend=>(
+                                            <div key={friend.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                                                <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0}}>
+                                                    {friend.photoURL?<img src={friend.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>😎</div>}
+                                                </div>
+                                                <div style={{flex:1,fontSize:'13px',color:'#e2e8f0',fontWeight:600}}>{friend.displayName}</div>
+                                                <button onClick={()=>inviteFriend(friend.id)} style={{background:'rgba(167,139,250,0.2)',border:'1px solid rgba(167,139,250,0.4)',borderRadius:'8px',padding:'5px 12px',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>+ {lang==='ar'?'أضف':'Add'}</button>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── DETAILS PANEL ── */}
+                        {showDetails && (
+                            <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,background:'rgba(5,5,20,0.98)',zIndex:50,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
+                                    <div style={{fontSize:'14px',fontWeight:800,color:'#a78bfa'}}>ℹ️ {lang==='ar'?'تفاصيل الجروب':'Group Details'}</div>
+                                    <button onClick={()=>setShowDetails(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>✕</button>
+                                </div>
+                                <div style={{flex:1,overflowY:'auto',padding:'16px'}}>
+                                    {/* Group photo */}
+                                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',marginBottom:'16px',gap:'10px'}}>
+                                        <div style={{position:'relative'}}>
+                                            <div style={{width:'72px',height:'72px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(167,139,250,0.3),rgba(112,0,255,0.2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'36px',overflow:'hidden',border:'2px solid rgba(167,139,250,0.3)'}}>
+                                                {activeGroup.photoURL
+                                                    ? <img src={activeGroup.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                    : '👨‍👩‍👧'}
+                                            </div>
+                                            {isAdm && (
+                                                <button onClick={()=>groupImgInputRef.current?.click()} style={{position:'absolute',bottom:0,right:0,width:'24px',height:'24px',borderRadius:'50%',background:'#a78bfa',border:'2px solid rgba(5,5,20,1)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'12px'}}>📷</button>
+                                            )}
+                                        </div>
+                                        <div style={{fontSize:'16px',fontWeight:800,color:'white'}}>{activeGroup.name}</div>
+                                        <div style={{display:'flex',gap:'8px',fontSize:'11px',color:'#6b7280'}}>
+                                            <span>{activeGroup.members?.length||1} {lang==='ar'?'عضو':'members'}</span>
+                                            <span>·</span>
+                                            <span style={{color:grpLvl.color,fontWeight:700}}>{grpLvl.icon} Lv.{grpLvl.level}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Members list */}
+                                    <div style={{fontSize:'11px',fontWeight:700,color:'#6b7280',marginBottom:'8px',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+                                        👥 {lang==='ar'?'الأعضاء':'Members'} ({activeGroup.members?.length||0})
+                                    </div>
+                                    {loadingMembers ? (
+                                        <div style={{textAlign:'center',padding:'20px',color:'#6b7280'}}>⏳</div>
+                                    ) : membersData.map(member => {
+                                        const isMemberAdm = (activeGroup.admins||[]).includes(member.id);
+                                        const isMemberOwner = activeGroup.createdBy === member.id;
+                                        return (
+                                            <div key={member.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                                                <div style={{width:'38px',height:'38px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0}}>
+                                                    {member.photoURL?<img src={member.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>😎</div>}
+                                                </div>
+                                                <div style={{flex:1,minWidth:0}}>
+                                                    <div style={{fontSize:'13px',fontWeight:700,color:'white',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{member.displayName||'User'}</div>
+                                                    <div style={{fontSize:'10px',color: isMemberOwner?'#ffd700':isMemberAdm?'#ef4444':'#6b7280', fontWeight:700}}>
+                                                        {isMemberOwner ? '👑 '+(lang==='ar'?'مالك':'Owner') : isMemberAdm ? '🛡️ '+(lang==='ar'?'أدمن':'Admin') : '👤 '+(lang==='ar'?'عضو':'Member')}
+                                                    </div>
+                                                </div>
+                                                {/* Admin management - only owner can manage admins */}
+                                                {isOwner && !isMemberOwner && (
+                                                    isMemberAdm ? (
+                                                        <button onClick={()=>removeAdmin(member.id)} style={{background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'7px',padding:'4px 9px',color:'#f87171',fontSize:'10px',fontWeight:700,cursor:'pointer'}}>
+                                                            {lang==='ar'?'إزالة':'Remove'}
+                                                        </button>
+                                                    ) : (
+                                                        <button onClick={()=>makeAdmin(member.id)} style={{background:'rgba(167,139,250,0.15)',border:'1px solid rgba(167,139,250,0.3)',borderRadius:'7px',padding:'4px 9px',color:'#a78bfa',fontSize:'10px',fontWeight:700,cursor:'pointer'}}>
+                                                            {lang==='ar'?'أدمن':'Admin'}
+                                                        </button>
+                                                    )
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── MESSAGES ── */}
+                        <div style={{flex:1,overflowY:'auto',padding:'12px 10px',display:'flex',flexDirection:'column',gap:'4px',background:'linear-gradient(180deg,rgba(5,5,16,0.98),rgba(8,8,22,0.98))'}}>
+                            {messages.map(msg=>{
+                                if(msg.type==='system') return(
+                                    <div key={msg.id} style={{textAlign:'center',fontSize:'10px',color:'#6b7280',padding:'3px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'20px',alignSelf:'center',maxWidth:'80%'}}>{msg.text}</div>
+                                );
+                                const isMe=msg.senderId===currentUID;
+                                const isImage=msg.type==='image';
+                                return(
+                                    <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end'}}>
+                                        {!isMe&&<div style={{width:'26px',height:'26px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0}}>
+                                            {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px'}}>😎</div>}
+                                        </div>}
+                                        <div style={{maxWidth:'72%'}}>
+                                            {!isMe&&<div style={{fontSize:'9px',color:'#a78bfa',fontWeight:700,marginBottom:'2px',paddingLeft:'4px'}}>{msg.senderName}</div>}
+                                            {isImage ? (
+                                                <div onClick={()=>{const w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}
+                                                    style={{borderRadius:isMe?'14px 14px 4px 14px':'14px 14px 14px 4px',overflow:'hidden',border:`1px solid ${isMe?'rgba(0,242,255,0.18)':'rgba(255,255,255,0.09)'}`,cursor:'pointer',maxWidth:'200px'}}>
+                                                    <img src={msg.imageData} alt="📷" style={{display:'block',maxWidth:'200px',maxHeight:'200px',objectFit:'cover'}}/>
+                                                </div>
+                                            ) : (
+                                                <div style={{padding:'8px 12px',borderRadius:isMe?'14px 4px 14px 14px':'4px 14px 14px 14px',background:isMe?'linear-gradient(135deg,rgba(112,0,255,0.45),rgba(0,242,255,0.2))':'rgba(255,255,255,0.08)',border:isMe?'1px solid rgba(0,242,255,0.2)':'1px solid rgba(255,255,255,0.09)',fontSize:'12px',color:'#e2e8f0',lineHeight:1.5,wordBreak:'break-word'}}>{msg.text}</div>
+                                            )}
+                                            <div style={{fontSize:'9px',color:'#374151',marginTop:'2px',textAlign:isMe?'right':'left',paddingLeft:'4px',paddingRight:'4px'}}>{fmtTime(msg.createdAt)}</div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            {messages.length===0&&<div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'8px',color:'#4b5563',paddingTop:'40px'}}><div style={{fontSize:'32px'}}>💬</div><div style={{fontSize:'12px'}}>{lang==='ar'?'ابدأ المحادثة!':'Say hi!'}</div></div>}
+                            <div ref={messagesEndRef}/>
+                        </div>
+
+                        {/* ── EMOJI PICKER ── */}
+                        {showEmojiPicker && (
+                            <div style={{position:'absolute',bottom:'58px',left:0,right:0,background:'#0e1020',border:'1px solid rgba(255,255,255,0.09)',borderRadius:'14px 14px 0 0',padding:'10px',zIndex:Z.MODAL_TOP,boxShadow:'0 -14px 44px rgba(0,0,0,0.8)',maxHeight:'220px',overflowY:'auto'}}>
+                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
+                                    <span style={{fontSize:'11px',fontWeight:700,color:'#00f2ff'}}>{lang==='ar'?'اختر إيموجي':'Select Emoji'}</span>
+                                    <button onClick={()=>setShowEmojiPicker(false)} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:'14px'}}>✕</button>
+                                </div>
+                                {React.createElement(EmojiPicker, {
+                                    show: true,
+                                    onClose: () => setShowEmojiPicker(false),
+                                    onSelect: (emoji) => { setMsgText(p=>p+emoji); setShowEmojiPicker(false); chatInputRef.current?.focus(); },
+                                    lang, inline: true,
+                                })}
+                            </div>
+                        )}
+
+                        {/* ── INPUT BAR ── */}
+                        <div style={{display:'flex',gap:'6px',padding:'10px 12px',borderTop:'1px solid rgba(255,255,255,0.07)',flexShrink:0,background:'rgba(0,0,0,0.45)'}}>
+                            <button onClick={()=>setShowEmojiPicker(v=>!v)} style={{width:'36px',height:'36px',borderRadius:'10px',border:`1px solid ${showEmojiPicker?'rgba(0,242,255,0.3)':'rgba(255,255,255,0.08)'}`,background:showEmojiPicker?'rgba(0,242,255,0.12)':'rgba(255,255,255,0.05)',cursor:'pointer',fontSize:'17px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>😀</button>
+                            <button onClick={()=>fileInputRef.current?.click()} disabled={uploadingImg} title={lang==='ar'?'إرسال صورة':'Send image'} style={{width:'36px',height:'36px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.05)',cursor:uploadingImg?'wait':'pointer',fontSize:'15px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,opacity:uploadingImg?0.5:1}}>
+                                {uploadingImg?'⏳':'🖼️'}
+                            </button>
+                            <input
+                                ref={chatInputRef}
+                                value={msgText}
+                                onChange={e=>setMsgText(e.target.value)}
+                                onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),sendMessage())}
+                                style={{flex:1,padding:'9px 14px',borderRadius:'12px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'13px',outline:'none'}}
+                                placeholder={lang==='ar'?'اكتب رسالة...':'Type a message...'}
+                            />
+                            <button onClick={sendMessage} disabled={!msgText.trim()} style={{width:'38px',height:'38px',borderRadius:'12px',border:'none',cursor:'pointer',flexShrink:0,background:msgText.trim()?'linear-gradient(135deg,#7000ff,#00f2ff)':'rgba(255,255,255,0.06)',color:msgText.trim()?'white':'#6b7280',fontSize:'16px',transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center'}}>➤</button>
+                        </div>
+                    </div>
                 </div>
-                <div style={{display:'flex',gap:'8px',padding:'10px 16px',borderTop:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
-                    <input value={msgText} onChange={e=>setMsgText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),sendMessage())}
-                        style={{flex:1,padding:'9px 14px',borderRadius:'12px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'13px',outline:'none'}}
-                        placeholder={lang==='ar'?'اكتب رسالة...':'Type a message...'}/>
-                    <button onClick={sendMessage} disabled={!msgText.trim()} style={{width:'40px',height:'40px',borderRadius:'12px',border:'none',cursor:'pointer',flexShrink:0,background:msgText.trim()?'linear-gradient(135deg,#7000ff,#00f2ff)':'rgba(255,255,255,0.06)',color:msgText.trim()?'white':'#6b7280',fontSize:'18px',transition:'all 0.2s'}}>➤</button>
-                </div>
-            </div>
+            </PortalModal>
         );
     }
 
