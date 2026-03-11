@@ -524,43 +524,80 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification }) 
 
     const myRole = getUserRole(currentUserData, currentUser?.uid);
 
-    // ✅ جلب كل البلاغات بدون orderBy عشان يشمل كل الـ timestamp formats
+    // ✅ جلب كل البلاغات — بدون orderBy لتجنب index issues
     useEffect(() => {
-        // نجيب الكل بدون ترتيب عشان نتجنب مشكلة الـ composite index مع createdAt/timestamp
-        const unsub = reportsCollection.limit(200).onSnapshot(snap => {
-            let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            // نرتبهم client-side — بيشتغل مع createdAt وتimestamp وكمان status
-            data.sort((a, b) => {
-                const ta = a.createdAt?.toMillis?.() || a.timestamp?.toMillis?.() || a.createdAt?.seconds*1000 || a.timestamp?.seconds*1000 || 0;
-                const tb = b.createdAt?.toMillis?.() || b.timestamp?.toMillis?.() || b.createdAt?.seconds*1000 || b.timestamp?.seconds*1000 || 0;
+        let unsubscribed = false;
+
+        const sortReports = (data) => {
+            return data.sort((a, b) => {
+                const ta = a.createdAt?.toMillis?.() || a.timestamp?.toMillis?.()
+                         || (a.createdAt?.seconds  * 1000) || (a.timestamp?.seconds  * 1000) || 0;
+                const tb = b.createdAt?.toMillis?.() || b.timestamp?.toMillis?.()
+                         || (b.createdAt?.seconds  * 1000) || (b.timestamp?.seconds  * 1000) || 0;
                 return tb - ta;
             });
-            setReports(data);
+        };
+
+        // نحاول onSnapshot أولاً
+        let unsub;
+        try {
+            unsub = reportsCollection.limit(200).onSnapshot(
+                snap => {
+                    if (unsubscribed) return;
+                    setReports(sortReports(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+                    setLoading(false);
+                },
+                async (err) => {
+                    // onSnapshot فشل — نستخدم get() بدلاً منه
+                    console.warn('[Reports] onSnapshot failed, falling back to get():', err?.message);
+                    try {
+                        const snap = await reportsCollection.limit(200).get();
+                        if (!unsubscribed) {
+                            setReports(sortReports(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+                            setLoading(false);
+                        }
+                    } catch (e2) {
+                        console.error('[Reports] get() also failed:', e2?.message);
+                        if (!unsubscribed) setLoading(false);
+                    }
+                }
+            );
+        } catch (e) {
+            console.error('[Reports] Failed to init listener:', e?.message);
             setLoading(false);
-        }, () => {
-            // fallback بدون snapshot
-            reportsCollection.limit(200).get().then(snap => {
-                let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                data.sort((a, b) => {
-                    const ta = a.createdAt?.toMillis?.() || a.timestamp?.toMillis?.() || 0;
-                    const tb = b.createdAt?.toMillis?.() || b.timestamp?.toMillis?.() || 0;
-                    return tb - ta;
-                });
-                setReports(data);
-                setLoading(false);
-            });
-        });
-        return unsub;
+        }
+
+        return () => {
+            unsubscribed = true;
+            if (unsub) unsub();
+        };
     }, []);
 
-    // جلب Staff List للـ escalate
+    // ✅ جلب Staff List — fallback لو الـ nested-field query فشلت
     useEffect(() => {
-        usersCollection.where('staffRole.role', 'in', ['admin','moderator']).get()
+        const ownerEntry = { id: OWNER_UID, displayName: 'Owner 👑', staffRole: { role: 'owner' } };
+
+        // نحاول أولاً بـ nested field query
+        usersCollection.where('staffRole.role', 'in', ['admin', 'moderator']).get()
             .then(snap => {
                 const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                // نضيف Owner دايماً
-                setStaffList([{ id: OWNER_UID, displayName: 'Owner 👑', staffRole: { role: 'owner' } }, ...list]);
-            }).catch(() => {});
+                setStaffList([ownerEntry, ...list]);
+            })
+            .catch(() => {
+                // لو فشلت (مش في index)، نجيب كل المستخدمين ونفلتر client-side
+                // بس نحدد limit عشان ما تكونش ثقيلة
+                usersCollection.limit(500).get()
+                    .then(snap => {
+                        const list = snap.docs
+                            .map(d => ({ id: d.id, ...d.data() }))
+                            .filter(u => u.staffRole?.role === 'admin' || u.staffRole?.role === 'moderator');
+                        setStaffList([ownerEntry, ...list]);
+                    })
+                    .catch(() => {
+                        // آخر fallback: بس الـ Owner
+                        setStaffList([ownerEntry]);
+                    });
+            });
     }, []);
 
     // ── Helper: وقت البلاغ ──
@@ -821,12 +858,19 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification }) 
 // 🎫 SUPPORT TICKETS (Moderator + Admin + Owner)
 // ════════════════════════════════════════════════════════
 const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) => {
-    const [tickets, setTickets]           = useState([]);
-    const [loading, setLoading]           = useState(true);
+    const [tickets, setTickets]               = useState([]);
+    const [loading, setLoading]               = useState(true);
     const [selectedTicket, setSelectedTicket] = useState(null);
-    const [replyText, setReplyText]       = useState('');
-    const [replying, setReplying]         = useState(false);
-    const [filterStatus, setFilterStatus] = useState('all');
+    const [replyText, setReplyText]           = useState('');
+    const [replying, setReplying]             = useState(false);
+    const [filterStatus, setFilterStatus]     = useState('all');
+    // Escalation state
+    const [escalating, setEscalating]         = useState(false);
+    const [escalateNote, setEscalateNote]     = useState('');
+    const [escalateTo, setEscalateTo]         = useState('');
+    const [staffList, setStaffList]           = useState([]);
+
+    const myRole = getUserRole(currentUserData, currentUser?.uid);
 
     // جلب التذاكر — بدون orderBy لتجنب index issues
     useEffect(() => {
@@ -848,6 +892,58 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
         }, () => setLoading(false));
         return unsub;
     }, []);
+
+    // جلب Staff List للـ Escalation (أدمن وأونر فقط — فوق المودريتور)
+    useEffect(() => {
+        if (myRole !== 'moderator') return; // الـ escalation للـ moderator بس
+        const ownerEntry = { id: OWNER_UID, displayName: 'Owner 👑', staffRole: { role: 'owner' } };
+        usersCollection.where('staffRole.role', '==', 'admin').get()
+            .then(snap => {
+                const admins = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setStaffList([ownerEntry, ...admins]);
+            })
+            .catch(() => {
+                // fallback: فقط الـ Owner
+                setStaffList([ownerEntry]);
+            });
+    }, [myRole]);
+
+    const handleEscalateTicket = async () => {
+        if (!escalateTo || !selectedTicket) return;
+        try {
+            const targetStaff = staffList.find(s => s.id === escalateTo);
+            await ticketsCollection.doc(selectedTicket.id).update({
+                escalated: true,
+                escalatedTo: escalateTo,
+                escalatedBy: currentUser.uid,
+                escalatedByName: currentUserData?.displayName || 'Moderator',
+                escalatedNote: escalateNote.trim(),
+                escalatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                status: 'open', // يفضل open عشان الأدمن يشوفه
+            });
+            // إشعار للمسؤول
+            await notificationsCollection.add({
+                toUserId: escalateTo,
+                type: 'escalated_ticket',
+                message_en: `Ticket escalated to you by ${currentUserData?.displayName}: "${selectedTicket.subject}"${escalateNote ? ` — Note: ${escalateNote}` : ''}`,
+                message_ar: `تذكرة صُعِّدت إليك من ${currentUserData?.displayName}: "${selectedTicket.subject}"${escalateNote ? ` — ملاحظة: ${escalateNote}` : ''}`,
+                icon: '🔺',
+                read: false,
+                ticketId: selectedTicket.id,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            await logStaffAction(
+                currentUser.uid, currentUserData?.displayName,
+                'ESCALATE_TICKET',
+                selectedTicket.userId, selectedTicket.userName,
+                `Escalated to ${targetStaff?.displayName || escalateTo} | Subject: ${selectedTicket.subject} | Note: ${escalateNote}`
+            );
+            onNotification(`✅ ${lang==='ar'?'تم التصعيد':'Escalated successfully'}`);
+            setEscalating(false);
+            setEscalateNote('');
+            setEscalateTo('');
+        } catch(e) { onNotification('❌ Error'); }
+    };
 
     const handleReply = async () => {
         if (!replyText.trim() || !selectedTicket || !currentUser) return;
@@ -931,8 +1027,8 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
 
     const categoryIcon = { bug:'🐛', account:'👤', payment:'💳', other:'❓' };
 
-    const filteredTickets = filterStatus === 'all'
-        ? tickets
+    const filteredTickets = filterStatus === 'all'       ? tickets
+        : filterStatus === 'escalated' ? tickets.filter(t => t.escalated)
         : tickets.filter(t => t.status === filterStatus);
 
     // ── Detail View ──────────────────────────────────────
@@ -1023,14 +1119,88 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
                             </button>
                         </div>
                     )}
+
+                    {/* 🔺 Escalate — للـ Moderator فقط لو التذكرة مش مصعّدة */}
+                    {myRole === 'moderator' && !selectedTicket.escalated && selectedTicket.status !== 'closed' && (
+                        <div style={{ marginTop:'12px', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'12px' }}>
+                            {!escalating ? (
+                                <button onClick={() => { setEscalating(true); setEscalateTo(''); setEscalateNote(''); }}
+                                    style={{ width:'100%', padding:'7px', borderRadius:'8px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                                        background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)', color:'#f59e0b' }}>
+                                    🔺 {lang==='ar'?'تصعيد للأدمن / الأونر':'Escalate to Admin / Owner'}
+                                </button>
+                            ) : (
+                                <div style={{ background:'rgba(245,158,11,0.06)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:'10px', padding:'12px' }}>
+                                    <div style={{ fontSize:'11px', color:'#f59e0b', fontWeight:700, marginBottom:'10px' }}>
+                                        🔺 {lang==='ar'?'تصعيد التذكرة':'Escalate Ticket'}
+                                    </div>
+                                    <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'5px' }}>
+                                        {lang==='ar'?'اختر من تصعّد إليه:':'Escalate to:'}
+                                    </div>
+                                    <select value={escalateTo} onChange={e => setEscalateTo(e.target.value)}
+                                        style={{ width:'100%', padding:'7px 10px', borderRadius:'7px', fontSize:'12px', marginBottom:'8px',
+                                            background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.12)', color:'white' }}>
+                                        <option value=''>{lang==='ar'?'— اختر —':'— Select —'}</option>
+                                        {staffList.filter(s => s.id !== currentUser?.uid).map(s => (
+                                            <option key={s.id} value={s.id}>
+                                                {s.staffRole?.role === 'owner' ? '👑' : '🛡️'} {s.displayName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'5px' }}>
+                                        {lang==='ar'?'ملاحظة للمسؤول (اختياري):':'Note for staff (optional):'}
+                                    </div>
+                                    <textarea className="input-dark"
+                                        style={{ width:'100%', padding:'7px', borderRadius:'7px', fontSize:'11px', minHeight:'50px', resize:'vertical', marginBottom:'8px' }}
+                                        placeholder={lang==='ar'?'وصف المشكلة أو سبب التصعيد...':'Describe the issue or reason for escalation...'}
+                                        value={escalateNote}
+                                        onChange={e => setEscalateNote(e.target.value)} />
+                                    <div style={{ display:'flex', gap:'6px' }}>
+                                        <button onClick={handleEscalateTicket} disabled={!escalateTo}
+                                            style={{ flex:1, padding:'7px', borderRadius:'7px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                                                background:'rgba(245,158,11,0.2)', border:'1px solid rgba(245,158,11,0.4)', color:'#f59e0b',
+                                                opacity: escalateTo ? 1 : 0.4 }}>
+                                            🔺 {lang==='ar'?'تأكيد التصعيد':'Confirm Escalate'}
+                                        </button>
+                                        <button onClick={() => setEscalating(false)}
+                                            style={{ padding:'7px 12px', borderRadius:'7px', fontSize:'11px', cursor:'pointer',
+                                                background:'rgba(107,114,128,0.15)', border:'1px solid rgba(107,114,128,0.3)', color:'#9ca3af' }}>
+                                            ✕
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* عرض معلومات التصعيد لو التذكرة مصعّدة */}
+                    {selectedTicket.escalated && (
+                        <div style={{ marginTop:'12px', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'12px',
+                            background:'rgba(245,158,11,0.06)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:'8px', padding:'10px', marginTop:'12px' }}>
+                            <span style={{ fontSize:'11px', color:'#f59e0b', fontWeight:700 }}>
+                                🔺 {lang==='ar'?'تم التصعيد':'Escalated'}
+                            </span>
+                            {selectedTicket.escalatedByName && (
+                                <span style={{ fontSize:'10px', color:'#6b7280', marginLeft:'8px' }}>
+                                    {lang==='ar'?'بواسطة':'by'} {selectedTicket.escalatedByName}
+                                </span>
+                            )}
+                            {selectedTicket.escalatedNote && (
+                                <div style={{ fontSize:'11px', color:'#9ca3af', marginTop:'4px' }}>
+                                    {selectedTicket.escalatedNote}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );
     }
 
     // ── List View ────────────────────────────────────────
-    const openCount = tickets.filter(t => t.status === 'open').length;
-    const answeredCount = tickets.filter(t => t.status === 'answered').length;
+    const openCount      = tickets.filter(t => t.status === 'open').length;
+    const answeredCount  = tickets.filter(t => t.status === 'answered').length;
+    const escalatedCount = tickets.filter(t => t.escalated).length;
 
     return (
         <div>
@@ -1042,13 +1212,14 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
             </div>
 
             {/* Stats */}
-            <div style={{ display:'flex', gap:'8px', marginBottom:'12px' }}>
+            <div style={{ display:'flex', gap:'8px', marginBottom:'12px', flexWrap:'wrap' }}>
                 {[
-                    { label: lang==='ar'?'مفتوح':'Open',    val: openCount,                                    color:'#ef4444' },
-                    { label: lang==='ar'?'تم الرد':'Answered', val: answeredCount,                              color:'#f59e0b' },
-                    { label: lang==='ar'?'مغلق':'Closed',   val: tickets.filter(t=>t.status==='closed').length, color:'#6b7280' },
+                    { label: lang==='ar'?'مفتوح':'Open',       val: openCount,                                    color:'#ef4444' },
+                    { label: lang==='ar'?'تم الرد':'Answered',  val: answeredCount,                                color:'#f59e0b' },
+                    { label: lang==='ar'?'مصعَّد':'Escalated',   val: escalatedCount,                              color:'#f97316' },
+                    { label: lang==='ar'?'مغلق':'Closed',       val: tickets.filter(t=>t.status==='closed').length, color:'#6b7280' },
                 ].map(s => (
-                    <div key={s.label} style={{ flex:1, background:`${s.color}10`, border:`1px solid ${s.color}25`, borderRadius:'8px', padding:'8px', textAlign:'center' }}>
+                    <div key={s.label} style={{ flex:1, minWidth:'60px', background:`${s.color}10`, border:`1px solid ${s.color}25`, borderRadius:'8px', padding:'8px', textAlign:'center' }}>
                         <div style={{ fontSize:'16px', fontWeight:800, color:s.color }}>{s.val}</div>
                         <div style={{ fontSize:'9px', color:'#6b7280', textTransform:'uppercase' }}>{s.label}</div>
                     </div>
@@ -1057,8 +1228,10 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
 
             {/* Filter */}
             <div style={{ display:'flex', gap:'6px', marginBottom:'12px', flexWrap:'wrap' }}>
-                {['all','open','answered','closed'].map(f => {
-                    const sc = statusConfig[f] || { color:'#9ca3af', label_ar:'الكل', label_en:'All' };
+                {['all','open','answered','escalated','closed'].map(f => {
+                    const sc = f === 'escalated'
+                        ? { color:'#f97316', label_ar:'مصعَّد', label_en:'Escalated' }
+                        : (statusConfig[f] || { color:'#9ca3af', label_ar:'الكل', label_en:'All' });
                     return (
                         <button key={f} onClick={() => setFilterStatus(f)}
                             style={{ padding:'4px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight: filterStatus===f?700:400,
@@ -1080,27 +1253,31 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
                     )}
                     {filteredTickets.map(ticket => {
                         const sc = statusConfig[ticket.status] || statusConfig.open;
-                        const hasUnread = ticket.status === 'open' && (ticket.responses||[]).length === 0;
+                        const hasUnread  = ticket.status === 'open' && (ticket.responses||[]).length === 0;
+                        const isEscalated = !!ticket.escalated;
                         return (
                             <div key={ticket.id} onClick={() => setSelectedTicket(ticket)}
                                 style={{
-                                    background: hasUnread ? 'rgba(99,102,241,0.06)' : 'rgba(255,255,255,0.03)',
-                                    border:`1px solid ${hasUnread?'rgba(99,102,241,0.3)':'rgba(255,255,255,0.08)'}`,
+                                    background: isEscalated ? 'rgba(249,115,22,0.06)' : hasUnread ? 'rgba(99,102,241,0.06)' : 'rgba(255,255,255,0.03)',
+                                    border:`1px solid ${isEscalated?'rgba(249,115,22,0.3)':hasUnread?'rgba(99,102,241,0.3)':'rgba(255,255,255,0.08)'}`,
                                     borderRadius:'10px', padding:'12px', cursor:'pointer', transition:'all 0.15s',
-                                    borderLeft:`3px solid ${sc.color}`
+                                    borderLeft:`3px solid ${isEscalated?'#f97316':sc.color}`
                                 }}
                                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-                                onMouseLeave={e => e.currentTarget.style.background = hasUnread?'rgba(99,102,241,0.06)':'rgba(255,255,255,0.03)'}>
+                                onMouseLeave={e => e.currentTarget.style.background = isEscalated?'rgba(249,115,22,0.06)':hasUnread?'rgba(99,102,241,0.06)':'rgba(255,255,255,0.03)'}>
                                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px' }}>
                                     <div style={{ display:'flex', alignItems:'center', gap:'6px', minWidth:0 }}>
-                                        {hasUnread && <span style={{ width:'7px', height:'7px', borderRadius:'50%', background:'#6366f1', flexShrink:0, display:'inline-block' }} />}
+                                        {isEscalated && <span style={{ fontSize:'11px' }}>🔺</span>}
+                                        {!isEscalated && hasUnread && <span style={{ width:'7px', height:'7px', borderRadius:'50%', background:'#6366f1', flexShrink:0, display:'inline-block' }} />}
                                         <span style={{ fontSize:'12px', fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                                             {categoryIcon[ticket.category]||'❓'} {ticket.subject || (lang==='ar'?'بدون عنوان':'No subject')}
                                         </span>
                                     </div>
                                     <span style={{ fontSize:'10px', padding:'2px 8px', borderRadius:'4px', fontWeight:700, flexShrink:0, marginLeft:'8px',
-                                        background:sc.bg, border:`1px solid ${sc.color}35`, color:sc.color }}>
-                                        {lang==='ar'?sc.label_ar:sc.label_en}
+                                        background: isEscalated?'rgba(249,115,22,0.15)':sc.bg,
+                                        border:`1px solid ${isEscalated?'rgba(249,115,22,0.4)':sc.color+'35'}`,
+                                        color: isEscalated?'#f97316':sc.color }}>
+                                        {isEscalated?(lang==='ar'?'🔺 مصعَّد':'🔺 Escalated'):(lang==='ar'?sc.label_ar:sc.label_en)}
                                     </span>
                                 </div>
                                 <div style={{ fontSize:'11px', color:'#9ca3af', display:'flex', justifyContent:'space-between' }}>
