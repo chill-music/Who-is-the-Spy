@@ -71,9 +71,80 @@ const MAX_GIFT_LOG_DISPLAY = 10;
 // 🔒 ADMIN SYSTEM — ضع Firebase UID بتاعك هنا
 // ════════════════════════════════════════════════════════
 const ADMIN_UIDS = [
-    'PfZAViU4swQdbBZOfqJDnPZSs9l2', // ← ضع الـ UID بتاعك هنا
+    'REPLACE_WITH_YOUR_FIREBASE_UID', // ← ضع الـ UID بتاعك هنا (Owner)
 ];
+// Owner = أول UID في القائمة — صلاحيات كاملة لا تُنتزع
+const OWNER_UID = ADMIN_UIDS[0];
 const isAdmin = (uid) => uid && ADMIN_UIDS.includes(uid);
+
+// ════════════════════════════════════════════════════════
+// 👑 STAFF ROLE SYSTEM
+// ════════════════════════════════════════════════════════
+// الهيكل في Firestore: user.staffRole = { role: 'admin'|'moderator', assignedBy, assignedAt }
+//
+// التسلسل الهرمي:
+//   owner      → يعيّن admin أو moderator
+//   admin      → يعيّن moderator فقط
+//   moderator  → لا يعيّن أحد
+//
+// Owner محدد بـ OWNER_UID (hardcoded) — لا يمكن إزالته
+
+const ROLE_CONFIG = {
+    owner: {
+        label_ar: 'المالك',
+        label_en: 'Owner',
+        icon: '👑',
+        color: '#ffd700',
+        glow: 'rgba(255,215,0,0.8)',
+        bg: 'linear-gradient(135deg,rgba(255,215,0,0.18),rgba(255,140,0,0.12))',
+        border: 'rgba(255,215,0,0.55)',
+        badgeClass: 'role-badge-owner',
+    },
+    admin: {
+        label_ar: 'أدمن',
+        label_en: 'Admin',
+        icon: '🛡️',
+        color: '#ef4444',
+        glow: 'rgba(239,68,68,0.7)',
+        bg: 'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(185,28,28,0.12))',
+        border: 'rgba(239,68,68,0.5)',
+        badgeClass: 'role-badge-admin',
+    },
+    moderator: {
+        label_ar: 'مشرف',
+        label_en: 'Mod',
+        icon: '🔰',
+        color: '#3b82f6',
+        glow: 'rgba(59,130,246,0.6)',
+        bg: 'linear-gradient(135deg,rgba(59,130,246,0.18),rgba(29,78,216,0.12))',
+        border: 'rgba(59,130,246,0.5)',
+        badgeClass: 'role-badge-mod',
+    },
+};
+
+// يرجع 'owner' | 'admin' | 'moderator' | null
+const getUserRole = (userData, uid) => {
+    if (!uid && !userData) return null;
+    const checkUid = uid || userData?.uid || userData?.id;
+    if (checkUid && checkUid === OWNER_UID) return 'owner';
+    const role = userData?.staffRole?.role;
+    if (role === 'admin' || role === 'moderator') return role;
+    return null;
+};
+
+// هل يقدر يدير الرتب؟ (owner أو admin)
+const canManageRoles = (viewerData, viewerUID) => {
+    const role = getUserRole(viewerData, viewerUID);
+    return role === 'owner' || role === 'admin';
+};
+
+// أقصى رتبة يقدر الـ viewer يعيّنها
+const getAssignableRoles = (viewerData, viewerUID) => {
+    const role = getUserRole(viewerData, viewerUID);
+    if (role === 'owner') return ['admin', 'moderator'];
+    if (role === 'admin') return ['moderator'];
+    return [];
+};
 
 // ════════════════════════════════════════════════════════
 // 🚫 BAN SYSTEM HELPERS
