@@ -986,20 +986,69 @@ const AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectI
     );
 };
 
-// ✨ PROFILE EFFECT OVERLAY (standalone component - no hooks added to ProfileV11)
+// ✨ PROFILE EFFECT OVERLAY — INLINE VERSION (loops inside avatar circle)
+const ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
+    const [particles, setParticles] = useState([]);
+    const tickRef = useRef(0);
+    const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
+
+    const spawnParticles = useCallback(() => {
+        if (!effect || !Array.isArray(effect.particles)) return;
+        const all = effect.particles.flatMap(p =>
+            Array.from({ length: Math.ceil(p.count * 0.6) }, (_, i) => ({
+                id: `${p.emoji}-${i}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                emoji: p.emoji,
+                x: 5 + Math.random() * 90,
+                delay: Math.random() * 0.8,
+                size: 9 + Math.random() * 8,
+                dur: 0.9 + Math.random() * 0.6,
+            }))
+        );
+        setParticles(all);
+        // Clear after animation
+        setTimeout(() => setParticles([]), (effect.duration || 2200));
+    }, [effectId]);
+
+    // Trigger on mount
+    useEffect(() => { spawnParticles(); }, [effectId]);
+    // Loop
+    useEffect(() => {
+        if (!effect) return;
+        const interval = setInterval(spawnParticles, loopEvery);
+        return () => clearInterval(interval);
+    }, [effectId, loopEvery]);
+
+    if (!effect || !Array.isArray(effect.particles) || particles.length === 0) return null;
+    return (
+        <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:20,overflow:'hidden',borderRadius:'50%'}}>
+            {particles.map(p => (
+                <div key={p.id} style={{
+                    position:'absolute', left:`${p.x}%`, top:'-10%',
+                    fontSize:`${p.size}px`, lineHeight:1, userSelect:'none',
+                    animation:`pef_inline_fall ${p.dur}s ease-in ${p.delay}s forwards`,
+                    opacity:0,
+                }}>{p.emoji}</div>
+            ))}
+            <style>{`@keyframes pef_inline_fall{0%{opacity:0;transform:translateY(0) rotate(0deg)}15%{opacity:1}80%{opacity:.8}100%{opacity:0;transform:translateY(115%) rotate(180deg)}}`}</style>
+        </div>
+    );
+};
+
+// ✨ PROFILE EFFECT OVERLAY (standalone full-screen, loops on profile open)
 const ProfileEffectOverlay = ({ effectId }) => {
     const [particles, setParticles] = useState([]);
     const [alive, setAlive] = useState(false);
     const timerRef = useRef(null);
+    const loopRef = useRef(null);
 
     const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
 
-    useEffect(() => {
-        if (!effect) return;
+    const triggerBurst = useCallback(() => {
+        if (!effect || !Array.isArray(effect.particles)) return;
         const all = [];
-        (Array.isArray(effect.particles) ? effect.particles : []).forEach(p => {
+        effect.particles.forEach(p => {
             for (let i = 0; i < p.count; i++) all.push({
-                id: `${p.emoji}-${i}-${Math.random().toString(36).slice(2)}`,
+                id: `${p.emoji}-${i}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                 emoji: p.emoji,
                 x: 5 + Math.random() * 90,
                 delay: Math.random() * 1.4,
@@ -1011,7 +1060,17 @@ const ProfileEffectOverlay = ({ effectId }) => {
         setAlive(true);
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => setAlive(false), (effect.duration || 2200) + 1200);
-        return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    }, [effectId]);
+
+    useEffect(() => {
+        if (!effect) return;
+        triggerBurst();
+        // Loop every 4s
+        loopRef.current = setInterval(triggerBurst, 4000);
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            if (loopRef.current) clearInterval(loopRef.current);
+        };
     }, [effectId]);
 
     if (!effect) return null;
