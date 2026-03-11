@@ -60,6 +60,7 @@ function App() {
     const notificationBellRef = useRef(null);
     const [showSettings, setShowSettings] = useState(false);
     const [soundMuted, setSoundMuted] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
+    const [showAdminPanel, setShowAdminPanel] = useState(false);
 
     // Click outside handler for notification dropdown
     useEffect(() => {
@@ -542,17 +543,17 @@ function App() {
     } } else { setRoom(null); setRoomId(''); } }); return unsub; }, [roomId, isLoggedIn, user, incrementMissionProgress, checkAndUnlockAchievements]);
 
     // Leaderboard - Real-time
-    useEffect(() => { if (activeView === 'leaderboard') { const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); setLeaderboardData(data); }, error => { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); }); return unsub; } }, [activeView]);
+    useEffect(() => { if (activeView === 'leaderboard') { const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id)); setLeaderboardData(data); }, error => { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id)); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); }); return unsub; } }, [activeView]);
 
     // Charisma Leaderboard - Real-time
     useEffect(() => {
         if (activeView === 'leaderboard' && leaderboardTab === 'charisma') {
             const unsub = usersCollection.orderBy('charisma', 'desc').limit(100).onSnapshot(snap => {
-                let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous);
+                let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id));
                 setCharismaLeaderboard(data);
             }, error => {
                 usersCollection.limit(100).get().then(snap => {
-                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous);
+                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id));
                     data.sort((a, b) => (b.charisma || 0) - (a.charisma || 0));
                     setCharismaLeaderboard(data);
                 });
@@ -1248,7 +1249,16 @@ function App() {
 
             <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} />
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
-            <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} />
+            <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} onOpenAdminPanel={() => setShowAdminPanel(true)} />
+
+            {/* 🛡️ Admin Panel */}
+            <AdminPanel
+                show={showAdminPanel}
+                onClose={() => setShowAdminPanel(false)}
+                currentUser={user}
+                currentUserData={userData}
+                lang={lang}
+            />
 
             {showMyAccount && currentUID && (
                 <ProfileV11
