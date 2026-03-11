@@ -531,8 +531,8 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         </div>
                     )}
                 </div>
-                {/* ✅ QUANTITY SELECTOR — يظهر دائماً عند الإرسال */}
-                {isGiftItem && isSending && (
+                {/* ✅ QUANTITY SELECTOR — يظهر فقط للهدايا التي maxSendOptions ليست null */}
+                {isGiftItem && isSending && gift?.maxSendOptions !== null && gift?.maxSendOptions !== undefined && (
                     <div style={{
                         padding:'8px 14px',
                         borderTop:'1px solid rgba(255,255,255,0.06)',
@@ -623,6 +623,22 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
     const regularGifts = (SHOP_ITEMS.gifts || []).filter(g => !g.hidden && !g.eventOnly);
     const vipGifts     = (SHOP_ITEMS.gifts_vip || []).filter(g => !g.hidden);
     const allGifts     = activeGiftTab === 'vip' ? vipGifts : activeGiftTab === 'regular' ? regularGifts : [...regularGifts, ...vipGifts];
+
+    // When combo overlay is active, hide the gift modal entirely (prevents backdrop from closing combo)
+    if (comboOverlay) {
+        return (
+            <PortalModal>
+                <ComboSendOverlay
+                    gift={comboOverlay.gift}
+                    target={comboOverlay.target}
+                    currency={currency}
+                    onSend={(g, t, qty) => onSendGift(g, t, qty)}
+                    onClose={() => { setComboOverlay(null); onClose(); }}
+                    lang={lang}
+                />
+            </PortalModal>
+        );
+    }
 
     return (
         <>
@@ -729,11 +745,12 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                     // ✅ Send all in one call
                     onSendGift(gift, actualTarget, sendQty);
                     setShowPreview(false);
-                    // ✅ Show combo overlay only for qty=1 direct sends (user can keep tapping)
-                    if (sendQty === 1 && actualTarget && actualTarget.uid !== 'self') {
+                    // ✅ Show combo overlay only for qty=1 direct sends AND gift allows multiply
+                    const allowsMulti = gift?.maxSendOptions !== null && gift?.maxSendOptions !== undefined;
+                    if (sendQty === 1 && actualTarget && actualTarget.uid !== 'self' && allowsMulti) {
                         setComboOverlay({ gift, target: actualTarget });
                     } else {
-                        // multi-qty or self-send → just close modal
+                        // multi-qty, self-send, or null maxSendOptions → just close modal
                         onClose();
                     }
                 }}
@@ -744,19 +761,6 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                 user={{ uid: currentUser?.uid }}
                 currentUserData={currentUser}
             />
-            {/* ✅ ComboSendOverlay via PortalModal — renders at body level, no backdrop */}
-            {comboOverlay && (
-                <PortalModal>
-                    <ComboSendOverlay
-                        gift={comboOverlay.gift}
-                        target={comboOverlay.target}
-                        currency={currency}
-                        onSend={(g, t, qty) => onSendGift(g, t, qty)}
-                        onClose={() => setComboOverlay(null)}
-                        lang={lang}
-                    />
-                </PortalModal>
-            )}
         </>
     );
 };
@@ -773,7 +777,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
     const [closing, setClosing] = useState(false);
     const [comboLog, setComboLog] = useState([]);
     const [showFinalLog, setShowFinalLog] = useState(false);
-    const COMBO_DURATION = 5000;
+    const COMBO_DURATION = 8000;
     const ringIntervalRef = React.useRef(null);
     const timerRef = React.useRef(null);
     const ringStartRef = React.useRef(null);
