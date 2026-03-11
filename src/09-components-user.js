@@ -516,6 +516,33 @@ const LoginRewardsComponent = ({ userData, user, lang, onNotification }) => {
 // ════════════════════════════════════════════════════════
 const groupsCollection = db.collection('artifacts').doc('pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('group_chats');
 
+// ── Group Level System ──
+const GROUP_LEVEL_CONFIG = [
+    { level:1,  xp:0,    icon:'🌱', name_en:'Seed',    name_ar:'بذرة',   color:'#4ade80' },
+    { level:2,  xp:50,   icon:'🌿', name_en:'Sprout',  name_ar:'نبتة',   color:'#22d3ee' },
+    { level:3,  xp:150,  icon:'🌳', name_en:'Tree',    name_ar:'شجرة',   color:'#34d399' },
+    { level:4,  xp:300,  icon:'⭐', name_en:'Star',    name_ar:'نجمة',   color:'#fbbf24' },
+    { level:5,  xp:500,  icon:'💎', name_en:'Diamond', name_ar:'ماسة',   color:'#60a5fa' },
+    { level:6,  xp:800,  icon:'👑', name_en:'Crown',   name_ar:'تاج',    color:'#ffd700' },
+    { level:7,  xp:1200, icon:'🔥', name_en:'Flame',   name_ar:'لهب',    color:'#f97316' },
+    { level:8,  xp:2000, icon:'⚡', name_en:'Thunder', name_ar:'رعد',    color:'#a78bfa' },
+    { level:9,  xp:3500, icon:'🌌', name_en:'Galaxy',  name_ar:'مجرة',   color:'#818cf8' },
+    { level:10, xp:5000, icon:'🏆', name_en:'Legend',  name_ar:'أسطورة', color:'#00d4ff' },
+];
+const getGroupLevel = (xp = 0) => {
+    let cfg = GROUP_LEVEL_CONFIG[0];
+    for (let i = GROUP_LEVEL_CONFIG.length - 1; i >= 0; i--) {
+        if (xp >= GROUP_LEVEL_CONFIG[i].xp) { cfg = GROUP_LEVEL_CONFIG[i]; break; }
+    }
+    return cfg;
+};
+const getGroupLevelProgress = (xp = 0) => {
+    const cur = getGroupLevel(xp);
+    const nextCfg = GROUP_LEVEL_CONFIG.find(c => c.level === cur.level + 1);
+    if (!nextCfg) return 100;
+    return Math.min(100, Math.round(((xp - cur.xp) / (nextCfg.xp - cur.xp)) * 100));
+};
+
 const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, lang, onNotification, isLoggedIn }) => {
     const [groups, setGroups] = React.useState([]);
     const [activeGroup, setActiveGroup] = React.useState(null);
@@ -528,15 +555,22 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
     const [loadingGroups, setLoadingGroups] = React.useState(true);
     const messagesEndRef = React.useRef(null);
 
+    // ✅ No orderBy → no index needed, sort client-side
     React.useEffect(() => {
         if (!currentUID) { setLoadingGroups(false); return; }
         const unsub = groupsCollection
             .where('members', 'array-contains', currentUID)
-            .orderBy('lastMessageAt', 'desc')
             .onSnapshot(snap => {
-                setGroups(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                const gs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Sort by lastMessageAtMs (number) then lastMessageAt (timestamp) fallback
+                gs.sort((a, b) => {
+                    const aT = a.lastMessageAtMs || a.lastMessageAt?.toMillis?.() || a.lastMessageAt?.seconds * 1000 || 0;
+                    const bT = b.lastMessageAtMs || b.lastMessageAt?.toMillis?.() || b.lastMessageAt?.seconds * 1000 || 0;
+                    return bT - aT;
+                });
+                setGroups(gs);
                 setLoadingGroups(false);
-            }, () => setLoadingGroups(false));
+            }, (err) => { console.error('Groups error:', err); setLoadingGroups(false); });
         return () => unsub();
     }, [currentUID]);
 
@@ -556,23 +590,38 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
 
     const createGroup = async () => {
         if (!groupName.trim() || !currentUID || creating) return;
+        // ── Check group limit ──
+        const isVIP = currentUserData?.vip?.isActive;
+        const maxGroups = isVIP ? 3 : 2;
+        const myOwnedGroups = groups.filter(g => g.createdBy === currentUID);
+        if (myOwnedGroups.length >= maxGroups) {
+            onNotification(lang === 'ar'
+                ? `❌ وصلت للحد الأقصى (${maxGroups} جروبات)${!isVIP ? ' · VIP يحصل على 3' : ''}`
+                : `❌ Max groups reached (${maxGroups})${!isVIP ? ' · VIP gets 3' : ''}`
+            );
+            return;
+        }
         setCreating(true);
         try {
-            const now = firebase.firestore.FieldValue.serverTimestamp();
+            const nowMs = Date.now();
             await groupsCollection.add({
                 name: groupName.trim(),
                 createdBy: currentUID,
                 creatorName: currentUserData?.displayName || 'User',
                 members: [currentUID],
                 admins: [currentUID],
-                lastMessage: lang === 'ar' ? 'تم إنشاء الجروب' : 'Group created',
-                lastMessageAt: now,
-                createdAt: now,
-                readBy: {}
+                lastMessage: lang === 'ar' ? '🎉 تم إنشاء الجروب' : '🎉 Group created',
+                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastMessageAtMs: nowMs,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                readBy: { [currentUID]: firebase.firestore.FieldValue.serverTimestamp() },
+                xp: 0,
+                level: 1,
             });
             setGroupName(''); setShowCreate(false);
             onNotification(lang === 'ar' ? '✅ تم إنشاء الجروب!' : '✅ Group created!');
         } catch (e) {
+            console.error('createGroup error:', e);
             onNotification(lang === 'ar' ? '❌ خطأ في الإنشاء' : '❌ Error creating group');
         }
         setCreating(false);
@@ -604,20 +653,27 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
         const text = msgText.trim();
         setMsgText('');
         try {
-            const now = firebase.firestore.FieldValue.serverTimestamp();
+            const nowMs = Date.now();
             await groupsCollection.doc(activeGroup.id).collection('messages').add({
                 text, senderId: currentUID,
                 senderName: currentUserData?.displayName || 'User',
                 senderPhoto: currentUserData?.photoURL || null,
-                createdAt: now, type: 'text'
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(), type: 'text'
             });
+            // ── XP + level update ──
+            const newXP = (activeGroup.xp || 0) + 1;
+            const newLevel = getGroupLevel(newXP);
             await groupsCollection.doc(activeGroup.id).update({
                 lastMessage: text, lastSenderId: currentUID,
                 lastSenderName: currentUserData?.displayName || 'User',
-                lastMessageAt: now,
-                [`readBy.${currentUID}`]: now
+                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastMessageAtMs: nowMs,
+                xp: firebase.firestore.FieldValue.increment(1),
+                level: newLevel.level,
+                [`readBy.${currentUID}`]: firebase.firestore.FieldValue.serverTimestamp()
             });
-        } catch (e) {}
+            setActiveGroup(g => ({ ...g, xp: newXP, level: newLevel.level }));
+        } catch (e) { console.error('sendMessage error:', e); }
     };
 
     const hasUnread = (group) => {
@@ -644,6 +700,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
     /* ── CHAT VIEW ── */
     if (activeGroup) {
         const isAdm = activeGroup.admins?.includes(currentUID);
+        const grpLvl = getGroupLevel(activeGroup.xp || 0);
         return (
             <div style={{display:'flex',flexDirection:'column',height:'calc(100vh - 160px)',minHeight:'380px',position:'relative'}}>
                 <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
@@ -651,7 +708,11 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                     <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(167,139,250,0.3),rgba(112,0,255,0.2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>👨‍👩‍👧</div>
                     <div style={{flex:1,minWidth:0}}>
                         <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{activeGroup.name}</div>
-                        <div style={{fontSize:'10px',color:'#6b7280'}}>{activeGroup.members?.length||1} {lang==='ar'?'عضو':'members'}</div>
+                        <div style={{fontSize:'10px',color:'#6b7280',display:'flex',alignItems:'center',gap:'6px'}}>
+                            <span>{activeGroup.members?.length||1} {lang==='ar'?'عضو':'members'}</span>
+                            <span style={{color:grpLvl.color,fontWeight:700}}>{grpLvl.icon} Lv.{grpLvl.level}</span>
+                            <span style={{color:'#4b5563'}}>XP: {activeGroup.xp||0}</span>
+                        </div>
                     </div>
                     {isAdm && <button onClick={()=>setShowInvite(true)} style={{background:'rgba(167,139,250,0.15)',border:'1px solid rgba(167,139,250,0.3)',borderRadius:'8px',padding:'5px 10px',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>+ {lang==='ar'?'دعوة':'Invite'}</button>}
                 </div>
@@ -708,10 +769,17 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
     }
 
     /* ── GROUPS LIST ── */
+    const isVIP = currentUserData?.vip?.isActive;
+    const maxGroups = isVIP ? 3 : 2;
+    const ownedCount = groups.filter(g => g.createdBy === currentUID).length;
     return (
         <div style={{padding:'0 16px'}}>
-            <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
-                <button onClick={()=>setShowCreate(!showCreate)} style={{display:'flex',alignItems:'center',gap:'6px',padding:'7px 14px',borderRadius:'10px',border:'1px solid rgba(167,139,250,0.4)',background:'rgba(167,139,250,0.12)',color:'#a78bfa',fontSize:'12px',fontWeight:700,cursor:'pointer'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+                <div style={{fontSize:'10px',color:'#4b5563'}}>
+                    {lang==='ar' ? `${ownedCount}/${maxGroups} جروبات` : `${ownedCount}/${maxGroups} groups`}
+                    {!isVIP && <span style={{color:'#a78bfa',marginLeft:'4px',marginRight:'4px'}}>· VIP → 3</span>}
+                </div>
+                <button onClick={()=>setShowCreate(!showCreate)} style={{display:'flex',alignItems:'center',gap:'6px',padding:'7px 14px',borderRadius:'10px',border:'1px solid rgba(167,139,250,0.4)',background:'rgba(167,139,250,0.12)',color:'#a78bfa',fontSize:'12px',fontWeight:700,cursor:'pointer',opacity:ownedCount>=maxGroups?0.5:1}}>
                     ➕ {lang==='ar'?'جروب جديد':'New Group'}
                 </button>
             </div>
@@ -741,6 +809,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                     {groups.map(group=>{
                         const unread=hasUnread(group);
+                        const gLvl = getGroupLevel(group.xp || 0);
                         return(
                             <div key={group.id} onClick={()=>setActiveGroup(group)} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',cursor:'pointer',background:unread?'linear-gradient(135deg,rgba(167,139,250,0.1),rgba(112,0,255,0.06))':'rgba(255,255,255,0.04)',border:unread?'1px solid rgba(167,139,250,0.3)':'1px solid rgba(255,255,255,0.07)',transition:'all 0.2s'}}>
                                 <div style={{position:'relative',flexShrink:0}}>
@@ -753,7 +822,10 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                                         <div style={{fontSize:'9px',color:'#6b7280',flexShrink:0,marginLeft:'6px'}}>{fmtTime(group.lastMessageAt)}</div>
                                     </div>
                                     <div style={{fontSize:'11px',color:'#6b7280',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{group.lastMessage||(lang==='ar'?'لا رسائل':'No messages')}</div>
-                                    <div style={{fontSize:'9px',color:'#4b5563',marginTop:'2px'}}>{group.members?.length||1} {lang==='ar'?'عضو':'members'}</div>
+                                    <div style={{fontSize:'9px',color:'#4b5563',marginTop:'2px',display:'flex',alignItems:'center',gap:'6px'}}>
+                                        <span>{group.members?.length||1} {lang==='ar'?'عضو':'members'}</span>
+                                        <span style={{color:gLvl.color,fontWeight:700}}>{gLvl.icon} Lv.{gLvl.level}</span>
+                                    </div>
                                 </div>
                                 <div style={{fontSize:'16px',color:'#6b7280',flexShrink:0}}>›</div>
                             </div>
