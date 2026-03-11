@@ -562,7 +562,7 @@ const SupportTicketSection = ({ user, userData, lang, onNotification }) => {
 
 // ════════════════════════════════════════════════════════
 
-const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle, onOpenAdminPanel }) => {
+const SettingsModal = ({ show, onClose, lang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle, onOpenAdminPanel }) => {
     const t = TRANSLATIONS[lang];
     const [blockedUsers, setBlockedUsers] = useState([]);
     const [blockInput, setBlockInput] = useState('');
@@ -640,69 +640,44 @@ const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotif
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{
-                maxWidth: '380px', width:'95vw',
-                background:'linear-gradient(160deg,rgba(10,10,28,0.98),rgba(18,18,40,0.98))',
-                border:'1px solid rgba(255,255,255,0.08)',
-                borderRadius:'20px', overflow:'hidden'
-            }}>
-                {/* ── Gradient Header ── */}
-                <div style={{
-                    padding:'18px 20px 16px',
-                    background:'linear-gradient(135deg,rgba(0,242,255,0.08),rgba(112,0,255,0.08))',
-                    borderBottom:'1px solid rgba(255,255,255,0.07)',
-                    display:'flex', alignItems:'center', justifyContent:'space-between'
-                }}>
-                    <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                        <div style={{
-                            width:'38px',height:'38px',borderRadius:'12px',
-                            background:'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.2))',
-                            display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'
-                        }}>⚙️</div>
-                        <div>
-                            <div style={{fontSize:'16px',fontWeight:900,color:'#e2e8f0',letterSpacing:'-0.2px'}}>{t.settings}</div>
-                            <div style={{fontSize:'10px',color:'#6b7280',marginTop:'1px'}}>{lang==='ar'?'تخصيص تجربتك':'Customize your experience'}</div>
-                        </div>
-                    </div>
+            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
+                <div className="modal-header">
+                    <h2 className="modal-title">⚙️ {t.settings}</h2>
                     <ModalCloseBtn onClose={onClose} />
                 </div>
-                <div className="modal-body" style={{padding:'16px', overflowY:'auto', maxHeight:'80vh', display:'flex', flexDirection:'column', gap:'0px'}}>
+                <div className="modal-body">
                     {/* Account Info Section - GUEST: show login prompt instead */}
                     {isGuestPropForSettings && (
-                        <div style={{
-                            marginBottom:'10px',
-                            background:'linear-gradient(135deg,rgba(0,10,30,0.6),rgba(20,0,50,0.4))',
-                            border:'1px solid rgba(0,242,255,0.15)',
-                            borderRadius:'14px', padding:'20px', textAlign:'center'
-                        }}>
-                            <div style={{fontSize:'36px', marginBottom:'10px'}}>🔒</div>
-                            <div style={{fontSize:'14px', fontWeight:800, color:'white', marginBottom:'5px'}}>
-                                {lang === 'ar' ? 'حساب زائر' : 'Guest Account'}
+                        <div className="settings-section">
+                            <div className="settings-section-title">
+                                <span>👤</span>
+                                <span>{lang === 'ar' ? 'معلومات الحساب' : 'Account Info'}</span>
                             </div>
-                            <div style={{fontSize:'11px', color:'#6b7280', marginBottom:'16px'}}>
-                                {lang === 'ar' ? 'سجّل دخولك للوصول لجميع المميزات' : 'Login to access all features'}
+                            <div style={{padding:'16px', borderRadius:'12px', background:'linear-gradient(135deg,rgba(0,10,30,0.6),rgba(20,0,50,0.4))', border:'1px solid rgba(0,242,255,0.15)', textAlign:'center'}}>
+                                <div style={{fontSize:'32px', marginBottom:'8px'}}>🔒</div>
+                                <div style={{fontSize:'13px', fontWeight:800, color:'white', marginBottom:'4px'}}>
+                                    {lang === 'ar' ? 'حساب زائر' : 'Guest Account'}
+                                </div>
+                                <div style={{fontSize:'11px', color:'#6b7280', marginBottom:'14px'}}>
+                                    {lang === 'ar' ? 'سجّل دخولك للوصول لجميع المميزات' : 'Login to access all features'}
+                                </div>
+                                <button onClick={onLoginGoogle} style={{
+                                    display:'flex', alignItems:'center', justifyContent:'center', gap:'8px',
+                                    width:'100%', padding:'10px 16px', borderRadius:'10px', border:'none', cursor:'pointer',
+                                    background:'white', color:'#333', fontSize:'13px', fontWeight:700
+                                }}>
+                                    <img src="https://www.google.com/favicon.ico" alt="G" style={{width:'16px',height:'16px'}} />
+                                    {lang === 'ar' ? 'تسجيل الدخول بجوجل' : 'Login with Google'}
+                                </button>
                             </div>
-                            <button onClick={onLoginGoogle} style={{
-                                display:'flex', alignItems:'center', justifyContent:'center', gap:'8px',
-                                width:'100%', padding:'11px 16px', borderRadius:'12px', border:'none', cursor:'pointer',
-                                background:'white', color:'#333', fontSize:'13px', fontWeight:700
-                            }}>
-                                <img src="https://www.google.com/favicon.ico" alt="G" style={{width:'16px',height:'16px'}} />
-                                {lang === 'ar' ? 'تسجيل الدخول بجوجل' : 'Login with Google'}
-                            </button>
                         </div>
                     )}
                     {/* Account Info Section - Logged in users */}
                     {user && !isGuestPropForSettings && (
-                        <div style={{
-                            marginBottom:'10px',
-                            background:'linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))',
-                            border:'1px solid rgba(255,255,255,0.08)',
-                            borderRadius:'14px', padding:'16px'
-                        }}>
-                            <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'14px'}}>
-                                <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(0,242,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>👤</div>
-                                <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>{lang === 'ar' ? 'معلومات الحساب' : 'Account Info'}</div>
+                        <div className="settings-section">
+                            <div className="settings-section-title">
+                                <span>👤</span>
+                                <span>{lang === 'ar' ? 'معلومات الحساب' : 'Account Info'}</span>
                             </div>
                             {/* Profile Photo */}
                             <div style={{display:'flex', justifyContent:'center', marginBottom:'12px', marginTop:'8px'}}>
@@ -822,11 +797,11 @@ const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotif
                                 </div>
                             </div>
                             {/* Country row */}
-                            <div className="settings-account-row" style={{marginTop:'4px', flexDirection:'column', alignItems:'flex-start', gap:'6px'}}>
-                                <span className="settings-account-label">
-                                    🌍 {lang === 'ar' ? 'البلد' : 'Country'}
-                                    {userData?.country && <span style={{marginRight:'6px', marginLeft:'6px'}}>{userData.country.flag} {lang === 'ar' ? userData.country.name_ar : userData.country.name_en}</span>}
-                                </span>
+                            <div style={{marginTop:'8px'}}>
+                                <div style={{fontSize:'11px',color:'#9ca3af',marginBottom:'8px',display:'flex',alignItems:'center',gap:'6px'}}>
+                                    🌍 {lang==='ar'?'البلد':'Country'}
+                                    {userData?.country && <span style={{marginRight:'4px',marginLeft:'4px',fontWeight:700,color:'#e2e8f0'}}>{userData.country.flag} {lang==='ar'?userData.country.name_ar:userData.country.name_en}</span>}
+                                </div>
                                 <CountryPicker
                                     selected={userData?.country?.code}
                                     onSelect={async (c) => {
@@ -838,6 +813,24 @@ const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotif
                                     }}
                                     lang={lang}
                                 />
+                            </div>
+
+                            {/* Language row — inside account info */}
+                            <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+                                <div style={{fontSize:'11px',color:'#9ca3af',marginBottom:'8px'}}>🌐 {lang==='ar'?'اللغة':'Language'}</div>
+                                <div style={{display:'flex',background:'rgba(255,255,255,0.05)',borderRadius:'10px',padding:'3px',gap:'3px',border:'1px solid rgba(255,255,255,0.08)'}}>
+                                    {['ar','en'].map(l => (
+                                        <button key={l} onClick={() => onSetLang && onSetLang(l)} style={{
+                                            flex:1, padding:'6px 0', borderRadius:'8px', fontSize:'11px',
+                                            fontWeight: lang===l ? 800 : 500, cursor:'pointer', border:'none',
+                                            background: lang===l ? 'linear-gradient(135deg,rgba(0,242,255,0.25),rgba(112,0,255,0.2))' : 'transparent',
+                                            color: lang===l ? '#00f2ff' : '#6b7280',
+                                            transition:'all 0.2s'
+                                        }}>
+                                            {l==='ar'?'🇸🇦 العربية':'🇬🇧 English'}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -851,198 +844,63 @@ const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotif
                         />
                     )}
 
-                    {/* ── Language Toggle ── */}
-                    <div style={{
-                        margin:'0 0 10px',
-                        background:'linear-gradient(135deg,rgba(0,242,255,0.06),rgba(112,0,255,0.06))',
-                        border:'1px solid rgba(255,255,255,0.08)',
-                        borderRadius:'14px', padding:'14px 16px',
-                        display:'flex', alignItems:'center', justifyContent:'space-between'
-                    }}>
-                        <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                            <div style={{
-                                width:'36px',height:'36px',borderRadius:'10px',
-                                background:'rgba(0,242,255,0.12)',
-                                display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'
-                            }}>🌐</div>
-                            <div>
-                                <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>{lang==='ar'?'اللغة':'Language'}</div>
-                                <div style={{fontSize:'10px',color:'#6b7280',marginTop:'1px'}}>{lang==='ar'?'عربي / English':'Arabic / English'}</div>
-                            </div>
-                        </div>
-                        <div style={{
-                            display:'flex',background:'rgba(255,255,255,0.05)',
-                            borderRadius:'10px',padding:'3px',gap:'3px',
-                            border:'1px solid rgba(255,255,255,0.08)'
-                        }}>
-                            {['ar','en'].map(l => (
-                                <button key={l} onClick={() => onSetLang && onSetLang(l)} style={{
-                                    padding:'5px 14px', borderRadius:'8px', fontSize:'11px',
-                                    fontWeight: lang===l ? 800 : 500, cursor:'pointer', border:'none',
-                                    background: lang===l ? 'linear-gradient(135deg,rgba(0,242,255,0.25),rgba(112,0,255,0.2))' : 'transparent',
-                                    color: lang===l ? '#00f2ff' : '#6b7280',
-                                    boxShadow: lang===l ? '0 0 10px rgba(0,242,255,0.15)' : 'none',
-                                    transition:'all 0.2s'
-                                }}>
-                                    {l==='ar'?'العربية':'English'}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* 🛡️ ADMIN PANEL BUTTON — Staff only */}
+                    {/* 🛡️ ADMIN PANEL BUTTON */}
                     {user && !isGuestPropForSettings && getUserRole(userData, user?.uid) && (
                         <div style={{marginBottom:'10px'}}>
-                            <button
-                                onClick={() => { onClose(); if (onOpenAdminPanel) onOpenAdminPanel(); }}
-                                style={{
-                                    width: '100%',
-                                    padding: '14px 16px',
-                                    borderRadius: '14px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '12px',
-                                    cursor: 'pointer',
-                                    border: '1px solid rgba(255,215,0,0.35)',
-                                    background: 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.07))',
-                                    color: 'white',
-                                    transition: 'all 0.2s',
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,140,0,0.12))'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.07))'}
-                            >
-                                <div style={{ fontSize: '24px' }}>
-                                    {ROLE_CONFIG[getUserRole(userData, user?.uid)]?.icon || '🛡️'}
+                            <button onClick={() => { onClose(); if(onOpenAdminPanel) onOpenAdminPanel(); }}
+                                style={{width:'100%',padding:'14px 16px',borderRadius:'14px',display:'flex',alignItems:'center',gap:'12px',cursor:'pointer',border:'1px solid rgba(255,215,0,0.35)',background:'linear-gradient(135deg,rgba(255,215,0,0.1),rgba(255,140,0,0.07))',color:'white',transition:'all 0.2s'}}
+                                onMouseEnter={e=>e.currentTarget.style.background='linear-gradient(135deg,rgba(255,215,0,0.18),rgba(255,140,0,0.12))'}
+                                onMouseLeave={e=>e.currentTarget.style.background='linear-gradient(135deg,rgba(255,215,0,0.1),rgba(255,140,0,0.07))'}>
+                                <div style={{fontSize:'24px'}}>{ROLE_CONFIG[getUserRole(userData,user?.uid)]?.icon||'🛡️'}</div>
+                                <div style={{flex:1,textAlign:lang==='ar'?'right':'left'}}>
+                                    <div style={{fontSize:'13px',fontWeight:800,color:'#ffd700'}}>{lang==='ar'?'لوحة الإدارة':'Admin Panel'}</div>
+                                    <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'1px'}}>{lang==='ar'?`دخول كـ ${ROLE_CONFIG[getUserRole(userData,user?.uid)]?.label_ar}`:`Access as ${ROLE_CONFIG[getUserRole(userData,user?.uid)]?.label_en}`}</div>
                                 </div>
-                                <div style={{ flex: 1, textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffd700' }}>
-                                        {lang === 'ar' ? 'لوحة الإدارة' : 'Admin Panel'}
-                                    </div>
-                                    <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '1px' }}>
-                                        {lang === 'ar'
-                                            ? `دخول كـ ${ROLE_CONFIG[getUserRole(userData, user?.uid)]?.label_ar}`
-                                            : `Access as ${ROLE_CONFIG[getUserRole(userData, user?.uid)]?.label_en}`
-                                        }
-                                    </div>
-                                </div>
-                                <div style={{
-                                    fontSize: '10px', padding: '3px 10px', borderRadius: '6px', fontWeight: 700,
-                                    background: `${ROLE_CONFIG[getUserRole(userData, user?.uid)]?.color || '#ffd700'}22`,
-                                    border: `1px solid ${ROLE_CONFIG[getUserRole(userData, user?.uid)]?.color || '#ffd700'}44`,
-                                    color: ROLE_CONFIG[getUserRole(userData, user?.uid)]?.color || '#ffd700'
-                                }}>
-                                    {lang === 'ar'
-                                        ? ROLE_CONFIG[getUserRole(userData, user?.uid)]?.label_ar
-                                        : ROLE_CONFIG[getUserRole(userData, user?.uid)]?.label_en
-                                    }
-                                </div>
+                                <div style={{fontSize:'10px',padding:'3px 10px',borderRadius:'6px',fontWeight:700,background:`${ROLE_CONFIG[getUserRole(userData,user?.uid)]?.color||'#ffd700'}22`,border:`1px solid ${ROLE_CONFIG[getUserRole(userData,user?.uid)]?.color||'#ffd700'}44`,color:ROLE_CONFIG[getUserRole(userData,user?.uid)]?.color||'#ffd700'}}>{lang==='ar'?ROLE_CONFIG[getUserRole(userData,user?.uid)]?.label_ar:ROLE_CONFIG[getUserRole(userData,user?.uid)]?.label_en}</div>
                             </button>
                         </div>
                     )}
 
                     {/* ── Sound Toggle ── */}
-                    <div style={{
-                        marginBottom:'10px',
-                        background:'linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))',
-                        border:'1px solid rgba(255,255,255,0.08)',
-                        borderRadius:'14px', padding:'14px 16px',
-                        display:'flex', alignItems:'center', justifyContent:'space-between'
-                    }}>
+                    <div style={{marginBottom:'10px',background:'linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'14px',padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                         <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                            <div style={{
-                                width:'36px',height:'36px',borderRadius:'10px',
-                                background: soundMutedLocal ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)',
-                                display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'
-                            }}>{soundMutedLocal ? '🔇' : '🔊'}</div>
+                            <div style={{width:'36px',height:'36px',borderRadius:'10px',background:soundMutedLocal?'rgba(239,68,68,0.12)':'rgba(16,185,129,0.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>{soundMutedLocal?'🔇':'🔊'}</div>
                             <div>
                                 <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>{t.sound}</div>
-                                <div style={{fontSize:'10px',color: soundMutedLocal?'#f87171':'#4ade80',marginTop:'1px'}}>
-                                    {soundMutedLocal ? t.soundOff : t.soundOn}
-                                </div>
+                                <div style={{fontSize:'10px',color:soundMutedLocal?'#f87171':'#4ade80',marginTop:'1px'}}>{soundMutedLocal?t.soundOff:t.soundOn}</div>
                             </div>
                         </div>
-                        <div
-                            onClick={toggleSound}
-                            style={{
-                                width:'48px', height:'26px', borderRadius:'13px', cursor:'pointer',
-                                background: soundMutedLocal ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.4)',
-                                border: soundMutedLocal ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(16,185,129,0.5)',
-                                position:'relative', transition:'all 0.25s'
-                            }}
-                        >
-                            <div style={{
-                                position:'absolute', top:'3px',
-                                left: soundMutedLocal ? '3px' : '23px',
-                                width:'18px', height:'18px', borderRadius:'50%',
-                                background: soundMutedLocal ? '#ef4444' : '#10b981',
-                                boxShadow: soundMutedLocal ? '0 0 6px rgba(239,68,68,0.6)' : '0 0 6px rgba(16,185,129,0.6)',
-                                transition:'all 0.25s'
-                            }}></div>
+                        <div onClick={toggleSound} style={{width:'48px',height:'26px',borderRadius:'13px',cursor:'pointer',background:soundMutedLocal?'rgba(239,68,68,0.3)':'rgba(16,185,129,0.4)',border:soundMutedLocal?'1px solid rgba(239,68,68,0.5)':'1px solid rgba(16,185,129,0.5)',position:'relative',transition:'all 0.25s'}}>
+                            <div style={{position:'absolute',top:'3px',left:soundMutedLocal?'3px':'23px',width:'18px',height:'18px',borderRadius:'50%',background:soundMutedLocal?'#ef4444':'#10b981',boxShadow:soundMutedLocal?'0 0 6px rgba(239,68,68,0.6)':'0 0 6px rgba(16,185,129,0.6)',transition:'all 0.25s'}}></div>
                         </div>
                     </div>
 
                     {/* ── Block Users ── */}
                     {user && !isGuestPropForSettings && (
-                    <div style={{
-                        marginBottom:'10px',
-                        background:'linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))',
-                        border:'1px solid rgba(255,255,255,0.08)',
-                        borderRadius:'14px', padding:'14px 16px'
-                    }}>
+                    <div style={{marginBottom:'10px',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',padding:'14px 16px'}}>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'12px'}}>
                             <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(239,68,68,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>🚫</div>
                             <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>{t.blockedUsers}</div>
-                            {blockedUsers.length > 0 && (
-                                <span style={{fontSize:'10px',padding:'1px 7px',borderRadius:'20px',background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.3)',color:'#f87171',fontWeight:700}}>
-                                    {blockedUsers.length}
-                                </span>
-                            )}
+                            {blockedUsers.length>0&&<span style={{fontSize:'10px',padding:'1px 7px',borderRadius:'20px',background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.3)',color:'#f87171',fontWeight:700}}>{blockedUsers.length}</span>}
                         </div>
                         <div style={{display:'flex',gap:'8px',marginBottom:'10px'}}>
-                            <input
-                                type="text"
-                                className="input-dark"
-                                style={{flex:1,padding:'8px 12px',borderRadius:'10px',fontSize:'12px'}}
-                                value={blockInput}
-                                onChange={e => setBlockInput(e.target.value)}
-                                placeholder={t.friendIdPlaceholder}
-                            />
-                            <button
-                                onClick={handleBlockUser}
-                                disabled={loading || !blockInput.trim()}
-                                style={{
-                                    padding:'8px 14px',borderRadius:'10px',fontSize:'11px',fontWeight:700,cursor:'pointer',
-                                    background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.35)',
-                                    color:'#f87171', opacity: loading||!blockInput.trim()?0.5:1, transition:'all 0.2s'
-                                }}
-                            >
+                            <input type="text" className="input-dark" style={{flex:1,padding:'8px 12px',borderRadius:'10px',fontSize:'12px'}} value={blockInput} onChange={e=>setBlockInput(e.target.value)} placeholder={t.friendIdPlaceholder} />
+                            <button onClick={handleBlockUser} disabled={loading||!blockInput.trim()} style={{padding:'8px 14px',borderRadius:'10px',fontSize:'11px',fontWeight:700,cursor:'pointer',background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.35)',color:'#f87171',opacity:loading||!blockInput.trim()?0.5:1}}>
                                 {t.blockUser}
                             </button>
                         </div>
                         <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
-                            {blockedUsers.length === 0 ? (
-                                <div style={{textAlign:'center',padding:'12px',color:'#4b5563',fontSize:'11px'}}>{t.noBlockedUsers}</div>
-                            ) : (
-                                blockedUsers.map(uid => (
-                                    <BlockedUserItem
-                                        key={uid}
-                                        uid={uid}
-                                        onUnblock={() => handleUnblockUser(uid)}
-                                        lang={lang}
-                                    />
-                                ))
-                            )}
+                            {blockedUsers.length===0
+                                ? <div style={{textAlign:'center',padding:'12px',color:'#4b5563',fontSize:'11px'}}>{t.noBlockedUsers}</div>
+                                : blockedUsers.map(uid=><BlockedUserItem key={uid} uid={uid} onUnblock={()=>handleUnblockUser(uid)} lang={lang} />)
+                            }
                         </div>
                     </div>
                     )}
 
-                    {/* 🎫 SUPPORT TICKET SECTION */}
+                    {/* 🎫 SUPPORT TICKETS */}
                     {user && !isGuestPropForSettings && (
-                        <div style={{
-                            background:'linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))',
-                            border:'1px solid rgba(255,255,255,0.08)',
-                            borderRadius:'14px', overflow:'hidden'
-                        }}>
+                        <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',overflow:'hidden'}}>
                             <SupportTicketSection user={user} userData={userData} lang={lang} onNotification={onNotification} />
                         </div>
                     )}
