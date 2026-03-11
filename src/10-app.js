@@ -63,6 +63,25 @@ function App() {
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [showFriendsMoments, setShowFriendsMoments] = useState(false);
     const [showFamilyModal, setShowFamilyModal] = useState(false);
+    const [userFamily, setUserFamily] = useState(null);
+    const [showFamilyChat, setShowFamilyChat] = useState(false);
+
+    // ── Listen to current user's family ──
+    useEffect(() => {
+        if (!currentUID || !isLoggedIn) { setUserFamily(null); return; }
+        const unsub = familiesCollection
+            .where('members', 'array-contains', currentUID)
+            .limit(1)
+            .onSnapshot(snap => {
+                if (!snap.empty) {
+                    const doc = snap.docs[0];
+                    setUserFamily({ id: doc.id, ...doc.data() });
+                } else {
+                    setUserFamily(null);
+                }
+            }, () => {});
+        return () => unsub();
+    }, [currentUID, isLoggedIn]);
 
     // Click outside handler for notification dropdown
     useEffect(() => {
@@ -1304,6 +1323,19 @@ function App() {
                 />
             )}
 
+            {/* Family Chat (from friends list) */}
+            {showFamilyChat && userFamily && (
+                <FamilyChatModal
+                    show={showFamilyChat}
+                    onClose={() => setShowFamilyChat(false)}
+                    familyId={userFamily.id}
+                    familyData={userFamily}
+                    currentUID={currentUID}
+                    currentUserData={currentUserData}
+                    lang={lang}
+                />
+            )}
+
             {showMyAccount && currentUID && (
                 <ProfileV11
                     show={showMyAccount}
@@ -1725,6 +1757,34 @@ function App() {
                                         <div style={{fontSize:'9px',fontWeight:700,color:'var(--primary)',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',borderRadius:'6px',padding:'2px 7px',flexShrink:0}}>💬 {lang==='ar'?'شاتي':'My Chat'}</div>
                                     </div>
                                 )}
+                                {/* ── Family Chat Entry ── */}
+                                {isLoggedIn && userFamily && (() => {
+                                    const signLevel = userFamily.activeness || 0;
+                                    const signData = typeof getFamilySignLevelData === 'function' ? getFamilySignLevelData(signLevel) : null;
+                                    const readAt = userFamily.chatReadBy?.[currentUID];
+                                    const lastChatAt = userFamily.lastChatAt;
+                                    const hasUnread = lastChatAt && readAt
+                                        ? (lastChatAt.toDate ? lastChatAt.toDate() : new Date(lastChatAt.seconds*1000)) > (readAt.toDate ? readAt.toDate() : new Date(readAt.seconds*1000)) && userFamily.lastChatSenderId !== currentUID
+                                        : !!lastChatAt && userFamily.lastChatSenderId !== currentUID;
+                                    return (
+                                        <div onClick={()=>setShowFamilyChat(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer',background:hasUnread?'linear-gradient(135deg,rgba(255,136,0,0.06),rgba(255,80,0,0.04))':'transparent'}} className="me-friend-row">
+                                            <div style={{position:'relative',flexShrink:0}}>
+                                                <div style={{width:'36px',height:'36px',borderRadius:'50%',overflow:'hidden',background:'linear-gradient(135deg,rgba(255,136,0,0.2),rgba(255,80,0,0.1))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',border:'1.5px solid rgba(255,136,0,0.3)'}}>
+                                                    {userFamily.photoURL ? <img src={userFamily.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : (userFamily.emblem||'🏠')}
+                                                </div>
+                                                {hasUnread && <div style={{position:'absolute',top:'-2px',right:'-2px',width:'10px',height:'10px',borderRadius:'50%',background:'#f97316',border:'1.5px solid var(--bg-main)',boxShadow:'0 0 6px rgba(249,115,22,0.8)'}}/>}
+                                            </div>
+                                            <div style={{flex:1,minWidth:0}}>
+                                                <div style={{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}}>
+                                                    <span style={{fontSize:'13px',fontWeight:hasUnread?800:600,color:hasUnread?'#f97316':'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'120px'}}>{userFamily.name}</span>
+                                                    {signData && <span style={{fontSize:'9px',fontWeight:800,color:signData.color,background:`${signData.color}20`,border:`1px solid ${signData.color}44`,borderRadius:'4px',padding:'1px 5px'}}>{userFamily.tag||'FAM'}</span>}
+                                                </div>
+                                                <div style={{fontSize:'11px',color:'#6b7280',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{userFamily.lastChatMessage||(lang==='ar'?'شات العائلة':'Family Chat')}</div>
+                                            </div>
+                                            <div style={{fontSize:'9px',fontWeight:700,color:'#f97316',background:'rgba(255,136,0,0.1)',border:'1px solid rgba(255,136,0,0.25)',borderRadius:'6px',padding:'2px 7px',flexShrink:0}}>🏠 {lang==='ar'?'عائلة':'Family'}</div>
+                                        </div>
+                                    );
+                                })()}
                                 {friendsData.length === 0 ? (
                                     <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>👥 {t.noFriends}</div>
                                 ) : (() => {
