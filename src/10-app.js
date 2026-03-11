@@ -1253,9 +1253,9 @@ function App() {
                 </div>
             )}
 
-            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} />
+            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} onOpenInventory={() => { setShowShop(false); setShowInventory(true); }} />
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
-            <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} onOpenAdminPanel={() => setShowAdminPanel(true)} />
+            <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} onSetLang={(nl) => { setLang(nl); localStorage.setItem('pro_spy_lang', nl); if(user) usersCollection.doc(user.uid).update({lang:nl}).catch(()=>{}); }} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} onOpenAdminPanel={() => setShowAdminPanel(true)} />
 
             {/* 🛡️ Admin Panel */}
             <AdminPanel
@@ -1389,8 +1389,20 @@ function App() {
                 <div className="new-header-right">
                     {/* Fun Pass */}
                     <button className="new-funpass-btn" onClick={() => { if(isLoggedIn) setShowFunPass(true); else requireLogin(); }} title="Fun Pass">🎫</button>
-                    {/* Language */}
-                    <button className="new-lang-btn" onClick={() => { const nl = lang==='en'?'ar':'en'; setLang(nl); localStorage.setItem('pro_spy_lang', nl); }}>{t.langBtn}</button>
+                    {/* Login Rewards */}
+                    {isLoggedIn && (
+                        <button
+                            className="new-hbtn"
+                            onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}
+                            title={lang==='ar'?'مكافآت الدخول':'Login Rewards'}
+                            style={{position:'relative', opacity: sessionClaimedToday ? 0.5 : 1}}
+                        >
+                            🎁
+                            {!sessionClaimedToday && (
+                                <span style={{position:'absolute',top:'-3px',right:'-3px',width:'8px',height:'8px',background:'#f97316',borderRadius:'50%',border:'1.5px solid var(--bg-main)'}}></span>
+                            )}
+                        </button>
+                    )}
                     {/* Notifications */}
                     {isLoggedIn && (
                         <div className="new-notif-center notification-center" ref={notificationBellRef}>
@@ -1404,27 +1416,16 @@ function App() {
                     {isLoggedIn && (
                         <div className="new-hbtn" onClick={() => setShowShop(true)} title={t.shop}>🛒</div>
                     )}
-                    {/* Avatar / Profile button */}
-                    <div className="relative">
-                        <div className="new-avatar-btn" onClick={() => setShowDropdown(!showDropdown)} title="Profile">
-                            {(isLoggedIn || isGuest) && currentUserData?.photoURL
-                                ? <img src={currentUserData.photoURL} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} alt="" />
-                                : <span style={{fontSize:'16px'}}>😎</span>
-                            }
-                        </div>
-                        {showDropdown && (
-                            <div className="new-header-dropdown dropdown-menu glass-panel rounded-lg p-1">
-                                {isLoggedIn || isGuest ? (<>
-                                    <button onClick={() => { setShowMyAccount(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>👤</span> {t.myAccount}</button>
-                                    {isLoggedIn && (<>
-                                        <button onClick={() => { setShowInventory(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>📦</span> {t.inventory}</button>
-                                        <button onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); setShowDropdown(false); }} className={`w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 ${sessionClaimedToday ? 'opacity-50' : ''}`}><span>🎁</span> {t.loginRewards} {sessionClaimedToday && <span className="text-[8px] text-green-400">✓</span>}</button>
-                                    </>)}
-                                    <button onClick={() => { setShowSettings(true); setShowDropdown(false); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>⚙️</span> {t.settings}</button>
-                                    <button onClick={() => { handleLogout(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2 text-red-400"><span>🚪</span> {t.logout}</button>
-                                </>) : (<button onClick={() => { handleGoogleLogin(); }} className="w-full text-left px-3 py-2 text-xs hover:bg-white/10 rounded flex items-center gap-2"><span>🔑</span> {t.loginGoogle}</button>)}
-                            </div>
-                        )}
+                    {/* Avatar — opens profile directly */}
+                    <div
+                        className="new-avatar-btn"
+                        onClick={() => { if(isLoggedIn || isGuest) setShowMyAccount(true); else handleGoogleLogin(); }}
+                        title={lang==='ar'?'ملفي الشخصي':'My Profile'}
+                    >
+                        {(isLoggedIn || isGuest) && (currentUserData?.photoURL || currentUserData?.photo)
+                            ? <img src={currentUserData.photoURL || currentUserData.photo} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} alt="" />
+                            : <span style={{fontSize:'16px'}}>😎</span>
+                        }
                     </div>
                 </div>
             </header>
@@ -1784,13 +1785,6 @@ function App() {
                                     <div className="me-action-icon" style={{background:'rgba(0,242,255,0.12)'}}>👤</div>
                                     <div className="me-action-label">{lang==='ar'?'ملفي':'My Profile'}</div>
                                 </div>
-                                {/* Inventory */}
-                                {isLoggedIn && (
-                                    <div className="me-action-card" onClick={() => setShowInventory(true)}>
-                                        <div className="me-action-icon" style={{background:'rgba(112,0,255,0.15)'}}>📦</div>
-                                        <div className="me-action-label">{lang==='ar'?'حقيبتي':t.inventory}</div>
-                                    </div>
-                                )}
                                 {/* Shop */}
                                 {isLoggedIn && (
                                     <div className="me-action-card" onClick={() => setShowShop(true)}>
@@ -1803,13 +1797,6 @@ function App() {
                                     <div className="me-action-icon" style={{background:'linear-gradient(135deg,rgba(112,0,255,0.2),rgba(0,242,255,0.15))'}}>🎟️</div>
                                     <div className="me-action-label">Fun Pass</div>
                                 </div>
-                                {/* Login Rewards */}
-                                {isLoggedIn && (
-                                    <div className={`me-action-card ${sessionClaimedToday?'opacity-60':''}`} onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}>
-                                        <div className="me-action-icon" style={{background:'rgba(255,136,0,0.15)'}}>🎁{sessionClaimedToday && <span style={{position:'absolute',top:'-4px',right:'-4px',fontSize:'8px',background:'#10b981',borderRadius:'50%',width:'14px',height:'14px',display:'flex',alignItems:'center',justifyContent:'center',color:'#000',fontWeight:700}}>✓</span>}</div>
-                                        <div className="me-action-label">{lang==='ar'?'مكافآت':'Rewards'}</div>
-                                    </div>
-                                )}
                                 {/* Settings */}
                                 <div className="me-action-card" onClick={() => setShowSettings(true)}>
                                     <div className="me-action-icon" style={{background:'rgba(255,255,255,0.07)'}}>⚙️</div>
@@ -1936,7 +1923,6 @@ function App() {
                     </div>
                 </nav>
             )}
-            {showDropdown && <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)}></div>}
         </div>
     );
 }
