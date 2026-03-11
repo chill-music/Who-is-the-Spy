@@ -72,7 +72,6 @@ const MAX_GIFT_LOG_DISPLAY = 10;
 // ════════════════════════════════════════════════════════
 const ADMIN_UIDS = [
     'PfZAViU4swQdbBZOfqJDnPZSs9l2', // ← ضع الـ UID بتاعك هنا (Owner)
-    'AcMqAaqKjra8oW5RLxlnXFfp0Pu2',
 ];
 // Owner = أول UID في القائمة — صلاحيات كاملة لا تُنتزع
 const OWNER_UID = ADMIN_UIDS[0];
