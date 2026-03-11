@@ -1258,6 +1258,7 @@ function App() {
                 currentUser={user}
                 currentUserData={userData}
                 lang={lang}
+                onOpenProfile={(uid) => { setShowAdminPanel(false); openProfile(uid); }}
             />
 
             {showMyAccount && currentUID && (
