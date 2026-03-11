@@ -1530,7 +1530,7 @@ function App() {
                                 <div className="hero-input-row">
                                     <input className="hero-input" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} />
                                     <button className="hero-btn-primary" onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()}>+ {t.create}</button>
-                                    <button className="hero-btn-ghost" onClick={() => setShowBrowseRooms(true)}>🔍</button>
+
                                 </div>
                                 <div className="hero-join-row">
                                     <input className="hero-input hero-code-input" style={{flex:1}} value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder={t.codePlaceholder} maxLength={6} />
