@@ -543,11 +543,11 @@ function App() {
     } } else { setRoom(null); setRoomId(''); } }); return unsub; }, [roomId, isLoggedIn, user, incrementMissionProgress, checkAndUnlockAchievements]);
 
     // Leaderboard - Real-time
-    useEffect(() => { if (activeView === 'leaderboard') { const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id)); setLeaderboardData(data); }, error => { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id)); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); }); return unsub; } }, [activeView]);
+    useEffect(() => { if (activeView === 'leaderboard' || activeView === 'ranking') { const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id)); setLeaderboardData(data); }, error => { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id)); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); }); return unsub; } }, [activeView]);
 
     // Charisma Leaderboard - Real-time
     useEffect(() => {
-        if (activeView === 'leaderboard' && leaderboardTab === 'charisma') {
+        if ((activeView === 'leaderboard' || activeView === 'ranking') && leaderboardTab === 'charisma') {
             const unsub = usersCollection.orderBy('charisma', 'desc').limit(100).onSnapshot(snap => {
                 let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id));
                 setCharismaLeaderboard(data);
@@ -1500,6 +1500,46 @@ function App() {
                                 </div>
                             </div>
 
+                            {/* ── رانكينج Card ── */}
+                            <div className="sec-head-new">
+                                <span className="sec-title-new">📊 {lang==='ar'?'رانكينج':'Ranking'}</span>
+                            </div>
+                            <div className="ranking-preview-card" onClick={() => setActiveView('ranking')}>
+                                {/* Top 3 mini avatars */}
+                                <div className="rp-left">
+                                    <div className="rp-medals">
+                                        {[leaderboardData[1], leaderboardData[0], leaderboardData[2]].filter(Boolean).map((p, i) => {
+                                            const medals = ['🥈','👑','🥉'];
+                                            const sizes = ['32px','40px','32px'];
+                                            const borders = ['#c0c0c0','var(--gold)','#cd7f32'];
+                                            return (
+                                                <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px'}}>
+                                                    <div style={{width:sizes[i],height:sizes[i],borderRadius:'50%',border:`2px solid ${borders[i]}`,background:'linear-gradient(135deg,var(--secondary),var(--primary))',display:'flex',alignItems:'center',justifyContent:'center',fontSize: i===1?'18px':'14px',overflow:'hidden',flexShrink:0,boxShadow:`0 0 8px ${borders[i]}44`}}>
+                                                        {(p.photoURL||p.photo) ? <img src={p.photoURL||p.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <span>😎</span>}
+                                                    </div>
+                                                    <span style={{fontSize:'10px'}}>{medals[i]}</span>
+                                                </div>
+                                            );
+                                        })}
+                                        {leaderboardData.length === 0 && <span style={{fontSize:'28px'}}>🏆</span>}
+                                    </div>
+                                </div>
+                                <div className="rp-right">
+                                    <div className="rp-title">{lang==='ar'?'رانكينج اللاعبين':'Player Ranking'}</div>
+                                    <div className="rp-sub">
+                                        {leaderboardData.length > 0
+                                            ? (lang==='ar'?`${leaderboardData.length}+ لاعب في القائمة`:`${leaderboardData.length}+ players ranked`)
+                                            : (lang==='ar'?'اضغط لعرض التصنيف':'Tap to view rankings')
+                                        }
+                                    </div>
+                                    {currentUID && (() => {
+                                        const myRank = leaderboardData.findIndex(p => p.id === currentUID);
+                                        return myRank >= 0 ? <div className="rp-my-rank">{lang==='ar'?'مرتبتك':'Your rank'}: #{myRank+1}</div> : null;
+                                    })()}
+                                </div>
+                                <div style={{fontSize:'18px',color:'var(--primary)',flexShrink:0}}>›</div>
+                            </div>
+
                             {/* Daily Tasks */}
                             {isLoggedIn && userData && (
                                 <>
@@ -1520,16 +1560,22 @@ function App() {
                         </div>
                     )}
 
-                    {/* ══ LEADERBOARD VIEW ══ */}
-                    {activeView === 'leaderboard' && (
+                    {/* ══ RANKING VIEW (from lobby رانكينج card) ══ */}
+                    {activeView === 'ranking' && (
                         <div style={{paddingBottom:'8px'}}>
+                            {/* Back button */}
+                            <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px 4px'}}>
+                                <button onClick={() => setActiveView('lobby')} style={{background:'var(--new-surface)',border:'1px solid var(--new-border)',borderRadius:'10px',padding:'6px 12px',color:'var(--text-main)',fontSize:'12px',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:'6px'}}>
+                                    ‹ {lang==='ar'?'رجوع':'Back'}
+                                </button>
+                                <span className="sec-title-new">📊 {lang==='ar'?'رانكينج':'Ranking'}</span>
+                            </div>
                             {/* Tabs */}
                             <div className="lb-tabs-new">
                                 <button className={`lb-tab-new ${leaderboardTab==='wins'?'active':''}`} onClick={() => setLeaderboardTab('wins')}>🏆 {t.wins}</button>
                                 <button className={`lb-tab-new ${leaderboardTab==='charisma'?'active':''}`} onClick={() => setLeaderboardTab('charisma')}>⭐ {t.charismaRank}</button>
                             </div>
-
-                            {/* Podium (top 3) */}
+                            {/* Podium + List */}
                             {(() => {
                                 const data = leaderboardTab === 'charisma' ? charismaLeaderboard : leaderboardData;
                                 const top3 = data.slice(0,3);
@@ -1538,13 +1584,6 @@ function App() {
                                 const fmt = (v) => v >= 1000 ? (v/1000).toFixed(1)+'K' : v;
                                 const getAvatar = (p) => p.photoURL || p.photo || null;
                                 const getEmoji = (i) => ['😎','🦊','🐺'][i] || '👤';
-                                const podiumOrder = top3.length >= 2 ? [top3[1], top3[0], top3[2]].filter(Boolean) : top3;
-                                const podiumClass = (p, orig) => {
-                                    if(orig === 0) return 'ps-1';
-                                    if(orig === 1) return 'ps-2';
-                                    return 'ps-3';
-                                };
-                                // Reorder: 2nd, 1st, 3rd
                                 const slots = top3.length >= 3
                                     ? [{p:top3[1],cls:'ps-2',medal:'🥈'},{p:top3[0],cls:'ps-1',medal:'👑',crown:true},{p:top3[2],cls:'ps-3',medal:'🥉'}]
                                     : top3.map((p,i)=>[{cls:'ps-1',medal:'👑',crown:true},{cls:'ps-2',medal:'🥈'},{cls:'ps-3',medal:'🥉'}][i] ? {...[{cls:'ps-1',medal:'👑',crown:true},{cls:'ps-2',medal:'🥈'},{cls:'ps-3',medal:'🥉'}][i], p} : null).filter(Boolean);
@@ -1565,8 +1604,6 @@ function App() {
                                                 ))}
                                             </div>
                                         )}
-
-                                        {/* List (rank 4+, plus show user's rank) */}
                                         <div className="lb-list-new">
                                             {rest.map((player,i) => {
                                                 const rank = i + 4;
@@ -1585,12 +1622,118 @@ function App() {
                                                     </div>
                                                 );
                                             })}
-                                            {/* Also show top 3 in the list */}
                                             {data.length === 0 && <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>🏆 {lang==='ar'?'لا توجد بيانات بعد':'No data yet'}</div>}
                                         </div>
                                     </>
                                 );
                             })()}
+                        </div>
+                    )}
+
+                    {/* ══ CHAT / شات VIEW (Friends) ══ */}
+                    {activeView === 'chat' && (
+                        <div style={{paddingBottom:'8px'}}>
+                            {/* Add Friend */}
+                            <div className="sec-head-new" style={{paddingTop:'14px'}}>
+                                <span className="sec-title-new">👥 {lang==='ar'?'الأصدقاء':t.tabFriends}</span>
+                                {friendRequests.length > 0 && <span style={{fontSize:'10px',background:'var(--accent)',color:'#fff',borderRadius:'10px',padding:'2px 8px',fontWeight:700}}>{friendRequests.length} {lang==='ar'?'طلب':'req'}</span>}
+                            </div>
+                            <div style={{margin:'0 16px 10px',display:'flex',gap:'8px'}}>
+                                <input type="text" className="hero-input" style={{flex:1,padding:'9px 13px',fontSize:'12px'}} value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} />
+                                <button onClick={handleAddFriendById} disabled={!addFriendId.trim()} className="hero-btn-primary" style={{padding:'9px 14px',fontSize:'12px'}}>+ {lang==='ar'?'أضف':'Add'}</button>
+                            </div>
+                            {friendSearchMsg && <p style={{fontSize:'11px',textAlign:'center',padding:'0 16px 8px',color:friendSearchMsg.includes('تم')||friendSearchMsg.includes('Sent')?'#4ade80':'#ff4d4d'}}>{friendSearchMsg}</p>}
+
+                            {/* Friend Requests */}
+                            {friendRequests.length > 0 && (
+                                <div style={{margin:'0 16px 10px',background:'rgba(255,215,0,0.05)',border:'1px solid rgba(255,215,0,0.15)',borderRadius:'12px',overflow:'hidden'}}>
+                                    <div style={{fontSize:'10px',fontWeight:700,color:'var(--gold)',padding:'8px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>⏳ {lang==='ar'?'طلبات صداقة':'Friend Requests'} ({friendRequests.length})</div>
+                                    {friendRequests.map(req => (
+                                        <div key={req.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 14px',borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+                                            <div style={{flex:1,minWidth:0}}><PlayerNameTag player={req} lang={lang} size="sm" /></div>
+                                            <button onClick={() => handleAcceptRequest(req.id)} style={{padding:'4px 10px',borderRadius:'8px',background:'#00ff88',color:'#000',fontSize:'11px',fontWeight:700,border:'none',cursor:'pointer'}}>{t.accept} ✓</button>
+                                            <button onClick={() => handleRejectRequest(req.id)} style={{padding:'4px 8px',borderRadius:'8px',background:'rgba(255,255,255,0.07)',color:'var(--text-muted)',fontSize:'11px',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>✕</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Friends List */}
+                            <div style={{margin:'0 16px',background:'var(--new-card)',border:'1px solid var(--new-border)',borderRadius:'var(--radius-lg)',overflow:'hidden'}}>
+                                {isLoggedIn && currentUserData && (
+                                    <div onClick={() => setShowSelfChat(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer'}} className="me-friend-row">
+                                        <div style={{flex:1,minWidth:0}}><PlayerNameTag player={currentUserData} lang={lang} size="sm" /></div>
+                                        <div style={{fontSize:'9px',fontWeight:700,color:'var(--primary)',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',borderRadius:'6px',padding:'2px 7px',flexShrink:0}}>💬 {lang==='ar'?'شاتي':'My Chat'}</div>
+                                    </div>
+                                )}
+                                {friendsData.length === 0 ? (
+                                    <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>👥 {t.noFriends}</div>
+                                ) : (() => {
+                                    const online = friendsData.filter(f => f.onlineStatus === 'online');
+                                    const away = friendsData.filter(f => f.onlineStatus === 'away');
+                                    const offline = friendsData.filter(f => !f.onlineStatus || f.onlineStatus === 'offline');
+                                    const statusColor = (f) => f.onlineStatus==='online' ? '#4ade80' : f.onlineStatus==='away' ? '#facc15' : '#6b7280';
+                                    const renderFriend = (friend) => (
+                                        <div key={friend.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)'}} className="me-friend-row">
+                                            <div style={{flex:1,minWidth:0}}><PlayerNameTag player={friend} lang={lang} size="sm" showStatus={statusColor(friend)} /></div>
+                                            <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                                                <button onClick={() => openPrivateChat(friend)} className="btn-ghost" style={{padding:'5px 8px',borderRadius:'8px',fontSize:'12px'}}>💬</button>
+                                                <button onClick={() => openProfile(friend.id)} className="btn-ghost" style={{padding:'5px 8px',borderRadius:'8px',fontSize:'12px'}}>👤</button>
+                                            </div>
+                                        </div>
+                                    );
+                                    return (<>
+                                        {online.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#4ade80',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block'}}/>{t.online} ({online.length})</div>{online.map(renderFriend)}</>)}
+                                        {away.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#facc15',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#facc15',display:'inline-block'}}/>{lang==='ar'?'بعيد':'Away'} ({away.length})</div>{away.map(renderFriend)}</>)}
+                                        {offline.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#6b7280',display:'inline-block'}}/>{t.offline} ({offline.length})</div>{offline.map(renderFriend)}</>)}
+                                    </>);
+                                })()}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ══ DISCOVER / اكتشف VIEW ══ */}
+                    {activeView === 'discover' && (
+                        <div style={{paddingBottom:'8px'}}>
+                            <div className="sec-head-new" style={{paddingTop:'14px'}}>
+                                <span className="sec-title-new">🔥 {lang==='ar'?'اكتشف':'Discover'}</span>
+                            </div>
+
+                            {/* Moments Card - Coming Soon */}
+                            <div className="discover-card-cs" style={{'--dc-color':'rgba(0,242,255,0.12)','--dc-border':'rgba(0,242,255,0.2)'}}>
+                                <div className="dc-left">
+                                    <div className="dc-icon" style={{background:'rgba(0,242,255,0.15)'}}>📸</div>
+                                </div>
+                                <div className="dc-body">
+                                    <div className="dc-title">{lang==='ar'?'مومنت الأصدقاء':'Friends Moments'}</div>
+                                    <div className="dc-desc">{lang==='ar'?'شارك لحظاتك مع أصدقائك':'Share your moments with friends'}</div>
+                                </div>
+                                <div className="dc-badge">{lang==='ar'?'قريباً':'Soon'}</div>
+                            </div>
+
+                            {/* Passport Card - Coming Soon */}
+                            <div className="discover-card-cs" style={{'--dc-color':'rgba(112,0,255,0.12)','--dc-border':'rgba(112,0,255,0.25)'}}>
+                                <div className="dc-left">
+                                    <div className="dc-icon" style={{background:'rgba(112,0,255,0.18)'}}>🪪</div>
+                                </div>
+                                <div className="dc-body">
+                                    <div className="dc-title">{lang==='ar'?'الجواز':'Passport'}</div>
+                                    <div className="dc-desc">{lang==='ar'?'هويتك الرقمية داخل اللعبة':'Your digital identity in the game'}</div>
+                                </div>
+                                <div className="dc-badge">{lang==='ar'?'قريباً':'Soon'}</div>
+                            </div>
+
+                            {/* Tribe Card - Coming Soon */}
+                            <div className="discover-card-cs" style={{'--dc-color':'rgba(255,136,0,0.1)','--dc-border':'rgba(255,136,0,0.2)'}}>
+                                <div className="dc-left">
+                                    <div className="dc-icon" style={{background:'rgba(255,136,0,0.15)'}}>⚔️</div>
+                                </div>
+                                <div className="dc-body">
+                                    <div className="dc-title">{lang==='ar'?'القبيلة':'Tribe'}</div>
+                                    <div className="dc-desc">{lang==='ar'?'انضم أو أنشئ قبيلتك وتنافس':'Join or create your tribe and compete'}</div>
+                                </div>
+                                <div className="dc-badge">{lang==='ar'?'قريباً':'Soon'}</div>
+                            </div>
                         </div>
                     )}
 
@@ -1672,68 +1815,6 @@ function App() {
                                     <div className="me-action-icon" style={{background:'rgba(255,255,255,0.07)'}}>⚙️</div>
                                     <div className="me-action-label">{lang==='ar'?'الإعدادات':t.settings||'Settings'}</div>
                                 </div>
-                            </div>
-
-                            {/* ── Friends Section ── */}
-                            <div className="sec-head-new" style={{paddingTop:'14px'}}>
-                                <span className="sec-title-new">👥 {lang==='ar'?'الأصدقاء':t.tabFriends}</span>
-                                {friendRequests.length > 0 && (
-                                    <span style={{fontSize:'10px',background:'var(--accent)',color:'#fff',borderRadius:'10px',padding:'2px 8px',fontWeight:700}}>{friendRequests.length} {lang==='ar'?'طلب':'req'}</span>
-                                )}
-                            </div>
-
-                            {/* Add Friend */}
-                            <div style={{margin:'0 16px 10px',display:'flex',gap:'8px'}}>
-                                <input type="text" className="hero-input" style={{flex:1,padding:'9px 13px',fontSize:'12px'}} value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} />
-                                <button onClick={handleAddFriendById} disabled={!addFriendId.trim()} className="hero-btn-primary" style={{padding:'9px 14px',fontSize:'12px'}}>+ {lang==='ar'?'أضف':'Add'}</button>
-                            </div>
-                            {friendSearchMsg && <p style={{fontSize:'11px',textAlign:'center',padding:'0 16px 8px',color:friendSearchMsg.includes('تم')||friendSearchMsg.includes('Sent')?'#4ade80':'#ff4d4d'}}>{friendSearchMsg}</p>}
-
-                            {/* Friend Requests */}
-                            {friendRequests.length > 0 && (
-                                <div style={{margin:'0 16px 10px',background:'rgba(255,215,0,0.05)',border:'1px solid rgba(255,215,0,0.15)',borderRadius:'12px',overflow:'hidden'}}>
-                                    <div style={{fontSize:'10px',fontWeight:700,color:'var(--gold)',padding:'8px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>⏳ {lang==='ar'?'طلبات صداقة':'Friend Requests'} ({friendRequests.length})</div>
-                                    {friendRequests.map(req => (
-                                        <div key={req.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 14px',borderTop:'1px solid rgba(255,255,255,0.04)'}}>
-                                            <div style={{flex:1,minWidth:0}}><PlayerNameTag player={req} lang={lang} size="sm" /></div>
-                                            <button onClick={() => handleAcceptRequest(req.id)} style={{padding:'4px 10px',borderRadius:'8px',background:'#00ff88',color:'#000',fontSize:'11px',fontWeight:700,border:'none',cursor:'pointer'}}>{t.accept} ✓</button>
-                                            <button onClick={() => handleRejectRequest(req.id)} style={{padding:'4px 8px',borderRadius:'8px',background:'rgba(255,255,255,0.07)',color:'var(--text-muted)',fontSize:'11px',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>✕</button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Friends List */}
-                            <div style={{margin:'0 16px',background:'var(--new-card)',border:'1px solid var(--new-border)',borderRadius:'var(--radius-lg)',overflow:'hidden'}}>
-                                {/* My Chat row */}
-                                {isLoggedIn && currentUserData && (
-                                    <div onClick={() => setShowSelfChat(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer'}} className="me-friend-row">
-                                        <div style={{flex:1,minWidth:0}}><PlayerNameTag player={currentUserData} lang={lang} size="sm" /></div>
-                                        <div style={{fontSize:'9px',fontWeight:700,color:'var(--primary)',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',borderRadius:'6px',padding:'2px 7px',flexShrink:0}}>💬 {lang==='ar'?'شاتي':'My Chat'}</div>
-                                    </div>
-                                )}
-                                {friendsData.length === 0 ? (
-                                    <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>👥 {t.noFriends}</div>
-                                ) : (() => {
-                                    const online = friendsData.filter(f => f.onlineStatus === 'online');
-                                    const away = friendsData.filter(f => f.onlineStatus === 'away');
-                                    const offline = friendsData.filter(f => !f.onlineStatus || f.onlineStatus === 'offline');
-                                    const statusColor = (f) => f.onlineStatus==='online' ? '#4ade80' : f.onlineStatus==='away' ? '#facc15' : '#6b7280';
-                                    const renderFriend = (friend) => (
-                                        <div key={friend.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer'}} className="me-friend-row">
-                                            <div style={{flex:1,minWidth:0}}><PlayerNameTag player={friend} lang={lang} size="sm" showStatus={statusColor(friend)} /></div>
-                                            <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                                                <button onClick={() => openPrivateChat(friend)} className="btn-ghost" style={{padding:'5px 8px',borderRadius:'8px',fontSize:'12px'}}>💬</button>
-                                                <button onClick={() => openProfile(friend.id)} className="btn-ghost" style={{padding:'5px 8px',borderRadius:'8px',fontSize:'12px'}}>👤</button>
-                                            </div>
-                                        </div>
-                                    );
-                                    return (<>
-                                        {online.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#4ade80',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block'}}/>{t.online} ({online.length})</div>{online.map(renderFriend)}</>)}
-                                        {away.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#facc15',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#facc15',display:'inline-block'}}/>{lang==='ar'?'بعيد':'Away'} ({away.length})</div>{away.map(renderFriend)}</>)}
-                                        {offline.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#6b7280',display:'inline-block'}}/>{t.offline} ({offline.length})</div>{offline.map(renderFriend)}</>)}
-                                    </>);
-                                })()}
                             </div>
 
                             {/* ── Logout ── */}
@@ -1830,17 +1911,21 @@ function App() {
 
             {/* ── BOTTOM NAV (only when not in a room) ── */}
             {!room && (
-                <nav className="bottom-nav-new">
-                    <div className={`nav-item-new ${activeView==='lobby'?'active':''}`} onClick={() => setActiveView('lobby')}>
+                <nav className="bottom-nav-new" style={{gridTemplateColumns:'repeat(4,1fr)'}}>
+                    <div className={`nav-item-new ${activeView==='lobby'||activeView==='ranking'?'active':''}`} onClick={() => setActiveView('lobby')}>
                         <div className="nav-icon-new">🏠</div>
                         <div className="nav-label-new">{lang==='ar'?'اللوبي':t.tabLobby}</div>
                     </div>
-                    <div className={`nav-item-new ${activeView==='leaderboard'?'active':''}`} onClick={() => setActiveView('leaderboard')}>
-                        <div className="nav-icon-new">🏆</div>
-                        <div className="nav-label-new">{lang==='ar'?'التصنيف':t.tabLeaderboard}</div>
+                    <div className={`nav-item-new ${activeView==='chat'?'active':''}`} onClick={() => setActiveView('chat')}>
+                        <div className="nav-icon-new">💬</div>
+                        <div className="nav-label-new">{lang==='ar'?'شات':'Chat'}</div>
+                        {(totalFriendsUnread > 0 || friendRequests.length > 0) && <div className="nav-pip-new"></div>}
                     </div>
-                    <button className="nav-fab-new" onClick={() => nickname.trim() ? setShowSetupModal(true) : requireLogin()}>⚔️</button>
-                    <div className={`nav-item-new ${activeView==='me'?'active':''}`} onClick={() => { if(isLoggedIn || isGuest) setActiveView('me'); else { setActiveView('me'); } }}>
+                    <div className={`nav-item-new ${activeView==='discover'?'active':''}`} onClick={() => setActiveView('discover')}>
+                        <div className="nav-icon-new">🔥</div>
+                        <div className="nav-label-new">{lang==='ar'?'اكتشف':'Discover'}</div>
+                    </div>
+                    <div className={`nav-item-new ${activeView==='me'?'active':''}`} onClick={() => setActiveView('me')}>
                         <div className="nav-icon-new">
                             {(isLoggedIn || isGuest) && (currentUserData?.photoURL || currentUserData?.photo)
                                 ? <img src={currentUserData.photoURL || currentUserData.photo} alt="" style={{width:'24px',height:'24px',objectFit:'cover',borderRadius:'50%',border:`2px solid ${activeView==='me'?'var(--primary)':'rgba(255,255,255,0.2)'}`}} />
@@ -1848,7 +1933,6 @@ function App() {
                             }
                         </div>
                         <div className="nav-label-new">{lang==='ar'?'أنا':'Me'}</div>
-                        {(friendRequests.length > 0 || totalFriendsUnread > 0) && <div className="nav-pip-new"></div>}
                     </div>
                 </nav>
             )}
