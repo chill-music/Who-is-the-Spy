@@ -2560,6 +2560,8 @@ const ProfileV11 = ({
     const bannerFileRef = useRef(null);
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
+    const [reportDescription, setReportDescription] = useState('');
+    const [reportImagePreview, setReportImagePreview] = useState(null); // base64
     const [reportSending, setReportSending] = useState(false);
     const [selfGift, setSelfGift] = useState(null);
     const [showSelfGiftModal, setShowSelfGiftModal] = useState(false);
@@ -2704,18 +2706,24 @@ const ProfileV11 = ({
         setReportSending(true);
         try {
             await reportsCollection.add({
-                reportedUID: targetUID,
-                reportedName: targetData?.displayName || 'Unknown',
-                reporterUID: currentUserUID,
-                reason: reportReason,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                status: 'pending'
+                reportedUID:    targetUID,
+                reportedName:   targetData?.displayName || 'Unknown',
+                reportedPhoto:  targetData?.photoURL || '',
+                reporterUID:    currentUserUID,
+                reporterName:   targetData ? (await usersCollection.doc(currentUserUID).get()).data()?.displayName || 'User' : 'User',
+                reason:         reportReason,
+                description:    reportDescription.trim(),
+                imageBase64:    reportImagePreview || null,
+                timestamp:      firebase.firestore.FieldValue.serverTimestamp(),
+                status:         'pending',
+                type:           'user',
             });
             setShowReportModal(false);
             setReportReason('');
+            setReportDescription('');
+            setReportImagePreview(null);
             setShowOptionsMenu(false);
-        } catch (e) {
-        }
+        } catch (e) {}
         setReportSending(false);
     };
 
@@ -3119,14 +3127,26 @@ const ProfileV11 = ({
 
                 {/* Report Modal */}
                 {showReportModal && (
-                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL,padding:'16px'}} onClick={() => setShowReportModal(false)}>
-                        <div className="profile-confirm-modal" onClick={e => e.stopPropagation()} style={{maxWidth:'300px'}}>
+                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL,padding:'16px'}} onClick={() => { setShowReportModal(false); setReportReason(''); setReportDescription(''); setReportImagePreview(null); }}>
+                        <div className="profile-confirm-modal" onClick={e => e.stopPropagation()} style={{maxWidth:'320px', width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
                             <div className="profile-confirm-icon">🚨</div>
                             <div className="profile-confirm-title">{lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'}</div>
-                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'10px', textAlign:'center'}}>
-                                {lang === 'ar' ? 'اختر سبب الإبلاغ:' : 'Select a reason:'}
+
+                            {/* Reported user info */}
+                            <div style={{ display:'flex', alignItems:'center', gap:'8px', background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'8px 10px', marginBottom:'12px' }}>
+                                <img src={targetData?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(targetData?.displayName||'U')}&background=7000ff&color=fff&size=50`}
+                                    style={{ width:'32px', height:'32px', borderRadius:'50%', objectFit:'cover', flexShrink:0 }} />
+                                <div>
+                                    <div style={{ fontSize:'12px', fontWeight:700, color:'white' }}>{targetData?.displayName}</div>
+                                    <div style={{ fontSize:'10px', color:'#6b7280', fontFamily:'monospace' }}>{targetUID?.slice(0,16)}...</div>
+                                </div>
                             </div>
-                            <div style={{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'14px'}}>
+
+                            {/* Reason selection */}
+                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'8px', textAlign:'start'}}>
+                                {lang === 'ar' ? 'سبب البلاغ:' : 'Reason:'}
+                            </div>
+                            <div style={{display:'flex', flexDirection:'column', gap:'5px', marginBottom:'12px'}}>
                                 {[
                                     {key:'abusive',       icon:'🤬', ar:'سلوك مسيء',       en:'Abusive Behavior'},
                                     {key:'verbal_abuse',  icon:'💬', ar:'شتيمة لفظية',      en:'Verbal Abuse'},
@@ -3136,30 +3156,85 @@ const ProfileV11 = ({
                                     {key:'spam',          icon:'📢', ar:'سبام',              en:'Spam'},
                                     {key:'other',         icon:'❓', ar:'سبب آخر',           en:'Other'}
                                 ].map(r => (
-                                    <button
-                                        key={r.key}
-                                        onClick={() => setReportReason(r.key)}
-                                        style={{
-                                            padding:'8px 12px', borderRadius:'8px', fontSize:'12px',
-                                            textAlign:'start', cursor:'pointer', fontWeight:600,
-                                            display:'flex', alignItems:'center', gap:'8px',
-                                            background: reportReason === r.key ? 'rgba(112,0,255,0.3)' : 'rgba(255,255,255,0.05)',
-                                            border: reportReason === r.key ? '1.5px solid #7000ff' : '1px solid rgba(255,255,255,0.1)',
-                                            color: reportReason === r.key ? 'white' : '#9ca3af'
-                                        }}
-                                    >
+                                    <button key={r.key} onClick={() => setReportReason(r.key)} style={{
+                                        padding:'7px 10px', borderRadius:'7px', fontSize:'12px',
+                                        textAlign:'start', cursor:'pointer', fontWeight:600,
+                                        display:'flex', alignItems:'center', gap:'8px',
+                                        background: reportReason === r.key ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.05)',
+                                        border: reportReason === r.key ? '1.5px solid rgba(239,68,68,0.6)' : '1px solid rgba(255,255,255,0.1)',
+                                        color: reportReason === r.key ? 'white' : '#9ca3af'
+                                    }}>
                                         <span>{r.icon}</span>
                                         <span>{lang === 'ar' ? r.ar : r.en}</span>
                                     </button>
                                 ))}
                             </div>
+
+                            {/* Description */}
+                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>
+                                {lang === 'ar' ? 'وصف المشكلة (اختياري):' : 'Describe the issue (optional):'}
+                            </div>
+                            <textarea
+                                value={reportDescription}
+                                onChange={e => setReportDescription(e.target.value)}
+                                maxLength={300}
+                                placeholder={lang === 'ar' ? 'اشرح ما حدث بالتفصيل...' : 'Explain what happened in detail...'}
+                                style={{
+                                    width:'100%', padding:'8px', borderRadius:'7px', fontSize:'11px', resize:'vertical', minHeight:'55px',
+                                    background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)',
+                                    color:'white', outline:'none', marginBottom:'10px', boxSizing:'border-box'
+                                }} />
+
+                            {/* Image upload */}
+                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>
+                                {lang === 'ar' ? 'إرفاق صورة (اختياري):' : 'Attach image (optional):'}
+                            </div>
+                            {reportImagePreview ? (
+                                <div style={{ position:'relative', marginBottom:'10px' }}>
+                                    <img src={reportImagePreview} style={{ width:'100%', maxHeight:'120px', objectFit:'cover', borderRadius:'7px', border:'1px solid rgba(255,255,255,0.1)' }} />
+                                    <button onClick={() => setReportImagePreview(null)}
+                                        style={{ position:'absolute', top:'4px', right:'4px', background:'rgba(0,0,0,0.7)', border:'none', color:'white', borderRadius:'50%', width:'20px', height:'20px', cursor:'pointer', fontSize:'11px', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                        ✕
+                                    </button>
+                                </div>
+                            ) : (
+                                <label style={{
+                                    display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
+                                    padding:'8px', borderRadius:'7px', marginBottom:'10px', cursor:'pointer',
+                                    background:'rgba(255,255,255,0.04)', border:'1px dashed rgba(255,255,255,0.2)', color:'#9ca3af', fontSize:'11px'
+                                }}>
+                                    📎 {lang === 'ar' ? 'اضغط لإرفاق صورة' : 'Click to attach image'}
+                                    <input type="file" accept="image/*" style={{display:'none'}} onChange={e => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        const reader = new FileReader();
+                                        reader.onload = ev => {
+                                            // Resize via canvas to max 600px
+                                            const img = new Image();
+                                            img.onload = () => {
+                                                const canvas = document.createElement('canvas');
+                                                const max = 600;
+                                                const ratio = Math.min(max/img.width, max/img.height, 1);
+                                                canvas.width = img.width * ratio;
+                                                canvas.height = img.height * ratio;
+                                                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                                                setReportImagePreview(canvas.toDataURL('image/jpeg', 0.7));
+                                            };
+                                            img.src = ev.target.result;
+                                        };
+                                        reader.readAsDataURL(file);
+                                        e.target.value = '';
+                                    }} />
+                                </label>
+                            )}
+
                             <div className="profile-confirm-actions">
-                                <button onClick={() => { setShowReportModal(false); setReportReason(''); }} className="cancel">
+                                <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDescription(''); setReportImagePreview(null); }} className="cancel">
                                     {lang === 'ar' ? 'إلغاء' : 'Cancel'}
                                 </button>
                                 <button onClick={handleSendReport} disabled={!reportReason || reportSending} className="confirm"
                                     style={{opacity: (!reportReason || reportSending) ? 0.5 : 1, background:'#ef4444'}}>
-                                    {reportSending ? '...' : (lang === 'ar' ? 'إرسال' : 'Submit')}
+                                    {reportSending ? '...' : (lang === 'ar' ? 'إرسال البلاغ' : 'Submit Report')}
                                 </button>
                             </div>
                         </div>
