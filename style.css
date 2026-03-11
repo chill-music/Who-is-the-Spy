@@ -4726,3 +4726,103 @@ body {
     transition: background .15s;
 }
 .me-friend-row:hover { background: var(--new-surface-hover); }
+
+
+/* ══ DISCOVER CARDS — Coming Soon ══ */
+.discover-card-cs {
+    margin: 0 16px 10px;
+    background: var(--dc-color, rgba(255,255,255,0.04));
+    border: 1px solid var(--dc-border, rgba(255,255,255,0.1));
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+}
+.discover-card-cs::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 60%, rgba(255,255,255,0.02));
+    pointer-events: none;
+}
+.dc-left { flex-shrink: 0; }
+.dc-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+.dc-body { flex: 1; min-width: 0; }
+.dc-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+.dc-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+.dc-badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 4px 10px;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+}
+
+/* ══ RANKING PREVIEW CARD (in lobby) ══ */
+.ranking-preview-card {
+    margin: 0 16px 10px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(112,0,255,0.1));
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: .2s;
+}
+.ranking-preview-card:hover { border-color: rgba(255,215,0,0.4); transform: translateY(-1px); }
+.rp-left { flex-shrink: 0; }
+.rp-medals {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+}
+.rp-right { flex: 1; min-width: 0; }
+.rp-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--gold);
+    margin-bottom: 3px;
+}
+.rp-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.rp-my-rank {
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+/* ══ 4-tab nav (no FAB) ══ */
+.bottom-nav-new[style*="repeat(4"] {
+    grid-template-columns: repeat(4, 1fr) !important;
+}
