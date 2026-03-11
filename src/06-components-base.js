@@ -189,10 +189,14 @@ const KDCircle = ({ wins, losses, lang }) => {
 };
 
 // Avatar With Frame
-const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
+const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, lang }) => {
     const sizeConfig = { sm: { wrapper: 52, avatar: 30, mask: 32 }, md: { wrapper: 72, avatar: 40, mask: 42 }, lg: { wrapper: 110, avatar: 60, mask: 62 }, xl: { wrapper: 140, avatar: 80, mask: 82 } };
     const config = sizeConfig[size] || sizeConfig.md;
     const frameItem = SHOP_ITEMS.frames.find(f => f.id === equipped?.frames);
+    const showBan = banData?.isBanned && (
+        !banData.expiresAt ||
+        new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))
+    );
 
     const renderFrame = () => {
         if (!frameItem) return null;
@@ -205,7 +209,24 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick }) => {
     return (
         <div style={{ position: 'relative', width: config.wrapper + 'px', height: config.wrapper + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: onClick ? 'pointer' : 'default', flexShrink: 0 }} onClick={onClick}>
             {renderFrame()}
-            <img src={photoURL || `https://ui-avatars.com/api/?name=User&background=random`} style={{ width: config.avatar + 'px', height: config.avatar + 'px', borderRadius: '50%', objectFit: 'cover', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, border: '2px solid rgba(0,0,0,0.5)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }} alt="avatar" />
+            <img src={photoURL || `https://ui-avatars.com/api/?name=User&background=random`} style={{ width: config.avatar + 'px', height: config.avatar + 'px', borderRadius: '50%', objectFit: 'cover', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, border: '2px solid rgba(0,0,0,0.5)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', filter: showBan ? 'grayscale(70%) brightness(0.5)' : 'none' }} alt="avatar" />
+            {/* 🚫 Ban Overlay */}
+            {showBan && (
+                <div style={{
+                    position: 'absolute', top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: config.avatar + 'px', height: config.avatar + 'px',
+                    borderRadius: '50%', zIndex: 20,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(220,0,0,0.55)',
+                    border: '2px solid rgba(255,50,50,0.9)',
+                    flexDirection: 'column', gap: '0px',
+                }}>
+                    <span style={{ fontSize: config.avatar > 35 ? '9px' : '7px', fontWeight: 900, color: '#fff', textAlign: 'center', lineHeight: 1.1, textShadow: '0 1px 3px rgba(0,0,0,0.8)', letterSpacing: '-0.2px' }}>
+                        {lang === 'ar' ? 'محظور' : 'BANNED'}
+                    </span>
+                </div>
+            )}
         </div>
     );
 };
