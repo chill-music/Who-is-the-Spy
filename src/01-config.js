@@ -67,4 +67,38 @@ const MAX_ROUNDS = 3;
 const MAX_BADGES = 10;
 const MAX_GIFT_LOG_DISPLAY = 10;
 
+// ════════════════════════════════════════════════════════
+// 🔒 ADMIN SYSTEM — ضع Firebase UID بتاعك هنا
+// ════════════════════════════════════════════════════════
+const ADMIN_UIDS = [
+    'REPLACE_WITH_YOUR_FIREBASE_UID', // ← ضع الـ UID بتاعك هنا
+];
+const isAdmin = (uid) => uid && ADMIN_UIDS.includes(uid);
+
+// ════════════════════════════════════════════════════════
+// 🚫 BAN SYSTEM HELPERS
+// ════════════════════════════════════════════════════════
+const isBannedUser = (userData) => {
+    const ban = userData?.ban;
+    if (!ban?.isBanned) return false;
+    if (!ban.expiresAt) return true; // permanent
+    const expiry = ban.expiresAt?.toDate?.() || new Date(ban.expiresAt);
+    return new Date() < expiry;
+};
+
+const getBanExpiry = (userData) => {
+    const ban = userData?.ban;
+    if (!ban?.expiresAt) return null;
+    return ban.expiresAt?.toDate?.() || new Date(ban.expiresAt);
+};
+
+const formatBanExpiry = (userData, lang) => {
+    const expiry = getBanExpiry(userData);
+    if (!expiry) return lang === 'ar' ? 'حظر دائم' : 'Permanent';
+    return expiry.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+};
+
 // 🔊 AUDIO SYSTEM
