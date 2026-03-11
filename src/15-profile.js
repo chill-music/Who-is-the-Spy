@@ -2193,6 +2193,173 @@ const AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
 };
 
 // ════════════════════════════════════════════════════════════
+// 👑 ROLE INFO POPUP — يظهر لما حد يضغط على التايتل
+// ════════════════════════════════════════════════════════════
+const ROLE_INFO = {
+    owner: {
+        title_ar: 'مالك الموقع',
+        title_en: 'Site Owner',
+        subtitle_ar: 'المسؤول الأول والأعلى',
+        subtitle_en: 'Highest Authority',
+        points_ar: [
+            '👑 مالك اللعبة ومطوّرها',
+            '⚙️ يتحكم في كل إعدادات الموقع',
+            '🛡️ يعيّن الأدمن والمشرفين',
+            '🔒 يملك صلاحيات الحظر والإدارة الكاملة',
+            '🚀 الشخص الوحيد اللي يقدر يعدّل على الكود',
+        ],
+        points_en: [
+            '👑 Owner and developer of the game',
+            '⚙️ Full control over all site settings',
+            '🛡️ Appoints Admins and Moderators',
+            '🔒 Full ban and management permissions',
+            '🚀 The only one who can modify the code',
+        ],
+        gradient: 'linear-gradient(160deg,#1a1000,#0f0f1e)',
+        borderColor: 'rgba(255,215,0,0.45)',
+        accentColor: '#ffd700',
+        glowColor: 'rgba(255,215,0,0.15)',
+        icon: '👑',
+    },
+    admin: {
+        title_ar: 'أدمن',
+        title_en: 'Admin',
+        subtitle_ar: 'مسؤول الإدارة',
+        subtitle_en: 'Administration Manager',
+        points_ar: [
+            '🛡️ يدير ويحمي بيئة اللعبة',
+            '🔒 يحظر المخالفين وينفّذ القوانين',
+            '🔰 يعيّن مشرفين جدد',
+            '📋 يراجع البلاغات ويتخذ الإجراءات',
+            '🤝 يتواصل مع الـ Owner لحل المشكلات الكبيرة',
+        ],
+        points_en: [
+            '🛡️ Manages and protects the game environment',
+            '🔒 Bans rule-breakers and enforces policies',
+            '🔰 Appoints new Moderators',
+            '📋 Reviews reports and takes action',
+            '🤝 Coordinates with Owner on major issues',
+        ],
+        gradient: 'linear-gradient(160deg,#1a0005,#0f0f1e)',
+        borderColor: 'rgba(239,68,68,0.4)',
+        accentColor: '#ef4444',
+        glowColor: 'rgba(239,68,68,0.12)',
+        icon: '🛡️',
+    },
+    moderator: {
+        title_ar: 'مشرف',
+        title_en: 'Moderator',
+        subtitle_ar: 'مشرف اللعبة',
+        subtitle_en: 'Game Moderator',
+        points_ar: [
+            '🔰 يشرف على سير اللعب بشكل عادل',
+            '👀 يراقب المحادثات والسلوكيات داخل اللعبة',
+            '🚨 يتلقى البلاغات ويرفعها للأدمن',
+            '🤝 يساعد اللاعبين ويحل النزاعات البسيطة',
+            '📌 يلتزم بتطبيق قواعد المجتمع',
+        ],
+        points_en: [
+            '🔰 Ensures fair gameplay',
+            '👀 Monitors chats and in-game behavior',
+            '🚨 Receives reports and escalates to Admin',
+            '🤝 Helps players and resolves minor disputes',
+            '📌 Enforces community guidelines',
+        ],
+        gradient: 'linear-gradient(160deg,#00051a,#0f0f1e)',
+        borderColor: 'rgba(59,130,246,0.4)',
+        accentColor: '#3b82f6',
+        glowColor: 'rgba(59,130,246,0.12)',
+        icon: '🔰',
+    },
+};
+
+const RoleInfoPopup = ({ targetData, lang, onClose }) => {
+    const tUID = targetData?.id || targetData?.uid;
+    const role = getUserRole(targetData, tUID);
+    if (!role) return null;
+
+    const info = ROLE_INFO[role];
+    const cfg  = ROLE_CONFIG[role];
+
+    return (
+        <PortalModal>
+            <div
+                style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.82)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.TOOLTIP, padding:'16px' }}
+                onClick={onClose}
+            >
+                <div
+                    style={{ background: info.gradient, border:`1.5px solid ${info.borderColor}`, borderRadius:'20px', padding:'0', maxWidth:'320px', width:'100%', overflow:'hidden', boxShadow:`0 24px 60px ${info.glowColor}, 0 0 0 1px ${info.borderColor}` }}
+                    onClick={e => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div style={{
+                        padding: '20px 20px 16px',
+                        background: `linear-gradient(135deg, ${info.glowColor}, transparent)`,
+                        borderBottom: `1px solid ${info.borderColor}`,
+                        textAlign: 'center',
+                        position: 'relative',
+                    }}>
+                        {/* Glow circle behind icon */}
+                        <div style={{
+                            width: '64px', height: '64px', borderRadius: '50%', margin: '0 auto 10px',
+                            background: `radial-gradient(circle, ${info.glowColor.replace('0.12','0.3')} 0%, transparent 70%)`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '36px', lineHeight: 1,
+                            boxShadow: `0 0 24px ${cfg.glow}`,
+                        }}>
+                            {info.icon}
+                        </div>
+
+                        <div style={{ fontSize: '18px', fontWeight: 900, color: info.accentColor, letterSpacing: '0.3px', marginBottom: '3px' }}>
+                            {lang === 'ar' ? info.title_ar : info.title_en}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600 }}>
+                            {lang === 'ar' ? info.subtitle_ar : info.subtitle_en}
+                        </div>
+
+                        {/* Name of the person */}
+                        <div style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <span style={{ fontSize: '12px', color: '#d1d5db', fontWeight: 700 }}>{targetData?.displayName || '—'}</span>
+                        </div>
+                    </div>
+
+                    {/* Points */}
+                    <div style={{ padding: '16px 20px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#6b7280', letterSpacing: '0.5px', marginBottom: '10px', textTransform: 'uppercase' }}>
+                            {lang === 'ar' ? 'المهام والصلاحيات' : 'Duties & Permissions'}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                            {(lang === 'ar' ? info.points_ar : info.points_en).map((point, i) => (
+                                <div key={i} style={{
+                                    fontSize: '12px', color: '#e5e7eb', lineHeight: 1.5,
+                                    padding: '7px 10px', borderRadius: '9px',
+                                    background: 'rgba(255,255,255,0.04)',
+                                    border: `1px solid ${info.borderColor.replace('0.4','0.15')}`,
+                                }}>
+                                    {point}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Footer close */}
+                    <div style={{ padding: '0 20px 16px' }}>
+                        <button onClick={onClose} style={{
+                            width: '100%', padding: '10px', borderRadius: '12px',
+                            background: `linear-gradient(135deg, ${info.glowColor.replace('0.12','0.2')}, rgba(255,255,255,0.04))`,
+                            border: `1px solid ${info.borderColor}`,
+                            color: info.accentColor, fontSize: '13px', fontWeight: 800, cursor: 'pointer',
+                        }}>
+                            {lang === 'ar' ? 'إغلاق' : 'Close'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </PortalModal>
+    );
+};
+
+// ════════════════════════════════════════════════════════════
 // 👑 ADMIN ROLE MODAL — لوحة إدارة الرتب
 // ════════════════════════════════════════════════════════════
 const AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRoleApplied }) => {
@@ -2399,6 +2566,7 @@ const ProfileV11 = ({
 
     const [showBanModal, setShowBanModal] = useState(false);
     const [showRoleModal, setShowRoleModal] = useState(false);
+    const [showRoleInfoPopup, setShowRoleInfoPopup] = useState(false);
 
     const optionsRef = useRef(null);
 
@@ -2733,39 +2901,6 @@ const ProfileV11 = ({
                             </div>
                         )}
 
-                        {/* 👑 STAFF ROLE BANNER */}
-                        {(() => {
-                            const tUID = targetData?.id || targetData?.uid;
-                            const tRole = getUserRole(targetData, tUID);
-                            if (!tRole) return null;
-                            const cfg = ROLE_CONFIG[tRole];
-                            return (
-                                <div style={{
-                                    margin: '0 12px 6px',
-                                    padding: '10px 14px',
-                                    borderRadius: '12px',
-                                    background: cfg.bg,
-                                    border: `1.5px solid ${cfg.border}`,
-                                    display: 'flex', alignItems: 'center', gap: '10px',
-                                    boxShadow: `0 0 18px ${cfg.glow.replace('0.8','0.12')}`,
-                                }}>
-                                    <span style={{ fontSize: '22px', lineHeight: 1, flexShrink: 0 }}>{cfg.icon}</span>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '12px', fontWeight: 900, color: cfg.color, marginBottom: '2px' }}>
-                                            {lang === 'ar' ? cfg.label_ar : cfg.label_en}
-                                            {' — '}{lang === 'ar' ? 'عضو الفريق' : 'Staff Member'}
-                                        </div>
-                                        {targetData?.staffRole?.assignedByName && (
-                                            <div style={{ fontSize: '10px', color: '#9ca3af' }}>
-                                                {lang === 'ar' ? 'عُيِّن بواسطة: ' : 'Assigned by: '}
-                                                <span style={{ color: '#d1d5db', fontWeight: 600 }}>{targetData.staffRole.assignedByName}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })()}
-
                         <div className="profile-identity">
                             <div className="profile-name-row">
                                 <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
@@ -2776,9 +2911,15 @@ const ProfileV11 = ({
                                         className="profile-name"
                                     />
                                     <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
-                                    {/* 👑 Staff Role Badge */}
+                                    {/* 👑 Staff Role Badge — clickable */}
                                     {getUserRole(targetData, targetData?.id || targetData?.uid) && (
-                                        <StaffRoleBadge userData={targetData} uid={targetData?.id || targetData?.uid} lang={lang} size="md" />
+                                        <StaffRoleBadge
+                                            userData={targetData}
+                                            uid={targetData?.id || targetData?.uid}
+                                            lang={lang}
+                                            size="md"
+                                            onClick={() => setShowRoleInfoPopup(true)}
+                                        />
                                     )}
                                     {targetData?.gender === 'male' && (
                                         <span style={{fontSize:'13px', color:'#60a5fa', fontWeight:700, lineHeight:1}}>♂️</span>
@@ -3072,6 +3213,15 @@ const ProfileV11 = ({
                         onRoleApplied={(newRole) => {
                             setTargetData(prev => ({ ...prev, staffRole: newRole }));
                         }}
+                    />
+                )}
+
+                {/* 👑 ROLE INFO POPUP */}
+                {showRoleInfoPopup && (
+                    <RoleInfoPopup
+                        targetData={targetData}
+                        lang={lang}
+                        onClose={() => setShowRoleInfoPopup(false)}
                     />
                 )}
             </div>
