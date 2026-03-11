@@ -514,77 +514,303 @@ const ActivityLogSection = ({ lang }) => {
 // 🚨 REPORTS SECTION (Moderator + Admin + Owner)
 // ════════════════════════════════════════════════════════
 const ReportsSection = ({ currentUser, currentUserData, lang, onNotification }) => {
-    const [reports, setReports] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('open');
+    const [reports, setReports]           = useState([]);
+    const [loading, setLoading]           = useState(true);
+    const [filter, setFilter]             = useState('open');
+    const [escalating, setEscalating]     = useState(null); // reportId being escalated
+    const [escalateNote, setEscalateNote] = useState('');
+    const [staffList, setStaffList]       = useState([]);
+    const [selectedEscalateTo, setSelectedEscalateTo] = useState('');
 
+    const myRole = getUserRole(currentUserData, currentUser?.uid);
+
+    // ✅ جلب كل البلاغات بدون orderBy عشان يشمل كل الـ timestamp formats
     useEffect(() => {
-        const unsub = reportsCollection.orderBy('createdAt', 'desc').limit(80).onSnapshot(snap => {
-            setReports(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        // نجيب الكل بدون ترتيب عشان نتجنب مشكلة الـ composite index مع createdAt/timestamp
+        const unsub = reportsCollection.limit(200).onSnapshot(snap => {
+            let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            // نرتبهم client-side — بيشتغل مع createdAt وتimestamp وكمان status
+            data.sort((a, b) => {
+                const ta = a.createdAt?.toMillis?.() || a.timestamp?.toMillis?.() || a.createdAt?.seconds*1000 || a.timestamp?.seconds*1000 || 0;
+                const tb = b.createdAt?.toMillis?.() || b.timestamp?.toMillis?.() || b.createdAt?.seconds*1000 || b.timestamp?.seconds*1000 || 0;
+                return tb - ta;
+            });
+            setReports(data);
             setLoading(false);
-        }, () => setLoading(false));
+        }, () => {
+            // fallback بدون snapshot
+            reportsCollection.limit(200).get().then(snap => {
+                let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                data.sort((a, b) => {
+                    const ta = a.createdAt?.toMillis?.() || a.timestamp?.toMillis?.() || 0;
+                    const tb = b.createdAt?.toMillis?.() || b.timestamp?.toMillis?.() || 0;
+                    return tb - ta;
+                });
+                setReports(data);
+                setLoading(false);
+            });
+        });
         return unsub;
     }, []);
 
+    // جلب Staff List للـ escalate
+    useEffect(() => {
+        usersCollection.where('staffRole.role', 'in', ['admin','moderator']).get()
+            .then(snap => {
+                const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // نضيف Owner دايماً
+                setStaffList([{ id: OWNER_UID, displayName: 'Owner 👑', staffRole: { role: 'owner' } }, ...list]);
+            }).catch(() => {});
+    }, []);
+
+    // ── Helper: وقت البلاغ ──
+    const getReportTime = (r) => {
+        const ts = r.createdAt || r.timestamp;
+        if (!ts) return '';
+        const d = ts.toDate?.() || new Date(ts);
+        return isNaN(d) ? '' : d.toLocaleDateString(lang==='ar'?'ar-EG':'en-US', { day:'numeric', month:'short', year:'numeric' });
+    };
+
+    // ── Helper: اسم المُبلَّغ عنه ──
+    const getReportedName = (r) => {
+        // user report
+        if (r.reportedName) return r.reportedName;
+        if (r.reportedUID)  return r.reportedUID.slice(0,12) + '...';
+        // moment report
+        if (r.type === 'moment' || r.type === 'moment_comment') return lang==='ar'?'محتوى (لحظة)':'Content (Moment)';
+        return lang==='ar'?'غير معروف':'Unknown';
+    };
+
+    // ── Helper: نوع البلاغ ──
+    const getReportType = (r) => {
+        if (r.type === 'moment')         return { label: lang==='ar'?'لحظة':'Moment',  color:'#8b5cf6', icon:'📸' };
+        if (r.type === 'moment_comment') return { label: lang==='ar'?'تعليق':'Comment', color:'#6366f1', icon:'💬' };
+        return { label: lang==='ar'?'مستخدم':'User', color:'#ef4444', icon:'👤' };
+    };
+
     const resolveReport = async (reportId, reportData) => {
         try {
-            await reportsCollection.doc(reportId).update({ resolved: true, resolvedBy: currentUser.uid, resolvedAt: firebase.firestore.FieldValue.serverTimestamp() });
-            await logStaffAction(currentUser.uid, currentUserData?.displayName, 'RESOLVE_REPORT', reportData.reportedUID, reportData.reportedName || '', `Report: ${reportData.reason}`);
+            await reportsCollection.doc(reportId).update({
+                resolved: true,
+                status: 'resolved',
+                resolvedBy: currentUser.uid,
+                resolvedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            await logStaffAction(currentUser.uid, currentUserData?.displayName, 'RESOLVE_REPORT',
+                reportData.reportedUID || reportData.targetOwnerUID,
+                getReportedName(reportData),
+                `Report type: ${reportData.type||'user'} | Reason: ${reportData.reason||''}`
+            );
             onNotification(`✅ ${lang==='ar'?'تم حل البلاغ':'Report resolved'}`);
         } catch(e) { onNotification('❌ Error'); }
     };
 
-    const filtered = reports.filter(r => filter === 'all' ? true : filter === 'open' ? !r.resolved : r.resolved);
+    const handleEscalate = async (reportId, reportData) => {
+        if (!selectedEscalateTo) { onNotification(lang==='ar'?'اختر شخصاً للتصعيد إليه':'Select a staff member to escalate to'); return; }
+        try {
+            // أضف flag escalated على البلاغ
+            await reportsCollection.doc(reportId).update({
+                escalated: true,
+                escalatedTo: selectedEscalateTo,
+                escalatedBy: currentUser.uid,
+                escalatedNote: escalateNote,
+                escalatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            // أرسل notification للمسؤول اللي صعّدنا إليه
+            const targetStaff = staffList.find(s => s.id === selectedEscalateTo);
+            await notificationsCollection.add({
+                toUserId: selectedEscalateTo,
+                type: 'escalated_report',
+                message_en: `Report escalated to you by ${currentUserData?.displayName}. Reason: ${reportData.reason || ''}`,
+                message_ar: `تم تصعيد بلاغ إليك من ${currentUserData?.displayName}. السبب: ${reportData.reason || ''}`,
+                message: `Escalated report from ${currentUserData?.displayName}`,
+                icon: '🚨',
+                read: false,
+                reportId,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            await logStaffAction(currentUser.uid, currentUserData?.displayName, 'ESCALATE_REPORT',
+                reportData.reportedUID || null, getReportedName(reportData),
+                `Escalated to ${targetStaff?.displayName||selectedEscalateTo}. Note: ${escalateNote}`
+            );
+            onNotification(`✅ ${lang==='ar'?'تم التصعيد':'Escalated successfully'}`);
+            setEscalating(null);
+            setEscalateNote('');
+            setSelectedEscalateTo('');
+        } catch(e) { onNotification('❌ Error'); }
+    };
+
+    const filtered = reports.filter(r => {
+        if (filter === 'all')      return true;
+        if (filter === 'open')     return !r.resolved && r.status !== 'resolved';
+        if (filter === 'resolved') return r.resolved || r.status === 'resolved';
+        if (filter === 'escalated') return r.escalated === true;
+        return true;
+    });
+
+    const openCount      = reports.filter(r => !r.resolved && r.status !== 'resolved').length;
+    const escalatedCount = reports.filter(r => r.escalated).length;
 
     return (
         <div>
             <div style={{ fontSize:'13px', fontWeight:700, color:'#ef4444', marginBottom:'12px' }}>
                 🚨 {lang==='ar'?'بلاغات المستخدمين':'User Reports'}
+                <span style={{ marginLeft:'8px', fontSize:'11px', color:'#6b7280', fontWeight:400 }}>
+                    ({reports.length} {lang==='ar'?'إجمالي':'total'})
+                </span>
             </div>
-            <div style={{ display:'flex', gap:'6px', marginBottom:'14px' }}>
-                {['open','resolved','all'].map(f => (
-                    <button key={f} onClick={() => setFilter(f)}
-                        style={{ padding:'4px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight: filter===f?700:400,
-                            background: filter===f?'rgba(239,68,68,0.2)':'rgba(255,255,255,0.05)',
-                            border: filter===f?'1px solid rgba(239,68,68,0.5)':'1px solid rgba(255,255,255,0.1)',
-                            color: filter===f?'#ef4444':'#9ca3af' }}>
-                        {f==='open'?(lang==='ar'?'مفتوح':'Open'):f==='resolved'?(lang==='ar'?'محلول':'Resolved'):(lang==='ar'?'الكل':'All')}
-                        {f==='open' && ` (${reports.filter(r=>!r.resolved).length})`}
+
+            {/* Filter tabs */}
+            <div style={{ display:'flex', gap:'6px', marginBottom:'14px', flexWrap:'wrap' }}>
+                {[
+                    { id:'open',      label_ar:`مفتوح (${openCount})`,      label_en:`Open (${openCount})` },
+                    { id:'escalated', label_ar:`مُصعَّد (${escalatedCount})`, label_en:`Escalated (${escalatedCount})` },
+                    { id:'resolved',  label_ar:'محلول',   label_en:'Resolved' },
+                    { id:'all',       label_ar:'الكل',    label_en:'All' },
+                ].map(f => (
+                    <button key={f.id} onClick={() => setFilter(f.id)}
+                        style={{ padding:'4px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight: filter===f.id?700:400,
+                            background: filter===f.id?'rgba(239,68,68,0.2)':'rgba(255,255,255,0.05)',
+                            border: filter===f.id?'1px solid rgba(239,68,68,0.5)':'1px solid rgba(255,255,255,0.1)',
+                            color: filter===f.id?'#ef4444':'#9ca3af' }}>
+                        {lang==='ar' ? f.label_ar : f.label_en}
                     </button>
                 ))}
             </div>
-            {loading ? <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'20px'}}>⏳</div> : (
-                <div style={{ display:'flex', flexDirection:'column', gap:'8px', maxHeight:'50vh', overflowY:'auto' }}>
-                    {filtered.length === 0 && <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'20px'}}>{lang==='ar'?'لا توجد بلاغات':'No reports'}</div>}
-                    {filtered.map(report => (
-                        <div key={report.id} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${report.resolved?'rgba(16,185,129,0.15)':'rgba(239,68,68,0.2)'}`, borderRadius:'10px', padding:'12px' }}>
-                            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
-                                <div>
-                                    <span style={{ fontSize:'11px', fontWeight:700, color: report.resolved?'#10b981':'#ef4444' }}>
-                                        {report.resolved ? `✅ ${lang==='ar'?'محلول':'Resolved'}` : `⚠️ ${lang==='ar'?'مفتوح':'Open'}`}
-                                    </span>
-                                    <span style={{ fontSize:'10px', color:'#6b7280', marginLeft:'8px' }}>
-                                        {report.createdAt?.toDate?.()?.toLocaleDateString()}
-                                    </span>
-                                </div>
-                            </div>
-                            <div style={{ fontSize:'12px', marginBottom:'4px' }}>
-                                <span style={{color:'#9ca3af'}}>{lang==='ar'?'المُبلَّغ عنه:':'Reported:'} </span>
-                                <span style={{color:'white',fontWeight:700}}>{report.reportedName || report.reportedUID?.slice(0,12)}</span>
-                            </div>
-                            <div style={{ fontSize:'11px', color:'#9ca3af', marginBottom:'4px' }}>
-                                {lang==='ar'?'السبب:':'Reason:'} <span style={{color:'#f3f4f6'}}>{report.reason}</span>
-                            </div>
-                            {report.description && <div style={{ fontSize:'10px', color:'#6b7280', fontStyle:'italic', marginBottom:'8px' }}>"{report.description}"</div>}
-                            {!report.resolved && (
-                                <button onClick={() => resolveReport(report.id, report)}
-                                    style={{ padding:'5px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
-                                        background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.4)', color:'#10b981' }}>
-                                    ✅ {lang==='ar'?'حل البلاغ':'Resolve'}
-                                </button>
-                            )}
+
+            {loading ? (
+                <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'30px'}}>⏳ {lang==='ar'?'جاري التحميل...':'Loading...'}</div>
+            ) : (
+                <div style={{ display:'flex', flexDirection:'column', gap:'8px', maxHeight:'55vh', overflowY:'auto' }}>
+                    {filtered.length === 0 && (
+                        <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'30px'}}>
+                            {lang==='ar'?'لا توجد بلاغات في هذا التصنيف':'No reports in this category'}
                         </div>
-                    ))}
+                    )}
+
+                    {filtered.map(report => {
+                        const typeInfo = getReportType(report);
+                        const isResolved = report.resolved || report.status === 'resolved';
+                        const isEscalated = !!report.escalated;
+                        const isEscalatingThis = escalating === report.id;
+
+                        return (
+                            <div key={report.id} style={{
+                                background:'rgba(255,255,255,0.03)',
+                                border:`1px solid ${isResolved?'rgba(16,185,129,0.2)':isEscalated?'rgba(245,158,11,0.25)':'rgba(239,68,68,0.2)'}`,
+                                borderRadius:'10px', padding:'12px',
+                                borderLeft:`3px solid ${isResolved?'#10b981':isEscalated?'#f59e0b':'#ef4444'}`
+                            }}>
+                                {/* Header row */}
+                                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'8px' }}>
+                                    <div style={{ display:'flex', gap:'6px', alignItems:'center', flexWrap:'wrap' }}>
+                                        {/* Type badge */}
+                                        <span style={{ fontSize:'10px', padding:'2px 7px', borderRadius:'4px', fontWeight:700,
+                                            background:`${typeInfo.color}18`, border:`1px solid ${typeInfo.color}35`, color:typeInfo.color }}>
+                                            {typeInfo.icon} {typeInfo.label}
+                                        </span>
+                                        {/* Status badge */}
+                                        <span style={{ fontSize:'10px', padding:'2px 7px', borderRadius:'4px', fontWeight:700,
+                                            background: isResolved?'rgba(16,185,129,0.12)':isEscalated?'rgba(245,158,11,0.12)':'rgba(239,68,68,0.1)',
+                                            border: `1px solid ${isResolved?'rgba(16,185,129,0.3)':isEscalated?'rgba(245,158,11,0.3)':'rgba(239,68,68,0.25)'}`,
+                                            color: isResolved?'#10b981':isEscalated?'#f59e0b':'#ef4444' }}>
+                                            {isResolved ? (lang==='ar'?'✅ محلول':'✅ Resolved') : isEscalated ? (lang==='ar'?'🔺 مُصعَّد':'🔺 Escalated') : (lang==='ar'?'⚠️ مفتوح':'⚠️ Open')}
+                                        </span>
+                                    </div>
+                                    <span style={{ fontSize:'10px', color:'#6b7280', whiteSpace:'nowrap' }}>{getReportTime(report)}</span>
+                                </div>
+
+                                {/* Reported user/content */}
+                                <div style={{ fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', gap:'6px' }}>
+                                    <span style={{color:'#9ca3af'}}>{lang==='ar'?'المُبلَّغ عنه:':'Reported:'}</span>
+                                    <span style={{color:'white', fontWeight:700}}>{getReportedName(report)}</span>
+                                </div>
+
+                                {/* Reason */}
+                                {report.reason && (
+                                    <div style={{ fontSize:'11px', color:'#9ca3af', marginBottom:'4px' }}>
+                                        {lang==='ar'?'السبب:':'Reason:'} <span style={{color:'#f3f4f6'}}>{report.reason}</span>
+                                    </div>
+                                )}
+
+                                {/* Reporter */}
+                                <div style={{ fontSize:'10px', color:'#6b7280', marginBottom:'8px' }}>
+                                    {lang==='ar'?'مُبلِّغ:':'By:'} {report.reporterName || report.reporterUID?.slice(0,12) || '—'}
+                                </div>
+
+                                {/* Escalation info */}
+                                {isEscalated && (
+                                    <div style={{ background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:'6px', padding:'8px', marginBottom:'8px', fontSize:'11px' }}>
+                                        🔺 <span style={{color:'#f59e0b', fontWeight:700}}>{lang==='ar'?'تم التصعيد':'Escalated'}</span>
+                                        {report.escalatedNote && <span style={{color:'#9ca3af'}}> — {report.escalatedNote}</span>}
+                                    </div>
+                                )}
+
+                                {/* Action buttons */}
+                                {!isResolved && !isEscalatingThis && (
+                                    <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
+                                        <button onClick={() => resolveReport(report.id, report)}
+                                            style={{ padding:'5px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                                                background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.4)', color:'#10b981' }}>
+                                            ✅ {lang==='ar'?'حل البلاغ':'Resolve'}
+                                        </button>
+                                        {/* Escalate — فقط للـ Moderator (مش Admin/Owner لأنهم فوق) */}
+                                        {myRole === 'moderator' && !isEscalated && (
+                                            <button onClick={() => { setEscalating(report.id); setEscalateNote(''); setSelectedEscalateTo(''); }}
+                                                style={{ padding:'5px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                                                    background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.4)', color:'#f59e0b' }}>
+                                                🔺 {lang==='ar'?'تصعيد للأعلى':'Escalate'}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Escalate Panel */}
+                                {isEscalatingThis && (
+                                    <div style={{ background:'rgba(245,158,11,0.06)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:'8px', padding:'10px', marginTop:'8px' }}>
+                                        <div style={{ fontSize:'11px', color:'#f59e0b', fontWeight:700, marginBottom:'8px' }}>
+                                            🔺 {lang==='ar'?'تصعيد البلاغ':'Escalate Report'}
+                                        </div>
+                                        <select
+                                            value={selectedEscalateTo}
+                                            onChange={e => setSelectedEscalateTo(e.target.value)}
+                                            style={{ width:'100%', padding:'6px 10px', borderRadius:'6px', fontSize:'11px',
+                                                background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.15)',
+                                                color:'white', marginBottom:'6px' }}>
+                                            <option value=''>{lang==='ar'?'— اختر المسؤول —':'— Select staff member —'}</option>
+                                            {staffList
+                                                .filter(s => s.id !== currentUser?.uid)
+                                                .map(s => (
+                                                    <option key={s.id} value={s.id}>
+                                                        {s.displayName} ({s.staffRole?.role || 'owner'})
+                                                    </option>
+                                                ))}
+                                        </select>
+                                        <input className="input-dark"
+                                            style={{ width:'100%', padding:'6px 10px', borderRadius:'6px', fontSize:'11px', marginBottom:'8px' }}
+                                            placeholder={lang==='ar'?'ملاحظة (اختياري)':'Note (optional)'}
+                                            value={escalateNote}
+                                            onChange={e => setEscalateNote(e.target.value)}
+                                        />
+                                        <div style={{ display:'flex', gap:'6px' }}>
+                                            <button onClick={() => handleEscalate(report.id, report)}
+                                                disabled={!selectedEscalateTo}
+                                                style={{ flex:1, padding:'6px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                                                    background:'rgba(245,158,11,0.25)', border:'1px solid rgba(245,158,11,0.5)', color:'#f59e0b',
+                                                    opacity: selectedEscalateTo?1:0.5 }}>
+                                                🔺 {lang==='ar'?'تأكيد التصعيد':'Confirm Escalate'}
+                                            </button>
+                                            <button onClick={() => setEscalating(null)}
+                                                style={{ padding:'6px 10px', borderRadius:'6px', fontSize:'11px', cursor:'pointer',
+                                                    background:'rgba(107,114,128,0.15)', border:'1px solid rgba(107,114,128,0.3)', color:'#9ca3af' }}>
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             )}
         </div>
@@ -595,19 +821,303 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification }) 
 // 🎫 SUPPORT TICKETS (Moderator + Admin + Owner)
 // ════════════════════════════════════════════════════════
 const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) => {
-    const [tickets, setTickets] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [tickets, setTickets]           = useState([]);
+    const [loading, setLoading]           = useState(true);
     const [selectedTicket, setSelectedTicket] = useState(null);
-    const [replyText, setReplyText] = useState('');
-    const [replying, setReplying] = useState(false);
+    const [replyText, setReplyText]       = useState('');
+    const [replying, setReplying]         = useState(false);
+    const [filterStatus, setFilterStatus] = useState('all');
 
+    // جلب التذاكر — بدون orderBy لتجنب index issues
     useEffect(() => {
-        const unsub = ticketsCollection.orderBy('createdAt', 'desc').limit(60).onSnapshot(snap => {
-            setTickets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const unsub = ticketsCollection.limit(100).onSnapshot(snap => {
+            let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            data.sort((a,b) => {
+                const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds*1000 || 0;
+                const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds*1000 || 0;
+                return tb - ta;
+            });
+            setTickets(data);
+            // تحديث التذكرة المفتوحة لو في
+            setSelectedTicket(prev => {
+                if (!prev) return null;
+                const updated = data.find(t => t.id === prev.id);
+                return updated || prev;
+            });
             setLoading(false);
         }, () => setLoading(false));
         return unsub;
     }, []);
+
+    const handleReply = async () => {
+        if (!replyText.trim() || !selectedTicket || !currentUser) return;
+        setReplying(true);
+        try {
+            const reply = {
+                by: currentUser.uid,
+                byName: currentUserData?.displayName || 'Staff',
+                byRole: getUserRole(currentUserData, currentUser.uid) || 'staff',
+                message: replyText.trim(),
+                timestamp: new Date().toISOString()
+            };
+            await ticketsCollection.doc(selectedTicket.id).update({
+                responses: firebase.firestore.FieldValue.arrayUnion(reply),
+                status: 'answered',
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            // إشعار المستخدم
+            if (selectedTicket.userId && selectedTicket.userId !== '_system') {
+                await notificationsCollection.add({
+                    toUserId: selectedTicket.userId,
+                    type: 'ticket_reply',
+                    message_en: `${currentUserData?.displayName || 'Staff'} replied to your support ticket: "${selectedTicket.subject}"`,
+                    message_ar: `${currentUserData?.displayName || 'الدعم'} ردّ على تذكرتك: "${selectedTicket.subject}"`,
+                    icon: '🎫',
+                    read: false,
+                    ticketId: selectedTicket.id,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+            await logStaffAction(currentUser.uid, currentUserData?.displayName, 'REPLY_TICKET',
+                selectedTicket.userId, selectedTicket.userName,
+                `Subject: ${selectedTicket.subject} | Reply: ${replyText.slice(0,80)}`
+            );
+            setReplyText('');
+            onNotification(`✅ ${lang==='ar'?'تم إرسال الرد':'Reply sent'}`);
+        } catch(e) { onNotification('❌ Error'); }
+        setReplying(false);
+    };
+
+    const closeTicket = async (ticketId) => {
+        try {
+            await ticketsCollection.doc(ticketId).update({
+                status: 'closed',
+                closedBy: currentUser.uid,
+                closedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            // إشعار المستخدم بالإغلاق
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (ticket?.userId && ticket.userId !== '_system') {
+                await notificationsCollection.add({
+                    toUserId: ticket.userId,
+                    type: 'ticket_closed',
+                    message_en: `Your support ticket "${ticket.subject}" has been closed.`,
+                    message_ar: `تم إغلاق تذكرتك "${ticket.subject}".`,
+                    icon: '🔒',
+                    read: false,
+                    ticketId,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+            await logStaffAction(currentUser.uid, currentUserData?.displayName, 'CLOSE_TICKET',
+                ticket?.userId, ticket?.userName, `Closed: ${ticket?.subject}`
+            );
+            onNotification(`✅ ${lang==='ar'?'تم إغلاق التذكرة':'Ticket closed'}`);
+        } catch(e) { onNotification('❌ Error'); }
+    };
+
+    const reopenTicket = async (ticketId) => {
+        try {
+            await ticketsCollection.doc(ticketId).update({ status: 'open', closedAt: null });
+            onNotification(`✅ ${lang==='ar'?'تم إعادة فتح التذكرة':'Ticket reopened'}`);
+        } catch(e) {}
+    };
+
+    const statusConfig = {
+        open:     { color:'#ef4444', label_ar:'مفتوح',    label_en:'Open',     bg:'rgba(239,68,68,0.1)'   },
+        answered: { color:'#f59e0b', label_ar:'تم الرد',  label_en:'Answered', bg:'rgba(245,158,11,0.1)'  },
+        closed:   { color:'#6b7280', label_ar:'مغلق',     label_en:'Closed',   bg:'rgba(107,114,128,0.1)' },
+    };
+
+    const categoryIcon = { bug:'🐛', account:'👤', payment:'💳', other:'❓' };
+
+    const filteredTickets = filterStatus === 'all'
+        ? tickets
+        : tickets.filter(t => t.status === filterStatus);
+
+    // ── Detail View ──────────────────────────────────────
+    if (selectedTicket) {
+        const sc = statusConfig[selectedTicket.status] || statusConfig.open;
+        return (
+            <div>
+                <button onClick={() => setSelectedTicket(null)}
+                    style={{ fontSize:'12px', color:'#00f2ff', background:'none', border:'none', cursor:'pointer', marginBottom:'14px', display:'flex', alignItems:'center', gap:'5px' }}>
+                    ← {lang==='ar'?'العودة للتذاكر':'Back to tickets'}
+                </button>
+
+                {/* Ticket info */}
+                <div style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${sc.color}30`, borderRadius:'12px', padding:'16px', marginBottom:'14px' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px', flexWrap:'wrap', gap:'8px' }}>
+                        <div>
+                            <div style={{ fontWeight:800, fontSize:'14px', marginBottom:'3px' }}>{selectedTicket.subject}</div>
+                            <div style={{ fontSize:'10px', color:'#6b7280' }}>
+                                {categoryIcon[selectedTicket.category] || '❓'} {selectedTicket.category}
+                                {' • '}{lang==='ar'?'من:':'From:'} <strong style={{color:'#d1d5db'}}>{selectedTicket.userName}</strong>
+                                {' • '}{selectedTicket.createdAt?.toDate?.()?.toLocaleDateString(lang==='ar'?'ar-EG':'en-US')}
+                            </div>
+                        </div>
+                        <span style={{ fontSize:'11px', padding:'3px 10px', borderRadius:'5px', fontWeight:700, background:sc.bg, border:`1px solid ${sc.color}40`, color:sc.color }}>
+                            {lang==='ar'?sc.label_ar:sc.label_en}
+                        </span>
+                    </div>
+
+                    {/* Original message */}
+                    <div style={{ background:'rgba(255,255,255,0.03)', borderRadius:'8px', padding:'12px', fontSize:'12px', color:'#d1d5db', lineHeight:1.7, marginBottom:'12px', borderLeft:'3px solid rgba(255,255,255,0.1)' }}>
+                        {selectedTicket.message}
+                    </div>
+
+                    {/* Conversation thread */}
+                    {(selectedTicket.responses || []).length > 0 && (
+                        <div style={{ display:'flex', flexDirection:'column', gap:'8px', marginBottom:'12px' }}>
+                            {(selectedTicket.responses || []).map((r, i) => {
+                                const isStaff = r.byRole && r.byRole !== 'user';
+                                return (
+                                    <div key={i} style={{
+                                        background: isStaff ? 'rgba(0,242,255,0.05)' : 'rgba(112,0,255,0.05)',
+                                        border: `1px solid ${isStaff ? 'rgba(0,242,255,0.15)' : 'rgba(112,0,255,0.15)'}`,
+                                        borderRadius:'8px', padding:'10px',
+                                        marginLeft: isStaff ? '0' : '16px',
+                                        marginRight: isStaff ? '16px' : '0',
+                                    }}>
+                                        <div style={{ fontSize:'10px', fontWeight:700, marginBottom:'4px',
+                                            color: isStaff ? '#00f2ff' : '#a78bfa' }}>
+                                            {isStaff ? '👮' : '👤'} {r.byName}
+                                            <span style={{ fontWeight:400, color:'#6b7280', marginLeft:'6px' }}>
+                                                {new Date(r.timestamp).toLocaleString(lang==='ar'?'ar-EG':'en-US')}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize:'12px', color:'#d1d5db', lineHeight:1.6 }}>{r.message}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Reply box */}
+                    {selectedTicket.status !== 'closed' ? (
+                        <div>
+                            <textarea className="input-dark"
+                                style={{ width:'100%', padding:'10px', borderRadius:'8px', fontSize:'12px', minHeight:'70px', resize:'vertical', marginBottom:'8px', lineHeight:1.6 }}
+                                placeholder={lang==='ar'?'اكتب ردك هنا...':'Type your reply here...'}
+                                value={replyText}
+                                onChange={e => setReplyText(e.target.value)} />
+                            <div style={{ display:'flex', gap:'8px' }}>
+                                <button onClick={handleReply} disabled={replying || !replyText.trim()}
+                                    className="btn-neon" style={{ flex:1, padding:'8px', borderRadius:'8px', fontSize:'12px', fontWeight:700 }}>
+                                    {replying ? '⏳' : `📨 ${lang==='ar'?'إرسال الرد':'Send Reply'}`}
+                                </button>
+                                <button onClick={() => closeTicket(selectedTicket.id)}
+                                    style={{ padding:'8px 14px', borderRadius:'8px', fontSize:'11px', cursor:'pointer', fontWeight:700,
+                                        background:'rgba(107,114,128,0.15)', border:'1px solid rgba(107,114,128,0.3)', color:'#9ca3af' }}>
+                                    🔒 {lang==='ar'?'إغلاق':'Close'}
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                            <span style={{ fontSize:'11px', color:'#6b7280' }}>🔒 {lang==='ar'?'هذه التذكرة مغلقة':'This ticket is closed'}</span>
+                            <button onClick={() => reopenTicket(selectedTicket.id)}
+                                style={{ padding:'5px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer',
+                                    background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)', color:'#00f2ff' }}>
+                                🔓 {lang==='ar'?'إعادة فتح':'Reopen'}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // ── List View ────────────────────────────────────────
+    const openCount = tickets.filter(t => t.status === 'open').length;
+    const answeredCount = tickets.filter(t => t.status === 'answered').length;
+
+    return (
+        <div>
+            <div style={{ fontSize:'13px', fontWeight:700, color:'#6366f1', marginBottom:'12px' }}>
+                🎫 {lang==='ar'?'تذاكر الدعم':'Support Tickets'}
+                <span style={{ marginLeft:'8px', fontSize:'11px', color:'#6b7280', fontWeight:400 }}>
+                    ({tickets.length} {lang==='ar'?'إجمالي':'total'})
+                </span>
+            </div>
+
+            {/* Stats */}
+            <div style={{ display:'flex', gap:'8px', marginBottom:'12px' }}>
+                {[
+                    { label: lang==='ar'?'مفتوح':'Open',    val: openCount,                                    color:'#ef4444' },
+                    { label: lang==='ar'?'تم الرد':'Answered', val: answeredCount,                              color:'#f59e0b' },
+                    { label: lang==='ar'?'مغلق':'Closed',   val: tickets.filter(t=>t.status==='closed').length, color:'#6b7280' },
+                ].map(s => (
+                    <div key={s.label} style={{ flex:1, background:`${s.color}10`, border:`1px solid ${s.color}25`, borderRadius:'8px', padding:'8px', textAlign:'center' }}>
+                        <div style={{ fontSize:'16px', fontWeight:800, color:s.color }}>{s.val}</div>
+                        <div style={{ fontSize:'9px', color:'#6b7280', textTransform:'uppercase' }}>{s.label}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Filter */}
+            <div style={{ display:'flex', gap:'6px', marginBottom:'12px', flexWrap:'wrap' }}>
+                {['all','open','answered','closed'].map(f => {
+                    const sc = statusConfig[f] || { color:'#9ca3af', label_ar:'الكل', label_en:'All' };
+                    return (
+                        <button key={f} onClick={() => setFilterStatus(f)}
+                            style={{ padding:'4px 12px', borderRadius:'6px', fontSize:'11px', cursor:'pointer', fontWeight: filterStatus===f?700:400,
+                                background: filterStatus===f?`${sc.color}20`:'rgba(255,255,255,0.05)',
+                                border: filterStatus===f?`1px solid ${sc.color}50`:'1px solid rgba(255,255,255,0.1)',
+                                color: filterStatus===f?sc.color:'#9ca3af' }}>
+                            {f==='all'?(lang==='ar'?'الكل':'All'):(lang==='ar'?sc.label_ar:sc.label_en)}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {loading ? <div style={{color:'#6b7280',textAlign:'center',padding:'30px'}}>⏳</div> : (
+                <div style={{ display:'flex', flexDirection:'column', gap:'8px', maxHeight:'55vh', overflowY:'auto' }}>
+                    {filteredTickets.length === 0 && (
+                        <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'30px'}}>
+                            {lang==='ar'?'لا توجد تذاكر':'No tickets'}
+                        </div>
+                    )}
+                    {filteredTickets.map(ticket => {
+                        const sc = statusConfig[ticket.status] || statusConfig.open;
+                        const hasUnread = ticket.status === 'open' && (ticket.responses||[]).length === 0;
+                        return (
+                            <div key={ticket.id} onClick={() => setSelectedTicket(ticket)}
+                                style={{
+                                    background: hasUnread ? 'rgba(99,102,241,0.06)' : 'rgba(255,255,255,0.03)',
+                                    border:`1px solid ${hasUnread?'rgba(99,102,241,0.3)':'rgba(255,255,255,0.08)'}`,
+                                    borderRadius:'10px', padding:'12px', cursor:'pointer', transition:'all 0.15s',
+                                    borderLeft:`3px solid ${sc.color}`
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                                onMouseLeave={e => e.currentTarget.style.background = hasUnread?'rgba(99,102,241,0.06)':'rgba(255,255,255,0.03)'}>
+                                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px' }}>
+                                    <div style={{ display:'flex', alignItems:'center', gap:'6px', minWidth:0 }}>
+                                        {hasUnread && <span style={{ width:'7px', height:'7px', borderRadius:'50%', background:'#6366f1', flexShrink:0, display:'inline-block' }} />}
+                                        <span style={{ fontSize:'12px', fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                                            {categoryIcon[ticket.category]||'❓'} {ticket.subject || (lang==='ar'?'بدون عنوان':'No subject')}
+                                        </span>
+                                    </div>
+                                    <span style={{ fontSize:'10px', padding:'2px 8px', borderRadius:'4px', fontWeight:700, flexShrink:0, marginLeft:'8px',
+                                        background:sc.bg, border:`1px solid ${sc.color}35`, color:sc.color }}>
+                                        {lang==='ar'?sc.label_ar:sc.label_en}
+                                    </span>
+                                </div>
+                                <div style={{ fontSize:'11px', color:'#9ca3af', display:'flex', justifyContent:'space-between' }}>
+                                    <span>👤 {ticket.userName}</span>
+                                    <span>
+                                        {(ticket.responses||[]).length > 0 && `💬 ${ticket.responses.length} • `}
+                                        {ticket.createdAt?.toDate?.()?.toLocaleDateString(lang==='ar'?'ar-EG':'en-US')}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
 
     const handleReply = async () => {
         if (!replyText.trim() || !selectedTicket || !currentUser) return;
