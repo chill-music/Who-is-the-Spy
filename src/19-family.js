@@ -169,19 +169,20 @@ const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curr
         const chunks = [];
         for (let i = 0; i < friendUIDs.length; i += 10) chunks.push(friendUIDs.slice(i, i + 10));
         Promise.all(chunks.map(chunk =>
-            momentsCollection.where('authorUID', 'in', chunk).orderBy('createdAt', 'desc').limit(30).get().catch(() => ({ docs: [] }))
+            momentsCollection.where('authorUID', 'in', chunk).limit(30).get()
+                .catch(() => ({ docs: [] }))
         )).then(results => {
             const all = [];
-            results.forEach(snap => snap.docs.forEach(d => all.push({ id: d.id, ...d.data() })));
+            results.forEach(snap => snap.docs && snap.docs.forEach(d => all.push({ id: d.id, ...d.data() })));
             all.sort((a, b) => {
-                const aT = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
-                const bT = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+                const aT = a.createdAt?.toMillis?.() || (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
+                const bT = b.createdAt?.toMillis?.() || (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
                 return bT - aT;
             });
             setMoments(all.slice(0, 60));
             setLoading(false);
-        }).catch(() => setLoading(false));
-    }, [show, currentUID, friendsData?.length]);
+        }).catch(() => { setMoments([]); setLoading(false); });
+    }, [show, currentUID, JSON.stringify((friendsData || []).map(f => f.id || f.uid).filter(Boolean).sort())]);
 
     const fmtMomentTime = (ts) => {
         if (!ts) return '';
@@ -344,6 +345,265 @@ const FamilyRankingModal = ({ show, onClose, lang, currentFamilyId }) => {
                 </div>
             </div>
         </PortalModal>
+    );
+};
+
+// ════════════════════════════════════════════════════════
+// 💬 FAMILY CHAT MODAL — Standalone chat accessible from Chat tab
+// ════════════════════════════════════════════════════════
+const CHAT_EMOJIS_FAM = ['😀','😂','❤️','👍','🔥','⭐','💎','🎁','🎉','😎','🤩','💪','✨','🙏','😊','👑','💖','🥳','🏆','🎯','😍','🤣','😭','😱','🫡','💯','🌹','🎮','🕵️','🏅'];
+
+const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang }) => {
+    const [messages, setMessages] = React.useState([]);
+    const [chatInput, setChatInput] = React.useState('');
+    const [sendingMsg, setSendingMsg] = React.useState(false);
+    const [showEmoji, setShowEmoji] = React.useState(false);
+    const chatEndRef = React.useRef(null);
+    const imgInputRef = React.useRef(null);
+
+    React.useEffect(() => {
+        if (!show || !familyId) return;
+        const unsub = familiesCollection.doc(familyId).collection('messages')
+            .orderBy('timestamp', 'desc').limit(80)
+            .onSnapshot(snap => {
+                const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+                setMessages(msgs);
+            }, () => {});
+        return () => unsub();
+    }, [show, familyId]);
+
+    React.useEffect(() => {
+        if (show) setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 120);
+    }, [messages.length, show]);
+
+    const sendMessage = async (text, type, extra) => {
+        type = type || 'text';
+        extra = extra || {};
+        if ((!text || !text.trim()) && type === 'text') return;
+        if (!familyId || !currentUID || sendingMsg) return;
+        setSendingMsg(true);
+        try {
+            await familiesCollection.doc(familyId).collection('messages').add({
+                senderId: currentUID,
+                senderName: currentUserData?.displayName || 'Member',
+                senderPhoto: currentUserData?.photoURL || null,
+                text: (text || '').trim(),
+                type: type,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                ...extra,
+            });
+            if (type === 'text') setChatInput('');
+            await familiesCollection.doc(familyId).update({
+                lastChatMessage: (text || '').trim() || (type === 'image' ? '📷' : ''),
+                lastChatSenderId: currentUID,
+                lastChatAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastChatAtMs: Date.now(),
+                ['chatReadBy.' + currentUID]: firebase.firestore.FieldValue.serverTimestamp(),
+            }).catch(function() {});
+        } catch (e) { console.error('FamilyChatModal sendMessage error:', e); }
+        setSendingMsg(false);
+    };
+
+    const handleImageUpload = function(e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            var img = new Image();
+            img.onload = function() {
+                var canvas = document.createElement('canvas');
+                var MAX = 800;
+                var w = img.width, h = img.height;
+                if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+                else { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                var base64 = canvas.toDataURL('image/jpeg', 0.7);
+                sendMessage('', 'image', { imageUrl: base64 });
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    var fmtTime = function(ts) {
+        if (!ts) return '';
+        var d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+        var diff = Date.now() - d.getTime();
+        if (diff < 60000) return lang === 'ar' ? 'الآن' : 'now';
+        if (diff < 3600000) return Math.floor(diff/60000) + (lang==='ar'?'د':'m');
+        if (diff < 86400000) return Math.floor(diff/3600000) + (lang==='ar'?'س':'h');
+        return Math.floor(diff/86400000) + (lang==='ar'?'ي':'d');
+    };
+
+    if (!show) return null;
+
+    var signData = familyData ? getFamilySignLevelData(familyData.activeness || 0) : FAMILY_SIGN_LEVELS[0];
+    var fLvl = familyData ? getFamilyLevel(familyData.xp || 0) : null;
+
+    return React.createElement(PortalModal, null,
+        React.createElement('div', {
+            style: { position:'fixed', inset:0, zIndex: Z.MODAL, background:'var(--bg-main)', display:'flex', flexDirection:'column', maxWidth:'480px', margin:'0 auto' }
+        },
+            // Header
+            React.createElement('div', {
+                style: { display:'flex', alignItems:'center', gap:'10px', padding:'12px 16px', borderBottom:'1px solid rgba(255,255,255,0.08)', background:'rgba(0,0,0,0.4)', flexShrink:0 }
+            },
+                React.createElement('button', { onClick: onClose, style: { background:'none', border:'none', color:'#00f2ff', fontSize:'20px', cursor:'pointer', padding:'0 4px' } }, '‹'),
+                React.createElement('div', {
+                    style: { width:'40px', height:'40px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'linear-gradient(135deg,' + signData.color + '22,rgba(0,0,0,0.3))', border:'2px solid ' + signData.color + '55', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px' }
+                }, familyData && familyData.photoURL ? React.createElement('img', { src: familyData.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}}) : (familyData && familyData.emblem) || '🏠'),
+                React.createElement('div', { style: { flex:1, minWidth:0 } },
+                    React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' } },
+                        React.createElement('span', { style: { fontSize:'14px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } }, (familyData && familyData.name) || (lang==='ar'?'شات العائلة':'Family Chat')),
+                        familyData && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: familyData.signImageURL })
+                    ),
+                    React.createElement('div', { style: { fontSize:'10px', color:'#6b7280' } },
+                        ((familyData && familyData.members && familyData.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members'),
+                        fLvl && React.createElement('span', { style: { color: fLvl.color, marginLeft:'4px' } }, fLvl.icon + ' Lv.' + fLvl.level)
+                    )
+                )
+            ),
+            // Messages
+            React.createElement('div', {
+                style: { flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px', minHeight:0 }
+            },
+                messages.length === 0 && React.createElement('div', {
+                    style: { textAlign:'center', padding:'40px 20px', color:'#4b5563' }
+                },
+                    React.createElement('div', { style: { fontSize:'36px', marginBottom:'10px' } }, '💬'),
+                    React.createElement('div', { style: { fontSize:'12px' } }, lang==='ar'?'كن أول من يتحدث!':'Be the first to chat!')
+                ),
+                messages.map(function(msg) {
+                    var isMe = msg.senderId === currentUID;
+                    var isSystem = msg.senderId === 'system' || msg.type === 'system';
+                    var isDonation = msg.type === 'donation';
+                    if (isSystem) return React.createElement('div', { key: msg.id, style: { textAlign:'center', padding:'4px 12px' } },
+                        React.createElement('span', { style: { fontSize:'10px', color:'#6b7280', background:'rgba(255,255,255,0.04)', padding:'3px 10px', borderRadius:'20px' } }, msg.text)
+                    );
+                    if (isDonation) return React.createElement('div', { key: msg.id, style: { display:'flex', justifyContent:'center', padding:'4px 0' } },
+                        React.createElement('div', { style: { background:'linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,140,0,0.1))', border:'1px solid rgba(255,215,0,0.3)', borderRadius:'12px', padding:'8px 14px', maxWidth:'90%', textAlign:'center' } },
+                            React.createElement('div', { style: { fontSize:'12px', color:'#ffd700', fontWeight:800 } }, msg.text),
+                            React.createElement('div', { style: { fontSize:'10px', color:'#6b7280', marginTop:'2px' } }, fmtTime(msg.timestamp))
+                        )
+                    );
+                    return React.createElement('div', { key: msg.id, style: { display:'flex', flexDirection: isMe?'row-reverse':'row', gap:'8px', alignItems:'flex-end' } },
+                        !isMe && React.createElement('div', { style: { width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)' } },
+                            msg.senderPhoto
+                                ? React.createElement('img', { src: msg.senderPhoto, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}})
+                                : React.createElement('div', { style:{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}, '😎')
+                        ),
+                        React.createElement('div', { style: { maxWidth:'72%' } },
+                            !isMe && React.createElement('div', { style: { fontSize:'10px', color:'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft:'4px' } }, msg.senderName),
+                            msg.type === 'image' && msg.imageUrl
+                                ? React.createElement('img', { src: msg.imageUrl, alt:'', style:{ maxWidth:'220px', maxHeight:'200px', borderRadius:'12px', display:'block', objectFit:'cover' }})
+                                : React.createElement('div', {
+                                    style: { padding:'8px 12px', borderRadius: isMe?'14px 4px 14px 14px':'4px 14px 14px 14px', background: isMe?'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.2))':'rgba(255,255,255,0.07)', border: isMe?'1px solid rgba(0,242,255,0.3)':'1px solid rgba(255,255,255,0.08)', fontSize:'12px', color:'#e2e8f0', lineHeight:1.5, wordBreak:'break-word' }
+                                }, msg.text),
+                            React.createElement('div', { style: { fontSize:'9px', color:'#4b5563', marginTop:'2px', textAlign: isMe?'right':'left', paddingLeft:'4px', paddingRight:'4px' } }, fmtTime(msg.timestamp))
+                        )
+                    );
+                }),
+                React.createElement('div', { ref: chatEndRef })
+            ),
+            // Emoji picker
+            showEmoji && React.createElement('div', {
+                style: { padding:'8px 12px', borderTop:'1px solid rgba(255,255,255,0.06)', background:'rgba(0,0,0,0.5)', flexWrap:'wrap', display:'flex', gap:'4px', flexShrink:0 }
+            },
+                CHAT_EMOJIS_FAM.map(function(e) {
+                    return React.createElement('button', {
+                        key: e,
+                        onClick: function() { setChatInput(function(p) { return p + e; }); setShowEmoji(false); },
+                        style: { background:'none', border:'none', fontSize:'20px', cursor:'pointer', padding:'3px', borderRadius:'6px', lineHeight:1 }
+                    }, e);
+                })
+            ),
+            // Input bar
+            React.createElement('div', {
+                style: { padding:'10px 12px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.3)', display:'flex', gap:'8px', alignItems:'center', flexShrink:0 }
+            },
+                React.createElement('input', { ref: imgInputRef, type:'file', accept:'image/*', style:{display:'none'}, onChange: handleImageUpload }),
+                React.createElement('button', {
+                    onClick: function() { if (imgInputRef.current) imgInputRef.current.click(); },
+                    style: { width:'36px', height:'36px', borderRadius:'10px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }
+                }, '📷'),
+                React.createElement('button', {
+                    onClick: function() { setShowEmoji(function(p) { return !p; }); },
+                    style: { width:'36px', height:'36px', borderRadius:'10px', background: showEmoji?'rgba(0,242,255,0.15)':'rgba(255,255,255,0.06)', border: '1px solid ' + (showEmoji?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.1)'), color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }
+                }, '😊'),
+                React.createElement('input', {
+                    value: chatInput,
+                    onChange: function(e) { setChatInput(e.target.value); },
+                    onKeyDown: function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput); } },
+                    maxLength: 400,
+                    style: { flex:1, padding:'9px 12px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'13px', outline:'none' },
+                    placeholder: lang==='ar'?'اكتب رسالة...':'Type a message...'
+                }),
+                React.createElement('button', {
+                    onClick: function() { sendMessage(chatInput); },
+                    disabled: !chatInput.trim() || sendingMsg,
+                    style: { width:'40px', height:'40px', borderRadius:'12px', border:'none', flexShrink:0, background: chatInput.trim()?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color: chatInput.trim()?'white':'#6b7280', fontSize:'18px', cursor: chatInput.trim()?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center' }
+                }, sendingMsg ? '⏳' : '➤')
+            )
+        )
+    );
+};
+
+// ════════════════════════════════════════════════════════
+// 🏠 FAMILY CHAT ITEM — Shows in Chat section when user has a family
+// ════════════════════════════════════════════════════════
+const FamilyChatItem = ({ familyId, currentUID, currentUserData, lang, onOpenChat }) => {
+    const [family, setFamily] = React.useState(null);
+    const [hasUnread, setHasUnread] = React.useState(false);
+
+    React.useEffect(() => {
+        if (!familyId) return;
+        var unsub = familiesCollection.doc(familyId).onSnapshot(function(snap) {
+            if (snap.exists) {
+                var d = Object.assign({ id: snap.id }, snap.data());
+                setFamily(d);
+                var lastAtMs = d.lastChatAtMs || (d.lastChatAt && d.lastChatAt.toMillis && d.lastChatAt.toMillis()) || 0;
+                var readAtRaw = d.chatReadBy && d.chatReadBy[currentUID];
+                var readAtMs = readAtRaw && readAtRaw.toMillis ? readAtRaw.toMillis() : (readAtRaw && readAtRaw.seconds ? readAtRaw.seconds * 1000 : 0);
+                setHasUnread(lastAtMs > readAtMs && d.lastChatSenderId !== currentUID && lastAtMs > 0);
+            }
+        }, function() {});
+        return function() { unsub(); };
+    }, [familyId, currentUID]);
+
+    if (!family) return null;
+
+    var signData = getFamilySignLevelData(family.activeness || 0);
+    var fLvl = getFamilyLevel(family.xp || 0);
+    var lastTime = family.lastChatAt ? fmtFamilyTime(family.lastChatAt, lang) : '';
+
+    return React.createElement('div', {
+        onClick: function() { onOpenChat(family); },
+        style: { display:'flex', alignItems:'center', gap:'12px', padding:'12px 16px', cursor:'pointer', background: hasUnread?'linear-gradient(135deg,rgba(255,136,0,0.1),rgba(255,80,0,0.05))':'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.05)', transition:'background 0.2s' }
+    },
+        React.createElement('div', { style: { position:'relative', flexShrink:0 } },
+            React.createElement('div', {
+                style: { width:'46px', height:'46px', borderRadius:'50%', overflow:'hidden', background:'linear-gradient(135deg,' + signData.color + '22,rgba(0,0,0,0.3))', border:'2px solid ' + signData.color + '55', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px' }
+            }, family.photoURL ? React.createElement('img', { src: family.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}}) : family.emblem || '🏠'),
+            hasUnread && React.createElement('div', { style: { position:'absolute', top:'-2px', right:'-2px', width:'14px', height:'14px', borderRadius:'50%', background:'#f97316', border:'2px solid var(--bg-main)', boxShadow:'0 0 6px rgba(249,115,22,0.8)' }})
+        ),
+        React.createElement('div', { style: { flex:1, minWidth:0 } },
+            React.createElement('div', { style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'3px' } },
+                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'5px', flex:1, minWidth:0, flexWrap:'wrap' } },
+                    React.createElement('span', { style: { fontSize:'13px', fontWeight: hasUnread?800:600, color: hasUnread?'#e2e8f0':'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } }, family.name),
+                    React.createElement(FamilySignBadge, { tag: family.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: family.signImageURL })
+                ),
+                React.createElement('span', { style: { fontSize:'9px', color:'#6b7280', flexShrink:0, marginLeft:'6px' } }, lastTime)
+            ),
+            React.createElement('div', { style: { fontSize:'11px', color: hasUnread?'#d1d5db':'#6b7280', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } },
+                '🏠 ' + (family.lastChatMessage || (lang==='ar'?'شات العائلة':'Family Chat'))
+            ),
+            React.createElement('div', { style: { fontSize:'9px', color: fLvl.color, marginTop:'2px' } },
+                fLvl.icon + ' Lv.' + fLvl.level + ' · ' + ((family.members && family.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members')
+            )
+        ),
+        React.createElement('div', { style: { fontSize:'16px', color:'#f97316', flexShrink:0 } }, '›')
     );
 };
 
@@ -892,7 +1152,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
     const TABS = [
         { id:'profile', label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
-        { id:'chat',    label_en:'Chat',    label_ar:'شات',      icon:'💬' },
         { id:'members', label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
         { id:'tasks',   label_en:'Tasks',   label_ar:'مهام',     icon:'🎯' },
         { id:'news',    label_en:'News',    label_ar:'أخبار',    icon:'📰' },
@@ -1200,7 +1459,10 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         <span style={{fontSize:'10px', color:'#6b7280', fontWeight:700}}>{family.members?.length||0}/{getFamilyLevel(family.xp||0).maxMembers}</span>
                     </div>
                     <div style={{display:'flex', gap:'6px'}}>
-                        {[['intel','🧠 إجمالي | Total Intel'],['weekly','⚡ أسبوعي | Weekly']].map(([s, lbl]) => (
+                        {[
+                            ['intel',  lang==='ar' ? '🧠 إجمالي' : '🧠 Total Intel'],
+                            ['weekly', lang==='ar' ? '⚡ أسبوعي' : '⚡ Weekly']
+                        ].map(([s, lbl]) => (
                             <button key={s} onClick={()=>setDonationSort(s)} style={{flex:1, padding:'5px', borderRadius:'8px', border:`1px solid ${donationSort===s?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.07)'}`, background:donationSort===s?'rgba(0,242,255,0.1)':'transparent', color:donationSort===s?'#00f2ff':'#6b7280', fontSize:'10px', fontWeight:donationSort===s?800:500, cursor:'pointer'}}>
                                 {lbl}
                             </button>
@@ -1682,9 +1944,9 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                         <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />
                                     </div>
                                     <div style={{fontSize:'9px', color:'#6b7280', display:'flex', alignItems:'center', gap:'6px'}}>
-                                        <span>{fLvl?.icon} Lv.{fLvl?.level}</span>
+                                        <span>{fLvl?.icon} {lang==='ar'?`المستوى ${fLvl?.level}`:`Lv.${fLvl?.level}`}</span>
                                         <span>·</span>
-                                        <span>👥{family.members?.length||0}</span>
+                                        <span>👥 {family.members?.length||0} {lang==='ar'?'عضو':'members'}</span>
                                         <FamilyRoleBadge role={myRole||'member'} lang={lang} small />
                                     </div>
                                 </div>
@@ -1757,7 +2019,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         ) : (
                             <>
                                 {activeTab==='profile' && renderProfile()}
-                                {activeTab==='chat'    && renderChat()}
                                 {activeTab==='members' && renderMembers()}
                                 {activeTab==='tasks'   && renderTasks()}
                                 {activeTab==='news'    && renderNews()}
