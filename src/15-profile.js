@@ -2192,6 +2192,162 @@ const AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
     );
 };
 
+// ════════════════════════════════════════════════════════════
+// 👑 ADMIN ROLE MODAL — لوحة إدارة الرتب
+// ════════════════════════════════════════════════════════════
+const AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRoleApplied }) => {
+    const [selectedRole, setSelectedRole] = useState('');
+    const [applying, setApplying] = useState(false);
+    const [error, setError] = useState('');
+
+    const targetUID = targetData?.id || targetData?.uid;
+    const targetRole = getUserRole(targetData, targetUID);
+    const assignableRoles = getAssignableRoles(viewerData, viewerUID);
+    const viewerRole = getUserRole(viewerData, viewerUID);
+
+    // Owner لا يُمس
+    const isTargetOwner = targetRole === 'owner';
+    // Admin لا يقدر يعدل admin آخر
+    const cannotModify = isTargetOwner || (viewerRole === 'admin' && targetRole === 'admin');
+
+    const roleOptions = [
+        { value: 'admin',     icon: '🛡️', label_ar: 'أدمن',   label_en: 'Admin',     color: '#ef4444' },
+        { value: 'moderator', icon: '🔰', label_ar: 'مشرف',   label_en: 'Moderator', color: '#3b82f6' },
+    ].filter(r => assignableRoles.includes(r.value));
+
+    const handleApply = async () => {
+        if (!targetUID) return;
+        setApplying(true);
+        setError('');
+        try {
+            if (!selectedRole || selectedRole === 'none') {
+                // Remove role
+                await usersCollection.doc(targetUID).update({ staffRole: null });
+                onRoleApplied(null);
+            } else {
+                const roleData = {
+                    role: selectedRole,
+                    assignedBy: viewerUID,
+                    assignedByName: viewerData?.displayName || 'Admin',
+                    assignedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                };
+                await usersCollection.doc(targetUID).update({ staffRole: roleData });
+                onRoleApplied(roleData);
+            }
+            onClose();
+        } catch (e) {
+            setError(lang === 'ar' ? 'حدث خطأ، حاول مجدداً' : 'An error occurred, try again');
+        }
+        setApplying(false);
+    };
+
+    return (
+        <PortalModal>
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.88)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.TOOLTIP, padding:'16px' }}
+                onClick={onClose}>
+                <div style={{ background:'linear-gradient(160deg,#0a0510,#0f0f1e)', border:'1.5px solid rgba(255,215,0,0.3)', borderRadius:'18px', padding:'22px 18px', maxWidth:'340px', width:'100%', boxShadow:'0 20px 60px rgba(255,215,0,0.1)' }}
+                    onClick={e => e.stopPropagation()}>
+
+                    {/* Header */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'18px' }}>
+                        <span style={{ fontSize:'28px' }}>👑</span>
+                        <div>
+                            <div style={{ fontSize:'14px', fontWeight:900, color:'#fbbf24' }}>
+                                {lang === 'ar' ? 'إدارة الرتبة' : 'Manage Role'}
+                            </div>
+                            <div style={{ fontSize:'11px', color:'#9ca3af', marginTop:'2px' }}>
+                                {targetData?.displayName || targetUID}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Current role */}
+                    {targetRole && (
+                        <div style={{ padding:'10px 12px', borderRadius:'10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.09)', marginBottom:'14px', display:'flex', alignItems:'center', gap:'8px' }}>
+                            <span style={{ fontSize:'10px', color:'#6b7280' }}>{lang === 'ar' ? 'الرتبة الحالية:' : 'Current Role:'}</span>
+                            <StaffRoleBadge userData={targetData} uid={targetUID} lang={lang} size="md" />
+                        </div>
+                    )}
+
+                    {cannotModify ? (
+                        /* Cannot modify notice */
+                        <div style={{ padding:'14px', borderRadius:'10px', background:'rgba(251,191,36,0.08)', border:'1px solid rgba(251,191,36,0.25)', textAlign:'center', marginBottom:'14px' }}>
+                            <div style={{ fontSize:'24px', marginBottom:'6px' }}>⚠️</div>
+                            <div style={{ fontSize:'12px', color:'#fbbf24', fontWeight:700 }}>
+                                {lang === 'ar' ? 'لا يمكن تعديل رتبة هذا المستخدم' : "Cannot modify this user's role"}
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Role options */}
+                            <div style={{ display:'flex', flexDirection:'column', gap:'7px', marginBottom:'14px' }}>
+                                {/* No role option */}
+                                <button onClick={() => setSelectedRole('none')} style={{
+                                    padding:'10px 14px', borderRadius:'10px', fontSize:'12px', fontWeight:700, cursor:'pointer',
+                                    display:'flex', alignItems:'center', gap:'8px', textAlign: lang==='ar'?'right':'left',
+                                    background: selectedRole === 'none' ? 'rgba(107,114,128,0.2)' : 'rgba(255,255,255,0.04)',
+                                    border: selectedRole === 'none' ? '1.5px solid rgba(156,163,175,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                                    color: selectedRole === 'none' ? '#d1d5db' : '#9ca3af',
+                                }}>
+                                    <span style={{ fontSize:'16px' }}>🚫</span>
+                                    <span>{lang === 'ar' ? 'بدون رتبة (إزالة)' : 'No Role (Remove)'}</span>
+                                </button>
+
+                                {/* Role options */}
+                                {roleOptions.map(opt => (
+                                    <button key={opt.value} onClick={() => setSelectedRole(opt.value)} style={{
+                                        padding:'10px 14px', borderRadius:'10px', fontSize:'12px', fontWeight:700, cursor:'pointer',
+                                        display:'flex', alignItems:'center', gap:'8px', textAlign: lang==='ar'?'right':'left',
+                                        background: selectedRole === opt.value ? `rgba(${opt.value==='admin'?'239,68,68':'59,130,246'},0.18)` : 'rgba(255,255,255,0.04)',
+                                        border: selectedRole === opt.value ? `1.5px solid ${opt.color}88` : '1px solid rgba(255,255,255,0.08)',
+                                        color: selectedRole === opt.value ? opt.color : '#9ca3af',
+                                    }}>
+                                        <span style={{ fontSize:'18px' }}>{opt.icon}</span>
+                                        <div style={{ flex:1 }}>
+                                            <div style={{ fontWeight:900 }}>{lang === 'ar' ? opt.label_ar : opt.label_en}</div>
+                                            <div style={{ fontSize:'9px', color:'#6b7280', marginTop:'1px', fontWeight:500 }}>
+                                                {opt.value === 'admin'
+                                                    ? (lang === 'ar' ? 'يقدر يحظر ويعيّن مشرفين' : 'Can ban users & assign moderators')
+                                                    : (lang === 'ar' ? 'صلاحيات الإشراف الأساسية' : 'Basic moderation permissions')}
+                                            </div>
+                                        </div>
+                                        {selectedRole === opt.value && <span style={{ color: opt.color, fontSize:'16px' }}>✓</span>}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {error && <div style={{ fontSize:'11px', color:'#f87171', textAlign:'center', marginBottom:'10px' }}>{error}</div>}
+
+                            {/* Action buttons */}
+                            <div style={{ display:'flex', gap:'8px' }}>
+                                <button onClick={onClose} style={{ flex:1, padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>
+                                    {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                                <button onClick={handleApply} disabled={!selectedRole || applying} style={{
+                                    flex:1, padding:'10px', borderRadius:'10px', fontSize:'13px', fontWeight:800,
+                                    cursor: (!selectedRole || applying) ? 'not-allowed' : 'pointer',
+                                    opacity: (!selectedRole || applying) ? 0.5 : 1,
+                                    background: 'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15))',
+                                    border: '1px solid rgba(255,215,0,0.4)',
+                                    color: '#fbbf24',
+                                }}>
+                                    {applying ? '...' : (lang === 'ar' ? '✓ تطبيق' : '✓ Apply')}
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {cannotModify && (
+                        <button onClick={onClose} style={{ width:'100%', padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>
+                            {lang === 'ar' ? 'إغلاق' : 'Close'}
+                        </button>
+                    )}
+                </div>
+            </div>
+        </PortalModal>
+    );
+};
+
 // 🎯 PROFILE V11 - MAIN COMPONENT
 const ProfileV11 = ({
     show,
@@ -2242,6 +2398,7 @@ const ProfileV11 = ({
     const [showSelfGiftModal, setShowSelfGiftModal] = useState(false);
 
     const [showBanModal, setShowBanModal] = useState(false);
+    const [showRoleModal, setShowRoleModal] = useState(false);
 
     const optionsRef = useRef(null);
 
@@ -2444,6 +2601,14 @@ const ProfileV11 = ({
                                             <span>{isBannedUser(targetData) ? (lang === 'ar' ? 'رفع الحظر' : 'Remove Ban') : (lang === 'ar' ? 'حظر الحساب' : 'Ban Account')}</span>
                                         </button>
                                     )}
+                                    {/* 👑 ADMIN ONLY - Manage Role */}
+                                    {canManageRoles(userData, currentUserUID) && !isTargetGuest && (
+                                        <button onClick={() => { setShowRoleModal(true); setShowOptionsMenu(false); }}
+                                            style={{ display:'flex', alignItems:'center', gap:'6px', width:'100%', padding:'10px 14px', background:'rgba(255,215,0,0.08)', border:'none', borderTop:'1px solid rgba(255,215,0,0.15)', color:'#fbbf24', fontSize:'13px', fontWeight:700, cursor:'pointer', textAlign: lang==='ar'?'right':'left' }}>
+                                            <span>👑</span>
+                                            <span>{lang === 'ar' ? 'إدارة الرتبة' : 'Manage Role'}</span>
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -2568,6 +2733,39 @@ const ProfileV11 = ({
                             </div>
                         )}
 
+                        {/* 👑 STAFF ROLE BANNER */}
+                        {(() => {
+                            const tUID = targetData?.id || targetData?.uid;
+                            const tRole = getUserRole(targetData, tUID);
+                            if (!tRole) return null;
+                            const cfg = ROLE_CONFIG[tRole];
+                            return (
+                                <div style={{
+                                    margin: '0 12px 6px',
+                                    padding: '10px 14px',
+                                    borderRadius: '12px',
+                                    background: cfg.bg,
+                                    border: `1.5px solid ${cfg.border}`,
+                                    display: 'flex', alignItems: 'center', gap: '10px',
+                                    boxShadow: `0 0 18px ${cfg.glow.replace('0.8','0.12')}`,
+                                }}>
+                                    <span style={{ fontSize: '22px', lineHeight: 1, flexShrink: 0 }}>{cfg.icon}</span>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: '12px', fontWeight: 900, color: cfg.color, marginBottom: '2px' }}>
+                                            {lang === 'ar' ? cfg.label_ar : cfg.label_en}
+                                            {' — '}{lang === 'ar' ? 'عضو الفريق' : 'Staff Member'}
+                                        </div>
+                                        {targetData?.staffRole?.assignedByName && (
+                                            <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+                                                {lang === 'ar' ? 'عُيِّن بواسطة: ' : 'Assigned by: '}
+                                                <span style={{ color: '#d1d5db', fontWeight: 600 }}>{targetData.staffRole.assignedByName}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
                         <div className="profile-identity">
                             <div className="profile-name-row">
                                 <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
@@ -2578,6 +2776,10 @@ const ProfileV11 = ({
                                         className="profile-name"
                                     />
                                     <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
+                                    {/* 👑 Staff Role Badge */}
+                                    {getUserRole(targetData, targetData?.id || targetData?.uid) && (
+                                        <StaffRoleBadge userData={targetData} uid={targetData?.id || targetData?.uid} lang={lang} size="md" />
+                                    )}
                                     {targetData?.gender === 'male' && (
                                         <span style={{fontSize:'13px', color:'#60a5fa', fontWeight:700, lineHeight:1}}>♂️</span>
                                     )}
@@ -2855,6 +3057,20 @@ const ProfileV11 = ({
                         onClose={() => setShowBanModal(false)}
                         onBanApplied={(newBan) => {
                             setTargetData(prev => ({ ...prev, ban: newBan }));
+                        }}
+                    />
+                )}
+
+                {/* 👑 ADMIN ROLE MODAL */}
+                {showRoleModal && canManageRoles(userData, currentUserUID) && (
+                    <AdminRoleModal
+                        targetData={targetData}
+                        viewerData={userData}
+                        viewerUID={currentUserUID}
+                        lang={lang}
+                        onClose={() => setShowRoleModal(false)}
+                        onRoleApplied={(newRole) => {
+                            setTargetData(prev => ({ ...prev, staffRole: newRole }));
                         }}
                     />
                 )}
