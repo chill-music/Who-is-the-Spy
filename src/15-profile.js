@@ -1,3 +1,41 @@
+// ════════════════════════════════════════════════════════════
+// 🏴 PROFILE FAMILY SIGN BADGE — Shows clan sign on profile
+// ════════════════════════════════════════════════════════════
+const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
+    const familyTag   = userData?.familyTag;
+    const familyName  = userData?.familyName;
+    const signLevel   = userData?.familySignLevel   || 1;
+    const signColor   = userData?.familySignColor   || '#6b7280';
+    const signImgURL  = userData?.familySignImageURL || null;
+
+    if (!familyTag) return null;
+
+    // Sign level glow for high levels
+    const hasGlow = signLevel >= 4;
+
+    return (
+        <span
+            onClick={onClick}
+            title={familyName ? (lang === 'ar' ? `عائلة: ${familyName}` : `Family: ${familyName}`) : familyTag}
+            style={{
+                display:'inline-flex', alignItems:'center', gap:'4px',
+                padding:'2px 8px', borderRadius:'6px', fontSize:'11px',
+                fontWeight:800, fontStyle:'italic', cursor: onClick ? 'pointer' : 'default',
+                background:`${signColor}20`, border:`1px solid ${signColor}55`,
+                color:signColor, letterSpacing:'0.5px', whiteSpace:'nowrap', flexShrink:0,
+                boxShadow: hasGlow ? `0 0 10px ${signColor}55` : 'none',
+                transition:'all 0.2s',
+            }}
+        >
+            {signImgURL
+                ? <img src={signImgURL} style={{height:'13px', objectFit:'contain', verticalAlign:'middle'}} alt=""/>
+                : null
+            }
+            {familyTag}
+        </span>
+    );
+};
+
 const WinRateCircleV11 = ({ wins, losses, lang }) => {
     const total = wins + losses;
     const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
@@ -2990,6 +3028,13 @@ const ProfileV11 = ({
                             </div>
 
                             <UserBadgesV11 equipped={targetData?.equipped} lang={lang} />
+
+                            {/* 🏴 Family Sign Badge — shows if user is in a family */}
+                            {targetData?.familyTag && (
+                                <div style={{display:'flex', justifyContent:'center', marginTop:'2px'}}>
+                                    <ProfileFamilySignBadge userData={targetData} lang={lang} />
+                                </div>
+                            )}
 
                             <span
                                 className="profile-id-display"
