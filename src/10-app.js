@@ -1387,20 +1387,13 @@ function App() {
             <header className="new-header">
                 <div className="new-logo">PRO SPY</div>
                 <div className="new-header-right">
-                    {/* Fun Pass */}
-                    <button className="new-funpass-btn" onClick={() => { if(isLoggedIn) setShowFunPass(true); else requireLogin(); }} title="Fun Pass">🎫</button>
                     {/* Login Rewards */}
                     {isLoggedIn && (
-                        <button
-                            className="new-hbtn"
-                            onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}
+                        <button className="new-hbtn" onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}
                             title={lang==='ar'?'مكافآت الدخول':'Login Rewards'}
-                            style={{position:'relative', opacity: sessionClaimedToday ? 0.5 : 1}}
-                        >
+                            style={{position:'relative', opacity: sessionClaimedToday ? 0.5 : 1}}>
                             🎁
-                            {!sessionClaimedToday && (
-                                <span style={{position:'absolute',top:'-3px',right:'-3px',width:'8px',height:'8px',background:'#f97316',borderRadius:'50%',border:'1.5px solid var(--bg-main)'}}></span>
-                            )}
+                            {!sessionClaimedToday && <span style={{position:'absolute',top:'-3px',right:'-3px',width:'8px',height:'8px',background:'#f97316',borderRadius:'50%',border:'1.5px solid var(--bg-main)'}}></span>}
                         </button>
                     )}
                     {/* Notifications */}
@@ -1417,11 +1410,9 @@ function App() {
                         <div className="new-hbtn" onClick={() => setShowShop(true)} title={t.shop}>🛒</div>
                     )}
                     {/* Avatar — opens profile directly */}
-                    <div
-                        className="new-avatar-btn"
+                    <div className="new-avatar-btn"
                         onClick={() => { if(isLoggedIn || isGuest) setShowMyAccount(true); else handleGoogleLogin(); }}
-                        title={lang==='ar'?'ملفي الشخصي':'My Profile'}
-                    >
+                        title={lang==='ar'?'ملفي الشخصي':'My Profile'}>
                         {(isLoggedIn || isGuest) && (currentUserData?.photoURL || currentUserData?.photo)
                             ? <img src={currentUserData.photoURL || currentUserData.photo} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} alt="" />
                             : <span style={{fontSize:'16px'}}>😎</span>
@@ -1436,6 +1427,24 @@ function App() {
             {/* ── LOBBY / LEADERBOARD / FRIENDS / EXPLORE views ── */}
             {!room && (
                 <>
+                    {/* ══ LOBBY / RANKING TABS ══ */}
+                    {(activeView === 'lobby' || activeView === 'ranking') && (
+                        <div style={{display:'flex',gap:'4px',padding:'10px 16px 0',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                            <button onClick={() => setActiveView('lobby')} style={{
+                                flex:1, padding:'8px 0', borderRadius:'10px 10px 0 0', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
+                                background: activeView==='lobby' ? 'rgba(0,242,255,0.1)' : 'transparent',
+                                color: activeView==='lobby' ? '#00f2ff' : '#6b7280',
+                                borderBottom: activeView==='lobby' ? '2px solid #00f2ff' : '2px solid transparent',
+                            }}>🏠 {lang==='ar'?'اللوبي':'Lobby'}</button>
+                            <button onClick={() => setActiveView('ranking')} style={{
+                                flex:1, padding:'8px 0', borderRadius:'10px 10px 0 0', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
+                                background: activeView==='ranking' ? 'rgba(255,215,0,0.08)' : 'transparent',
+                                color: activeView==='ranking' ? '#ffd700' : '#6b7280',
+                                borderBottom: activeView==='ranking' ? '2px solid #ffd700' : '2px solid transparent',
+                            }}>📊 {lang==='ar'?'رانكينج':'Ranking'}</button>
+                        </div>
+                    )}
+
                     {/* ══ LOBBY VIEW ══ */}
                     {activeView === 'lobby' && (
                         <div style={{paddingBottom:'8px'}}>
@@ -1448,7 +1457,17 @@ function App() {
                                     </div>
                                     <div className="stats-strip-new">
                                         <div className="stat-pill-new"><span>🏆</span><span className="sval">{currentUserData?.stats?.wins || 0}</span><span>{lang==='ar'?'انتصار':t.wins}</span></div>
-                                        <div className="stat-pill-new"><span>⭐</span><span className="sval gold">{((currentUserData?.charisma || 0) >= 1000 ? ((currentUserData.charisma/1000).toFixed(1)+'K') : (currentUserData?.charisma || 0))}</span><span>{lang==='ar'?'كاريزما':'Charisma'}</span></div>
+                                        <div className="stat-pill-new" style={{cursor:'pointer'}} onClick={() => setShowMyAccount(true)}>
+                                            {(() => {
+                                                const ch = currentUserData?.charisma || 0;
+                                                const { currentLevel } = getCharismaLevel(ch);
+                                                return currentLevel?.iconUrl
+                                                    ? <img src={currentLevel.iconUrl} alt="" style={{width:'18px',height:'18px',objectFit:'contain', filter: currentLevel.hasGlow?`drop-shadow(0 0 4px ${currentLevel.color})`:'none'}} />
+                                                    : <span style={{color: currentLevel?.color||'#ffd700'}}>⭐</span>;
+                                            })()}
+                                            <span className="sval gold">{((currentUserData?.charisma||0)>=1000?((currentUserData.charisma/1000).toFixed(1)+'K'):(currentUserData?.charisma||0))}</span>
+                                            <span>{lang==='ar'?'كاريزما':'Charisma'}</span>
+                                        </div>
                                         <div className="stat-pill-new"><span>🔥</span><span className="sval green">{currentUserData?.loginRewards?.streak || 0}</span><span>Streak</span></div>
                                         <div className="stat-pill-new"><span>💎</span><span className="sval">{currentUserData?.currency || 0}</span><span>{lang==='ar'?'جوهرة':'Gems'}</span></div>
                                     </div>
@@ -1545,9 +1564,9 @@ function App() {
                             {isLoggedIn && userData && (
                                 <>
                                     <div className="sec-head-new">
-                                        <span className="sec-title-new">📋 {lang==='ar'?'مهام اليوم':'Daily Tasks'}</span>
+                                        <span className="sec-title-new">📦 {lang==='ar'?'مهام اليوم':'Daily Tasks'}</span>
                                     </div>
-                                    <div className="tasks-card-new">
+                                    <div style={{margin:'0 16px', padding:'16px', background:'linear-gradient(135deg,rgba(0,242,255,0.05),rgba(112,0,255,0.04))', borderRadius:'14px', border:'1px solid rgba(0,242,255,0.12)'}}>
                                         <DailyTasksComponent
                                             userData={userData}
                                             user={user}
@@ -1561,18 +1580,11 @@ function App() {
                         </div>
                     )}
 
-                    {/* ══ RANKING VIEW (from lobby رانكينج card) ══ */}
+                    {/* ══ RANKING VIEW ══ */}
                     {activeView === 'ranking' && (
                         <div style={{paddingBottom:'8px'}}>
-                            {/* Back button */}
-                            <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px 4px'}}>
-                                <button onClick={() => setActiveView('lobby')} style={{background:'var(--new-surface)',border:'1px solid var(--new-border)',borderRadius:'10px',padding:'6px 12px',color:'var(--text-main)',fontSize:'12px',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:'6px'}}>
-                                    ‹ {lang==='ar'?'رجوع':'Back'}
-                                </button>
-                                <span className="sec-title-new">📊 {lang==='ar'?'رانكينج':'Ranking'}</span>
-                            </div>
                             {/* Tabs */}
-                            <div className="lb-tabs-new">
+                            <div className="lb-tabs-new" style={{margin:'12px 16px 0'}}>
                                 <button className={`lb-tab-new ${leaderboardTab==='wins'?'active':''}`} onClick={() => setLeaderboardTab('wins')}>🏆 {t.wins}</button>
                                 <button className={`lb-tab-new ${leaderboardTab==='charisma'?'active':''}`} onClick={() => setLeaderboardTab('charisma')}>⭐ {t.charismaRank}</button>
                             </div>
@@ -1634,11 +1646,20 @@ function App() {
                     {/* ══ CHAT / شات VIEW (Friends) ══ */}
                     {activeView === 'chat' && (
                         <div style={{paddingBottom:'8px'}}>
-                            {/* Add Friend */}
-                            <div className="sec-head-new" style={{paddingTop:'14px'}}>
-                                <span className="sec-title-new">👥 {lang==='ar'?'الأصدقاء':t.tabFriends}</span>
-                                {friendRequests.length > 0 && <span style={{fontSize:'10px',background:'var(--accent)',color:'#fff',borderRadius:'10px',padding:'2px 8px',fontWeight:700}}>{friendRequests.length} {lang==='ar'?'طلب':'req'}</span>}
+                            {/* ── Chat Tabs: Friends / Groups ── */}
+                            <div style={{display:'flex',gap:'4px',padding:'10px 16px 0',borderBottom:'1px solid rgba(255,255,255,0.06)',marginBottom:'10px'}}>
+                                <button id="chat-tab-friends" onClick={() => { document.getElementById('chat-section-friends').style.display='block'; document.getElementById('chat-section-groups').style.display='none'; document.getElementById('chat-tab-friends').style.color='#00f2ff'; document.getElementById('chat-tab-friends').style.borderBottom='2px solid #00f2ff'; document.getElementById('chat-tab-groups').style.color='#6b7280'; document.getElementById('chat-tab-groups').style.borderBottom='2px solid transparent'; }} style={{flex:1,padding:'8px 0',borderRadius:'10px 10px 0 0',border:'none',cursor:'pointer',fontSize:'12px',fontWeight:700,background:'transparent',color:'#00f2ff',borderBottom:'2px solid #00f2ff',transition:'all 0.2s'}}>
+                                    👥 {lang==='ar'?'الأصدقاء':t.tabFriends}
+                                    {friendRequests.length > 0 && <span style={{marginLeft:'4px',fontSize:'9px',background:'var(--accent)',color:'#fff',borderRadius:'10px',padding:'1px 5px',fontWeight:700}}>{friendRequests.length}</span>}
+                                </button>
+                                <button id="chat-tab-groups" onClick={() => { document.getElementById('chat-section-friends').style.display='none'; document.getElementById('chat-section-groups').style.display='block'; document.getElementById('chat-tab-groups').style.color='#a78bfa'; document.getElementById('chat-tab-groups').style.borderBottom='2px solid #a78bfa'; document.getElementById('chat-tab-friends').style.color='#6b7280'; document.getElementById('chat-tab-friends').style.borderBottom='2px solid transparent'; }} style={{flex:1,padding:'8px 0',borderRadius:'10px 10px 0 0',border:'none',cursor:'pointer',fontSize:'12px',fontWeight:700,background:'transparent',color:'#6b7280',borderBottom:'2px solid transparent',transition:'all 0.2s'}}>
+                                    👨‍👩‍👧 {lang==='ar'?'الجروبات':'Groups'}
+                                </button>
                             </div>
+
+                            {/* ── Friends Section ── */}
+                            <div id="chat-section-friends">
+                            {/* Add Friend */}
                             <div style={{margin:'0 16px 10px',display:'flex',gap:'8px'}}>
                                 <input type="text" className="hero-input" style={{flex:1,padding:'9px 13px',fontSize:'12px'}} value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} />
                                 <button onClick={handleAddFriendById} disabled={!addFriendId.trim()} className="hero-btn-primary" style={{padding:'9px 14px',fontSize:'12px'}}>+ {lang==='ar'?'أضف':'Add'}</button>
@@ -1689,6 +1710,20 @@ function App() {
                                         {offline.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#6b7280',display:'inline-block'}}/>{t.offline} ({offline.length})</div>{offline.map(renderFriend)}</>)}
                                     </>);
                                 })()}
+                            </div>
+                            </div>{/* end friends section */}
+
+                            {/* ── Groups Section ── */}
+                            <div id="chat-section-groups" style={{display:'none'}}>
+                                <GroupsSection
+                                    currentUser={user}
+                                    currentUserData={currentUserData}
+                                    currentUID={currentUID}
+                                    friendsData={friendsData}
+                                    lang={lang}
+                                    onNotification={setNotification}
+                                    isLoggedIn={isLoggedIn}
+                                />
                             </div>
                         </div>
                     )}
@@ -1753,7 +1788,7 @@ function App() {
                                     </div>
                                     <div className="me-hero-info">
                                         <div className="me-hero-name">{currentUserData.displayName || currentUserData.name || (lang==='ar'?'مستخدم':'User')}</div>
-                                        <div className="me-hero-id">ID: {currentUID?.slice(0,8) || '—'}</div>
+                                        <div className="me-hero-id">{currentUserData?.customId ? `#${currentUserData.customId}` : `ID: ${currentUID?.slice(0,8)||'—'}`}</div>
                                         <div className="me-hero-stats-row">
                                             <span>🏆 {currentUserData?.stats?.wins || 0}</span>
                                             <span>⭐ {(currentUserData?.charisma||0)>=1000?((currentUserData.charisma/1000).toFixed(1)+'K'):(currentUserData?.charisma||0)}</span>
@@ -1780,11 +1815,13 @@ function App() {
                                 <span className="sec-title-new">{lang==='ar'?'الإعدادات والأدوات':'Settings & Tools'}</span>
                             </div>
                             <div className="me-actions-grid">
-                                {/* My Profile */}
-                                <div className="me-action-card" onClick={() => setShowMyAccount(true)}>
-                                    <div className="me-action-icon" style={{background:'rgba(0,242,255,0.12)'}}>👤</div>
-                                    <div className="me-action-label">{lang==='ar'?'ملفي':'My Profile'}</div>
-                                </div>
+                                {/* Inventory */}
+                                {isLoggedIn && (
+                                    <div className="me-action-card" onClick={() => setShowInventory(true)}>
+                                        <div className="me-action-icon" style={{background:'rgba(112,0,255,0.15)'}}>📦</div>
+                                        <div className="me-action-label">{lang==='ar'?'حقيبتي':t.inventory}</div>
+                                    </div>
+                                )}
                                 {/* Shop */}
                                 {isLoggedIn && (
                                     <div className="me-action-card" onClick={() => setShowShop(true)}>
@@ -1792,11 +1829,6 @@ function App() {
                                         <div className="me-action-label">{lang==='ar'?'المتجر':t.shop}</div>
                                     </div>
                                 )}
-                                {/* Fun Pass */}
-                                <div className="me-action-card" onClick={() => { if(isLoggedIn) setShowFunPass(true); else requireLogin(); }}>
-                                    <div className="me-action-icon" style={{background:'linear-gradient(135deg,rgba(112,0,255,0.2),rgba(0,242,255,0.15))'}}>🎟️</div>
-                                    <div className="me-action-label">Fun Pass</div>
-                                </div>
                                 {/* Settings */}
                                 <div className="me-action-card" onClick={() => setShowSettings(true)}>
                                     <div className="me-action-icon" style={{background:'rgba(255,255,255,0.07)'}}>⚙️</div>
