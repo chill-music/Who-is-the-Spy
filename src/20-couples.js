@@ -635,6 +635,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
     const ring = RINGS_DATA.find(r => r.id === coupleDoc.ringId) || RINGS_DATA[0];
     const uid1 = coupleDoc.uid1;
     const uid2 = coupleDoc.uid2;
+    const isMember = currentUID === uid1 || currentUID === uid2;
 
     const saveBio = async () => {
         if (!coupleDoc?.id) return;
@@ -731,9 +732,9 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                 React.createElement('div', { style:{ textAlign:'center', position:'relative' }},
                     /* Joint photo slot */
                     React.createElement('div', {
-                        onClick: () => photoRef.current?.click(),
+                        onClick: () => isMember && photoRef.current?.click(),
                         style:{ width:'100px', height:'100px', borderRadius:'50%', margin:'0 auto 10px',
-                            cursor:'pointer', overflow:'hidden', position:'relative',
+                            cursor: isMember ? 'pointer' : 'default', overflow:'hidden', position:'relative',
                             border:`3px solid ${ring.color}80`,
                             boxShadow:`0 0 20px ${ring.glow}, 0 0 40px ${ring.glow}`,
                             background:'linear-gradient(135deg,rgba(236,72,153,0.15),rgba(168,85,247,0.12))',
@@ -744,9 +745,9 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                             : React.createElement('div', null,
                                 React.createElement('div', { style:{ fontSize:'32px' }}, '📷'),
                                 React.createElement('div', { style:{ fontSize:'9px', color:'#9ca3af', marginTop:'2px' }},
-                                    uploading ? '⏳' : (lang==='ar' ? 'صورة مشتركة' : 'Joint Photo'))
+                                    uploading ? '⏳' : (isMember ? (lang==='ar' ? 'صورة مشتركة' : 'Joint Photo') : ''))
                               ),
-                        React.createElement('input', { type:'file', ref:photoRef, style:{ display:'none' }, accept:'image/*', onChange:handlePhotoUpload })
+                        isMember && React.createElement('input', { type:'file', ref:photoRef, style:{ display:'none' }, accept:'image/*', onChange:handlePhotoUpload })
                     ),
 
                     /* Two avatars */
@@ -791,7 +792,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                     React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'8px' }},
                         React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4', fontWeight:700 }},
                             lang==='ar' ? '💬 بيو مشترك' : '💬 Shared Bio'),
-                        React.createElement('button', {
+                        isMember && React.createElement('button', {
                             onClick: () => editingBio ? saveBio() : setEditingBio(true),
                             disabled: savingBio,
                             style:{ background:'rgba(236,72,153,0.15)', border:'1px solid rgba(236,72,153,0.3)',
@@ -799,7 +800,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                                 padding:'3px 10px', cursor:'pointer' }
                         }, savingBio ? '⏳' : (editingBio ? (lang==='ar'?'💾 حفظ':'💾 Save') : (lang==='ar'?'✏️ تعديل':'✏️ Edit')))
                     ),
-                    editingBio
+                    editingBio && isMember
                         ? React.createElement('textarea', {
                             value: bioText,
                             onChange: e => setBioText(e.target.value),
@@ -814,7 +815,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                             style:{ fontSize:'13px', color: coupleDoc.sharedBio ? '#f3f4f6' : '#4b5563',
                                 fontStyle: coupleDoc.sharedBio ? 'italic' : 'normal', lineHeight:1.6,
                                 textAlign: lang==='ar' ? 'right' : 'left' }
-                          }, coupleDoc.sharedBio || (lang==='ar' ? 'أضف بيو مشتركاً... 💕' : 'Add a shared bio... 💕'))
+                          }, coupleDoc.sharedBio || (lang==='ar' ? '💕 لا يوجد بيو بعد' : '💕 No shared bio yet'))
                 ),
 
                 /* Intimacy points */
@@ -835,8 +836,8 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                         coupleDoc.intimacyPoints || 0)
                 ),
 
-                /* Divorce */
-                !showDivorceConfirm
+                /* Divorce — only for couple members */
+                isMember && (!showDivorceConfirm
                     ? React.createElement('button', {
                         onClick: () => setShowDivorceConfirm(true),
                         style:{ padding:'10px', borderRadius:'12px', border:'1px solid rgba(239,68,68,0.2)',
@@ -856,6 +857,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                                 divorcing ? '⏳' : (lang==='ar' ? '💔 تأكيد' : '💔 Confirm'))
                         )
                       )
+                )
             )
         ))
     );
