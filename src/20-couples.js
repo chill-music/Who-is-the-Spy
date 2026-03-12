@@ -605,45 +605,99 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
 };
 
 // ─────────────────────────────────────────────
-// 💑 COUPLE CARD MODAL
+// 💑 COUPLE CARD MODAL  (v3 — with gifts, blessing, love, clickable avatars)
 // ─────────────────────────────────────────────
-const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, selfData, lang, onNotification, viewOnly }) => {
-    const [timer, setTimer]           = useState({ days:0, hours:0, mins:0 });
-    const [editingBio, setEditingBio] = useState(false);
-    const [bioText, setBioText]       = useState('');
-    const [savingBio, setSavingBio]   = useState(false);
-    const [uploading, setUploading]   = useState(false);
-    const [uploadErr, setUploadErr]   = useState('');
-    const photoRef                    = useRef(null);
-    const timerRef                    = useRef(null);
-    // 3-step divorce: 0=hidden  1=think-twice warning  2=final confirm
+const LOVE_LEVELS = [
+    { days:0,   label_ar:'حب ناشئ 🌱',   label_en:'Budding Love 🌱',   color:'#86efac' },
+    { days:7,   label_ar:'حب متنامي 💛',  label_en:'Growing Love 💛',   color:'#fde68a' },
+    { days:30,  label_ar:'حب عميق 💕',   label_en:'Deep Love 💕',      color:'#f9a8d4' },
+    { days:90,  label_ar:'رابطة قوية 💑', label_en:'Strong Bond 💑',    color:'#c4b5fd' },
+    { days:180, label_ar:'حب حقيقي 💖',  label_en:'True Love 💖',      color:'#f0abfc' },
+    { days:365, label_ar:'حب أبدي 💎',   label_en:'Eternal Love 💎',   color:'#67e8f9' },
+];
+
+const getLoveLevel = (days) => {
+    let lv = LOVE_LEVELS[0];
+    for (const l of LOVE_LEVELS) { if (days >= l.days) lv = l; else break; }
+    const next = LOVE_LEVELS[LOVE_LEVELS.indexOf(lv) + 1];
+    const pct  = next ? Math.min(100, Math.round(((days - lv.days) / (next.days - lv.days)) * 100)) : 100;
+    return { ...lv, pct, nextDays: next?.days || null };
+};
+
+const CoupleCardModal = ({
+    show, onClose, coupleDoc, currentUID, partnerData, selfData,
+    lang, onNotification, viewOnly,
+    onOpenProfile,    // (uid) => void — open someone's profile
+    currentUserData,  // logged-in user's data (for gift sending)
+}) => {
+    const [liveDoc, setLiveDoc]         = useState(null);   // real-time couple doc
+    const [timer, setTimer]             = useState({ days:0, hours:0, mins:0 });
+    const [editingBio, setEditingBio]   = useState(false);
+    const [bioText, setBioText]         = useState('');
+    const [savingBio, setSavingBio]     = useState(false);
+    const [uploading, setUploading]     = useState(false);
+    const [uploadErr, setUploadErr]     = useState('');
+    const photoRef                      = useRef(null);
+    const timerRef                      = useRef(null);
     const [divorceStep, setDivorceStep] = useState(0);
-    const [divorcing, setDivorcing]   = useState(false);
+    const [divorcing, setDivorcing]     = useState(false);
+    const [sending, setSending]         = useState(false);
+    const [giftErr, setGiftErr]         = useState('');
+    const [giftOk, setGiftOk]           = useState('');
+
+    // ── Real-time listener for coupleDoc itself ──
+    useEffect(() => {
+        if (!show || !coupleDoc?.id) { setLiveDoc(null); return; }
+        let firstSnapshot = true;
+        const unsub = couplesCollection.doc(coupleDoc.id).onSnapshot(
+            snap => {
+                if (snap.exists) {
+                    setLiveDoc({ id: snap.id, ...snap.data() });
+                } else {
+                    setLiveDoc(null);
+                    // Doc was deleted (divorce happened) — close modal after tiny delay
+                    if (!firstSnapshot) setTimeout(() => onClose(), 600);
+                }
+                firstSnapshot = false;
+            },
+            () => {}
+        );
+        return () => unsub();
+    }, [show, coupleDoc?.id]);
+
+    const doc = liveDoc || coupleDoc; // prefer live
 
     useEffect(() => {
-        if (!show || !coupleDoc?.marriageDate) return;
-        const tick = () => { const d = coupleTimeDiff(coupleDoc.marriageDate); if(d) setTimer(d); };
+        if (!show || !doc?.marriageDate) return;
+        const tick = () => { const d = coupleTimeDiff(doc.marriageDate); if(d) setTimer(d); };
         tick();
         timerRef.current = setInterval(tick, 60000);
         return () => clearInterval(timerRef.current);
-    }, [show, coupleDoc?.marriageDate]);
+    }, [show, doc?.marriageDate]);
 
     useEffect(() => {
-        if (show) { setBioText(coupleDoc?.sharedBio || ''); setDivorceStep(0); setUploadErr(''); }
-    }, [show, coupleDoc?.sharedBio]);
+        if (show) { setBioText(doc?.sharedBio || ''); setDivorceStep(0); setUploadErr(''); setGiftErr(''); setGiftOk(''); }
+    }, [show, doc?.sharedBio]);
 
-    if (!show || !coupleDoc) return null;
+    if (!show) return null;
+    if (!doc) return null; // doc deleted (divorce) — onClose() will be called by listener
 
-    const ring    = RINGS_DATA.find(r => r.id === coupleDoc.ringId) || RINGS_DATA[0];
-    const uid1    = coupleDoc.uid1;
-    const uid2    = coupleDoc.uid2;
+    const ring     = RINGS_DATA.find(r => r.id === doc.ringId) || RINGS_DATA[0];
+    const uid1     = doc.uid1;
+    const uid2     = doc.uid2;
     const isMember = !viewOnly && (currentUID === uid1 || currentUID === uid2);
+    const loveInfo = getLoveLevel(timer.days);
+
+    // Gift items (love-themed subset, sorted by cost)
+    const COUPLE_GIFTS = (typeof SHOP_ITEMS !== 'undefined' && SHOP_ITEMS.gifts)
+        ? SHOP_ITEMS.gifts.filter(g => !g.hidden).slice(0, 12)
+        : [];
 
     const saveBio = async () => {
-        if (!coupleDoc?.id) return;
+        if (!doc?.id) return;
         setSavingBio(true);
         try {
-            await couplesCollection.doc(coupleDoc.id).update({ sharedBio: bioText });
+            await couplesCollection.doc(doc.id).update({ sharedBio: bioText });
             setEditingBio(false);
             onNotification && onNotification(lang==='ar' ? '✅ تم الحفظ' : '✅ Saved');
         } catch(e) {}
@@ -653,7 +707,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
     /* Photo upload: compress to max 800px & ~300KB */
     const handlePhotoUpload = async (e) => {
         const file = e.target.files?.[0];
-        if (!file || !coupleDoc?.id) return;
+        if (!file || !doc?.id) return;
         setUploadErr('');
         if (!file.type.startsWith('image/')) {
             setUploadErr(lang==='ar' ? 'يجب أن يكون ملف صورة' : 'File must be an image');
@@ -677,7 +731,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                 setUploadErr(lang==='ar' ? 'الصورة كبيرة جداً، اختر أخرى' : 'Image too large, pick another');
                 setUploading(false); return;
             }
-            await couplesCollection.doc(coupleDoc.id).update({ couplePhotoUrl: base64 });
+            await couplesCollection.doc(doc.id).update({ couplePhotoUrl: base64 });
             onNotification && onNotification(lang==='ar' ? '✅ تم رفع الصورة' : '✅ Photo uploaded');
         } catch(err) {
             setUploadErr(lang==='ar' ? 'فشل الرفع، حاول مجدداً' : 'Upload failed, try again');
@@ -688,18 +742,63 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
 
     const handleDivorce = async () => {
         setDivorcing(true);
-        await divorceCouple({ coupleDocId: coupleDoc.id, uid1, uid2, onNotification, lang });
+        await divorceCouple({ coupleDocId: doc.id, uid1, uid2, onNotification, lang });
         setDivorcing(false);
         setDivorceStep(0);
         onClose();
     };
 
-    /* Small circular avatar helper */
-    const Av = ({ user, size=52 }) => React.createElement('div', {
+    /* Send a Blessing gift to the couple */
+    const sendBlessingGift = async (gift) => {
+        if (sending || !currentUID || !doc?.id) return;
+        const bal = currentUserData?.currency || 0;
+        if (bal < gift.cost) {
+            setGiftErr(lang==='ar' ? '❌ رصيدك غير كافٍ' : '❌ Insufficient balance');
+            return;
+        }
+        setSending(true); setGiftErr(''); setGiftOk('');
+        try {
+            await usersCollection.doc(currentUID).update({
+                currency: firebase.firestore.FieldValue.increment(-gift.cost)
+            });
+            const entry = {
+                sn: currentUserData?.displayName || '?',
+                sp: currentUserData?.photoURL || null,
+                su: currentUID,
+                ge: gift.emoji,
+                gn: lang==='ar' ? gift.name_ar : gift.name_en,
+                ts: Date.now(),
+                bp: gift.charisma,
+            };
+            const currentLog = doc.giftLog || [];
+            const newLog = [...currentLog.slice(-19), entry];
+            await couplesCollection.doc(doc.id).update({
+                blessingPoints: firebase.firestore.FieldValue.increment(gift.charisma),
+                giftLog: newLog,
+            });
+            // Split charisma between partners
+            const half = Math.floor(gift.charisma / 2);
+            await Promise.all([
+                usersCollection.doc(uid1).update({ charisma: firebase.firestore.FieldValue.increment(half) }),
+                usersCollection.doc(uid2).update({ charisma: firebase.firestore.FieldValue.increment(half) }),
+            ]);
+            setGiftOk(lang==='ar' ? `✨ أرسلت ${gift.emoji} بركة!` : `✨ Sent ${gift.emoji} blessing!`);
+            setTimeout(() => setGiftOk(''), 2500);
+        } catch(err) {
+            setGiftErr(lang==='ar' ? 'حدث خطأ' : 'Error occurred');
+        }
+        setSending(false);
+    };
+
+    /* Small circular avatar — clickable if onOpenProfile provided */
+    const Av = ({ user, uid, size=50 }) => React.createElement('div', {
+        onClick: () => uid && onOpenProfile && onOpenProfile(uid),
         style:{ width:size, height:size, borderRadius:'50%', overflow:'hidden', flexShrink:0,
             border:`2px solid ${ring.color}80`,
             background:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center',
-            justifyContent:'center', fontSize:Math.floor(size*0.46) }
+            justifyContent:'center', fontSize:Math.floor(size*0.46),
+            cursor: onOpenProfile ? 'pointer' : 'default',
+            transition:'.15s', }
     }, user?.photoURL
         ? React.createElement('img', { src:user.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
         : '😎'
@@ -725,7 +824,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
         },
             React.createElement(FloatingHearts),
 
-            /* Header */
+            /* ── Header ── */
             React.createElement('div', {
                 style:{ position:'relative', zIndex:1, display:'flex', alignItems:'center',
                     justifyContent:'space-between', padding:'14px 16px',
@@ -735,7 +834,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                 React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'8px' }},
                     React.createElement('span', { style:{ fontSize:'20px', filter:`drop-shadow(0 0 8px ${ring.glow})` }}, ring.emoji),
                     React.createElement('div', null,
-                        React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color:'white' }},
+                        React.createElement('div', { style:{ fontSize:'13px', fontWeight:900, color:'white' }},
                             lang==='ar' ? 'بطاقة الزوجين 💑' : 'Couple Card 💑'),
                         React.createElement('div', { style:{ fontSize:'9px', color: ring.color, fontWeight:700 }},
                             lang==='ar' ? ring.name_ar : ring.name_en)
@@ -749,13 +848,12 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                 }, '✕')
             ),
 
-            /* Scrollable body */
-            React.createElement('div', { style:{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:'14px', position:'relative', zIndex:1 }},
+            /* ── Scrollable body ── */
+            React.createElement('div', { style:{ flex:1, overflowY:'auto', padding:'16px',
+                display:'flex', flexDirection:'column', gap:'14px', position:'relative', zIndex:1 }},
 
-                /* ════ JOINT PHOTO (square) + avatars row ════ */
+                /* ════ JOINT PHOTO (square) ════ */
                 React.createElement('div', { style:{ textAlign:'center' }},
-
-                    /* Square joint photo */
                     React.createElement('div', {
                         onClick: () => isMember && !uploading && photoRef.current?.click(),
                         style:{
@@ -768,9 +866,9 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                             display:'flex', alignItems:'center', justifyContent:'center',
                         }
                     },
-                        coupleDoc.couplePhotoUrl
+                        doc.couplePhotoUrl
                             ? React.createElement('img', {
-                                src: coupleDoc.couplePhotoUrl, alt:'',
+                                src: doc.couplePhotoUrl, alt:'',
                                 style:{ width:'100%', height:'100%', objectFit:'cover', display:'block' },
                                 onError: e => { e.target.style.display='none'; }
                               })
@@ -793,18 +891,23 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                         style:{ fontSize:'10px', color:'#f87171', marginBottom:'6px', marginTop:'-6px' }
                     }, uploadErr),
 
-                    /* [Avatar] ─── ring ─── [Avatar] */
+                    /* ── Clickable avatars with ring divider ── */
                     React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'center' }},
 
                         /* Left user */
                         React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
-                            React.createElement(Av, { user: selfData, size:50 }),
-                            React.createElement('div', { style:{ fontSize:'10px', fontWeight:700, color:'#e2e8f0',
-                                maxWidth:'68px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }},
-                                selfData?.displayName || '—')
+                            React.createElement(Av, { user: selfData, uid: uid1, size:50 }),
+                            React.createElement('div', {
+                                onClick: () => uid1 && onOpenProfile && onOpenProfile(uid1),
+                                style:{ fontSize:'10px', fontWeight:700, color:'#e2e8f0',
+                                    maxWidth:'68px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                                    cursor: onOpenProfile ? 'pointer' : 'default',
+                                    textDecoration: onOpenProfile ? 'underline' : 'none',
+                                    textDecorationColor:'rgba(255,255,255,0.3)' }
+                            }, selfData?.displayName || '—')
                         ),
 
-                        /* Ring divider with chosen ring emoji */
+                        /* Ring divider */
                         React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', margin:'0 8px', flexShrink:0, paddingBottom:'16px' }},
                             React.createElement('div', { style:{ width:'36px', height:'2px', borderRadius:'2px',
                                 background:`linear-gradient(90deg,transparent,${ring.color},transparent)` }}),
@@ -817,16 +920,21 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
 
                         /* Right user */
                         React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
-                            React.createElement(Av, { user: partnerData, size:50 }),
-                            React.createElement('div', { style:{ fontSize:'10px', fontWeight:700, color:'#e2e8f0',
-                                maxWidth:'68px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }},
-                                partnerData?.displayName || '—')
+                            React.createElement(Av, { user: partnerData, uid: uid2, size:50 }),
+                            React.createElement('div', {
+                                onClick: () => uid2 && onOpenProfile && onOpenProfile(uid2),
+                                style:{ fontSize:'10px', fontWeight:700, color:'#e2e8f0',
+                                    maxWidth:'68px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                                    cursor: onOpenProfile ? 'pointer' : 'default',
+                                    textDecoration: onOpenProfile ? 'underline' : 'none',
+                                    textDecorationColor:'rgba(255,255,255,0.3)' }
+                            }, partnerData?.displayName || '—')
                         )
                     )
                 ),
 
-                /* Anniversary counter */
-                coupleDoc.marriageDate && React.createElement('div', {
+                /* ════ Together Timer ════ */
+                doc.marriageDate && React.createElement('div', {
                     style:{ padding:'14px', borderRadius:'16px', textAlign:'center',
                         background:'linear-gradient(135deg,rgba(236,72,153,0.12),rgba(168,85,247,0.1))',
                         border:'1px solid rgba(236,72,153,0.25)' }
@@ -835,12 +943,12 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                         lang==='ar' ? '⏳ معاً منذ' : '⏳ Together for'),
                     React.createElement('div', { style:{ display:'flex', justifyContent:'center', gap:'16px' }},
                         [
-                            { val:timer.days,  label_ar:'يوم',  label_en:'Days'  },
-                            { val:timer.hours, label_ar:'ساعة', label_en:'Hours' },
-                            { val:timer.mins,  label_ar:'دقيقة',label_en:'Mins'  },
+                            { val:timer.days,  label_ar:'يوم',   label_en:'Days'  },
+                            { val:timer.hours, label_ar:'ساعة',  label_en:'Hours' },
+                            { val:timer.mins,  label_ar:'دقيقة', label_en:'Mins'  },
                         ].map(item =>
                             React.createElement('div', { key:item.label_en, style:{ textAlign:'center' }},
-                                React.createElement('div', { style:{ fontSize:'24px', fontWeight:900, color:'white',
+                                React.createElement('div', { style:{ fontSize:'26px', fontWeight:900, color:'white',
                                     textShadow:`0 0 20px ${ring.glow}` }}, item.val),
                                 React.createElement('div', { style:{ fontSize:'9px', color:'#f9a8d4', marginTop:'2px' }},
                                     lang==='ar' ? item.label_ar : item.label_en)
@@ -849,7 +957,48 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                     )
                 ),
 
-                /* Shared Bio */
+                /* ════ Love Level + Blessing (side by side) ════ */
+                React.createElement('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }},
+
+                    /* Love ❤️ */
+                    React.createElement('div', { style:{ padding:'12px', borderRadius:'14px',
+                        background:'rgba(236,72,153,0.07)', border:'1px solid rgba(236,72,153,0.2)' }
+                    },
+                        React.createElement('div', { style:{ fontSize:'10px', color:'#f9a8d4', fontWeight:700, marginBottom:'6px', display:'flex', alignItems:'center', gap:'4px' }},
+                            React.createElement('span', null, '❤️'),
+                            lang==='ar' ? 'مستوى الحب' : 'Love Level'
+                        ),
+                        React.createElement('div', { style:{ fontSize:'11px', fontWeight:800, color: loveInfo.color, marginBottom:'6px', lineHeight:1.2 }},
+                            lang==='ar' ? loveInfo.label_ar : loveInfo.label_en),
+                        React.createElement('div', { style:{ height:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.08)', overflow:'hidden' }},
+                            React.createElement('div', { style:{ height:'100%', width:`${loveInfo.pct}%`,
+                                background:`linear-gradient(90deg,#ec4899,${loveInfo.color})`, borderRadius:'4px', transition:'1s' }})
+                        ),
+                        loveInfo.nextDays && React.createElement('div', { style:{ fontSize:'8px', color:'#6b7280', marginTop:'4px' }},
+                            lang==='ar' ? `${loveInfo.nextDays - timer.days} يوم للمستوى التالي` : `${loveInfo.nextDays - timer.days}d to next level`)
+                    ),
+
+                    /* Blessing ✨ */
+                    React.createElement('div', { style:{ padding:'12px', borderRadius:'14px',
+                        background:'rgba(168,85,247,0.07)', border:'1px solid rgba(168,85,247,0.2)' }
+                    },
+                        React.createElement('div', { style:{ fontSize:'10px', color:'#c4b5fd', fontWeight:700, marginBottom:'6px', display:'flex', alignItems:'center', gap:'4px' }},
+                            React.createElement('span', null, '✨'),
+                            lang==='ar' ? 'البركة' : 'Blessing'
+                        ),
+                        React.createElement('div', { style:{ fontSize:'20px', fontWeight:900, color:'#c4b5fd', marginBottom:'6px',
+                            textShadow:'0 0 14px rgba(168,85,247,0.5)' }},
+                            (doc.blessingPoints || 0).toLocaleString()),
+                        React.createElement('div', { style:{ height:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.08)', overflow:'hidden' }},
+                            React.createElement('div', { style:{ height:'100%', width:`${Math.min(100, ((doc.blessingPoints||0) % 10000) / 100)}%`,
+                                background:'linear-gradient(90deg,#a855f7,#c4b5fd)', borderRadius:'4px', transition:'.5s' }})
+                        ),
+                        React.createElement('div', { style:{ fontSize:'8px', color:'#6b7280', marginTop:'4px' }},
+                            lang==='ar' ? 'تزيد بالهدايا 🎁' : 'Grows with gifts 🎁')
+                    )
+                ),
+
+                /* ════ Shared Bio ════ */
                 React.createElement('div', {
                     style:{ padding:'12px 14px', borderRadius:'14px',
                         background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.1)' }
@@ -867,44 +1016,89 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                     ),
                     editingBio && isMember
                         ? React.createElement('textarea', {
-                            value: bioText,
-                            onChange: e => setBioText(e.target.value),
-                            maxLength: 120,
-                            rows: 3,
+                            value: bioText, onChange: e => setBioText(e.target.value),
+                            maxLength: 120, rows: 3,
                             style:{ width:'100%', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(236,72,153,0.3)',
                                 borderRadius:'8px', padding:'8px', color:'white', fontSize:'12px',
                                 outline:'none', resize:'none', lineHeight:1.6, fontFamily:'inherit',
                                 boxSizing:'border-box', direction: lang==='ar' ? 'rtl' : 'ltr' }
                           })
                         : React.createElement('div', {
-                            style:{ fontSize:'13px', color: coupleDoc.sharedBio ? '#f3f4f6' : '#4b5563',
-                                fontStyle: coupleDoc.sharedBio ? 'italic' : 'normal', lineHeight:1.6,
+                            style:{ fontSize:'13px', color: doc.sharedBio ? '#f3f4f6' : '#4b5563',
+                                fontStyle: doc.sharedBio ? 'italic' : 'normal', lineHeight:1.6,
                                 textAlign: lang==='ar' ? 'right' : 'left' }
-                          }, coupleDoc.sharedBio || (lang==='ar' ? '💕 لا يوجد بيو بعد' : '💕 No shared bio yet'))
+                          }, doc.sharedBio || (lang==='ar' ? '💕 لا يوجد بيو بعد' : '💕 No shared bio yet'))
                 ),
 
-                /* Intimacy points */
-                React.createElement('div', {
-                    style:{ padding:'10px 14px', borderRadius:'12px', display:'flex', alignItems:'center', gap:'10px',
-                        background:'rgba(236,72,153,0.07)', border:'1px solid rgba(236,72,153,0.2)' }
+                /* ════ SEND A BLESSING GIFT ════ */
+                COUPLE_GIFTS.length > 0 && React.createElement('div', {
+                    style:{ padding:'12px 14px', borderRadius:'14px',
+                        background:'linear-gradient(135deg,rgba(168,85,247,0.08),rgba(236,72,153,0.06))',
+                        border:'1px solid rgba(168,85,247,0.2)' }
                 },
-                    React.createElement('span', { style:{ fontSize:'20px' }}, '💖'),
-                    React.createElement('div', { style:{ flex:1 }},
-                        React.createElement('div', { style:{ fontSize:'10px', color:'#f9a8d4', marginBottom:'3px' }},
-                            lang==='ar' ? 'نقاط الحميمية' : 'Intimacy Points'),
-                        React.createElement('div', { style:{ height:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.1)', overflow:'hidden' }},
-                            React.createElement('div', { style:{ height:'100%', width:`${Math.min(100, (coupleDoc.intimacyPoints||0)/100)}%`,
-                                background:'linear-gradient(90deg,#ec4899,#a855f7)', borderRadius:'4px', transition:'.5s' }})
+                    React.createElement('div', { style:{ fontSize:'11px', color:'#c4b5fd', fontWeight:700, marginBottom:'10px' }},
+                        lang==='ar' ? '🎁 أرسل بركة للزوجين' : '🎁 Send a Blessing'),
+                    /* Gift row */
+                    React.createElement('div', { style:{ display:'flex', gap:'8px', overflowX:'auto', paddingBottom:'6px' }},
+                        COUPLE_GIFTS.map(gift =>
+                            React.createElement('button', {
+                                key: gift.id,
+                                onClick: () => sendBlessingGift(gift),
+                                disabled: sending,
+                                style:{
+                                    flexShrink:0, display:'flex', flexDirection:'column', alignItems:'center', gap:'2px',
+                                    padding:'8px 10px', borderRadius:'12px', border:'1px solid rgba(168,85,247,0.25)',
+                                    background:'rgba(168,85,247,0.1)', cursor:'pointer', transition:'.15s',
+                                    opacity: sending ? 0.6 : 1,
+                                }
+                            },
+                                React.createElement('span', { style:{ fontSize:'20px' }}, gift.emoji),
+                                React.createElement('span', { style:{ fontSize:'8px', color:'#fcd34d', fontWeight:700 }},
+                                    `${gift.cost}🧠`)
+                            )
                         )
                     ),
-                    React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color:'#f9a8d4' }},
-                        coupleDoc.intimacyPoints || 0)
+                    /* Feedback */
+                    giftOk && React.createElement('div', { style:{ fontSize:'11px', color:'#4ade80', marginTop:'6px', fontWeight:700, textAlign:'center' }}, giftOk),
+                    giftErr && React.createElement('div', { style:{ fontSize:'11px', color:'#f87171', marginTop:'6px', fontWeight:700, textAlign:'center' }}, giftErr),
+                    React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', marginTop:'6px', textAlign:'center' }},
+                        lang==='ar' ? 'يضاف ✨ بركة + يقسم الكاريزما على الزوجين' : 'Adds ✨ Blessing + splits charisma between the couple')
+                ),
+
+                /* ════ GIFT LOG ════ */
+                doc.giftLog && doc.giftLog.length > 0 && React.createElement('div', {
+                    style:{ padding:'12px 14px', borderRadius:'14px',
+                        background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)' }
+                },
+                    React.createElement('div', { style:{ fontSize:'11px', color:'#9ca3af', fontWeight:700, marginBottom:'10px' }},
+                        lang==='ar' ? '🎁 سجل الهدايا' : '🎁 Gift Log'),
+                    React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'6px' }},
+                        [...doc.giftLog].reverse().slice(0, 10).map((entry, i) =>
+                            React.createElement('div', { key:i, style:{ display:'flex', alignItems:'center', gap:'8px', padding:'6px 8px',
+                                borderRadius:'10px', background:'rgba(255,255,255,0.04)' }},
+                                /* Sender avatar */
+                                React.createElement('div', { style:{ width:'26px', height:'26px', borderRadius:'50%', overflow:'hidden', flexShrink:0,
+                                    background:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px' }},
+                                    entry.sp
+                                        ? React.createElement('img', { src:entry.sp, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
+                                        : '😎'
+                                ),
+                                React.createElement('div', { style:{ flex:1, minWidth:0 }},
+                                    React.createElement('span', { style:{ fontSize:'11px', color:'#e2e8f0', fontWeight:600 }}, entry.sn || '?'),
+                                    React.createElement('span', { style:{ fontSize:'11px', color:'#6b7280' }},
+                                        lang==='ar' ? ' أرسل ' : ' sent '),
+                                    React.createElement('span', { style:{ fontSize:'13px' }}, entry.ge)
+                                ),
+                                React.createElement('div', { style:{ fontSize:'9px', color:'rgba(168,85,247,0.8)', fontWeight:700, flexShrink:0 }},
+                                    `+${entry.bp||0}✨`)
+                            )
+                        )
+                    )
                 ),
 
                 /* ════ DIVORCE — 3-step with think-twice warning ════ */
                 isMember && (
 
-                    /* Step 0 ── subtle red button */
                     divorceStep === 0 && React.createElement('button', {
                         onClick: () => setDivorceStep(1),
                         style:{ padding:'10px', borderRadius:'12px', border:'1px solid rgba(239,68,68,0.2)',
@@ -912,7 +1106,6 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                             fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'center', width:'100%' }
                     }, lang==='ar' ? '💔 إنهاء الارتباط' : '💔 End Relationship') ||
 
-                    /* Step 1 ── think-twice warning */
                     divorceStep === 1 && React.createElement('div', {
                         style:{ padding:'16px', borderRadius:'18px',
                             background:'linear-gradient(135deg,rgba(251,146,60,0.12),rgba(239,68,68,0.08))',
@@ -930,11 +1123,8 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                                         : `You have been with ${partnerData?.displayName || ''} for:`)
                             )
                         ),
-                        /* Together-time counter */
-                        React.createElement('div', { style:{
-                            background:'rgba(0,0,0,0.35)', borderRadius:'14px', padding:'12px',
-                            display:'flex', alignItems:'center', justifyContent:'center'
-                        }},
+                        React.createElement('div', { style:{ background:'rgba(0,0,0,0.35)', borderRadius:'14px', padding:'12px',
+                            display:'flex', alignItems:'center', justifyContent:'center' }},
                             [
                                 { val:timer.days,  label_ar:'يوم',   label_en:'Days'  },
                                 { val:timer.hours, label_ar:'ساعة',  label_en:'Hours' },
@@ -952,19 +1142,14 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                             ))
                         ),
                         React.createElement('div', { style:{ fontSize:'12px', color:'#9ca3af', textAlign:'center', fontStyle:'italic', padding:'0 4px', lineHeight:1.5 }},
-                            lang==='ar'
-                                ? 'هل تريد فعلاً إنهاء كل هذه الذكريات الجميلة؟ 💔'
-                                : 'Are you sure you want to throw away all these beautiful memories? 💔'
-                        ),
+                            lang==='ar' ? 'هل تريد فعلاً إنهاء كل هذه الذكريات الجميلة؟ 💔' : 'Are you sure you want to throw away all these beautiful memories? 💔'),
                         React.createElement('div', { style:{ display:'flex', gap:'10px' }},
-                            React.createElement('button', {
-                                onClick: () => setDivorceStep(0),
+                            React.createElement('button', { onClick: () => setDivorceStep(0),
                                 style:{ flex:2, padding:'12px', borderRadius:'12px',
                                     border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.1)',
                                     color:'#4ade80', fontSize:'12px', fontWeight:800, cursor:'pointer' }
                             }, lang==='ar' ? '💚 أبقى معه/معها' : '💚 Stay Together'),
-                            React.createElement('button', {
-                                onClick: () => setDivorceStep(2),
+                            React.createElement('button', { onClick: () => setDivorceStep(2),
                                 style:{ flex:1, padding:'12px', borderRadius:'12px',
                                     border:'1px solid rgba(239,68,68,0.3)', background:'rgba(239,68,68,0.08)',
                                     color:'#f87171', fontSize:'12px', fontWeight:700, cursor:'pointer' }
@@ -972,7 +1157,6 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                         )
                     ) ||
 
-                    /* Step 2 ── final irreversible confirm */
                     divorceStep === 2 && React.createElement('div', {
                         style:{ padding:'14px', borderRadius:'14px', border:'1px solid rgba(239,68,68,0.4)',
                             background:'rgba(239,68,68,0.1)', textAlign:'center',
@@ -981,14 +1165,12 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                         React.createElement('div', { style:{ fontSize:'13px', color:'#f87171', fontWeight:900 }},
                             lang==='ar' ? '🔴 هذا القرار لا يمكن التراجع عنه نهائياً!' : '🔴 This cannot be undone!'),
                         React.createElement('div', { style:{ display:'flex', gap:'10px' }},
-                            React.createElement('button', {
-                                onClick: () => setDivorceStep(0),
+                            React.createElement('button', { onClick: () => setDivorceStep(0),
                                 style:{ flex:1, padding:'11px', borderRadius:'10px',
                                     border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.06)',
                                     color:'#9ca3af', fontSize:'12px', cursor:'pointer' }
                             }, lang==='ar' ? 'تراجع' : 'Cancel'),
-                            React.createElement('button', {
-                                onClick: handleDivorce, disabled: divorcing,
+                            React.createElement('button', { onClick: handleDivorce, disabled: divorcing,
                                 style:{ flex:1, padding:'11px', borderRadius:'10px', border:'none',
                                     background:'rgba(239,68,68,0.88)', color:'white',
                                     fontSize:'13px', fontWeight:900, cursor:'pointer',
@@ -1002,6 +1184,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
         ))
     );
 };
+
 
 // ─────────────────────────────────────────────
 // 💍 RING SHOP SECTION (injected into ShopModal)
