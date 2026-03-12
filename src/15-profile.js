@@ -2667,6 +2667,11 @@ const ProfileV11 = ({
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [showRoleInfoPopup, setShowRoleInfoPopup] = useState(false);
 
+    // 💍 Couple states inside profile
+    const [profileCoupleDoc, setProfileCoupleDoc]       = useState(null);
+    const [profilePartnerData, setProfilePartnerData]   = useState(null);
+    const [showProfileCoupleCard, setShowProfileCoupleCard] = useState(false);
+
     const optionsRef = useRef(null);
 
     useEffect(() => {
@@ -2758,6 +2763,27 @@ const ProfileV11 = ({
             setCharismaRank('--');
         });
     }, [show, targetUID]);
+
+    // 💍 Load couple doc when target user is married
+    useEffect(() => {
+        if (!show || !targetUID || !targetData?.isMarried) {
+            setProfileCoupleDoc(null);
+            setProfilePartnerData(null);
+            return;
+        }
+        // Query both directions
+        const q1 = couplesCollection.where('uid1', '==', targetUID).where('status', '==', 'accepted').limit(1);
+        const q2 = couplesCollection.where('uid2', '==', targetUID).where('status', '==', 'accepted').limit(1);
+        Promise.all([q1.get(), q2.get()]).then(async ([snap1, snap2]) => {
+            const snap = !snap1.empty ? snap1 : snap2;
+            if (snap.empty) return;
+            const doc = { id: snap.docs[0].id, ...snap.docs[0].data() };
+            setProfileCoupleDoc(doc);
+            const partnerUID = doc.uid1 === targetUID ? doc.uid2 : doc.uid1;
+            const pd = await usersCollection.doc(partnerUID).get();
+            if (pd.exists) setProfilePartnerData({ id: pd.id, ...pd.data() });
+        }).catch(() => {});
+    }, [show, targetUID, targetData?.isMarried]);
 
     if (!show) return null;
 
@@ -3033,6 +3059,38 @@ const ProfileV11 = ({
                             {targetData?.familyTag && (
                                 <div style={{display:'flex', justifyContent:'center', marginTop:'2px'}}>
                                     <ProfileFamilySignBadge userData={targetData} lang={lang} />
+                                </div>
+                            )}
+
+                            {/* 💍 Couple Ring Badge — shows if user is married */}
+                            {targetData?.isMarried && profileCoupleDoc && (
+                                <div style={{display:'flex', justifyContent:'center', marginTop:'4px'}}>
+                                    <button
+                                        onClick={() => setShowProfileCoupleCard(true)}
+                                        style={{
+                                            display:'inline-flex', alignItems:'center', gap:'5px',
+                                            padding:'3px 10px', borderRadius:'20px', cursor:'pointer', border:'none',
+                                            background:'linear-gradient(135deg,rgba(236,72,153,0.2),rgba(168,85,247,0.15))',
+                                            border:'1px solid rgba(236,72,153,0.45)',
+                                            boxShadow:'0 0 10px rgba(236,72,153,0.25)',
+                                            animation:'couple-pulse 2.5s ease-in-out infinite',
+                                        }}
+                                    >
+                                        <style>{`
+                                            @keyframes couple-pulse {
+                                                0%,100% { box-shadow: 0 0 8px rgba(236,72,153,0.3); }
+                                                50% { box-shadow: 0 0 18px rgba(236,72,153,0.6); }
+                                            }
+                                        `}</style>
+                                        <span style={{fontSize:'13px'}}>💍</span>
+                                        <span style={{fontSize:'10px', fontWeight:800, color:'#f9a8d4', letterSpacing:'0.3px'}}>
+                                            {profilePartnerData
+                                                ? (lang==='ar' ? `مرتبط بـ ${profilePartnerData.displayName}` : `Coupled with ${profilePartnerData.displayName}`)
+                                                : (lang==='ar' ? 'مرتبط' : 'In a Relationship')
+                                            }
+                                        </span>
+                                        <span style={{fontSize:'10px'}}>💕</span>
+                                    </button>
                                 </div>
                             )}
 
@@ -3401,6 +3459,20 @@ const ProfileV11 = ({
                     onSendGift={onSendGift}
                     currency={userData?.currency || 0}
                     friendsData={friendsData}
+                />
+            )}
+
+            {/* 💍 Couple Card — opened from ring badge */}
+            {showProfileCoupleCard && profileCoupleDoc && (
+                <CoupleCardModal
+                    show={showProfileCoupleCard}
+                    onClose={() => setShowProfileCoupleCard(false)}
+                    coupleDoc={profileCoupleDoc}
+                    currentUID={currentUserUID}
+                    selfData={targetData}
+                    partnerData={profilePartnerData}
+                    lang={lang}
+                    onNotification={() => {}}
                 />
             )}
 
