@@ -139,7 +139,9 @@ function App() {
                     }
                     // if pending and I'm the proposer — nothing special needed
                 } else {
-                    // check uid2 side
+                    // Doc removed — clear couple state for uid1 side
+                    setCoupleData(prev => (prev?.uid1 === currentUID ? null : prev));
+                    setPartnerData(prev => (prev?.uid1 === currentUID ? null : prev));
                 }
             }, () => {});
         const unsub2 = couplesCollection
@@ -162,8 +164,9 @@ function App() {
                         setShowIncomingProposal(true);
                     }
                 } else {
+                    // Doc was removed — clear couple state for uid2 side
                     setCoupleData(prev => (prev?.uid2 === currentUID ? null : prev));
-                    setPartnerData(prev => (coupleData?.uid2 === currentUID ? null : prev));
+                    setPartnerData(prev => (prev?.uid2 === currentUID ? null : prev));
                     setIncomingProposal(null); setShowIncomingProposal(false);
                 }
             }, () => {});
@@ -1435,6 +1438,8 @@ function App() {
                 partnerData={partnerData}
                 lang={lang}
                 onNotification={setNotification}
+                currentUserData={userData}
+                onOpenProfile={(uid) => { setShowCoupleCard(false); setTargetProfileUID(uid); setShowUserProfile(true); }}
             />
 
             {/* 💌 Incoming Proposal Modal */}
@@ -1548,7 +1553,8 @@ function App() {
                 currentUserFriendRequests={userData?.friendRequests}
                 friendsData={friendsData}
                 isGuest={isGuest}
-                onOpenProfile={(uid) => { setTargetProfileUID(uid); }}
+                currentViewerData={userData}
+                onOpenProfile={(uid) => { setTargetProfileUID(uid); setShowUserProfile(true); }}
                 onOpenChat={(friendData) => {
                     openPrivateChat(friendData);
                     setShowUserProfile(false);
