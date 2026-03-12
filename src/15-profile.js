@@ -2637,7 +2637,8 @@ const ProfileV11 = ({
     onOpenLoginRewards,
     currency: currencyProp,
     onOpenChat,
-    onOpenProfile
+    onOpenProfile,
+    currentViewerData,  // logged-in viewer's user data (for couple gift sending)
 }) => {
     const t = TRANSLATIONS[lang] || {};
 
@@ -3013,7 +3014,7 @@ const ProfileV11 = ({
                         />
                     </div>
 
-                    {/* 💍 Couple Badge — bottom-right of banner (real-time) */}
+                    {/* 💍 Couple Badge — show PARTNER's photo next to ring (real-time) */}
                     {profileCoupleDoc && profilePartnerData ? (
                         <>
                             <div
@@ -3021,18 +3022,11 @@ const ProfileV11 = ({
                                 onClick={() => setShowProfileCoupleCard(true)}
                                 title={lang === 'ar' ? `مرتبط بـ ${profilePartnerData.displayName}` : `Coupled with ${profilePartnerData.displayName}`}
                             >
-                                {/* Profile owner avatar */}
-                                <div className="cb-avatar">
-                                    {targetData?.photoURL
-                                        ? <img src={targetData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                        : '😎'
-                                    }
-                                </div>
-                                {/* Chosen ring emoji */}
-                                <span className="cb-ring" style={{filter:`drop-shadow(0 0 4px ${(RINGS_DATA && RINGS_DATA.find(r=>r.id===profileCoupleDoc.ringId)?.glow)||'rgba(236,72,153,0.6)'})`}}>
+                                {/* Ring emoji (chosen ring) — glowing */}
+                                <span className="cb-ring" style={{filter:`drop-shadow(0 0 5px ${(RINGS_DATA && RINGS_DATA.find(r=>r.id===profileCoupleDoc.ringId)?.glow)||'rgba(236,72,153,0.6)'})`}}>
                                     {(RINGS_DATA && RINGS_DATA.find(r => r.id === profileCoupleDoc.ringId)?.emoji) || '💍'}
                                 </span>
-                                {/* Partner avatar — real-time */}
+                                {/* ONLY partner's photo — real-time */}
                                 <div className="cb-avatar">
                                     {profilePartnerData.photoURL
                                         ? <img src={profilePartnerData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
@@ -3042,7 +3036,7 @@ const ProfileV11 = ({
                                 <span className="cb-name">{profilePartnerData.displayName}</span>
                             </div>
 
-                            {/* Inline CoupleCard opened from badge click */}
+                            {/* CoupleCard opened from badge click */}
                             {typeof CoupleCardModal !== 'undefined' && (
                                 <CoupleCardModal
                                     show={showProfileCoupleCard}
@@ -3054,6 +3048,8 @@ const ProfileV11 = ({
                                     lang={lang}
                                     onNotification={() => {}}
                                     viewOnly={currentUserUID !== profileCoupleDoc?.uid1 && currentUserUID !== profileCoupleDoc?.uid2}
+                                    onOpenProfile={onOpenProfile}
+                                    currentUserData={currentViewerData}
                                 />
                             )}
                         </>
@@ -3069,9 +3065,7 @@ const ProfileV11 = ({
                                 cursor:'pointer', zIndex:10,
                                 fontSize:'10px', color:'rgba(249,168,212,0.7)', fontWeight:700,
                             }}
-                            onClick={() => {
-                                if (onOpenSettings) onOpenSettings();
-                            }}
+                            onClick={() => { if (onOpenSettings) onOpenSettings(); }}
                         >
                             <span style={{fontSize:'13px'}}>💍</span>
                             {lang === 'ar' ? 'أضف شريكك' : 'Add Partner'}
