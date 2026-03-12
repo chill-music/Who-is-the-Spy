@@ -1166,7 +1166,7 @@ const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 5 * 1024 * 1024;
 const MAX_VIDEO_DURATION = 10;
 
-const AllMomentsModal = ({ show, onClose, moments, ownerName, lang, onSelectMoment }) => {
+const AllMomentsModal = ({ show, onClose, moments, ownerName, ownerPhoto, lang, onSelectMoment }) => {
     if (!show) return null;
     return (
         <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL_HIGH}}>
@@ -1179,7 +1179,14 @@ const AllMomentsModal = ({ show, onClose, moments, ownerName, lang, onSelectMome
             }}>
                 <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
                     <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                        <span style={{fontSize:'16px'}}>📸</span>
+                        {/* Back arrow + author photo */}
+                        <button onClick={onClose} style={{width:'28px', height:'28px', borderRadius:'8px', border:'none', background:'rgba(255,255,255,0.07)', color:'#9ca3af', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                            ‹
+                        </button>
+                        {ownerPhoto
+                            ? <img src={ownerPhoto} alt="" style={{width:'28px', height:'28px', borderRadius:'50%', objectFit:'cover', border:'2px solid rgba(0,242,255,0.4)'}} />
+                            : <div style={{width:'28px', height:'28px', borderRadius:'50%', background:'rgba(0,242,255,0.1)', border:'2px solid rgba(0,242,255,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px'}}>📸</div>
+                        }
                         <div>
                             <div style={{fontSize:'13px', fontWeight:800, color:'white'}}>{lang==='ar'?'كل اللحظات':'All Moments'}</div>
                             <div style={{fontSize:'9px', color:'#6b7280'}}>{ownerName} · {moments.length} {lang==='ar'?'لحظة':'moments'}</div>
@@ -1206,6 +1213,13 @@ const AllMomentsModal = ({ show, onClose, moments, ownerName, lang, onSelectMome
                                         {moment.content}
                                     </div>
                                 )}
+                                {/* type badge */}
+                                <div style={{position:'absolute', top:'3px', left:'3px', fontSize:'7px', background:'rgba(0,0,0,0.6)', borderRadius:'3px', padding:'1px 3px', color:'#00f2ff', fontWeight:700}}>
+                                    {moment.type === 'text' ? '✏️' : moment.type === 'image' ? '🖼️' : '🎥'}
+                                </div>
+                                {(moment.likesCount||0) > 0 && (
+                                    <div style={{position:'absolute', bottom:'2px', right:'3px', fontSize:'7px', color:'#f87171', fontWeight:700}}>❤️{moment.likesCount}</div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -1215,12 +1229,21 @@ const AllMomentsModal = ({ show, onClose, moments, ownerName, lang, onSelectMome
     );
 };
 
-const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang, onMomentPosted }) => {
+const MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfile, lang, onMomentPosted, onOpenProfile }) => {
     const [moments, setMoments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedMoment, setSelectedMoment] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showAllMoments, setShowAllMoments] = useState(false);
+    const [lastSeenCount, setLastSeenCount] = useState(() => {
+        try { return parseInt(localStorage.getItem(`moments_seen_${ownerUID}`) || '0', 10); } catch { return 0; }
+    });
+    const [showBellFilter, setShowBellFilter] = useState(false);
+    const [momentsNotifs, setMomentsNotifs] = useState([]);
+    const [openMenuId, setOpenMenuId] = useState(null);
+    const [reportingMomentId, setReportingMomentId] = useState(null);
+    const [reportReason, setReportReason] = useState('');
+    const [reportSent, setReportSent] = useState(false);
     const PREVIEW_COUNT = 3;
 
     useEffect(() => {
@@ -1242,6 +1265,47 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang, 
         return unsub;
     }, [ownerUID]);
 
+    // Load moments notifications (likes/comments on own moments)
+    useEffect(() => {
+        if (!currentUser?.uid || !isOwnProfile) return;
+        const unsub = notificationsCollection
+            .where('recipientUID', '==', currentUser.uid)
+            .where('type', 'in', ['moment_like', 'moment_comment'])
+            .orderBy('createdAt', 'desc').limit(20)
+            .onSnapshot(snap => {
+                setMomentsNotifs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            }, () => {});
+        return unsub;
+    }, [currentUser?.uid, isOwnProfile]);
+
+    const hasNewMoments = moments.length > lastSeenCount;
+    const unreadNotifCount = momentsNotifs.filter(n => !n.read).length;
+
+    const markSeen = () => {
+        try { localStorage.setItem(`moments_seen_${ownerUID}`, String(moments.length)); } catch {}
+        setLastSeenCount(moments.length);
+    };
+
+    const handleReport = async () => {
+        if (!currentUser || !reportingMomentId || !reportReason) return;
+        const m = moments.find(x => x.id === reportingMomentId);
+        try {
+            await reportsCollection.add({
+                type: 'moment', reason: reportReason,
+                targetId: reportingMomentId,
+                targetOwnerUID: m?.authorUID || '',
+                momentType: m?.type || '',
+                momentContent: m?.type === 'text' ? (m?.content || '') : '',
+                momentMediaUrl: (m?.type === 'image' || m?.type === 'video') ? (m?.mediaUrl || '') : '',
+                reporterUID: currentUser.uid,
+                reporterName: currentUser.displayName || 'User',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            setReportSent(true);
+            setTimeout(() => { setReportSent(false); setReportingMomentId(null); setReportReason(''); }, 1800);
+        } catch(e) {}
+    };
+
     const previewMoments = moments.slice(0, PREVIEW_COUNT);
     const hasMore = moments.length > PREVIEW_COUNT;
 
@@ -1250,50 +1314,103 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang, 
             margin:'8px 12px',
             background:'linear-gradient(135deg,rgba(0,0,0,0.35),rgba(0,0,0,0.2))',
             border:'1px solid rgba(0,242,255,0.12)',
-            borderRadius:'14px',
-            overflow:'hidden',
+            borderRadius:'14px', overflow:'hidden',
             boxShadow:'0 8px 32px rgba(0,0,0,0.3)'
         }}>
-            {/* Header */}
+            {/* ── Header ── */}
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', borderBottom: moments.length > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none'}}>
+
+                {/* Left: author avatar + title + count */}
                 <button
-                    onClick={() => moments.length > 0 && setShowAllMoments(true)}
-                    style={{
-                        display:'flex', alignItems:'center', gap:'6px', background:'none', border:'none',
-                        cursor: moments.length > 0 ? 'pointer' : 'default', padding:0
-                    }}
+                    onClick={() => { moments.length > 0 && setShowAllMoments(true); markSeen(); }}
+                    style={{ display:'flex', alignItems:'center', gap:'7px', background:'none', border:'none',
+                        cursor: moments.length > 0 ? 'pointer' : 'default', padding:0 }}
                 >
-                    <span style={{fontSize:'11px'}}>📸</span>
-                    <span style={{fontSize:'10px', fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.5px'}}>
-                        {lang === 'ar' ? 'اللحظات' : 'Moments'}
-                    </span>
+                    {/* Author avatar next to back/nav arrow */}
+                    {ownerPhoto
+                        ? <img src={ownerPhoto} alt="" style={{width:'22px', height:'22px', borderRadius:'50%', objectFit:'cover', border:'1px solid rgba(0,242,255,0.35)', flexShrink:0}} />
+                        : <div style={{width:'22px', height:'22px', borderRadius:'50%', background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', flexShrink:0}}>📷</div>
+                    }
+                    {/* Red dot for new unread moments */}
+                    <div style={{position:'relative'}}>
+                        <span style={{fontSize:'10px', fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.5px'}}>
+                            {lang === 'ar' ? 'اللحظات' : 'Moments'}
+                        </span>
+                        {hasNewMoments && (
+                            <div style={{position:'absolute', top:'-3px', right:'-7px', width:'6px', height:'6px', borderRadius:'50%', background:'#ef4444', boxShadow:'0 0 6px rgba(239,68,68,0.8)'}} />
+                        )}
+                    </div>
                     <span style={{
                         fontSize:'9px', fontWeight:800, color:'#00f2ff',
                         background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)',
                         borderRadius:'4px', padding:'1px 5px'
                     }}>{moments.length}</span>
                 </button>
-                <div style={{display:'flex', gap:'6px', alignItems:'center'}}>
+
+                {/* Right: Bell filter + "All" button + Camera icon */}
+                <div style={{display:'flex', gap:'5px', alignItems:'center'}}>
+                    {/* Bell — Moments notifications filter */}
+                    {isOwnProfile && currentUser && !currentUser.isGuest && (
+                        <div style={{position:'relative'}}>
+                            <button
+                                onClick={() => setShowBellFilter(v => !v)}
+                                style={{width:'26px', height:'26px', borderRadius:'7px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:unreadNotifCount>0?'#fbbf24':'#6b7280', fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}
+                            >🔔</button>
+                            {unreadNotifCount > 0 && (
+                                <div style={{position:'absolute', top:'-4px', right:'-4px', minWidth:'14px', height:'14px', borderRadius:'7px', background:'#ef4444', fontSize:'8px', fontWeight:800, color:'white', display:'flex', alignItems:'center', justifyContent:'center', padding:'0 3px'}}>{unreadNotifCount}</div>
+                            )}
+                        </div>
+                    )}
+
                     {hasMore && (
                         <button
-                            onClick={() => setShowAllMoments(true)}
+                            onClick={() => { setShowAllMoments(true); markSeen(); }}
                             style={{fontSize:'9px', color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', padding:'3px 8px', cursor:'pointer', fontWeight:600}}
                         >
                             {lang === 'ar' ? `الكل (${moments.length})` : `All (${moments.length})`}
                         </button>
                     )}
+
+                    {/* Camera icon — Add new moment */}
                     {isOwnProfile && currentUser && !currentUser.isGuest && !currentUser.isAnonymous && (
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            style={{fontSize:'9px', color:'#00f2ff', background:'rgba(0,242,255,0.08)', border:'1px solid rgba(0,242,255,0.25)', borderRadius:'6px', padding:'3px 8px', cursor:'pointer', fontWeight:700}}
-                        >
-                            + {lang === 'ar' ? 'أضف' : 'Add'}
-                        </button>
+                            style={{width:'26px', height:'26px', borderRadius:'7px', border:'1px solid rgba(0,242,255,0.3)', background:'rgba(0,242,255,0.08)', color:'#00f2ff', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}
+                            title={lang==='ar'?'أضف لحظة':'Add Moment'}
+                        >📷</button>
                     )}
                 </div>
             </div>
 
-            {/* Content */}
+            {/* ── Bell Dropdown — moments notifications ── */}
+            {showBellFilter && (
+                <div style={{padding:'10px 12px', borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(0,0,0,0.3)'}}>
+                    <div style={{fontSize:'10px', fontWeight:800, color:'#fbbf24', marginBottom:'6px'}}>
+                        🔔 {lang==='ar'?'إشعارات اللحظات':'Moments Alerts'}
+                    </div>
+                    {momentsNotifs.length === 0 ? (
+                        <div style={{fontSize:'10px', color:'#4b5563', textAlign:'center', padding:'6px 0'}}>
+                            {lang==='ar'?'لا إشعارات':'No alerts yet'}
+                        </div>
+                    ) : momentsNotifs.slice(0,5).map(n => (
+                        <div key={n.id} style={{display:'flex', alignItems:'center', gap:'7px', padding:'5px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                            {n.senderPhoto
+                                ? <img src={n.senderPhoto} alt="" style={{width:'20px', height:'20px', borderRadius:'50%', objectFit:'cover'}} />
+                                : <div style={{width:'20px', height:'20px', borderRadius:'50%', background:'#374151', fontSize:'9px', display:'flex', alignItems:'center', justifyContent:'center'}}>👤</div>
+                            }
+                            <div style={{flex:1, minWidth:0}}>
+                                <div style={{fontSize:'9px', color:n.read?'#6b7280':'#e2e8f0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                                    <span style={{fontWeight:700, color:'#00f2ff'}}>{n.senderName}</span>
+                                    {' '}{n.type==='moment_like'?(lang==='ar'?'أعجب بلحظتك':'liked your moment'):(lang==='ar'?'علّق على لحظتك':'commented on your moment')}
+                                </div>
+                            </div>
+                            {!n.read && <div style={{width:'6px', height:'6px', borderRadius:'50%', background:'#ef4444', flexShrink:0}} />}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* ── Content Grid ── */}
             <div style={{padding:'10px 12px 12px'}}>
             {loading ? (
                 <div style={{textAlign:'center', padding:'16px', color:'#64748b', fontSize:'11px'}}>...</div>
@@ -1304,33 +1421,54 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang, 
             ) : (
                 <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'5px'}}>
                     {previewMoments.map(moment => (
-                        <div
-                            key={moment.id}
-                            onClick={() => setSelectedMoment(moment)}
-                            style={{
-                                aspectRatio:'1', borderRadius:'10px', overflow:'hidden',
-                                background:GR.CYAN_SOFT,
-                                border:'1px solid rgba(0,242,255,0.18)',
-                                boxShadow:'0 0 8px rgba(0,242,255,0.06)',
-                                cursor:'pointer', position:'relative', transition:'transform 0.15s',
-                                display:'flex', alignItems:'center', justifyContent:'center'
-                            }}
+                        <div key={moment.id} style={{aspectRatio:'1', borderRadius:'10px', overflow:'hidden', background:GR.CYAN_SOFT, border:'1px solid rgba(0,242,255,0.18)', boxShadow:'0 0 8px rgba(0,242,255,0.06)', cursor:'pointer', position:'relative', transition:'transform 0.15s', display:'flex', alignItems:'center', justifyContent:'center'}}
                             onMouseEnter={e => e.currentTarget.style.transform='scale(0.97)'}
                             onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}
                         >
+                            {/* Click area (not on dots) */}
+                            <div onClick={() => { setOpenMenuId(null); setSelectedMoment(moment); }} style={{position:'absolute', inset:0}} />
+
                             {/* Moment type indicator */}
-                            <div style={{position:'absolute', top:'4px', left:'4px', zIndex:2, fontSize:'8px', background:'rgba(0,0,0,0.6)', borderRadius:'4px', padding:'1px 4px', color:'#00f2ff', fontWeight:700}}>
+                            <div style={{position:'absolute', top:'4px', left:'4px', zIndex:2, fontSize:'8px', background:'rgba(0,0,0,0.6)', borderRadius:'4px', padding:'1px 4px', color:'#00f2ff', fontWeight:700, pointerEvents:'none'}}>
                                 {moment.type === 'text' ? '✏️' : moment.type === 'image' ? '🖼️' : '🎥'}
                             </div>
 
+                            {/* Three-dot menu button */}
+                            <div style={{position:'absolute', top:'2px', right:'2px', zIndex:10}}>
+                                <button
+                                    onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId===moment.id?null:moment.id); }}
+                                    style={{width:'20px', height:'20px', borderRadius:'5px', border:'none', background:'rgba(0,0,0,0.55)', color:'white', fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1, padding:0}}
+                                >⋮</button>
+                                {openMenuId === moment.id && (
+                                    <div onClick={e=>e.stopPropagation()} style={{position:'absolute', top:'22px', right:0, background:'rgba(13,13,31,0.97)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'10px', overflow:'hidden', zIndex:99, minWidth:'130px', boxShadow:'0 8px 24px rgba(0,0,0,0.8)'}}>
+                                        {/* Report (non-owner) */}
+                                        {currentUser && currentUser.uid !== moment.authorUID && (
+                                            <button onClick={() => { setOpenMenuId(null); setReportingMomentId(moment.id); setReportReason(''); setReportSent(false); }} style={{display:'flex', alignItems:'center', gap:'7px', width:'100%', padding:'9px 12px', background:'none', border:'none', color:'#f87171', fontSize:'11px', fontWeight:700, cursor:'pointer'}}>
+                                                🚩 {lang==='ar'?'إبلاغ':'Report'}
+                                            </button>
+                                        )}
+                                        {/* Delete (owner) */}
+                                        {isOwnProfile && (
+                                            <button onClick={() => { setOpenMenuId(null); momentsCollection.doc(moment.id).delete(); }} style={{display:'flex', alignItems:'center', gap:'7px', width:'100%', padding:'9px 12px', background:'none', border:'none', color:'#f87171', fontSize:'11px', fontWeight:700, cursor:'pointer'}}>
+                                                🗑️ {lang==='ar'?'حذف':'Delete'}
+                                            </button>
+                                        )}
+                                        <button onClick={()=>setOpenMenuId(null)} style={{display:'flex', alignItems:'center', gap:'7px', width:'100%', padding:'9px 12px', background:'none', border:'none', color:'#6b7280', fontSize:'11px', cursor:'pointer'}}>
+                                            ✕ {lang==='ar'?'إلغاء':'Cancel'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Content */}
                             {moment.type === 'text' ? (
-                                <div style={{padding:'8px', fontSize:'9px', color:'#e2e8f0', textAlign:'center', wordBreak:'break-word', lineHeight:1.5, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:5, WebkitBoxOrient:'vertical'}}>
+                                <div style={{padding:'8px', fontSize:'9px', color:'#e2e8f0', textAlign:'center', wordBreak:'break-word', lineHeight:1.5, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:5, WebkitBoxOrient:'vertical', pointerEvents:'none'}}>
                                     {moment.content}
                                 </div>
                             ) : moment.type === 'image' ? (
-                                <img src={moment.mediaUrl} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                                <img src={moment.mediaUrl} alt="" style={{width:'100%', height:'100%', objectFit:'cover', pointerEvents:'none'}} />
                             ) : moment.type === 'video' ? (
-                                <div style={{width:'100%', height:'100%', position:'relative', background:'#000'}}>
+                                <div style={{width:'100%', height:'100%', position:'relative', background:'#000', pointerEvents:'none'}}>
                                     <video src={moment.mediaUrl} style={{width:'100%', height:'100%', objectFit:'cover'}} muted />
                                     <div style={{position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.25)'}}>
                                         <span style={{fontSize:'22px'}}>▶</span>
@@ -1338,8 +1476,8 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang, 
                                 </div>
                             ) : null}
 
-                            {/* Likes + comments bottom bar */}
-                            <div style={{position:'absolute', bottom:0, left:0, right:0, background:'linear-gradient(transparent,rgba(0,0,0,0.75))', padding:'8px 4px 3px', display:'flex', justifyContent:'flex-end', gap:'6px', alignItems:'center'}}>
+                            {/* Likes bottom bar */}
+                            <div style={{position:'absolute', bottom:0, left:0, right:0, background:'linear-gradient(transparent,rgba(0,0,0,0.75))', padding:'8px 4px 3px', display:'flex', justifyContent:'flex-end', gap:'6px', alignItems:'center', pointerEvents:'none'}}>
                                 {(moment.likesCount || 0) > 0 && (
                                     <span style={{fontSize:'8px', color:'#f87171', fontWeight:700}}>❤️ {moment.likesCount}</span>
                                 )}
@@ -1357,8 +1495,36 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang, 
                     onPosted={onMomentPosted}
                 />
             )}
-            </div>{/* end content padding */}
-        </div>{/* end container box */}
+            </div>
+        </div>
+
+        {/* ── Report Modal (from grid three-dot) ── */}
+        {reportingMomentId && (
+            <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.MODAL+10, padding:'16px'}} onClick={()=>setReportingMomentId(null)}>
+                <div style={{background:'linear-gradient(180deg,#0f0f1e,#0a0a14)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:'16px', width:'100%', maxWidth:'340px', padding:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.9)'}} onClick={e=>e.stopPropagation()}>
+                    <div style={{fontSize:'14px', fontWeight:800, color:'white', marginBottom:'4px'}}>🚩 {lang==='ar'?'إبلاغ عن لحظة':'Report Moment'}</div>
+                    <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'14px'}}>{lang==='ar'?'اختر سبب الإبلاغ':'Select a reason'}</div>
+                    {[
+                        [lang==='ar'?'محتوى مسيء':'Offensive content', 'offensive'],
+                        [lang==='ar'?'مضايقة':'Harassment', 'harassment'],
+                        [lang==='ar'?'إسبام':'Spam', 'spam'],
+                        [lang==='ar'?'محتوى غير لائق':'Inappropriate content', 'inappropriate'],
+                    ].map(([label, val]) => (
+                        <button key={val} onClick={()=>setReportReason(val)} style={{display:'block', width:'100%', padding:'9px 13px', marginBottom:'6px', borderRadius:'10px', border:`1px solid ${reportReason===val?'rgba(239,68,68,0.5)':'rgba(255,255,255,0.08)'}`, background:reportReason===val?'rgba(239,68,68,0.1)':'rgba(255,255,255,0.03)', color:reportReason===val?'#f87171':'#9ca3af', fontSize:'12px', cursor:'pointer', textAlign:'left', fontWeight:reportReason===val?700:400}}>
+                            {label}
+                        </button>
+                    ))}
+                    <div style={{display:'flex', gap:'8px', marginTop:'10px'}}>
+                        <button onClick={()=>setReportingMomentId(null)} style={{flex:1, padding:'10px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#6b7280', fontSize:'12px', cursor:'pointer', fontWeight:700}}>
+                            {lang==='ar'?'إلغاء':'Cancel'}
+                        </button>
+                        <button onClick={handleReport} disabled={!reportReason||reportSent} style={{flex:1, padding:'10px', borderRadius:'10px', border:'none', background:reportReason&&!reportSent?'linear-gradient(135deg,#ef4444,#dc2626)':'rgba(255,255,255,0.06)', color:reportReason&&!reportSent?'white':'#4b5563', fontSize:'12px', cursor:reportReason&&!reportSent?'pointer':'not-allowed', fontWeight:700}}>
+                            {reportSent?`✅ ${lang==='ar'?'تم':'Sent'}`:`🚩 ${lang==='ar'?'إبلاغ':'Report'}`}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
 
         {showAllMoments && (
             <AllMomentsModal
@@ -1366,6 +1532,7 @@ const MomentsSection = ({ ownerUID, ownerName, currentUser, isOwnProfile, lang, 
                 onClose={() => setShowAllMoments(false)}
                 moments={moments}
                 ownerName={ownerName || ''}
+                ownerPhoto={ownerPhoto || null}
                 lang={lang}
                 onSelectMoment={setSelectedMoment}
             />
@@ -3166,6 +3333,7 @@ const ProfileV11 = ({
                             <MomentsSection
                                 ownerUID={targetUID}
                                 ownerName={targetData?.displayName || ''}
+                                ownerPhoto={targetData?.photoURL || null}
                                 currentUser={userData}
                                 isOwnProfile={isOwnProfile}
                                 lang={lang}
