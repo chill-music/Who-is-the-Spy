@@ -1,4 +1,4 @@
-const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory }) => {
+const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory, onPropose, currentUID }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedItem, setSelectedItem] = useState(null);
@@ -64,6 +64,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     // Tabs — تبويبات الشوب (هدايا VIP مدمجة مع تاب الهدايا)
     const tabs = [
         { id: 'vip',           label: '👑 VIP',   icon: '👑' },
+        { id: 'rings',         label: lang==='ar'?'💍 خواتم':'💍 Rings', icon: '💍' },
         { id: 'gifts',         label: t.gifts,    icon: '🎁' },
         { id: 'frames',        label: t.frames,   icon: '🖼️' },
         { id: 'titles',        label: t.titles,   icon: '🏷️' },
@@ -180,6 +181,16 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 
                 {/* Body */}
                 <div className="modal-body" style={{padding:'10px', overflowY:'auto', minHeight:0}}>
+
+                    {/* ════ RINGS TAB ════ */}
+                    {activeTab === 'rings' && (
+                        <RingsShopSection
+                            userData={userData}
+                            lang={lang}
+                            currentUID={currentUID}
+                            onPropose={onPropose || (() => {})}
+                        />
+                    )}
 
                     {/* ════ VIP TAB ════ */}
                     {activeTab === 'vip' && (
