@@ -114,27 +114,23 @@ const LOGIN_REWARDS = [
 ];
 
 const LOGIN_REWARDS_CONFIG = {
-    currentCycleStart: '2025-01',
     autoResetMonthly: true,
 };
 
-const checkLoginRewardsCycle = (userData) => {
-    const config = LOGIN_REWARDS_CONFIG;
+// ✅ Returns the ACTUAL current month string e.g. '2026-03'
+const getCurrentCycleMonth = () => {
     const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    if (config.autoResetMonthly) {
-        const cycleStartMonth = config.currentCycleStart;
-        if (currentMonth !== cycleStartMonth) {
-            LOGIN_REWARDS_CONFIG.currentCycleStart = currentMonth;
-            return true;
-        }
-    }
-    const lastClaimDate = userData?.loginRewards?.lastClaimDate?.toDate?.() || new Date(userData?.loginRewards?.lastClaimDate || 0);
-    const lastClaimMonth = `${lastClaimDate.getFullYear()}-${String(lastClaimDate.getMonth() + 1).padStart(2, '0')}`;
-    if (currentMonth !== lastClaimMonth && config.autoResetMonthly) return true;
-    return false;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 };
 
-const getCurrentCycleMonth = () => LOGIN_REWARDS_CONFIG.currentCycleStart;
+// ✅ Returns true ONLY when the user's stored cycleMonth differs from the actual current month
+const checkLoginRewardsCycle = (userData) => {
+    if (!LOGIN_REWARDS_CONFIG.autoResetMonthly) return false;
+    const storedMonth = userData?.loginRewards?.cycleMonth;
+    // No stored month means a fresh/legacy user — don't reset, just update going forward
+    if (!storedMonth) return false;
+    const currentMonth = getCurrentCycleMonth();
+    return storedMonth !== currentMonth;
+};
 
 // 📦 DAILY TASKS CONFIG - 8 Boxes (by online time)
