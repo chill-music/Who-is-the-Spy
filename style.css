@@ -1984,6 +1984,20 @@ body {
     z-index: 10;
     transition: transform .15s;
     box-shadow: 0 4px 14px rgba(236,72,153,0.25);
+    /* Responsive: prevent overflow on small screens */
+    max-width: calc(100vw - 140px);
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+@media (max-width: 380px) {
+    .profile-couple-badge {
+        right: 8px;
+        max-width: calc(100vw - 110px);
+        padding: 3px 7px 3px 4px;
+    }
+    .profile-couple-badge .cb-name {
+        max-width: 50px !important;
+    }
 }
 .profile-couple-badge:hover { transform: scale(1.05); }
 .profile-couple-badge .cb-avatar {
