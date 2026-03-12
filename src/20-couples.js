@@ -637,6 +637,7 @@ const CoupleCardModal = ({
     const [savingBio, setSavingBio]     = useState(false);
     const [uploading, setUploading]     = useState(false);
     const [uploadErr, setUploadErr]     = useState('');
+    const [photoExpanded, setPhotoExpanded] = useState(false); // ← WePlay-style expand
     const photoRef                      = useRef(null);
     const timerRef                      = useRef(null);
     const [divorceStep, setDivorceStep] = useState(0);
@@ -748,16 +749,19 @@ const CoupleCardModal = ({
         onClose();
     };
 
-    /* Send a Blessing gift to the couple */
+    /* Send a gift to the couple — uses primary site gift system */
     const sendBlessingGift = async (gift) => {
         if (sending || !currentUID || !doc?.id) return;
-        const bal = currentUserData?.currency || 0;
-        if (bal < gift.cost) {
-            setGiftErr(lang==='ar' ? '❌ رصيدك غير كافٍ' : '❌ Insufficient balance');
-            return;
-        }
         setSending(true); setGiftErr(''); setGiftOk('');
         try {
+            // ✅ Validate balance from Firestore (prevents stale state bugs)
+            const senderSnap = await usersCollection.doc(currentUID).get();
+            const liveBal = senderSnap.exists ? (senderSnap.data().currency || 0) : 0;
+            if (liveBal < gift.cost) {
+                setGiftErr(lang==='ar' ? `❌ رصيدك غير كافٍ (${liveBal} 🧠)` : `❌ Insufficient balance (${liveBal} 🧠)`);
+                setSending(false);
+                return;
+            }
             await usersCollection.doc(currentUID).update({
                 currency: firebase.firestore.FieldValue.increment(-gift.cost)
             });
@@ -852,83 +856,113 @@ const CoupleCardModal = ({
             React.createElement('div', { style:{ flex:1, overflowY:'auto', padding:'16px',
                 display:'flex', flexDirection:'column', gap:'14px', position:'relative', zIndex:1 }},
 
-                /* ════ JOINT PHOTO (square) ════ */
-                React.createElement('div', { style:{ textAlign:'center' }},
-                    React.createElement('div', {
-                        onClick: () => isMember && !uploading && photoRef.current?.click(),
-                        style:{
-                            width:'120px', height:'120px', borderRadius:'20px',
-                            margin:'0 auto 14px', cursor: isMember ? 'pointer' : 'default',
-                            overflow:'hidden', position:'relative',
-                            border:`3px solid ${ring.color}90`,
-                            boxShadow:`0 0 22px ${ring.glow}, 0 0 48px ${ring.glow}44`,
-                            background:'linear-gradient(135deg,rgba(236,72,153,0.14),rgba(168,85,247,0.11))',
-                            display:'flex', alignItems:'center', justifyContent:'center',
-                        }
+                /* ════ JOINT PHOTO — WePlay style expandable ════ */
+                React.createElement('div', { style:{ position:'relative' }},
+                    /* Expanded overlay photo */
+                    photoExpanded && doc.couplePhotoUrl && React.createElement('div', {
+                        onClick: () => setPhotoExpanded(false),
+                        style:{ position:'absolute', inset:'-16px -16px 0', zIndex:10, cursor:'pointer',
+                            borderRadius:'16px 16px 0 0', overflow:'hidden',
+                            boxShadow:`0 0 30px ${ring.glow}` }
                     },
-                        doc.couplePhotoUrl
-                            ? React.createElement('img', {
-                                src: doc.couplePhotoUrl, alt:'',
-                                style:{ width:'100%', height:'100%', objectFit:'cover', display:'block' },
-                                onError: e => { e.target.style.display='none'; }
-                              })
-                            : React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
-                                React.createElement('div', { style:{ fontSize:'30px' }}, isMember ? '📷' : '💑'),
-                                React.createElement('div', { style:{ fontSize:'9px', color:'#9ca3af' }},
-                                    isMember ? (lang==='ar' ? 'اضغط لإضافة صورة' : 'Tap to add photo') : '')
-                              ),
-                        uploading && React.createElement('div', {
-                            style:{ position:'absolute', inset:0, background:'rgba(0,0,0,0.65)',
-                                display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px' }
-                        }, '⏳')
+                        React.createElement('img', {
+                            src: doc.couplePhotoUrl, alt:'',
+                            style:{ width:'100%', height:'220px', objectFit:'cover', display:'block' }
+                        }),
+                        React.createElement('div', { style:{ position:'absolute', top:'8px', right:'8px', background:'rgba(0,0,0,0.6)', borderRadius:'50%', width:'28px', height:'28px', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontSize:'13px' }}, '✕'),
+                        React.createElement('div', { style:{ position:'absolute', bottom:'8px', left:'50%', transform:'translateX(-50%)', fontSize:'9px', color:'rgba(255,255,255,0.6)' }},
+                            lang==='ar' ? 'اضغط للإغلاق' : 'Tap to close')
                     ),
-                    isMember && React.createElement('input', {
-                        type:'file', ref:photoRef, style:{ display:'none' },
-                        accept:'image/jpeg,image/png,image/webp',
-                        onChange: handlePhotoUpload
-                    }),
-                    uploadErr && React.createElement('div', {
-                        style:{ fontSize:'10px', color:'#f87171', marginBottom:'6px', marginTop:'-6px' }
-                    }, uploadErr),
-
-                    /* ── Clickable avatars with ring divider ── */
-                    React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'center' }},
-
-                        /* Left user */
-                        React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
-                            React.createElement(Av, { user: selfData, uid: uid1, size:50 }),
-                            React.createElement('div', {
-                                onClick: () => uid1 && onOpenProfile && onOpenProfile(uid1),
-                                style:{ fontSize:'10px', fontWeight:700, color:'#e2e8f0',
-                                    maxWidth:'68px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                                    cursor: onOpenProfile ? 'pointer' : 'default',
-                                    textDecoration: onOpenProfile ? 'underline' : 'none',
-                                    textDecorationColor:'rgba(255,255,255,0.3)' }
-                            }, selfData?.displayName || '—')
+                    React.createElement('div', { style:{ textAlign:'center', marginBottom: photoExpanded && doc.couplePhotoUrl ? '220px' : '0' }},
+                        /* Small photo — clicking ring expands it */
+                        React.createElement('div', {
+                            onClick: () => {
+                                if (doc.couplePhotoUrl) { setPhotoExpanded(!photoExpanded); return; }
+                                isMember && !uploading && photoRef.current?.click();
+                            },
+                            style:{
+                                width: photoExpanded && doc.couplePhotoUrl ? '0' : '120px',
+                                height: photoExpanded && doc.couplePhotoUrl ? '0' : '120px',
+                                borderRadius:'20px',
+                                margin:'0 auto 14px', cursor: 'pointer',
+                                overflow:'hidden', position:'relative',
+                                border:`3px solid ${ring.color}90`,
+                                boxShadow:`0 0 22px ${ring.glow}, 0 0 48px ${ring.glow}44`,
+                                background:'linear-gradient(135deg,rgba(236,72,153,0.14),rgba(168,85,247,0.11))',
+                                display: photoExpanded && doc.couplePhotoUrl ? 'none' : 'flex',
+                                alignItems:'center', justifyContent:'center',
+                                transition:'all 0.3s',
+                            }
+                        },
+                            doc.couplePhotoUrl
+                                ? React.createElement('img', {
+                                    src: doc.couplePhotoUrl, alt:'',
+                                    style:{ width:'100%', height:'100%', objectFit:'cover', display:'block' },
+                                    onError: e => { e.target.style.display='none'; }
+                                  })
+                                : React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
+                                    React.createElement('div', { style:{ fontSize:'30px' }}, isMember ? '📷' : '💑'),
+                                    React.createElement('div', { style:{ fontSize:'9px', color:'#9ca3af' }},
+                                        isMember ? (lang==='ar' ? 'اضغط لإضافة صورة' : 'Tap to add photo') : '')
+                                  ),
+                            uploading && React.createElement('div', {
+                                style:{ position:'absolute', inset:0, background:'rgba(0,0,0,0.65)',
+                                    display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px' }
+                            }, '⏳')
                         ),
+                        isMember && React.createElement('input', {
+                            type:'file', ref:photoRef, style:{ display:'none' },
+                            accept:'image/jpeg,image/png,image/webp',
+                            onChange: handlePhotoUpload
+                        }),
+                        uploadErr && React.createElement('div', {
+                            style:{ fontSize:'10px', color:'#f87171', marginBottom:'6px', marginTop:'-6px' }
+                        }, uploadErr),
 
-                        /* Ring divider */
-                        React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', margin:'0 8px', flexShrink:0, paddingBottom:'16px' }},
-                            React.createElement('div', { style:{ width:'36px', height:'2px', borderRadius:'2px',
-                                background:`linear-gradient(90deg,transparent,${ring.color},transparent)` }}),
-                            React.createElement('div', { style:{ fontSize:'22px', margin:'3px 0',
-                                filter:`drop-shadow(0 0 7px ${ring.glow}) drop-shadow(0 0 14px ${ring.glow})` }},
-                                ring.emoji),
-                            React.createElement('div', { style:{ width:'36px', height:'2px', borderRadius:'2px',
-                                background:`linear-gradient(90deg,transparent,${ring.color},transparent)` }})
-                        ),
+                        /* ── Dynamic Partner Header — profile pics flanking ring ── */
+                        React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'center' }},
 
-                        /* Right user */
-                        React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
-                            React.createElement(Av, { user: partnerData, uid: uid2, size:50 }),
+                            /* Left partner (uid1 / selfData) */
+                            React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
+                                React.createElement(Av, { user: selfData, uid: uid1, size:54 }),
+                                React.createElement('div', {
+                                    onClick: () => uid1 && onOpenProfile && onOpenProfile(uid1),
+                                    style:{ fontSize:'10px', fontWeight:700, color:'#e2e8f0',
+                                        maxWidth:'72px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                                        cursor: onOpenProfile ? 'pointer' : 'default' }
+                                }, selfData?.displayName || '—')
+                            ),
+
+                            /* Ring divider — clickable to expand photo */
                             React.createElement('div', {
-                                onClick: () => uid2 && onOpenProfile && onOpenProfile(uid2),
-                                style:{ fontSize:'10px', fontWeight:700, color:'#e2e8f0',
-                                    maxWidth:'68px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                                    cursor: onOpenProfile ? 'pointer' : 'default',
-                                    textDecoration: onOpenProfile ? 'underline' : 'none',
-                                    textDecorationColor:'rgba(255,255,255,0.3)' }
-                            }, partnerData?.displayName || '—')
+                                onClick: () => doc.couplePhotoUrl && setPhotoExpanded(!photoExpanded),
+                                style:{ display:'flex', flexDirection:'column', alignItems:'center', margin:'0 10px', flexShrink:0,
+                                    paddingBottom:'16px', cursor: doc.couplePhotoUrl ? 'pointer' : 'default' }
+                            },
+                                React.createElement('div', { style:{ width:'36px', height:'2px', borderRadius:'2px',
+                                    background:`linear-gradient(90deg,transparent,${ring.color},transparent)` }}),
+                                React.createElement('div', {
+                                    style:{ fontSize:'24px', margin:'3px 0',
+                                        filter:`drop-shadow(0 0 7px ${ring.glow}) drop-shadow(0 0 14px ${ring.glow})`,
+                                        transform: photoExpanded ? 'scale(1.2)' : 'scale(1)',
+                                        transition:'transform 0.2s' }},
+                                    ring.emoji),
+                                React.createElement('div', { style:{ width:'36px', height:'2px', borderRadius:'2px',
+                                    background:`linear-gradient(90deg,transparent,${ring.color},transparent)` }}),
+                                doc.couplePhotoUrl && React.createElement('div', { style:{ fontSize:'8px', color:ring.color, marginTop:'2px', fontWeight:700 }},
+                                    lang==='ar' ? (photoExpanded?'طي':'توسيع') : (photoExpanded?'Close':'Expand'))
+                            ),
+
+                            /* Right partner (uid2 / partnerData) */
+                            React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
+                                React.createElement(Av, { user: partnerData, uid: uid2, size:54 }),
+                                React.createElement('div', {
+                                    onClick: () => uid2 && onOpenProfile && onOpenProfile(uid2),
+                                    style:{ fontSize:'10px', fontWeight:700, color:'#e2e8f0',
+                                        maxWidth:'72px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                                        cursor: onOpenProfile ? 'pointer' : 'default' }
+                                }, partnerData?.displayName || '—')
+                            )
                         )
                     )
                 ),
@@ -1028,6 +1062,63 @@ const CoupleCardModal = ({
                                 fontStyle: doc.sharedBio ? 'italic' : 'normal', lineHeight:1.6,
                                 textAlign: lang==='ar' ? 'right' : 'left' }
                           }, doc.sharedBio || (lang==='ar' ? '💕 لا يوجد بيو بعد' : '💕 No shared bio yet'))
+                ),
+
+                /* ════ MULTI-RING EQUIPMENT SLOTS ════ */
+                React.createElement('div', {
+                    style:{ padding:'12px 14px', borderRadius:'14px',
+                        background:'linear-gradient(135deg,rgba(255,215,0,0.05),rgba(168,85,247,0.05))',
+                        border:'1px solid rgba(255,215,0,0.15)' }
+                },
+                    React.createElement('div', { style:{ fontSize:'11px', color:'#fbbf24', fontWeight:700, marginBottom:'10px', display:'flex', alignItems:'center', gap:'5px' }},
+                        React.createElement('span', null, '💍'),
+                        lang==='ar' ? 'خواتم العلاقة' : 'Relationship Rings',
+                        React.createElement('span', { style:{ fontSize:'9px', color:'#6b7280', fontWeight:500, marginLeft:'auto' }},
+                            lang==='ar' ? 'الخاتم النشط' : 'Active ring')
+                    ),
+                    /* All available rings, showing owned/active state */
+                    React.createElement('div', { style:{ display:'flex', gap:'8px', overflowX:'auto', paddingBottom:'4px', scrollbarWidth:'none' }},
+                        RINGS_DATA.map(r => {
+                            const isActive = doc.ringId === r.id;
+                            const RARITY_C = { Common:'#9ca3af', Uncommon:'#4ade80', Rare:'#60a5fa', Epic:'#a78bfa', Legendary:'#ffd700', Mythic:'#f472b6' };
+                            const rc = RARITY_C[r.rarity] || '#9ca3af';
+                            return React.createElement('div', {
+                                key: r.id,
+                                title: lang==='ar' ? r.name_ar : r.name_en,
+                                style:{
+                                    flexShrink:0, display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
+                                    padding:'8px 10px', borderRadius:'12px',
+                                    border:`1px solid ${isActive ? r.color+'70' : 'rgba(255,255,255,0.08)'}`,
+                                    background: isActive ? `${r.color}18` : 'rgba(255,255,255,0.03)',
+                                    boxShadow: isActive ? `0 0 12px ${r.glow}` : 'none',
+                                    transition:'.2s', opacity: 1,
+                                }
+                            },
+                                React.createElement('span', { style:{
+                                    fontSize:'22px',
+                                    filter: isActive ? `drop-shadow(0 0 6px ${r.glow})` : 'grayscale(60%) brightness(0.6)',
+                                    transition:'.3s'
+                                }}, r.emoji),
+                                isActive && React.createElement('span', { style:{ fontSize:'7px', color: r.color, fontWeight:800, textTransform:'uppercase' }},
+                                    lang==='ar'?'نشط':'Active'),
+                                React.createElement('span', { style:{ fontSize:'7px', color: rc, fontWeight:700 }}, r.rarity)
+                            );
+                        })
+                    ),
+                    /* Active ring info */
+                    (() => {
+                        const activeRing = RINGS_DATA.find(r => r.id === doc.ringId);
+                        if (!activeRing) return null;
+                        return React.createElement('div', { style:{ marginTop:'10px', padding:'8px 10px', borderRadius:'10px', background:`${activeRing.color}10`, border:`1px solid ${activeRing.color}30`, display:'flex', alignItems:'center', gap:'8px' }},
+                            React.createElement('span', { style:{ fontSize:'20px' }}, activeRing.emoji),
+                            React.createElement('div', null,
+                                React.createElement('div', { style:{ fontSize:'11px', fontWeight:700, color: activeRing.color }},
+                                    lang==='ar' ? activeRing.name_ar : activeRing.name_en),
+                                React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280' }},
+                                    lang==='ar' ? activeRing.desc_ar : activeRing.desc_en)
+                            )
+                        );
+                    })()
                 ),
 
                 /* ════ SEND A BLESSING GIFT ════ */
