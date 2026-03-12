@@ -160,6 +160,9 @@ const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curr
     const [moments, setMoments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedMoment, setSelectedMoment] = useState(null);
+    const [commentText, setCommentText] = useState('');
+    const [submittingComment, setSubmittingComment] = useState(false);
+    const [likingId, setLikingId] = useState(null);
 
     useEffect(() => {
         if (!show || !currentUID) return;
@@ -183,6 +186,64 @@ const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curr
             setLoading(false);
         }).catch(() => { setMoments([]); setLoading(false); });
     }, [show, currentUID, JSON.stringify((friendsData || []).map(f => f.id || f.uid).filter(Boolean).sort())]);
+
+    // Real-time update for selected moment
+    useEffect(() => {
+        if (!selectedMoment?.id) return;
+        const unsub = momentsCollection.doc(selectedMoment.id).onSnapshot(snap => {
+            if (snap.exists) {
+                const updated = { id: snap.id, ...snap.data() };
+                setSelectedMoment(updated);
+                setMoments(prev => prev.map(m => m.id === updated.id ? updated : m));
+            }
+        }, () => {});
+        return () => unsub();
+    }, [selectedMoment?.id]);
+
+    const handleLike = async (moment, e) => {
+        e?.stopPropagation();
+        if (!currentUID || likingId === moment.id) return;
+        setLikingId(moment.id);
+        try {
+            const likes = moment.likes || [];
+            const alreadyLiked = likes.includes(currentUID);
+            await momentsCollection.doc(moment.id).update({
+                likes: alreadyLiked
+                    ? firebase.firestore.FieldValue.arrayRemove(currentUID)
+                    : firebase.firestore.FieldValue.arrayUnion(currentUID)
+            });
+            setMoments(prev => prev.map(m => m.id === moment.id ? {
+                ...m,
+                likes: alreadyLiked ? likes.filter(id => id !== currentUID) : [...likes, currentUID]
+            } : m));
+            if (selectedMoment?.id === moment.id) {
+                setSelectedMoment(prev => ({
+                    ...prev,
+                    likes: alreadyLiked ? likes.filter(id => id !== currentUID) : [...likes, currentUID]
+                }));
+            }
+        } catch(e) {}
+        setLikingId(null);
+    };
+
+    const handleComment = async () => {
+        if (!commentText.trim() || !selectedMoment?.id || !currentUID || submittingComment) return;
+        setSubmittingComment(true);
+        try {
+            const newComment = {
+                authorUID: currentUID,
+                authorName: currentUserData?.displayName || 'User',
+                authorPhoto: currentUserData?.photoURL || null,
+                text: commentText.trim(),
+                createdAt: new Date().toISOString(),
+            };
+            await momentsCollection.doc(selectedMoment.id).update({
+                comments: firebase.firestore.FieldValue.arrayUnion(newComment)
+            });
+            setCommentText('');
+        } catch(e) {}
+        setSubmittingComment(false);
+    };
 
     const fmtMomentTime = (ts) => {
         if (!ts) return '';
@@ -224,47 +285,110 @@ const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curr
                             </div>
                         ) : (
                             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-                                {moments.map(moment => (
-                                    <div key={moment.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'14px',overflow:'hidden',cursor:'pointer'}} onClick={()=>setSelectedMoment(moment)}>
-                                        <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px 8px'}}>
-                                            <div style={{width:'32px',height:'32px',borderRadius:'50%',overflow:'hidden',flexShrink:0,background:'rgba(255,255,255,0.1)'}}>
-                                                {moment.authorPhoto?<img src={moment.authorPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>😎</div>}
+                                {moments.map(moment => {
+                                    const likes = moment.likes || [];
+                                    const isLiked = likes.includes(currentUID);
+                                    const commentsCount = moment.comments?.length || 0;
+                                    return (
+                                        <div key={moment.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'14px',overflow:'hidden'}}>
+                                            {/* Author row */}
+                                            <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px 8px'}}>
+                                                <div style={{width:'32px',height:'32px',borderRadius:'50%',overflow:'hidden',flexShrink:0,background:'rgba(255,255,255,0.1)'}}>
+                                                    {moment.authorPhoto?<img src={moment.authorPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>😎</div>}
+                                                </div>
+                                                <div style={{flex:1,minWidth:0}}>
+                                                    <div style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{moment.authorName}</div>
+                                                    <div style={{fontSize:'10px',color:'#6b7280'}}>{fmtMomentTime(moment.createdAt)}</div>
+                                                </div>
+                                                {onOpenProfile&&<button onClick={e=>{e.stopPropagation();onOpenProfile(moment.authorUID);}} style={{background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.2)',borderRadius:'6px',padding:'3px 8px',color:'#00f2ff',fontSize:'10px',cursor:'pointer'}}>👤</button>}
                                             </div>
-                                            <div style={{flex:1,minWidth:0}}>
-                                                <div style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{moment.authorName}</div>
-                                                <div style={{fontSize:'10px',color:'#6b7280'}}>{fmtMomentTime(moment.createdAt)}</div>
+                                            {/* Image */}
+                                            {moment.type==='image'&&moment.mediaUrl&&<div style={{maxHeight:'260px',overflow:'hidden',cursor:'pointer'}} onClick={()=>setSelectedMoment(moment)}><img src={moment.mediaUrl} alt="" style={{width:'100%',objectFit:'cover',display:'block'}}/></div>}
+                                            {/* Content */}
+                                            {moment.content&&<div style={{padding:'8px 12px',fontSize:'12px',color:'#d1d5db',lineHeight:1.5,cursor:'pointer'}} onClick={()=>setSelectedMoment(moment)}>{moment.content}</div>}
+                                            {/* Actions */}
+                                            <div style={{padding:'8px 12px',borderTop:'1px solid rgba(255,255,255,0.05)',display:'flex',alignItems:'center',gap:'14px'}}>
+                                                <button onClick={(e)=>handleLike(moment,e)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',color:isLiked?'#f87171':'#6b7280',fontSize:'12px',fontWeight:isLiked?700:400,padding:'3px 0',transition:'color 0.2s'}}>
+                                                    {isLiked ? '❤️' : '🤍'} <span>{likes.length}</span>
+                                                </button>
+                                                <button onClick={()=>setSelectedMoment(moment)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',color:'#6b7280',fontSize:'12px',padding:'3px 0'}}>
+                                                    💬 <span>{commentsCount}</span>
+                                                </button>
                                             </div>
-                                            {onOpenProfile&&<button onClick={e=>{e.stopPropagation();onOpenProfile(moment.authorUID);}} style={{background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.2)',borderRadius:'6px',padding:'3px 8px',color:'#00f2ff',fontSize:'10px',cursor:'pointer'}}>👤</button>}
                                         </div>
-                                        {moment.type==='image'&&moment.mediaUrl&&<div style={{maxHeight:'260px',overflow:'hidden'}}><img src={moment.mediaUrl} alt="" style={{width:'100%',objectFit:'cover',display:'block'}}/></div>}
-                                        {moment.content&&<div style={{padding:'8px 12px 10px',fontSize:'12px',color:'#d1d5db',lineHeight:1.5}}>{moment.content}</div>}
-                                        <div style={{padding:'6px 12px',borderTop:'1px solid rgba(255,255,255,0.05)',display:'flex',alignItems:'center',gap:'12px'}}>
-                                            <span style={{fontSize:'11px',color:'#6b7280'}}>❤️ {moment.likes?.length||0}</span>
-                                            <span style={{fontSize:'11px',color:'#6b7280'}}>💬 {moment.comments?.length||0}</span>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
                 </div>
-                {selectedMoment&&(
-                    <div className="modal-overlay" onClick={()=>setSelectedMoment(null)} style={{zIndex:Z.MODAL_HIGH+1}}>
-                        <div className="animate-pop" onClick={e=>e.stopPropagation()} style={{background:'#0a0a14',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'16px',maxWidth:'420px',width:'95%',overflow:'hidden',maxHeight:'85vh'}}>
-                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 14px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+
+                {/* ── Detail / Comment Modal ── */}
+                {selectedMoment && (
+                    <div className="modal-overlay" onClick={()=>{setSelectedMoment(null);setCommentText('');}} style={{zIndex:Z.MODAL_HIGH+1}}>
+                        <div className="animate-pop" onClick={e=>e.stopPropagation()} style={{
+                            background:'linear-gradient(180deg,#0d0d1f,#08080f)',
+                            border:'1px solid rgba(255,255,255,0.1)',borderRadius:'16px',
+                            maxWidth:'420px',width:'95%',overflow:'hidden',maxHeight:'88vh',
+                            display:'flex',flexDirection:'column'
+                        }}>
+                            {/* Header */}
+                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 14px',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
                                 <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                                     <div style={{width:'28px',height:'28px',borderRadius:'50%',overflow:'hidden',background:'rgba(255,255,255,0.1)'}}>
-                                        {selectedMoment.authorPhoto?<img src={selectedMoment.authorPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'14px'}}>😎</span>}
+                                        {selectedMoment.authorPhoto?<img src={selectedMoment.authorPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'14px',lineHeight:'28px',display:'block',textAlign:'center'}}>😎</span>}
                                     </div>
-                                    <div style={{fontSize:'12px',fontWeight:700,color:'white'}}>{selectedMoment.authorName}</div>
+                                    <div>
+                                        <div style={{fontSize:'12px',fontWeight:700,color:'white'}}>{selectedMoment.authorName}</div>
+                                        <div style={{fontSize:'10px',color:'#6b7280'}}>{fmtMomentTime(selectedMoment.createdAt)}</div>
+                                    </div>
                                 </div>
-                                <button onClick={()=>setSelectedMoment(null)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'18px',cursor:'pointer'}}>✕</button>
+                                <button onClick={()=>{setSelectedMoment(null);setCommentText('');}} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'18px',cursor:'pointer'}}>✕</button>
                             </div>
-                            <div style={{overflowY:'auto',maxHeight:'70vh'}}>
+                            {/* Content */}
+                            <div style={{overflowY:'auto',flex:1}}>
                                 {selectedMoment.type==='image'&&selectedMoment.mediaUrl&&<img src={selectedMoment.mediaUrl} alt="" style={{width:'100%',display:'block'}}/>}
                                 {selectedMoment.content&&<div style={{padding:'12px 14px',fontSize:'13px',color:'#e2e8f0',lineHeight:1.6}}>{selectedMoment.content}</div>}
-                                <div style={{padding:'8px 14px',fontSize:'11px',color:'#6b7280'}}>❤️ {selectedMoment.likes?.length||0}&nbsp;&nbsp;💬 {selectedMoment.comments?.length||0}</div>
+                                {/* Like / counts */}
+                                <div style={{padding:'8px 14px',display:'flex',alignItems:'center',gap:'16px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                                    <button onClick={(e)=>handleLike(selectedMoment,e)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'5px',color:(selectedMoment.likes||[]).includes(currentUID)?'#f87171':'#6b7280',fontSize:'13px',fontWeight:(selectedMoment.likes||[]).includes(currentUID)?700:400,padding:'4px 0'}}>
+                                        {(selectedMoment.likes||[]).includes(currentUID) ? '❤️' : '🤍'} {(selectedMoment.likes||[]).length}
+                                    </button>
+                                    <span style={{fontSize:'13px',color:'#6b7280'}}>💬 {selectedMoment.comments?.length||0}</span>
+                                </div>
+                                {/* Comments */}
+                                <div style={{padding:'10px 14px',display:'flex',flexDirection:'column',gap:'10px'}}>
+                                    {(selectedMoment.comments||[]).length===0 && (
+                                        <div style={{textAlign:'center',padding:'16px',color:'#4b5563',fontSize:'11px'}}>{lang==='ar'?'لا تعليقات بعد':'No comments yet'}</div>
+                                    )}
+                                    {(selectedMoment.comments||[]).map((c,i)=>(
+                                        <div key={i} style={{display:'flex',gap:'8px',alignItems:'flex-start'}}>
+                                            <div style={{width:'26px',height:'26px',borderRadius:'50%',overflow:'hidden',flexShrink:0,background:'rgba(255,255,255,0.08)'}}>
+                                                {c.authorPhoto?<img src={c.authorPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'12px',lineHeight:'26px',display:'block',textAlign:'center'}}>😎</span>}
+                                            </div>
+                                            <div style={{flex:1,background:'rgba(255,255,255,0.05)',borderRadius:'10px',padding:'7px 10px'}}>
+                                                <div style={{fontSize:'10px',fontWeight:700,color:'#a78bfa',marginBottom:'2px'}}>{c.authorName}</div>
+                                                <div style={{fontSize:'12px',color:'#d1d5db',lineHeight:1.5}}>{c.text}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
+                            {/* Comment Input */}
+                            {currentUID && (
+                                <div style={{display:'flex',gap:'8px',padding:'10px 12px',borderTop:'1px solid rgba(255,255,255,0.07)',flexShrink:0,background:'rgba(0,0,0,0.3)'}}>
+                                    <input
+                                        value={commentText}
+                                        onChange={e=>setCommentText(e.target.value)}
+                                        onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),handleComment())}
+                                        placeholder={lang==='ar'?'اكتب تعليقاً...':'Write a comment...'}
+                                        style={{flex:1,padding:'9px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'12px',outline:'none'}}
+                                    />
+                                    <button onClick={handleComment} disabled={!commentText.trim()||submittingComment} style={{width:'36px',height:'36px',borderRadius:'10px',border:'none',cursor:'pointer',background:commentText.trim()?'linear-gradient(135deg,#7000ff,#00f2ff)':'rgba(255,255,255,0.07)',color:commentText.trim()?'white':'#4b5563',fontSize:'15px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                        {submittingComment ? '⏳' : '➤'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -444,7 +568,10 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
 
     return React.createElement(PortalModal, null,
         React.createElement('div', {
-            style: { position:'fixed', inset:0, zIndex: Z.MODAL, background:'var(--bg-main)', display:'flex', flexDirection:'column', maxWidth:'480px', margin:'0 auto' }
+            style: { position:'fixed', inset:0, zIndex: Z.MODAL, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', padding:'12px' }
+        },
+        React.createElement('div', {
+            style: { position:'relative', display:'flex', flexDirection:'column', width:'100%', maxWidth:'480px', height:'88vh', maxHeight:'700px', background:'linear-gradient(180deg,#0d0d1f 0%,#08080f 100%)', border:'1px solid rgba(0,242,255,0.15)', borderRadius:'20px', overflow:'hidden', boxShadow:'0 28px 70px rgba(0,0,0,0.95)' }
         },
             // Header
             React.createElement('div', {
@@ -546,7 +673,8 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     style: { width:'40px', height:'40px', borderRadius:'12px', border:'none', flexShrink:0, background: chatInput.trim()?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color: chatInput.trim()?'white':'#6b7280', fontSize:'18px', cursor: chatInput.trim()?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center' }
                 }, sendingMsg ? '⏳' : '➤')
             )
-        )
+        ) // close inner content div
+        ) // close overlay div
     );
 };
 
@@ -1626,16 +1754,17 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     // TAB: MANAGE
     // ─────────────────────────────────────────────
     const renderManage = () => {
-        if (!canManage) return (
-            <div style={{flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:'12px', color:'#6b7280'}}>
-                <div style={{fontSize:'40px'}}>🔒</div>
-                <div style={{fontSize:'12px'}}>{lang==='ar'?'للمسؤولين فقط':'Admins only'}</div>
-            </div>
-        );
         const requests = family?.joinRequests || [];
 
         return (
             <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'12px'}}>
+
+                {/* ── Non-admin notice ── */}
+                {!canManage && (
+                    <div style={{padding:'10px 14px', borderRadius:'10px', background:'rgba(107,114,128,0.1)', border:'1px solid rgba(107,114,128,0.2)', fontSize:'11px', color:'#9ca3af', textAlign:'center'}}>
+                        👀 {lang==='ar'?'يمكنك الاطلاع فقط · التعديل للمسؤولين':'View only · Editing is for admins'}
+                    </div>
+                )}
 
                 {/* ── Edit Family Info ── */}
                 <div style={S.card}>
@@ -1648,35 +1777,47 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         </div>
                         <div style={{flex:1}}>
                             <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>🖼️ {lang==='ar'?'صورة العائلة':'Family Photo'}</div>
-                            <input type="file" ref={photoFileRef} style={{display:'none'}} accept="image/*" onChange={handlePhotoUpload} />
-                            <button onClick={()=>photoFileRef.current?.click()} disabled={uploadingPhoto} style={{...S.btn, padding:'6px 12px', fontSize:'11px', background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)', color:'#00f2ff'}}>
-                                {uploadingPhoto ? '⏳' : (lang==='ar'?'📷 رفع صورة':'📷 Upload Photo')}
-                            </button>
+                            {canManage && (
+                                <>
+                                    <input type="file" ref={photoFileRef} style={{display:'none'}} accept="image/*" onChange={handlePhotoUpload} />
+                                    <button onClick={()=>photoFileRef.current?.click()} disabled={uploadingPhoto} style={{...S.btn, padding:'6px 12px', fontSize:'11px', background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)', color:'#00f2ff'}}>
+                                        {uploadingPhoto ? '⏳' : (lang==='ar'?'📷 رفع صورة':'📷 Upload Photo')}
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
 
                     <div style={{marginBottom:'8px'}}>
                         <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>🏠 {lang==='ar'?'اسم العائلة':'Family Name'}</div>
-                        <input value={editName} onChange={e=>setEditName(e.target.value)} maxLength={30} style={S.input} />
+                        {canManage
+                            ? <input value={editName} onChange={e=>setEditName(e.target.value)} maxLength={30} style={S.input} />
+                            : <div style={{...S.input, color:'#d1d5db', cursor:'default'}}>{family.name}</div>
+                        }
                     </div>
                     <div style={{marginBottom:'10px'}}>
                         <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>📝 {lang==='ar'?'الوصف':'Description'}</div>
-                        <textarea value={editDesc} onChange={e=>setEditDesc(e.target.value)} maxLength={150} rows={2} style={{...S.input, resize:'none', lineHeight:1.5}} />
+                        {canManage
+                            ? <textarea value={editDesc} onChange={e=>setEditDesc(e.target.value)} maxLength={150} rows={2} style={{...S.input, resize:'none', lineHeight:1.5}} />
+                            : <div style={{...S.input, color:'#d1d5db', cursor:'default', minHeight:'48px', lineHeight:1.5}}>{family.description || '—'}</div>
+                        }
                     </div>
                     {/* Join mode */}
                     <div style={{marginBottom:'10px'}}>
                         <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>🚪 {lang==='ar'?'إعدادات الانضمام':'Join Settings'}</div>
                         <div style={{display:'flex', gap:'6px'}}>
                             {[['open', lang==='ar'?'🟢 مفتوح':'🟢 Open'], ['approval', lang==='ar'?'🔐 بموافقة':'🔐 Approval']].map(([mode, label]) => (
-                                <button key={mode} onClick={()=>setJoinMode(mode)} style={{flex:1, padding:'7px', borderRadius:'8px', border:`1px solid ${joinMode===mode?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.1)'}`, background:joinMode===mode?'rgba(0,242,255,0.12)':'rgba(255,255,255,0.04)', color:joinMode===mode?'#00f2ff':'#6b7280', fontSize:'11px', fontWeight:joinMode===mode?800:500, cursor:'pointer'}}>
+                                <button key={mode} onClick={()=>canManage&&setJoinMode(mode)} style={{flex:1, padding:'7px', borderRadius:'8px', border:`1px solid ${joinMode===mode?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.1)'}`, background:joinMode===mode?'rgba(0,242,255,0.12)':'rgba(255,255,255,0.04)', color:joinMode===mode?'#00f2ff':'#6b7280', fontSize:'11px', fontWeight:joinMode===mode?800:500, cursor:canManage?'pointer':'default'}}>
                                     {label}
                                 </button>
                             ))}
                         </div>
                     </div>
-                    <button onClick={saveInfo} disabled={savingInfo} style={{...S.btn, width:'100%', padding:'9px', fontSize:'12px', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px'}}>
-                        {savingInfo ? '⏳' : `💾 ${lang==='ar'?'حفظ المعلومات':'Save Info'}`}
-                    </button>
+                    {canManage && (
+                        <button onClick={saveInfo} disabled={savingInfo} style={{...S.btn, width:'100%', padding:'9px', fontSize:'12px', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px'}}>
+                            {savingInfo ? '⏳' : `💾 ${lang==='ar'?'حفظ المعلومات':'Save Info'}`}
+                        </button>
+                    )}
                 </div>
 
                 {/* ── Sign Image Upload ── */}
@@ -1689,15 +1830,18 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 : <span style={{fontSize:'16px'}}>{signData.defaultIcon}</span>
                             }
                         </div>
-                        <div style={{flex:1}}>
-                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>{lang==='ar'?'صورة مخصصة للشارة (اختياري)':'Custom sign image (optional)'}</div>
-                            <input type="file" ref={signImageFileRef} style={{display:'none'}} accept="image/*" onChange={handleSignImageUpload} />
-                            <button onClick={()=>signImageFileRef.current?.click()} disabled={uploadingSign} style={{...S.btn, padding:'6px 12px', fontSize:'11px', background:`${signData.color}20`, border:`1px solid ${signData.color}40`, color:signData.color}}>
-                                {uploadingSign ? '⏳' : (lang==='ar'?'📷 رفع صورة الشارة':'📷 Upload Sign Image')}
-                            </button>
-                        </div>
+                        {canManage && (
+                            <div style={{flex:1}}>
+                                <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>{lang==='ar'?'صورة مخصصة للشارة (اختياري)':'Custom sign image (optional)'}</div>
+                                <input type="file" ref={signImageFileRef} style={{display:'none'}} accept="image/*" onChange={handleSignImageUpload} />
+                                <button onClick={()=>signImageFileRef.current?.click()} disabled={uploadingSign} style={{...S.btn, padding:'6px 12px', fontSize:'11px', background:`${signData.color}20`, border:`1px solid ${signData.color}40`, color:signData.color}}>
+                                    {uploadingSign ? '⏳' : (lang==='ar'?'📷 رفع صورة الشارة':'📷 Upload Sign Image')}
+                                </button>
+                            </div>
+                        )}
+                        {!canManage && <div style={{flex:1, fontSize:'11px', color:'#6b7280'}}>{lang==='ar'?'صورة الشارة الحالية':'Current sign image'}</div>}
                     </div>
-                    {family.signImageURL && (
+                    {canManage && family.signImageURL && (
                         <button onClick={async()=>{
                             try {
                                 await familiesCollection.doc(family.id).update({ signImageURL: null });
@@ -1712,18 +1856,26 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     )}
                 </div>
 
-                {/* ── Edit Announcement ── */}
+                {/* ── Announcement ── */}
                 <div style={S.card}>
                     <div style={S.sectionTitle}>📢 {lang==='ar'?'الإعلان':'Announcement'}</div>
-                    <textarea value={editAnnouncement} onChange={e=>setEditAnnouncement(e.target.value)} maxLength={300} rows={4}
-                        style={{...S.input, resize:'none', lineHeight:1.6, fontSize:'12px'}}
-                        placeholder={lang==='ar'?'اكتب إعلانك هنا...':'Write your announcement here...'} />
-                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'8px'}}>
-                        <span style={{fontSize:'10px', color:'#4b5563'}}>{editAnnouncement.length}/300</span>
-                        <button onClick={saveAnnouncement} disabled={savingAnn} style={{...S.btn, background:'rgba(0,242,255,0.12)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', padding:'7px 16px', fontSize:'11px'}}>
-                            {savingAnn ? '⏳' : (lang==='ar'?'💾 حفظ':'💾 Save')}
-                        </button>
-                    </div>
+                    {canManage ? (
+                        <>
+                            <textarea value={editAnnouncement} onChange={e=>setEditAnnouncement(e.target.value)} maxLength={300} rows={4}
+                                style={{...S.input, resize:'none', lineHeight:1.6, fontSize:'12px'}}
+                                placeholder={lang==='ar'?'اكتب إعلانك هنا...':'Write your announcement here...'} />
+                            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'8px'}}>
+                                <span style={{fontSize:'10px', color:'#4b5563'}}>{editAnnouncement.length}/300</span>
+                                <button onClick={saveAnnouncement} disabled={savingAnn} style={{...S.btn, background:'rgba(0,242,255,0.12)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', padding:'7px 16px', fontSize:'11px'}}>
+                                    {savingAnn ? '⏳' : (lang==='ar'?'💾 حفظ':'💾 Save')}
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div style={{fontSize:'12px', color:'#d1d5db', lineHeight:1.6, minHeight:'40px'}}>
+                            {family.announcement || <span style={{color:'#4b5563'}}>{lang==='ar'?'لا يوجد إعلان':'No announcement'}</span>}
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Join Requests ── */}
@@ -1743,10 +1895,14 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 <div style={{fontSize:'12px', fontWeight:700, color:'#e2e8f0'}}>{p.displayName}</div>
                                 <div style={{fontSize:'10px', color:'#6b7280'}}>🏆 {p.stats?.wins||0} &nbsp; ⭐ {p.charisma||0}</div>
                             </div>
-                            <div style={{display:'flex', gap:'6px'}}>
-                                <button onClick={()=>handleJoinRequest(p.id, true)} style={{...S.btn, padding:'5px 10px', fontSize:'11px', background:'rgba(16,185,129,0.2)', border:'1px solid rgba(16,185,129,0.4)', color:'#10b981'}}>✓</button>
-                                <button onClick={()=>handleJoinRequest(p.id, false)} style={{...S.btn, padding:'5px 10px', fontSize:'11px', background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.3)', color:'#f87171'}}>✕</button>
-                            </div>
+                            {canManage ? (
+                                <div style={{display:'flex', gap:'6px'}}>
+                                    <button onClick={()=>handleJoinRequest(p.id, true)} style={{...S.btn, padding:'5px 10px', fontSize:'11px', background:'rgba(16,185,129,0.2)', border:'1px solid rgba(16,185,129,0.4)', color:'#10b981'}}>✓</button>
+                                    <button onClick={()=>handleJoinRequest(p.id, false)} style={{...S.btn, padding:'5px 10px', fontSize:'11px', background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.3)', color:'#f87171'}}>✕</button>
+                                </div>
+                            ) : (
+                                <span style={{fontSize:'10px', color:'#6b7280', fontStyle:'italic'}}>{lang==='ar'?'معلّق':'Pending'}</span>
+                            )}
                         </div>
                     ))}
                 </div>
