@@ -164,6 +164,14 @@ const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curr
     const [commentText, setCommentText] = useState('');
     const [submittingComment, setSubmittingComment] = useState(false);
     const [likingId, setLikingId] = useState(null);
+    const [showBell, setShowBell] = useState(false);
+    const [bellNotifs, setBellNotifs] = useState([]);
+    const [showCreatePost, setShowCreatePost] = useState(false);
+    const [createText, setCreateText] = useState('');
+    const [createImage, setCreateImage] = useState(null);
+    const [createImageFile, setCreateImageFile] = useState(null);
+    const [creating, setCreating] = useState(false);
+    const fileRef = useRef(null);
 
     useEffect(() => {
         if (!show || !currentUID) return;
@@ -256,6 +264,45 @@ const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curr
         return `${Math.floor(diff / 86400000)}${lang === 'ar' ? 'ي' : 'd'}`;
     };
 
+    // Load bell notifications (moment likes/comments for current user)
+    useEffect(() => {
+        if (!show || !currentUID || !showBell) return;
+        (notificationsCollection || db.collection('artifacts').doc(typeof appId !== 'undefined' ? appId : 'pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('notifications'))
+            .where('recipientUID', '==', currentUID)
+            .where('type', 'in', ['moment_like', 'moment_comment'])
+            .orderBy('createdAt', 'desc')
+            .limit(20)
+            .get()
+            .then(snap => setBellNotifs(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
+            .catch(() => {});
+    }, [show, currentUID, showBell]);
+
+    const handleCreateMoment = async () => {
+        if (creating || (!createText.trim() && !createImageFile)) return;
+        setCreating(true);
+        try {
+            let mediaUrl = null;
+            if (createImageFile) {
+                const ref = firebase.storage().ref(`moments/${currentUID}/${Date.now()}_${createImageFile.name}`);
+                await ref.put(createImageFile);
+                mediaUrl = await ref.getDownloadURL();
+            }
+            await momentsCollection.add({
+                authorUID: currentUID,
+                authorName: currentUserData?.displayName || 'User',
+                authorPhoto: currentUserData?.photoURL || null,
+                type: mediaUrl ? 'image' : 'text',
+                content: createText.trim(),
+                mediaUrl: mediaUrl || null,
+                likes: [],
+                comments: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            setCreateText(''); setCreateImage(null); setCreateImageFile(null); setShowCreatePost(false);
+        } catch(e) {}
+        setCreating(false);
+    };
+
     if (!show) return null;
 
     return (
@@ -274,8 +321,84 @@ const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curr
                                 <div style={{fontSize:'10px',color:'#6b7280'}}>{moments.length} {lang==='ar'?'لحظة':'moments'}</div>
                             </div>
                         </div>
-                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer'}}>✕</button>
+                        <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
+                            {/* Bell — moment notifications */}
+                            {currentUID && (
+                                <div style={{position:'relative'}}>
+                                    <button onClick={() => setShowBell(v => !v)}
+                                        style={{width:'30px', height:'30px', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)', background: showBell ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)', color: bellNotifs.some(n=>!n.read) ? '#fbbf24' : '#6b7280', fontSize:'15px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}
+                                    >🔔</button>
+                                    {bellNotifs.some(n => !n.read) && (
+                                        <div style={{position:'absolute', top:'-3px', right:'-3px', width:'8px', height:'8px', borderRadius:'50%', background:'#ef4444', border:'1.5px solid #0f0f1e'}} />
+                                    )}
+                                </div>
+                            )}
+                            {/* Camera — add moment */}
+                            {currentUID && currentUser && !currentUser.isGuest && (
+                                <button onClick={() => setShowCreatePost(v => !v)}
+                                    style={{width:'30px', height:'30px', borderRadius:'8px', border:'1px solid rgba(0,242,255,0.3)', background: showCreatePost ? 'rgba(0,242,255,0.15)' : 'rgba(0,242,255,0.07)', color:'#00f2ff', fontSize:'15px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}
+                                >📷</button>
+                            )}
+                            {/* Hidden file input */}
+                            <input type="file" ref={fileRef} accept="image/*" style={{display:'none'}} onChange={e => {
+                                const f = e.target.files[0];
+                                if (!f) return;
+                                setCreateImageFile(f);
+                                setCreateImage(URL.createObjectURL(f));
+                            }} />
+                            <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer'}}>✕</button>
+                        </div>
                     </div>
+
+                    {/* Bell dropdown */}
+                    {showBell && (
+                        <div style={{padding:'10px 14px', borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(0,0,0,0.35)', maxHeight:'180px', overflowY:'auto'}}>
+                            <div style={{fontSize:'10px', fontWeight:800, color:'#fbbf24', marginBottom:'6px'}}>🔔 {lang==='ar'?'إشعارات اللحظات':'Moments Alerts'}</div>
+                            {bellNotifs.length === 0
+                                ? <div style={{fontSize:'10px', color:'#4b5563', textAlign:'center', padding:'6px 0'}}>{lang==='ar'?'لا إشعارات':'No alerts yet'}</div>
+                                : bellNotifs.map(n => (
+                                    <div key={n.id} style={{display:'flex', alignItems:'center', gap:'7px', padding:'5px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                                        {n.senderPhoto
+                                            ? <img src={n.senderPhoto} alt="" style={{width:'22px', height:'22px', borderRadius:'50%', objectFit:'cover'}} />
+                                            : <div style={{width:'22px', height:'22px', borderRadius:'50%', background:'#374151', fontSize:'9px', display:'flex', alignItems:'center', justifyContent:'center'}}>👤</div>
+                                        }
+                                        <div style={{flex:1, fontSize:'10px', color:n.read?'#6b7280':'#e2e8f0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                                            <span style={{fontWeight:700, color:'#00f2ff'}}>{n.senderName}</span>
+                                            {' '}{n.type==='moment_like'?(lang==='ar'?'أعجب بلحظتك':'liked your moment'):(lang==='ar'?'علّق على لحظتك':'commented on your moment')}
+                                        </div>
+                                        {!n.read && <div style={{width:'6px', height:'6px', borderRadius:'50%', background:'#ef4444', flexShrink:0}} />}
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    )}
+
+                    {/* Create moment panel */}
+                    {showCreatePost && currentUID && (
+                        <div style={{padding:'12px 14px', borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(0,242,255,0.04)'}}>
+                            <div style={{fontSize:'11px', fontWeight:700, color:'#00f2ff', marginBottom:'8px'}}>
+                                {lang==='ar'?'📷 أضف لحظة جديدة':'📷 Add a New Moment'}
+                            </div>
+                            {createImage && (
+                                <div style={{marginBottom:'8px', position:'relative', display:'inline-block'}}>
+                                    <img src={createImage} alt="" style={{height:'80px', borderRadius:'8px', objectFit:'cover'}} />
+                                    <button onClick={() => { setCreateImage(null); setCreateImageFile(null); }}
+                                        style={{position:'absolute', top:'-4px', right:'-4px', width:'18px', height:'18px', borderRadius:'50%', background:'#ef4444', color:'white', border:'none', fontSize:'10px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>✕</button>
+                                </div>
+                            )}
+                            <div style={{display:'flex', gap:'6px'}}>
+                                <input value={createText} onChange={e => setCreateText(e.target.value)}
+                                    placeholder={lang==='ar'?'اكتب شيئاً...':'Write something...'}
+                                    style={{flex:1, padding:'7px 10px', borderRadius:'8px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'12px', outline:'none', direction:lang==='ar'?'rtl':'ltr'}}
+                                />
+                                <button onClick={() => fileRef.current?.click()} style={{width:'32px', height:'32px', borderRadius:'8px', border:'1px solid rgba(0,242,255,0.3)', background:'rgba(0,242,255,0.08)', color:'#00f2ff', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>🖼️</button>
+                                <button onClick={handleCreateMoment} disabled={creating || (!createText.trim() && !createImageFile)}
+                                    style={{width:'32px', height:'32px', borderRadius:'8px', border:'none', background: creating||(!createText.trim()&&!createImageFile)?'rgba(255,255,255,0.07)':'linear-gradient(135deg,#7000ff,#00f2ff)', color:'white', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                                    {creating ? '⏳' : '➤'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     <div style={{flex:1,overflowY:'auto',padding:'12px'}}>
                         {loading ? <div style={{textAlign:'center',padding:'40px',color:'#6b7280'}}>⏳</div>
                         : moments.length === 0 ? (
@@ -1337,13 +1460,12 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     };
 
     const TABS = [
-        { id:'profile',  label_en:'Home',     label_ar:'الرئيسية', icon:'🏠' },
-        { id:'members',  label_en:'Members',  label_ar:'أعضاء',    icon:'👥' },
-        { id:'tasks',    label_en:'Tasks',    label_ar:'مهام',     icon:'🎯' },
-        { id:'shop',     label_en:'Shop',     label_ar:'المتجر',   icon:'🏅' },
-        { id:'ranking',  label_en:'Ranking',  label_ar:'ترتيب',    icon:'🏆' },
-        { id:'news',     label_en:'News',     label_ar:'أخبار',    icon:'📰' },
-        { id:'manage',   label_en:'Manage',   label_ar:'إدارة',    icon:'⚙️' },
+        { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
+        { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
+        { id:'tasks',    label_en:'Tasks',   label_ar:'مهام',     icon:'🎯' },
+        { id:'shop',     label_en:'Shop',    label_ar:'المتجر',   icon:'🏅' },
+        { id:'news',     label_en:'News',    label_ar:'أخبار',    icon:'📰' },
+        { id:'manage',   label_en:'Manage',  label_ar:'إدارة',    icon:'⚙️' },
     ];
 
     const fLvl = family ? getFamilyLevel(family.xp || 0) : null;
