@@ -62,14 +62,15 @@ const getFamilyLevelProgress = (xp = 0) => {
     return Math.min(100, Math.round(((xp - cur.xp) / (next.xp - cur.xp)) * 100));
 };
 
-// ════ UPDATED TASKS — Site-Specific with Intel ════
+// ════ UPDATED TASKS — Triple Currency: Intel + XP + Family Coins ════
 const FAMILY_TASKS_CONFIG = [
-    { id:'ft1', icon:'🎮', title_en:'Play 5 Games',         title_ar:'العب 5 ألعاب',         sub_en:'Play 5 spy games this week',       sub_ar:'العب 5 ألعاب جاسوس هذا الأسبوع', target:5,   reward:{ type:'intel', amount:50,  icon:'🧠' } },
-    { id:'ft2', icon:'🏆', title_en:'Win 3 Games',          title_ar:'اكسب 3 ألعاب',         sub_en:'Win 3 games to earn Intel',         sub_ar:'اكسب 3 ألعاب للحصول على إنتل',    target:3,   reward:{ type:'intel', amount:100, icon:'🧠' } },
-    { id:'ft3', icon:'💰', title_en:'Donate 500 Intel',     title_ar:'تبرع بـ 500 إنتل',      sub_en:'Donate 500 Intel to family fund',   sub_ar:'تبرع بـ 500 إنتل لصندوق العائلة', target:500, reward:{ type:'intel', amount:80,  icon:'🧠' } },
-    { id:'ft4', icon:'📅', title_en:'Daily Check-in',       title_ar:'تسجيل الحضور',          sub_en:'Check in to the family today',       sub_ar:'سجّل حضورك في العائلة اليوم',    target:1,   reward:{ type:'intel', amount:30,  icon:'🧠' } },
-    { id:'ft5', icon:'🎁', title_en:'Send 3 Gifts',         title_ar:'أرسل 3 هدايا',          sub_en:'Send 3 gifts to any players',        sub_ar:'أرسل 3 هدايا لأي لاعبين',       target:3,   reward:{ type:'intel', amount:120, icon:'🧠' } },
-    { id:'ft6', icon:'💬', title_en:'Chat (10 messages)',   title_ar:'الشات (10 رسائل)',       sub_en:'Send 10 messages in family chat',    sub_ar:'أرسل 10 رسائل في شات العائلة',  target:10,  reward:{ type:'intel', amount:60,  icon:'🧠' } },
+    { id:'ft1', icon:'🎮', title_en:'Play 5 Games',        title_ar:'العب 5 ألعاب',        sub_en:'Play 5 spy games this week',      sub_ar:'العب 5 ألعاب جاسوس هذا الأسبوع', target:5,   daily:false, reward:{ intel:50,  xp:200,  coins:5,  icon:'🏅' } },
+    { id:'ft2', icon:'🏆', title_en:'Win 3 Games',         title_ar:'اكسب 3 ألعاب',        sub_en:'Win 3 games to earn rewards',     sub_ar:'اكسب 3 ألعاب للحصول على المكافآت', target:3,  daily:false, reward:{ intel:100, xp:400,  coins:10, icon:'🏅' } },
+    { id:'ft3', icon:'💰', title_en:'Donate 500 Intel',    title_ar:'تبرع بـ 500 إنتل',     sub_en:'Donate 500 Intel to family fund', sub_ar:'تبرع بـ 500 إنتل لصندوق العائلة', target:500, daily:false, reward:{ intel:80,  xp:300,  coins:8,  icon:'🏅' } },
+    { id:'ft4', icon:'📅', title_en:'Daily Check-in',      title_ar:'تسجيل الحضور',         sub_en:'Check in to the family today',    sub_ar:'سجّل حضورك في العائلة اليوم',     target:1,   daily:true,  reward:{ intel:30,  xp:100,  coins:3,  icon:'🏅' } },
+    { id:'ft5', icon:'🎁', title_en:'Send 3 Gifts',        title_ar:'أرسل 3 هدايا',         sub_en:'Send 3 gifts to any players',     sub_ar:'أرسل 3 هدايا لأي لاعبين',        target:3,   daily:false, reward:{ intel:120, xp:500,  coins:12, icon:'🏅' } },
+    { id:'ft6', icon:'💬', title_en:'Chat (10 messages)',  title_ar:'الشات (10 رسائل)',      sub_en:'Send 10 messages in family chat', sub_ar:'أرسل 10 رسائل في شات العائلة',   target:10,  daily:false, reward:{ intel:60,  xp:250,  coins:6,  icon:'🏅' } },
+    { id:'ft7', icon:'❤️', title_en:'Daily Like Mission',  title_ar:'مهمة الإعجاب اليومي',  sub_en:'Like 3 clanmates profiles/posts', sub_ar:'أعجب بـ 3 منشورات/بروفايلات أعضاء', target:3, daily:true,  reward:{ intel:40,  xp:150,  coins:4,  icon:'🏅' } },
 ];
 
 const ACTIVENESS_MILESTONES = [
@@ -736,6 +737,64 @@ const FamilyChatItem = ({ familyId, currentUID, currentUserData, lang, onOpenCha
 };
 
 // ════════════════════════════════════════════════════════
+// 🏆 FAMILY RANKING INLINE — Used in ranking tab
+// ════════════════════════════════════════════════════════
+const FamilyRankingInline = ({ lang, currentFamilyId }) => {
+    const [rankings, setRankings] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        setLoading(true);
+        familiesCollection.orderBy('xp', 'desc').limit(50).get().then(snap => {
+            setRankings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            setLoading(false);
+        }).catch(() => setLoading(false));
+    }, []);
+
+    if (loading) return <div style={{textAlign:'center',padding:'40px',color:'#6b7280'}}>⏳</div>;
+
+    return (
+        <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+            {rankings.map((fam, i) => {
+                const fl = getFamilyLevel(fam.xp || 0);
+                const sign = getFamilySignLevelData(fam.activeness || 0);
+                const isMine = fam.id === currentFamilyId;
+                const medals = ['🥇','🥈','🥉'];
+                return (
+                    <div key={fam.id} style={{
+                        display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px',
+                        borderRadius:'12px',
+                        background: isMine ? 'rgba(0,242,255,0.08)' : i < 3 ? 'rgba(255,215,0,0.04)' : 'rgba(255,255,255,0.03)',
+                        border: isMine ? '1px solid rgba(0,242,255,0.3)' : i === 0 ? '1px solid rgba(255,215,0,0.2)' : '1px solid rgba(255,255,255,0.06)',
+                    }}>
+                        <div style={{width:'24px', textAlign:'center', fontSize:'14px', flexShrink:0}}>
+                            {i < 3 ? medals[i] : <span style={{fontSize:'11px',color:'#4b5563',fontWeight:800}}>#{i+1}</span>}
+                        </div>
+                        <div style={{width:'38px', height:'38px', borderRadius:'50%', overflow:'hidden', border:`2px solid ${sign.color}55`, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', flexShrink:0}}>
+                            {fam.photoURL ? <img src={fam.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : fam.emblem || '🏠'}
+                        </div>
+                        <div style={{flex:1, minWidth:0}}>
+                            <div style={{display:'flex', alignItems:'center', gap:'5px', flexWrap:'wrap'}}>
+                                <span style={{fontSize:'12px', fontWeight:800, color: isMine?'#00f2ff':'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'110px'}}>{fam.name}</span>
+                                <FamilySignBadge tag={fam.tag} color={sign.color} small signLevel={sign.level} />
+                            </div>
+                            <div style={{fontSize:'10px', color:'#6b7280', marginTop:'1px'}}>
+                                {fl.icon} Lv.{fl.level} · 👥 {(fam.members||[]).length}
+                            </div>
+                        </div>
+                        <div style={{textAlign:'right', flexShrink:0}}>
+                            <div style={{fontSize:'12px', fontWeight:900, color:'#fbbf24'}}>{fmtFamilyNum(fam.xp||0)} XP</div>
+                            <div style={{fontSize:'9px', color: sign.color, fontWeight:700}}>{lang==='ar'?sign.name_ar:sign.name_en}</div>
+                        </div>
+                    </div>
+                );
+            })}
+            {rankings.length === 0 && <div style={{textAlign:'center',padding:'30px',color:'#4b5563',fontSize:'12px'}}>{lang==='ar'?'لا يوجد ترتيب بعد':'No rankings yet'}</div>}
+        </div>
+    );
+};
+
+// ════════════════════════════════════════════════════════
 // 🏠 FAMILY MODAL — Main Component V2
 // ════════════════════════════════════════════════════════
 const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification }) => {
@@ -760,8 +819,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const [showDonatePanel, setShowDonatePanel] = useState(false);
 
     // Header dots menu
-    const [showHeaderMenu, setShowHeaderMenu] = useState(false);
-    const [showRankingModal, setShowRankingModal] = useState(false);
+    // header menu state removed (three-dot removed; ranking is now a tab)
 
     // Create/Join state
     const [view, setView] = useState('home');
@@ -1279,11 +1337,13 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     };
 
     const TABS = [
-        { id:'profile', label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
-        { id:'members', label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
-        { id:'tasks',   label_en:'Tasks',   label_ar:'مهام',     icon:'🎯' },
-        { id:'news',    label_en:'News',    label_ar:'أخبار',    icon:'📰' },
-        { id:'manage',  label_en:'Manage',  label_ar:'إدارة',    icon:'⚙️' },
+        { id:'profile',  label_en:'Home',     label_ar:'الرئيسية', icon:'🏠' },
+        { id:'members',  label_en:'Members',  label_ar:'أعضاء',    icon:'👥' },
+        { id:'tasks',    label_en:'Tasks',    label_ar:'مهام',     icon:'🎯' },
+        { id:'shop',     label_en:'Shop',     label_ar:'المتجر',   icon:'🏅' },
+        { id:'ranking',  label_en:'Ranking',  label_ar:'ترتيب',    icon:'🏆' },
+        { id:'news',     label_en:'News',     label_ar:'أخبار',    icon:'📰' },
+        { id:'manage',   label_en:'Manage',   label_ar:'إدارة',    icon:'⚙️' },
     ];
 
     const fLvl = family ? getFamilyLevel(family.xp || 0) : null;
@@ -1566,6 +1626,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const renderMembers = () => {
         if (!family) return null;
         const donations = family.memberDonations || {};
+        const actData   = family.memberActiveness || {};
         const sorted = [...familyMembers].sort((a, b) => {
             const aD = donations[a.id] || {};
             const bD = donations[b.id] || {};
@@ -1588,8 +1649,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </div>
                     <div style={{display:'flex', gap:'6px'}}>
                         {[
-                            ['intel',  lang==='ar' ? '🧠 إجمالي' : '🧠 Total Intel'],
-                            ['weekly', lang==='ar' ? '⚡ أسبوعي' : '⚡ Weekly']
+                            ['intel',  lang==='ar' ? '🧠 إجمالي التبرع' : '🧠 Total Donated'],
+                            ['weekly', lang==='ar' ? '⚡ أسبوعي'        : '⚡ Weekly']
                         ].map(([s, lbl]) => (
                             <button key={s} onClick={()=>setDonationSort(s)} style={{flex:1, padding:'5px', borderRadius:'8px', border:`1px solid ${donationSort===s?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.07)'}`, background:donationSort===s?'rgba(0,242,255,0.1)':'transparent', color:donationSort===s?'#00f2ff':'#6b7280', fontSize:'10px', fontWeight:donationSort===s?800:500, cursor:'pointer'}}>
                                 {lbl}
@@ -1603,8 +1664,11 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     {sorted.map((m, i) => {
                         const role = getFamilyRole(family, m.id);
                         const rCfg = FAMILY_ROLE_CONFIG[role];
-                        const don = donations[m.id] || {};
-                        const total = donationSort === 'intel' ? (don.totalIntel || don.total || 0) : (don.weeklyIntel || don.weekly || 0);
+                        const don  = donations[m.id] || {};
+                        const act  = actData[m.id]   || {};
+                        const total       = donationSort === 'intel' ? (don.totalIntel || don.total || 0) : (don.weeklyIntel || don.weekly || 0);
+                        const weeklyAct   = act.weekly || 0;
+                        const totalAct    = act.total  || 0;
                         const isTop3 = i < 3;
                         const topColors = ['rgba(255,215,0,0.06)','rgba(192,192,192,0.04)','rgba(205,127,50,0.04)'];
                         return (
@@ -1620,14 +1684,20 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 </div>
                                 <div style={{flex:1, minWidth:0}}>
                                     <div style={{display:'flex', alignItems:'center', gap:'5px', flexWrap:'wrap', marginBottom:'2px'}}>
-                                        <span style={{fontSize:'12px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'110px', fontStyle:'italic'}}>{m.displayName}</span>
+                                        <span style={{fontSize:'12px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'90px', fontStyle:'italic'}}>{m.displayName}</span>
                                         <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />
                                     </div>
                                     <FamilyRoleBadge role={role} lang={lang} small />
                                 </div>
-                                <div style={{textAlign:'right', flexShrink:0}}>
-                                    <div style={{fontSize:'12px', fontWeight:900, color:'#fbbf24', fontStyle:'italic'}}>{fmtFamilyNum(total)} 🧠</div>
-                                    <div style={{fontSize:'9px', color:'#4b5563'}}>{lang==='ar'?'تبرع':'donated'}</div>
+                                {/* Analytics: Weekly + Total Activeness */}
+                                <div style={{textAlign:'right', flexShrink:0, display:'flex', flexDirection:'column', gap:'2px'}}>
+                                    <div style={{fontSize:'11px', fontWeight:900, color:'#fbbf24', fontStyle:'italic'}}>{fmtFamilyNum(total)} 🧠</div>
+                                    <div style={{display:'flex', gap:'6px', justifyContent:'flex-end'}}>
+                                        <span style={{fontSize:'9px', color:'#00f2ff', fontWeight:700}}>⚡{fmtFamilyNum(weeklyAct)}</span>
+                                        <span style={{fontSize:'9px', color:'#6b7280'}}>|</span>
+                                        <span style={{fontSize:'9px', color:'#a78bfa', fontWeight:700}}>∑{fmtFamilyNum(totalAct)}</span>
+                                    </div>
+                                    <div style={{fontSize:'8px', color:'#4b5563'}}>{lang==='ar'?'أسبوعي | إجمالي':'weekly | total'}</div>
                                 </div>
                             </div>
                         );
@@ -1689,22 +1759,30 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 </div>
                                 <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'6px', flexShrink:0}}>
                                     <div style={{fontSize:'10px', fontWeight:800, color:'#fbbf24'}}>
-                                        {task.reward.icon}×{task.reward.amount}
+                                        +{task.reward.intel||task.reward.amount||0}🧠
+                                    </div>
+                                    <div style={{fontSize:'9px', fontWeight:700, color:'#00f2ff'}}>
+                                        +{task.reward.xp||0} XP
+                                    </div>
+                                    <div style={{fontSize:'9px', fontWeight:700, color:'#a78bfa'}}>
+                                        +{task.reward.coins||0}{FAMILY_COINS_SYMBOL}
                                     </div>
                                     <button
                                         disabled={isClaimed || !isDone}
                                         onClick={async () => {
                                             if (!isDone || isClaimed || !family?.id) return;
                                             try {
+                                                const r = task.reward;
                                                 await familiesCollection.doc(family.id).update({
                                                     [`taskProgress.${task.id}.claimed`]: true,
-                                                    xp: firebase.firestore.FieldValue.increment(task.reward.amount),
-                                                    activeness: firebase.firestore.FieldValue.increment(task.reward.amount * 10),
+                                                    xp:         firebase.firestore.FieldValue.increment(r.xp || 0),
+                                                    activeness: firebase.firestore.FieldValue.increment((r.xp || 0) * 2),
+                                                    familyCoins: firebase.firestore.FieldValue.increment(r.coins || 0),
                                                 });
                                                 await usersCollection.doc(currentUID).update({
-                                                    currency: firebase.firestore.FieldValue.increment(task.reward.amount),
+                                                    currency: firebase.firestore.FieldValue.increment(r.intel || r.amount || 0),
                                                 });
-                                                onNotification(`✅ +${task.reward.amount} ${task.reward.icon}`);
+                                                onNotification(`✅ +${r.intel||r.amount||0}🧠 +${r.xp||0}XP +${r.coins||0}${FAMILY_COINS_SYMBOL}`);
                                             } catch(e) {}
                                         }}
                                         style={{...S.btn, padding:'5px 12px', fontSize:'11px', background:isClaimed?'rgba(16,185,129,0.15)':isDone?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color:isClaimed?'#10b981':isDone?'white':'#4b5563', cursor:isDone&&!isClaimed?'pointer':'not-allowed', border:'none'}}>
@@ -1716,6 +1794,118 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     );
                 })}
                 <div style={{height:'12px'}} />
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────
+    // TAB: FAMILY SHOP (Family Coins only)
+    // ─────────────────────────────────────────────
+    const renderShop = () => {
+        if (!family) return null;
+        const coins = family.familyCoins || 0;
+        const purchases = family.shopPurchases || {};
+        const RARITY_COLORS = { rare:'#60a5fa', epic:'#a78bfa', legendary:'#ffd700' };
+
+        const handleBuy = async (item) => {
+            if (!currentUID || !family?.id) return;
+            if (coins < item.cost) {
+                onNotification(lang==='ar' ? `❌ تحتاج ${item.cost}${FAMILY_COINS_SYMBOL}` : `❌ Need ${item.cost}${FAMILY_COINS_SYMBOL}`);
+                return;
+            }
+            try {
+                const key = `${currentUID}_${item.id}`;
+                if (purchases[key]) {
+                    onNotification(lang==='ar' ? '✅ اشتريت هذا بالفعل' : '✅ Already purchased'); return;
+                }
+                await familiesCollection.doc(family.id).update({
+                    familyCoins: firebase.firestore.FieldValue.increment(-item.cost),
+                    [`shopPurchases.${key}`]: true,
+                });
+                // Grant to user inventory based on type
+                const inventoryKey = item.type === 'badge' ? 'inventory.badges' : item.type === 'title' ? 'inventory.titles' : null;
+                if (inventoryKey) {
+                    await usersCollection.doc(currentUID).update({
+                        [inventoryKey]: firebase.firestore.FieldValue.arrayUnion(item.id),
+                    });
+                }
+                onNotification(`✅ ${lang==='ar'?'تم الشراء!':'Purchased!'} ${item.emoji}`);
+            } catch(e) {
+                onNotification(lang==='ar' ? '❌ خطأ في الشراء' : '❌ Purchase error');
+            }
+        };
+
+        return (
+            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'12px'}}>
+                {/* Coins Header */}
+                <div style={{...S.card, background:'linear-gradient(135deg,rgba(167,139,250,0.1),rgba(112,0,255,0.08))', border:'1px solid rgba(167,139,250,0.3)', padding:'12px 16px', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+                    <div>
+                        <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'2px'}}>{lang==='ar'?'💰 عملات العائلة':'💰 Family Coins'}</div>
+                        <div style={{fontSize:'24px', fontWeight:900, color:'#a78bfa', fontStyle:'italic'}}>{coins} {FAMILY_COINS_SYMBOL}</div>
+                    </div>
+                    <div style={{textAlign:'right'}}>
+                        <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'2px'}}>{lang==='ar'?'اجمعها من المهام':'Earn from Tasks'}</div>
+                        <div style={{fontSize:'11px', color:'#a78bfa', fontWeight:700}}>🎯 {lang==='ar'?'مهمة = عملات':'Tasks = Coins'}</div>
+                    </div>
+                </div>
+
+                <div style={S.sectionTitle}>🏅 {lang==='ar'?'المتجر الحصري':'Exclusive Store'}</div>
+
+                {/* Shop Items Grid */}
+                <div style={{display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:'10px'}}>
+                    {(typeof FAMILY_SHOP_ITEMS !== 'undefined' ? FAMILY_SHOP_ITEMS : []).map(item => {
+                        const key = `${currentUID}_${item.id}`;
+                        const owned = purchases[key];
+                        const canAfford = coins >= item.cost;
+                        const rColor = RARITY_COLORS[item.rarity] || '#9ca3af';
+                        return (
+                            <div key={item.id} style={{
+                                ...S.card,
+                                padding:'14px 12px',
+                                border:`1px solid ${owned?'rgba(16,185,129,0.4)':canAfford?rColor+'44':'rgba(255,255,255,0.07)'}`,
+                                background: owned?'rgba(16,185,129,0.06)':canAfford?`${rColor}08`:'rgba(255,255,255,0.02)',
+                                display:'flex', flexDirection:'column', alignItems:'center', gap:'8px',
+                                transition:'all 0.2s', position:'relative',
+                            }}>
+                                {/* Rarity badge */}
+                                <div style={{position:'absolute', top:'6px', right:'6px', fontSize:'8px', fontWeight:800, color:rColor, background:`${rColor}20`, padding:'1px 5px', borderRadius:'4px', textTransform:'uppercase'}}>{item.rarity}</div>
+                                <div style={{fontSize:'32px', lineHeight:1, filter: owned?'none':`drop-shadow(0 0 6px ${rColor}88)`}}>{item.emoji}</div>
+                                <div style={{textAlign:'center'}}>
+                                    <div style={{fontSize:'11px', fontWeight:800, color: owned?'#10b981':canAfford?'white':'#6b7280', marginBottom:'2px'}}>
+                                        {lang==='ar' ? item.name_ar : item.name_en}
+                                    </div>
+                                    <div style={{fontSize:'9px', color:'#6b7280', lineHeight:1.3, marginBottom:'4px'}}>
+                                        {lang==='ar' ? item.desc_ar : item.desc_en}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => !owned && handleBuy(item)}
+                                    disabled={owned || !canAfford}
+                                    style={{
+                                        padding:'6px 14px', borderRadius:'8px', border:'none', fontSize:'11px', fontWeight:800, cursor: owned||!canAfford?'not-allowed':'pointer',
+                                        background: owned?'rgba(16,185,129,0.2)':canAfford?`linear-gradient(135deg,${rColor},${rColor}cc)`:'rgba(255,255,255,0.05)',
+                                        color: owned?'#10b981':canAfford?'white':'#4b5563',
+                                        width:'100%',
+                                    }}>
+                                    {owned ? `✅ ${lang==='ar'?'مشتري':'Owned'}` : `${item.cost}${FAMILY_COINS_SYMBOL}`}
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+                <div style={{height:'12px'}} />
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────
+    // TAB: RANKING (dedicated tab)
+    // ─────────────────────────────────────────────
+    const renderRankingTab = () => {
+        return (
+            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'10px'}}>
+                <div style={S.sectionTitle}>🏆 {lang==='ar'?'ترتيب العائلات':'Family Rankings'}</div>
+                <FamilyRankingInline lang={lang} currentFamilyId={family?.id} />
             </div>
         );
     };
@@ -1928,6 +2118,16 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </div>
                 )}
 
+                {/* ── Leave Family — always at bottom ── */}
+                <div style={{marginTop:'8px', paddingTop:'12px', borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+                    <button
+                        onClick={leaveFamily}
+                        style={{...S.btn, width:'100%', padding:'12px', background:'rgba(239,68,68,0.06)', border:'1px solid rgba(239,68,68,0.2)', color:'rgba(239,68,68,0.65)', fontSize:'12px', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', gap:'6px'}}>
+                        🚪 {lang==='ar'?'مغادرة العائلة':'Leave Family'}
+                    </button>
+                    <div style={{fontSize:'10px', color:'#4b5563', textAlign:'center', marginTop:'6px'}}>{lang==='ar'?'لا يمكن التراجع عن هذا القرار':'This action cannot be undone'}</div>
+                </div>
+
                 <div style={{height:'12px'}} />
             </div>
         );
@@ -2115,33 +2315,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         )}
 
                         <div style={{display:'flex', alignItems:'center', gap:'6px', flexShrink:0}}>
-                            {/* Ranking button */}
-                            <button onClick={()=>setShowRankingModal(true)} title={lang==='ar'?'ترتيب العائلات':'Family Rankings'}
-                                style={{width:'30px', height:'30px', borderRadius:'8px', border:'none', background:'rgba(255,215,0,0.12)', color:'#fbbf24', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                                🏆
-                            </button>
-
-                            {/* Three-dot menu (only in family) */}
-                            {family && (
-                                <div style={{position:'relative'}}>
-                                    <button onClick={()=>setShowHeaderMenu(!showHeaderMenu)}
-                                        style={{width:'30px', height:'30px', borderRadius:'8px', border:'none', background:'rgba(255,255,255,0.07)', color:'#9ca3af', fontSize:'18px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1}}>
-                                        ⋮
-                                    </button>
-                                    {showHeaderMenu && (
-                                        <div style={{position:'absolute', top:'36px', right:'0', background:'rgba(13,13,31,0.98)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'12px', overflow:'hidden', zIndex:9999, minWidth:'150px', boxShadow:'0 8px 32px rgba(0,0,0,0.8)'}}>
-                                            <button onClick={()=>{ setShowHeaderMenu(false); setShowRankingModal(true); }} style={{display:'flex', alignItems:'center', gap:'8px', width:'100%', padding:'10px 14px', background:'none', border:'none', color:'#fbbf24', fontSize:'12px', fontWeight:700, cursor:'pointer', textAlign:'left'}}>
-                                                🏆 {lang==='ar'?'ترتيب العائلات':'Rankings'}
-                                            </button>
-                                            <div style={{height:'1px', background:'rgba(255,255,255,0.06)'}} />
-                                            <button onClick={()=>{ setShowHeaderMenu(false); leaveFamily(); }} style={{display:'flex', alignItems:'center', gap:'8px', width:'100%', padding:'10px 14px', background:'none', border:'none', color:'#f87171', fontSize:'12px', fontWeight:700, cursor:'pointer', textAlign:'left'}}>
-                                                🚪 {lang==='ar'?'مغادرة العائلة':'Leave Family'}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
                             {/* Close */}
                             <button onClick={onClose} style={{width:'30px', height:'30px', borderRadius:'8px', border:'none', background:'rgba(255,255,255,0.08)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>✕</button>
                         </div>
@@ -2174,25 +2347,19 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                             view==='home' ? renderHome() : view==='create' ? renderCreate() : renderJoin()
                         ) : (
                             <>
-                                {activeTab==='profile' && renderProfile()}
-                                {activeTab==='members' && renderMembers()}
-                                {activeTab==='tasks'   && renderTasks()}
-                                {activeTab==='news'    && renderNews()}
-                                {activeTab==='manage'  && renderManage()}
+                                {activeTab==='profile'  && renderProfile()}
+                                {activeTab==='members'  && renderMembers()}
+                                {activeTab==='tasks'    && renderTasks()}
+                                {activeTab==='shop'     && renderShop()}
+                                {activeTab==='ranking'  && renderRankingTab()}
+                                {activeTab==='news'     && renderNews()}
+                                {activeTab==='manage'   && renderManage()}
                             </>
                         )}
                     </div>
                 </div>
             </div>
         </PortalModal>
-
-        {/* Ranking Modal */}
-        <FamilyRankingModal
-            show={showRankingModal}
-            onClose={()=>setShowRankingModal(false)}
-            lang={lang}
-            currentFamilyId={family?.id}
-        />
         </>
     );
 };
