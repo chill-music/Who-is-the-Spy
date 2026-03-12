@@ -66,6 +66,16 @@ function App() {
     const [userFamily, setUserFamily] = useState(null);
     const [showFamilyChat, setShowFamilyChat] = useState(false);
 
+    // ── 💍 COUPLES SYSTEM STATE ──
+    const [coupleData, setCoupleData]                   = useState(null); // my active couple doc
+    const [partnerData, setPartnerData]                 = useState(null); // partner's user doc
+    const [showCoupleCard, setShowCoupleCard]           = useState(false);
+    const [showProposalModal, setShowProposalModal]     = useState(false);
+    const [proposalRing, setProposalRing]               = useState(null);
+    const [incomingProposal, setIncomingProposal]       = useState(null); // pending couple doc for me
+    const [incomingProposalFrom, setIncomingProposalFrom] = useState(null); // proposer data
+    const [showIncomingProposal, setShowIncomingProposal] = useState(false);
+
     // Click outside handler for notification dropdown
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -106,6 +116,57 @@ function App() {
                 }
             }, () => {});
         return () => unsub();
+    }, [currentUID, isLoggedIn]);
+
+    // ── 💍 Listen to couple doc (accepted or pending for me) ──
+    useEffect(() => {
+        if (!currentUID || !isLoggedIn) { setCoupleData(null); setPartnerData(null); return; }
+        // Listen to any couple doc where I am uid1 or uid2 and status is accepted/pending
+        const unsub1 = couplesCollection
+            .where('uid1', '==', currentUID)
+            .where('status', 'in', ['pending','accepted'])
+            .limit(1)
+            .onSnapshot(async snap => {
+                if (!snap.empty) {
+                    const doc = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                    if (doc.status === 'accepted') {
+                        setCoupleData(doc);
+                        // load partner
+                        const pd = await usersCollection.doc(doc.uid2).get();
+                        if (pd.exists) setPartnerData({ id: pd.id, ...pd.data() });
+                        setIncomingProposal(null); setShowIncomingProposal(false);
+                    }
+                    // if pending and I'm the proposer — nothing special needed
+                } else {
+                    // check uid2 side
+                }
+            }, () => {});
+        const unsub2 = couplesCollection
+            .where('uid2', '==', currentUID)
+            .where('status', 'in', ['pending','accepted'])
+            .limit(1)
+            .onSnapshot(async snap => {
+                if (!snap.empty) {
+                    const doc = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                    if (doc.status === 'accepted') {
+                        setCoupleData(doc);
+                        const pd = await usersCollection.doc(doc.uid1).get();
+                        if (pd.exists) setPartnerData({ id: pd.id, ...pd.data() });
+                        setIncomingProposal(null); setShowIncomingProposal(false);
+                    } else if (doc.status === 'pending' && doc.uid2 === currentUID) {
+                        // Someone proposed to me!
+                        setIncomingProposal(doc);
+                        const fd = await usersCollection.doc(doc.uid1).get();
+                        if (fd.exists) setIncomingProposalFrom({ id: fd.id, ...fd.data() });
+                        setShowIncomingProposal(true);
+                    }
+                } else {
+                    setCoupleData(prev => (prev?.uid2 === currentUID ? null : prev));
+                    setPartnerData(prev => (coupleData?.uid2 === currentUID ? null : prev));
+                    setIncomingProposal(null); setShowIncomingProposal(false);
+                }
+            }, () => {});
+        return () => { unsub1(); unsub2(); };
     }, [currentUID, isLoggedIn]);
 
     // Saves achievement IDs as simple strings in userData.achievements[]
@@ -536,7 +597,10 @@ function App() {
 
                     // Stats updates — apply VIP XP multiplier
                     const vipXpMult = getVIPXPMultiplier(userData);
-                    const gameXP = Math.round((iWon ? 20 : 5) * vipXpMult);
+                    // 💍 Couple bonus: +10% charisma if partner is in same room
+                    const partnerInRoom = coupleData && data.players?.some(p => p.uid === (coupleData.uid1 === user.uid ? coupleData.uid2 : coupleData.uid1));
+                    const coupleBonus = partnerInRoom ? 1.10 : 1.0;
+                    const gameXP = Math.round((iWon ? 20 : 5) * vipXpMult * coupleBonus);
                     const statUpdates = {
                         'stats.losses': firebase.firestore.FieldValue.increment(iWon ? 0 : 1),
                         'stats.wins': firebase.firestore.FieldValue.increment(iWon ? 1 : 0),
@@ -701,7 +765,56 @@ function App() {
     const createNotification = useCallback(async (toUserId, type, message, fromUserId, fromName, giftData = null) => { try { await notificationsCollection.add({ toUserId, fromUserId, fromName, type, message, giftData, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false }); } catch (e) { } }, []);
     const markNotificationRead = useCallback(async (notifId) => { try { await notificationsCollection.doc(notifId).update({ read: true }); } catch (e) { } }, []);
     const clearAllNotifications = useCallback(async () => { try { const batch = db.batch(); notifications.forEach(n => { batch.delete(notificationsCollection.doc(n.id)); }); await batch.commit(); setNotifications([]); setUnreadNotifications(0); } catch (e) { } }, [notifications]);
-    const handleNotificationClick = useCallback((notif) => { if (notif.type === 'friend_request') { setActiveView('friends'); } else if (notif.type === 'gift') { setNotification(notif.message); } else if (notif.type === 'message') { if (notif.fromUserId && notif.fromName) { const friend = { uid: notif.fromUserId, displayName: notif.fromName, photoURL: notif.fromPhoto }; setChatFriend(friend); setShowPrivateChat(true); } } }, []);
+    const handleNotificationClick = useCallback((notif) => {
+        if (notif.type === 'friend_request') { setActiveView('friends'); }
+        else if (notif.type === 'gift') { setNotification(notif.message); }
+        else if (notif.type === 'couple_proposal') { setActiveView('discover'); }
+        else if (notif.type === 'couple_accepted') { setShowCoupleCard(true); }
+        else if (notif.type === 'message') { if (notif.fromUserId && notif.fromName) { const friend = { uid: notif.fromUserId, displayName: notif.fromName, photoURL: notif.fromPhoto }; setChatFriend(friend); setShowPrivateChat(true); } }
+    }, []);
+
+    // 💍 Couple proposal send handler
+    const handleSendProposal = useCallback(async ({ toUID, toData, giftId, message }) => {
+        if (!user || !isLoggedIn || !proposalRing) return;
+        await sendProposal({
+            fromUID: user.uid,
+            toUID,
+            fromData: userData,
+            ringId: proposalRing.id,
+            giftId,
+            message,
+            onNotification: setNotification,
+            lang,
+        });
+    }, [user, isLoggedIn, userData, proposalRing, lang]);
+
+    // 💍 Accept incoming proposal
+    const handleAcceptProposal = useCallback(async (coupleDoc) => {
+        await acceptProposal({
+            coupleDocId: coupleDoc.id,
+            uid1: coupleDoc.uid1,
+            uid2: coupleDoc.uid2,
+            onNotification: setNotification,
+            lang,
+        });
+        setShowIncomingProposal(false);
+    }, [lang]);
+
+    // 💍 Decline incoming proposal
+    const handleDeclineProposal = useCallback(async (coupleDoc) => {
+        const ring = RINGS_DATA.find(r => r.id === coupleDoc.ringId);
+        const gift = PROPOSAL_GIFTS.find(g => g.id === coupleDoc.giftId);
+        await declineProposal({
+            coupleDocId: coupleDoc.id,
+            fromUID: coupleDoc.uid1,
+            toUID: coupleDoc.uid2,
+            ringCost: ring?.cost || 0,
+            giftCost: gift?.cost || 0,
+            onNotification: setNotification,
+            lang,
+        });
+        setShowIncomingProposal(false);
+    }, [lang]);
 
     // Claim Login Reward
     const handleClaimLoginReward = useCallback(async (day) => {
@@ -1281,9 +1394,43 @@ function App() {
                 </div>
             )}
 
-            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} onOpenInventory={() => { setShowShop(false); setShowInventory(true); }} />
+            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} onOpenInventory={() => { setShowShop(false); setShowInventory(true); }} currentUID={currentUID} onPropose={(ring) => { setProposalRing(ring); setShowShop(false); setShowProposalModal(true); }} />
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
             <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} onSetLang={(nl) => { setLang(nl); localStorage.setItem('pro_spy_lang', nl); if(user) usersCollection.doc(user.uid).update({lang:nl}).catch(()=>{}); }} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} onOpenAdminPanel={() => setShowAdminPanel(true)} />
+
+            {/* 💍 Proposal Modal */}
+            <ProposalModal
+                show={showProposalModal}
+                onClose={() => setShowProposalModal(false)}
+                ring={proposalRing}
+                currentUserData={userData}
+                currentUID={currentUID}
+                lang={lang}
+                onSend={handleSendProposal}
+            />
+
+            {/* 💑 Couple Card Modal */}
+            <CoupleCardModal
+                show={showCoupleCard}
+                onClose={() => setShowCoupleCard(false)}
+                coupleDoc={coupleData}
+                currentUID={currentUID}
+                selfData={userData}
+                partnerData={partnerData}
+                lang={lang}
+                onNotification={setNotification}
+            />
+
+            {/* 💌 Incoming Proposal Modal */}
+            <IncomingProposalModal
+                show={showIncomingProposal}
+                coupleDoc={incomingProposal}
+                fromData={incomingProposalFrom}
+                currentUID={currentUID}
+                lang={lang}
+                onAccept={handleAcceptProposal}
+                onDecline={handleDeclineProposal}
+            />
 
             {/* 🛡️ Admin Panel */}
             <AdminPanel
@@ -1844,16 +1991,24 @@ function App() {
                                 <div style={{fontSize:'16px',color:'#00f2ff'}}>›</div>
                             </div>
 
-                            {/* Passport Card - Coming Soon */}
-                            <div className="discover-card-cs" style={{'--dc-color':'rgba(112,0,255,0.12)','--dc-border':'rgba(112,0,255,0.25)'}}>
+                            {/* Couples Card */}
+                            <div className="discover-card-cs" style={{'--dc-color':'rgba(236,72,153,0.12)','--dc-border':'rgba(236,72,153,0.25)',cursor:'pointer'}} onClick={() => { if (!isLoggedIn) { setShowLoginAlert(true); return; } if (coupleData) setShowCoupleCard(true); else { setShowShop(true); }; }}>
                                 <div className="dc-left">
-                                    <div className="dc-icon" style={{background:'rgba(112,0,255,0.18)'}}>🪪</div>
+                                    <div className="dc-icon" style={{background:'rgba(236,72,153,0.18)'}}>💍</div>
                                 </div>
                                 <div className="dc-body">
-                                    <div className="dc-title">{lang==='ar'?'الجواز':'Passport'}</div>
-                                    <div className="dc-desc">{lang==='ar'?'هويتك الرقمية داخل اللعبة':'Your digital identity in the game'}</div>
+                                    <div className="dc-title">{lang==='ar'?'الكابلز':'Couples'}</div>
+                                    <div className="dc-desc">
+                                        {coupleData
+                                            ? (partnerData ? (lang==='ar' ? `مرتبط بـ ${partnerData.displayName} 💕` : `Coupled with ${partnerData.displayName} 💕`) : (lang==='ar'?'اضغط لعرض البطاقة':'Tap to view card'))
+                                            : (lang==='ar'?'اشتر خاتماً وأرسل طلب ارتباط':'Buy a ring & send a proposal')
+                                        }
+                                    </div>
                                 </div>
-                                <div className="dc-badge">{lang==='ar'?'قريباً':'Soon'}</div>
+                                {coupleData
+                                    ? React.createElement('div', { style:{ fontSize:'16px', color:'#ec4899' }}, '›')
+                                    : React.createElement('div', { className:'dc-badge', style:{ background:'rgba(236,72,153,0.2)', color:'#f9a8d4', border:'1px solid rgba(236,72,153,0.4)' }}, lang==='ar'?'جديد':'New')
+                                }
                             </div>
 
                             {/* Tribe Card — Active */}
