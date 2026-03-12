@@ -4073,6 +4073,11 @@ body {
 .bg-blob-1 { width: 320px; height: 320px; background: var(--secondary); top: -60px; left: -80px; animation: blob-drift 14s ease-in-out infinite; }
 .bg-blob-2 { width: 260px; height: 260px; background: var(--primary); bottom: 80px; right: -60px; animation: blob-drift 18s ease-in-out infinite reverse; }
 .bg-blob-3 { width: 200px; height: 200px; background: var(--accent); top: 40%; left: 30%; animation: blob-drift 11s ease-in-out infinite 4s; }
+@keyframes pulse-ring {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.18); }
+}
+
 @keyframes blob-drift {
     0%, 100% { transform: translate(0,0); }
     33% { transform: translate(15px,-20px); }
