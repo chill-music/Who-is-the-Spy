@@ -1968,6 +1968,52 @@ body {
     justify-content: center;
 }
 
+/* 💍 Couple badge on profile cover - bottom right */
+.profile-couple-badge {
+    position: absolute;
+    bottom: -18px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, rgba(236,72,153,0.25), rgba(168,85,247,0.2));
+    border: 1.5px solid rgba(236,72,153,0.45);
+    border-radius: 24px;
+    padding: 4px 10px 4px 4px;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform .15s;
+    box-shadow: 0 4px 14px rgba(236,72,153,0.25);
+}
+.profile-couple-badge:hover { transform: scale(1.05); }
+.profile-couple-badge .cb-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(236,72,153,0.6);
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.profile-couple-badge .cb-ring {
+    font-size: 14px;
+    margin: 0 2px;
+    filter: drop-shadow(0 0 4px rgba(236,72,153,0.6));
+}
+.profile-couple-badge .cb-name {
+    font-size: 10px;
+    font-weight: 700;
+    color: #f9a8d4;
+    max-width: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* Avatar container with frame */
 .profile-avatar-container {
     position: relative;
@@ -4782,6 +4828,57 @@ body {
     padding: 4px 10px;
     letter-spacing: .5px;
     text-transform: uppercase;
+}
+
+/* ══ DISCOVER GRID SQUARES (Instagram-style) ══ */
+.discover-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 0 16px 10px;
+}
+.discover-sq {
+    aspect-ratio: 1;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    border: 1.5px solid var(--dsq-border, rgba(255,255,255,0.1));
+    background: var(--dsq-bg, rgba(255,255,255,0.04));
+    transition: transform .15s, box-shadow .15s;
+}
+.discover-sq:active { transform: scale(0.95); }
+.discover-sq:hover  { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.dsq-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+}
+.dsq-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-main);
+    text-align: center;
+    line-height: 1.2;
+}
+.dsq-dot {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ec4899;
+    border: 1.5px solid rgba(0,0,0,0.5);
 }
 
 /* ══ RANKING PREVIEW CARD (in lobby) ══ */
