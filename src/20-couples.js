@@ -809,7 +809,8 @@ const CoupleCardModal = ({
         } catch(e) {
             onNotification(lang==='ar' ? '❌ خطأ في الشراء' : '❌ Purchase error');
         }
-    }; = async (gift) => {
+    };
+    const sendBlessingGift = async (gift) => {
         if (sending || !currentUID || !doc?.id) return;
         setSending(true); setGiftErr(''); setGiftOk('');
         try {
