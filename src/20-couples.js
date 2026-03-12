@@ -607,15 +607,17 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
 // ─────────────────────────────────────────────
 // 💑 COUPLE CARD MODAL
 // ─────────────────────────────────────────────
-const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, selfData, lang, onNotification }) => {
+const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, selfData, lang, onNotification, viewOnly }) => {
     const [timer, setTimer]           = useState({ days:0, hours:0, mins:0 });
     const [editingBio, setEditingBio] = useState(false);
     const [bioText, setBioText]       = useState('');
     const [savingBio, setSavingBio]   = useState(false);
     const [uploading, setUploading]   = useState(false);
+    const [uploadErr, setUploadErr]   = useState('');
     const photoRef                    = useRef(null);
     const timerRef                    = useRef(null);
-    const [showDivorceConfirm, setShowDivorceConfirm] = useState(false);
+    // 3-step divorce: 0=hidden  1=think-twice warning  2=final confirm
+    const [divorceStep, setDivorceStep] = useState(0);
     const [divorcing, setDivorcing]   = useState(false);
 
     useEffect(() => {
@@ -627,15 +629,15 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
     }, [show, coupleDoc?.marriageDate]);
 
     useEffect(() => {
-        if (show) setBioText(coupleDoc?.sharedBio || '');
+        if (show) { setBioText(coupleDoc?.sharedBio || ''); setDivorceStep(0); setUploadErr(''); }
     }, [show, coupleDoc?.sharedBio]);
 
     if (!show || !coupleDoc) return null;
 
-    const ring = RINGS_DATA.find(r => r.id === coupleDoc.ringId) || RINGS_DATA[0];
-    const uid1 = coupleDoc.uid1;
-    const uid2 = coupleDoc.uid2;
-    const isMember = currentUID === uid1 || currentUID === uid2;
+    const ring    = RINGS_DATA.find(r => r.id === coupleDoc.ringId) || RINGS_DATA[0];
+    const uid1    = coupleDoc.uid1;
+    const uid2    = coupleDoc.uid2;
+    const isMember = !viewOnly && (currentUID === uid1 || currentUID === uid2);
 
     const saveBio = async () => {
         if (!coupleDoc?.id) return;
@@ -648,38 +650,60 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
         setSavingBio(false);
     };
 
+    /* Photo upload: compress to max 800px & ~300KB */
     const handlePhotoUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file || !coupleDoc?.id) return;
+        setUploadErr('');
+        if (!file.type.startsWith('image/')) {
+            setUploadErr(lang==='ar' ? 'يجب أن يكون ملف صورة' : 'File must be an image');
+            return;
+        }
         setUploading(true);
         try {
-            const reader = new FileReader();
-            reader.onload = async (ev) => {
-                const base64 = ev.target.result;
-                await couplesCollection.doc(coupleDoc.id).update({ couplePhotoUrl: base64 });
-                onNotification && onNotification(lang==='ar' ? '✅ تم رفع الصورة' : '✅ Photo uploaded');
-                setUploading(false);
-            };
-            reader.readAsDataURL(file);
-        } catch(e) { setUploading(false); }
+            const bmp = await createImageBitmap(file);
+            const maxSide = 800;
+            let w = bmp.width, h = bmp.height;
+            if (w > maxSide || h > maxSide) {
+                const ratio = Math.min(maxSide / w, maxSide / h);
+                w = Math.round(w * ratio); h = Math.round(h * ratio);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(bmp, 0, 0, w, h);
+            let base64 = canvas.toDataURL('image/jpeg', 0.82);
+            if (base64.length > 400000) base64 = canvas.toDataURL('image/jpeg', 0.65);
+            if (base64.length > 400000) {
+                setUploadErr(lang==='ar' ? 'الصورة كبيرة جداً، اختر أخرى' : 'Image too large, pick another');
+                setUploading(false); return;
+            }
+            await couplesCollection.doc(coupleDoc.id).update({ couplePhotoUrl: base64 });
+            onNotification && onNotification(lang==='ar' ? '✅ تم رفع الصورة' : '✅ Photo uploaded');
+        } catch(err) {
+            setUploadErr(lang==='ar' ? 'فشل الرفع، حاول مجدداً' : 'Upload failed, try again');
+        }
+        setUploading(false);
+        e.target.value = '';
     };
 
     const handleDivorce = async () => {
         setDivorcing(true);
         await divorceCouple({ coupleDocId: coupleDoc.id, uid1, uid2, onNotification, lang });
         setDivorcing(false);
-        setShowDivorceConfirm(false);
+        setDivorceStep(0);
         onClose();
     };
 
-    const Avatar = ({ user }) => {
-        if (!user) return React.createElement('div', { style:{ width:'52px', height:'52px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px' }}, '😎');
-        return React.createElement('div', { style:{ width:'52px', height:'52px', borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(236,72,153,0.5)', flexShrink:0 }},
-            user.photoURL
-                ? React.createElement('img', { src:user.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', background:'rgba(236,72,153,0.1)' }}, '😎')
-        );
-    };
+    /* Small circular avatar helper */
+    const Av = ({ user, size=52 }) => React.createElement('div', {
+        style:{ width:size, height:size, borderRadius:'50%', overflow:'hidden', flexShrink:0,
+            border:`2px solid ${ring.color}80`,
+            background:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center',
+            justifyContent:'center', fontSize:Math.floor(size*0.46) }
+    }, user?.photoURL
+        ? React.createElement('img', { src:user.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
+        : '😎'
+    );
 
     return React.createElement(PortalModal, null,
         React.createElement('div', {
@@ -709,7 +733,7 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                     background:'linear-gradient(135deg,rgba(236,72,153,0.12),rgba(168,85,247,0.1))' }
             },
                 React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'8px' }},
-                    React.createElement('span', { style:{ fontSize:'20px' }}, ring.emoji),
+                    React.createElement('span', { style:{ fontSize:'20px', filter:`drop-shadow(0 0 8px ${ring.glow})` }}, ring.emoji),
                     React.createElement('div', null,
                         React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color:'white' }},
                             lang==='ar' ? 'بطاقة الزوجين 💑' : 'Couple Card 💑'),
@@ -728,36 +752,77 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
             /* Scrollable body */
             React.createElement('div', { style:{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:'14px', position:'relative', zIndex:1 }},
 
-                /* Couple Photo + Avatars */
-                React.createElement('div', { style:{ textAlign:'center', position:'relative' }},
-                    /* Joint photo slot */
+                /* ════ JOINT PHOTO (square) + avatars row ════ */
+                React.createElement('div', { style:{ textAlign:'center' }},
+
+                    /* Square joint photo */
                     React.createElement('div', {
-                        onClick: () => isMember && photoRef.current?.click(),
-                        style:{ width:'100px', height:'100px', borderRadius:'50%', margin:'0 auto 10px',
-                            cursor: isMember ? 'pointer' : 'default', overflow:'hidden', position:'relative',
-                            border:`3px solid ${ring.color}80`,
-                            boxShadow:`0 0 20px ${ring.glow}, 0 0 40px ${ring.glow}`,
-                            background:'linear-gradient(135deg,rgba(236,72,153,0.15),rgba(168,85,247,0.12))',
-                            display:'flex', alignItems:'center', justifyContent:'center' }
+                        onClick: () => isMember && !uploading && photoRef.current?.click(),
+                        style:{
+                            width:'120px', height:'120px', borderRadius:'20px',
+                            margin:'0 auto 14px', cursor: isMember ? 'pointer' : 'default',
+                            overflow:'hidden', position:'relative',
+                            border:`3px solid ${ring.color}90`,
+                            boxShadow:`0 0 22px ${ring.glow}, 0 0 48px ${ring.glow}44`,
+                            background:'linear-gradient(135deg,rgba(236,72,153,0.14),rgba(168,85,247,0.11))',
+                            display:'flex', alignItems:'center', justifyContent:'center',
+                        }
                     },
                         coupleDoc.couplePhotoUrl
-                            ? React.createElement('img', { src:coupleDoc.couplePhotoUrl, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                            : React.createElement('div', null,
-                                React.createElement('div', { style:{ fontSize:'32px' }}, '📷'),
-                                React.createElement('div', { style:{ fontSize:'9px', color:'#9ca3af', marginTop:'2px' }},
-                                    uploading ? '⏳' : (isMember ? (lang==='ar' ? 'صورة مشتركة' : 'Joint Photo') : ''))
+                            ? React.createElement('img', {
+                                src: coupleDoc.couplePhotoUrl, alt:'',
+                                style:{ width:'100%', height:'100%', objectFit:'cover', display:'block' },
+                                onError: e => { e.target.style.display='none'; }
+                              })
+                            : React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
+                                React.createElement('div', { style:{ fontSize:'30px' }}, isMember ? '📷' : '💑'),
+                                React.createElement('div', { style:{ fontSize:'9px', color:'#9ca3af' }},
+                                    isMember ? (lang==='ar' ? 'اضغط لإضافة صورة' : 'Tap to add photo') : '')
                               ),
-                        isMember && React.createElement('input', { type:'file', ref:photoRef, style:{ display:'none' }, accept:'image/*', onChange:handlePhotoUpload })
+                        uploading && React.createElement('div', {
+                            style:{ position:'absolute', inset:0, background:'rgba(0,0,0,0.65)',
+                                display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px' }
+                        }, '⏳')
                     ),
+                    isMember && React.createElement('input', {
+                        type:'file', ref:photoRef, style:{ display:'none' },
+                        accept:'image/jpeg,image/png,image/webp',
+                        onChange: handlePhotoUpload
+                    }),
+                    uploadErr && React.createElement('div', {
+                        style:{ fontSize:'10px', color:'#f87171', marginBottom:'6px', marginTop:'-6px' }
+                    }, uploadErr),
 
-                    /* Two avatars */
-                    React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'center', gap:'14px' }},
-                        React.createElement(Avatar, { user: selfData }),
-                        React.createElement('span', { style:{ fontSize:'20px' }}, '💕'),
-                        React.createElement(Avatar, { user: partnerData })
-                    ),
-                    React.createElement('div', { style:{ fontSize:'13px', fontWeight:700, color:'white', marginTop:'8px' }},
-                        `${selfData?.displayName || '—'} & ${partnerData?.displayName || '—'}`)
+                    /* [Avatar] ─── ring ─── [Avatar] */
+                    React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'center' }},
+
+                        /* Left user */
+                        React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
+                            React.createElement(Av, { user: selfData, size:50 }),
+                            React.createElement('div', { style:{ fontSize:'10px', fontWeight:700, color:'#e2e8f0',
+                                maxWidth:'68px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }},
+                                selfData?.displayName || '—')
+                        ),
+
+                        /* Ring divider with chosen ring emoji */
+                        React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', margin:'0 8px', flexShrink:0, paddingBottom:'16px' }},
+                            React.createElement('div', { style:{ width:'36px', height:'2px', borderRadius:'2px',
+                                background:`linear-gradient(90deg,transparent,${ring.color},transparent)` }}),
+                            React.createElement('div', { style:{ fontSize:'22px', margin:'3px 0',
+                                filter:`drop-shadow(0 0 7px ${ring.glow}) drop-shadow(0 0 14px ${ring.glow})` }},
+                                ring.emoji),
+                            React.createElement('div', { style:{ width:'36px', height:'2px', borderRadius:'2px',
+                                background:`linear-gradient(90deg,transparent,${ring.color},transparent)` }})
+                        ),
+
+                        /* Right user */
+                        React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
+                            React.createElement(Av, { user: partnerData, size:50 }),
+                            React.createElement('div', { style:{ fontSize:'10px', fontWeight:700, color:'#e2e8f0',
+                                maxWidth:'68px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }},
+                                partnerData?.displayName || '—')
+                        )
+                    )
                 ),
 
                 /* Anniversary counter */
@@ -836,27 +901,102 @@ const CoupleCardModal = ({ show, onClose, coupleDoc, currentUID, partnerData, se
                         coupleDoc.intimacyPoints || 0)
                 ),
 
-                /* Divorce — only for couple members */
-                isMember && (!showDivorceConfirm
-                    ? React.createElement('button', {
-                        onClick: () => setShowDivorceConfirm(true),
+                /* ════ DIVORCE — 3-step with think-twice warning ════ */
+                isMember && (
+
+                    /* Step 0 ── subtle red button */
+                    divorceStep === 0 && React.createElement('button', {
+                        onClick: () => setDivorceStep(1),
                         style:{ padding:'10px', borderRadius:'12px', border:'1px solid rgba(239,68,68,0.2)',
-                            background:'rgba(239,68,68,0.05)', color:'rgba(239,68,68,0.6)',
-                            fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'center' }
-                      }, lang==='ar' ? '💔 إنهاء الارتباط' : '💔 End Relationship')
-                    : React.createElement('div', {
-                        style:{ padding:'12px', borderRadius:'12px', border:'1px solid rgba(239,68,68,0.35)',
-                            background:'rgba(239,68,68,0.08)', textAlign:'center', display:'flex', flexDirection:'column', gap:'8px' }
-                      },
-                        React.createElement('div', { style:{ fontSize:'12px', color:'#f87171', fontWeight:700 }},
-                            lang==='ar' ? 'هل أنت متأكد؟ لا يمكن التراجع!' : 'Are you sure? This cannot be undone!'),
-                        React.createElement('div', { style:{ display:'flex', gap:'8px' }},
-                            React.createElement('button', { onClick:()=>setShowDivorceConfirm(false), style:{ flex:1, padding:'8px', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.05)', color:'#9ca3af', fontSize:'12px', cursor:'pointer' }},
-                                lang==='ar' ? 'تراجع' : 'Cancel'),
-                            React.createElement('button', { onClick:handleDivorce, disabled:divorcing, style:{ flex:1, padding:'8px', borderRadius:'8px', border:'none', background:'rgba(239,68,68,0.8)', color:'white', fontSize:'12px', fontWeight:700, cursor:'pointer' }},
-                                divorcing ? '⏳' : (lang==='ar' ? '💔 تأكيد' : '💔 Confirm'))
+                            background:'rgba(239,68,68,0.05)', color:'rgba(239,68,68,0.55)',
+                            fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'center', width:'100%' }
+                    }, lang==='ar' ? '💔 إنهاء الارتباط' : '💔 End Relationship') ||
+
+                    /* Step 1 ── think-twice warning */
+                    divorceStep === 1 && React.createElement('div', {
+                        style:{ padding:'16px', borderRadius:'18px',
+                            background:'linear-gradient(135deg,rgba(251,146,60,0.12),rgba(239,68,68,0.08))',
+                            border:'1px solid rgba(251,146,60,0.4)',
+                            display:'flex', flexDirection:'column', gap:'12px' }
+                    },
+                        React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'10px' }},
+                            React.createElement('span', { style:{ fontSize:'30px', flexShrink:0 }}, '⚠️'),
+                            React.createElement('div', null,
+                                React.createElement('div', { style:{ fontSize:'14px', fontWeight:900, color:'#fbbf24', lineHeight:1.3 }},
+                                    lang==='ar' ? 'فكّر مرتين قبل أن تطلق!' : 'Think twice before divorcing!'),
+                                React.createElement('div', { style:{ fontSize:'11px', color:'#9ca3af', marginTop:'3px' }},
+                                    lang==='ar'
+                                        ? `أنتم معاً مع ${partnerData?.displayName || ''} منذ:`
+                                        : `You have been with ${partnerData?.displayName || ''} for:`)
+                            )
+                        ),
+                        /* Together-time counter */
+                        React.createElement('div', { style:{
+                            background:'rgba(0,0,0,0.35)', borderRadius:'14px', padding:'12px',
+                            display:'flex', alignItems:'center', justifyContent:'center'
+                        }},
+                            [
+                                { val:timer.days,  label_ar:'يوم',   label_en:'Days'  },
+                                { val:timer.hours, label_ar:'ساعة',  label_en:'Hours' },
+                                { val:timer.mins,  label_ar:'دقيقة', label_en:'Mins'  },
+                            ].map((item, i) => React.createElement(React.Fragment, { key:i },
+                                i > 0 && React.createElement('div', {
+                                    style:{ fontSize:'20px', color:'rgba(251,146,60,0.4)', fontWeight:900, margin:'0 4px', paddingBottom:'14px' }
+                                }, ':'),
+                                React.createElement('div', { style:{ textAlign:'center', minWidth:'44px' }},
+                                    React.createElement('div', { style:{ fontSize:'28px', fontWeight:900, color:'#fbbf24',
+                                        textShadow:'0 0 16px rgba(251,146,60,0.5)' }}, item.val),
+                                    React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', marginTop:'2px' }},
+                                        lang==='ar' ? item.label_ar : item.label_en)
+                                )
+                            ))
+                        ),
+                        React.createElement('div', { style:{ fontSize:'12px', color:'#9ca3af', textAlign:'center', fontStyle:'italic', padding:'0 4px', lineHeight:1.5 }},
+                            lang==='ar'
+                                ? 'هل تريد فعلاً إنهاء كل هذه الذكريات الجميلة؟ 💔'
+                                : 'Are you sure you want to throw away all these beautiful memories? 💔'
+                        ),
+                        React.createElement('div', { style:{ display:'flex', gap:'10px' }},
+                            React.createElement('button', {
+                                onClick: () => setDivorceStep(0),
+                                style:{ flex:2, padding:'12px', borderRadius:'12px',
+                                    border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.1)',
+                                    color:'#4ade80', fontSize:'12px', fontWeight:800, cursor:'pointer' }
+                            }, lang==='ar' ? '💚 أبقى معه/معها' : '💚 Stay Together'),
+                            React.createElement('button', {
+                                onClick: () => setDivorceStep(2),
+                                style:{ flex:1, padding:'12px', borderRadius:'12px',
+                                    border:'1px solid rgba(239,68,68,0.3)', background:'rgba(239,68,68,0.08)',
+                                    color:'#f87171', fontSize:'12px', fontWeight:700, cursor:'pointer' }
+                            }, lang==='ar' ? 'متأكد؟' : 'Proceed')
                         )
-                      )
+                    ) ||
+
+                    /* Step 2 ── final irreversible confirm */
+                    divorceStep === 2 && React.createElement('div', {
+                        style:{ padding:'14px', borderRadius:'14px', border:'1px solid rgba(239,68,68,0.4)',
+                            background:'rgba(239,68,68,0.1)', textAlign:'center',
+                            display:'flex', flexDirection:'column', gap:'10px' }
+                    },
+                        React.createElement('div', { style:{ fontSize:'13px', color:'#f87171', fontWeight:900 }},
+                            lang==='ar' ? '🔴 هذا القرار لا يمكن التراجع عنه نهائياً!' : '🔴 This cannot be undone!'),
+                        React.createElement('div', { style:{ display:'flex', gap:'10px' }},
+                            React.createElement('button', {
+                                onClick: () => setDivorceStep(0),
+                                style:{ flex:1, padding:'11px', borderRadius:'10px',
+                                    border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.06)',
+                                    color:'#9ca3af', fontSize:'12px', cursor:'pointer' }
+                            }, lang==='ar' ? 'تراجع' : 'Cancel'),
+                            React.createElement('button', {
+                                onClick: handleDivorce, disabled: divorcing,
+                                style:{ flex:1, padding:'11px', borderRadius:'10px', border:'none',
+                                    background:'rgba(239,68,68,0.88)', color:'white',
+                                    fontSize:'13px', fontWeight:900, cursor:'pointer',
+                                    boxShadow:'0 4px 14px rgba(239,68,68,0.4)',
+                                    opacity: divorcing ? 0.7 : 1 }
+                            }, divorcing ? '⏳' : (lang==='ar' ? '💔 طلاق نهائي' : '💔 Confirm Divorce'))
+                        )
+                    )
                 )
             )
         ))
