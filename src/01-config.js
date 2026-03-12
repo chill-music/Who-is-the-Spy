@@ -172,4 +172,25 @@ const formatBanExpiry = (userData, lang) => {
     });
 };
 
+// ════════════════════════════════════════════════════════
+// 🏅 FAMILY ECONOMY CONFIG — Centralized Constants
+// ════════════════════════════════════════════════════════
+const FAMILY_COINS_SYMBOL = '🏅'; // Family Coins currency icon
+const FAMILY_REQUIRED_XP = [0, 500, 1500, 3500, 7000, 13000, 22000, 35000, 55000, 80000]; // XP thresholds per level
+const FAMILY_REQUIRED_ACTIVENESS = [0, 5000, 20000, 80000, 300000]; // Activeness thresholds per sign level
+
+// Family Shop Items — purchasable ONLY with Family Coins
+const FAMILY_SHOP_ITEMS = [
+    { id:'fs1', emoji:'🎖️', name_en:'Warrior Badge',   name_ar:'شارة المحارب',    cost:30,  type:'badge',  rarity:'rare',       desc_en:'Exclusive family warrior badge', desc_ar:'شارة محارب حصرية للعائلة' },
+    { id:'fs2', emoji:'🛡️', name_en:'Shield Badge',    name_ar:'شارة الدرع',      cost:50,  type:'badge',  rarity:'rare',       desc_en:'Honor shield badge',             desc_ar:'شارة درع الشرف' },
+    { id:'fs3', emoji:'👑', name_en:'Crown Badge',     name_ar:'شارة التاج',      cost:100, type:'badge',  rarity:'epic',       desc_en:'Royal crown clan badge',         desc_ar:'شارة تاج ملكي' },
+    { id:'fs4', emoji:'🔥', name_en:'Flame Badge',     name_ar:'شارة اللهب',      cost:40,  type:'badge',  rarity:'rare',       desc_en:'Blazing fire badge',             desc_ar:'شارة اللهب المشتعل' },
+    { id:'fs5', emoji:'⚡', name_en:'Thunder Badge',   name_ar:'شارة الرعد',      cost:40,  type:'badge',  rarity:'rare',       desc_en:'Lightning thunder badge',        desc_ar:'شارة صاعقة الرعد' },
+    { id:'fs6', emoji:'🌟', name_en:'Star Badge',      name_ar:'شارة النجمة',     cost:75,  type:'badge',  rarity:'epic',       desc_en:'Shining star clan badge',        desc_ar:'شارة نجمة عائلة مضيئة' },
+    { id:'fs7', emoji:'💎', name_en:'Diamond Badge',   name_ar:'شارة الألماس',    cost:150, type:'badge',  rarity:'legendary',  desc_en:'Legendary diamond badge',        desc_ar:'شارة ألماس أسطورية' },
+    { id:'fs8', emoji:'🏆', name_en:'Trophy Badge',    name_ar:'شارة الكأس',      cost:200, type:'badge',  rarity:'legendary',  desc_en:'Champion trophy badge',          desc_ar:'شارة كأس البطولة' },
+    { id:'fs9', emoji:'🐉', name_en:'Dragon Title',    name_ar:'لقب التنين',       cost:300, type:'title',  rarity:'legendary',  desc_en:'Exclusive dragon clan title',    desc_ar:'لقب التنين الحصري للعائلة' },
+    { id:'fs10', emoji:'🦁', name_en:'Lion Title',     name_ar:'لقب الأسد',        cost:250, type:'title',  rarity:'epic',       desc_en:'Pride of the clan lion title',   desc_ar:'لقب أسد فخر العائلة' },
+];
+
 // 🔊 AUDIO SYSTEM
