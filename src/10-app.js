@@ -23,6 +23,7 @@ function App() {
     const [alertMessage, setAlertMessage] = useState(null);
     const [leaderboardData, setLeaderboardData] = useState([]);
     const [charismaLeaderboard, setCharismaLeaderboard] = useState([]);
+    const [familyLeaderboard, setFamilyLeaderboard] = useState([]);
     const [leaderboardTab, setLeaderboardTab] = useState('wins');
     const [friendsData, setFriendsData] = useState([]);
     const [addFriendId, setAddFriendId] = useState('');
@@ -653,6 +654,22 @@ function App() {
                 });
             });
             return unsub;
+        }
+    }, [activeView, leaderboardTab]);
+
+    // Family Leaderboard — by activeness
+    useEffect(() => {
+        if ((activeView === 'leaderboard' || activeView === 'ranking') && leaderboardTab === 'family') {
+            const familiesCol = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('families');
+            familiesCol.orderBy('activeness', 'desc').limit(50).get()
+                .then(snap => setFamilyLeaderboard(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
+                .catch(() => {
+                    familiesCol.limit(50).get().then(snap => {
+                        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        data.sort((a, b) => (b.activeness || 0) - (a.activeness || 0));
+                        setFamilyLeaderboard(data);
+                    }).catch(() => {});
+                });
         }
     }, [activeView, leaderboardTab]);
 
@@ -1825,9 +1842,57 @@ function App() {
                             <div className="lb-tabs-new" style={{margin:'12px 16px 0'}}>
                                 <button className={`lb-tab-new ${leaderboardTab==='wins'?'active':''}`} onClick={() => setLeaderboardTab('wins')}>🏆 {t.wins}</button>
                                 <button className={`lb-tab-new ${leaderboardTab==='charisma'?'active':''}`} onClick={() => setLeaderboardTab('charisma')}>⭐ {t.charismaRank}</button>
+                                <button className={`lb-tab-new ${leaderboardTab==='family'?'active':''}`} onClick={() => setLeaderboardTab('family')}>🏠 {lang==='ar'?'عائلة':'Family'}</button>
                             </div>
-                            {/* Podium + List */}
-                            {(() => {
+                            {/* Family Rank */}
+                            {leaderboardTab === 'family' && (() => {
+                                const data = familyLeaderboard;
+                                const top3 = data.slice(0, 3);
+                                const rest = data.slice(3);
+                                return (
+                                    <>
+                                        {top3.length > 0 && (
+                                            <div className="podium-new">
+                                                {[
+                                                    top3[1] ? {p:top3[1], cls:'ps-2', medal:'🥈'} : null,
+                                                    top3[0] ? {p:top3[0], cls:'ps-1', medal:'👑', crown:true} : null,
+                                                    top3[2] ? {p:top3[2], cls:'ps-3', medal:'🥉'} : null,
+                                                ].filter(Boolean).map((slot, i) => (
+                                                    <div key={i} className={`podium-slot-new ${slot.cls}`}>
+                                                        {slot.crown && <div style={{fontSize:'18px',marginBottom:'2px'}}>👑</div>}
+                                                        <div className="p-avatar-new">
+                                                            {slot.p.photoURL
+                                                                ? <img src={slot.p.photoURL} alt="" />
+                                                                : <span style={{fontSize:'22px'}}>{slot.p.emblem || '🏠'}</span>}
+                                                        </div>
+                                                        <div className="p-name-new">{slot.p.name || slot.p.tag}</div>
+                                                        <div className="p-score-new">{(slot.p.activeness || 0).toLocaleString()}</div>
+                                                        <div className="p-stand-new">{slot.medal}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <div className="lb-list-new">
+                                            {rest.map((fam, i) => (
+                                                <div key={fam.id} className="lb-row-new" style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)'}}>
+                                                    <div className="lb-num-new">#{i+4}</div>
+                                                    <div className="lb-av-new">
+                                                        {fam.photoURL ? <img src={fam.photoURL} alt="" /> : <span style={{fontSize:'18px'}}>{fam.emblem||'🏠'}</span>}
+                                                    </div>
+                                                    <div className="lb-info-new" style={{flex:1}}>
+                                                        <div className="lb-name-new">{fam.name}</div>
+                                                        <div className="lb-sub-new">{fam.tag} · {fam.memberCount||0} {lang==='ar'?'عضو':'members'}</div>
+                                                    </div>
+                                                    <div style={{fontSize:'12px',fontWeight:800,color:'#f97316'}}>{(fam.activeness||0).toLocaleString()} ⚡</div>
+                                                </div>
+                                            ))}
+                                            {data.length === 0 && <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>🏠 {lang==='ar'?'لا توجد عائلات بعد':'No families yet'}</div>}
+                                        </div>
+                                    </>
+                                );
+                            })()}
+                            {/* Podium + List for wins/charisma */}
+                            {leaderboardTab !== 'family' && (() => {
                                 const data = leaderboardTab === 'charisma' ? charismaLeaderboard : leaderboardData;
                                 const top3 = data.slice(0,3);
                                 const rest = data.slice(3);
