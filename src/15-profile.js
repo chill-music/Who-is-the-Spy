@@ -1238,7 +1238,7 @@ const MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnPro
     const [lastSeenCount, setLastSeenCount] = useState(() => {
         try { return parseInt(localStorage.getItem(`moments_seen_${ownerUID}`) || '0', 10); } catch { return 0; }
     });
-    const [showBellFilter, setShowBellFilter] = useState(false);
+    const [showBellFilter, setShowBellFilter] = useState(false); // kept for legacy compat
     const [momentsNotifs, setMomentsNotifs] = useState([]);
     const [openMenuId, setOpenMenuId] = useState(null);
     const [reportingMomentId, setReportingMomentId] = useState(null);
@@ -1347,21 +1347,8 @@ const MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnPro
                     }}>{moments.length}</span>
                 </button>
 
-                {/* Right: Bell filter + "All" button + Camera icon */}
+                {/* Right: "All" button + Camera icon */}
                 <div style={{display:'flex', gap:'5px', alignItems:'center'}}>
-                    {/* Bell — Moments notifications filter */}
-                    {isOwnProfile && currentUser && !currentUser.isGuest && (
-                        <div style={{position:'relative'}}>
-                            <button
-                                onClick={() => setShowBellFilter(v => !v)}
-                                style={{width:'26px', height:'26px', borderRadius:'7px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:unreadNotifCount>0?'#fbbf24':'#6b7280', fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}
-                            >🔔</button>
-                            {unreadNotifCount > 0 && (
-                                <div style={{position:'absolute', top:'-4px', right:'-4px', minWidth:'14px', height:'14px', borderRadius:'7px', background:'#ef4444', fontSize:'8px', fontWeight:800, color:'white', display:'flex', alignItems:'center', justifyContent:'center', padding:'0 3px'}}>{unreadNotifCount}</div>
-                            )}
-                        </div>
-                    )}
-
                     {hasMore && (
                         <button
                             onClick={() => { setShowAllMoments(true); markSeen(); }}
@@ -1381,34 +1368,6 @@ const MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnPro
                     )}
                 </div>
             </div>
-
-            {/* ── Bell Dropdown — moments notifications ── */}
-            {showBellFilter && (
-                <div style={{padding:'10px 12px', borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(0,0,0,0.3)'}}>
-                    <div style={{fontSize:'10px', fontWeight:800, color:'#fbbf24', marginBottom:'6px'}}>
-                        🔔 {lang==='ar'?'إشعارات اللحظات':'Moments Alerts'}
-                    </div>
-                    {momentsNotifs.length === 0 ? (
-                        <div style={{fontSize:'10px', color:'#4b5563', textAlign:'center', padding:'6px 0'}}>
-                            {lang==='ar'?'لا إشعارات':'No alerts yet'}
-                        </div>
-                    ) : momentsNotifs.slice(0,5).map(n => (
-                        <div key={n.id} style={{display:'flex', alignItems:'center', gap:'7px', padding:'5px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                            {n.senderPhoto
-                                ? <img src={n.senderPhoto} alt="" style={{width:'20px', height:'20px', borderRadius:'50%', objectFit:'cover'}} />
-                                : <div style={{width:'20px', height:'20px', borderRadius:'50%', background:'#374151', fontSize:'9px', display:'flex', alignItems:'center', justifyContent:'center'}}>👤</div>
-                            }
-                            <div style={{flex:1, minWidth:0}}>
-                                <div style={{fontSize:'9px', color:n.read?'#6b7280':'#e2e8f0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
-                                    <span style={{fontWeight:700, color:'#00f2ff'}}>{n.senderName}</span>
-                                    {' '}{n.type==='moment_like'?(lang==='ar'?'أعجب بلحظتك':'liked your moment'):(lang==='ar'?'علّق على لحظتك':'commented on your moment')}
-                                </div>
-                            </div>
-                            {!n.read && <div style={{width:'6px', height:'6px', borderRadius:'50%', background:'#ef4444', flexShrink:0}} />}
-                        </div>
-                    ))}
-                </div>
-            )}
 
             {/* ── Content Grid ── */}
             <div style={{padding:'10px 12px 12px'}}>
@@ -2886,14 +2845,15 @@ const ProfileV11 = ({
         }
     }, [userData, targetUID]);
 
-    // 💍 Real-time couple doc + real-time partner photo listener
+    // 💍 Real-time couple doc + real-time partner photo listener — MUTUAL (works for both uid1 and uid2)
     useEffect(() => {
         if (!show || !targetUID) {
             setProfileCoupleDoc(null);
             setProfilePartnerData(null);
             return;
         }
-        let unsubCouple1, unsubCouple2, unsubPartner;
+        let unsubPartner;
+        let foundDoc = false; // track if we found a match from either query
 
         const attachPartnerListener = (partnerUID) => {
             if (unsubPartner) unsubPartner();
@@ -2903,32 +2863,31 @@ const ProfileV11 = ({
                 }, () => {});
         };
 
-        unsubCouple1 = couplesCollection
+        // Query both directions simultaneously — first match wins
+        const p1 = couplesCollection
             .where('uid1', '==', targetUID).where('status', '==', 'accepted').limit(1)
-            .onSnapshot(snap => {
-                if (!snap.empty) {
-                    const d = { id: snap.docs[0].id, ...snap.docs[0].data() };
-                    setProfileCoupleDoc(d);
-                    attachPartnerListener(d.uid2);
-                } else {
-                    setProfileCoupleDoc(null);
-                    setProfilePartnerData(null);
-                }
-            }, () => {});
+            .get().catch(() => null);
 
-        unsubCouple2 = couplesCollection
+        const p2 = couplesCollection
             .where('uid2', '==', targetUID).where('status', '==', 'accepted').limit(1)
-            .onSnapshot(snap => {
-                if (!snap.empty) {
-                    const d = { id: snap.docs[0].id, ...snap.docs[0].data() };
-                    setProfileCoupleDoc(d);
-                    attachPartnerListener(d.uid1);
-                }
-            }, () => {});
+            .get().catch(() => null);
+
+        Promise.all([p1, p2]).then(([snap1, snap2]) => {
+            const snap = (snap1 && !snap1.empty) ? snap1 : (snap2 && !snap2.empty) ? snap2 : null;
+            if (!snap || snap.empty) {
+                setProfileCoupleDoc(null);
+                setProfilePartnerData(null);
+                return;
+            }
+            const d = { id: snap.docs[0].id, ...snap.docs[0].data() };
+            setProfileCoupleDoc(d);
+            foundDoc = true;
+            // Partner is whichever uid is NOT the target
+            const partnerUID = d.uid1 === targetUID ? d.uid2 : d.uid1;
+            attachPartnerListener(partnerUID);
+        });
 
         return () => {
-            unsubCouple1 && unsubCouple1();
-            unsubCouple2 && unsubCouple2();
             unsubPartner && unsubPartner();
         };
     }, [show, targetUID]);
@@ -3184,24 +3143,39 @@ const ProfileV11 = ({
                     {/* 💍 Couple Badge — show PARTNER's photo next to ring (real-time) */}
                     {profileCoupleDoc && profilePartnerData ? (
                         <>
-                            <div
-                                className="profile-couple-badge"
-                                onClick={() => setShowProfileCoupleCard(true)}
-                                title={lang === 'ar' ? `مرتبط بـ ${profilePartnerData.displayName}` : `Coupled with ${profilePartnerData.displayName}`}
-                            >
-                                {/* Ring emoji (chosen ring) — glowing */}
-                                <span className="cb-ring" style={{filter:`drop-shadow(0 0 5px ${(RINGS_DATA && RINGS_DATA.find(r=>r.id===profileCoupleDoc.ringId)?.glow)||'rgba(236,72,153,0.6)'})`}}>
-                                    {(RINGS_DATA && RINGS_DATA.find(r => r.id === profileCoupleDoc.ringId)?.emoji) || '💍'}
-                                </span>
-                                {/* ONLY partner's photo — real-time */}
-                                <div className="cb-avatar">
-                                    {profilePartnerData.photoURL
-                                        ? <img src={profilePartnerData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                        : '😍'
-                                    }
-                                </div>
-                                <span className="cb-name">{profilePartnerData.displayName}</span>
-                            </div>
+                            {/* MUTUAL BADGE: on this profile we show the PARTNER's photo + ring
+                                So viewer sees: when looking at person A → shows person B's photo
+                                              when looking at person B → shows person A's photo   */}
+                            {(() => {
+                                const ringData = RINGS_DATA && RINGS_DATA.find(r => r.id === profileCoupleDoc.ringId);
+                                const ringEmoji = ringData?.emoji || '💍';
+                                const ringImageURL = ringData?.imageURL || null;
+                                const ringGlow = ringData?.glow || 'rgba(236,72,153,0.6)';
+                                // partnerData is always the OTHER person from targetUID's perspective
+                                return (
+                                    <div
+                                        className="profile-couple-badge"
+                                        onClick={() => setShowProfileCoupleCard(true)}
+                                        title={lang === 'ar' ? `مرتبط بـ ${profilePartnerData.displayName}` : `Coupled with ${profilePartnerData.displayName}`}
+                                    >
+                                        {/* Ring — image or emoji */}
+                                        <span className="cb-ring" style={{filter:`drop-shadow(0 0 5px ${ringGlow})`}}>
+                                            {ringImageURL
+                                                ? <img src={ringImageURL} alt="" style={{width:'16px',height:'16px',objectFit:'contain',verticalAlign:'middle'}}/>
+                                                : ringEmoji
+                                            }
+                                        </span>
+                                        {/* Partner's avatar (mutual: partner's photo on your profile, your photo on theirs) */}
+                                        <div className="cb-avatar">
+                                            {profilePartnerData.photoURL
+                                                ? <img src={profilePartnerData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                : '😍'
+                                            }
+                                        </div>
+                                        <span className="cb-name">{profilePartnerData.displayName}</span>
+                                    </div>
+                                );
+                            })()}
 
                             {/* CoupleCard opened from badge click */}
                             {typeof CoupleCardModal !== 'undefined' && (
