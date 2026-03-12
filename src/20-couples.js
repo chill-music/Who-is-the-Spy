@@ -925,3 +925,319 @@ const RingsShopSection = ({ userData, lang, currentUID, onPropose }) => {
         })
     );
 };
+
+// ─────────────────────────────────────────────
+// 💒 WEDDING HALL MODAL
+// ─────────────────────────────────────────────
+const WeddingHallModal = ({
+    show, onClose, lang,
+    currentUID, currentUserData, coupleData, partnerData,
+    onOpenPropose,      // opens ring shop
+    onOpenCoupleCard,   // opens couple card
+    onDivorce,          // calls divorceCouple
+    onNotification,
+}) => {
+    const [tab, setTab]             = useState('feed');   // 'feed' | 'divorce'
+    const [couples, setCouples]     = useState([]);
+    const [loadingFeed, setLoadingFeed] = useState(true);
+    const [coupleProfiles, setCoupleProfiles] = useState({}); // uid → userData
+    const [viewCouple, setViewCouple]   = useState(null);
+    const [viewSelf, setViewSelf]       = useState(null);
+    const [viewPartner, setViewPartner] = useState(null);
+    const [showViewCard, setShowViewCard] = useState(false);
+    const [divorcing, setDivorcing]     = useState(false);
+    const [divorceConfirm, setDivorceConfirm] = useState(false);
+
+    useEffect(() => {
+        if (!show) return;
+        setLoadingFeed(true);
+        const unsub = couplesCollection
+            .where('status', '==', 'accepted')
+            .orderBy('marriageDate', 'desc')
+            .limit(30)
+            .onSnapshot(async snap => {
+                const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setCouples(docs);
+                // Batch-load all user profiles not yet cached
+                const uids = new Set();
+                docs.forEach(c => { uids.add(c.uid1); uids.add(c.uid2); });
+                const toLoad = [...uids].filter(uid => !coupleProfiles[uid]);
+                if (toLoad.length > 0) {
+                    const chunks = [];
+                    for (let i = 0; i < toLoad.length; i += 10) chunks.push(toLoad.slice(i, i+10));
+                    const profiles = { ...coupleProfiles };
+                    await Promise.all(chunks.map(async chunk => {
+                        const snap = await usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get();
+                        snap.docs.forEach(d => { profiles[d.id] = { id: d.id, ...d.data() }; });
+                    }));
+                    setCoupleProfiles(profiles);
+                }
+                setLoadingFeed(false);
+            }, () => setLoadingFeed(false));
+        return () => unsub();
+    }, [show]);
+
+    if (!show) return null;
+
+    const ring = RINGS_DATA.find(r => r.id === coupleData?.ringId) || RINGS_DATA[0];
+
+    const fmtTime = (ts) => {
+        if (!ts) return '';
+        const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+        return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    };
+
+    const handleOpenCouple = (coupleDoc) => {
+        const u1 = coupleProfiles[coupleDoc.uid1];
+        const u2 = coupleProfiles[coupleDoc.uid2];
+        if (!u1 || !u2) return;
+        if (coupleDoc.uid1 === currentUID || coupleDoc.uid2 === currentUID) {
+            // It's the viewer's own couple — open the actual interactive card
+            onOpenCoupleCard && onOpenCoupleCard();
+            return;
+        }
+        setViewCouple(coupleDoc);
+        setViewSelf(u1);
+        setViewPartner(u2);
+        setShowViewCard(true);
+    };
+
+    const handleDivorce = async () => {
+        if (!coupleData) return;
+        setDivorcing(true);
+        await divorceCouple({
+            coupleDocId: coupleData.id,
+            uid1: coupleData.uid1,
+            uid2: coupleData.uid2,
+            onNotification,
+            lang,
+        });
+        setDivorcing(false);
+        setDivorceConfirm(false);
+        onClose();
+    };
+
+    // Small avatar helper
+    const Av = ({ user, size = 44 }) => React.createElement('div', {
+        style:{ width:size, height:size, borderRadius:'50%', overflow:'hidden', flexShrink:0,
+            border:'2px solid rgba(236,72,153,0.4)', background:'rgba(255,255,255,0.08)',
+            display:'flex', alignItems:'center', justifyContent:'center', fontSize: Math.floor(size*0.45) }
+    }, user?.photoURL
+        ? React.createElement('img', { src:user.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
+        : '😎'
+    );
+
+    return React.createElement(PortalModal, null,
+        React.createElement('div', {
+            onClick: onClose,
+            style:{ position:'fixed', inset:0, zIndex: Z.MODAL_HIGH + 4,
+                background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'flex-end',
+                justifyContent:'center' }
+        },
+        React.createElement('div', {
+            className:'animate-pop',
+            onClick: e => e.stopPropagation(),
+            style:{
+                width:'100%', maxWidth:'480px', height:'90vh',
+                background:'#0d0d1a',
+                borderRadius:'24px 24px 0 0',
+                display:'flex', flexDirection:'column', overflow:'hidden',
+                boxShadow:'0 -10px 60px rgba(236,72,153,0.15)',
+                border:'1px solid rgba(236,72,153,0.15)',
+                borderBottom:'none',
+            }
+        },
+
+            /* ── Handle bar ── */
+            React.createElement('div', { style:{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }},
+                React.createElement('div', { style:{ width:'40px', height:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.15)' }})
+            ),
+
+            /* ── Header ── */
+            React.createElement('div', { style:{
+                display:'flex', alignItems:'center', justifyContent:'space-between',
+                padding:'8px 18px 12px', flexShrink:0
+            }},
+                React.createElement('div', null,
+                    React.createElement('div', { style:{ fontSize:'16px', fontWeight:900, color:'white' }}, '💒 ' + (lang==='ar' ? 'قاعة الأفراح' : 'Wedding Hall')),
+                    React.createElement('div', { style:{ fontSize:'10px', color:'#f9a8d4', marginTop:'2px' }},
+                        lang==='ar' ? 'اكتشف الكابلز وأرسل طلبك' : 'Discover couples & send your proposal')
+                ),
+                React.createElement('button', {
+                    onClick: onClose,
+                    style:{ background:'rgba(255,255,255,0.07)', border:'none', borderRadius:'10px',
+                        color:'#9ca3af', fontSize:'18px', width:'34px', height:'34px', cursor:'pointer',
+                        display:'flex', alignItems:'center', justifyContent:'center' }
+                }, '✕')
+            ),
+
+            /* ── 3 Action Buttons ── */
+            React.createElement('div', { style:{
+                display:'flex', gap:'10px', padding:'0 16px 14px', flexShrink:0
+            }},
+                /* Propose */
+                React.createElement('button', {
+                    onClick: () => { onClose(); setTimeout(() => onOpenPropose && onOpenPropose(), 50); },
+                    style:{
+                        flex:1, padding:'11px 6px', borderRadius:'14px', border:'none', cursor:'pointer',
+                        background:'linear-gradient(135deg,#ec4899,#be185d)',
+                        color:'white', fontSize:'12px', fontWeight:800,
+                        boxShadow:'0 4px 16px rgba(236,72,153,0.4)',
+                        display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
+                    }
+                },
+                    React.createElement('span', { style:{ fontSize:'18px' }}, '💍'),
+                    lang==='ar' ? 'خطبة' : 'Propose'
+                ),
+                /* Today's Weddings */
+                React.createElement('button', {
+                    onClick: () => setTab('feed'),
+                    style:{
+                        flex:1, padding:'11px 6px', borderRadius:'14px', border:'none', cursor:'pointer',
+                        background: tab === 'feed'
+                            ? 'linear-gradient(135deg,#7c3aed,#4c1d95)'
+                            : 'rgba(124,58,237,0.15)',
+                        border: tab === 'feed' ? 'none' : '1px solid rgba(124,58,237,0.3)',
+                        color:'white', fontSize:'12px', fontWeight:800,
+                        boxShadow: tab === 'feed' ? '0 4px 16px rgba(124,58,237,0.4)' : 'none',
+                        display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
+                    }
+                },
+                    React.createElement('span', { style:{ fontSize:'18px' }}, '💒'),
+                    lang==='ar' ? 'أفراح اليوم' : 'Weddings'
+                ),
+                /* Divorce */
+                React.createElement('button', {
+                    onClick: () => setTab('divorce'),
+                    style:{
+                        flex:1, padding:'11px 6px', borderRadius:'14px', border:'none', cursor:'pointer',
+                        background: tab === 'divorce'
+                            ? 'linear-gradient(135deg,#3b82f6,#1d4ed8)'
+                            : 'rgba(59,130,246,0.15)',
+                        border: tab === 'divorce' ? 'none' : '1px solid rgba(59,130,246,0.3)',
+                        color:'white', fontSize:'12px', fontWeight:800,
+                        boxShadow: tab === 'divorce' ? '0 4px 16px rgba(59,130,246,0.4)' : 'none',
+                        display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
+                    }
+                },
+                    React.createElement('span', { style:{ fontSize:'18px' }}, '💔'),
+                    lang==='ar' ? 'طلاق' : 'Divorce'
+                )
+            ),
+
+            /* ── Divider ── */
+            React.createElement('div', { style:{ height:'1px', background:'rgba(255,255,255,0.07)', flexShrink:0 }}),
+
+            /* ── Content ── */
+            React.createElement('div', { style:{ flex:1, overflowY:'auto', padding:'14px 16px' }},
+
+                /* ──── FEED TAB ──── */
+                tab === 'feed' && (
+                    loadingFeed
+                        ? React.createElement('div', { style:{ textAlign:'center', padding:'40px', color:'#6b7280' }}, '⏳')
+                        : couples.length === 0
+                            ? React.createElement('div', { style:{ textAlign:'center', padding:'40px' }},
+                                React.createElement('div', { style:{ fontSize:'48px', marginBottom:'12px' }}, '💒'),
+                                React.createElement('div', { style:{ fontSize:'13px', color:'#6b7280' }},
+                                    lang==='ar' ? 'لا يوجد أفراح اليوم' : 'No weddings today'))
+                            : React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'12px' }},
+                                couples.map(c => {
+                                    const u1 = coupleProfiles[c.uid1];
+                                    const u2 = coupleProfiles[c.uid2];
+                                    const cRing = RINGS_DATA.find(r => r.id === c.ringId) || RINGS_DATA[0];
+                                    const isMyCouple = c.uid1 === currentUID || c.uid2 === currentUID;
+                                    return React.createElement('div', {
+                                        key: c.id,
+                                        onClick: () => handleOpenCouple(c),
+                                        style:{
+                                            background: isMyCouple
+                                                ? 'linear-gradient(135deg,rgba(236,72,153,0.12),rgba(168,85,247,0.1))'
+                                                : 'rgba(255,255,255,0.04)',
+                                            border:`1px solid ${isMyCouple ? 'rgba(236,72,153,0.35)' : 'rgba(255,255,255,0.08)'}`,
+                                            borderRadius:'18px', padding:'14px 16px', cursor:'pointer',
+                                            transition:'.15s',
+                                        }
+                                    },
+                                        /* Title row */
+                                        React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px' }},
+                                            React.createElement('div', { style:{ fontSize:'12px', fontWeight:700, color: isMyCouple ? '#f9a8d4' : '#e2e8f0' }},
+                                                `${u1?.displayName || '—'} ${lang==='ar'?'و':'&'} ${u2?.displayName || '—'}`,
+                                                isMyCouple && React.createElement('span', { style:{ marginLeft:'6px', fontSize:'10px', background:'rgba(236,72,153,0.2)', color:'#f9a8d4', border:'1px solid rgba(236,72,153,0.4)', borderRadius:'6px', padding:'1px 7px' }}, lang==='ar'?'أنتم':'You')
+                                            ),
+                                            React.createElement('div', { style:{ fontSize:'10px', color:'#6b7280', background:'rgba(255,255,255,0.06)', borderRadius:'8px', padding:'3px 8px' }},
+                                                fmtTime(c.marriageDate))
+                                        ),
+                                        /* Avatars + ring */
+                                        React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'center', gap:'10px' }},
+                                            React.createElement(Av, { user:u1, size:48 }),
+                                            React.createElement('div', { style:{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', position:'relative' }},
+                                                React.createElement('div', { style:{ height:'2px', width:'100%', background:`linear-gradient(90deg, rgba(236,72,153,0.3), ${cRing.color}60, rgba(236,72,153,0.3))`, borderRadius:'4px' }}),
+                                                React.createElement('div', { style:{ position:'absolute', fontSize:'20px', filter:`drop-shadow(0 0 6px ${cRing.glow})` }}, cRing.emoji)
+                                            ),
+                                            React.createElement(Av, { user:u2, size:48 })
+                                        ),
+                                        /* Shared bio if exists */
+                                        c.sharedBio && React.createElement('div', { style:{ marginTop:'10px', fontSize:'11px', color:'#9ca3af', fontStyle:'italic', textAlign:'center', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'8px' }},
+                                            `"${c.sharedBio}"`)
+                                    );
+                                })
+                            )
+                ),
+
+                /* ──── DIVORCE TAB ──── */
+                tab === 'divorce' && React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'14px' }},
+                    !coupleData
+                        ? React.createElement('div', { style:{ textAlign:'center', padding:'40px' }},
+                            React.createElement('div', { style:{ fontSize:'40px', marginBottom:'12px' }}, '💔'),
+                            React.createElement('div', { style:{ fontSize:'13px', color:'#6b7280' }},
+                                lang==='ar' ? 'لست مرتبطاً حالياً' : 'You are not in a relationship'))
+                        : React.createElement('div', null,
+                            /* Current couple summary */
+                            React.createElement('div', { style:{ padding:'16px', borderRadius:'16px', background:'rgba(236,72,153,0.08)', border:'1px solid rgba(236,72,153,0.2)', marginBottom:'14px', display:'flex', alignItems:'center', gap:'14px' }},
+                                React.createElement(Av, { user:currentUserData, size:44 }),
+                                React.createElement('span', { style:{ fontSize:'22px' }}, '💕'),
+                                React.createElement(Av, { user:partnerData, size:44 }),
+                                React.createElement('div', { style:{ marginLeft:'8px', flex:1 }},
+                                    React.createElement('div', { style:{ fontSize:'13px', fontWeight:700, color:'white' }},
+                                        partnerData?.displayName || '—'),
+                                    React.createElement('div', { style:{ fontSize:'10px', color:'#f9a8d4' }},
+                                        (() => { const d = coupleTimeDiff(coupleData?.marriageDate); return d ? (lang==='ar' ? `معاً ${d.days} يوم` : `Together ${d.days} days`) : ''; })())
+                                )
+                            ),
+                            !divorceConfirm
+                                ? React.createElement('button', {
+                                    onClick: () => setDivorceConfirm(true),
+                                    style:{ width:'100%', padding:'14px', borderRadius:'14px', border:'none',
+                                        background:'linear-gradient(135deg,#ef4444,#b91c1c)',
+                                        color:'white', fontSize:'13px', fontWeight:800, cursor:'pointer',
+                                        boxShadow:'0 4px 16px rgba(239,68,68,0.3)' }
+                                  }, lang==='ar' ? '💔 إنهاء الارتباط' : '💔 End Relationship')
+                                : React.createElement('div', { style:{ padding:'16px', borderRadius:'14px', border:'1px solid rgba(239,68,68,0.35)', background:'rgba(239,68,68,0.08)', textAlign:'center' }},
+                                    React.createElement('div', { style:{ fontSize:'13px', color:'#f87171', fontWeight:700, marginBottom:'12px' }},
+                                        lang==='ar' ? '⚠️ هل أنت متأكد؟ لا يمكن التراجع!' : '⚠️ Are you sure? This cannot be undone!'),
+                                    React.createElement('div', { style:{ display:'flex', gap:'10px' }},
+                                        React.createElement('button', { onClick:()=>setDivorceConfirm(false), style:{ flex:1, padding:'11px', borderRadius:'12px', border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.06)', color:'#9ca3af', fontSize:'12px', cursor:'pointer' }},
+                                            lang==='ar' ? 'تراجع' : 'Cancel'),
+                                        React.createElement('button', { onClick:handleDivorce, disabled:divorcing, style:{ flex:1, padding:'11px', borderRadius:'12px', border:'none', background:'rgba(239,68,68,0.8)', color:'white', fontSize:'12px', fontWeight:700, cursor:'pointer' }},
+                                            divorcing ? '⏳' : (lang==='ar' ? '💔 تأكيد' : '💔 Confirm'))
+                                    )
+                                  )
+                          )
+                )
+            )
+        )),
+
+        /* View-only CoupleCardModal for other couples (no edit) */
+        showViewCard && viewCouple && React.createElement(CoupleCardModal, {
+            show: showViewCard,
+            onClose: () => setShowViewCard(false),
+            coupleDoc: viewCouple,
+            currentUID,
+            selfData: viewSelf,
+            partnerData: viewPartner,
+            lang,
+            onNotification,
+            viewOnly: true,
+        })
+    );
+};
