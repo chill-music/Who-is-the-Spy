@@ -654,6 +654,7 @@ const CoupleCardModal = ({
     const [sending, setSending]         = useState(false);
     const [giftErr, setGiftErr]         = useState('');
     const [giftOk, setGiftOk]           = useState('');
+    const [showGiftPanel, setShowGiftPanel] = useState(false);
 
     // ── Real-time listener for coupleDoc itself ──
     useEffect(() => {
@@ -939,80 +940,85 @@ const CoupleCardModal = ({
                     fontSize:'10px', color:'#f87171', background:'rgba(0,0,0,0.7)', borderRadius:'6px', padding:'3px 8px', zIndex:20 }
                 }, uploadErr),
 
-                /* Bottom overlay: avatars + ring + marriage text */
+                /* Bottom overlay: avatars + ring + love/blessing */
                 React.createElement('div', { style:{ position:'absolute', bottom:0, left:0, right:0,
-                    padding:'12px 16px', display:'flex', alignItems:'flex-end', gap:'10px', zIndex:10 }
+                    padding:'10px 16px 12px', display:'flex', alignItems:'flex-end', justifyContent:'space-between', zIndex:10 }
                 },
-                    /* Left avatar */
-                    React.createElement('div', { onClick: () => uid1 && onOpenProfile && onOpenProfile(uid1),
-                        style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'3px', cursor:'pointer' }
-                    },
-                        React.createElement('div', { style:{ width:'52px', height:'52px', borderRadius:'50%',
-                            border:`2.5px solid ${ring.color}`, overflow:'hidden', background:'rgba(0,0,0,0.5)',
-                            boxShadow:`0 0 12px ${ring.glow}` }},
-                            selfData?.photoURL
-                                ? React.createElement('img', { src:selfData.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                                : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}, '😎')
+                    /* ── Left: avatars close together with ring in middle ── */
+                    React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
+                        React.createElement('div', { style:{ display:'flex', alignItems:'flex-end' }},
+                            /* Left avatar */
+                            React.createElement('div', { onClick: () => uid1 && onOpenProfile && onOpenProfile(uid1),
+                                style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'2px', cursor:'pointer', zIndex:2 }
+                            },
+                                React.createElement('div', { style:{ width:'54px', height:'54px', borderRadius:'50%',
+                                    border:`2.5px solid ${ring.color}`, overflow:'hidden', background:'rgba(0,0,0,0.5)',
+                                    boxShadow:`0 0 12px ${ring.glow}` }},
+                                    selfData?.photoURL
+                                        ? React.createElement('img', { src:selfData.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
+                                        : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}, '😎')
+                                ),
+                                React.createElement('div', { style:{ fontSize:'9px', fontWeight:700, color:'rgba(255,255,255,0.9)',
+                                    maxWidth:'58px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                                    textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, selfData?.displayName || '—')
+                            ),
+                            /* Ring icon — centered between avatars, slightly overlapping */
+                            React.createElement('div', { style:{ zIndex:3, marginLeft:'-6px', marginRight:'-6px', marginBottom:'18px', cursor:'pointer', textAlign:'center' },
+                                onClick: () => setRingTooltipId(v => v ? null : ring.id)
+                            },
+                                ring.imageURL
+                                    ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'32px', height:'32px', objectFit:'contain',
+                                        filter:`drop-shadow(0 0 8px ${ring.glow})` }})
+                                    : React.createElement('div', { style:{ fontSize:'26px', lineHeight:1,
+                                        filter:`drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` }}, ring.emoji),
+                                /* Ring name tooltip */
+                                ringTooltipId && React.createElement('div', { style:{
+                                    position:'absolute', bottom:'100%', left:'50%', transform:'translateX(-50%)',
+                                    background:'rgba(15,5,25,0.96)', border:`1px solid ${ring.color}60`,
+                                    borderRadius:'10px', padding:'8px 12px', zIndex:50, whiteSpace:'nowrap',
+                                    boxShadow:`0 4px 20px rgba(0,0,0,0.8)`, pointerEvents:'none', marginBottom:'6px'
+                                }},
+                                    React.createElement('div', { style:{ fontSize:'16px', textAlign:'center', marginBottom:'2px',
+                                        filter:`drop-shadow(0 0 6px ${ring.glow})` }}, ring.imageURL ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'22px', height:'22px', objectFit:'contain' }}) : ring.emoji),
+                                    React.createElement('div', { style:{ fontSize:'11px', fontWeight:800, color:ring.color, textAlign:'center' }},
+                                        lang==='ar' ? ring.name_ar : ring.name_en),
+                                    React.createElement('div', { style:{ fontSize:'9px', color: RARITY_COLORS_C[ring.rarity], textAlign:'center', marginTop:'1px' }}, ring.rarity)
+                                )
+                            ),
+                            /* Right avatar */
+                            React.createElement('div', { onClick: () => uid2 && onOpenProfile && onOpenProfile(uid2),
+                                style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'2px', cursor:'pointer', zIndex:2 }
+                            },
+                                React.createElement('div', { style:{ width:'54px', height:'54px', borderRadius:'50%',
+                                    border:`2.5px solid ${ring.color}`, overflow:'hidden', background:'rgba(0,0,0,0.5)',
+                                    boxShadow:`0 0 12px ${ring.glow}` }},
+                                    partnerData?.photoURL
+                                        ? React.createElement('img', { src:partnerData.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
+                                        : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}, '💑')
+                                ),
+                                React.createElement('div', { style:{ fontSize:'9px', fontWeight:700, color:'rgba(255,255,255,0.9)',
+                                    maxWidth:'58px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                                    textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, partnerData?.displayName || '—')
+                            )
                         ),
-                        React.createElement('div', { style:{ fontSize:'9px', fontWeight:700, color:'rgba(255,255,255,0.9)',
-                            maxWidth:'56px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                            textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, selfData?.displayName || '—')
+                        /* Marriage duration text below avatars */
+                        doc.marriageDate && React.createElement('div', { style:{ fontSize:'10px', color:'rgba(255,255,255,0.72)',
+                            textShadow:'0 1px 6px rgba(0,0,0,0.9)', fontWeight:600, textAlign:'center' }},
+                            lang==='ar'
+                                ? `نحن معاً منذ ${timer.days} يوم 💕`
+                                : `We have been married for ${timer.days} days`)
                     ),
 
-                    /* Ring icon — clickable for name */
-                    React.createElement('div', { style:{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', paddingBottom:'18px', position:'relative' }},
-                        React.createElement('div', { onClick: () => setRingTooltipId(v => v ? null : ring.id),
-                            style:{ cursor:'pointer', textAlign:'center' }
-                        },
-                            ring.imageURL
-                                ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'36px', height:'36px', objectFit:'contain',
-                                    filter:`drop-shadow(0 0 8px ${ring.glow})` }})
-                                : React.createElement('div', { style:{ fontSize:'28px', lineHeight:1,
-                                    filter:`drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` }}, ring.emoji)
-                        ),
-                        /* Ring name tooltip */
-                        ringTooltipId && React.createElement('div', { style:{
-                            position:'absolute', bottom:'110%', left:'50%', transform:'translateX(-50%)',
-                            background:'rgba(15,5,25,0.96)', border:`1px solid ${ring.color}60`,
-                            borderRadius:'10px', padding:'8px 12px', zIndex:50, whiteSpace:'nowrap',
-                            boxShadow:`0 4px 20px rgba(0,0,0,0.8)`, pointerEvents:'none'
-                        }},
-                            React.createElement('div', { style:{ fontSize:'18px', textAlign:'center', marginBottom:'2px',
-                                filter:`drop-shadow(0 0 6px ${ring.glow})` }}, ring.imageURL ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'24px', height:'24px', objectFit:'contain' }}) : ring.emoji),
-                            React.createElement('div', { style:{ fontSize:'11px', fontWeight:800, color:ring.color, textAlign:'center' }},
-                                lang==='ar' ? ring.name_ar : ring.name_en),
-                            React.createElement('div', { style:{ fontSize:'9px', color: RARITY_COLORS_C[ring.rarity], textAlign:'center', marginTop:'1px' }}, ring.rarity)
-                        )
-                    ),
-
-                    /* Right avatar */
-                    React.createElement('div', { onClick: () => uid2 && onOpenProfile && onOpenProfile(uid2),
-                        style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'3px', cursor:'pointer' }
-                    },
-                        React.createElement('div', { style:{ width:'52px', height:'52px', borderRadius:'50%',
-                            border:`2.5px solid ${ring.color}`, overflow:'hidden', background:'rgba(0,0,0,0.5)',
-                            boxShadow:`0 0 12px ${ring.glow}` }},
-                            partnerData?.photoURL
-                                ? React.createElement('img', { src:partnerData.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                                : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}, '💑')
-                        ),
-                        React.createElement('div', { style:{ fontSize:'9px', fontWeight:700, color:'rgba(255,255,255,0.9)',
-                            maxWidth:'56px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                            textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, partnerData?.displayName || '—')
-                    ),
-
-                    /* Love + Blessing pills — top right of hero */
-                    React.createElement('div', { style:{ position:'absolute', top:'-165px', right:'12px',
-                        display:'flex', flexDirection:'column', gap:'6px', zIndex:20 }
-                    },
+                    /* ── Right: Love + Blessing pills ── */
+                    React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'6px', paddingBottom:'22px' }},
                         React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px',
                             background:'rgba(0,0,0,0.6)', backdropFilter:'blur(6px)',
                             borderRadius:'20px', padding:'5px 10px', border:'1px solid rgba(236,72,153,0.3)' }
                         },
-                            React.createElement('div', { style:{ width:'28px', height:'28px', borderRadius:'50%',
+                            React.createElement('div', { style:{ width:'26px', height:'26px', borderRadius:'50%',
                                 background:'rgba(236,72,153,0.3)', display:'flex', alignItems:'center',
-                                justifyContent:'center', fontSize:'14px' }}, '❤️'),
-                            React.createElement('div', { style:{ textAlign:'right' }},
+                                justifyContent:'center', fontSize:'13px' }}, '❤️'),
+                            React.createElement('div', { style:{ textAlign:'left' }},
                                 React.createElement('div', { style:{ fontSize:'13px', fontWeight:900, color:'white', lineHeight:1 }},
                                     (doc.blessingPoints || 0).toLocaleString()),
                                 React.createElement('div', { style:{ fontSize:'8px', color:'rgba(255,255,255,0.5)' }},
@@ -1023,10 +1029,10 @@ const CoupleCardModal = ({
                             background:'rgba(0,0,0,0.6)', backdropFilter:'blur(6px)',
                             borderRadius:'20px', padding:'5px 10px', border:'1px solid rgba(168,85,247,0.3)' }
                         },
-                            React.createElement('div', { style:{ width:'28px', height:'28px', borderRadius:'50%',
+                            React.createElement('div', { style:{ width:'26px', height:'26px', borderRadius:'50%',
                                 background:'rgba(168,85,247,0.25)', display:'flex', alignItems:'center',
-                                justifyContent:'center', fontSize:'14px' }}, '🎁'),
-                            React.createElement('div', { style:{ textAlign:'right' }},
+                                justifyContent:'center', fontSize:'13px' }}, '🎁'),
+                            React.createElement('div', { style:{ textAlign:'left' }},
                                 React.createElement('div', { style:{ fontSize:'13px', fontWeight:900, color:'white', lineHeight:1 }},
                                     (doc.blessingPoints || 0)),
                                 React.createElement('div', { style:{ fontSize:'8px', color:'rgba(255,255,255,0.5)' }},
@@ -1035,15 +1041,6 @@ const CoupleCardModal = ({
                         )
                     )
                 ),
-
-                /* Marriage duration text */
-                doc.marriageDate && React.createElement('div', { style:{ position:'absolute', bottom:'58px', left:'16px', zIndex:15 }},
-                    React.createElement('div', { style:{ fontSize:'11px', color:'rgba(255,255,255,0.75)',
-                        textShadow:'0 1px 6px rgba(0,0,0,0.9)', fontWeight:600 }},
-                        lang==='ar'
-                            ? `نحن معاً منذ ${timer.days} يوم 💕`
-                            : `We have been married for ${timer.days} days`)
-                )
             ),
 
             /* ══ SCROLLABLE BODY ══ */
@@ -1173,29 +1170,6 @@ const CoupleCardModal = ({
                     })()
                 ),
 
-                /* ── SEND A BLESSING GIFT ── */
-                COUPLE_GIFTS.length > 0 && React.createElement('div', { style:{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.05)' }},
-                    React.createElement('div', { style:{ fontSize:'12px', fontWeight:800, color:'white', marginBottom:'4px' }},
-                        lang==='ar' ? 'الهدايا الأخيرة' : 'Recent gifts'),
-                    React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', marginBottom:'10px', display:'flex', alignItems:'center', gap:'4px' }},
-                        '?', lang==='ar' ? ' الهدايا تضاف كبركة' : ' gifts add as blessing'),
-                    /* Gift scroll */
-                    React.createElement('div', { style:{ display:'flex', gap:'8px', overflowX:'auto', paddingBottom:'4px', scrollbarWidth:'none' }},
-                        COUPLE_GIFTS.map(gift =>
-                            React.createElement('button', { key:gift.id, onClick:()=>sendBlessingGift(gift), disabled:sending,
-                                style:{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'center', gap:'2px',
-                                    padding:'8px 10px', borderRadius:'12px', border:'1px solid rgba(168,85,247,0.25)',
-                                    background:'rgba(168,85,247,0.1)', cursor:'pointer', opacity:sending?0.6:1 }
-                            },
-                                React.createElement('span', { style:{ fontSize:'22px' }}, gift.emoji),
-                                React.createElement('span', { style:{ fontSize:'8px', color:'#fcd34d', fontWeight:700 }}, `${gift.cost}🧠`)
-                            )
-                        )
-                    ),
-                    giftOk && React.createElement('div', { style:{ fontSize:'11px', color:'#4ade80', marginTop:'6px', fontWeight:700, textAlign:'center' }}, giftOk),
-                    giftErr && React.createElement('div', { style:{ fontSize:'11px', color:'#f87171', marginTop:'6px', fontWeight:700, textAlign:'center' }}, giftErr)
-                ),
-
                 /* ── GIFT LOG (Recent gifts list, WePlay style) ── */
                 doc.giftLog && doc.giftLog.length > 0 && React.createElement('div', { style:{ padding:'0 16px 14px' }},
                     React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'0' }},
@@ -1224,92 +1198,73 @@ const CoupleCardModal = ({
                     )
                 ),
 
-                /* ── DIVORCE ── */
-                isMember && (
-                    divorceStep === 0 && React.createElement('button', {
-                        onClick: () => setDivorceStep(1),
-                        style:{ padding:'10px', borderRadius:'12px', border:'1px solid rgba(239,68,68,0.2)',
-                            background:'rgba(239,68,68,0.05)', color:'rgba(239,68,68,0.55)',
-                            fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'center', width:'100%',
-                            margin:'0 0 4px' }
-                    }, lang==='ar' ? '💔 إنهاء الارتباط' : '💔 End Relationship') ||
-
-                    divorceStep === 1 && React.createElement('div', {
-                        style:{ padding:'16px', borderRadius:'18px',
-                            background:'linear-gradient(135deg,rgba(251,146,60,0.12),rgba(239,68,68,0.08))',
-                            border:'1px solid rgba(251,146,60,0.4)',
-                            display:'flex', flexDirection:'column', gap:'12px' }
-                    },
-                        React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'10px' }},
-                            React.createElement('span', { style:{ fontSize:'30px', flexShrink:0 }}, '⚠️'),
-                            React.createElement('div', null,
-                                React.createElement('div', { style:{ fontSize:'14px', fontWeight:900, color:'#fbbf24', lineHeight:1.3 }},
-                                    lang==='ar' ? 'فكّر مرتين قبل أن تطلق!' : 'Think twice before divorcing!'),
-                                React.createElement('div', { style:{ fontSize:'11px', color:'#9ca3af', marginTop:'3px' }},
-                                    lang==='ar'
-                                        ? `أنتم معاً مع ${partnerData?.displayName || ''} منذ:`
-                                        : `You have been with ${partnerData?.displayName || ''} for:`)
+                /* ── GIFT PANEL (slides up when Send Gift tapped) ── */
+                showGiftPanel && isMember && React.createElement('div', { style:{
+                    padding:'16px', borderTop:'1px solid rgba(168,85,247,0.2)',
+                    background:'linear-gradient(180deg,rgba(20,5,40,0.98),rgba(12,4,20,0.99))'
+                }},
+                    React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px' }},
+                        React.createElement('div', null,
+                            React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color:'white' }},
+                                lang==='ar' ? 'أرسل هدية 🎁' : 'Send a Gift 🎁'),
+                            React.createElement('div', { style:{ fontSize:'9px', color:'#9ca3af', marginTop:'1px' }},
+                                lang==='ar' ? 'الهدايا تضاف كنقاط بركة' : 'Gifts add as blessing points')
+                        ),
+                        React.createElement('button', { onClick: () => setShowGiftPanel(false),
+                            style:{ width:'28px', height:'28px', borderRadius:'50%', border:'none',
+                                background:'rgba(255,255,255,0.08)', color:'#9ca3af', fontSize:'18px',
+                                cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }
+                        }, '×')
+                    ),
+                    React.createElement('div', { style:{ display:'flex', gap:'8px', flexWrap:'wrap', justifyContent:'center' }},
+                        COUPLE_GIFTS.map(gift =>
+                            React.createElement('button', { key:gift.id, onClick:()=>{ sendBlessingGift(gift); setShowGiftPanel(false); }, disabled:sending,
+                                style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px',
+                                    padding:'10px 12px', borderRadius:'14px',
+                                    border:'1px solid rgba(168,85,247,0.3)',
+                                    background: sending ? 'rgba(168,85,247,0.05)' : 'rgba(168,85,247,0.12)',
+                                    cursor: sending ? 'not-allowed' : 'pointer',
+                                    opacity: sending ? 0.5 : 1, transition:'.15s', minWidth:'60px' }
+                            },
+                                gift.imageUrl
+                                    ? React.createElement('img', { src:gift.imageUrl, alt:'', style:{ width:'32px', height:'32px', objectFit:'contain' }})
+                                    : React.createElement('span', { style:{ fontSize:'26px', lineHeight:1 }}, gift.emoji),
+                                React.createElement('span', { style:{ fontSize:'8px', color:'#e2e8f0', fontWeight:700, textAlign:'center',
+                                    maxWidth:'58px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }},
+                                    lang==='ar' ? gift.name_ar : gift.name_en),
+                                React.createElement('span', { style:{ fontSize:'8px', color:'#fcd34d', fontWeight:800 }}, `${gift.cost}🧠`)
                             )
-                        ),
-                        React.createElement('div', { style:{ background:'rgba(0,0,0,0.35)', borderRadius:'14px', padding:'12px',
-                            display:'flex', alignItems:'center', justifyContent:'center' }},
-                            [
-                                { val:timer.days,  label_ar:'يوم',   label_en:'Days'  },
-                                { val:timer.hours, label_ar:'ساعة',  label_en:'Hours' },
-                                { val:timer.mins,  label_ar:'دقيقة', label_en:'Mins'  },
-                            ].map((item, i) => React.createElement(React.Fragment, { key:i },
-                                i > 0 && React.createElement('div', {
-                                    style:{ fontSize:'20px', color:'rgba(251,146,60,0.4)', fontWeight:900, margin:'0 4px', paddingBottom:'14px' }
-                                }, ':'),
-                                React.createElement('div', { style:{ textAlign:'center', minWidth:'44px' }},
-                                    React.createElement('div', { style:{ fontSize:'28px', fontWeight:900, color:'#fbbf24',
-                                        textShadow:'0 0 16px rgba(251,146,60,0.5)' }}, item.val),
-                                    React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', marginTop:'2px' }},
-                                        lang==='ar' ? item.label_ar : item.label_en)
-                                )
-                            ))
-                        ),
-                        React.createElement('div', { style:{ fontSize:'12px', color:'#9ca3af', textAlign:'center', fontStyle:'italic', padding:'0 4px', lineHeight:1.5 }},
-                            lang==='ar' ? 'هل تريد فعلاً إنهاء كل هذه الذكريات الجميلة؟ 💔' : 'Are you sure you want to throw away all these beautiful memories? 💔'),
-                        React.createElement('div', { style:{ display:'flex', gap:'10px' }},
-                            React.createElement('button', { onClick: () => setDivorceStep(0),
-                                style:{ flex:2, padding:'12px', borderRadius:'12px',
-                                    border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.1)',
-                                    color:'#4ade80', fontSize:'12px', fontWeight:800, cursor:'pointer' }
-                            }, lang==='ar' ? '💚 أبقى معه/معها' : '💚 Stay Together'),
-                            React.createElement('button', { onClick: () => setDivorceStep(2),
-                                style:{ flex:1, padding:'12px', borderRadius:'12px',
-                                    border:'1px solid rgba(239,68,68,0.3)', background:'rgba(239,68,68,0.08)',
-                                    color:'#f87171', fontSize:'12px', fontWeight:700, cursor:'pointer' }
-                            }, lang==='ar' ? 'متأكد؟' : 'Proceed')
                         )
-                    ) ||
-
-                    divorceStep === 2 && React.createElement('div', {
-                        style:{ padding:'14px', borderRadius:'14px', border:'1px solid rgba(239,68,68,0.4)',
-                            background:'rgba(239,68,68,0.1)', textAlign:'center',
-                            display:'flex', flexDirection:'column', gap:'10px' }
-                    },
-                        React.createElement('div', { style:{ fontSize:'13px', color:'#f87171', fontWeight:900 }},
-                            lang==='ar' ? '🔴 هذا القرار لا يمكن التراجع عنه نهائياً!' : '🔴 This cannot be undone!'),
-                        React.createElement('div', { style:{ display:'flex', gap:'10px' }},
-                            React.createElement('button', { onClick: () => setDivorceStep(0),
-                                style:{ flex:1, padding:'11px', borderRadius:'10px',
-                                    border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.06)',
-                                    color:'#9ca3af', fontSize:'12px', cursor:'pointer' }
-                            }, lang==='ar' ? 'تراجع' : 'Cancel'),
-                            React.createElement('button', { onClick: handleDivorce, disabled: divorcing,
-                                style:{ flex:1, padding:'11px', borderRadius:'10px', border:'none',
-                                    background:'rgba(239,68,68,0.88)', color:'white',
-                                    fontSize:'13px', fontWeight:900, cursor:'pointer',
-                                    boxShadow:'0 4px 14px rgba(239,68,68,0.4)',
-                                    opacity: divorcing ? 0.7 : 1 }
-                            }, divorcing ? '⏳' : (lang==='ar' ? '💔 طلاق نهائي' : '💔 Confirm Divorce'))
-                        )
-                    )
+                    ),
+                    giftOk && React.createElement('div', { style:{ fontSize:'11px', color:'#4ade80', marginTop:'10px', fontWeight:700, textAlign:'center' }}, giftOk),
+                    giftErr && React.createElement('div', { style:{ fontSize:'11px', color:'#f87171', marginTop:'10px', fontWeight:700, textAlign:'center' }}, giftErr)
                 )
 
             ) // end scrollable body
+
+            /* ── FIXED BOTTOM: Send Gift button ── */,
+            isMember && React.createElement('div', { style:{
+                flexShrink:0, padding:'10px 16px', borderTop:'1px solid rgba(255,255,255,0.07)',
+                background:'rgba(12,4,20,0.98)', backdropFilter:'blur(12px)'
+            }},
+                React.createElement('button', { onClick: () => setShowGiftPanel(v => !v),
+                    style:{
+                        width:'100%', padding:'13px', borderRadius:'14px',
+                        background: showGiftPanel
+                            ? 'linear-gradient(135deg,#7c3aed,#a855f7)'
+                            : 'linear-gradient(135deg,rgba(168,85,247,0.22),rgba(139,92,246,0.22))',
+                        color:'white', fontSize:'14px', fontWeight:800, cursor:'pointer',
+                        display:'flex', alignItems:'center', justifyContent:'center', gap:'8px',
+                        border: showGiftPanel ? 'none' : '1px solid rgba(168,85,247,0.45)',
+                        boxShadow: showGiftPanel ? '0 4px 20px rgba(168,85,247,0.5)' : 'none',
+                        transition:'.2s'
+                    }
+                },
+                    React.createElement('span', { style:{ fontSize:'18px' }}, '🎁'),
+                    lang==='ar' ? 'أرسل هدية' : 'Send gift'
+                )
+            )
+
         )) // end modal inner + overlay
     ); // end PortalModal
 };
