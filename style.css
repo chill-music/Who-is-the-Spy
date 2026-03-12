@@ -1975,11 +1975,11 @@ body {
     right: 16px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     background: linear-gradient(135deg, rgba(236,72,153,0.25), rgba(168,85,247,0.2));
     border: 1.5px solid rgba(236,72,153,0.45);
     border-radius: 24px;
-    padding: 4px 10px 4px 4px;
+    padding: 4px 10px 4px 5px;
     cursor: pointer;
     z-index: 10;
     transition: transform .15s;
@@ -2000,9 +2000,9 @@ body {
     flex-shrink: 0;
 }
 .profile-couple-badge .cb-ring {
-    font-size: 14px;
-    margin: 0 2px;
-    filter: drop-shadow(0 0 4px rgba(236,72,153,0.6));
+    font-size: 15px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 5px rgba(236,72,153,0.7));
 }
 .profile-couple-badge .cb-name {
     font-size: 10px;
