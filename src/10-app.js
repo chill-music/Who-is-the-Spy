@@ -75,6 +75,7 @@ function App() {
     const [incomingProposal, setIncomingProposal]       = useState(null); // pending couple doc for me
     const [incomingProposalFrom, setIncomingProposalFrom] = useState(null); // proposer data
     const [showIncomingProposal, setShowIncomingProposal] = useState(false);
+    const [showWeddingHall, setShowWeddingHall]         = useState(false);
 
     // Click outside handler for notification dropdown
     useEffect(() => {
@@ -1398,6 +1399,21 @@ function App() {
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
             <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} onSetLang={(nl) => { setLang(nl); localStorage.setItem('pro_spy_lang', nl); if(user) usersCollection.doc(user.uid).update({lang:nl}).catch(()=>{}); }} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} onOpenAdminPanel={() => setShowAdminPanel(true)} />
 
+            {/* 💒 Wedding Hall Modal */}
+            <WeddingHallModal
+                show={showWeddingHall}
+                onClose={() => setShowWeddingHall(false)}
+                lang={lang}
+                currentUID={currentUID}
+                currentUserData={userData}
+                coupleData={coupleData}
+                partnerData={partnerData}
+                onOpenPropose={() => { setShowWeddingHall(false); setShowShop(true); }}
+                onOpenCoupleCard={() => { setShowWeddingHall(false); setShowCoupleCard(true); }}
+                onDivorce={() => {}}
+                onNotification={setNotification}
+            />
+
             {/* 💍 Proposal Modal */}
             <ProposalModal
                 show={showProposalModal}
@@ -1979,48 +1995,74 @@ function App() {
                                 <span className="sec-title-new">🔥 {lang==='ar'?'اكتشف':'Discover'}</span>
                             </div>
 
-                            {/* Moments Card — Active */}
-                            <div className="discover-card-cs" style={{'--dc-color':'rgba(0,242,255,0.12)','--dc-border':'rgba(0,242,255,0.2)',cursor:'pointer'}} onClick={()=>setShowFriendsMoments(true)}>
+                            {/* Moments — wide banner card */}
+                            <div className="discover-card-cs" style={{'--dc-color':'rgba(0,242,255,0.08)','--dc-border':'rgba(0,242,255,0.18)',cursor:'pointer'}} onClick={()=>setShowFriendsMoments(true)}>
                                 <div className="dc-left">
-                                    <div className="dc-icon" style={{background:'rgba(0,242,255,0.15)'}}>📸</div>
+                                    <div className="dc-icon" style={{background:'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.15))', fontSize:'22px'}}>📸</div>
                                 </div>
                                 <div className="dc-body">
                                     <div className="dc-title">{lang==='ar'?'مومنت الأصدقاء':'Friends Moments'}</div>
-                                    <div className="dc-desc">{lang==='ar'?'شارك لحظاتك مع أصدقائك':'Share your moments with friends'}</div>
+                                    <div className="dc-desc">{lang==='ar'?'شارك لحظاتك مع أصدقائك':'Share moments with friends'}</div>
                                 </div>
-                                <div style={{fontSize:'16px',color:'#00f2ff'}}>›</div>
+                                <div style={{fontSize:'16px',color:'#00f2ff',flexShrink:0}}>›</div>
                             </div>
 
-                            {/* Couples Card */}
-                            <div className="discover-card-cs" style={{'--dc-color':'rgba(236,72,153,0.12)','--dc-border':'rgba(236,72,153,0.25)',cursor:'pointer'}} onClick={() => { if (!isLoggedIn) { setShowLoginAlert(true); return; } if (coupleData) setShowCoupleCard(true); else { setShowShop(true); }; }}>
-                                <div className="dc-left">
-                                    <div className="dc-icon" style={{background:'rgba(236,72,153,0.18)'}}>💍</div>
-                                </div>
-                                <div className="dc-body">
-                                    <div className="dc-title">{lang==='ar'?'الكابلز':'Couples'}</div>
-                                    <div className="dc-desc">
-                                        {coupleData
-                                            ? (partnerData ? (lang==='ar' ? `مرتبط بـ ${partnerData.displayName} 💕` : `Coupled with ${partnerData.displayName} 💕`) : (lang==='ar'?'اضغط لعرض البطاقة':'Tap to view card'))
-                                            : (lang==='ar'?'اشتر خاتماً وأرسل طلب ارتباط':'Buy a ring & send a proposal')
+                            {/* Square grid — Couples + Family */}
+                            <div className="discover-grid" style={{gridTemplateColumns:'repeat(2,1fr)'}}>
+
+                                {/* Couples square */}
+                                <div
+                                    className="discover-sq"
+                                    style={{
+                                        '--dsq-bg':'linear-gradient(145deg,rgba(236,72,153,0.12),rgba(168,85,247,0.08))',
+                                        '--dsq-border':'rgba(236,72,153,0.3)',
+                                        padding:'18px 12px',
+                                    }}
+                                    onClick={() => {
+                                        if (!isLoggedIn) { setShowLoginAlert(true); return; }
+                                        setShowWeddingHall(true);
+                                    }}
+                                >
+                                    {coupleData && <div className="dsq-dot" style={{background:'#ec4899'}}/>}
+                                    <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(236,72,153,0.25),rgba(168,85,247,0.2))'}}>
+                                        {coupleData && partnerData?.photoURL
+                                            ? <img src={partnerData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'14px'}}/>
+                                            : '💍'
                                         }
                                     </div>
+                                    <div className="dsq-label">{lang==='ar'?'الكابلز':'Couples'}</div>
+                                    {coupleData && partnerData && (
+                                        <div style={{fontSize:'9px',color:'#f9a8d4',textAlign:'center',fontWeight:600,maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                                            {partnerData.displayName}
+                                        </div>
+                                    )}
                                 </div>
-                                {coupleData
-                                    ? React.createElement('div', { style:{ fontSize:'16px', color:'#ec4899' }}, '›')
-                                    : React.createElement('div', { className:'dc-badge', style:{ background:'rgba(236,72,153,0.2)', color:'#f9a8d4', border:'1px solid rgba(236,72,153,0.4)' }}, lang==='ar'?'جديد':'New')
-                                }
-                            </div>
 
-                            {/* Tribe Card — Active */}
-                            <div className="discover-card-cs" style={{'--dc-color':'rgba(255,136,0,0.1)','--dc-border':'rgba(255,136,0,0.2)',cursor:'pointer'}} onClick={()=>setShowFamilyModal(true)}>
-                                <div className="dc-left">
-                                    <div className="dc-icon" style={{background:'rgba(255,136,0,0.15)'}}>🏠</div>
+                                {/* Family square */}
+                                <div
+                                    className="discover-sq"
+                                    style={{
+                                        '--dsq-bg':'linear-gradient(145deg,rgba(255,136,0,0.1),rgba(255,80,0,0.06))',
+                                        '--dsq-border':'rgba(255,136,0,0.28)',
+                                        padding:'18px 12px',
+                                    }}
+                                    onClick={()=>setShowFamilyModal(true)}
+                                >
+                                    {userFamily && <div className="dsq-dot" style={{background:'#f97316'}}/>}
+                                    <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(255,136,0,0.22),rgba(255,80,0,0.12))'}}>
+                                        {userFamily?.photoURL
+                                            ? <img src={userFamily.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'14px'}}/>
+                                            : (userFamily?.emblem || '🏠')
+                                        }
+                                    </div>
+                                    <div className="dsq-label">{lang==='ar'?'العائلة':'Family'}</div>
+                                    {userFamily && (
+                                        <div style={{fontSize:'9px',color:'#fb923c',textAlign:'center',fontWeight:600,maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                                            {userFamily.name}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="dc-body">
-                                    <div className="dc-title">{lang==='ar'?'العائلة':'Family'}</div>
-                                    <div className="dc-desc">{lang==='ar'?'انضم أو أنشئ عائلتك وتنافس':'Join or create your family and compete'}</div>
-                                </div>
-                                <div style={{fontSize:'16px',color:'#f97316'}}>›</div>
+
                             </div>
                         </div>
                     )}
