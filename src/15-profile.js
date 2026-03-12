@@ -2670,6 +2670,7 @@ const ProfileV11 = ({
     // 💍 Couple badge state
     const [profileCoupleDoc, setProfileCoupleDoc]         = useState(null);
     const [profilePartnerData, setProfilePartnerData]     = useState(null);
+    const [showProfileCoupleCard, setShowProfileCoupleCard] = useState(false);
 
     const optionsRef = useRef(null);
 
@@ -2717,29 +2718,51 @@ const ProfileV11 = ({
         }
     }, [userData, targetUID]);
 
-    // 💍 Fetch couple doc for the profile being viewed
+    // 💍 Real-time couple doc + real-time partner photo listener
     useEffect(() => {
-        if (!show || !targetUID) { setProfileCoupleDoc(null); setProfilePartnerData(null); return; }
-        let unsub1, unsub2;
-        const loadPartner = async (coupleDoc, partnerUID) => {
-            setProfileCoupleDoc(coupleDoc);
-            try {
-                const pd = await usersCollection.doc(partnerUID).get();
-                if (pd.exists) setProfilePartnerData({ id: pd.id, ...pd.data() });
-            } catch(e) {}
+        if (!show || !targetUID) {
+            setProfileCoupleDoc(null);
+            setProfilePartnerData(null);
+            return;
+        }
+        let unsubCouple1, unsubCouple2, unsubPartner;
+
+        const attachPartnerListener = (partnerUID) => {
+            if (unsubPartner) unsubPartner();
+            unsubPartner = usersCollection.doc(partnerUID)
+                .onSnapshot(doc => {
+                    if (doc.exists) setProfilePartnerData({ id: doc.id, ...doc.data() });
+                }, () => {});
         };
-        unsub1 = couplesCollection
+
+        unsubCouple1 = couplesCollection
             .where('uid1', '==', targetUID).where('status', '==', 'accepted').limit(1)
             .onSnapshot(snap => {
-                if (!snap.empty) { const d = { id: snap.docs[0].id, ...snap.docs[0].data() }; loadPartner(d, d.uid2); }
-                else setProfileCoupleDoc(null);
+                if (!snap.empty) {
+                    const d = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                    setProfileCoupleDoc(d);
+                    attachPartnerListener(d.uid2);
+                } else {
+                    setProfileCoupleDoc(null);
+                    setProfilePartnerData(null);
+                }
             }, () => {});
-        unsub2 = couplesCollection
+
+        unsubCouple2 = couplesCollection
             .where('uid2', '==', targetUID).where('status', '==', 'accepted').limit(1)
             .onSnapshot(snap => {
-                if (!snap.empty) { const d = { id: snap.docs[0].id, ...snap.docs[0].data() }; loadPartner(d, d.uid1); }
+                if (!snap.empty) {
+                    const d = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                    setProfileCoupleDoc(d);
+                    attachPartnerListener(d.uid1);
+                }
             }, () => {});
-        return () => { unsub1 && unsub1(); unsub2 && unsub2(); };
+
+        return () => {
+            unsubCouple1 && unsubCouple1();
+            unsubCouple2 && unsubCouple2();
+            unsubPartner && unsubPartner();
+        };
     }, [show, targetUID]);
 
     // Fetch gifts without orderBy to avoid Firebase index requirement
@@ -2990,32 +3013,68 @@ const ProfileV11 = ({
                         />
                     </div>
 
-                    {/* 💍 Couple Badge — bottom-right of banner */}
-                    {profileCoupleDoc && profilePartnerData && (
+                    {/* 💍 Couple Badge — bottom-right of banner (real-time) */}
+                    {profileCoupleDoc && profilePartnerData ? (
+                        <>
+                            <div
+                                className="profile-couple-badge"
+                                onClick={() => setShowProfileCoupleCard(true)}
+                                title={lang === 'ar' ? `مرتبط بـ ${profilePartnerData.displayName}` : `Coupled with ${profilePartnerData.displayName}`}
+                            >
+                                {/* Profile owner avatar */}
+                                <div className="cb-avatar">
+                                    {targetData?.photoURL
+                                        ? <img src={targetData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                        : '😎'
+                                    }
+                                </div>
+                                {/* Chosen ring emoji */}
+                                <span className="cb-ring" style={{filter:`drop-shadow(0 0 4px ${(RINGS_DATA && RINGS_DATA.find(r=>r.id===profileCoupleDoc.ringId)?.glow)||'rgba(236,72,153,0.6)'})`}}>
+                                    {(RINGS_DATA && RINGS_DATA.find(r => r.id === profileCoupleDoc.ringId)?.emoji) || '💍'}
+                                </span>
+                                {/* Partner avatar — real-time */}
+                                <div className="cb-avatar">
+                                    {profilePartnerData.photoURL
+                                        ? <img src={profilePartnerData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                        : '😍'
+                                    }
+                                </div>
+                                <span className="cb-name">{profilePartnerData.displayName}</span>
+                            </div>
+
+                            {/* Inline CoupleCard opened from badge click */}
+                            {typeof CoupleCardModal !== 'undefined' && (
+                                <CoupleCardModal
+                                    show={showProfileCoupleCard}
+                                    onClose={() => setShowProfileCoupleCard(false)}
+                                    coupleDoc={profileCoupleDoc}
+                                    currentUID={currentUserUID}
+                                    selfData={targetData}
+                                    partnerData={profilePartnerData}
+                                    lang={lang}
+                                    onNotification={() => {}}
+                                    viewOnly={currentUserUID !== profileCoupleDoc?.uid1 && currentUserUID !== profileCoupleDoc?.uid2}
+                                />
+                            )}
+                        </>
+                    ) : isOwnProfile && !isGuestProp && (
+                        /* Not married — subtle "Add Partner" nudge */
                         <div
-                            className="profile-couple-badge"
-                            onClick={() => {}}
-                            title={lang === 'ar' ? `مرتبط بـ ${profilePartnerData.displayName}` : `Coupled with ${profilePartnerData.displayName}`}
+                            style={{
+                                position:'absolute', bottom:'-16px', right:'16px',
+                                display:'flex', alignItems:'center', gap:'5px',
+                                background:'rgba(15,20,40,0.85)', backdropFilter:'blur(8px)',
+                                border:'1px dashed rgba(236,72,153,0.35)',
+                                borderRadius:'20px', padding:'4px 10px 4px 6px',
+                                cursor:'pointer', zIndex:10,
+                                fontSize:'10px', color:'rgba(249,168,212,0.7)', fontWeight:700,
+                            }}
+                            onClick={() => {
+                                if (onOpenSettings) onOpenSettings();
+                            }}
                         >
-                            {/* My avatar (the profile owner) */}
-                            <div className="cb-avatar">
-                                {targetData?.photoURL
-                                    ? <img src={targetData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                    : '😎'
-                                }
-                            </div>
-                            {/* Ring icon */}
-                            <span className="cb-ring">
-                                {(RINGS_DATA && RINGS_DATA.find(r => r.id === profileCoupleDoc.ringId)?.emoji) || '💍'}
-                            </span>
-                            {/* Partner avatar */}
-                            <div className="cb-avatar">
-                                {profilePartnerData.photoURL
-                                    ? <img src={profilePartnerData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                    : '😍'
-                                }
-                            </div>
-                            <span className="cb-name">{profilePartnerData.displayName}</span>
+                            <span style={{fontSize:'13px'}}>💍</span>
+                            {lang === 'ar' ? 'أضف شريكك' : 'Add Partner'}
                         </div>
                     )}
                 </div>
