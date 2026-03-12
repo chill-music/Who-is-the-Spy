@@ -1314,7 +1314,7 @@ const CoupleCardModal = ({
     ); // end PortalModal
 };
 
- SECTION (injected into ShopModal)
+// ══ RINGS SHOP SECTION (injected into ShopModal)
 // ─────────────────────────────────────────────
 // RingsShopSection — allows buying multiple rings, adds to inventory, supports event/hidden rings
 const RingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification }) => {
