@@ -1708,8 +1708,8 @@ function App() {
                 </div>
             )}
 
-            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} onOpenInventory={() => { setShowShop(false); setShowInventory(true); }} currentUID={currentUID} onPropose={(ring) => { setProposalRing(ring); setShowShop(false); setShowProposalModal(true); }} />
-            <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} />
+            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} onOpenInventory={() => { setShowShop(false); setShowInventory(true); }} currentUID={currentUID} onPropose={(ring) => { setProposalRing(ring); setShowShop(false); setShowProposalModal(true); }} coupleData={coupleData} onOpenCoupleCard={() => { setShowShop(false); setShowCoupleCard(true); }} />
+            <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} coupleData={coupleData} onOpenCoupleCard={() => { setShowInventory(false); setShowCoupleCard(true); }} onPropose={(ring) => { setProposalRing(ring); setShowInventory(false); setShowProposalModal(true); }} />
             <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} onSetLang={(nl) => { setLang(nl); localStorage.setItem('pro_spy_lang', nl); if(user) usersCollection.doc(user.uid).update({lang:nl}).catch(()=>{}); }} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} onOpenAdminPanel={() => setShowAdminPanel(true)} />
 
             {/* 💒 Wedding Hall Modal */}
@@ -1975,7 +1975,34 @@ function App() {
             {/* ── LOBBY / LEADERBOARD / FRIENDS / EXPLORE views ── */}
             {!room && (
                 <>
-                    {/* ══ LOBBY / RANKING TABS - Ranking tab removed, accessible via lobby card ══ */}
+                    {/* ══ LOBBY / RANKING TABS ══ */}
+                    {(activeView === 'lobby' || activeView === 'ranking') && (
+                        <div style={{
+                            display:'flex', gap:'4px', padding:'10px 16px 0', marginBottom:'2px',
+                            borderBottom:'1px solid rgba(255,255,255,0.06)',
+                        }}>
+                            <button
+                                onClick={() => setActiveView('lobby')}
+                                style={{
+                                    flex:1, padding:'9px 0', borderRadius:'10px 10px 0 0', border:'none',
+                                    background: activeView==='lobby' ? 'rgba(0,242,255,0.1)' : 'rgba(255,255,255,0.03)',
+                                    color: activeView==='lobby' ? '#00f2ff' : '#6b7280',
+                                    borderBottom: activeView==='lobby' ? '2px solid #00f2ff' : '2px solid transparent',
+                                    fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.2s',
+                                }}
+                            >🏠 {lang==='ar' ? 'اللوبي' : 'Lobby'}</button>
+                            <button
+                                onClick={() => setActiveView('ranking')}
+                                style={{
+                                    flex:1, padding:'9px 0', borderRadius:'10px 10px 0 0', border:'none',
+                                    background: activeView==='ranking' ? 'rgba(255,215,0,0.1)' : 'rgba(255,255,255,0.03)',
+                                    color: activeView==='ranking' ? '#ffd700' : '#6b7280',
+                                    borderBottom: activeView==='ranking' ? '2px solid #ffd700' : '2px solid transparent',
+                                    fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.2s',
+                                }}
+                            >📊 {lang==='ar' ? 'رانكينج' : 'Ranking'}</button>
+                        </div>
+                    )}
 
                     {/* ══ LOBBY VIEW ══ */}
                     {activeView === 'lobby' && (
