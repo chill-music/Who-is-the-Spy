@@ -78,6 +78,11 @@ function App() {
     const [showIncomingProposal, setShowIncomingProposal] = useState(false);
     const [showWeddingHall, setShowWeddingHall]         = useState(false);
 
+    // ── 💬 GAME ROOM CHAT STATE ──
+    const [gameChatInput, setGameChatInput]             = useState('');
+    const [showGameChat, setShowGameChat]               = useState(true);
+    const gameChatRef                                   = useRef(null);
+
     // Click outside handler for notification dropdown
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -1118,6 +1123,30 @@ function App() {
         });
         setShowSummary(false);
     }, [room, roomId]);
+
+    // ── 💬 SEND GAME CHAT MESSAGE ──
+    const sendGameMessage = useCallback(async () => {
+        const text = gameChatInput.trim();
+        if (!text || !room || !currentUID) return;
+        const senderName = room.players.find(p => p.uid === currentUID)?.name || nickname || 'Player';
+        const msg = {
+            sender: currentUID,
+            name: senderName,
+            text,
+            time: Date.now(),
+        };
+        setGameChatInput('');
+        await roomsCollection.doc(roomId).update({
+            messages: firebase.firestore.FieldValue.arrayUnion(msg)
+        });
+    }, [gameChatInput, room, currentUID, roomId, nickname]);
+
+    // Auto-scroll chat to bottom when new messages arrive
+    useEffect(() => {
+        if (gameChatRef.current) {
+            gameChatRef.current.scrollTop = gameChatRef.current.scrollHeight;
+        }
+    }, [room?.messages?.length]);
 
     // ── Spy guesses the chosen WORD when caught ──
     const submitSpyWordGuess = useCallback(async (guessedWord) => {
@@ -2680,6 +2709,191 @@ function App() {
                             </div>
                             {room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2">{t.playAgain}</button>)}
                             <button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm">{t.leaveRoom}</button>
+                        </div>
+                    )}
+
+                    {/* ══════════════════════════════════════════════════════
+                        💬 GAME ROOM CHAT — يظهر في كل مراحل اللعبة
+                    ══════════════════════════════════════════════════════ */}
+                    {room.status !== 'waiting' && (
+                        <div style={{
+                            marginTop: '8px',
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '12px',
+                            overflow: 'hidden',
+                        }}>
+                            {/* Chat Header */}
+                            <div
+                                onClick={() => setShowGameChat(v => !v)}
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '8px 12px', cursor: 'pointer',
+                                    background: showGameChat ? 'rgba(0,242,255,0.05)' : 'rgba(255,255,255,0.02)',
+                                    borderBottom: showGameChat ? '1px solid rgba(255,255,255,0.07)' : 'none',
+                                    userSelect: 'none',
+                                }}
+                            >
+                                <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                    <span style={{fontSize:'13px'}}>💬</span>
+                                    <span style={{fontSize:'11px',fontWeight:700,color:'rgba(255,255,255,0.7)'}}>
+                                        {lang==='ar' ? 'شات الغرفة' : 'Room Chat'}
+                                    </span>
+                                    {(room.messages||[]).filter(m => m.sender !== 'system').length > 0 && (
+                                        <span style={{
+                                            background:'rgba(0,242,255,0.2)', color:'#00f2ff',
+                                            borderRadius:'20px', padding:'1px 7px', fontSize:'9px', fontWeight:700,
+                                        }}>
+                                            {(room.messages||[]).filter(m => m.sender !== 'system').length}
+                                        </span>
+                                    )}
+                                </div>
+                                <span style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',transition:'transform 0.2s',display:'inline-block',transform:showGameChat?'rotate(180deg)':'rotate(0deg)'}}>▼</span>
+                            </div>
+
+                            {showGameChat && (
+                                <>
+                                    {/* Messages list */}
+                                    <div
+                                        ref={gameChatRef}
+                                        style={{
+                                            maxHeight: '180px',
+                                            overflowY: 'auto',
+                                            padding: '8px 10px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '5px',
+                                        }}
+                                    >
+                                        {(!room.messages || room.messages.length === 0) && (
+                                            <div style={{textAlign:'center',color:'rgba(255,255,255,0.2)',fontSize:'11px',padding:'12px 0'}}>
+                                                {lang==='ar' ? '... ابدأ المحادثة' : 'No messages yet...'}
+                                            </div>
+                                        )}
+                                        {(room.messages || []).map((msg, i) => {
+                                            const isSystem = msg.sender === 'system';
+                                            const isMe = msg.sender === currentUID;
+                                            const isBot = msg.isBot;
+                                            return (
+                                                <div key={i} style={{
+                                                    display: 'flex',
+                                                    flexDirection: isMe ? 'row-reverse' : 'row',
+                                                    alignItems: 'flex-end',
+                                                    gap: '5px',
+                                                }}>
+                                                    {isSystem ? (
+                                                        <div style={{
+                                                            width:'100%', textAlign:'center',
+                                                            fontSize:'10px', color:'rgba(255,215,0,0.7)',
+                                                            background:'rgba(255,215,0,0.06)',
+                                                            borderRadius:'8px', padding:'4px 8px',
+                                                            fontStyle:'italic',
+                                                        }}>
+                                                            {msg.text}
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            {/* Avatar */}
+                                                            {!isMe && (
+                                                                <div style={{
+                                                                    width:'22px', height:'22px', borderRadius:'50%',
+                                                                    background: isBot ? 'rgba(124,58,237,0.4)' : 'rgba(0,242,255,0.15)',
+                                                                    display:'flex', alignItems:'center', justifyContent:'center',
+                                                                    fontSize:'11px', flexShrink:0,
+                                                                    border: isBot ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(0,242,255,0.2)',
+                                                                }}>
+                                                                    {isBot ? '🤖' : (msg.name?.[0]?.toUpperCase() || '?')}
+                                                                </div>
+                                                            )}
+                                                            <div style={{maxWidth:'72%'}}>
+                                                                {!isMe && (
+                                                                    <div style={{
+                                                                        fontSize:'9px', fontWeight:700,
+                                                                        color: isBot ? '#a78bfa' : 'rgba(0,242,255,0.7)',
+                                                                        marginBottom:'2px',
+                                                                        paddingLeft:'2px',
+                                                                    }}>
+                                                                        {msg.name}
+                                                                    </div>
+                                                                )}
+                                                                <div style={{
+                                                                    background: isMe
+                                                                        ? 'linear-gradient(135deg,rgba(0,242,255,0.25),rgba(112,0,255,0.2))'
+                                                                        : isBot
+                                                                            ? 'rgba(124,58,237,0.15)'
+                                                                            : 'rgba(255,255,255,0.07)',
+                                                                    border: isMe
+                                                                        ? '1px solid rgba(0,242,255,0.3)'
+                                                                        : 'none',
+                                                                    borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                                                                    padding: '6px 10px',
+                                                                    fontSize: '12px',
+                                                                    color: 'rgba(255,255,255,0.88)',
+                                                                    lineHeight: '1.4',
+                                                                    wordBreak: 'break-word',
+                                                                }}>
+                                                                    {msg.text}
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Input */}
+                                    {!isSpectator && (
+                                        <div style={{
+                                            display: 'flex', gap: '6px',
+                                            padding: '8px 10px',
+                                            borderTop: '1px solid rgba(255,255,255,0.06)',
+                                            background: 'rgba(0,0,0,0.2)',
+                                        }}>
+                                            <input
+                                                value={gameChatInput}
+                                                onChange={e => setGameChatInput(e.target.value)}
+                                                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendGameMessage(); } }}
+                                                placeholder={lang==='ar' ? 'اكتب رسالة...' : 'Type a message...'}
+                                                maxLength={200}
+                                                style={{
+                                                    flex: 1,
+                                                    background: 'rgba(255,255,255,0.06)',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    borderRadius: '10px',
+                                                    padding: '7px 12px',
+                                                    color: 'white',
+                                                    fontSize: '12px',
+                                                    outline: 'none',
+                                                    minWidth: 0,
+                                                }}
+                                            />
+                                            <button
+                                                onClick={sendGameMessage}
+                                                disabled={!gameChatInput.trim()}
+                                                style={{
+                                                    padding: '7px 14px',
+                                                    borderRadius: '10px',
+                                                    background: gameChatInput.trim()
+                                                        ? 'linear-gradient(135deg,rgba(0,242,255,0.3),rgba(112,0,255,0.25))'
+                                                        : 'rgba(255,255,255,0.05)',
+                                                    border: gameChatInput.trim()
+                                                        ? '1px solid rgba(0,242,255,0.4)'
+                                                        : '1px solid rgba(255,255,255,0.08)',
+                                                    color: gameChatInput.trim() ? '#00f2ff' : 'rgba(255,255,255,0.25)',
+                                                    fontSize: '13px',
+                                                    fontWeight: 700,
+                                                    cursor: gameChatInput.trim() ? 'pointer' : 'not-allowed',
+                                                    flexShrink: 0,
+                                                    transition: 'all 0.2s',
+                                                }}
+                                            >
+                                                {lang==='ar' ? '↑' : '↑'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
