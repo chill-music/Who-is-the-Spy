@@ -20,7 +20,7 @@ const couplesCollection = db.collection('artifacts').doc(appId)
 // ─────────────────────────────────────────────
 const RINGS_DATA = [
     { id:'ring_bronze',   emoji:'💍', imageURL:null, name_en:'Bronze Ring',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Common',    color:'#cd7f32', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:false, hidden:false, limited:false, limitedUntil:null },
-         { id:'kingshehab',   emoji:null, imageURL:'https://i.ibb.co/FLvkgp32/ringking.gif', name_en:'King Rin',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:true, hidden:false, limited:false, limitedUntil:null },
+             { id:'kingshehab',   emoji:null, imageURL:'https://i.ibb.co/FLvkgp32/ringking.gif', name_en:'King Rin',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:true, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_silver',   emoji:'💍', imageURL:null, name_en:'Silver Ring',      name_ar:'خاتم فضي',        cost:1500,  levelReq:3,  rarity:'Uncommon',  color:'#c0c0c0', glow:'rgba(192,192,192,0.4)', desc_en:'Elegant and timeless.',       desc_ar:'أناقة خالدة.',            event:false, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_gold',     emoji:'💍', imageURL:null, name_en:'Gold Ring',        name_ar:'خاتم ذهبي',       cost:3000,  levelReq:5,  rarity:'Rare',      color:'#ffd700', glow:'rgba(255,215,0,0.5)',   desc_en:'Golden love, golden future.', desc_ar:'حب ذهبي، مستقبل ذهبي.',   event:false, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_rose',     emoji:'💍', imageURL:null, name_en:'Rose Gold Ring',   name_ar:'خاتم ذهبي وردي',  cost:5000,  levelReq:7,  rarity:'Epic',      color:'#f9a8d4', glow:'rgba(249,168,212,0.5)', desc_en:'Blush pink, bold love.',      desc_ar:'وردي رقيق، حب جريء.',     event:false, hidden:false, limited:false, limitedUntil:null },
@@ -977,12 +977,12 @@ const CoupleCardModal = ({
                                     textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, selfData?.displayName || '—')
                             ),
                             /* Ring icon — centered between avatars, slightly overlapping */
-                            React.createElement('div', { style:{ zIndex:3, marginLeft:'-6px', marginRight:'-6px', marginBottom:'18px', cursor:'pointer', textAlign:'center' },
+                            React.createElement('div', { style:{ zIndex:3, marginLeft:'-6px', marginRight:'-6px', marginBottom:'18px', cursor:'pointer', textAlign:'center',
+                                filter: ring.imageURL ? `drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` : undefined },
                                 onClick: () => setRingTooltipId(v => v ? null : ring.id)
                             },
                                 ring.imageURL
-                                    ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'40px', height:'40px', objectFit:'contain', mixBlendMode:'screen', display:'block',
-                                        filter:`drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` }})
+                                    ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'40px', height:'40px', objectFit:'contain', mixBlendMode:'screen', display:'block' }})
                                     : React.createElement('div', { style:{ fontSize:'26px', lineHeight:1,
                                         filter:`drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` }}, ring.emoji),
                                 /* Ring name tooltip */
@@ -1139,7 +1139,7 @@ const CoupleCardModal = ({
                                             background: rd.imageURL ? 'transparent' : `${rd.color}12`, cursor:'pointer', transition:'.15s' }
                                     },
                                         rd.imageURL
-                                            ? React.createElement('img', { src:rd.imageURL, alt:'', style:{ width:'36px', height:'36px', objectFit:'contain', mixBlendMode:'screen', display:'block', filter:`drop-shadow(0 0 6px ${rd.glow})` }})
+                                            ? React.createElement('img', { src:rd.imageURL, alt:'', style:{ width:'36px', height:'36px', objectFit:'contain', mixBlendMode:'screen', display:'block' }})
                                             : React.createElement('span', { style:{ fontSize:'22px', filter:`drop-shadow(0 0 5px ${rd.glow})` }}, rd.emoji),
                                         React.createElement('span', { style:{ fontSize:'8px', color:rd.color, fontWeight:700 }}, lang==='ar'?rd.name_ar:rd.name_en)
                                     );
@@ -1176,24 +1176,23 @@ const CoupleCardModal = ({
                                     style:{
                                         display:'flex', flexDirection:'column', alignItems:'center', gap:'4px',
                                         cursor: canSwitch ? 'pointer' : 'default',
-                                        transform: isActive ? 'scale(1.12)' : 'scale(1)',
-                                        transition:'transform .2s, opacity .2s',
+                                        transition:'opacity .2s',
                                         opacity: switchingRing && !isActive ? 0.45 : 1,
                                     }
                                 },
                                     React.createElement('div', { style:{
-                                        width:'56px', height:'56px', borderRadius:'14px',
+                                        width: isActive ? '62px' : '56px', height: isActive ? '62px' : '56px', borderRadius:'14px',
                                         background: rd.imageURL ? 'transparent' : (isActive ? `${rd.color}22` : 'rgba(255,255,255,0.04)'),
                                         border:`2px solid ${isActive ? rd.color : 'rgba(255,255,255,0.1)'}`,
                                         display:'flex', alignItems:'center', justifyContent:'center',
                                         boxShadow: isActive ? `0 0 20px ${rd.glow}, 0 0 8px ${rd.glow}` : 'none',
-                                        position:'relative', transition:'all .2s', overflow:'hidden',
+                                        position:'relative', transition:'all .2s',
+                                        filter: rd.imageURL ? `drop-shadow(0 0 8px ${rd.glow})` : undefined,
                                     }},
                                         rd.imageURL
                                             ? React.createElement('img', { src:rd.imageURL, alt:'', style:{
                                                 width:'100%', height:'100%', objectFit:'contain',
                                                 mixBlendMode:'screen', display:'block',
-                                                filter:`drop-shadow(0 0 8px ${rd.glow}) drop-shadow(0 0 14px ${rd.glow})`,
                                               }})
                                             : React.createElement('span', { style:{ fontSize:'26px', filter:`drop-shadow(0 0 7px ${rd.glow})` }}, rd.emoji),
                                         isActive && React.createElement('div', { style:{
@@ -1392,7 +1391,7 @@ const RingsShopSection = ({ userData, lang, currentUID, onPropose, onNotificatio
                 React.createElement('div', { style:{ flexShrink:0, width:'44px', height:'44px', display:'flex', alignItems:'center', justifyContent:'center', background:'transparent' }},
                     ring.imageURL
                         ? React.createElement('img', { src:ring.imageURL, alt:'',
-                            style:{ width:'44px', height:'44px', objectFit:'contain', mixBlendMode:'screen', display:'block', filter:`drop-shadow(0 0 8px ${ring.glow})` }})
+                            style:{ width:'44px', height:'44px', objectFit:'contain', mixBlendMode:'screen', display:'block' }})
                         : React.createElement('span', { style:{ fontSize:'28px', filter:`drop-shadow(0 0 6px ${ring.glow})` }}, ring.emoji)
                 ),
                 React.createElement('div', { style:{ flex:1, minWidth:0 }},
