@@ -131,6 +131,23 @@ const TRANSLATIONS = {
         roleAssignedBy: "Assigned by",
         currentRole: "Current Role",
         roleCannotModify: "Cannot modify this user's role",
+        // 🤖 Bot System
+        botManager: "🤖 Bot Manager",
+        addBot: "+ Add Bot",
+        removeBot: "Remove",
+        botsCount: (n) => `${n} bot${n > 1 ? 's' : ''} added`,
+        // 🎮 Game Modes
+        spyKnowsLocation: "You know the location — blend in!",
+        myWordNotAvailable: "You have no word — listen carefully!",
+        informantRevealTitle: "🔒 SECRET — You are the Informant",
+        informantSpyIs: "The spy is:",
+        spyGuessTitle: "Guess the Location",
+        spyGuessDesc: "If correct, you win!",
+        mrWhiteGuessTitle: "Mr. White — Guess the Location",
+        mrWhiteGuessDesc: "Guess correctly to win!",
+        rolesRevealTitle: "Roles Revealed",
+        spyDeclare: "Declare as Spy",
+        spyDeclareDesc: "Reveal yourself and guess the location",
     },
     ar: {
         appName: "برو جاسوس", tagline: "ساحة العمليات", nickname: "اسم العميل", create: "إنشاء لعبة", join: "انضمام", browse: "استعراض الغرف", players: "العملاء", start: "بدء المهمة", langBtn: "English", loading: "جاري التحميل...", you: "أنت", statusSpy: "جاسوس", statusAgent: "عميل", statusInformant: "المخبر", statusMrWhite: "السيد", statusGhost: "شبح", round: "الجولة", skip: "تخطي الدور", vote: "تصويت للطرد", chatPlaceholder: "اكتب رسالة...", send: "إرسال", waiting: "بانتظار المضيف...", location: "الموقع", spectator: "مشاهد", confirm: "تأكيد التصويت", spyWin: "فاز الجاسوس!", agentsWin: "فاز العملاء!", mrWhiteWin: "فاز السيد!", playAgain: "لعب مجدداً", connecting: "جاري التأمين...", startVoting: "بدء التصويت", votingStarted: "بدأ التصويت", voteRequestTitle: "طلب تصويت", voteRequestDesc: "يريد بدء التصويت.", agree: "موافق", decline: "رفض", endVoting: "إنهاء التصويت الآن", votesTitle: "الأصوات:", roundsFormat: (c, m) => `الجولة ${c}/${m}`, wordSelectionTitle: "اختر كلمة السر", wordSelectionDesc: "اختر كلمة سر لهذه الجولة", finishSelection: "إنهاء الاختيار", selectedWord: "كلمة السر", loginGoogle: "تسجيل بواسطة جوجل", myAccount: "بروفايل", logout: "تسجيل الخروج", profile: "الملف الشخصي", guest: "زائر", linkGuessCard: "خمن كرتي", level: "المستوى", wins: "فوز", losses: "خسارة", winRate: "نسبة الفوز", totalGames: "المباريات", achievements: "الإنجازات", id: "الرقم", enterCodeError: "برجاء إدخال كود الغرفة.", changeName: "تغيير الاسم", nameChangeLimit: "مرة شهرياً", copied: "تم النسخ!", save: "حفظ", or: "أو", needPlayers: "اللاعبين غير كافيين!", ok: "حسناً", tabLobby: "الرئيسية", tabLeaderboard: "المتصدرين", tabFriends: "الأصدقاء", addFriend: "أضافة صديق", friendIdPlaceholder: "أدخل ID الصديق", online: "متصل", offline: "غير متصل", noFriends: "لا يوجد أصدقاء.", friendAdded: "تمت الإضافة!", friendNotFound: "المستخدم غير موجود.", requestSent: "تم إرسال الطلب!", incomingRequests: "طلبات الصداقة", noRequests: "لا توجد طلبات.", accept: "قبول", reject: "رفض", sendMessage: "إرسال", inviteBtn: "دعوة", invitedYou: "دعاك للعب.", joinInvite: "انضمام؟", inviteFriends: "دعوة أصدقاء", accountInfo: "معلومات الحساب", email: "البريد الإلكتروني", memberSince: "عضو منذ", nameChangeCountdown: "تغيير الاسم بعد", canChangeNow: "يمكن التغيير الآن!", selectEmoji: "إيموجي", guestTitle: "حساب زائر", guestDesc: "سجل لحفظ تقدمك وإضافة أصدقاء.", kd: "نسبة الـ KD", stats: "الإحصائيات", noPermission: "غير متاح للزوار.", normalMode: "الوضع العادي", advancedMode: "الوضع المتقدم (6+)", modeNormalDesc: "جاسوس ضد عملاء. 3-10 لاعبين.", modeAdvDesc: "أدوار خاصة! 6-10 لاعبين.", privateRoom: "غرفة خاصة", password: "كلمة السر", publicRoom: "غرفة عامة", noRooms: "لا توجد ألعاب نشطة.", lobbyTitle: "غرفة الانتظار", mrWhiteInstruction: "خمن المكان لتفوز!", informantInstruction: "تعرف على جارك!", ghostInstruction: "أنت الآن شبح. يمكنك المشاهدة فقط.", guessLocation: "خمن المكان", leaveRoom: "خروج", closeRoom: "إغلاق الغرفة", showPassword: "إظهار الباسورد", guestAccountLabel: "حساب زائر", guestProfileMsg: "لا يمكن إرسال طلبات صداقة للحسابات الزائرة.", reportUser: "إبلاغ عن المستخدم", reportSent: "تم إرسال البلاغ بنجاح!", reportTitle: "الإبلاغ عن مستخدم", reportDesc: "برجاء اختيار سبب الإبلاغ.", reportReasonAbusive: "سلوك مسيء", reportReasonCheating: "غش", reportReasonSpam: "بريد مزعج", reportReasonOther: "سبب آخر", reportSubmit: "إرسال البلاغ", reportCancel: "إلغاء", privateRoomError: "الغرف الخاصة تتطلب كلمة سر!",
@@ -260,6 +277,23 @@ const TRANSLATIONS = {
         roleAssignedBy: "عُيِّن بواسطة",
         currentRole: "الرتبة الحالية",
         roleCannotModify: "لا يمكن تعديل رتبة هذا المستخدم",
+        // 🤖 Bot System
+        botManager: "🤖 إدارة البوتات",
+        addBot: "+ إضافة بوت",
+        removeBot: "حذف",
+        botsCount: (n) => `${n} بوت مضاف`,
+        // 🎮 Game Modes
+        spyKnowsLocation: "أنت تعرف الموقع — تظاهر بأنك عادي!",
+        myWordNotAvailable: "ليس لديك كلمة — استمع جيداً!",
+        informantRevealTitle: "🔒 سري — أنت المخبر",
+        informantSpyIs: "الجاسوس هو:",
+        spyGuessTitle: "خمّن الموقع",
+        spyGuessDesc: "إذا أصبت، تفوز!",
+        mrWhiteGuessTitle: "السيد الأبيض — خمّن الموقع",
+        mrWhiteGuessDesc: "خمّن بشكل صحيح لتفوز!",
+        rolesRevealTitle: "كشف الأدوار",
+        spyDeclare: "كشف نفسك كجاسوس",
+        spyDeclareDesc: "اكشف نفسك وخمّن الموقع",
     }
 };
 
