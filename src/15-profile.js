@@ -3161,8 +3161,8 @@ const ProfileV11 = ({
                                         {/* Ring — image or emoji */}
                                         <span className="cb-ring" style={ringImageURL ? {filter:'none'} : {}}>
                                             {ringImageURL
-                                                ? <div style={{width:'18px',height:'18px',borderRadius:'50%',background:'#05050a',overflow:'hidden',display:'inline-flex',alignItems:'center',justifyContent:'center',boxShadow:`0 0 7px ${ringGlow}`,verticalAlign:'middle'}}>
-                                                    <img src={ringImageURL} alt="" style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}}/>
+                                                ? <div style={{display:'inline-flex', background:'#000000', mixBlendMode:'screen', verticalAlign:'middle'}}>
+                                                    <img src={ringImageURL} alt="" style={{width:'16px',height:'16px',objectFit:'contain',mixBlendMode:'screen',display:'block'}}/>
                                                   </div>
                                                 : ringEmoji
                                             }
