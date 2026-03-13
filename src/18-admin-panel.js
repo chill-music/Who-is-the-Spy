@@ -22,6 +22,174 @@ const logStaffAction = async (staffUID, staffName, action, targetUID = null, tar
 };
 
 // ════════════════════════════════════════════════════════
+// 🎭 FAKE PROFILES SECTION (Owner only) — تجريبي
+// ════════════════════════════════════════════════════════
+const FAKE_PROFILE_PHOTOS = [
+    'https://i.pravatar.cc/150?img=1','https://i.pravatar.cc/150?img=2','https://i.pravatar.cc/150?img=3',
+    'https://i.pravatar.cc/150?img=4','https://i.pravatar.cc/150?img=5','https://i.pravatar.cc/150?img=6',
+    'https://i.pravatar.cc/150?img=7','https://i.pravatar.cc/150?img=8','https://i.pravatar.cc/150?img=9',
+    'https://i.pravatar.cc/150?img=10','https://i.pravatar.cc/150?img=11','https://i.pravatar.cc/150?img=12',
+];
+const FAKE_NAMES = ['Alex Shadow','Nova Cipher','Rex Viper','Luna Storm','Kai Echo','Zara Blaze','Max Frost','Nora Specter','Finn Raven','Iris Ghost','Cole Hex','Dara Nova','Jax Titan','Mia Ghost','Leo Strike'];
+const FAKE_COUNTRIES = [
+    {code:'SA',flag:'🇸🇦',name_ar:'السعودية',name_en:'Saudi Arabia'},
+    {code:'EG',flag:'🇪🇬',name_ar:'مصر',name_en:'Egypt'},
+    {code:'AE',flag:'🇦🇪',name_ar:'الإمارات',name_en:'UAE'},
+    {code:'KW',flag:'🇰🇼',name_ar:'الكويت',name_en:'Kuwait'},
+    {code:'MA',flag:'🇲🇦',name_ar:'المغرب',name_en:'Morocco'},
+    {code:'US',flag:'🇺🇸',name_ar:'أمريكا',name_en:'USA'},
+    {code:'TR',flag:'🇹🇷',name_ar:'تركيا',name_en:'Turkey'},
+];
+
+const FakeProfilesSection = ({ lang, onNotification }) => {
+    const [fakeProfiles, setFakeProfiles] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [creating, setCreating] = React.useState(false);
+    const [deleting, setDeleting] = React.useState(null);
+    const [customName, setCustomName] = React.useState('');
+    const [customWins, setCustomWins] = React.useState('');
+    const [customCharisma, setCustomCharisma] = React.useState('');
+
+    React.useEffect(() => {
+        const unsub = usersCollection.where('isFakeProfile', '==', true).onSnapshot(snap => {
+            setFakeProfiles(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            setLoading(false);
+        }, () => setLoading(false));
+        return () => unsub();
+    }, []);
+
+    const createFakeProfile = async () => {
+        setCreating(true);
+        try {
+            const uid = 'fake_' + Date.now() + '_' + Math.floor(Math.random() * 9999);
+            const name = customName.trim() || FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
+            const photo = FAKE_PROFILE_PHOTOS[Math.floor(Math.random() * FAKE_PROFILE_PHOTOS.length)];
+            const country = FAKE_COUNTRIES[Math.floor(Math.random() * FAKE_COUNTRIES.length)];
+            const gender = Math.random() > 0.5 ? 'male' : 'female';
+            const wins = parseInt(customWins) || Math.floor(Math.random() * 200) + 5;
+            const charisma = parseInt(customCharisma) || Math.floor(Math.random() * 50000) + 1000;
+            const newProfile = {
+                uid, displayName: name, photoURL: photo, gender, country,
+                customId: Math.floor(100000 + Math.random() * 900000).toString(),
+                stats: { wins, losses: Math.floor(wins * 0.4), xp: wins * 25, spy_wins: Math.floor(wins * 0.3), agent_wins: Math.floor(wins * 0.7), win_streak: 0 },
+                charisma, currency: 100, inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] },
+                equipped: { badges: [] }, achievements: [], friends: [], friendRequests: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+                isAnonymous: false, isFakeProfile: true,
+                loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 },
+            };
+            await usersCollection.doc(uid).set(newProfile);
+            onNotification(lang === 'ar' ? `✅ تم إنشاء بروفايل: ${name}` : `✅ Profile created: ${name}`);
+            setCustomName(''); setCustomWins(''); setCustomCharisma('');
+        } catch(e) {
+            onNotification('❌ Error: ' + e.message);
+        }
+        setCreating(false);
+    };
+
+    const deleteFakeProfile = async (uid, name) => {
+        if (!confirm(lang === 'ar' ? `حذف "${name}"؟` : `Delete "${name}"?`)) return;
+        setDeleting(uid);
+        try {
+            await usersCollection.doc(uid).delete();
+            onNotification(lang === 'ar' ? `🗑️ تم حذف ${name}` : `🗑️ Deleted ${name}`);
+        } catch(e) {
+            onNotification('❌ Error: ' + e.message);
+        }
+        setDeleting(null);
+    };
+
+    return (
+        <div>
+            <div style={{ fontSize:'13px', fontWeight:700, color:'#00f2ff', marginBottom:'16px' }}>
+                🎭 {lang==='ar'?'البروفايلات التجريبية':'Fake / Test Profiles'}
+            </div>
+            <div style={{ fontSize:'11px', color:'#9ca3af', marginBottom:'16px', lineHeight:1.6 }}>
+                {lang==='ar'
+                    ? 'أنشئ بروفايلات مزيفة لاختبار اللعبة والرانكينج. هذه البروفايلات تظهر في الموقع كلاعبين حقيقيين ويمكن حذفها في أي وقت.'
+                    : 'Create fake profiles to test the game and rankings. These profiles appear as real players and can be deleted at any time.'}
+            </div>
+
+            {/* Create Form */}
+            <div style={{ background:'rgba(0,242,255,0.06)', border:'1px solid rgba(0,242,255,0.2)', borderRadius:'12px', padding:'14px', marginBottom:'20px' }}>
+                <div style={{ fontSize:'12px', fontWeight:700, color:'#00f2ff', marginBottom:'10px' }}>
+                    ➕ {lang==='ar'?'إنشاء بروفايل جديد':'Create New Profile'}
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginBottom:'8px' }}>
+                    <div>
+                        <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'4px' }}>{lang==='ar'?'الاسم (اختياري)':'Name (optional)'}</div>
+                        <input className="input-dark" style={{ width:'100%', padding:'6px 8px', fontSize:'11px', borderRadius:'6px' }}
+                            placeholder={lang==='ar'?'اتركه فارغاً للعشوائي':'Leave blank for random'}
+                            value={customName} onChange={e => setCustomName(e.target.value)} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'4px' }}>{lang==='ar'?'الانتصارات (اختياري)':'Wins (optional)'}</div>
+                        <input className="input-dark" style={{ width:'100%', padding:'6px 8px', fontSize:'11px', borderRadius:'6px' }}
+                            type="number" placeholder="0-999" min="0" max="999"
+                            value={customWins} onChange={e => setCustomWins(e.target.value)} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'4px' }}>{lang==='ar'?'الكاريزما (اختياري)':'Charisma (optional)'}</div>
+                        <input className="input-dark" style={{ width:'100%', padding:'6px 8px', fontSize:'11px', borderRadius:'6px' }}
+                            type="number" placeholder="0-999999" min="0"
+                            value={customCharisma} onChange={e => setCustomCharisma(e.target.value)} />
+                    </div>
+                    <div style={{ display:'flex', alignItems:'flex-end' }}>
+                        <button onClick={createFakeProfile} disabled={creating} style={{
+                            width:'100%', padding:'8px', borderRadius:'7px', fontSize:'11px', fontWeight:700, cursor:'pointer',
+                            background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.35)', color:'#00f2ff',
+                            opacity: creating ? 0.5 : 1
+                        }}>
+                            {creating ? '⏳' : `🎭 ${lang==='ar'?'إنشاء':'Create'}`}
+                        </button>
+                    </div>
+                </div>
+                <div style={{ fontSize:'10px', color:'#6b7280' }}>
+                    {lang==='ar'?'البيانات الفارغة تُملأ عشوائياً تلقائياً':'Empty fields are filled randomly'}
+                </div>
+            </div>
+
+            {/* Fake Profiles List */}
+            <div style={{ fontSize:'12px', fontWeight:700, color:'#9ca3af', marginBottom:'10px' }}>
+                {lang==='ar'?'البروفايلات الموجودة':'Existing Profiles'} ({fakeProfiles.length})
+            </div>
+            {loading ? (
+                <div style={{ textAlign:'center', padding:'20px', color:'#6b7280', fontSize:'12px' }}>⏳</div>
+            ) : fakeProfiles.length === 0 ? (
+                <div style={{ textAlign:'center', padding:'20px', color:'#6b7280', fontSize:'12px' }}>
+                    {lang==='ar'?'لا توجد بروفايلات تجريبية بعد':'No fake profiles yet'}
+                </div>
+            ) : (
+                <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+                    {fakeProfiles.map(fp => (
+                        <div key={fp.id} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'10px 12px', display:'flex', alignItems:'center', gap:'10px' }}>
+                            <img src={fp.photoURL} alt="" style={{ width:'36px', height:'36px', borderRadius:'50%', objectFit:'cover', flexShrink:0 }} onError={e => e.target.style.display='none'} />
+                            <div style={{ flex:1, minWidth:0 }}>
+                                <div style={{ fontSize:'12px', fontWeight:700, color:'white', display:'flex', alignItems:'center', gap:'6px' }}>
+                                    {fp.displayName} <span style={{ fontSize:'9px', background:'rgba(0,242,255,0.15)', color:'#00f2ff', borderRadius:'4px', padding:'1px 5px' }}>FAKE</span>
+                                </div>
+                                <div style={{ fontSize:'10px', color:'#9ca3af', marginTop:'2px' }}>
+                                    🏆 {fp.stats?.wins||0} {lang==='ar'?'فوز':'wins'} · ⭐ {(fp.charisma||0).toLocaleString()} · {fp.country?.flag} {lang==='ar'?fp.country?.name_ar:fp.country?.name_en}
+                                </div>
+                                <div style={{ fontSize:'10px', color:'#6b7280', marginTop:'1px' }}>ID: {fp.uid}</div>
+                            </div>
+                            <button onClick={() => deleteFakeProfile(fp.id, fp.displayName)} disabled={deleting===fp.id} style={{
+                                padding:'5px 10px', borderRadius:'6px', fontSize:'10px', fontWeight:700, cursor:'pointer',
+                                background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.3)', color:'#ef4444',
+                                opacity: deleting===fp.id ? 0.5 : 1, flexShrink:0
+                            }}>
+                                {deleting===fp.id ? '⏳' : '🗑️'}
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ════════════════════════════════════════════════════════
 // 📊 STAT CARD COMPONENT
 // ════════════════════════════════════════════════════════
 const AdminStatCard = ({ icon, label, value, color = '#00f2ff', bg = 'rgba(0,242,255,0.08)' }) => (
@@ -1776,6 +1944,7 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenP
     if (role === 'owner') {
         navItems.push({ id:'staff',     icon:'👥', label_en:'Staff Mgmt',    label_ar:'إدارة الفريق', color:'#ffd700', roles:['owner'] });
         navItems.push({ id:'financial', icon:'💰', label_en:'Financial Log', label_ar:'السجل المالي',color:'#10b981', roles:['owner'] });
+        navItems.push({ id:'fakeprofiles', icon:'🎭', label_en:'Fake Profiles', label_ar:'بروفايلات تجريبية', color:'#00f2ff', roles:['owner'] });
     }
     if (role === 'owner' || role === 'admin') {
         navItems.push({ id:'users',     icon:'🚫', label_en:'User Mgmt',     label_ar:'إدارة المستخدمين', color:'#ef4444', roles:['owner','admin'] });
@@ -1798,6 +1967,7 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenP
             case 'users':      return <UserManagementSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} />;
             case 'broadcast':  return <BroadcastSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} />;
             case 'activitylog':return <ActivityLogSection lang={lang} />;
+            case 'fakeprofiles': return <FakeProfilesSection lang={lang} onNotification={setNotification} />;
             case 'reports':    return <ReportsSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} onOpenProfile={onOpenProfile} />;
             case 'tickets':    return <TicketsSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} />;
             case 'moments':    return <MomentsModerationSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} onOpenProfile={onOpenProfile} />;
