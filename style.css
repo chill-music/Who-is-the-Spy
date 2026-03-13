@@ -2016,7 +2016,6 @@ body {
 .profile-couple-badge .cb-ring {
     font-size: 15px;
     flex-shrink: 0;
-    filter: drop-shadow(0 0 5px rgba(236,72,153,0.7));
 }
 .profile-couple-badge .cb-name {
     font-size: 10px;
