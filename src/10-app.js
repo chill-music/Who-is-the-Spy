@@ -2104,7 +2104,6 @@ function App() {
                                     </div>
                                 </div>
                                 <div className="rp-right">
-                                    <div className="rp-title">{lang==='ar'?'رانكينج اللاعبين':'Player Ranking'}</div>
                                     <div className="rp-sub">
                                         {leaderboardData.length > 0
                                             ? (lang==='ar'?`${leaderboardData.length}+ لاعب في القائمة`:`${leaderboardData.length}+ players ranked`)
