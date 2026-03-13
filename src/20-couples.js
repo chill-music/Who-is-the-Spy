@@ -981,7 +981,7 @@ const CoupleCardModal = ({
                                 onClick: () => setRingTooltipId(v => v ? null : ring.id)
                             },
                                 ring.imageURL
-                                    ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'40px', height:'40px', objectFit:'contain', mixBlendMode:'screen', display:'block', background:'transparent', filter:`drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` }})
+                                    ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'40px', height:'40px', objectFit:'contain', mixBlendMode:'screen', display:'block', background:'transparent' }})
                                     : React.createElement('div', { style:{ fontSize:'26px', lineHeight:1,
                                         filter:`drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` }}, ring.emoji),
                                 /* Ring name tooltip */
@@ -992,7 +992,7 @@ const CoupleCardModal = ({
                                     boxShadow:`0 4px 20px rgba(0,0,0,0.8)`, pointerEvents:'none', marginBottom:'6px'
                                 }},
                                     React.createElement('div', { style:{ fontSize:'16px', textAlign:'center', marginBottom:'2px',
-                                        filter:`drop-shadow(0 0 6px ${ring.glow})` }}, ring.imageURL ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'22px', height:'22px', objectFit:'contain', mixBlendMode:'screen', background:'transparent', display:'block' }}) : ring.emoji),
+                                        filter: ring.imageURL ? undefined : `drop-shadow(0 0 6px ${ring.glow})` }}, ring.imageURL ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'22px', height:'22px', objectFit:'contain', mixBlendMode:'screen', background:'transparent', display:'block' }}) : ring.emoji),
                                     React.createElement('div', { style:{ fontSize:'11px', fontWeight:800, color:ring.color, textAlign:'center' }},
                                         lang==='ar' ? ring.name_ar : ring.name_en),
                                     React.createElement('div', { style:{ fontSize:'9px', color: RARITY_COLORS_C[ring.rarity], textAlign:'center', marginTop:'1px' }}, ring.rarity)
