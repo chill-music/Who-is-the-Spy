@@ -20,7 +20,7 @@ const couplesCollection = db.collection('artifacts').doc(appId)
 // ─────────────────────────────────────────────
 const RINGS_DATA = [
     { id:'ring_bronze',   emoji:'💍', imageURL:null, name_en:'Bronze Ring',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Common',    color:'#cd7f32', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:false, hidden:false, limited:false, limitedUntil:null },
-             { id:'kingshehab',   emoji:null, imageURL:'https://res.cloudinary.com/dqewgiqsh/image/upload/v1773406707/ringking_lxnly9.gif', name_en:'King Rin',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:true, hidden:false, limited:false, limitedUntil:null },
+             { id:'kingshehab',   emoji:null, imageURL:'https://i.ibb.co/FLvkgp32/ringking.gif', name_en:'King Rin',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:true, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_silver',   emoji:'💍', imageURL:null, name_en:'Silver Ring',      name_ar:'خاتم فضي',        cost:1500,  levelReq:3,  rarity:'Uncommon',  color:'#c0c0c0', glow:'rgba(192,192,192,0.4)', desc_en:'Elegant and timeless.',       desc_ar:'أناقة خالدة.',            event:false, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_gold',     emoji:'💍', imageURL:null, name_en:'Gold Ring',        name_ar:'خاتم ذهبي',       cost:3000,  levelReq:5,  rarity:'Rare',      color:'#ffd700', glow:'rgba(255,215,0,0.5)',   desc_en:'Golden love, golden future.', desc_ar:'حب ذهبي، مستقبل ذهبي.',   event:false, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_rose',     emoji:'💍', imageURL:null, name_en:'Rose Gold Ring',   name_ar:'خاتم ذهبي وردي',  cost:5000,  levelReq:7,  rarity:'Epic',      color:'#f9a8d4', glow:'rgba(249,168,212,0.5)', desc_en:'Blush pink, bold love.',      desc_ar:'وردي رقيق، حب جريء.',     event:false, hidden:false, limited:false, limitedUntil:null },
@@ -68,61 +68,59 @@ const coupleTimeDiff = (marriageDate) => {
 // ─────────────────────────────────────────────
 const RingImage = ({ src, size = 40, glow, style = {} }) => {
     const canvasRef = React.useRef(null);
-    const rafRef    = React.useRef(null);
     const imgRef    = React.useRef(null);
+    const rafRef    = React.useRef(null);
 
     React.useEffect(() => {
         if (!src) return;
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        const img    = imgRef.current;
+        if (!canvas || !img) return;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        imgRef.current = img;
-
         const draw = () => {
-            if (img.complete && img.naturalWidth > 0) {
+            if (img.naturalWidth > 0) {
                 ctx.clearRect(0, 0, size, size);
                 ctx.drawImage(img, 0, 0, size, size);
                 try {
-                    const { data } = ctx.getImageData(0, 0, size, size);
-                    const out = ctx.createImageData(size, size);
-                    for (let i = 0; i < data.length; i += 4) {
-                        const r = data[i], g = data[i+1], b = data[i+2];
-                        // remove near-black pixels (threshold 40)
-                        const isBlack = r < 40 && g < 40 && b < 40;
-                        out.data[i]   = r;
-                        out.data[i+1] = g;
-                        out.data[i+2] = b;
-                        out.data[i+3] = isBlack ? 0 : data[i+3];
+                    const imageData = ctx.getImageData(0, 0, size, size);
+                    const d = imageData.data;
+                    for (let i = 0; i < d.length; i += 4) {
+                        // remove near-black pixels (threshold 45)
+                        if (d[i] < 45 && d[i+1] < 45 && d[i+2] < 45) d[i+3] = 0;
                     }
-                    ctx.putImageData(out, 0, 0);
+                    ctx.putImageData(imageData, 0, 0);
                 } catch(e) {
-                    // CORS blocked — fall back to plain draw
+                    // CORS blocked — img renders as-is without black removal
                 }
             }
             rafRef.current = requestAnimationFrame(draw);
         };
 
-        img.onload = () => { draw(); };
-        img.src = src;
-
-        return () => {
-            cancelAnimationFrame(rafRef.current);
-        };
+        rafRef.current = requestAnimationFrame(draw);
+        return () => cancelAnimationFrame(rafRef.current);
     }, [src, size]);
 
-    return React.createElement('canvas', {
-        ref: canvasRef,
-        width: size,
-        height: size,
-        style: {
-            display: 'block',
-            filter: glow ? `drop-shadow(0 0 8px ${glow}) drop-shadow(0 0 16px ${glow})` : undefined,
-            ...style
-        }
-    });
+    // The hidden <img> MUST be in the DOM — browsers only advance GIF frames
+    // for img elements that are mounted. The canvas reads each frame from it.
+    return React.createElement(React.Fragment, null,
+        React.createElement('img', {
+            ref: imgRef,
+            src: src,
+            alt: '',
+            style: { position:'absolute', width:'1px', height:'1px', opacity:0, pointerEvents:'none', top:0, left:0, zIndex:-1 }
+        }),
+        React.createElement('canvas', {
+            ref: canvasRef,
+            width: size,
+            height: size,
+            style: {
+                display: 'block',
+                filter: glow ? `drop-shadow(0 0 8px ${glow}) drop-shadow(0 0 16px ${glow})` : undefined,
+                ...style
+            }
+        })
+    );
 };
 
 // ─────────────────────────────────────────────
