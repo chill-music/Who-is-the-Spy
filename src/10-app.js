@@ -2661,7 +2661,7 @@ function App() {
                                 {room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin}
                             </h2>
                             {room.ejectedUID && (
-                                <div className="text-xs text-gray-400 mb-3">{t.ejected}: <span className="text-red-400 font-bold">{room.players.find(p=>p.uid===room.ejectedUID)?.name || room.ejectedUID}</span></div>
+                                <div className="text-xs text-gray-400 mb-3">{lang==='ar'?'تم طرد:':'Ejected:'} <span className="text-red-400 font-bold">{room.players.find(p=>p.uid===room.ejectedUID)?.name || room.ejectedUID}</span></div>
                             )}
                             {/* Roles revealed */}
                             <div style={{background:'rgba(255,255,255,0.04)',borderRadius:'10px',padding:'10px',marginBottom:'12px'}}>
