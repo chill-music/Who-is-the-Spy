@@ -977,12 +977,11 @@ const CoupleCardModal = ({
                                     textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, selfData?.displayName || '—')
                             ),
                             /* Ring icon — centered between avatars, slightly overlapping */
-                            React.createElement('div', { style:{ zIndex:3, marginLeft:'-6px', marginRight:'-6px', marginBottom:'18px', cursor:'pointer', textAlign:'center',
-                                filter: ring.imageURL ? `drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` : undefined },
+                            React.createElement('div', { style:{ zIndex:3, marginLeft:'-6px', marginRight:'-6px', marginBottom:'18px', cursor:'pointer', textAlign:'center' },
                                 onClick: () => setRingTooltipId(v => v ? null : ring.id)
                             },
                                 ring.imageURL
-                                    ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'40px', height:'40px', objectFit:'contain', mixBlendMode:'screen', display:'block' }})
+                                    ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'40px', height:'40px', objectFit:'contain', mixBlendMode:'screen', display:'block', background:'transparent', filter:`drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` }})
                                     : React.createElement('div', { style:{ fontSize:'26px', lineHeight:1,
                                         filter:`drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` }}, ring.emoji),
                                 /* Ring name tooltip */
@@ -1187,12 +1186,12 @@ const CoupleCardModal = ({
                                         display:'flex', alignItems:'center', justifyContent:'center',
                                         boxShadow: isActive ? `0 0 20px ${rd.glow}, 0 0 8px ${rd.glow}` : 'none',
                                         position:'relative', transition:'all .2s',
-                                        filter: rd.imageURL ? `drop-shadow(0 0 8px ${rd.glow})` : undefined,
                                     }},
                                         rd.imageURL
                                             ? React.createElement('img', { src:rd.imageURL, alt:'', style:{
                                                 width:'100%', height:'100%', objectFit:'contain',
-                                                mixBlendMode:'screen', display:'block',
+                                                mixBlendMode:'screen', display:'block', background:'transparent',
+                                                filter: `drop-shadow(0 0 8px ${rd.glow})`,
                                               }})
                                             : React.createElement('span', { style:{ fontSize:'26px', filter:`drop-shadow(0 0 7px ${rd.glow})` }}, rd.emoji),
                                         isActive && React.createElement('div', { style:{
