@@ -3159,9 +3159,9 @@ const ProfileV11 = ({
                                         title={lang === 'ar' ? `مرتبط بـ ${profilePartnerData.displayName}` : `Coupled with ${profilePartnerData.displayName}`}
                                     >
                                         {/* Ring — image or emoji */}
-                                        <span className="cb-ring" style={{filter:`drop-shadow(0 0 5px ${ringGlow})`}}>
+                                        <span className="cb-ring" style={ringImageURL ? {} : {filter:`drop-shadow(0 0 5px ${ringGlow})`}}>
                                             {ringImageURL
-                                                ? <img src={ringImageURL} alt="" style={{width:'16px',height:'16px',objectFit:'contain',verticalAlign:'middle'}}/>
+                                                ? <img src={ringImageURL} alt="" style={{width:'16px',height:'16px',objectFit:'contain',verticalAlign:'middle',mixBlendMode:'screen',display:'block'}}/>
                                                 : ringEmoji
                                             }
                                         </span>
