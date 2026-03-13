@@ -977,7 +977,7 @@ const CoupleCardModal = ({
                                     textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, selfData?.displayName || '—')
                             ),
                             /* Ring icon — centered between avatars, slightly overlapping */
-                            React.createElement('div', { style:{ zIndex:3, marginLeft:'-6px', marginRight:'-6px', marginBottom:'18px', cursor:'pointer', textAlign:'center' },
+                            React.createElement('div', { style:{ zIndex:3, marginLeft:'-6px', marginRight:'-6px', marginBottom:'18px', cursor:'pointer', textAlign:'center', mixBlendMode: ring.imageURL ? 'screen' : undefined },
                                 onClick: () => setRingTooltipId(v => v ? null : ring.id)
                             },
                                 ring.imageURL
