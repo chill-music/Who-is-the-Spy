@@ -2079,45 +2079,6 @@ function App() {
                                 </div>
                             </div>
 
-                            {/* ── رانكينج Card ── */}
-                            <div className="sec-head-new">
-                                <span className="sec-title-new">📊 {lang==='ar'?'رانكينج':'Ranking'}</span>
-                            </div>
-                            <div className="ranking-preview-card" onClick={() => setActiveView('ranking')}>
-                                {/* Top 3 mini avatars */}
-                                <div className="rp-left">
-                                    <div className="rp-medals">
-                                        {[leaderboardData[1], leaderboardData[0], leaderboardData[2]].filter(Boolean).map((p, i) => {
-                                            const medals = ['🥈','👑','🥉'];
-                                            const sizes = ['32px','40px','32px'];
-                                            const borders = ['#c0c0c0','var(--gold)','#cd7f32'];
-                                            return (
-                                                <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px'}}>
-                                                    <div style={{width:sizes[i],height:sizes[i],borderRadius:'50%',border:`2px solid ${borders[i]}`,background:'linear-gradient(135deg,var(--secondary),var(--primary))',display:'flex',alignItems:'center',justifyContent:'center',fontSize: i===1?'18px':'14px',overflow:'hidden',flexShrink:0,boxShadow:`0 0 8px ${borders[i]}44`}}>
-                                                        {(p.photoURL||p.photo) ? <img src={p.photoURL||p.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <span>😎</span>}
-                                                    </div>
-                                                    <span style={{fontSize:'10px'}}>{medals[i]}</span>
-                                                </div>
-                                            );
-                                        })}
-                                        {leaderboardData.length === 0 && <span style={{fontSize:'28px'}}>🏆</span>}
-                                    </div>
-                                </div>
-                                <div className="rp-right">
-                                    <div className="rp-sub">
-                                        {leaderboardData.length > 0
-                                            ? (lang==='ar'?`${leaderboardData.length}+ لاعب في القائمة`:`${leaderboardData.length}+ players ranked`)
-                                            : (lang==='ar'?'اضغط لعرض التصنيف':'Tap to view rankings')
-                                        }
-                                    </div>
-                                    {currentUID && (() => {
-                                        const myRank = leaderboardData.findIndex(p => p.id === currentUID);
-                                        return myRank >= 0 ? <div className="rp-my-rank">{lang==='ar'?'مرتبتك':'Your rank'}: #{myRank+1}</div> : null;
-                                    })()}
-                                </div>
-                                <div style={{fontSize:'18px',color:'var(--primary)',flexShrink:0}}>›</div>
-                            </div>
-
                             {/* Daily Tasks */}
                             {isLoggedIn && userData && (
                                 <>
