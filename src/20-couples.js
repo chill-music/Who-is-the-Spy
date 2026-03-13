@@ -63,8 +63,10 @@ const coupleTimeDiff = (marriageDate) => {
 };
 
 // ─────────────────────────────────────────────
-// 🖼️ RingImageCanvas — removes black bg via canvas, only used where
-// mix-blend-mode fails due to stacking context (e.g. position:absolute overlays)
+// 🖼️ RingImageCanvas — removes black bg pixels via canvas.
+// Uses crossOrigin="anonymous" so getImageData never throws.
+// Hidden DOM img keeps GIF frames advancing for animation.
+// Only used where mix-blend-mode fails (inside position:absolute+zIndex stacking contexts).
 // ─────────────────────────────────────────────
 const RingImageCanvas = ({ src, size = 40, glow }) => {
     const canvasRef = React.useRef(null);
@@ -77,8 +79,8 @@ const RingImageCanvas = ({ src, size = 40, glow }) => {
         const img    = imgRef.current;
         if (!canvas || !img) return;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
         let running = true;
+
         const draw = () => {
             if (!running) return;
             if (img.naturalWidth > 0) {
@@ -91,7 +93,7 @@ const RingImageCanvas = ({ src, size = 40, glow }) => {
                         if (d[i] < 45 && d[i+1] < 45 && d[i+2] < 45) d[i+3] = 0;
                     }
                     ctx.putImageData(id, 0, 0);
-                } catch(e) {}
+                } catch(e) { /* CORS blocked — shows as-is */ }
             }
             rafRef.current = requestAnimationFrame(draw);
         };
@@ -101,14 +103,22 @@ const RingImageCanvas = ({ src, size = 40, glow }) => {
     }, [src, size]);
 
     return React.createElement(React.Fragment, null,
-        /* Hidden img must stay in DOM to keep GIF frames advancing */
+        /* crossOrigin="anonymous" is CRITICAL — without it, getImageData throws SecurityError
+           position:fixed off-screen keeps the img in DOM so browser advances GIF frames */
         React.createElement('img', {
-            ref: imgRef, src, alt: '',
-            style: { position:'fixed', left:'-9999px', top:'-9999px', width:`${size}px`, height:`${size}px`, pointerEvents:'none' }
+            ref: imgRef,
+            src,
+            crossOrigin: 'anonymous',
+            alt: '',
+            style: { position:'fixed', left:'-9999px', top:'-9999px',
+                     width:`${size}px`, height:`${size}px`, pointerEvents:'none', opacity:0.01 }
         }),
         React.createElement('canvas', {
             ref: canvasRef, width: size, height: size,
-            style: { display:'block', filter: glow ? `drop-shadow(0 0 8px ${glow}) drop-shadow(0 0 16px ${glow})` : undefined }
+            style: {
+                display: 'block',
+                filter: glow ? `drop-shadow(0 0 8px ${glow}) drop-shadow(0 0 16px ${glow})` : undefined
+            }
         })
     );
 };
@@ -1028,8 +1038,7 @@ const CoupleCardModal = ({
                                     textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, selfData?.displayName || '—')
                             ),
                             /* Ring icon — centered between avatars, slightly overlapping */
-                            React.createElement('div', { style:{ zIndex:3, marginLeft:'-6px', marginRight:'-6px', marginBottom:'18px', cursor:'pointer', textAlign:'center',
-                                filter: ring.imageURL ? undefined : undefined },
+                            React.createElement('div', { style:{ zIndex:3, marginLeft:'-6px', marginRight:'-6px', marginBottom:'18px', cursor:'pointer', textAlign:'center' },
                                 onClick: () => setRingTooltipId(v => v ? null : ring.id)
                             },
                                 ring.imageURL
@@ -1044,7 +1053,7 @@ const CoupleCardModal = ({
                                     boxShadow:`0 4px 20px rgba(0,0,0,0.8)`, pointerEvents:'none', marginBottom:'6px'
                                 }},
                                     React.createElement('div', { style:{ fontSize:'16px', textAlign:'center', marginBottom:'2px',
-                                        filter: ring.imageURL ? undefined : `drop-shadow(0 0 6px ${ring.glow})` }}, ring.imageURL ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'22px', height:'22px', objectFit:'contain', mixBlendMode:'screen', background:'transparent', display:'block' }}) : ring.emoji),
+                                        filter:`drop-shadow(0 0 6px ${ring.glow})` }}, ring.imageURL ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'22px', height:'22px', objectFit:'contain', mixBlendMode:'screen', background:'transparent', display:'block' }}) : ring.emoji),
                                     React.createElement('div', { style:{ fontSize:'11px', fontWeight:800, color:ring.color, textAlign:'center' }},
                                         lang==='ar' ? ring.name_ar : ring.name_en),
                                     React.createElement('div', { style:{ fontSize:'9px', color: RARITY_COLORS_C[ring.rarity], textAlign:'center', marginTop:'1px' }}, ring.rarity)
@@ -1238,7 +1247,7 @@ const CoupleCardModal = ({
                                         display:'flex', alignItems:'center', justifyContent:'center',
                                         boxShadow: isActive ? `0 0 20px ${rd.glow}, 0 0 8px ${rd.glow}` : 'none',
                                         position:'relative', transition:'all .2s',
-                                        filter: rd.imageURL ? undefined : undefined,
+                                        filter: rd.imageURL ? `drop-shadow(0 0 8px ${rd.glow})` : undefined,
                                     }},
                                         rd.imageURL
                                             ? React.createElement('img', { src:rd.imageURL, alt:'', style:{
