@@ -1142,10 +1142,13 @@ const CoupleCardModal = ({
                         // Deduplicate: show unique rings only (latest entry per ringId)
                         const seen = {};
                         [...shared].reverse().forEach(s => { if (!seen[s.ringId]) seen[s.ringId] = s; });
+                        // ✅ Always include the main proposal ring as primary
+                        if (!seen[doc.ringId]) {
+                            seen[doc.ringId] = { ringId: doc.ringId, isMainRing: true };
+                        }
                         const unique = Object.values(seen);
-                        if (unique.length === 0) return React.createElement('div', {
-                            style:{ fontSize:'11px', color:'#4b5563', padding:'8px 0' }
-                        }, lang==='ar' ? '💍 لا خواتم مُهداة بعد' : '💍 No rings gifted yet');
+                        // Sort: main ring first
+                        unique.sort((a, b) => (b.ringId === doc.ringId ? 1 : 0) - (a.ringId === doc.ringId ? 1 : 0));
                         return React.createElement('div', { style:{ display:'flex', gap:'8px', flexWrap:'wrap' }},
                             unique.map((s, i) => {
                                 const rd = RINGS_DATA.find(r => r.id === s.ringId);
@@ -1272,7 +1275,7 @@ const CoupleCardModal = ({
 // ══ RINGS SHOP SECTION (injected into ShopModal)
 // ─────────────────────────────────────────────
 // RingsShopSection — allows buying multiple rings, adds to inventory, supports event/hidden rings
-const RingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification }) => {
+const RingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification, coupleData, onOpenCoupleCard }) => {
     const currency    = userData?.currency || 0;
     const charismaLvl = getCharismaLevel(userData?.charisma || 0).currentLevel.level;
     const myRings     = userData?.inventory?.rings || []; // array may have duplicates (multi-buy)
@@ -1376,12 +1379,20 @@ const RingsShopSection = ({ userData, lang, currentUID, onPropose, onNotificatio
                             boxShadow: canAfford ? '0 3px 14px rgba(236,72,153,0.4)' : 'none',
                         }
                     }, isBuying ? '⏳' : (isMine ? (lang==='ar'?'💍 اشتر مرة أخرى':'💍 Buy Again') : (lang==='ar'?'💍 شراء':'💍 Buy'))),
-                    /* Use for proposal */
-                    isMine && onPropose && React.createElement('button', {
-                        onClick: () => onPropose(ring),
+                    /* Use for proposal / gift to partner */
+                    isMine && (onPropose || onOpenCoupleCard) && React.createElement('button', {
+                        onClick: () => {
+                            if (coupleData) {
+                                // ✅ Already married — open couple card to gift ring
+                                onOpenCoupleCard && onOpenCoupleCard();
+                            } else {
+                                // Not in couple — propose with this ring
+                                onPropose && onPropose(ring);
+                            }
+                        },
                         style:{ padding:'4px 10px', borderRadius:'8px', border:`1px solid ${ring.color}50`,
                             background:`${ring.color}15`, color:ring.color, fontSize:'9px', fontWeight:700, cursor:'pointer' }
-                    }, lang==='ar'?'📤 استخدم':'📤 Use')
+                    }, coupleData ? (lang==='ar'?'💍 أهدِ':'💍 Gift') : (lang==='ar'?'📤 استخدم':'📤 Use'))
                 )
             );
         }),
