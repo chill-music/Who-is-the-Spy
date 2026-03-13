@@ -1,4 +1,4 @@
-const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory, onPropose, currentUID }) => {
+const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedItem, setSelectedItem] = useState(null);
@@ -189,6 +189,8 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                             lang={lang}
                             currentUID={currentUID}
                             onPropose={onPropose || (() => {})}
+                            coupleData={coupleData}
+                            onOpenCoupleCard={onOpenCoupleCard}
                         />
                     )}
 
@@ -752,7 +754,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 };
 
 // 📦 INVENTORY MODAL
-const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData, user }) => {
+const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData, user, coupleData, onOpenCoupleCard, onPropose }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedGift, setSelectedGift] = useState(null);
@@ -760,14 +762,19 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
 
     if (!show) return null;
 
-    const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
+    const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [], rings: [] };
     const equipped = userData?.equipped || {};
     const giftCounts = inventory.giftCounts || {};
+    const myRings = inventory.rings || [];
     const getOwnedItems = (type) => {
         const ownedIds = inventory[type] || [];
         if (type === 'gifts') {
             // Only show gifts that still have count > 0
             return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id) && (giftCounts[item.id] || 0) > 0) || [];
+        }
+        if (type === 'rings') {
+            const uniqueIds = [...new Set(ownedIds)];
+            return (typeof RINGS_DATA !== 'undefined' ? RINGS_DATA : []).filter(r => uniqueIds.includes(r.id));
         }
         return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || [];
     };
@@ -789,7 +796,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
         return <span className="text-xl">🎨</span>;
     };
 
-    const tabs = ['frames', 'titles', 'badges', 'profileEffects', 'gifts'];
+    const tabs = ['frames', 'titles', 'badges', 'profileEffects', 'gifts', 'rings'];
     const ownedItems = getOwnedItems(activeTab);
 
     return (
@@ -802,9 +809,73 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                         <ModalCloseBtn onClose={onClose} />
                     </div>
                     <div className="modal-body" style={{ padding: '8px' }}>
-                        <div className="shop-tabs-container" style={{ margin: '4px', marginBottom: 0 }}>{tabs.map(tab => <button key={tab} onClick={() => setActiveTab(tab)} className={`shop-tab ${activeTab === tab ? 'active' : ''}`}>{t[tab]} ({getOwnedItems(tab).length})</button>)}</div>
+                        <div className="shop-tabs-container" style={{ margin: '4px', marginBottom: 0 }}>{tabs.map(tab => {
+                            const label = tab === 'rings'
+                                ? (lang === 'ar' ? `💍 خواتم (${getOwnedItems('rings').length})` : `💍 Rings (${getOwnedItems('rings').length})`)
+                                : `${t[tab] || tab} (${getOwnedItems(tab).length})`;
+                            return <button key={tab} onClick={() => setActiveTab(tab)} className={`shop-tab ${activeTab === tab ? 'active' : ''}`}>{label}</button>;
+                        })}</div>
                         <div className="p-2">
-                            {ownedItems.length === 0 ? <div className="text-center py-6 text-gray-400"><div className="text-3xl mb-2">📦</div><p>{t.owned}: 0</p></div> : (
+                            {/* ══ RINGS TAB in Inventory ══ */}
+                            {activeTab === 'rings' && (
+                                <div>
+                                    {myRings.length === 0 ? (
+                                        <div className="text-center py-6 text-gray-400">
+                                            <div className="text-3xl mb-2">💍</div>
+                                            <p style={{fontSize:'12px'}}>{lang==='ar' ? 'لا خواتم في مخزونك' : 'No rings in your inventory'}</p>
+                                            <p style={{fontSize:'11px',color:'#4b5563',marginTop:'4px'}}>{lang==='ar' ? 'اشتر خواتم من متجر الخواتم' : 'Buy rings from the Rings shop'}</p>
+                                        </div>
+                                    ) : (
+                                        <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
+                                            {[...new Set(myRings)].map(rid => {
+                                                const rd = typeof RINGS_DATA !== 'undefined' ? RINGS_DATA.find(r => r.id === rid) : null;
+                                                if (!rd) return null;
+                                                const count = myRings.filter(id => id === rid).length;
+                                                return (
+                                                    <div key={rid} style={{
+                                                        display:'flex', alignItems:'center', gap:'12px',
+                                                        padding:'12px 14px', borderRadius:'14px',
+                                                        background:`linear-gradient(135deg, ${rd.color}12, ${rd.color}06)`,
+                                                        border:`1px solid ${rd.color}40`,
+                                                    }}>
+                                                        <div style={{flexShrink:0, width:'40px', height:'40px', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                                                            {rd.imageURL
+                                                                ? <img src={rd.imageURL} alt="" style={{width:'36px', height:'36px', objectFit:'contain', filter:`drop-shadow(0 0 6px ${rd.glow})`}} />
+                                                                : <span style={{fontSize:'28px', filter:`drop-shadow(0 0 6px ${rd.glow})`}}>{rd.emoji}</span>
+                                                            }
+                                                        </div>
+                                                        <div style={{flex:1, minWidth:0}}>
+                                                            <div style={{fontSize:'13px', fontWeight:800, color:rd.color}}>{lang==='ar' ? rd.name_ar : rd.name_en}</div>
+                                                            <div style={{fontSize:'10px', color:'#9ca3af', marginTop:'2px'}}>{rd.rarity}</div>
+                                                            {count > 1 && <div style={{fontSize:'10px', color:'#fcd34d', marginTop:'1px'}}>×{count} {lang==='ar'?'نسخ':'copies'}</div>}
+                                                        </div>
+                                                        <button
+                                                            onClick={() => {
+                                                                if (coupleData) {
+                                                                    onOpenCoupleCard && onOpenCoupleCard();
+                                                                } else {
+                                                                    onPropose && onPropose(rd);
+                                                                }
+                                                            }}
+                                                            style={{
+                                                                padding:'8px 14px', borderRadius:'10px', border:`1px solid ${rd.color}50`,
+                                                                background:`${rd.color}18`, color:rd.color, fontSize:'11px',
+                                                                fontWeight:800, cursor:'pointer', flexShrink:0,
+                                                            }}
+                                                        >
+                                                            {coupleData
+                                                                ? (lang==='ar' ? '💍 أهدِ' : '💍 Gift')
+                                                                : (lang==='ar' ? '📤 استخدم' : '📤 Use')
+                                                            }
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {activeTab !== 'rings' && (ownedItems.length === 0 ? <div className="text-center py-6 text-gray-400"><div className="text-3xl mb-2">📦</div><p>{t.owned}: 0</p></div> : (
                                 <div className="inventory-grid">
                                     {ownedItems.map(item => {
                                         const equippedItem = isEquipped(item);
@@ -852,7 +923,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                         );
                                     })}
                                 </div>
-                            )}
+                            ))}
                         </div>
                     </div>
                 </div>
