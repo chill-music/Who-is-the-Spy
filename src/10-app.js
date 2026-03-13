@@ -590,6 +590,7 @@ function App() {
                 const me = data.players?.find(p => p.uid === user.uid);
                 if (me) {
                     const isSpy = me.role === 'spy' || me.role === 'mrwhite';
+                    const isInformant = me.role === 'informant';
                     const spyCaught = data.status === 'finished_spy_caught';
                     const spyEscaped = data.status === 'finished_spy_wins' || data.status === 'finished_spy_escaped';
                     const mrwhiteWon = data.status === 'finished_mrwhite_win' || data.status === 'finished_mrwhite_wins';
@@ -598,7 +599,8 @@ function App() {
                     // Determine if this player won
                     let iWon = false;
                     if (isSpy && (spyEscaped || mrwhiteWon)) iWon = true;
-                    if (!isSpy && agentsWon) iWon = true;
+                    if (isInformant && (spyEscaped || mrwhiteWon)) iWon = true; // Informant wins with spy team
+                    if (!isSpy && !isInformant && agentsWon) iWon = true;
 
                     // Stats updates — apply VIP XP multiplier
                     const vipXpMult = getVIPXPMultiplier(userData);
@@ -714,6 +716,107 @@ function App() {
     useEffect(() => { if (room?.status === 'discussing' && room?.turnEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000)); setTurnTimer(remaining); if (remaining <= 0) { handleSkipTurn(true); clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setTurnTimer(30); }, [room?.status, room?.turnEndTime]);
     useEffect(() => { if (room?.status === 'voting' && room?.votingEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.votingEndTime - Date.now()) / 1000)); setVotingTimer(remaining); if (remaining <= 0) { clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setVotingTimer(30); }, [room?.status, room?.votingEndTime]);
     useEffect(() => { if (room?.status === 'word_selection' && room?.wordSelEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.wordSelEndTime - Date.now()) / 1000)); setWordSelTimer(remaining); if (remaining <= 0) { clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setWordSelTimer(30); }, [room?.status, room?.wordSelEndTime]);
+
+    // ── Auto-resolve word votes (admin only) ──
+    useEffect(() => {
+        if (!room || room.status !== 'word_selection' || currentUID !== room.admin) return;
+        const activePlayers = room.players.filter(p => p.status === 'active');
+        // Only agents and informants vote; spy and mrwhite are excluded
+        const voters = activePlayers.filter(p => p.role !== 'spy' && p.role !== 'mrwhite');
+        if (voters.length === 0) return;
+        const allVoted = voters.every(p => room.wordVotes?.[p.uid]);
+        if (!allVoted) return;
+        // Count votes & pick majority word
+        const voteCounts = {};
+        voters.forEach(p => {
+            const w = room.wordVotes[p.uid];
+            if (w) voteCounts[w] = (voteCounts[w] || 0) + 1;
+        });
+        const chosenWord = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+        if (!chosenWord) return;
+        roomsCollection.doc(roomId).update({
+            chosenWord, status: 'discussing',
+            wordSelEndTime: null, turnEndTime: Date.now() + 30000,
+        }).catch(() => {});
+    }, [room?.wordVotes, room?.status, currentUID, room?.admin, room?.players, roomId]);
+
+    // ── Auto-resolve final votes (admin only) ──
+    useEffect(() => {
+        if (!room || room.status !== 'voting' || currentUID !== room.admin) return;
+        const activePlayers = room.players.filter(p => p.status === 'active');
+        const allVoted = activePlayers.length > 0 && activePlayers.every(p => room.votes?.[p.uid]);
+        if (!allVoted) return;
+        // Tally votes
+        const voteCounts = {};
+        Object.values(room.votes).forEach(v => { voteCounts[v] = (voteCounts[v] || 0) + 1; });
+        const maxVotes = Math.max(...Object.values(voteCounts));
+        const topVoted = Object.entries(voteCounts).filter(([, count]) => count === maxVotes);
+        if (topVoted.length > 1) {
+            // Tie → spy escapes
+            roomsCollection.doc(roomId).update({ status: 'finished_spy_escaped', votingEndTime: null }).catch(() => {});
+            return;
+        }
+        const ejectedUID = topVoted[0][0];
+        const ejectedPlayer = activePlayers.find(p => p.uid === ejectedUID);
+        const ejectedRole = ejectedPlayer?.role;
+        const sysMsg = { sender: 'system', name: 'SYSTEM', text: `🚨 ${ejectedPlayer?.name || ejectedUID} was ejected!`, time: Date.now() };
+        if (ejectedRole === 'spy') {
+            roomsCollection.doc(roomId).update({ status: 'spy_guessing', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) }).catch(() => {});
+        } else if (ejectedRole === 'mrwhite') {
+            roomsCollection.doc(roomId).update({ status: 'mrwhite_guessing', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) }).catch(() => {});
+        } else {
+            // Innocent ejected
+            roomsCollection.doc(roomId).update({ status: 'finished_spy_escaped', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) }).catch(() => {});
+        }
+    }, [room?.votes, room?.status, currentUID, room?.admin, room?.players, roomId]);
+
+    // ── Bot automation (owner only) ──
+    useEffect(() => {
+        if (!room || currentUID !== OWNER_UID) return;
+        const bots = room.players.filter(p => p.isBot && p.status === 'active');
+        if (bots.length === 0) return;
+        // Bot word voting
+        if (room.status === 'word_selection') {
+            const words = room.scenario?.words_en || [];
+            if (words.length === 0) return;
+            bots.forEach(bot => {
+                if (!room.wordVotes?.[bot.uid] && bot.role !== 'spy' && bot.role !== 'mrwhite') {
+                    const w = words[Math.floor(Math.random() * words.length)];
+                    const upd = {}; upd[`wordVotes.${bot.uid}`] = w;
+                    setTimeout(() => roomsCollection.doc(roomId).update(upd).catch(() => {}), 1500 + Math.random() * 2000);
+                }
+            });
+        }
+        // Bot turn in discussion - auto skip with optional chat
+        if (room.status === 'discussing' && room.currentTurnUID) {
+            const currentBot = bots.find(b => b.uid === room.currentTurnUID);
+            if (currentBot) {
+                const delay = 2000 + Math.random() * 3000;
+                const shouldChat = Math.random() > 0.4;
+                const msgs = lang === 'ar' ? ['هممم، مثير للاهتمام...', 'لدي شكوكي.', 'دعونا نفكر بعناية.', 'نقطة جيدة.', 'أراقب الجميع.', 'شيء ما غريب.', 'موافق.', 'لست متأكداً من ذلك.'] : ['Hmm, interesting...', 'I have my suspicions.', 'Let\'s think carefully.', 'That\'s a good point.', 'I\'m watching everyone.', 'Something seems off.', 'Agreed.', 'Not sure about that.'];
+                const timer = setTimeout(async () => {
+                    if (shouldChat) {
+                        const msg = msgs[Math.floor(Math.random() * msgs.length)];
+                        const chatMsg = { sender: currentBot.uid, name: currentBot.name, text: msg, time: Date.now(), isBot: true };
+                        await roomsCollection.doc(roomId).update({ messages: firebase.firestore.FieldValue.arrayUnion(chatMsg) }).catch(() => {});
+                    }
+                    await nextTurn();
+                }, delay);
+                return () => clearTimeout(timer);
+            }
+        }
+        // Bot final voting
+        if (room.status === 'voting') {
+            const humanPlayers = room.players.filter(p => p.status === 'active' && !p.isBot);
+            bots.forEach(bot => {
+                if (!room.votes?.[bot.uid] && humanPlayers.length > 0) {
+                    const target = humanPlayers[Math.floor(Math.random() * humanPlayers.length)];
+                    const upd = {}; upd[`votes.${bot.uid}`] = target.uid;
+                    setTimeout(() => roomsCollection.doc(roomId).update(upd).catch(() => {}), 2000 + Math.random() * 3000);
+                }
+            });
+        }
+    }, [room?.currentTurnUID, room?.status, room?.wordVotes, room?.votes, currentUID, roomId, lang]);
 
     // Auth Functions
     const handleGoogleLogin = useCallback(async () => { const provider = new firebase.auth.GoogleAuthProvider(); try { await auth.signInWithPopup(provider); setShowDropdown(false); } catch (e) { } }, []);
@@ -929,8 +1032,73 @@ function App() {
     }, [room, currentUID, roomId]);
 
     // Game Logic Functions
-    const startGame = useCallback(async () => { if (room.admin !== currentUID) return; playSound('success'); const activePlayers = room.players.filter(p => p.status === 'active'); const playerCount = activePlayers.length; if (room.mode === 'advanced' && playerCount < 6) { setAlertMessage("Advanced mode requires 6+ players!"); return; } if (playerCount < 3) { setAlertMessage(t.needPlayers); return; } if (playerCount > 10) { setAlertMessage("Max 10 players."); return; } const used = room.usedLocations || []; const avail = SCENARIOS.filter(s => !used.includes(s.loc_en)); const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))]; const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)]; let roles = {}; if (room.mode === 'advanced') { roles[spy.uid] = 'spy'; let potentialWhites = activePlayers.filter(p => p.uid !== spy.uid); if(potentialWhites.length > 0) { const mrWhite = potentialWhites[Math.floor(Math.random() * potentialWhites.length)]; roles[mrWhite.uid] = 'mrwhite'; potentialWhites = potentialWhites.filter(p => p.uid !== mrWhite.uid); } if(potentialWhites.length > 0) { const informant = potentialWhites[Math.floor(Math.random() * potentialWhites.length)]; roles[informant.uid] = 'informant'; } activePlayers.forEach(p => { if(!roles[p.uid]) roles[p.uid] = 'agent'; }); } else { activePlayers.forEach(p => roles[p.uid] = p.uid === spy.uid ? 'spy' : 'agent'); } let potentialStarters = activePlayers.filter(p => roles[p.uid] !== 'spy'); if (potentialStarters.length === 0) potentialStarters = activePlayers; const firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)]; await roomsCollection.doc(roomId).update({ status: 'word_selection', scenario, spyId: spy.uid, currentTurnUID: firstPlayer.uid, turnEndTime: null, currentRound: 1, players: room.players.map(p => ({ ...p, vote: null, role: roles[p.uid] || 'agent' })), usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en), messages: [], votes: {}, wordVotes: {}, chosenWord: null, wordSelEndTime: Date.now() + 30000, votingRequest: null, startedAt: firebase.firestore.FieldValue.serverTimestamp() }); }, [room, currentUID, roomId, t]);
-    const submitWordVote = useCallback(async (word) => { if (!currentUID || !room || room.status !== 'word_selection') return; playSound('click'); const voteUpdate = {}; voteUpdate[`wordVotes.${currentUID}`] = word; await roomsCollection.doc(roomId).update(voteUpdate); }, [currentUID, room, roomId]);
+    const startGame = useCallback(async () => {
+        if (room.admin !== currentUID) return;
+        playSound('success');
+        const activePlayers = room.players.filter(p => p.status === 'active');
+        const playerCount = activePlayers.length;
+        if (room.mode === 'advanced' && playerCount < 6) { setAlertMessage("Advanced mode requires 6+ players!"); return; }
+        if (playerCount < 3) { setAlertMessage(t.needPlayers); return; }
+        if (playerCount > 10) { setAlertMessage("Max 10 players."); return; }
+        const used = room.usedLocations || [];
+        const avail = SCENARIOS.filter(s => !used.includes(s.loc_en));
+        const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))];
+        const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+        let roles = {};
+        let mrwhiteId = null;
+        let informantId = null;
+        if (room.mode === 'advanced') {
+            roles[spy.uid] = 'spy';
+            let remaining = activePlayers.filter(p => p.uid !== spy.uid);
+            if (remaining.length > 0) {
+                const mrWhite = remaining[Math.floor(Math.random() * remaining.length)];
+                roles[mrWhite.uid] = 'mrwhite';
+                mrwhiteId = mrWhite.uid;
+                remaining = remaining.filter(p => p.uid !== mrWhite.uid);
+            }
+            if (remaining.length > 0) {
+                const informant = remaining[Math.floor(Math.random() * remaining.length)];
+                roles[informant.uid] = 'informant';
+                informantId = informant.uid;
+            }
+            activePlayers.forEach(p => { if (!roles[p.uid]) roles[p.uid] = 'agent'; });
+        } else {
+            activePlayers.forEach(p => roles[p.uid] = p.uid === spy.uid ? 'spy' : 'agent');
+        }
+        let potentialStarters = activePlayers.filter(p => roles[p.uid] !== 'spy');
+        if (potentialStarters.length === 0) potentialStarters = activePlayers;
+        const firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)];
+        await roomsCollection.doc(roomId).update({
+            status: 'word_selection',
+            scenario,
+            spyId: spy.uid,
+            mrwhiteId,
+            informantId,
+            currentTurnUID: firstPlayer.uid,
+            turnEndTime: null,
+            currentRound: 1,
+            players: room.players.map(p => ({ ...p, vote: null, role: roles[p.uid] || 'agent' })),
+            usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en),
+            messages: [],
+            votes: {},
+            wordVotes: {},
+            chosenWord: null,
+            wordSelEndTime: Date.now() + 45000,
+            votingRequest: null,
+            ejectedUID: null,
+            startedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }, [room, currentUID, roomId, t]);
+    const submitWordVote = useCallback(async (word) => {
+        if (!currentUID || !room || room.status !== 'word_selection') return;
+        // Spy and MrWhite don't vote for words - compute role inline
+        const myPlayer = room?.players?.find(p => p.uid === currentUID);
+        if (myPlayer?.role === 'spy' || myPlayer?.role === 'mrwhite') return;
+        playSound('click');
+        const voteUpdate = {};
+        voteUpdate[`wordVotes.${currentUID}`] = word;
+        await roomsCollection.doc(roomId).update(voteUpdate);
+    }, [currentUID, room, roomId]);
     const handleSkipTurn = useCallback(async (forced = false) => { if (!room) return; if (!forced && room.currentTurnUID !== currentUID) return; if (forced && room.status !== 'discussing') return; nextTurn(); }, [room, currentUID]);
     const nextTurn = useCallback(async () => { if (!room) return; const activePlayers = room.players.filter(p => p.status === 'active'); const currentIndex = activePlayers.findIndex(p => p.uid === room.currentTurnUID); const nextIndex = (currentIndex + 1) % activePlayers.length; await roomsCollection.doc(roomId).update({ currentTurnUID: activePlayers[nextIndex].uid, turnEndTime: Date.now() + 30000 }); }, [room, roomId]);
     const requestVoting = useCallback(async () => { if (!room || room.status !== 'discussing') return; playSound('click'); if (room.admin === currentUID) { await triggerVoting(); return; } await roomsCollection.doc(roomId).update({ votingRequest: { requestedBy: currentUID, votes: { [currentUID]: true } } }); }, [room, currentUID, roomId]);
@@ -938,7 +1106,88 @@ function App() {
     const declineVote = useCallback(async () => { if (!room || !room.votingRequest) return; playSound('click'); const currentVotes = room.votingRequest.votes || {}; const newVotes = { ...currentVotes, [currentUID]: false }; const activePlayers = room.players.filter(p => p.status === 'active'); const declineCount = Object.values(newVotes).filter(v => v === false).length; const majorityCount = Math.floor(activePlayers.length / 2) + 1; if (declineCount >= majorityCount) { await roomsCollection.doc(roomId).update({ votingRequest: null }); } else { await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); } }, [room, currentUID, roomId]);
     const triggerVoting = useCallback(async () => { playSound('click'); const sysMsg = { sender: 'system', name: 'SYSTEM', text: t.votingStarted, time: Date.now() }; await roomsCollection.doc(roomId).update({ status: 'voting', currentTurnUID: null, turnEndTime: null, votingEndTime: Date.now() + 30000, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg), votingRequest: null }); }, [roomId, t]);
     const submitVote = useCallback(async (targetUID) => { if (!targetUID || !currentUID || (room.votes && room.votes[currentUID])) return; playSound('click'); const voteUpdate = {}; voteUpdate[`votes.${currentUID}`] = targetUID; await roomsCollection.doc(roomId).update(voteUpdate); }, [room, currentUID, roomId]);
-    const resetGame = useCallback(async () => { playSound('click'); await roomsCollection.doc(roomId).update({ status: 'waiting', scenario: null, spyId: null, currentTurnUID: null, currentRound: 0, votes: {}, messages: [], votingEndTime: null, turnEndTime: null, players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo, role: null, equipped: p.equipped || {}, vip: p.vip || {} })), wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, startedAt: null, finishedAt: null, summaryShown: false }); setShowSummary(false); }, [room, roomId]);
+    const resetGame = useCallback(async () => {
+        playSound('click');
+        await roomsCollection.doc(roomId).update({
+            status: 'waiting', scenario: null, spyId: null, mrwhiteId: null, informantId: null,
+            currentTurnUID: null, currentRound: 0, votes: {}, messages: [], votingEndTime: null,
+            turnEndTime: null, ejectedUID: null,
+            players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo, role: null, equipped: p.equipped || {}, vip: p.vip || {}, isBot: p.isBot || false, botUID: p.botUID || null })),
+            wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null,
+            startedAt: null, finishedAt: null, summaryShown: false
+        });
+        setShowSummary(false);
+    }, [room, roomId]);
+
+    // ── Spy guesses the chosen WORD when caught ──
+    const submitSpyWordGuess = useCallback(async (guessedWord) => {
+        if (!room || room.status !== 'spy_guessing') return;
+        if (currentUID !== room.ejectedUID && currentUID !== room.spyId) return;
+        playSound('click');
+        const correct = guessedWord.trim().toLowerCase() === (room.chosenWord || '').trim().toLowerCase();
+        const sysMsg = { sender: 'system', name: 'SYSTEM', text: correct ? '🎯 Spy guessed correctly!' : '❌ Wrong guess!', time: Date.now() };
+        await roomsCollection.doc(roomId).update({
+            status: correct ? 'finished_spy_escaped' : 'finished_spy_caught',
+            spyGuessWord: guessedWord,
+            messages: firebase.firestore.FieldValue.arrayUnion(sysMsg)
+        });
+    }, [room, currentUID, roomId]);
+
+    // ── MrWhite guesses the LOCATION when caught ──
+    const submitMrWhiteLocationGuess = useCallback(async (guessedLocation) => {
+        if (!room || room.status !== 'mrwhite_guessing') return;
+        if (currentUID !== room.ejectedUID && currentUID !== room.mrwhiteId) return;
+        playSound('click');
+        const locEn = (room.scenario?.loc_en || '').toLowerCase();
+        const locAr = (room.scenario?.loc_ar || '').toLowerCase();
+        const guess = guessedLocation.trim().toLowerCase();
+        const correct = guess === locEn || guess === locAr || locEn.includes(guess) || locAr.includes(guess);
+        const sysMsg = { sender: 'system', name: 'SYSTEM', text: correct ? '🎯 Mr. White guessed correctly!' : '❌ Wrong guess!', time: Date.now() };
+        await roomsCollection.doc(roomId).update({
+            status: correct ? 'finished_mrwhite_wins' : 'finished_spy_caught',
+            mrwhiteGuessLocation: guessedLocation,
+            messages: firebase.firestore.FieldValue.arrayUnion(sysMsg)
+        });
+    }, [room, currentUID, roomId]);
+
+    // ── Spy voluntarily declares and goes to guessing phase ──
+    const spyVoluntaryDeclare = useCallback(async () => {
+        if (!room || room.status !== 'discussing') return;
+        const myPlayer = room?.players?.find(p => p.uid === currentUID);
+        if (myPlayer?.role !== 'spy') return;
+        playSound('click');
+        const sysMsg = { sender: 'system', name: 'SYSTEM', text: '🕵️ Spy revealed themselves!', time: Date.now() };
+        await roomsCollection.doc(roomId).update({
+            status: 'spy_guessing',
+            ejectedUID: currentUID,
+            messages: firebase.firestore.FieldValue.arrayUnion(sysMsg),
+            votingEndTime: null, turnEndTime: null
+        });
+    }, [room, currentUID, roomId]);
+
+    // ── BOT SYSTEM (Owner only) ──
+    const BOT_NAMES = ['Shadow', 'Ghost', 'Cipher', 'Viper', 'Nova', 'Hex', 'Raven', 'Storm', 'Blaze', 'Frost', 'Echo', 'Spectre'];
+    const BOT_PHOTOS = ['🤖', '👾', '🦾', '🎭', '🕶️', '🦿'];
+    const BOT_CHAT_MSGS_EN = ['Hmm, interesting...', 'I have my suspicions.', 'Let\'s think carefully.', 'That\'s a good point.', 'I\'m watching everyone.', 'Something seems off.', 'My instinct says...', 'Agreed.', 'Not sure about that.', 'Fascinating.'];
+    const BOT_CHAT_MSGS_AR = ['هممم، مثير للاهتمام...', 'لدي شكوكي.', 'دعونا نفكر بعناية.', 'نقطة جيدة.', 'أراقب الجميع.', 'شيء ما غريب.', 'حدسي يقول...', 'موافق.', 'لست متأكداً.', 'رائع.'];
+
+    const addBotToRoom = useCallback(async () => {
+        if (!room || currentUID !== OWNER_UID) return;
+        const bots = room.players.filter(p => p.isBot);
+        if (bots.length >= 5) { setAlertMessage('Max 5 bots allowed!'); return; }
+        if (room.players.length >= 10) { setAlertMessage('Room is full!'); return; }
+        const botName = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)] + '_' + Math.floor(Math.random() * 99);
+        const botUID = 'bot_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        const newBot = { uid: botUID, name: botName, status: 'active', photo: null, role: null, equipped: {}, vip: {}, isBot: true, botUID };
+        await roomsCollection.doc(roomId).update({ players: firebase.firestore.FieldValue.arrayUnion(newBot) });
+        playSound('success');
+    }, [room, currentUID, roomId]);
+
+    const removeBotFromRoom = useCallback(async (botUID) => {
+        if (!room || currentUID !== OWNER_UID) return;
+        await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== botUID) });
+        playSound('click');
+    }, [room, currentUID, roomId]);
 
     // Friend Functions
     const openProfile = useCallback((uid) => { if(!uid) return; setTargetProfileUID(uid); setShowUserProfile(true); }, []);
@@ -1409,7 +1658,22 @@ function App() {
                 <div className="modal-overlay" onClick={() => setShowSummary(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
                         <div className="modal-header"><h2 className="modal-title">{t.summaryTitle}</h2><ModalCloseBtn onClose={() => setShowSummary(false)} /></div>
-                        <div className="modal-body text-center"><div className="text-4xl mb-4">{room.status === 'finished_spy_caught' ? '🎉' : '🕵️'}</div><h2 className="text-xl font-bold mb-4">{room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}</h2></div>
+                        <div className="modal-body text-center">
+                            <div className="text-4xl mb-3">{room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'}</div>
+                            <h2 className="text-xl font-bold mb-3">{room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin}</h2>
+                            {room.chosenWord && <div className="text-xs text-cyan-400 mb-3">🔑 {t.selectedWord}: <strong>{room.chosenWord}</strong></div>}
+                            <div style={{background:'rgba(255,255,255,0.04)',borderRadius:'10px',padding:'10px',marginBottom:'8px',textAlign:'left'}}>
+                                <div className="text-xs font-bold text-gray-300 mb-2">📋 {t.rolesRevealTitle}</div>
+                                {room.players.filter(p => p.role).map(p => (
+                                    <div key={p.uid} className="flex items-center justify-between gap-2 mb-1" style={{fontSize:'11px'}}>
+                                        <span className="text-gray-300 truncate">{p.name}{p.uid===currentUID?' (You)':''}</span>
+                                        <span style={{color:p.role==='spy'?'#ef4444':p.role==='mrwhite'?'#8b5cf6':p.role==='informant'?'#a78bfa':'#10b981',fontWeight:700,flexShrink:0}}>
+                                            {p.role==='spy'?'🕵️ '+t.statusSpy:p.role==='mrwhite'?'👻 '+t.statusMrWhite:p.role==='informant'?'👁️ '+t.statusInformant:'🤵 '+t.statusAgent}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                         <div className="modal-footer">{room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2">{t.playAgain}</button>)}<button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm">{t.leaveRoom}</button></div>
                     </div>
                 </div>
@@ -1682,23 +1946,7 @@ function App() {
             {/* ── LOBBY / LEADERBOARD / FRIENDS / EXPLORE views ── */}
             {!room && (
                 <>
-                    {/* ══ LOBBY / RANKING TABS ══ */}
-                    {(activeView === 'lobby' || activeView === 'ranking') && (
-                        <div style={{display:'flex',gap:'4px',padding:'10px 16px 0',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                            <button onClick={() => setActiveView('lobby')} style={{
-                                flex:1, padding:'8px 0', borderRadius:'10px 10px 0 0', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
-                                background: activeView==='lobby' ? 'rgba(0,242,255,0.1)' : 'transparent',
-                                color: activeView==='lobby' ? '#00f2ff' : '#6b7280',
-                                borderBottom: activeView==='lobby' ? '2px solid #00f2ff' : '2px solid transparent',
-                            }}>🏠 {lang==='ar'?'اللوبي':'Lobby'}</button>
-                            <button onClick={() => setActiveView('ranking')} style={{
-                                flex:1, padding:'8px 0', borderRadius:'10px 10px 0 0', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
-                                background: activeView==='ranking' ? 'rgba(255,215,0,0.08)' : 'transparent',
-                                color: activeView==='ranking' ? '#ffd700' : '#6b7280',
-                                borderBottom: activeView==='ranking' ? '2px solid #ffd700' : '2px solid transparent',
-                            }}>📊 {lang==='ar'?'رانكينج':'Ranking'}</button>
-                        </div>
-                    )}
+                    {/* ══ LOBBY / RANKING TABS - Ranking tab removed, accessible via lobby card ══ */}
 
                     {/* ══ LOBBY VIEW ══ */}
                     {activeView === 'lobby' && (
@@ -2240,34 +2488,91 @@ function App() {
                     {room.status === 'waiting' && (
                         <div className="card-container">
                             <h3 className="text-sm font-bold mb-3 text-center">{t.lobbyTitle}</h3>
-                            <div className="flex flex-col gap-2 mb-4">{room.players.map(p => (<div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10" onClick={() => openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>{p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded flex-shrink-0">HOST</span>}</div>))}</div>
+                            <div className="flex flex-col gap-2 mb-4">{room.players.map(p => (<div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10" onClick={() => !p.isBot && openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name + (p.isBot?' 🤖':'')}} lang={lang} size="sm" /></div>{p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded flex-shrink-0">HOST</span>}{p.isBot && currentUID === OWNER_UID && <button onClick={e=>{e.stopPropagation();removeBotFromRoom(p.uid);}} style={{background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',borderRadius:'5px',padding:'2px 6px',fontSize:'10px',cursor:'pointer',flexShrink:0}}>{t.removeBot}</button>}</div>))}</div>
+                            {/* Bot Manager - Owner Only */}
+                            {currentUID === OWNER_UID && (
+                                <div style={{background:'rgba(0,242,255,0.04)',border:'1px solid rgba(0,242,255,0.15)',borderRadius:'8px',padding:'8px 10px',marginBottom:'10px'}}>
+                                    <div style={{fontSize:'11px',fontWeight:700,color:'#00f2ff',marginBottom:'6px'}}>{t.botManager} {room.players.filter(p=>p.isBot).length > 0 && <span style={{background:'rgba(0,242,255,0.15)',borderRadius:'10px',padding:'1px 7px',fontSize:'10px'}}>{t.botsCount(room.players.filter(p=>p.isBot).length)}</span>}</div>
+                                    <div style={{fontSize:'10px',color:'#9ca3af',marginBottom:'6px'}}>{lang==='ar'?'أضف بوتات للتجربة (مرئية للجميع كلاعبين)':'Add bots for testing (visible to all as players)'}</div>
+                                    <button onClick={addBotToRoom} disabled={room.players.filter(p=>p.isBot).length>=5||room.players.length>=10} style={{background:'rgba(0,242,255,0.12)',border:'1px solid rgba(0,242,255,0.3)',color:'#00f2ff',borderRadius:'7px',padding:'5px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',opacity:room.players.filter(p=>p.isBot).length>=5||room.players.length>=10?0.4:1}}>
+                                        {t.addBot}
+                                    </button>
+                                </div>
+                            )}
                             <div className="flex gap-2">{room.admin === currentUID ? (<button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>) : (<p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>)}<button onClick={handleLeaveRoom} className="btn-danger px-4 py-2 rounded-lg text-sm">{t.leaveRoom}</button></div>
                         </div>
                     )}
 
                     {room.status === 'word_selection' && !isSpectator && (
                         <div className="card-container">
-                            <h3 className="text-sm font-bold mb-2 text-center">{t.wordSelectionTitle}</h3>
-                            <p className="text-xs text-gray-400 text-center mb-3">{t.wordSelectionDesc}</p>
-                            <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {wordSelTimer}s</div>
-                            <div className="grid grid-cols-2 gap-2">{(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => (<button key={i} onClick={() => submitWordVote(word)} className={`word-vote-card ${hasVotedWord === word ? 'selected' : ''}`}><span className="font-bold">{word}</span></button>))}</div>
+                            {(myRole === 'spy') ? (
+                                <div className="identity-square identity-spy" style={{margin:'0 0 8px'}}>
+                                    <div className="text-4xl mb-2">🕵️</div>
+                                    <div className="text-lg font-bold">{t.statusSpy}</div>
+                                    <div className="text-xs text-yellow-300 mt-1">{lang==='ar'?'أنت الجاسوس — لا تحتاج للتصويت على الكلمة':'You are the spy — no word vote needed'}</div>
+                                    <div className="text-xs text-gray-300 mt-2 opacity-70">{lang==='ar'?'الموقع: ':'Location: '}<span className="text-yellow-400 font-bold">{lang==='ar'?room.scenario?.loc_ar:room.scenario?.loc_en}</span></div>
+                                    <div className="text-xs text-cyan-300 mt-1 opacity-80">{t.spyKnowsLocation}</div>
+                                </div>
+                            ) : (myRole === 'mrwhite') ? (
+                                <div className="identity-square identity-mrwhite" style={{margin:'0 0 8px'}}>
+                                    <div className="text-4xl mb-2">👻</div>
+                                    <div className="text-lg font-bold">{t.statusMrWhite}</div>
+                                    <div className="text-xs text-gray-300 mt-1">{lang==='ar'?'لا تعرف الموقع ولا الكلمة — استمع بعناية!':'You know neither location nor word — listen carefully!'}</div>
+                                    <div className="text-xs text-purple-300 mt-2">{t.myWordNotAvailable}</div>
+                                </div>
+                            ) : (
+                                <>
+                                    <h3 className="text-sm font-bold mb-2 text-center">{t.wordSelectionTitle}</h3>
+                                    <p className="text-xs text-gray-400 text-center mb-3">{t.wordSelectionDesc}</p>
+                                    <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {wordSelTimer}s</div>
+                                    {myRole === 'informant' && room.spyId && (
+                                        <div style={{background:'rgba(168,85,247,0.12)',border:'1px solid rgba(168,85,247,0.3)',borderRadius:'8px',padding:'8px 12px',marginBottom:'10px',textAlign:'center'}}>
+                                            <div className="text-xs font-bold text-purple-300">{t.informantRevealTitle}</div>
+                                            <div className="text-xs text-gray-300 mt-1">{t.informantSpyIs} <span className="text-red-400 font-bold">{room.players.find(p=>p.uid===room.spyId)?.name || '?'}</span></div>
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => (
+                                            <button key={i} onClick={() => submitWordVote(word)} className={`word-vote-card ${hasVotedWord === word ? 'selected' : ''}`}>
+                                                <span className="font-bold">{word}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {hasVotedWord && <div className="text-xs text-center text-green-400 mt-2">✓ {lang==='ar'?'صوّتت على:':'You voted for:'} <strong>{hasVotedWord}</strong> — {lang==='ar'?'في انتظار الآخرين...':'waiting for others...'}</div>}
+                                </>
+                            )}
                         </div>
                     )}
 
                     {room.status === 'discussing' && (
                         <div className="flex flex-col gap-2">
-                            <div className="card-container"><div className="flex flex-col gap-2">{room.players.filter(p => p.status === 'active').map(p => (<div key={p.uid} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer bg-white/5 ${room.currentTurnUID === p.uid ? 'border border-primary bg-primary/5' : ''} ${p.uid === currentUID ? 'border border-primary/50' : ''}`} onClick={() => openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>{room.currentTurnUID === p.uid && <span className="text-[8px] text-primary flex-shrink-0">🎙 Speaking</span>}</div>))}</div></div>
+                            <div className="card-container"><div className="flex flex-col gap-2">{room.players.filter(p => p.status === 'active').map(p => (<div key={p.uid} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer bg-white/5 ${room.currentTurnUID === p.uid ? 'border border-primary bg-primary/5' : ''} ${p.uid === currentUID ? 'border border-primary/50' : ''}`} onClick={() => openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>{room.currentTurnUID === p.uid && <span className="text-[8px] text-primary flex-shrink-0">🎙 {lang==='ar'?'يتكلم':'Speaking'}</span>}</div>))}</div></div>
                             {!isSpectator && me && (
                                 <div className={`identity-square identity-${myRole === 'spy' ? 'spy' : myRole === 'mrwhite' ? 'mrwhite' : myRole === 'informant' ? 'informant' : 'agent'}`}>
                                     <div className="text-4xl mb-2">{myRole === 'spy' ? '🕵️' : myRole === 'mrwhite' ? '👻' : myRole === 'informant' ? '👁️' : '🤵'}</div>
                                     <div className="text-lg font-bold">{myRole === 'spy' ? t.statusSpy : myRole === 'mrwhite' ? t.statusMrWhite : myRole === 'informant' ? t.statusInformant : t.statusAgent}</div>
-                                    {myRole === 'spy' && (<div className="text-xs text-gray-300 mt-1">{t.location}: {lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</div>)}
-                                    {myRole !== 'spy' && room.chosenWord && (<div className="text-xs text-gray-300 mt-1">{t.selectedWord}: {room.chosenWord}</div>)}
+                                    {myRole === 'spy' && (<div className="text-xs text-yellow-300 mt-1">{lang==='ar'?'الموقع: ':'Location: '}<span className="font-bold">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</span></div>)}
+                                    {myRole !== 'spy' && room.chosenWord && (<div className="text-xs text-cyan-300 mt-1">{t.selectedWord}: <span className="font-bold">{room.chosenWord}</span></div>)}
+                                    {myRole === 'mrwhite' && (<div className="text-xs text-purple-300 mt-1 opacity-80">{lang==='ar'?'لا تعرف الكلمة — استمع بعناية!':'No keyword — listen carefully!'}</div>)}
+                                    {myRole === 'informant' && room.spyId && (
+                                        <div style={{marginTop:'8px',padding:'6px 10px',background:'rgba(168,85,247,0.18)',borderRadius:'6px',border:'1px solid rgba(168,85,247,0.3)'}}>
+                                            <div className="text-xs text-purple-300 font-bold">{t.informantRevealTitle}</div>
+                                            <div className="text-xs text-red-400 mt-1">{t.informantSpyIs} <span className="font-bold">{room.players.find(p=>p.uid===room.spyId)?.name || '?'}</span></div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                             <div className="card-container">
                                 <div className="flex items-center justify-between mb-2"><div className="timer-bar-container"><div className="timer-bar-fill" style={{ width: `${(turnTimer / 30) * 100}%` }}></div></div><span className="text-xs text-gray-400">{turnTimer}s</span></div>
-                                <div className="flex gap-2">{isMyTurn && (<button onClick={() => handleSkipTurn()} className="btn-ghost flex-1 py-2 rounded-lg text-xs">{t.skip}</button>)}<button onClick={requestVoting} className="btn-vote flex-1 py-2 rounded-lg text-xs font-bold">{t.vote}</button></div>
+                                <div className="flex gap-2">
+                                    {isMyTurn && (<button onClick={() => handleSkipTurn()} className="btn-ghost flex-1 py-2 rounded-lg text-xs">{t.skip}</button>)}
+                                    <button onClick={requestVoting} className="btn-vote flex-1 py-2 rounded-lg text-xs font-bold">{t.vote}</button>
+                                    {myRole === 'spy' && (
+                                        <button onClick={spyVoluntaryDeclare} style={{background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.4)',color:'#ef4444',borderRadius:'8px',padding:'0 10px',fontSize:'11px',fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}} title={t.spyDeclareDesc}>
+                                            {t.spyDeclare}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -2276,16 +2581,105 @@ function App() {
                         <div className="card-container">
                             <h3 className="text-sm font-bold mb-2 text-center">{t.vote}</h3>
                             <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {votingTimer}s</div>
-                            <div className="flex flex-col gap-2 mb-4">{room.players.filter(p => p.status === 'active').map(p => (<button key={p.uid} onClick={() => submitVote(p.uid)} disabled={hasVoted} className={`flex items-center gap-2 p-2 rounded-lg w-full text-left bg-white/5 hover:bg-white/10 border ${hasVoted === p.uid ? 'border-primary bg-primary/10' : 'border-transparent'}`}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div></button>))}</div>
+                            <div className="flex flex-col gap-2 mb-4">
+                                {room.players.filter(p => p.status === 'active').map(p => {
+                                    const voteCount = Object.values(room.votes || {}).filter(v => v === p.uid).length;
+                                    return (
+                                        <button key={p.uid} onClick={() => submitVote(p.uid)} disabled={!!hasVoted} className={`flex items-center gap-2 p-2 rounded-lg w-full text-left bg-white/5 hover:bg-white/10 border ${hasVoted === p.uid ? 'border-primary bg-primary/10' : 'border-transparent'}`}>
+                                            <div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>
+                                            {voteCount > 0 && <span style={{background:'rgba(255,68,68,0.2)',color:'#ef4444',borderRadius:'10px',padding:'1px 7px',fontSize:'11px',fontWeight:700,flexShrink:0}}>🗳 {voteCount}</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="text-xs text-center text-gray-400">{lang==='ar'?`صوّت ${Object.keys(room.votes||{}).length} من ${room.players.filter(p=>p.status==='active').length}`:`${Object.keys(room.votes||{}).length}/${room.players.filter(p=>p.status==='active').length} voted`}</div>
                         </div>
                     )}
 
-                    {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_mrwhite_wins') && (
+                    {/* ── Spy Guessing Phase ── */}
+                    {room.status === 'spy_guessing' && (() => {
+                        const isGuesser = currentUID === room.ejectedUID || currentUID === room.spyId;
+                        const words = lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en;
+                        return (
+                            <div className="card-container text-center">
+                                <div className="text-4xl mb-3">🕵️</div>
+                                <h2 className="text-base font-bold mb-1" style={{color:'#ef4444'}}>{t.spyGuessTitle}</h2>
+                                <p className="text-xs text-gray-400 mb-4">{t.spyGuessDesc}</p>
+                                <div className="text-xs text-gray-400 mb-2">{lang==='ar'?'الموقع:':'Location:'} <span className="text-yellow-400 font-bold">{lang==='ar'?room.scenario?.loc_ar:room.scenario?.loc_en}</span></div>
+                                {isGuesser ? (
+                                    <>
+                                        <p className="text-xs text-cyan-300 mb-3">{lang==='ar'?'اختر كلمة السر الصحيحة:':'Pick the correct keyword:'}</p>
+                                        <div className="grid grid-cols-2 gap-2 mb-3">
+                                            {words?.map((word, i) => (
+                                                <button key={i} onClick={() => submitSpyWordGuess(word)} className="word-vote-card" style={{border:'1px solid rgba(239,68,68,0.3)'}}>
+                                                    <span className="font-bold">{word}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-sm text-yellow-400 py-4 animate-pulse">{lang==='ar'?'الجاسوس يختار...':'Spy is choosing...'}</div>
+                                )}
+                            </div>
+                        );
+                    })()}
+
+                    {/* ── Mr. White Guessing Phase ── */}
+                    {room.status === 'mrwhite_guessing' && (() => {
+                        const isGuesser = currentUID === room.ejectedUID || currentUID === room.mrwhiteId;
+                        const allLocations = SCENARIOS.map(s => lang==='ar' ? s.loc_ar : s.loc_en);
+                        return (
+                            <div className="card-container text-center">
+                                <div className="text-4xl mb-3">👻</div>
+                                <h2 className="text-base font-bold mb-1" style={{color:'#8b5cf6'}}>{t.mrWhiteGuessTitle}</h2>
+                                <p className="text-xs text-gray-400 mb-4">{t.mrWhiteGuessDesc}</p>
+                                {isGuesser ? (
+                                    <>
+                                        <p className="text-xs text-purple-300 mb-3">{lang==='ar'?'اختر الموقع الصحيح:':'Pick the correct location:'}</p>
+                                        <div className="flex flex-col gap-2 mb-3" style={{maxHeight:'220px',overflowY:'auto'}}>
+                                            {SCENARIOS.map((s, i) => (
+                                                <button key={i} onClick={() => submitMrWhiteLocationGuess(lang==='ar'?s.loc_ar:s.loc_en)} className="word-vote-card" style={{border:'1px solid rgba(139,92,246,0.3)'}}>
+                                                    <span className="font-bold">{lang==='ar'?s.loc_ar:s.loc_en}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-sm text-purple-400 py-4 animate-pulse">{lang==='ar'?'السيد الأبيض يختار...':'Mr. White is choosing...'}</div>
+                                )}
+                            </div>
+                        );
+                    })()}
+
+                    {/* ── Game Over ── */}
+                    {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_spy_escaped' || room.status === 'finished_mrwhite_wins') && (
                         <div className="card-container text-center">
-                            <div className="text-4xl mb-4">{room.status === 'finished_spy_caught' ? '🎉' : '🕵️'}</div>
-                            <h2 className="text-xl font-bold mb-4">{room.status === 'finished_spy_caught' ? t.agentsWin : t.spyWin}</h2>
-                            {room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{t.playAgain}</button>)}
-                            <button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm mt-2">{t.leaveRoom}</button>
+                            <div className="text-4xl mb-3">
+                                {room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'}
+                            </div>
+                            <h2 className="text-xl font-bold mb-1">
+                                {room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin}
+                            </h2>
+                            {room.ejectedUID && (
+                                <div className="text-xs text-gray-400 mb-3">{t.ejected}: <span className="text-red-400 font-bold">{room.players.find(p=>p.uid===room.ejectedUID)?.name || room.ejectedUID}</span></div>
+                            )}
+                            {/* Roles revealed */}
+                            <div style={{background:'rgba(255,255,255,0.04)',borderRadius:'10px',padding:'10px',marginBottom:'12px'}}>
+                                <div className="text-xs font-bold text-gray-300 mb-2">📋 {t.rolesRevealTitle}</div>
+                                <div className="flex flex-col gap-1">
+                                    {room.players.filter(p => p.role).map(p => (
+                                        <div key={p.uid} className="flex items-center justify-between gap-2" style={{fontSize:'11px'}}>
+                                            <span className="text-gray-300 truncate">{p.name}</span>
+                                            <span style={{color: p.role==='spy'?'#ef4444':p.role==='mrwhite'?'#8b5cf6':p.role==='informant'?'#a78bfa':'#10b981', fontWeight:700, flexShrink:0}}>
+                                                {p.role==='spy'?('🕵️ '+t.statusSpy):p.role==='mrwhite'?('👻 '+t.statusMrWhite):p.role==='informant'?('👁️ '+t.statusInformant):('🤵 '+t.statusAgent)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                                {room.chosenWord && <div className="text-xs text-cyan-400 mt-2">🔑 {t.selectedWord}: <strong>{room.chosenWord}</strong></div>}
+                            </div>
+                            {room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2">{t.playAgain}</button>)}
+                            <button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm">{t.leaveRoom}</button>
                         </div>
                     )}
                 </div>
