@@ -20,7 +20,7 @@ const couplesCollection = db.collection('artifacts').doc(appId)
 // ─────────────────────────────────────────────
 const RINGS_DATA = [
     { id:'ring_bronze',   emoji:'💍', imageURL:null, name_en:'Bronze Ring',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Common',    color:'#cd7f32', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:false, hidden:false, limited:false, limitedUntil:null },
-             { id:'kingshehab',   emoji:null, imageURL:'https://res.cloudinary.com/dqewgiqsh/image/upload/v1773406707/ringking_lxnly9.gif', name_en:'King Rin',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:true, hidden:false, limited:false, limitedUntil:null },
+             { id:'kingshehab',   emoji:null, imageURL:'https://i.ibb.co/FLvkgp32/ringking.gif', name_en:'King Rin',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:true, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_silver',   emoji:'💍', imageURL:null, name_en:'Silver Ring',      name_ar:'خاتم فضي',        cost:1500,  levelReq:3,  rarity:'Uncommon',  color:'#c0c0c0', glow:'rgba(192,192,192,0.4)', desc_en:'Elegant and timeless.',       desc_ar:'أناقة خالدة.',            event:false, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_gold',     emoji:'💍', imageURL:null, name_en:'Gold Ring',        name_ar:'خاتم ذهبي',       cost:3000,  levelReq:5,  rarity:'Rare',      color:'#ffd700', glow:'rgba(255,215,0,0.5)',   desc_en:'Golden love, golden future.', desc_ar:'حب ذهبي، مستقبل ذهبي.',   event:false, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_rose',     emoji:'💍', imageURL:null, name_en:'Rose Gold Ring',   name_ar:'خاتم ذهبي وردي',  cost:5000,  levelReq:7,  rarity:'Epic',      color:'#f9a8d4', glow:'rgba(249,168,212,0.5)', desc_en:'Blush pink, bold love.',      desc_ar:'وردي رقيق، حب جريء.',     event:false, hidden:false, limited:false, limitedUntil:null },
@@ -60,6 +60,57 @@ const coupleTimeDiff = (marriageDate) => {
     const hours = Math.floor((diff % 86400000) / 3600000);
     const mins  = Math.floor((diff % 3600000)  / 60000);
     return { days, hours, mins };
+};
+
+// ─────────────────────────────────────────────
+// 🖼️ RingImageCanvas — removes black bg via canvas, only used where
+// mix-blend-mode fails due to stacking context (e.g. position:absolute overlays)
+// ─────────────────────────────────────────────
+const RingImageCanvas = ({ src, size = 40, glow }) => {
+    const canvasRef = React.useRef(null);
+    const imgRef    = React.useRef(null);
+    const rafRef    = React.useRef(null);
+
+    React.useEffect(() => {
+        if (!src) return;
+        const canvas = canvasRef.current;
+        const img    = imgRef.current;
+        if (!canvas || !img) return;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        let running = true;
+        const draw = () => {
+            if (!running) return;
+            if (img.naturalWidth > 0) {
+                ctx.clearRect(0, 0, size, size);
+                ctx.drawImage(img, 0, 0, size, size);
+                try {
+                    const id = ctx.getImageData(0, 0, size, size);
+                    const d  = id.data;
+                    for (let i = 0; i < d.length; i += 4) {
+                        if (d[i] < 45 && d[i+1] < 45 && d[i+2] < 45) d[i+3] = 0;
+                    }
+                    ctx.putImageData(id, 0, 0);
+                } catch(e) {}
+            }
+            rafRef.current = requestAnimationFrame(draw);
+        };
+
+        rafRef.current = requestAnimationFrame(draw);
+        return () => { running = false; cancelAnimationFrame(rafRef.current); };
+    }, [src, size]);
+
+    return React.createElement(React.Fragment, null,
+        /* Hidden img must stay in DOM to keep GIF frames advancing */
+        React.createElement('img', {
+            ref: imgRef, src, alt: '',
+            style: { position:'fixed', left:'-9999px', top:'-9999px', width:`${size}px`, height:`${size}px`, pointerEvents:'none' }
+        }),
+        React.createElement('canvas', {
+            ref: canvasRef, width: size, height: size,
+            style: { display:'block', filter: glow ? `drop-shadow(0 0 8px ${glow}) drop-shadow(0 0 16px ${glow})` : undefined }
+        })
+    );
 };
 
 // ─────────────────────────────────────────────
@@ -982,7 +1033,7 @@ const CoupleCardModal = ({
                                 onClick: () => setRingTooltipId(v => v ? null : ring.id)
                             },
                                 ring.imageURL
-                                    ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'40px', height:'40px', objectFit:'contain', mixBlendMode:'screen', display:'block' }})
+                                    ? React.createElement(RingImageCanvas, { src:ring.imageURL, size:40, glow:ring.glow })
                                     : React.createElement('div', { style:{ fontSize:'26px', lineHeight:1,
                                         filter:`drop-shadow(0 0 10px ${ring.glow}) drop-shadow(0 0 20px ${ring.glow})` }}, ring.emoji),
                                 /* Ring name tooltip */
