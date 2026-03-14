@@ -2799,6 +2799,7 @@ const ProfileV11 = ({
     onOpenChat,
     onOpenProfile,
     currentViewerData,  // logged-in viewer's user data (for couple gift sending)
+    onOpenMarriage,     // opens the marriage/wedding hall page
 }) => {
     const t = TRANSLATIONS[lang] || {};
 
@@ -2978,32 +2979,26 @@ const ProfileV11 = ({
         });
     }, [show, targetUID]);
 
-    // 🛡️ Guard system — load top guardians + check if viewer gave today
+    // 🛡️ Guard system — load top 100 guardians (ranked by charisma gifted to this user)
     useEffect(() => {
         if (!show || !targetUID) return;
-        // Load all guard logs for this user
         const unsub = guardCollection
             .where('receiverId', '==', targetUID)
             .onSnapshot(snap => {
                 const logs = snap.docs.map(d => d.data());
-                // Aggregate by senderId
+                // Aggregate charisma by senderId
                 const map = {};
                 logs.forEach(l => {
-                    if (!map[l.senderId]) map[l.senderId] = { uid: l.senderId, name: l.senderName, photo: l.senderPhoto, total: 0 };
-                    map[l.senderId].total += l.amount || 0;
+                    const sid = l.senderId;
+                    if (!sid) return;
+                    if (!map[sid]) map[sid] = { uid: sid, name: l.senderName || 'User', photo: l.senderPhoto || null, total: 0 };
+                    map[sid].total += l.amount || l.charisma || 0;
+                    if (l.senderName)  map[sid].name  = l.senderName;
+                    if (l.senderPhoto) map[sid].photo = l.senderPhoto;
                 });
-                const sorted = Object.values(map).sort((a, b) => b.total - a.total);
+                // Sort descending, cap at 100
+                const sorted = Object.values(map).sort((a, b) => b.total - a.total).slice(0, 100);
                 setGuardData(sorted);
-                // Check if current viewer gave guard today
-                if (currentUserUID) {
-                    const today = new Date().toDateString();
-                    const myLog = logs.filter(l => l.senderId === currentUserUID);
-                    const gaveTodayLog = myLog.find(l => {
-                        const d = l.timestamp?.toDate?.() || (l.timestamp?.seconds ? new Date(l.timestamp.seconds * 1000) : null);
-                        return d && d.toDateString() === today;
-                    });
-                    setGuardGiven(!!gaveTodayLog);
-                }
             }, () => {});
         return () => unsub();
     }, [show, targetUID, currentUserUID]);
@@ -3303,7 +3298,7 @@ const ProfileV11 = ({
                                 cursor:'pointer', zIndex:10,
                                 fontSize:'10px', color:'rgba(249,168,212,0.7)', fontWeight:700,
                             }}
-                            onClick={() => { if (onOpenSettings) onOpenSettings(); }}
+                            onClick={() => { if (onOpenMarriage) onOpenMarriage(); else if (onOpenSettings) onOpenSettings(); }}
                         >
                             <span style={{fontSize:'13px'}}>💍</span>
                             {lang === 'ar' ? 'أضف شريكك' : 'Add Partner'}
@@ -3415,28 +3410,15 @@ const ProfileV11 = ({
                                             {targetData.country.flag}
                                         </span>
                                     )}
-                                    {/* 🛡️ Guard Button — visible when viewing others, not on own profile */}
-                                    {!isOwnProfile && !isTargetGuest && isLoggedInProp && (
-                                        <button
-                                            onClick={handleGiveGuard}
-                                            disabled={guardGiven}
-                                            title={lang === 'ar' ? 'أعطِ حماية' : 'Give Guard'}
-                                            style={{
-                                                display:'inline-flex', alignItems:'center', gap:'4px',
-                                                padding:'3px 9px', borderRadius:'20px', border:'none', cursor: guardGiven ? 'default' : 'pointer',
-                                                background: guardGiven
-                                                    ? 'linear-gradient(135deg,rgba(100,100,120,0.3),rgba(80,80,100,0.2))'
-                                                    : 'linear-gradient(135deg,rgba(0,212,255,0.25),rgba(112,0,255,0.2))',
-                                                boxShadow: guardGiven ? 'none' : '0 0 10px rgba(0,212,255,0.3)',
-                                                border: guardGiven ? '1px solid rgba(150,150,180,0.2)' : '1px solid rgba(0,212,255,0.4)',
-                                                color: guardGiven ? '#6b7280' : '#00f2ff',
-                                                fontSize:'11px', fontWeight:800,
-                                                transition:'all 0.25s',
-                                            }}
+                                    {/* 🛡️ Guard badge - auto from gifts */}
+                                    {guardData.length > 0 && (
+                                        <span
+                                            onClick={() => setShowGuardModal(true)}
+                                            style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'3px 9px',borderRadius:'20px',cursor:'pointer',background:'linear-gradient(135deg,rgba(0,212,255,0.18),rgba(112,0,255,0.15))',border:'1px solid rgba(0,212,255,0.35)',color:'#00f2ff',fontSize:'11px',fontWeight:800}}
                                         >
                                             <span style={{fontSize:'13px'}}>🛡️</span>
-                                            <span>{guardGiven ? (lang==='ar'?'جرد ✓':'Guard ✓') : (lang==='ar'?'جرد':'Guard')}</span>
-                                        </button>
+                                            <span>{lang==='ar'?'جرد':'Guard'}</span>
+                                        </span>
                                     )}
                                 </div>
                             </div>
