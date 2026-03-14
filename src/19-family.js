@@ -955,6 +955,9 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const [chatInput, setChatInput] = useState('');
     const [sendingMsg, setSendingMsg] = useState(false);
     const chatEndRef = useRef(null);
+    // Announcement popup tracking — store last seen announcementId in sessionStorage
+    const [showAnnPopup, setShowAnnPopup] = useState(false);
+    const [annPopupText, setAnnPopupText] = useState('');
 
     // Donate state
     const [donateAmount, setDonateAmount] = useState('');
@@ -987,6 +990,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const signImageFileRef = useRef(null);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [uploadingSign, setUploadingSign] = useState(false);
+    // Sign detail modal (fix #5)
+    const [signDetailLevel, setSignDetailLevel] = useState(null);
 
     // ── Load family (real-time) ──
     useEffect(() => {
@@ -1029,6 +1034,17 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
         }
     }, [chatMessages.length, activeTab]);
+
+    // ── Announcement popup: show once per announcementId per session ──
+    useEffect(() => {
+        if (activeTab !== 'chat' || !family?.announcement || !family?.announcementId) return;
+        const key = `ann_seen_${family.id}_${family.announcementId}`;
+        if (!sessionStorage.getItem(key)) {
+            setAnnPopupText(family.announcement);
+            setShowAnnPopup(true);
+            sessionStorage.setItem(key, '1');
+        }
+    }, [activeTab, family?.announcementId]);
 
     // ── Load member profiles ──
     useEffect(() => {
@@ -1368,8 +1384,24 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         if (!family?.id || !canManageFamily(family, currentUID)) return;
         setSavingAnn(true);
         try {
-            await familiesCollection.doc(family.id).update({ announcement: editAnnouncement });
-            onNotification(lang === 'ar' ? '✅ تم الحفظ' : '✅ Saved');
+            const text = editAnnouncement.trim();
+            // Save on family doc
+            await familiesCollection.doc(family.id).update({
+                announcement: text,
+                announcementUpdatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                announcementId: Date.now().toString(),
+            });
+            // Post in family chat as a special announcement message
+            if (text) {
+                await familiesCollection.doc(family.id).collection('messages').add({
+                    senderId: 'system',
+                    senderName: 'SYSTEM',
+                    type: 'announcement',
+                    text: text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                });
+            }
+            onNotification(lang === 'ar' ? '✅ تم الحفظ وإرسال الإعلان للشات' : '✅ Saved & posted to chat');
         } catch (e) {}
         setSavingAnn(false);
     };
@@ -1649,7 +1681,53 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const renderChat = () => {
         if (!family) return null;
         return (
-            <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0}}>
+            <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0, position:'relative'}}>
+
+                {/* ── Announcement Popup (first visit) ── */}
+                {showAnnPopup && annPopupText && (
+                    <div style={{
+                        position:'absolute', inset:0, zIndex:9999,
+                        background:'rgba(0,0,0,0.7)', backdropFilter:'blur(6px)',
+                        display:'flex', alignItems:'center', justifyContent:'center', padding:'20px',
+                    }}>
+                        <div style={{
+                            width:'100%', maxWidth:'300px', borderRadius:'18px',
+                            background:'linear-gradient(135deg,rgba(0,242,255,0.12),rgba(112,0,255,0.10))',
+                            border:'1px solid rgba(0,242,255,0.35)',
+                            boxShadow:'0 0 40px rgba(0,242,255,0.2), 0 20px 60px rgba(0,0,0,0.8)',
+                            padding:'22px 18px', display:'flex', flexDirection:'column', gap:'14px',
+                        }}>
+                            <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                                <span style={{fontSize:'20px'}}>📢</span>
+                                <div style={{fontSize:'13px', fontWeight:900, color:'#00f2ff'}}>
+                                    {lang==='ar'?'إعلان القبيلة':'Family Announcement'}
+                                </div>
+                            </div>
+                            <div style={{fontSize:'12px', color:'#e2e8f0', lineHeight:1.7, background:'rgba(255,255,255,0.05)', borderRadius:'10px', padding:'10px 12px'}}>
+                                {annPopupText}
+                            </div>
+                            <button onClick={() => setShowAnnPopup(false)} style={{padding:'10px', borderRadius:'12px', border:'1px solid rgba(0,242,255,0.4)', background:'rgba(0,242,255,0.12)', color:'#00f2ff', fontSize:'12px', fontWeight:800, cursor:'pointer'}}>
+                                {lang==='ar'?'تم، شكراً!':'Got it!'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Pinned Announcement Bar (always visible in chat) ── */}
+                {family.announcement && (
+                    <div style={{
+                        padding:'8px 12px', flexShrink:0,
+                        background:'linear-gradient(90deg,rgba(0,242,255,0.08),rgba(112,0,255,0.06))',
+                        borderBottom:'1px solid rgba(0,242,255,0.15)',
+                        display:'flex', alignItems:'flex-start', gap:'8px',
+                    }}>
+                        <span style={{fontSize:'13px', flexShrink:0, marginTop:'1px'}}>📢</span>
+                        <div style={{flex:1, fontSize:'11px', color:'#a5f3fc', lineHeight:1.5}}>
+                            {family.announcement}
+                        </div>
+                    </div>
+                )}
+
                 {/* Messages */}
                 <div style={{flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px'}}>
                     {chatMessages.length === 0 && (
@@ -1662,10 +1740,27 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         const isMe = msg.senderId === currentUID;
                         const isSystem = msg.senderId === 'system' || msg.type === 'system';
                         const isDonation = msg.type === 'donation';
+                        const isAnnouncement = msg.type === 'announcement';
 
                         if (isSystem) return (
                             <div key={msg.id} style={{textAlign:'center', padding:'4px 12px'}}>
                                 <span style={{fontSize:'10px', color:'#6b7280', background:'rgba(255,255,255,0.04)', padding:'3px 10px', borderRadius:'20px'}}>{msg.text}</span>
+                            </div>
+                        );
+
+                        if (isAnnouncement) return (
+                            <div key={msg.id} style={{display:'flex', justifyContent:'center', padding:'4px 0'}}>
+                                <div style={{
+                                    background:'linear-gradient(135deg,rgba(0,242,255,0.12),rgba(112,0,255,0.08))',
+                                    border:'1px solid rgba(0,242,255,0.3)', borderRadius:'14px',
+                                    padding:'10px 16px', maxWidth:'92%',
+                                }}>
+                                    <div style={{fontSize:'10px', fontWeight:800, color:'#00f2ff', marginBottom:'5px', display:'flex', alignItems:'center', gap:'5px'}}>
+                                        <span>📢</span> {lang==='ar'?'إعلان القبيلة':'Family Announcement'}
+                                    </div>
+                                    <div style={{fontSize:'12px', color:'#e2e8f0', lineHeight:1.6}}>{msg.text}</div>
+                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{fmtFamilyTime(msg.timestamp, lang)}</div>
+                                </div>
                             </div>
                         );
 
@@ -1738,12 +1833,20 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         const sorted = [...familyMembers].sort((a, b) => {
             const aD = donations[a.id] || {};
             const bD = donations[b.id] || {};
-            const aV = donationSort === 'intel' ? (aD.totalIntel || aD.total || 0) : (aD.weeklyIntel || aD.weekly || 0);
-            const bV = donationSort === 'intel' ? (bD.totalIntel || bD.total || 0) : (bD.weeklyIntel || bD.weekly || 0);
             const aOwner = getFamilyRole(family, a.id) === 'owner' ? 1 : 0;
             const bOwner = getFamilyRole(family, b.id) === 'owner' ? 1 : 0;
             if (aOwner !== bOwner) return bOwner - aOwner;
-            return bV - aV;
+            if (donationSort === 'intel') {
+                // Sort by total donation
+                const aV = (aD.totalIntel || aD.total || 0);
+                const bV = (bD.totalIntel || bD.total || 0);
+                return bV - aV;
+            } else {
+                // Sort by weekly activeness
+                const aA = actData[a.id] || {};
+                const bA = actData[b.id] || {};
+                return (bA.weekly || 0) - (aA.weekly || 0);
+            }
         }).filter(m => !memberSearch || m.displayName?.toLowerCase().includes(memberSearch.toLowerCase()));
 
         return (
@@ -1757,8 +1860,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </div>
                     <div style={{display:'flex', gap:'6px'}}>
                         {[
-                            ['intel',  lang==='ar' ? '🧠 إجمالي التبرع' : '🧠 Total Donated'],
-                            ['weekly', lang==='ar' ? '⚡ أسبوعي'        : '⚡ Weekly']
+                            ['intel',  lang==='ar' ? '🧠 التبرع' : '🧠 Donated'],
+                            ['weekly', lang==='ar' ? '⚡ النشاط'  : '⚡ Activity']
                         ].map(([s, lbl]) => (
                             <button key={s} onClick={()=>setDonationSort(s)} style={{flex:1, padding:'5px', borderRadius:'8px', border:`1px solid ${donationSort===s?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.07)'}`, background:donationSort===s?'rgba(0,242,255,0.1)':'transparent', color:donationSort===s?'#00f2ff':'#6b7280', fontSize:'10px', fontWeight:donationSort===s?800:500, cursor:'pointer'}}>
                                 {lbl}
@@ -1774,9 +1877,14 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         const rCfg = FAMILY_ROLE_CONFIG[role];
                         const don  = donations[m.id] || {};
                         const act  = actData[m.id]   || {};
-                        const total       = donationSort === 'intel' ? (don.totalIntel || don.total || 0) : (don.weeklyIntel || don.weekly || 0);
-                        const weeklyAct   = act.weekly || 0;
-                        const totalAct    = act.total  || 0;
+
+                        // 🧠 Donation tab: show weekly donate + total donate
+                        const donWeekly = don.weeklyIntel || don.weekly || 0;
+                        const donTotal  = don.totalIntel  || don.total  || 0;
+                        // ⚡ Activity tab: show weekly activeness + total activeness
+                        const actWeekly = act.weekly || 0;
+                        const actTotal  = act.total  || 0;
+
                         const isTop3 = i < 3;
                         const topColors = ['rgba(255,215,0,0.06)','rgba(192,192,192,0.04)','rgba(205,127,50,0.04)'];
                         return (
@@ -1797,15 +1905,29 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                     </div>
                                     <FamilyRoleBadge role={role} lang={lang} small />
                                 </div>
-                                {/* Analytics: Weekly + Total Activeness */}
-                                <div style={{textAlign:'right', flexShrink:0, display:'flex', flexDirection:'column', gap:'2px'}}>
-                                    <div style={{fontSize:'11px', fontWeight:900, color:'#fbbf24', fontStyle:'italic'}}>{fmtFamilyNum(total)} 🧠</div>
-                                    <div style={{display:'flex', gap:'6px', justifyContent:'flex-end'}}>
-                                        <span style={{fontSize:'9px', color:'#00f2ff', fontWeight:700}}>⚡{fmtFamilyNum(weeklyAct)}</span>
-                                        <span style={{fontSize:'9px', color:'#6b7280'}}>|</span>
-                                        <span style={{fontSize:'9px', color:'#a78bfa', fontWeight:700}}>∑{fmtFamilyNum(totalAct)}</span>
-                                    </div>
-                                    <div style={{fontSize:'8px', color:'#4b5563'}}>{lang==='ar'?'أسبوعي | إجمالي':'weekly | total'}</div>
+                                {/* Analytics: conditional on selected tab */}
+                                <div style={{textAlign:'right', flexShrink:0, display:'flex', flexDirection:'column', gap:'2px', minWidth:'80px'}}>
+                                    {donationSort === 'intel' ? (
+                                        <>
+                                            <div style={{fontSize:'10px', fontWeight:900, color:'#fbbf24'}}>{fmtFamilyNum(donTotal)} 🧠</div>
+                                            <div style={{display:'flex', gap:'4px', justifyContent:'flex-end', alignItems:'center'}}>
+                                                <span style={{fontSize:'9px', color:'#4ade80', fontWeight:700}}>↑{fmtFamilyNum(donWeekly)}</span>
+                                                <span style={{fontSize:'9px', color:'#4b5563'}}>|</span>
+                                                <span style={{fontSize:'9px', color:'#fbbf24', fontWeight:700}}>∑{fmtFamilyNum(donTotal)}</span>
+                                            </div>
+                                            <div style={{fontSize:'8px', color:'#4b5563'}}>{lang==='ar'?'أسبوعي | إجمالي':'weekly | total'}</div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div style={{fontSize:'10px', fontWeight:900, color:'#00f2ff'}}>⚡{fmtFamilyNum(actWeekly)}</div>
+                                            <div style={{display:'flex', gap:'4px', justifyContent:'flex-end', alignItems:'center'}}>
+                                                <span style={{fontSize:'9px', color:'#00f2ff', fontWeight:700}}>↑{fmtFamilyNum(actWeekly)}</span>
+                                                <span style={{fontSize:'9px', color:'#4b5563'}}>|</span>
+                                                <span style={{fontSize:'9px', color:'#a78bfa', fontWeight:700}}>∑{fmtFamilyNum(actTotal)}</span>
+                                            </div>
+                                            <div style={{fontSize:'8px', color:'#4b5563'}}>{lang==='ar'?'أسبوعي | إجمالي':'weekly | total'}</div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -2134,8 +2256,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         </div>
                     </div>
 
-                    {/* 5 sign levels */}
-                    <div style={{display:'flex', flexDirection:'column', gap:'8px', marginBottom:'14px'}}>
+                    {/* 5 sign levels — كل مربع قابل للضغط ويفتح modal التفاصيل */}
+                    <div style={{display:'flex', flexDirection:'column', gap:'8px', marginBottom:'4px'}}>
                         {FAMILY_SIGN_LEVELS.map(sl => {
                             const slImg = getFamilySignImage(sl.level);
                             const wAct = family.weeklyActiveness || 0;
@@ -2143,15 +2265,18 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                             const isCurrent = signData && signData.level === sl.level;
                             const isNext = signData ? sl.level === signData.level + 1 : sl.level === 1;
                             return (
-                                <div key={sl.level} style={{
-                                    display:'flex', alignItems:'center', gap:'10px',
-                                    padding:'10px 12px', borderRadius:'12px',
-                                    background: isCurrent
-                                        ? `linear-gradient(135deg,${sl.color}22,${sl.color}10)`
-                                        : isEarned ? `${sl.color}10` : 'rgba(255,255,255,0.03)',
-                                    border:`1px solid ${isCurrent ? sl.color+'66' : isEarned ? sl.color+'30' : 'rgba(255,255,255,0.07)'}`,
-                                    position:'relative', overflow:'hidden',
-                                }}>
+                                <div key={sl.level}
+                                    onClick={() => setSignDetailLevel(sl.level)}
+                                    style={{
+                                        display:'flex', alignItems:'center', gap:'10px',
+                                        padding:'10px 12px', borderRadius:'12px', cursor:'pointer',
+                                        background: isCurrent
+                                            ? `linear-gradient(135deg,${sl.color}22,${sl.color}10)`
+                                            : isEarned ? `${sl.color}10` : 'rgba(255,255,255,0.03)',
+                                        border:`1px solid ${isCurrent ? sl.color+'66' : isEarned ? sl.color+'30' : 'rgba(255,255,255,0.07)'}`,
+                                        position:'relative', overflow:'hidden',
+                                        transition:'opacity .15s',
+                                    }}>
                                     {/* Sign image or placeholder */}
                                     <div style={{
                                         width:'44px', height:'44px', borderRadius:'10px', flexShrink:0, overflow:'hidden',
@@ -2194,45 +2319,91 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                     {isEarned && !isCurrent && (
                                         <div style={{fontSize:'16px', flexShrink:0}}>✅</div>
                                     )}
+                                    {/* Arrow hint */}
+                                    <span style={{fontSize:'12px', color:'#4b5563', flexShrink:0, marginLeft:'2px'}}>›</span>
                                 </div>
                             );
                         })}
                     </div>
 
-                    {/* Sign image upload (owner/admin only) */}
-                    {canManage && (
-                        <div style={{borderTop:'1px solid rgba(255,255,255,0.07)', paddingTop:'12px'}}>
-                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'8px'}}>
-                                {lang==='ar'?'📷 رفع صورة مخصصة للشارة (اختياري)':'📷 Upload custom sign image (optional)'}
-                            </div>
-                            <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
-                                <div>
-                                    <input type="file" ref={signImageFileRef} style={{display:'none'}} accept="image/*" onChange={handleSignImageUpload} />
-                                    <button onClick={()=>signImageFileRef.current?.click()} disabled={uploadingSign}
-                                        style={{...S.btn, padding:'7px 14px', fontSize:'11px',
-                                            background: signData ? `${signData.color}20` : 'rgba(0,242,255,0.1)',
-                                            border:`1px solid ${signData ? signData.color+'40' : 'rgba(0,242,255,0.3)'}`,
-                                            color: signData ? signData.color : '#00f2ff'}}>
-                                        {uploadingSign ? '⏳' : (lang==='ar'?'📷 رفع صورة الشارة':'📷 Upload Sign Image')}
+                    {/* Sign Detail Modal */}
+                    {signDetailLevel !== null && (() => {
+                        const sl = FAMILY_SIGN_LEVELS.find(s => s.level === signDetailLevel);
+                        if (!sl) return null;
+                        const slImg = getFamilySignImage(sl.level);
+                        const wAct = family.weeklyActiveness || 0;
+                        const isEarned = wAct >= sl.threshold;
+                        const isCurrent = signData && signData.level === sl.level;
+                        const progress = isEarned ? 100 : Math.min(99, Math.floor((wAct / sl.threshold) * 100));
+                        return (
+                            <div onClick={() => setSignDetailLevel(null)} style={{
+                                position:'fixed', inset:0, zIndex:99999,
+                                background:'rgba(0,0,0,0.75)', backdropFilter:'blur(6px)',
+                                display:'flex', alignItems:'center', justifyContent:'center', padding:'20px',
+                            }}>
+                                <div onClick={e => e.stopPropagation()} style={{
+                                    width:'100%', maxWidth:'320px', borderRadius:'20px',
+                                    background:'linear-gradient(135deg,rgba(15,5,30,0.98),rgba(25,10,50,0.98))',
+                                    border:`1px solid ${sl.color}55`,
+                                    boxShadow:`0 0 40px ${sl.color}33, 0 20px 60px rgba(0,0,0,0.9)`,
+                                    padding:'24px 20px', display:'flex', flexDirection:'column', gap:'16px',
+                                }}>
+                                    {/* Header */}
+                                    <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+                                        <div style={{fontSize:'14px', fontWeight:900, color:sl.color}}>
+                                            🏴 {lang==='ar' ? sl.name_ar : sl.name_en}
+                                        </div>
+                                        <button onClick={() => setSignDetailLevel(null)} style={{background:'rgba(255,255,255,0.07)', border:'none', borderRadius:'8px', color:'#9ca3af', fontSize:'16px', width:'28px', height:'28px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>✕</button>
+                                    </div>
+                                    {/* Sign image */}
+                                    <div style={{display:'flex', justifyContent:'center'}}>
+                                        <div style={{
+                                            width:'90px', height:'90px', borderRadius:'18px', overflow:'hidden',
+                                            background: isEarned ? sl.bg : 'rgba(255,255,255,0.04)',
+                                            border:`2px solid ${isEarned ? sl.color+'66' : 'rgba(255,255,255,0.1)'}`,
+                                            display:'flex', alignItems:'center', justifyContent:'center',
+                                            boxShadow: isEarned ? `0 0 24px ${sl.color}44` : 'none',
+                                            filter: isEarned ? 'none' : 'grayscale(1) opacity(0.4)',
+                                        }}>
+                                            {slImg
+                                                ? <img src={slImg} style={{width:'100%',height:'100%',objectFit:'contain'}} alt=""/>
+                                                : <span style={{fontSize:'40px'}}>{sl.defaultIcon}</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    {/* Status */}
+                                    <div style={{textAlign:'center'}}>
+                                        {isCurrent && <div style={{fontSize:'11px', fontWeight:800, padding:'4px 14px', borderRadius:'20px', background:`${sl.color}20`, color:sl.color, border:`1px solid ${sl.color}50`, display:'inline-block'}}>
+                                            ✓ {lang==='ar'?'شارتك الحالية':'Your current sign'}
+                                        </div>}
+                                        {isEarned && !isCurrent && <div style={{fontSize:'11px', fontWeight:800, color:'#4ade80'}}>✅ {lang==='ar'?'مفتوحة':'Earned'}</div>}
+                                        {!isEarned && <div style={{fontSize:'11px', color:'#6b7280'}}>{lang==='ar'?'لم تُفتح بعد':'Not yet earned'}</div>}
+                                    </div>
+                                    {/* Progress */}
+                                    <div>
+                                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#9ca3af', marginBottom:'6px'}}>
+                                            <span>{lang==='ar'?'التقدم':'Progress'}</span>
+                                            <span style={{color: isEarned ? '#4ade80' : sl.color, fontWeight:700}}>{fmtFamilyNum(wAct)} / {fmtFamilyNum(sl.threshold)}</span>
+                                        </div>
+                                        <div style={{height:'8px', borderRadius:'20px', background:'rgba(255,255,255,0.08)', overflow:'hidden'}}>
+                                            <div style={{height:'100%', width:`${progress}%`, borderRadius:'20px', background:`linear-gradient(90deg,${sl.color},${sl.color}aa)`, transition:'width .4s'}} />
+                                        </div>
+                                        <div style={{textAlign:'right', fontSize:'9px', color:sl.color, fontWeight:700, marginTop:'4px'}}>{progress}%</div>
+                                    </div>
+                                    {/* Description */}
+                                    <div style={{fontSize:'11px', color:'#9ca3af', lineHeight:1.6, textAlign: lang==='ar'?'right':'left', background:'rgba(255,255,255,0.04)', borderRadius:'10px', padding:'10px 12px'}}>
+                                        {lang==='ar'
+                                            ? `اجمع ${sl.threshold.toLocaleString()} نشاط أسبوعي للحصول على هذه الشارة. النشاط الأسبوعي يُصفَّر كل أحد.`
+                                            : `Reach ${sl.threshold.toLocaleString()} weekly activeness to earn this sign. Resets every Sunday.`
+                                        }
+                                    </div>
+                                    <button onClick={() => setSignDetailLevel(null)} style={{...S.btn, padding:'10px', background:`${sl.color}15`, border:`1px solid ${sl.color}40`, color:sl.color, fontSize:'12px', fontWeight:800}}>
+                                        {lang==='ar'?'إغلاق':'Close'}
                                     </button>
                                 </div>
-                                {family.signImageURL && (
-                                    <button onClick={async()=>{
-                                        try {
-                                            await familiesCollection.doc(family.id).update({ signImageURL: null });
-                                            for (const uid of (family.members||[])) {
-                                                await usersCollection.doc(uid).update({ familySignImageURL: null }).catch(()=>{});
-                                            }
-                                            onNotification(lang==='ar'?'✅ تم حذف الصورة':'✅ Image removed');
-                                        } catch(e){}
-                                    }} style={{...S.btn, padding:'7px 14px', fontSize:'11px',
-                                        background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)', color:'#f87171'}}>
-                                        🗑️ {lang==='ar'?'حذف':'Remove'}
-                                    </button>
-                                )}
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
                 </div>
 
                 {/* ── Announcement ── */}
