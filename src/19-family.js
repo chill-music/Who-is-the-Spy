@@ -705,7 +705,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
 
     if (!show) return null;
 
-    var signData = familyData ? getFamilySignLevelData(familyData.activeness || 0) : FAMILY_SIGN_LEVELS[0];
+    var signData = (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0) : null) || { level:0, color:'#4b5563', glow:'rgba(75,85,99,0.3)', defaultIcon:'🏠' };
     var fLvl = familyData ? getFamilyLevel(familyData.xp || 0) : null;
 
     return React.createElement(PortalModal, null,
@@ -726,7 +726,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                 React.createElement('div', { style: { flex:1, minWidth:0 } },
                     React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' } },
                         React.createElement('span', { style: { fontSize:'14px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } }, (familyData && familyData.name) || (lang==='ar'?'شات العائلة':'Family Chat')),
-                        familyData && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: familyData.signImageURL })
+                        familyData && signData.level > 0 && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: familyData.signImageURL })
                     ),
                     React.createElement('div', { style: { fontSize:'10px', color:'#6b7280' } },
                         ((familyData && familyData.members && familyData.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members'),
@@ -844,7 +844,7 @@ const FamilyChatItem = ({ familyId, currentUID, currentUserData, lang, onOpenCha
 
     if (!family) return null;
 
-    var signData = getFamilySignLevelData(family.weeklyActiveness || 0);
+    var signData = getFamilySignLevelData(family.weeklyActiveness || 0) || { level:0, color:'#4b5563', glow:'rgba(75,85,99,0.3)', defaultIcon:'🏠' };
     var fLvl = getFamilyLevel(family.xp || 0);
     var lastTime = family.lastChatAt ? fmtFamilyTime(family.lastChatAt, lang) : '';
 
@@ -862,7 +862,7 @@ const FamilyChatItem = ({ familyId, currentUID, currentUserData, lang, onOpenCha
             React.createElement('div', { style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'3px' } },
                 React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'5px', flex:1, minWidth:0, flexWrap:'wrap' } },
                     React.createElement('span', { style: { fontSize:'13px', fontWeight: hasUnread?800:600, color: hasUnread?'#e2e8f0':'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } }, family.name),
-                    React.createElement(FamilySignBadge, { tag: family.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: family.signImageURL })
+                    signData.level > 0 && React.createElement(FamilySignBadge, { tag: family.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: family.signImageURL })
                 ),
                 React.createElement('span', { style: { fontSize:'9px', color:'#6b7280', flexShrink:0, marginLeft:'6px' } }, lastTime)
             ),
@@ -1495,7 +1495,9 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const myRole = family ? getFamilyRole(family, currentUID) : null;
     const canManage = family ? canManageFamily(family, currentUID) : false;
     const weeklyAct = family ? (family.weeklyActiveness || 0) : 0;
-    const signData = family ? getFamilySignLevelData(weeklyAct) : null;
+    // signData can be null if no weekly activeness yet — use a safe fallback
+    const SIGN_FALLBACK = { level: 0, color: '#4b5563', glow: 'rgba(75,85,99,0.3)', defaultIcon: '🏠', bg: 'rgba(75,85,99,0.1)', name_ar: 'بدون ساين', name_en: 'No Sign', threshold: 0 };
+    const signData = (family ? getFamilySignLevelData(weeklyAct) : null) || SIGN_FALLBACK;
     const signProg = family ? getFamilySignProgress(weeklyAct) : 0;
 
     // ─────────────────────────────────────────────
@@ -1529,7 +1531,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         <div style={{flex:1, minWidth:0}}>
                             <div style={{display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'4px'}}>
                                 <span style={{fontSize:'18px', fontWeight:900, color:'white', fontStyle:'italic', letterSpacing:'-0.5px'}}>{family.name}</span>
-                                <FamilySignBadge tag={family.tag} color={signData.color} signLevel={signData.level} imageURL={family.signImageURL} />
+                                {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} signLevel={signData.level} imageURL={family.signImageURL} />}
                             </div>
                             <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'4px'}}>ID · {family.id?.slice(-6).toUpperCase()}</div>
                             <div style={{display:'flex', gap:'8px', flexWrap:'wrap', alignItems:'center'}}>
@@ -1791,7 +1793,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 <div style={{flex:1, minWidth:0}}>
                                     <div style={{display:'flex', alignItems:'center', gap:'5px', flexWrap:'wrap', marginBottom:'2px'}}>
                                         <span style={{fontSize:'12px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'90px', fontStyle:'italic'}}>{m.displayName}</span>
-                                        <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />
+                                        {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />}
                                     </div>
                                     <FamilyRoleBadge role={role} lang={lang} small />
                                 </div>
@@ -2484,7 +2486,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 <div style={{flex:1, minWidth:0}}>
                                     <div style={{display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap'}}>
                                         <span style={{fontSize:'14px', fontWeight:900, color:'white', fontStyle:'italic', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'120px'}}>{family.name}</span>
-                                        <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />
+                                        {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />}
                                     </div>
                                     <div style={{fontSize:'9px', color:'#6b7280', display:'flex', alignItems:'center', gap:'6px'}}>
                                         <span>{fLvl?.icon} {lang==='ar'?`المستوى ${fLvl?.level}`:`Lv.${fLvl?.level}`}</span>
