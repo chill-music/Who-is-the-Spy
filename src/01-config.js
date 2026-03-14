@@ -176,8 +176,6 @@ const formatBanExpiry = (userData, lang) => {
 // 🏅 FAMILY ECONOMY CONFIG — Centralized Constants
 // ════════════════════════════════════════════════════════
 const FAMILY_COINS_SYMBOL = '🏅'; // Family Coins currency icon
-const FAMILY_REQUIRED_XP = [0, 500, 1500, 3500, 7000, 13000, 22000, 35000, 55000, 80000]; // XP thresholds per level
-const FAMILY_REQUIRED_ACTIVENESS = [0, 5000, 20000, 80000, 300000]; // Activeness thresholds per sign level
 
 // ════════════════════════════════════════════════════════
 // 🏴 FAMILY SIGN IMAGES CONFIG — ضع رابط صورة كل ساين هنا
