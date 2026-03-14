@@ -56,6 +56,7 @@ const roomsCollection = db.collection('artifacts').doc(appId).collection('public
 const historyCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('game_history');
 const notificationsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('notifications');
 const giftsLogCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('gifts_log');
+const guardLogCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guard_log');
 const momentsCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('moments');
 const vip10RequestsCollection   = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('vip10_requests');
 const vip10IdRequestsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('vip10_id_requests');
