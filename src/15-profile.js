@@ -3246,16 +3246,9 @@ const ProfileV11 = ({
 
                         <div className="profile-identity">
                             <div className="profile-name-row">
-                                <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
-                                <div style={{display:'flex', alignItems:'center', gap:'5px', justifyContent:'center', flexWrap:'wrap'}}>
-                                    <VIPName
-                                        displayName={targetData?.displayName || 'Unknown'}
-                                        userData={targetData}
-                                        className="profile-name"
-                                    />
-                                    <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
-                                    {/* 👑 Staff Role Badge — clickable */}
-                                    {getUserRole(targetData, targetData?.id || targetData?.uid) && (
+                                {/* 👑 Staff Role Badge — above name, clickable */}
+                                {getUserRole(targetData, targetData?.id || targetData?.uid) && (
+                                    <div style={{display:'flex', justifyContent:'center', marginBottom:'4px'}}>
                                         <StaffRoleBadge
                                             userData={targetData}
                                             uid={targetData?.id || targetData?.uid}
@@ -3263,7 +3256,16 @@ const ProfileV11 = ({
                                             size="md"
                                             onClick={() => setShowRoleInfoPopup(true)}
                                         />
-                                    )}
+                                    </div>
+                                )}
+                            <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
+                            <div style={{display:'flex', alignItems:'center', gap:'5px', justifyContent:'center', flexWrap:'wrap'}}>
+                                    <VIPName
+                                        displayName={targetData?.displayName || 'Unknown'}
+                                        userData={targetData}
+                                        className="profile-name"
+                                    />
+                                    <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
                                     {targetData?.gender === 'male' && (
                                         <span style={{fontSize:'13px', color:'#60a5fa', fontWeight:700, lineHeight:1}}>♂️</span>
                                     )}
