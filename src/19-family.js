@@ -25,27 +25,41 @@ const FAMILY_LEVEL_CONFIG = [
     { level:10, xp:80000,  name_en:'GOAT',           name_ar:'الأعظم',       color:'#00d4ff', maxMembers:160, icon:'🌌' },
 ];
 
-// ════ FAMILY SIGN LEVELS — Based on Activeness ════
+// ════ FAMILY SIGN LEVELS — Based on Weekly Activeness ════
+// These thresholds mirror FAMILY_SIGN_IMAGES in 01-config.js
 const FAMILY_SIGN_LEVELS = [
-    { level:1, threshold:0,      name_ar:'علامة العشيرة',   name_en:'Clan Mark',      color:'#6b7280', glow:'rgba(107,114,128,0.3)', defaultIcon:'🏠', bg:'rgba(107,114,128,0.15)' },
-    { level:2, threshold:5000,   name_ar:'علامة الفرسان',   name_en:'Knight Mark',    color:'#22d3ee', glow:'rgba(34,211,238,0.4)',  defaultIcon:'⚔️', bg:'rgba(34,211,238,0.15)' },
-    { level:3, threshold:20000,  name_ar:'علامة المحاربين', name_en:'Warriors Mark',  color:'#fbbf24', glow:'rgba(251,191,36,0.4)',  defaultIcon:'🛡️', bg:'rgba(251,191,36,0.15)' },
-    { level:4, threshold:80000,  name_ar:'علامة الأبطال',   name_en:'Champions Mark', color:'#f97316', glow:'rgba(249,115,22,0.4)',  defaultIcon:'👑', bg:'rgba(249,115,22,0.15)' },
-    { level:5, threshold:300000, name_ar:'علامة الأساطير',  name_en:'Legends Mark',   color:'#00d4ff', glow:'rgba(0,212,255,0.5)',   defaultIcon:'🌟', bg:'rgba(0,212,255,0.15)' },
+    { level:1, threshold:1000,   name_ar:'ساين المستوى 1',  name_en:'Sign Level 1',  color:'#6b7280', glow:'rgba(107,114,128,0.3)', defaultIcon:'🏠', bg:'rgba(107,114,128,0.15)' },
+    { level:2, threshold:10000,  name_ar:'ساين المستوى 2',  name_en:'Sign Level 2',  color:'#22d3ee', glow:'rgba(34,211,238,0.4)',  defaultIcon:'⚔️', bg:'rgba(34,211,238,0.15)' },
+    { level:3, threshold:30000,  name_ar:'ساين المستوى 3',  name_en:'Sign Level 3',  color:'#fbbf24', glow:'rgba(251,191,36,0.4)',  defaultIcon:'🛡️', bg:'rgba(251,191,36,0.15)' },
+    { level:4, threshold:100000, name_ar:'ساين المستوى 4',  name_en:'Sign Level 4',  color:'#f97316', glow:'rgba(249,115,22,0.4)',  defaultIcon:'👑', bg:'rgba(249,115,22,0.15)' },
+    { level:5, threshold:300000, name_ar:'ساين المستوى 5',  name_en:'Sign Level 5',  color:'#00d4ff', glow:'rgba(0,212,255,0.5)',   defaultIcon:'🌟', bg:'rgba(0,212,255,0.15)' },
 ];
 
-const getFamilySignLevelData = (activeness = 0) => {
-    let cfg = FAMILY_SIGN_LEVELS[0];
-    for (let i = FAMILY_SIGN_LEVELS.length - 1; i >= 0; i--) {
-        if (activeness >= FAMILY_SIGN_LEVELS[i].threshold) { cfg = FAMILY_SIGN_LEVELS[i]; break; }
-    }
-    return cfg;
+// Get sign image URL from config (FAMILY_SIGN_IMAGES defined in 01-config.js)
+const getFamilySignImage = (level) => {
+    if (typeof FAMILY_SIGN_IMAGES === 'undefined') return null;
+    const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === level);
+    return cfg?.imageURL || null;
 };
-const getFamilySignProgress = (activeness = 0) => {
-    const cur = getFamilySignLevelData(activeness);
+
+// Use WEEKLY activeness to determine sign level
+const getFamilySignLevelData = (weeklyActiveness = 0) => {
+    let cfg = null; // start with no sign
+    for (let i = FAMILY_SIGN_LEVELS.length - 1; i >= 0; i--) {
+        if (weeklyActiveness >= FAMILY_SIGN_LEVELS[i].threshold) { cfg = FAMILY_SIGN_LEVELS[i]; break; }
+    }
+    if (!cfg) return null; // no sign earned yet
+    return { ...cfg, imageURL: getFamilySignImage(cfg.level) };
+};
+const getFamilySignProgress = (weeklyActiveness = 0) => {
+    const cur = getFamilySignLevelData(weeklyActiveness);
+    if (!cur) {
+        const first = FAMILY_SIGN_LEVELS[0];
+        return Math.min(99, Math.round((weeklyActiveness / first.threshold) * 100));
+    }
     const next = FAMILY_SIGN_LEVELS.find(s => s.level === cur.level + 1);
     if (!next) return 100;
-    return Math.min(100, Math.round(((activeness - cur.threshold) / (next.threshold - cur.threshold)) * 100));
+    return Math.min(100, Math.round(((weeklyActiveness - cur.threshold) / (next.threshold - cur.threshold)) * 100));
 };
 
 const getFamilyLevel = (xp = 0) => {
@@ -135,24 +149,28 @@ const FamilyRoleBadge = ({ role, lang, small = false }) => {
     );
 };
 
-// Enhanced FamilySignBadge — supports image
-const FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = null, signLevel = 1 }) => (
-    <span style={{
-        display:'inline-flex', alignItems:'center', gap:'3px',
-        padding: small ? '1px 5px' : '2px 8px',
-        borderRadius:'5px', fontSize: small ? '8px' : '10px',
-        fontWeight:800, fontStyle:'italic',
-        background:`${color}20`, border:`1px solid ${color}55`,
-        color:color, letterSpacing:'0.5px', whiteSpace:'nowrap', flexShrink:0,
-        boxShadow: signLevel >= 4 ? `0 0 8px ${color}44` : 'none',
-    }}>
-        {imageURL
-            ? <img src={imageURL} style={{height: small ? '10px' : '13px', objectFit:'contain', verticalAlign:'middle'}} alt="" />
-            : null
-        }
-        {tag || 'FAM'}
-    </span>
-);
+// Enhanced FamilySignBadge — supports image from config, handles null sign
+const FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = null, signLevel = 1 }) => {
+    // Get image from config if not passed directly
+    const imgSrc = imageURL || (typeof getFamilySignImage === 'function' ? getFamilySignImage(signLevel) : null);
+    return (
+        <span style={{
+            display:'inline-flex', alignItems:'center', gap:'3px',
+            padding: small ? '1px 5px' : '2px 8px',
+            borderRadius:'5px', fontSize: small ? '8px' : '10px',
+            fontWeight:800, fontStyle:'italic',
+            background:`${color}20`, border:`1px solid ${color}55`,
+            color:color, letterSpacing:'0.5px', whiteSpace:'nowrap', flexShrink:0,
+            boxShadow: signLevel >= 4 ? `0 0 8px ${color}44` : 'none',
+        }}>
+            {imgSrc
+                ? <img src={imgSrc} style={{height: small ? '10px' : '13px', objectFit:'contain', verticalAlign:'middle'}} alt="" />
+                : null
+            }
+            {tag || 'FAM'}
+        </span>
+    );
+};
 
 // ════════════════════════════════════════════════════════
 // 📸 FRIENDS MOMENTS MODAL
@@ -826,7 +844,7 @@ const FamilyChatItem = ({ familyId, currentUID, currentUserData, lang, onOpenCha
 
     if (!family) return null;
 
-    var signData = getFamilySignLevelData(family.activeness || 0);
+    var signData = getFamilySignLevelData(family.weeklyActiveness || 0);
     var fLvl = getFamilyLevel(family.xp || 0);
     var lastTime = family.lastChatAt ? fmtFamilyTime(family.lastChatAt, lang) : '';
 
@@ -880,7 +898,9 @@ const FamilyRankingInline = ({ lang, currentFamilyId }) => {
         <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
             {rankings.map((fam, i) => {
                 const fl = getFamilyLevel(fam.xp || 0);
-                const sign = getFamilySignLevelData(fam.activeness || 0);
+                const sign = getFamilySignLevelData(fam.weeklyActiveness || 0);
+                const signColor = sign?.color || '#6b7280';
+                const signLevel = sign?.level || 0;
                 const isMine = fam.id === currentFamilyId;
                 const medals = ['🥇','🥈','🥉'];
                 return (
@@ -893,13 +913,13 @@ const FamilyRankingInline = ({ lang, currentFamilyId }) => {
                         <div style={{width:'24px', textAlign:'center', fontSize:'14px', flexShrink:0}}>
                             {i < 3 ? medals[i] : <span style={{fontSize:'11px',color:'#4b5563',fontWeight:800}}>#{i+1}</span>}
                         </div>
-                        <div style={{width:'38px', height:'38px', borderRadius:'50%', overflow:'hidden', border:`2px solid ${sign.color}55`, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', flexShrink:0}}>
+                        <div style={{width:'38px', height:'38px', borderRadius:'50%', overflow:'hidden', border:`2px solid ${signColor}55`, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', flexShrink:0}}>
                             {fam.photoURL ? <img src={fam.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : fam.emblem || '🏠'}
                         </div>
                         <div style={{flex:1, minWidth:0}}>
                             <div style={{display:'flex', alignItems:'center', gap:'5px', flexWrap:'wrap'}}>
                                 <span style={{fontSize:'12px', fontWeight:800, color: isMine?'#00f2ff':'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'110px'}}>{fam.name}</span>
-                                <FamilySignBadge tag={fam.tag} color={sign.color} small signLevel={sign.level} />
+                                {sign && <FamilySignBadge tag={fam.tag} color={signColor} small signLevel={signLevel} />}
                             </div>
                             <div style={{fontSize:'10px', color:'#6b7280', marginTop:'1px'}}>
                                 {fl.icon} Lv.{fl.level} · 👥 {(fam.members||[]).length}
@@ -907,7 +927,7 @@ const FamilyRankingInline = ({ lang, currentFamilyId }) => {
                         </div>
                         <div style={{textAlign:'right', flexShrink:0}}>
                             <div style={{fontSize:'12px', fontWeight:900, color:'#fbbf24'}}>{fmtFamilyNum(fam.xp||0)} XP</div>
-                            <div style={{fontSize:'9px', color: sign.color, fontWeight:700}}>{lang==='ar'?sign.name_ar:sign.name_en}</div>
+                            {sign && <div style={{fontSize:'9px', color: signColor, fontWeight:700}}>{lang==='ar'?sign.name_ar:sign.name_en}</div>}
                         </div>
                     </div>
                 );
@@ -1093,11 +1113,11 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     // Update user's sign fields when joining/sign changes
     const syncUserFamilySign = async (familyId, familyData) => {
         try {
-            const activeness = familyData.activeness || 0;
-            const signData = getFamilySignLevelData(activeness);
+            const weeklyAct = familyData.weeklyActiveness || 0;
+            const signD = getFamilySignLevelData(weeklyAct);
             await usersCollection.doc(currentUID).update({
-                familySignLevel: signData.level,
-                familySignColor: signData.color,
+                familySignLevel: signD?.level || null,
+                familySignColor: signD?.color || null,
                 familySignImageURL: familyData.signImageURL || null,
             });
         } catch (e) {}
@@ -1111,12 +1131,13 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         }
         const cleanTag = tribeTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
         if (cleanTag.length < 2) { onNotification(lang === 'ar' ? '❌ الوسم حرفين على الأقل' : '❌ Tag: min 2 chars'); return; }
+        const cleanName = tribeName.trim().slice(0, 10);
         setCreating(true);
         try {
             const tagCheck = await familiesCollection.where('tag', '==', cleanTag).get();
             if (!tagCheck.empty) { onNotification(lang === 'ar' ? '❌ هذا الوسم مستخدم' : '❌ Tag already taken'); setCreating(false); return; }
             const ref = await familiesCollection.add({
-                name: tribeName.trim(), tag: cleanTag, description: tribeDesc.trim(),
+                name: cleanName, tag: cleanTag, description: tribeDesc.trim(),
                 emblem: tribeEmblem, announcement: '',
                 photoURL: null, signImageURL: null,
                 createdBy: currentUID,
@@ -1136,8 +1157,9 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             });
             await usersCollection.doc(currentUID).update({
                 currency: firebase.firestore.FieldValue.increment(-FAMILY_CREATE_COST),
-                familyId: ref.id, familyName: tribeName.trim(), familyTag: cleanTag,
-                familySignLevel: 1, familySignColor: FAMILY_SIGN_LEVELS[0].color, familySignImageURL: null,
+                familyId: ref.id, familyName: cleanName, familyTag: cleanTag,
+                // No sign on creation — earned through weekly activeness
+                familySignLevel: null, familySignColor: null, familySignImageURL: null,
             });
             await postSystemMessage(ref.id, lang === 'ar' ? `🏠 تم إنشاء العائلة! مرحباً ${currentUserData?.displayName}` : `🏠 Family created! Welcome ${currentUserData?.displayName}`);
             onNotification(lang === 'ar' ? '🏠 تم إنشاء العائلة!' : '🏠 Family created!');
@@ -1175,8 +1197,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             });
             await usersCollection.doc(currentUID).update({
                 familyId, familyName: fd.name, familyTag: fd.tag,
-                familySignLevel: getFamilySignLevelData(fd.activeness || 0).level,
-                familySignColor: getFamilySignLevelData(fd.activeness || 0).color,
+                familySignLevel: getFamilySignLevelData(fd.weeklyActiveness || 0)?.level || null,
+                familySignColor: getFamilySignLevelData(fd.weeklyActiveness || 0)?.color || null,
                 familySignImageURL: fd.signImageURL || null,
             });
             // Post chat message AFTER joining
@@ -1296,8 +1318,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 const fd = await familiesCollection.doc(family.id).get();
                 await usersCollection.doc(uid).update({
                     familyId: family.id, familyName: family.name, familyTag: family.tag,
-                    familySignLevel: getFamilySignLevelData(fd.data()?.activeness || 0).level,
-                    familySignColor: getFamilySignLevelData(fd.data()?.activeness || 0).color,
+                    familySignLevel: getFamilySignLevelData(fd.data()?.weeklyActiveness || 0)?.level || null,
+                    familySignColor: getFamilySignLevelData(fd.data()?.weeklyActiveness || 0)?.color || null,
                     familySignImageURL: fd.data()?.signImageURL || null,
                 });
                 const p = joinRequesterProfiles.find(m => m.id === uid);
@@ -1472,8 +1494,9 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const fProg = family ? getFamilyLevelProgress(family.xp || 0) : 0;
     const myRole = family ? getFamilyRole(family, currentUID) : null;
     const canManage = family ? canManageFamily(family, currentUID) : false;
-    const signData = family ? getFamilySignLevelData(family.activeness || 0) : FAMILY_SIGN_LEVELS[0];
-    const signProg = family ? getFamilySignProgress(family.activeness || 0) : 0;
+    const weeklyAct = family ? (family.weeklyActiveness || 0) : 0;
+    const signData = family ? getFamilySignLevelData(weeklyAct) : null;
+    const signProg = family ? getFamilySignProgress(weeklyAct) : 0;
 
     // ─────────────────────────────────────────────
     // TAB: PROFILE
@@ -1545,45 +1568,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         </div>
                     </div>
                 )}
-
-                {/* ── Family Sign Level ── */}
-                <div style={S.card}>
-                    <div style={S.sectionTitle}>🏴 {lang==='ar'?'شارة العائلة':'Family Sign'}</div>
-                    <div style={{display:'flex', alignItems:'center', gap:'12px', marginBottom:'10px'}}>
-                        <div style={{
-                            width:'56px', height:'56px', borderRadius:'14px',
-                            background: signData.bg, border:`2px solid ${signData.color}55`,
-                            display:'flex', alignItems:'center', justifyContent:'center',
-                            boxShadow: signData.level >= 4 ? `0 0 16px ${signData.glow}` : 'none',
-                            flexShrink:0, overflow:'hidden',
-                        }}>
-                            {family.signImageURL
-                                ? <img src={family.signImageURL} style={{width:'100%',height:'100%',objectFit:'contain'}} alt=""/>
-                                : <span style={{fontSize:'28px'}}>{signData.defaultIcon}</span>
-                            }
-                        </div>
-                        <div style={{flex:1}}>
-                            <div style={{fontSize:'13px', fontWeight:800, color:signData.color, marginBottom:'2px'}}>
-                                {lang==='ar' ? signData.name_ar : signData.name_en}
-                            </div>
-                            <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'6px'}}>
-                                {lang==='ar'?'المستوى':'Level'} {signData.level}/5 · {fmtFamilyNum(family.activeness||0)} {lang==='ar'?'نشاط':'Activeness'}
-                            </div>
-                            <div style={{height:'4px', borderRadius:'2px', background:'rgba(255,255,255,0.07)', overflow:'hidden'}}>
-                                <div style={{height:'100%', borderRadius:'2px', width:`${signProg}%`, background:`linear-gradient(90deg,${signData.color},${signData.color}88)`, transition:'width 0.6s ease'}} />
-                            </div>
-                        </div>
-                    </div>
-                    {/* Sign levels progression */}
-                    <div style={{display:'flex', gap:'4px', justifyContent:'space-between'}}>
-                        {FAMILY_SIGN_LEVELS.map(sl => (
-                            <div key={sl.level} style={{flex:1, textAlign:'center', padding:'4px 2px', borderRadius:'6px', background: sl.level <= signData.level ? `${sl.color}20` : 'rgba(255,255,255,0.03)', border:`1px solid ${sl.level <= signData.level ? sl.color+'40' : 'rgba(255,255,255,0.06)'}`, opacity: sl.level <= signData.level ? 1 : 0.4}}>
-                                <div style={{fontSize:'12px'}}>{sl.defaultIcon}</div>
-                                <div style={{fontSize:'8px', color: sl.level <= signData.level ? sl.color : '#4b5563', fontWeight:700}}>L{sl.level}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
 
                 {/* ── Treasury & Stats ── */}
                 <div style={{display:'flex', gap:'8px'}}>
@@ -2103,7 +2087,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     <div style={{marginBottom:'8px'}}>
                         <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>🏠 {lang==='ar'?'اسم العائلة':'Family Name'}</div>
                         {canManage
-                            ? <input value={editName} onChange={e=>setEditName(e.target.value)} maxLength={30} style={S.input} />
+                            ? <input value={editName} onChange={e=>setEditName(e.target.value)} maxLength={10} style={S.input} />
                             : <div style={{...S.input, color:'#d1d5db', cursor:'default'}}>{family.name}</div>
                         }
                     </div>
@@ -2132,39 +2116,120 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     )}
                 </div>
 
-                {/* ── Sign Image Upload ── */}
+                {/* ── Family Sign — Weekly Activeness System ── */}
                 <div style={S.card}>
-                    <div style={S.sectionTitle}>🏴 {lang==='ar'?'صورة الشارة':'Sign Image'}</div>
-                    <div style={{display:'flex', alignItems:'center', gap:'12px', marginBottom:'10px'}}>
-                        <div style={{width:'60px', height:'30px', borderRadius:'8px', overflow:'hidden', background: signData.bg, border:`1px solid ${signData.color}40`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
-                            {family.signImageURL
-                                ? <img src={family.signImageURL} style={{width:'100%',height:'100%',objectFit:'contain'}} alt=""/>
-                                : <span style={{fontSize:'16px'}}>{signData.defaultIcon}</span>
-                            }
+                    <div style={S.sectionTitle}>🏴 {lang==='ar'?'شارة القبيلة':'Family Sign'}</div>
+
+                    {/* Overview header */}
+                    <div style={{marginBottom:'12px'}}>
+                        <div style={{fontSize:'22px', fontWeight:900, color:'#00f2ff', marginBottom:'2px'}}>
+                            {fmtFamilyNum(family.weeklyActiveness || 0)}
                         </div>
-                        {canManage && (
-                            <div style={{flex:1}}>
-                                <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>{lang==='ar'?'صورة مخصصة للشارة (اختياري)':'Custom sign image (optional)'}</div>
-                                <input type="file" ref={signImageFileRef} style={{display:'none'}} accept="image/*" onChange={handleSignImageUpload} />
-                                <button onClick={()=>signImageFileRef.current?.click()} disabled={uploadingSign} style={{...S.btn, padding:'6px 12px', fontSize:'11px', background:`${signData.color}20`, border:`1px solid ${signData.color}40`, color:signData.color}}>
-                                    {uploadingSign ? '⏳' : (lang==='ar'?'📷 رفع صورة الشارة':'📷 Upload Sign Image')}
-                                </button>
-                            </div>
-                        )}
-                        {!canManage && <div style={{flex:1, fontSize:'11px', color:'#6b7280'}}>{lang==='ar'?'صورة الشارة الحالية':'Current sign image'}</div>}
+                        <div style={{fontSize:'10px', color:'#6b7280'}}>
+                            {lang==='ar'
+                                ? 'النشاط الأسبوعي (يُصفَّر كل أحد 0:00 GMT+3)'
+                                : 'Weekly Activeness (Clears every Sunday at 0:00 GMT+3)'}
+                        </div>
                     </div>
-                    {canManage && family.signImageURL && (
-                        <button onClick={async()=>{
-                            try {
-                                await familiesCollection.doc(family.id).update({ signImageURL: null });
-                                for (const uid of (family.members||[])) {
-                                    await usersCollection.doc(uid).update({ familySignImageURL: null }).catch(()=>{});
-                                }
-                                onNotification(lang==='ar'?'✅ تم حذف الصورة':'✅ Image removed');
-                            } catch(e){}
-                        }} style={{...S.btn, padding:'5px 12px', fontSize:'10px', background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)', color:'#f87171', width:'100%'}}>
-                            🗑️ {lang==='ar'?'حذف صورة الشارة':'Remove Sign Image'}
-                        </button>
+
+                    {/* 5 sign levels */}
+                    <div style={{display:'flex', flexDirection:'column', gap:'8px', marginBottom:'14px'}}>
+                        {FAMILY_SIGN_LEVELS.map(sl => {
+                            const slImg = getFamilySignImage(sl.level);
+                            const wAct = family.weeklyActiveness || 0;
+                            const isEarned = wAct >= sl.threshold;
+                            const isCurrent = signData && signData.level === sl.level;
+                            const isNext = signData ? sl.level === signData.level + 1 : sl.level === 1;
+                            return (
+                                <div key={sl.level} style={{
+                                    display:'flex', alignItems:'center', gap:'10px',
+                                    padding:'10px 12px', borderRadius:'12px',
+                                    background: isCurrent
+                                        ? `linear-gradient(135deg,${sl.color}22,${sl.color}10)`
+                                        : isEarned ? `${sl.color}10` : 'rgba(255,255,255,0.03)',
+                                    border:`1px solid ${isCurrent ? sl.color+'66' : isEarned ? sl.color+'30' : 'rgba(255,255,255,0.07)'}`,
+                                    position:'relative', overflow:'hidden',
+                                }}>
+                                    {/* Sign image or placeholder */}
+                                    <div style={{
+                                        width:'44px', height:'44px', borderRadius:'10px', flexShrink:0, overflow:'hidden',
+                                        background: isEarned ? sl.bg : 'rgba(255,255,255,0.04)',
+                                        border:`1px solid ${isEarned ? sl.color+'44' : 'rgba(255,255,255,0.08)'}`,
+                                        display:'flex', alignItems:'center', justifyContent:'center',
+                                        filter: isEarned ? 'none' : 'grayscale(1) opacity(0.4)',
+                                    }}>
+                                        {slImg
+                                            ? <img src={slImg} style={{width:'100%',height:'100%',objectFit:'contain'}} alt=""/>
+                                            : <span style={{fontSize:'22px'}}>{sl.defaultIcon}</span>
+                                        }
+                                    </div>
+                                    <div style={{flex:1, minWidth:0}}>
+                                        <div style={{fontSize:'12px', fontWeight:800, color: isEarned ? sl.color : '#4b5563'}}>
+                                            {lang==='ar' ? sl.name_ar : sl.name_en}
+                                        </div>
+                                        <div style={{fontSize:'10px', color:'#6b7280', marginTop:'1px'}}>
+                                            {lang==='ar' ? 'النشاط المطلوب:' : 'Required Activeness:'}&nbsp;
+                                            <span style={{color: isEarned ? '#4ade80' : sl.color, fontWeight:700}}>
+                                                {sl.threshold.toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {/* Status badge */}
+                                    {isCurrent && (
+                                        <div style={{
+                                            fontSize:'9px', fontWeight:800, padding:'3px 8px', borderRadius:'20px',
+                                            background:`${sl.color}25`, color:sl.color, border:`1px solid ${sl.color}50`,
+                                            flexShrink:0,
+                                        }}>✓ {lang==='ar'?'الحالي':'Current'}</div>
+                                    )}
+                                    {isNext && !isEarned && (
+                                        <div style={{
+                                            fontSize:'9px', fontWeight:800, padding:'3px 8px', borderRadius:'20px',
+                                            background:'rgba(0,242,255,0.15)', color:'#00f2ff',
+                                            border:'1px solid rgba(0,242,255,0.4)', flexShrink:0,
+                                        }}>{lang==='ar'?'الأسبوع القادم':'Get next week'}</div>
+                                    )}
+                                    {isEarned && !isCurrent && (
+                                        <div style={{fontSize:'16px', flexShrink:0}}>✅</div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Sign image upload (owner/admin only) */}
+                    {canManage && (
+                        <div style={{borderTop:'1px solid rgba(255,255,255,0.07)', paddingTop:'12px'}}>
+                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'8px'}}>
+                                {lang==='ar'?'📷 رفع صورة مخصصة للشارة (اختياري)':'📷 Upload custom sign image (optional)'}
+                            </div>
+                            <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                                <div>
+                                    <input type="file" ref={signImageFileRef} style={{display:'none'}} accept="image/*" onChange={handleSignImageUpload} />
+                                    <button onClick={()=>signImageFileRef.current?.click()} disabled={uploadingSign}
+                                        style={{...S.btn, padding:'7px 14px', fontSize:'11px',
+                                            background: signData ? `${signData.color}20` : 'rgba(0,242,255,0.1)',
+                                            border:`1px solid ${signData ? signData.color+'40' : 'rgba(0,242,255,0.3)'}`,
+                                            color: signData ? signData.color : '#00f2ff'}}>
+                                        {uploadingSign ? '⏳' : (lang==='ar'?'📷 رفع صورة الشارة':'📷 Upload Sign Image')}
+                                    </button>
+                                </div>
+                                {family.signImageURL && (
+                                    <button onClick={async()=>{
+                                        try {
+                                            await familiesCollection.doc(family.id).update({ signImageURL: null });
+                                            for (const uid of (family.members||[])) {
+                                                await usersCollection.doc(uid).update({ familySignImageURL: null }).catch(()=>{});
+                                            }
+                                            onNotification(lang==='ar'?'✅ تم حذف الصورة':'✅ Image removed');
+                                        } catch(e){}
+                                    }} style={{...S.btn, padding:'7px 14px', fontSize:'11px',
+                                        background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)', color:'#f87171'}}>
+                                        🗑️ {lang==='ar'?'حذف':'Remove'}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </div>
 
@@ -2328,7 +2393,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             </div>
             <div>
                 <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>🏠 {lang==='ar'?'اسم العائلة *':'Family Name *'}</div>
-                <input value={tribeName} onChange={e=>setFamilyName(e.target.value)} maxLength={30} style={S.input} placeholder={lang==='ar'?'اسم مميز...':'Unique name...'} />
+                <input value={tribeName} onChange={e=>setFamilyName(e.target.value)} maxLength={10} style={S.input} placeholder={lang==='ar'?'اسم مميز...':'Unique name...'} />
             </div>
             <div>
                 <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>🏷️ {lang==='ar'?'وسم العائلة * (حروف وأرقام، حتى 6)':'Family Tag * (letters & numbers, max 6)'}</div>
