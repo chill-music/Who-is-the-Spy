@@ -167,28 +167,11 @@ const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
 };
 
 // K/D Circle
-const KDCircle = ({ wins, losses, lang }) => {
-    const t = TRANSLATIONS[lang];
-    const total = wins + losses;
-    const ratio = total > 0 ? wins / total : 0;
-    const percentage = Math.round(ratio * 100);
-    const size = 100; const strokeWidth = 6;
-    const radius = (size - strokeWidth) / 2;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (ratio * circumference);
-    return (
-        <div className="kd-circle-container" style={{ width: size, height: size }}>
-            <svg width={size} height={size}>
-                <defs><linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="var(--secondary)" /><stop offset="100%" stopColor="var(--primary)" /></linearGradient></defs>
-                <circle className="kd-circle-bg" cx={size/2} cy={size/2} r={radius} />
-                <circle className="kd-circle-progress" cx={size/2} cy={size/2} r={radius} strokeDasharray={circumference} strokeDashoffset={offset} />
-            </svg>
-            <div className="kd-text"><span className="kd-rate">{percentage}%</span><span className="kd-label">{t.winRate}</span></div>
-        </div>
-    );
-};
+// ── KDCircle removed (dead code — never used; WinRateCircleV11 in 15-profile.js is used instead)
+// ── renderTitle removed (dead code — never called anywhere in project)
+// ── renderBadges removed (dead code — never called anywhere in project)
 
-// Avatar With Frame
+// Notification Dropdown
 const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, lang }) => {
     const sizeConfig = { sm: { wrapper: 52, avatar: 30, mask: 32 }, md: { wrapper: 72, avatar: 40, mask: 42 }, lg: { wrapper: 110, avatar: 60, mask: 62 }, xl: { wrapper: 140, avatar: 80, mask: 82 } };
     const config = sizeConfig[size] || sizeConfig.md;
@@ -231,43 +214,8 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, la
     );
 };
 
-// Render Title
-const renderTitle = (titleId, lang) => {
-    const titleItem = SHOP_ITEMS.titles.find(t => t.id === titleId);
-    if (!titleItem) return null;
-    if (titleItem.imageUrl && titleItem.imageUrl.trim() !== '') {
-        // ✅ Image/GIF title: transparent, no background pill
-        return (
-            <div className="profile-title-image">
-                <img src={titleItem.imageUrl} alt={titleItem.name_en}
-                    style={{ maxWidth: '120px', maxHeight: '40px', objectFit: 'contain', background: 'transparent', imageRendering: 'auto' }} />
-            </div>
-        );
-    }
-    const name = lang === 'ar' ? titleItem.name_ar : titleItem.name_en;
-    return <div className="profile-title-text"><span>{titleItem.preview}</span><span>{name}</span></div>;
-};
-
-// Render Badges
-const renderBadges = (badgeIds, size = 28) => {
-    if (!badgeIds) return null;
-    const badgeArray = Array.isArray(badgeIds) ? badgeIds : [badgeIds];
-    return (
-        <div className="profile-badge-container">
-            {badgeArray.slice(0, MAX_BADGES).map((badgeId, index) => {
-                const badgeItem = SHOP_ITEMS.badges.find(b => b.id === badgeId);
-                if (!badgeItem) return null;
-                if (badgeItem.imageUrl && badgeItem.imageUrl.trim() !== '') {
-                    // ✅ Image/GIF badge: transparent background, full display
-                    return <img key={index} src={badgeItem.imageUrl} alt={badgeItem.name_en}
-                        style={{ width: size, height: size, objectFit: 'contain', background: 'transparent', imageRendering: 'auto' }} />;
-                }
-                return <span key={index} className="profile-badge" style={{ fontSize: size + 'px' }}>{badgeItem.preview}</span>;
-            })}
-        </div>
-    );
-};
-
+// ── renderTitle removed (dead code — never called anywhere in project)
+// ── renderBadges removed (dead code — never called anywhere in project)
 
 // Notification Dropdown
 const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClearAll, onNotificationClick, lang }) => {
