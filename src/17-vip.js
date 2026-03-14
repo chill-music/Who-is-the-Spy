@@ -291,11 +291,7 @@ const getVIPLevel = (userData) => {
 };
 
 const hasVIP = (userData) => getVIPLevel(userData) >= 1;
-
-const hasVIPExclusiveGifts = (userData) => {
-    const cfg = getVIPData(userData);
-    return cfg?.exclusiveGifts === true;
-};
+// hasVIPExclusiveGifts removed — dead code, never called anywhere in project
 
 const hasVIPDailyTasks = (userData) => {
     const cfg = getVIPData(userData);
