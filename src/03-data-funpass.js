@@ -1,7 +1,7 @@
-const FUN_PASS_SEASON_ID = '1';           // 🔧 غيّر هنا لتجديد السيزون
-const FUN_PASS_SEASON_NAME_EN = 'Season 1'; // اسم السيزون بالإنجليزي
-const FUN_PASS_SEASON_NAME_AR = 'الموسم الأول'; // اسم السيزون بالعربي
-const FUN_PASS_SEASON_END   = '2025-03-31'; // تاريخ نهاية السيزون
+const FUN_PASS_SEASON_ID = '2';             // 🔧 غيّر هنا لتجديد السيزون
+const FUN_PASS_SEASON_NAME_EN = 'Season 2'; // اسم السيزون بالإنجليزي
+const FUN_PASS_SEASON_NAME_AR = 'الموسم الثاني'; // اسم السيزون بالعربي
+const FUN_PASS_SEASON_END   = '2026-06-30'; // تاريخ نهاية السيزون
 
 const FUN_PASS_PRICE = 2000; // Cost in Intel to buy Fun Pass
 
