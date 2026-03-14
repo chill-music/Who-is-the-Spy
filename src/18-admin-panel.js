@@ -1851,26 +1851,109 @@ const MomentsModerationSection = ({ currentUser, currentUserData, lang, onNotifi
 const FinancialLogSection = ({ lang }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [editUser, setEditUser] = useState(null);      // user being edited
+    const [editAmount, setEditAmount] = useState('');     // amount to add/subtract
+    const [editNote, setEditNote] = useState('');         // optional reason
+    const [editSaving, setEditSaving] = useState(false);
+    const [editMsg, setEditMsg] = useState(null);
 
-    useEffect(() => {
-        usersCollection.orderBy('currency', 'desc').limit(50).get()
+    const loadUsers = () => {
+        setLoading(true);
+        usersCollection.orderBy('currency', 'desc').limit(100).get()
             .then(snap => { setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() }))); setLoading(false); })
             .catch(() => setLoading(false));
-    }, []);
+    };
+
+    useEffect(() => { loadUsers(); }, []);
 
     const totalIntel = users.reduce((s, u) => s + (u.currency || 0), 0);
+
+    const handleAdjust = async (type) => {
+        if (!editUser || editAmount === '' || isNaN(Number(editAmount))) return;
+        const delta = type === 'add' ? Math.abs(Number(editAmount)) : -Math.abs(Number(editAmount));
+        setEditSaving(true);
+        try {
+            await usersCollection.doc(editUser.id).update({
+                currency: firebase.firestore.FieldValue.increment(delta),
+            });
+            setEditMsg({ ok: true, text: lang==='ar' ? `✅ تم ${type==='add'?'إضافة':'خصم'} ${Math.abs(delta).toLocaleString()} 🧠` : `✅ ${type==='add'?'Added':'Deducted'} ${Math.abs(delta).toLocaleString()} 🧠` });
+            // update local list
+            setUsers(prev => prev.map(u => u.id === editUser.id ? { ...u, currency: (u.currency||0) + delta } : u).sort((a,b)=>(b.currency||0)-(a.currency||0)));
+            setEditUser(null); setEditAmount(''); setEditNote('');
+        } catch(e) {
+            setEditMsg({ ok: false, text: lang==='ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again' });
+        }
+        setEditSaving(false);
+        setTimeout(() => setEditMsg(null), 3000);
+    };
 
     return (
         <div>
             <div style={{ fontSize:'13px', fontWeight:700, color:'#10b981', marginBottom:'16px' }}>
                 💰 {lang==='ar'?'السجل المالي':'Financial Log'}
             </div>
-            <div style={{ display:'flex', gap:'12px', marginBottom:'16px' }}>
+            <div style={{ display:'flex', gap:'12px', marginBottom:'16px', flexWrap:'wrap' }}>
                 <AdminStatCard icon="🧠" label={lang==='ar'?'إجمالي الإنتل':'Total Intel in Circulation'} value={totalIntel.toLocaleString()} color="#10b981" />
                 <AdminStatCard icon="👥" label={lang==='ar'?'المستخدمين':'Users Tracked'} value={users.length} color="#00f2ff" />
             </div>
+
+            {/* ── Edit Balance Modal ── */}
+            {editUser && (
+                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:'16px'}}
+                    onClick={() => { setEditUser(null); setEditAmount(''); setEditNote(''); }}>
+                    <div style={{background:'linear-gradient(160deg,#0a0a20,#0f0f2e)',border:'1px solid rgba(16,185,129,0.35)',borderRadius:'18px',padding:'22px',width:'100%',maxWidth:'320px'}}
+                        onClick={e => e.stopPropagation()}>
+                        <div style={{fontWeight:800,color:'#10b981',fontSize:'14px',marginBottom:'14px'}}>
+                            💰 {lang==='ar'?'تعديل الرصيد':'Adjust Balance'} — {editUser.displayName}
+                        </div>
+                        <div style={{fontSize:'12px',color:'#9ca3af',marginBottom:'8px'}}>
+                            {lang==='ar'?'الرصيد الحالي':'Current Balance'}: <span style={{color:'#10b981',fontWeight:700}}>{(editUser.currency||0).toLocaleString()} 🧠</span>
+                        </div>
+                        <input
+                            type="number"
+                            min="0"
+                            placeholder={lang==='ar'?'المبلغ':'Amount'}
+                            value={editAmount}
+                            onChange={e => setEditAmount(e.target.value)}
+                            style={{width:'100%',padding:'9px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.07)',border:'1px solid rgba(16,185,129,0.3)',color:'#e5e7eb',fontSize:'13px',marginBottom:'10px',outline:'none'}}
+                        />
+                        <input
+                            type="text"
+                            placeholder={lang==='ar'?'السبب (اختياري)':'Reason (optional)'}
+                            value={editNote}
+                            onChange={e => setEditNote(e.target.value)}
+                            style={{width:'100%',padding:'9px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',color:'#e5e7eb',fontSize:'13px',marginBottom:'14px',outline:'none'}}
+                        />
+                        <div style={{display:'flex',gap:'10px'}}>
+                            <button
+                                disabled={editSaving || editAmount===''}
+                                onClick={() => handleAdjust('add')}
+                                style={{flex:1,padding:'9px',borderRadius:'10px',background:'linear-gradient(135deg,#10b981,#059669)',border:'none',color:'#fff',fontWeight:800,fontSize:'13px',cursor:editSaving?'wait':'pointer'}}>
+                                ➕ {lang==='ar'?'إضافة':'Add'}
+                            </button>
+                            <button
+                                disabled={editSaving || editAmount===''}
+                                onClick={() => handleAdjust('sub')}
+                                style={{flex:1,padding:'9px',borderRadius:'10px',background:'linear-gradient(135deg,#ef4444,#dc2626)',border:'none',color:'#fff',fontWeight:800,fontSize:'13px',cursor:editSaving?'wait':'pointer'}}>
+                                ➖ {lang==='ar'?'خصم':'Deduct'}
+                            </button>
+                        </div>
+                        <button onClick={() => { setEditUser(null); setEditAmount(''); setEditNote(''); }}
+                            style={{width:'100%',marginTop:'10px',padding:'8px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',cursor:'pointer'}}>
+                            {lang==='ar'?'إلغاء':'Cancel'}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {editMsg && (
+                <div style={{padding:'10px 14px',borderRadius:'10px',background:editMsg.ok?'rgba(16,185,129,0.15)':`rgba(239,68,68,0.15)`,border:`1px solid ${editMsg.ok?'rgba(16,185,129,0.4)':`rgba(239,68,68,0.4)`}`,color:editMsg.ok?'#10b981':'#ef4444',fontSize:'12px',fontWeight:700,marginBottom:'12px'}}>
+                    {editMsg.text}
+                </div>
+            )}
+
             {loading ? <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'20px'}}>⏳</div> : (
-                <div style={{ maxHeight:'45vh', overflowY:'auto' }}>
+                <div style={{ maxHeight:'50vh', overflowY:'auto' }}>
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'11px' }}>
                         <thead>
                             <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.1)' }}>
@@ -1878,6 +1961,7 @@ const FinancialLogSection = ({ lang }) => {
                                 <th style={{ padding:'6px 8px', textAlign:'left', color:'#9ca3af', fontWeight:700 }}>{lang==='ar'?'المستخدم':'User'}</th>
                                 <th style={{ padding:'6px 8px', textAlign:'right', color:'#9ca3af', fontWeight:700 }}>🧠 {lang==='ar'?'إنتل':'Intel'}</th>
                                 <th style={{ padding:'6px 8px', textAlign:'right', color:'#9ca3af', fontWeight:700 }}>{lang==='ar'?'انتصارات':'Wins'}</th>
+                                <th style={{ padding:'6px 8px', textAlign:'center', color:'#9ca3af', fontWeight:700 }}>{lang==='ar'?'تعديل':'Edit'}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1893,6 +1977,13 @@ const FinancialLogSection = ({ lang }) => {
                                     </td>
                                     <td style={{ padding:'6px 8px', textAlign:'right', color:'#10b981', fontWeight:700 }}>{(u.currency||0).toLocaleString()}</td>
                                     <td style={{ padding:'6px 8px', textAlign:'right', color:'#00f2ff' }}>{u.stats?.wins||0}</td>
+                                    <td style={{ padding:'6px 8px', textAlign:'center' }}>
+                                        <button
+                                            onClick={() => { setEditUser(u); setEditAmount(''); setEditNote(''); }}
+                                            style={{padding:'3px 10px',borderRadius:'8px',background:'linear-gradient(135deg,rgba(16,185,129,0.2),rgba(5,150,105,0.15))',border:'1px solid rgba(16,185,129,0.4)',color:'#10b981',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>
+                                            ✏️ {lang==='ar'?'تعديل':'Edit'}
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
