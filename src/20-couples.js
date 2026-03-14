@@ -20,7 +20,7 @@ const couplesCollection = db.collection('artifacts').doc(appId)
 // ─────────────────────────────────────────────
 const RINGS_DATA = [
     { id:'ring_bronze',   emoji:'💍', imageURL:null, name_en:'Bronze Ring',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Common',    color:'#cd7f32', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:false, hidden:false, limited:false, limitedUntil:null },
-             { id:'kingshehab',   emoji:null, imageURL:'https://res.cloudinary.com/dqewgiqsh/image/upload/v1773406707/ringking_lxnly9.gif', name_en:'King Rin',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:true, hidden:false, limited:false, limitedUntil:null },
+             { id:'kingshehab',   emoji:null, imageURL:'https://res.cloudinary.com/dqewgiqsh/image/upload/v1773406707/ringking_lxnly9.gif', name_en:'King Ring',     name_ar:'خاتم الملك',      cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(240,171,252,0.6)', desc_en:'The ring of kings — a royal bond.',  desc_ar:'خاتم الملوك — رابطة ملكية أبدية.',  event:true, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_silver',   emoji:'💍', imageURL:null, name_en:'Silver Ring',      name_ar:'خاتم فضي',        cost:1500,  levelReq:3,  rarity:'Uncommon',  color:'#c0c0c0', glow:'rgba(192,192,192,0.4)', desc_en:'Elegant and timeless.',       desc_ar:'أناقة خالدة.',            event:false, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_gold',     emoji:'💍', imageURL:null, name_en:'Gold Ring',        name_ar:'خاتم ذهبي',       cost:3000,  levelReq:5,  rarity:'Rare',      color:'#ffd700', glow:'rgba(255,215,0,0.5)',   desc_en:'Golden love, golden future.', desc_ar:'حب ذهبي، مستقبل ذهبي.',   event:false, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_rose',     emoji:'💍', imageURL:null, name_en:'Rose Gold Ring',   name_ar:'خاتم ذهبي وردي',  cost:5000,  levelReq:7,  rarity:'Epic',      color:'#f9a8d4', glow:'rgba(249,168,212,0.5)', desc_en:'Blush pink, bold love.',      desc_ar:'وردي رقيق، حب جريء.',     event:false, hidden:false, limited:false, limitedUntil:null },
@@ -63,126 +63,61 @@ const coupleTimeDiff = (marriageDate) => {
 };
 
 // ─────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════
-// 🖼️  RingImageCanvas  — الحل النهائي: شفافية + تحريك GIF
-// ══════════════════════════════════════════════════════════
-// المشكلة القديمة: img مخفي بـ left:-9999px أو opacity:0.01
-//   → بعض المتصفحات توقف تحريك الـ GIF للعناصر خارج الـ viewport
-//
-// الحل: img و canvas في نفس الحاوية
-//   • img: opacity:0   — مرئي للـ browser (يحرّك الـ GIF) لكن غير مرئي للمستخدم
-//   • canvas: فوق الـ img — يرسم كل فريم بعد إزالة البكسلات السوداء
-//   • النتيجة: GIF متحركة + خلفية شفافة في كل مكان
-// ──────────────────────────────────────────────────────────
+// 🖼️ RingImageCanvas — removes black bg pixels via canvas.
+// Uses crossOrigin="anonymous" so getImageData never throws.
+// Hidden DOM img keeps GIF frames advancing for animation.
+// Only used where mix-blend-mode fails (inside position:absolute+zIndex stacking contexts).
+// ─────────────────────────────────────────────
 const RingImageCanvas = ({ src, size = 40, glow }) => {
-    const canvasRef  = React.useRef(null);
-    const imgRef     = React.useRef(null);
-    const rafRef     = React.useRef(null);
-    const [corsBlocked, setCorsBlocked] = React.useState(false);
+    const canvasRef = React.useRef(null);
+    const imgRef    = React.useRef(null);
+    const rafRef    = React.useRef(null);
 
     React.useEffect(() => {
-        if (!src || corsBlocked) return;
+        if (!src) return;
         const canvas = canvasRef.current;
         const img    = imgRef.current;
         if (!canvas || !img) return;
-
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        let running     = true;
-        let corsChecked = false;
+        let running = true;
 
         const draw = () => {
             if (!running) return;
-            if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+            if (img.naturalWidth > 0) {
                 ctx.clearRect(0, 0, size, size);
                 ctx.drawImage(img, 0, 0, size, size);
-
-                if (!corsChecked) {
-                    try {
-                        const id = ctx.getImageData(0, 0, size, size);
-                        const d  = id.data;
-                        for (let i = 0; i < d.length; i += 4) {
-                            if (d[i] < 50 && d[i+1] < 50 && d[i+2] < 50) d[i+3] = 0;
-                        }
-                        ctx.putImageData(id, 0, 0);
-                        corsChecked = true; // CORS يعمل — فضل Canvas
-                    } catch (e) {
-                        // CORS بلوك → استخدم CSS fallback
-                        running = false;
-                        setCorsBlocked(true);
-                        return;
+                try {
+                    const id = ctx.getImageData(0, 0, size, size);
+                    const d  = id.data;
+                    for (let i = 0; i < d.length; i += 4) {
+                        if (d[i] < 45 && d[i+1] < 45 && d[i+2] < 45) d[i+3] = 0;
                     }
-                } else {
-                    // CORS مؤكد — طبّق الشفافية على كل فريم
-                    try {
-                        const id = ctx.getImageData(0, 0, size, size);
-                        const d  = id.data;
-                        for (let i = 0; i < d.length; i += 4) {
-                            if (d[i] < 50 && d[i+1] < 50 && d[i+2] < 50) d[i+3] = 0;
-                        }
-                        ctx.putImageData(id, 0, 0);
-                    } catch (e) {}
-                }
+                    ctx.putImageData(id, 0, 0);
+                } catch(e) { /* CORS blocked — shows as-is */ }
             }
             rafRef.current = requestAnimationFrame(draw);
         };
 
-        const startDraw = () => { rafRef.current = requestAnimationFrame(draw); };
-        if (img.complete && img.naturalWidth > 0) startDraw();
-        else img.onload = startDraw;
-
+        rafRef.current = requestAnimationFrame(draw);
         return () => { running = false; cancelAnimationFrame(rafRef.current); };
-    }, [src, size, corsBlocked]);
+    }, [src, size]);
 
-    const glowStyle = glow
-        ? `drop-shadow(0 0 8px ${glow}) drop-shadow(0 0 16px ${glow})`
-        : undefined;
-
-    // ── CORS Fallback: mix-blend-mode على الـ img نفسه ──
-    if (corsBlocked) {
-        return React.createElement('img', {
-            src, alt: '',
-            style: {
-                width: size, height: size, flexShrink: 0,
-                objectFit: 'contain', display: 'block',
-                mixBlendMode: 'screen',
-                filter: glowStyle,
-            }
-        });
-    }
-
-    // ── الحل الأساسي: img داخل نفس الحاوية بـ opacity:0 ──
-    // opacity:0 ≠ display:none → المتصفح يفضل يحرّك الـ GIF
-    // الـ canvas فوقيه بيرسم الفريم الحالي بعد إزالة الأسود
-    return React.createElement('div', {
-        style: {
-            position: 'relative',
-            width: size, height: size,
-            flexShrink: 0,
-            display: 'inline-flex',
-            filter: glowStyle,
-        }
-    },
+    return React.createElement(React.Fragment, null,
+        /* crossOrigin="anonymous" is CRITICAL — without it, getImageData throws SecurityError
+           position:fixed off-screen keeps the img in DOM so browser advances GIF frames */
         React.createElement('img', {
             ref: imgRef,
             src,
             crossOrigin: 'anonymous',
             alt: '',
-            style: {
-                position: 'absolute', inset: 0,
-                width: '100%', height: '100%',
-                objectFit: 'contain',
-                opacity: 0,           // مرئي للـ browser → يحرّك الـ GIF
-                pointerEvents: 'none',
-                display: 'block',
-            }
+            style: { position:'fixed', left:'-9999px', top:'-9999px',
+                     width:`${size}px`, height:`${size}px`, pointerEvents:'none', opacity:0.01 }
         }),
         React.createElement('canvas', {
-            ref: canvasRef,
-            width: size, height: size,
+            ref: canvasRef, width: size, height: size,
             style: {
-                position: 'absolute', inset: 0,
                 display: 'block',
-                pointerEvents: 'none',
+                filter: glow ? `drop-shadow(0 0 8px ${glow}) drop-shadow(0 0 16px ${glow})` : undefined
             }
         })
     );
