@@ -59,7 +59,7 @@ const FUN_PASS_LEVELS = [
   { level:47, xp:143700,free:{type:'badge',icon:'🔥',imageUrl:'',name_en:'Phoenix Badge',name_ar:'شارة الفينيكس',itemId:'fp_badge_phoenix',rarity:'Mythic', durationDays:null, season:null}, premium:{type:'frame',icon:'🔥',imageUrl:'',name_en:'Phoenix Frame',name_ar:'إطار الفينيكس',itemId:'fp_frame_phoenix',rarity:'Mythic', durationDays:null, season:null} },
   { level:48, xp:152900,free:{type:'currency',icon:'🧠',imageUrl:'',name_en:'3000 Intel',name_ar:'3000 إنتل',amount:3000},                       premium:{type:'title',icon:'🔥',imageUrl:'',name_en:'Phoenix Title',name_ar:'لقب الفينيكس',itemId:'fp_title_phoenix',rarity:'Mythic', durationDays:null, season:null} },
   { level:49, xp:162600,free:{type:'currency',icon:'🧠',imageUrl:'',name_en:'3200 Intel',name_ar:'3200 إنتل',amount:3200},                       premium:{type:'badge',icon:'🌟',imageUrl:'',name_en:'Nova Badge',name_ar:'شارة النجم المتفجر',itemId:'fp_badge_nova',rarity:'Mythic', durationDays:null, season:null} },
-  { level:50, xp:172700,free:{type:'frame',icon:'🌟',imageUrl:'',name_en:'Nova Frame',name_ar:'إطار النجم المتفجر',itemId:'fp_frame_nova',rarity:'Mythic', durationDays:null, season:null}, premium:{type:'title',icon:'🔱',imageUrl:'',name_en:'GOD Title',name_ar:'لقب الإله',itemId:'fp_title_god',rarity:'Mythic', durationDays:null, season:null} },
+  { level:50, xp:172700,free:{type:'frame',icon:'🌟',imageUrl:'',name_en:'Nova Frame',name_ar:'إطار النجم المتفجر',itemId:'fp_frame_nova',rarity:'Mythic', durationDays:null, season:null}, premium:{type:'title',icon:'🔱',imageUrl:'',name_en:'Ring',name_ar:'لقب الإله',itemId:'ring_valentine',rarity:'Mythic', durationDays:null, season:null} },
 ];
 
 const FUN_PASS_DAILY_MISSIONS = [
