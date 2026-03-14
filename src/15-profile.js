@@ -1057,6 +1057,11 @@ const ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
         return () => clearInterval(interval);
     }, [effectId, loopEvery]);
 
+    // GIF effect inline on avatar — show once then fade
+    if (effect && effect.imageUrl && effect.imageUrl.trim() !== '') {
+        return <GifProfileEffect effect={effect} />;
+    }
+
     if (!effect || !Array.isArray(effect.particles) || particles.length === 0) return null;
     return (
         <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:20,overflow:'hidden',borderRadius:'50%'}}>
@@ -1076,6 +1081,42 @@ const ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
 // ✨ PROFILE EFFECT OVERLAY (confined to profile card, loops on profile open)
 // - GIF effects: rendered as overlay inside the card, sized to card
 // - Particle effects: fall inside card bounds only
+// ✨ GIF PROFILE EFFECT — shows once on mount for displayDuration ms then fades
+const GifProfileEffect = ({ effect }) => {
+    const [visible, setVisible] = useState(true);
+    const [fading, setFading] = useState(false);
+    const dur = effect?.displayDuration || 2000;
+
+    useEffect(() => {
+        if (!effect?.showOnce) return; // if not showOnce, stay visible forever
+        const fadeTimer = setTimeout(() => setFading(true), dur);
+        const hideTimer = setTimeout(() => setVisible(false), dur + 600);
+        return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); };
+    }, [effect?.id]);
+
+    if (!visible) return null;
+    return (
+        <div style={{
+            position: 'absolute', inset: 0,
+            borderRadius: 'inherit', overflow: 'hidden',
+            pointerEvents: 'none', zIndex: 1,
+            opacity: fading ? 0 : 1,
+            transition: fading ? 'opacity 0.6s ease-out' : 'none',
+        }}>
+            <img src={effect.imageUrl} alt="" style={{
+                position: 'absolute', inset: 0,
+                width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'center',
+                opacity: effect.opacity ?? 0.82,
+                mixBlendMode: effect.blendMode || 'normal',
+            }} />
+            {effect.hasGlow && (
+                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, rgba(0,242,255,0.2) 0%, transparent 65%)', pointerEvents: 'none' }} />
+            )}
+        </div>
+    );
+};
+
 // - loopEvery / displayDuration read from effect.loopEvery / effect.displayDuration
 const ProfileEffectOverlay = ({ effectId }) => {
     const [particles, setParticles] = useState([]);
@@ -1123,40 +1164,9 @@ const ProfileEffectOverlay = ({ effectId }) => {
 
     if (!effect) return null;
 
-    // ── GIF / Image effect — confined to card, respects card border-radius ──
+    // ── GIF / Image effect — showOnce: show for displayDuration ms then fade ──
     if (effect.imageUrl && effect.imageUrl.trim() !== '') {
-        return (
-            <div style={{
-                position: 'absolute',
-                inset: 0,
-                borderRadius: 'inherit',  // matches profile-glass-card border-radius
-                overflow: 'hidden',
-                pointerEvents: 'none',
-                zIndex: 1,                // behind content (zIndex 2+), above background
-            }}>
-                <img
-                    src={effect.imageUrl}
-                    alt=""
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        objectPosition: 'center',
-                        opacity: effect.opacity ?? 0.82,
-                        mixBlendMode: effect.blendMode || 'normal',
-                    }}
-                />
-                {effect.hasGlow && (
-                    <div style={{
-                        position: 'absolute', inset: 0,
-                        background: 'radial-gradient(circle at center, rgba(0,242,255,0.2) 0%, transparent 65%)',
-                        pointerEvents: 'none',
-                    }} />
-                )}
-            </div>
-        );
+        return <GifProfileEffect effect={effect} />;
     }
 
     // ── Particle effect — falls inside card bounds only ──
@@ -2823,6 +2833,12 @@ const ProfileV11 = ({
     const [profilePartnerData, setProfilePartnerData]     = useState(null);
     const [showProfileCoupleCard, setShowProfileCoupleCard] = useState(false);
 
+    // 🛡️ GUARD SYSTEM STATE
+    const [guardData, setGuardData]               = useState([]);   // top guardians [{uid,name,photo,total}]
+    const [showGuardModal, setShowGuardModal]     = useState(false);
+    const [guardGiven, setGuardGiven]             = useState(false); // did viewer already give guard today?
+    const guardCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guard_log');
+
     const optionsRef = useRef(null);
 
     useEffect(() => {
@@ -2961,6 +2977,62 @@ const ProfileV11 = ({
             setCharismaRank('--');
         });
     }, [show, targetUID]);
+
+    // 🛡️ Guard system — load top guardians + check if viewer gave today
+    useEffect(() => {
+        if (!show || !targetUID) return;
+        // Load all guard logs for this user
+        const unsub = guardCollection
+            .where('receiverId', '==', targetUID)
+            .onSnapshot(snap => {
+                const logs = snap.docs.map(d => d.data());
+                // Aggregate by senderId
+                const map = {};
+                logs.forEach(l => {
+                    if (!map[l.senderId]) map[l.senderId] = { uid: l.senderId, name: l.senderName, photo: l.senderPhoto, total: 0 };
+                    map[l.senderId].total += l.amount || 0;
+                });
+                const sorted = Object.values(map).sort((a, b) => b.total - a.total);
+                setGuardData(sorted);
+                // Check if current viewer gave guard today
+                if (currentUserUID) {
+                    const today = new Date().toDateString();
+                    const myLog = logs.filter(l => l.senderId === currentUserUID);
+                    const gaveTodayLog = myLog.find(l => {
+                        const d = l.timestamp?.toDate?.() || (l.timestamp?.seconds ? new Date(l.timestamp.seconds * 1000) : null);
+                        return d && d.toDateString() === today;
+                    });
+                    setGuardGiven(!!gaveTodayLog);
+                }
+            }, () => {});
+        return () => unsub();
+    }, [show, targetUID, currentUserUID]);
+
+    // 🛡️ Give Guard handler
+    const handleGiveGuard = useCallback(async () => {
+        if (!currentUserUID || !targetUID || guardGiven || !isLoggedInProp) return;
+        let amount = 1;
+        try {
+            const viewerDoc = await usersCollection.doc(currentUserUID).get();
+            if (viewerDoc.exists) {
+                const vd = viewerDoc.data();
+                const friends = vd.friends || [];
+                const max = Math.min(friends.length, 70);
+                amount = max > 0 ? Math.floor(Math.random() * max) + 1 : 1;
+            }
+        } catch (e) {}
+        try {
+            await guardCollection.add({
+                receiverId:   targetUID,
+                senderId:     currentUserUID,
+                senderName:   userData?.displayName || 'User',
+                senderPhoto:  userData?.photoURL || null,
+                amount,
+                timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            setGuardGiven(true);
+        } catch (e) {}
+    }, [currentUserUID, targetUID, guardGiven, isLoggedInProp, userData]);
 
     if (!show) return null;
 
@@ -3239,6 +3311,48 @@ const ProfileV11 = ({
                     )}
                 </div>
 
+                </div>
+
+                {/* 🛡️ GUARD STRIP — top 3 guardians visible outside profile, below cover */}
+                {!loading && targetData && guardData.length > 0 && (
+                    <div
+                        onClick={() => setShowGuardModal(true)}
+                        style={{
+                            display:'flex', alignItems:'center', gap:'6px',
+                            padding:'7px 14px',
+                            background:'linear-gradient(90deg,rgba(0,212,255,0.07),rgba(112,0,255,0.05))',
+                            borderBottom:'1px solid rgba(0,212,255,0.12)',
+                            cursor:'pointer',
+                        }}
+                    >
+                        <span style={{fontSize:'13px'}}>🛡️</span>
+                        <span style={{fontSize:'11px',fontWeight:800,color:'#00f2ff',marginRight:'4px'}}>
+                            {lang==='ar'?'الحماية':'Guard'}
+                        </span>
+                        {/* Top 3 avatars */}
+                        <div style={{display:'flex',gap:'-6px',direction:'ltr'}}>
+                            {guardData.slice(0,3).map((g, i) => (
+                                <div key={g.uid} style={{
+                                    width:'26px', height:'26px', borderRadius:'50%', overflow:'hidden',
+                                    border:`2px solid ${i===0?'#ffd700':i===1?'#c0c0c0':'#cd7f32'}`,
+                                    marginLeft: i > 0 ? '-6px' : '0',
+                                    flexShrink:0, position:'relative', zIndex: 3-i,
+                                    boxShadow:`0 0 6px ${i===0?'rgba(255,215,0,0.5)':i===1?'rgba(192,192,192,0.3)':'rgba(205,127,50,0.3)'}`,
+                                }}>
+                                    {g.photo
+                                        ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                        : <div style={{width:'100%',height:'100%',background:'#1a1a3e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px'}}>👤</div>
+                                    }
+                                </div>
+                            ))}
+                        </div>
+                        {guardData.length > 3 && (
+                            <span style={{fontSize:'10px',color:'#6b7280',fontWeight:600}}>+{guardData.length-3}</span>
+                        )}
+                        <span style={{marginLeft:'auto',fontSize:'10px',color:'#6b7280'}}>›</span>
+                    </div>
+                )}
+
                 {loading ? (
                     <div className="profile-loading">
                         <div className="profile-loading-spinner"></div>
@@ -3303,6 +3417,29 @@ const ProfileV11 = ({
                                             {targetData.country.flag}
                                         </span>
                                     )}
+                                    {/* 🛡️ Guard Button — visible when viewing others, not on own profile */}
+                                    {!isOwnProfile && !isTargetGuest && isLoggedInProp && (
+                                        <button
+                                            onClick={handleGiveGuard}
+                                            disabled={guardGiven}
+                                            title={lang === 'ar' ? 'أعطِ حماية' : 'Give Guard'}
+                                            style={{
+                                                display:'inline-flex', alignItems:'center', gap:'4px',
+                                                padding:'3px 9px', borderRadius:'20px', border:'none', cursor: guardGiven ? 'default' : 'pointer',
+                                                background: guardGiven
+                                                    ? 'linear-gradient(135deg,rgba(100,100,120,0.3),rgba(80,80,100,0.2))'
+                                                    : 'linear-gradient(135deg,rgba(0,212,255,0.25),rgba(112,0,255,0.2))',
+                                                boxShadow: guardGiven ? 'none' : '0 0 10px rgba(0,212,255,0.3)',
+                                                border: guardGiven ? '1px solid rgba(150,150,180,0.2)' : '1px solid rgba(0,212,255,0.4)',
+                                                color: guardGiven ? '#6b7280' : '#00f2ff',
+                                                fontSize:'11px', fontWeight:800,
+                                                transition:'all 0.25s',
+                                            }}
+                                        >
+                                            <span style={{fontSize:'13px'}}>🛡️</span>
+                                            <span>{guardGiven ? (lang==='ar'?'جرد ✓':'Guard ✓') : (lang==='ar'?'جرد':'Guard')}</span>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -3340,7 +3477,150 @@ const ProfileV11 = ({
                                 lang={lang}
                             />
                             <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
-                        </div>
+
+                            {/* 🛡️ GUARD SECTION */}
+                            {guardData.length > 0 && (
+                                <div
+                                    onClick={() => setShowGuardModal(true)}
+                                    style={{
+                                        margin:'8px 12px 0', padding:'10px 14px',
+                                        background:'linear-gradient(135deg,rgba(0,212,255,0.07),rgba(112,0,255,0.06))',
+                                        border:'1px solid rgba(0,212,255,0.2)', borderRadius:'14px',
+                                        cursor:'pointer', transition:'all 0.2s',
+                                    }}
+                                >
+                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
+                                        <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                            <span style={{fontSize:'16px'}}>🛡️</span>
+                                            <span style={{fontSize:'12px',fontWeight:900,color:'#00f2ff',letterSpacing:'0.5px'}}>
+                                                {lang==='ar'?'الحماية':'Guard'}
+                                            </span>
+                                        </div>
+                                        <span style={{fontSize:'10px',color:'#6b7280',fontWeight:600}}>
+                                            {lang==='ar'?'عرض الكل →':'View All →'}
+                                        </span>
+                                    </div>
+                                    {/* Top 3 guardians */}
+                                    <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                                        {guardData.slice(0,5).map((g, i) => (
+                                            <div key={g.uid} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px'}}>
+                                                <div style={{
+                                                    width:i===0?'42px':'34px', height:i===0?'42px':'34px',
+                                                    borderRadius:'50%', overflow:'hidden',
+                                                    border:`2px solid ${i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(0,212,255,0.3)'}`,
+                                                    boxShadow: i===0?'0 0 10px rgba(255,215,0,0.5)':i===1?'0 0 6px rgba(192,192,192,0.4)':i===2?'0 0 6px rgba(205,127,50,0.4)':'none',
+                                                    flexShrink:0,
+                                                }}>
+                                                    {g.photo
+                                                        ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                        : <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#1e1e3f,#0a0a20)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>👤</div>
+                                                    }
+                                                </div>
+                                                <span style={{fontSize:'8px',color:i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'#6b7280',fontWeight:700,maxWidth:'40px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                                                    {g.name?.split(' ')[0] || '?'}
+                                                </span>
+                                                <span style={{fontSize:'8px',color:'#4ade80',fontWeight:600}}>{g.total>=1000?`${(g.total/1000).toFixed(1)}K`:g.total}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>{/* end profile-identity */}
+
+                        {/* 🛡️ GUARD MODAL */}
+                        {showGuardModal && (
+                            <PortalModal>
+                                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH,padding:'16px'}}
+                                    onClick={() => setShowGuardModal(false)}>
+                                    <div style={{
+                                        background:'linear-gradient(160deg,#0a0a20,#0f0f2e)',
+                                        border:'1px solid rgba(0,212,255,0.3)',
+                                        borderRadius:'20px', padding:'20px', width:'100%', maxWidth:'340px',
+                                        maxHeight:'80vh', overflowY:'auto',
+                                        boxShadow:'0 0 40px rgba(0,212,255,0.15)',
+                                    }} onClick={e => e.stopPropagation()}>
+                                        {/* Header */}
+                                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
+                                            <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                                <span style={{fontSize:'22px'}}>🛡️</span>
+                                                <div>
+                                                    <div style={{fontSize:'15px',fontWeight:900,color:'#00f2ff'}}>
+                                                        {lang==='ar'?'الحماية':'Guard Ranking'}
+                                                    </div>
+                                                    <div style={{fontSize:'10px',color:'#6b7280'}}>
+                                                        {lang==='ar'?`بواسطة ${targetData?.displayName||''}`:`for ${targetData?.displayName||''}`}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => setShowGuardModal(false)} style={{background:'none',border:'none',color:'#6b7280',fontSize:'18px',cursor:'pointer',padding:'4px 8px'}}>✕</button>
+                                        </div>
+
+                                        {/* Top 3 podium */}
+                                        {guardData.length >= 1 && (
+                                            <div style={{display:'flex',alignItems:'flex-end',justifyContent:'center',gap:'8px',marginBottom:'20px'}}>
+                                                {/* 2nd place */}
+                                                {guardData[1] && (
+                                                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',flex:1}}>
+                                                        <div style={{width:'56px',height:'56px',borderRadius:'50%',overflow:'hidden',border:'2.5px solid #c0c0c0',boxShadow:'0 0 12px rgba(192,192,192,0.4)',margin:'0 auto'}}>
+                                                            {guardData[1].photo ? <img src={guardData[1].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👤</div>}
+                                                        </div>
+                                                        <span style={{fontSize:'18px'}}>🥈</span>
+                                                        <span style={{fontSize:'10px',fontWeight:700,color:'#c0c0c0',maxWidth:'70px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[1].name}</span>
+                                                        <span style={{fontSize:'11px',color:'#4ade80',fontWeight:800}}>{guardData[1].total>=1000?`${(guardData[1].total/1000).toFixed(1)}K`:guardData[1].total}</span>
+                                                        <div style={{fontSize:'8px',color:'#6b7280'}}>Guard</div>
+                                                    </div>
+                                                )}
+                                                {/* 1st place */}
+                                                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',flex:1}}>
+                                                    <span style={{fontSize:'20px'}}>👑</span>
+                                                    <div style={{width:'72px',height:'72px',borderRadius:'50%',overflow:'hidden',border:'3px solid #ffd700',boxShadow:'0 0 20px rgba(255,215,0,0.6)',margin:'0 auto'}}>
+                                                        {guardData[0].photo ? <img src={guardData[0].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px'}}>👤</div>}
+                                                    </div>
+                                                    <span style={{fontSize:'22px'}}>🥇</span>
+                                                    <span style={{fontSize:'11px',fontWeight:900,color:'#ffd700',maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[0].name}</span>
+                                                    <span style={{fontSize:'13px',color:'#4ade80',fontWeight:900}}>{guardData[0].total>=1000?`${(guardData[0].total/1000).toFixed(1)}K`:guardData[0].total}</span>
+                                                    <div style={{fontSize:'8px',color:'#6b7280'}}>Guard</div>
+                                                </div>
+                                                {/* 3rd place */}
+                                                {guardData[2] && (
+                                                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',flex:1}}>
+                                                        <div style={{width:'56px',height:'56px',borderRadius:'50%',overflow:'hidden',border:'2.5px solid #cd7f32',boxShadow:'0 0 12px rgba(205,127,50,0.4)',margin:'0 auto'}}>
+                                                            {guardData[2].photo ? <img src={guardData[2].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👤</div>}
+                                                        </div>
+                                                        <span style={{fontSize:'18px'}}>🥉</span>
+                                                        <span style={{fontSize:'10px',fontWeight:700,color:'#cd7f32',maxWidth:'70px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[2].name}</span>
+                                                        <span style={{fontSize:'11px',color:'#4ade80',fontWeight:800}}>{guardData[2].total>=1000?`${(guardData[2].total/1000).toFixed(1)}K`:guardData[2].total}</span>
+                                                        <div style={{fontSize:'8px',color:'#6b7280'}}>Guard</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Rest of list */}
+                                        {guardData.slice(3).map((g, i) => (
+                                            <div key={g.uid} style={{
+                                                display:'flex', alignItems:'center', gap:'10px',
+                                                padding:'9px 12px', borderRadius:'10px', marginBottom:'6px',
+                                                background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)',
+                                            }}>
+                                                <span style={{fontSize:'12px',fontWeight:900,color:'#4b5563',minWidth:'20px',textAlign:'center'}}>#{i+4}</span>
+                                                <div style={{width:'34px',height:'34px',borderRadius:'50%',overflow:'hidden',border:'1.5px solid rgba(0,212,255,0.25)',flexShrink:0}}>
+                                                    {g.photo ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>👤</div>}
+                                                </div>
+                                                <span style={{flex:1,fontSize:'12px',fontWeight:700,color:'#e5e7eb',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{g.name}</span>
+                                                <span style={{fontSize:'12px',color:'#4ade80',fontWeight:800}}>{g.total>=1000?`${(g.total/1000).toFixed(1)}K`:g.total}</span>
+                                                <span style={{fontSize:'9px',color:'#6b7280'}}>Guard</span>
+                                            </div>
+                                        ))}
+                                        {guardData.length === 0 && (
+                                            <div style={{textAlign:'center',color:'#6b7280',fontSize:'13px',padding:'20px 0'}}>
+                                                {lang==='ar'?'لا يوجد حراس بعد':'No guards yet'}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </PortalModal>
+                        )}
 
                         {/* ── STATS ROW ── */}
                         <div style={{
