@@ -192,7 +192,7 @@ const OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
                             value={displayName}
                             onChange={e => setDisplayName(e.target.value)}
                             placeholder={lang === 'ar' ? 'أدخل اسمك...' : 'Enter your name...'}
-                            maxLength={20}
+                            maxLength={10}
                         />
                     </div>
 
