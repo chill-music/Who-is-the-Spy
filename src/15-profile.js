@@ -3475,150 +3475,7 @@ const ProfileV11 = ({
                                 lang={lang}
                             />
                             <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
-
-                            {/* 🛡️ GUARD SECTION */}
-                            {guardData.length > 0 && (
-                                <div
-                                    onClick={() => setShowGuardModal(true)}
-                                    style={{
-                                        margin:'8px 12px 0', padding:'10px 14px',
-                                        background:'linear-gradient(135deg,rgba(0,212,255,0.07),rgba(112,0,255,0.06))',
-                                        border:'1px solid rgba(0,212,255,0.2)', borderRadius:'14px',
-                                        cursor:'pointer', transition:'all 0.2s',
-                                    }}
-                                >
-                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
-                                        <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                                            <span style={{fontSize:'16px'}}>🛡️</span>
-                                            <span style={{fontSize:'12px',fontWeight:900,color:'#00f2ff',letterSpacing:'0.5px'}}>
-                                                {lang==='ar'?'الحماية':'Guard'}
-                                            </span>
-                                        </div>
-                                        <span style={{fontSize:'10px',color:'#6b7280',fontWeight:600}}>
-                                            {lang==='ar'?'عرض الكل →':'View All →'}
-                                        </span>
-                                    </div>
-                                    {/* Top 3 guardians */}
-                                    <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
-                                        {guardData.slice(0,5).map((g, i) => (
-                                            <div key={g.uid} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px'}}>
-                                                <div style={{
-                                                    width:i===0?'42px':'34px', height:i===0?'42px':'34px',
-                                                    borderRadius:'50%', overflow:'hidden',
-                                                    border:`2px solid ${i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(0,212,255,0.3)'}`,
-                                                    boxShadow: i===0?'0 0 10px rgba(255,215,0,0.5)':i===1?'0 0 6px rgba(192,192,192,0.4)':i===2?'0 0 6px rgba(205,127,50,0.4)':'none',
-                                                    flexShrink:0,
-                                                }}>
-                                                    {g.photo
-                                                        ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                                        : <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#1e1e3f,#0a0a20)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>👤</div>
-                                                    }
-                                                </div>
-                                                <span style={{fontSize:'8px',color:i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'#6b7280',fontWeight:700,maxWidth:'40px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                                                    {g.name?.split(' ')[0] || '?'}
-                                                </span>
-                                                <span style={{fontSize:'8px',color:'#4ade80',fontWeight:600}}>{g.total>=1000?`${(g.total/1000).toFixed(1)}K`:g.total}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
                         </div>{/* end profile-identity */}
-
-                        {/* 🛡️ GUARD MODAL */}
-                        {showGuardModal && (
-                            <PortalModal>
-                                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH,padding:'16px'}}
-                                    onClick={() => setShowGuardModal(false)}>
-                                    <div style={{
-                                        background:'linear-gradient(160deg,#0a0a20,#0f0f2e)',
-                                        border:'1px solid rgba(0,212,255,0.3)',
-                                        borderRadius:'20px', padding:'20px', width:'100%', maxWidth:'340px',
-                                        maxHeight:'80vh', overflowY:'auto',
-                                        boxShadow:'0 0 40px rgba(0,212,255,0.15)',
-                                    }} onClick={e => e.stopPropagation()}>
-                                        {/* Header */}
-                                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
-                                            <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                                                <span style={{fontSize:'22px'}}>🛡️</span>
-                                                <div>
-                                                    <div style={{fontSize:'15px',fontWeight:900,color:'#00f2ff'}}>
-                                                        {lang==='ar'?'الحماية':'Guard Ranking'}
-                                                    </div>
-                                                    <div style={{fontSize:'10px',color:'#6b7280'}}>
-                                                        {lang==='ar'?`بواسطة ${targetData?.displayName||''}`:`for ${targetData?.displayName||''}`}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <button onClick={() => setShowGuardModal(false)} style={{background:'none',border:'none',color:'#6b7280',fontSize:'18px',cursor:'pointer',padding:'4px 8px'}}>✕</button>
-                                        </div>
-
-                                        {/* Top 3 podium */}
-                                        {guardData.length >= 1 && (
-                                            <div style={{display:'flex',alignItems:'flex-end',justifyContent:'center',gap:'8px',marginBottom:'20px'}}>
-                                                {/* 2nd place */}
-                                                {guardData[1] && (
-                                                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',flex:1}}>
-                                                        <div style={{width:'56px',height:'56px',borderRadius:'50%',overflow:'hidden',border:'2.5px solid #c0c0c0',boxShadow:'0 0 12px rgba(192,192,192,0.4)',margin:'0 auto'}}>
-                                                            {guardData[1].photo ? <img src={guardData[1].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👤</div>}
-                                                        </div>
-                                                        <span style={{fontSize:'18px'}}>🥈</span>
-                                                        <span style={{fontSize:'10px',fontWeight:700,color:'#c0c0c0',maxWidth:'70px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[1].name}</span>
-                                                        <span style={{fontSize:'11px',color:'#4ade80',fontWeight:800}}>{guardData[1].total>=1000?`${(guardData[1].total/1000).toFixed(1)}K`:guardData[1].total}</span>
-                                                        <div style={{fontSize:'8px',color:'#6b7280'}}>Guard</div>
-                                                    </div>
-                                                )}
-                                                {/* 1st place */}
-                                                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',flex:1}}>
-                                                    <span style={{fontSize:'20px'}}>👑</span>
-                                                    <div style={{width:'72px',height:'72px',borderRadius:'50%',overflow:'hidden',border:'3px solid #ffd700',boxShadow:'0 0 20px rgba(255,215,0,0.6)',margin:'0 auto'}}>
-                                                        {guardData[0].photo ? <img src={guardData[0].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px'}}>👤</div>}
-                                                    </div>
-                                                    <span style={{fontSize:'22px'}}>🥇</span>
-                                                    <span style={{fontSize:'11px',fontWeight:900,color:'#ffd700',maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[0].name}</span>
-                                                    <span style={{fontSize:'13px',color:'#4ade80',fontWeight:900}}>{guardData[0].total>=1000?`${(guardData[0].total/1000).toFixed(1)}K`:guardData[0].total}</span>
-                                                    <div style={{fontSize:'8px',color:'#6b7280'}}>Guard</div>
-                                                </div>
-                                                {/* 3rd place */}
-                                                {guardData[2] && (
-                                                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',flex:1}}>
-                                                        <div style={{width:'56px',height:'56px',borderRadius:'50%',overflow:'hidden',border:'2.5px solid #cd7f32',boxShadow:'0 0 12px rgba(205,127,50,0.4)',margin:'0 auto'}}>
-                                                            {guardData[2].photo ? <img src={guardData[2].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👤</div>}
-                                                        </div>
-                                                        <span style={{fontSize:'18px'}}>🥉</span>
-                                                        <span style={{fontSize:'10px',fontWeight:700,color:'#cd7f32',maxWidth:'70px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[2].name}</span>
-                                                        <span style={{fontSize:'11px',color:'#4ade80',fontWeight:800}}>{guardData[2].total>=1000?`${(guardData[2].total/1000).toFixed(1)}K`:guardData[2].total}</span>
-                                                        <div style={{fontSize:'8px',color:'#6b7280'}}>Guard</div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {/* Rest of list */}
-                                        {guardData.slice(3).map((g, i) => (
-                                            <div key={g.uid} style={{
-                                                display:'flex', alignItems:'center', gap:'10px',
-                                                padding:'9px 12px', borderRadius:'10px', marginBottom:'6px',
-                                                background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)',
-                                            }}>
-                                                <span style={{fontSize:'12px',fontWeight:900,color:'#4b5563',minWidth:'20px',textAlign:'center'}}>#{i+4}</span>
-                                                <div style={{width:'34px',height:'34px',borderRadius:'50%',overflow:'hidden',border:'1.5px solid rgba(0,212,255,0.25)',flexShrink:0}}>
-                                                    {g.photo ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>👤</div>}
-                                                </div>
-                                                <span style={{flex:1,fontSize:'12px',fontWeight:700,color:'#e5e7eb',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{g.name}</span>
-                                                <span style={{fontSize:'12px',color:'#4ade80',fontWeight:800}}>{g.total>=1000?`${(g.total/1000).toFixed(1)}K`:g.total}</span>
-                                                <span style={{fontSize:'9px',color:'#6b7280'}}>Guard</span>
-                                            </div>
-                                        ))}
-                                        {guardData.length === 0 && (
-                                            <div style={{textAlign:'center',color:'#6b7280',fontSize:'13px',padding:'20px 0'}}>
-                                                {lang==='ar'?'لا يوجد حراس بعد':'No guards yet'}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </PortalModal>
-                        )}
 
                         {/* ── STATS ROW ── */}
                         <div style={{
@@ -3662,6 +3519,197 @@ const ProfileV11 = ({
                         </div>
 
                         <GiftWallV11 gifts={gifts} lang={lang} isOwnProfile={isOwnProfile} userData={userData} onOpenProfile={onOpenProfile} onSendGiftToSelf={isGuestProp ? null : (gift) => { setSelfGift(gift); setShowSelfGiftModal(true); }} />
+
+                        {/* 🛡️ GUARD SECTION — below Gift Wall */}
+                        <div style={{margin:'0 12px 8px'}}>
+                            <div style={{
+                                display:'flex', alignItems:'center', justifyContent:'space-between',
+                                marginBottom:'8px', paddingTop:'4px',
+                            }}>
+                                <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                    <span style={{fontSize:'15px'}}>🛡️</span>
+                                    <span style={{fontSize:'12px',fontWeight:900,color:'#e5e7eb',letterSpacing:'0.3px'}}>
+                                        {lang==='ar'?'الحماية':'Guard'}
+                                    </span>
+                                </div>
+                                {guardData.length > 0 && (
+                                    <button
+                                        onClick={() => setShowGuardModal(true)}
+                                        style={{
+                                            background:'none', border:'1px solid rgba(0,212,255,0.25)',
+                                            borderRadius:'12px', padding:'3px 10px',
+                                            fontSize:'10px', color:'#00f2ff', fontWeight:700, cursor:'pointer',
+                                        }}
+                                    >
+                                        {lang==='ar'?'عرض الكل':'View All'}
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Top 5 guardians row */}
+                            {guardData.length > 0 ? (
+                                <div style={{
+                                    display:'flex', alignItems:'center', gap:'8px',
+                                    padding:'10px 12px',
+                                    background:'linear-gradient(135deg,rgba(0,212,255,0.06),rgba(112,0,255,0.05))',
+                                    border:'1px solid rgba(0,212,255,0.15)', borderRadius:'14px',
+                                    cursor:'pointer',
+                                }} onClick={() => setShowGuardModal(true)}>
+                                    {guardData.slice(0,5).map((g, i) => (
+                                        <div key={g.uid} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:1}}>
+                                            <div style={{
+                                                width: i===0?'44px':'36px',
+                                                height: i===0?'44px':'36px',
+                                                borderRadius:'50%', overflow:'hidden',
+                                                border:`2.5px solid ${i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(0,212,255,0.3)'}`,
+                                                boxShadow: i===0?'0 0 12px rgba(255,215,0,0.55)':i===1?'0 0 8px rgba(192,192,192,0.4)':i===2?'0 0 8px rgba(205,127,50,0.4)':'none',
+                                                flexShrink:0, margin:'0 auto',
+                                            }}>
+                                                {g.photo
+                                                    ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                    : <div style={{width:'100%',height:'100%',background:'#1a1a3e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>👤</div>
+                                                }
+                                            </div>
+                                            <span style={{
+                                                fontSize:'9px', fontWeight:700,
+                                                color:i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'#9ca3af',
+                                                maxWidth:'50px', overflow:'hidden', textOverflow:'ellipsis',
+                                                whiteSpace:'nowrap', textAlign:'center',
+                                            }}>
+                                                {g.name?.split(' ')[0] || '?'}
+                                            </span>
+                                            <span style={{fontSize:'8px',color:'#4ade80',fontWeight:700}}>
+                                                {g.total >= 1000 ? `${(g.total/1000).toFixed(1)}K` : g.total}
+                                            </span>
+                                            <span style={{fontSize:'7px',color:'#6b7280'}}>Guard</span>
+                                        </div>
+                                    ))}
+                                    {guardData.length > 5 && (
+                                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:1}}>
+                                            <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'1px dashed rgba(255,255,255,0.15)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                                <span style={{fontSize:'12px',color:'#6b7280',fontWeight:700}}>+{guardData.length-5}</span>
+                                            </div>
+                                            <span style={{fontSize:'8px',color:'#6b7280'}}>{lang==='ar'?'المزيد':'more'}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div style={{
+                                    padding:'12px', borderRadius:'14px', textAlign:'center',
+                                    background:'rgba(255,255,255,0.03)', border:'1px dashed rgba(255,255,255,0.08)',
+                                }}>
+                                    <div style={{fontSize:'20px',marginBottom:'4px'}}>🛡️</div>
+                                    <div style={{fontSize:'11px',color:'#4b5563',fontWeight:600}}>
+                                        {lang==='ar'?'لا يوجد حراس بعد':'No guards yet'}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 🛡️ GUARD MODAL */}
+                        {showGuardModal && (
+                            <PortalModal>
+                                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH,padding:'16px'}}
+                                    onClick={() => setShowGuardModal(false)}>
+                                    <div style={{
+                                        background:'linear-gradient(160deg,#0a0a20,#0f0f2e)',
+                                        border:'1px solid rgba(0,212,255,0.25)',
+                                        borderRadius:'22px', padding:'20px', width:'100%', maxWidth:'340px',
+                                        maxHeight:'82vh', overflowY:'auto',
+                                        boxShadow:'0 0 50px rgba(0,212,255,0.12)',
+                                    }} onClick={e => e.stopPropagation()}>
+
+                                        {/* Header */}
+                                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'18px'}}>
+                                            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                                                <div style={{width:'40px',height:'40px',borderRadius:'50%',overflow:'hidden',border:'2px solid rgba(0,212,255,0.4)',flexShrink:0}}>
+                                                    {targetData?.photoURL
+                                                        ? <img src={targetData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                        : <div style={{width:'100%',height:'100%',background:'#1a1a3e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>👤</div>
+                                                    }
+                                                </div>
+                                                <div>
+                                                    <div style={{fontSize:'14px',fontWeight:900,color:'#fff'}}>
+                                                        {targetData?.displayName || ''}
+                                                    </div>
+                                                    <div style={{fontSize:'11px',color:'#00f2ff',fontWeight:700}}>
+                                                        🛡️ {lang==='ar'?'Guard Ranking':'Guard Ranking'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => setShowGuardModal(false)} style={{background:'rgba(255,255,255,0.07)',border:'none',color:'#9ca3af',fontSize:'16px',cursor:'pointer',padding:'6px 10px',borderRadius:'10px'}}>✕</button>
+                                        </div>
+
+                                        {/* Top 3 Podium */}
+                                        {guardData.length >= 1 && (
+                                            <div style={{display:'flex',alignItems:'flex-end',justifyContent:'center',gap:'10px',marginBottom:'20px',padding:'16px 8px',background:'rgba(255,255,255,0.03)',borderRadius:'16px'}}>
+                                                {/* 2nd */}
+                                                {guardData[1] ? (
+                                                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',flex:1}}>
+                                                        <div style={{width:'54px',height:'54px',borderRadius:'50%',overflow:'hidden',border:'2.5px solid #c0c0c0',boxShadow:'0 0 14px rgba(192,192,192,0.4)',margin:'0 auto'}}>
+                                                            {guardData[1].photo ? <img src={guardData[1].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👤</div>}
+                                                        </div>
+                                                        <span style={{fontSize:'20px'}}>🥈</span>
+                                                        <span style={{fontSize:'10px',fontWeight:700,color:'#c0c0c0',maxWidth:'68px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[1].name}</span>
+                                                        <span style={{fontSize:'11px',color:'#4ade80',fontWeight:800}}>{guardData[1].total>=1000?`${(guardData[1].total/1000).toFixed(1)}K`:guardData[1].total}</span>
+                                                        <span style={{fontSize:'8px',color:'#6b7280'}}>Guard</span>
+                                                    </div>
+                                                ) : <div style={{flex:1}}/>}
+
+                                                {/* 1st */}
+                                                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',flex:1}}>
+                                                    <span style={{fontSize:'22px'}}>👑</span>
+                                                    <div style={{width:'70px',height:'70px',borderRadius:'50%',overflow:'hidden',border:'3px solid #ffd700',boxShadow:'0 0 22px rgba(255,215,0,0.65)',margin:'0 auto'}}>
+                                                        {guardData[0].photo ? <img src={guardData[0].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px'}}>👤</div>}
+                                                    </div>
+                                                    <span style={{fontSize:'22px'}}>🥇</span>
+                                                    <span style={{fontSize:'11px',fontWeight:900,color:'#ffd700',maxWidth:'78px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[0].name}</span>
+                                                    <span style={{fontSize:'13px',color:'#4ade80',fontWeight:900}}>{guardData[0].total>=1000?`${(guardData[0].total/1000).toFixed(1)}K`:guardData[0].total}</span>
+                                                    <span style={{fontSize:'8px',color:'#6b7280'}}>Guard</span>
+                                                </div>
+
+                                                {/* 3rd */}
+                                                {guardData[2] ? (
+                                                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',flex:1}}>
+                                                        <div style={{width:'54px',height:'54px',borderRadius:'50%',overflow:'hidden',border:'2.5px solid #cd7f32',boxShadow:'0 0 14px rgba(205,127,50,0.4)',margin:'0 auto'}}>
+                                                            {guardData[2].photo ? <img src={guardData[2].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👤</div>}
+                                                        </div>
+                                                        <span style={{fontSize:'20px'}}>🥉</span>
+                                                        <span style={{fontSize:'10px',fontWeight:700,color:'#cd7f32',maxWidth:'68px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[2].name}</span>
+                                                        <span style={{fontSize:'11px',color:'#4ade80',fontWeight:800}}>{guardData[2].total>=1000?`${(guardData[2].total/1000).toFixed(1)}K`:guardData[2].total}</span>
+                                                        <span style={{fontSize:'8px',color:'#6b7280'}}>Guard</span>
+                                                    </div>
+                                                ) : <div style={{flex:1}}/>}
+                                            </div>
+                                        )}
+
+                                        {/* Rest of list 4+ */}
+                                        {guardData.slice(3).map((g, i) => (
+                                            <div key={g.uid} style={{
+                                                display:'flex', alignItems:'center', gap:'10px',
+                                                padding:'9px 12px', borderRadius:'12px', marginBottom:'6px',
+                                                background:'rgba(255,255,255,0.04)',
+                                                border:'1px solid rgba(255,255,255,0.06)',
+                                            }}>
+                                                <span style={{fontSize:'13px',fontWeight:900,color:'#4b5563',minWidth:'22px',textAlign:'center'}}>#{i+4}</span>
+                                                <div style={{width:'36px',height:'36px',borderRadius:'50%',overflow:'hidden',border:'1.5px solid rgba(0,212,255,0.2)',flexShrink:0}}>
+                                                    {g.photo ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>👤</div>}
+                                                </div>
+                                                <span style={{flex:1,fontSize:'12px',fontWeight:700,color:'#e5e7eb',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{g.name}</span>
+                                                <span style={{fontSize:'12px',color:'#4ade80',fontWeight:800}}>{g.total>=1000?`${(g.total/1000).toFixed(1)}K`:g.total}</span>
+                                                <span style={{fontSize:'9px',color:'#6b7280'}}>Guard</span>
+                                            </div>
+                                        ))}
+
+                                        {guardData.length === 0 && (
+                                            <div style={{textAlign:'center',color:'#6b7280',fontSize:'13px',padding:'24px 0'}}>
+                                                {lang==='ar'?'لا يوجد حراس بعد 🛡️':'No guards yet 🛡️'}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </PortalModal>
+                        )}
 
                         <AchievementsDisplayV11 userData={targetData} lang={lang} />
 
