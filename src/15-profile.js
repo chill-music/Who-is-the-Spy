@@ -3311,8 +3311,6 @@ const ProfileV11 = ({
                     )}
                 </div>
 
-                </div>
-
                 {/* 🛡️ GUARD STRIP — top 3 guardians visible outside profile, below cover */}
                 {!loading && targetData && guardData.length > 0 && (
                     <div
