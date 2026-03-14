@@ -48,7 +48,6 @@ function App() {
     const [chatFriend, setChatFriend] = useState(null);
     const [showLoginAlert, setShowLoginAlert] = useState(false);
     const [guestData, setGuestData] = useState(null);
-    const [showEmail, setShowEmail] = useState(false);
     const [showLoginRewards, setShowLoginRewards] = useState(false);
     const [sessionClaimedToday, setSessionClaimedToday] = useState(false); // Track if claimed in this session
     const [showOnboarding, setShowOnboarding] = useState(false);
@@ -59,6 +58,8 @@ function App() {
     const [notifications, setNotifications] = useState([]);
     const [unreadNotifications, setUnreadNotifications] = useState(0);
     const notificationBellRef = useRef(null);
+    // 🛡️ Prevents double-write to game_history when onSnapshot fires multiple times
+    const historyWrittenRooms = useRef(new Set());
     const [showSettings, setShowSettings] = useState(false);
     const [soundMuted, setSoundMuted] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
     const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -588,102 +589,93 @@ function App() {
     }, [user, isLoggedIn, userData?.uid]);
 
     // Room Listener
-    useEffect(() => { if (!roomId) return; const unsub = roomsCollection.doc(roomId).onSnapshot(async doc => { if (doc.exists) { const data = doc.data(); setRoom(data); if(data.status?.includes('finished') && !data.summaryShown) { setShowSummary(true); historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() }); roomsCollection.doc(roomId).update({summaryShown: true});
-        // ✅ Update stats, missions, achievements when game ends
-        if (isLoggedIn && user) {
-            try {
-                const me = data.players?.find(p => p.uid === user.uid);
-                if (me) {
-                    const isSpy = me.role === 'spy' || me.role === 'mrwhite';
-                    const isInformant = me.role === 'informant';
-                    const spyCaught = data.status === 'finished_spy_caught';
-                    const spyEscaped = data.status === 'finished_spy_wins' || data.status === 'finished_spy_escaped';
-                    const mrwhiteWon = data.status === 'finished_mrwhite_win' || data.status === 'finished_mrwhite_wins';
-                    const agentsWon = spyCaught;
+    useEffect(() => {
+        if (!roomId) return;
+        const unsub = roomsCollection.doc(roomId).onSnapshot(async doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                setRoom(data);
 
-                    // Determine if this player won
-                    let iWon = false;
-                    if (isSpy && (spyEscaped || mrwhiteWon)) iWon = true;
-                    if (isInformant && (spyEscaped || mrwhiteWon)) iWon = true; // Informant wins with spy team
-                    if (!isSpy && !isInformant && agentsWon) iWon = true;
+                // 🛡️ Guard: only write history ONCE per room per session
+                const alreadyWritten = historyWrittenRooms.current.has(roomId);
 
-                    // Stats updates — apply VIP XP multiplier
-                    const vipXpMult = getVIPXPMultiplier(userData);
-                    // 💍 Couple bonus: +10% charisma if partner is in same room
-                    const partnerInRoom = coupleData && data.players?.some(p => p.uid === (coupleData.uid1 === user.uid ? coupleData.uid2 : coupleData.uid1));
-                    const coupleBonus = partnerInRoom ? 1.10 : 1.0;
-                    const gameXP = Math.round((iWon ? 20 : 5) * vipXpMult * coupleBonus);
-                    const statUpdates = {
-                        'stats.losses': firebase.firestore.FieldValue.increment(iWon ? 0 : 1),
-                        'stats.wins': firebase.firestore.FieldValue.increment(iWon ? 1 : 0),
-                        'stats.xp': firebase.firestore.FieldValue.increment(gameXP),
-                    };
-                    if (isSpy && iWon) statUpdates['stats.spy_wins'] = firebase.firestore.FieldValue.increment(1);
-                    if (!isSpy && iWon) statUpdates['stats.agent_wins'] = firebase.firestore.FieldValue.increment(1);
-                    // Win streak
-                    if (iWon) {
-                        statUpdates['stats.win_streak'] = firebase.firestore.FieldValue.increment(1);
-                    } else {
-                        statUpdates['stats.win_streak'] = 0;
-                    }
+                if (data.status?.includes('finished') && !data.summaryShown && !alreadyWritten) {
+                    // Mark immediately in memory — prevents any subsequent snapshot from re-entering
+                    historyWrittenRooms.current.add(roomId);
 
-                    await usersCollection.doc(user.uid).update(statUpdates);
+                    setShowSummary(true);
+                    historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    roomsCollection.doc(roomId).update({ summaryShown: true });
 
-                    // Mission progress
-                    await incrementMissionProgress('gamesPlayed', 1);
-                    if (iWon) await incrementMissionProgress('gamesWon', 1);
-                    if (isSpy) await incrementMissionProgress('spyGames', 1);
+                    // ✅ Update stats, missions, achievements when game ends
+                    if (isLoggedIn && user) {
+                        try {
+                            const me = data.players?.find(p => p.uid === user.uid);
+                            if (me) {
+                                const isSpy = me.role === 'spy' || me.role === 'mrwhite';
+                                const isInformant = me.role === 'informant';
+                                const spyCaught = data.status === 'finished_spy_caught';
+                                const spyEscaped = data.status === 'finished_spy_wins' || data.status === 'finished_spy_escaped';
+                                const mrwhiteWon = data.status === 'finished_mrwhite_win' || data.status === 'finished_mrwhite_wins';
+                                const agentsWon = spyCaught;
 
-                    // Fetch updated user data and check achievements
-                    const updatedDoc = await usersCollection.doc(user.uid).get();
-                    if (updatedDoc.exists) {
-                        await checkAndUnlockAchievements(updatedDoc.data());
+                                let iWon = false;
+                                if (isSpy && (spyEscaped || mrwhiteWon)) iWon = true;
+                                if (isInformant && (spyEscaped || mrwhiteWon)) iWon = true;
+                                if (!isSpy && !isInformant && agentsWon) iWon = true;
+
+                                const vipXpMult = getVIPXPMultiplier(userData);
+                                const partnerInRoom = coupleData && data.players?.some(p => p.uid === (coupleData.uid1 === user.uid ? coupleData.uid2 : coupleData.uid1));
+                                const coupleBonus = partnerInRoom ? 1.10 : 1.0;
+                                const gameXP = Math.round((iWon ? 20 : 5) * vipXpMult * coupleBonus);
+                                const statUpdates = {
+                                    'stats.losses': firebase.firestore.FieldValue.increment(iWon ? 0 : 1),
+                                    'stats.wins':   firebase.firestore.FieldValue.increment(iWon ? 1 : 0),
+                                    'stats.xp':     firebase.firestore.FieldValue.increment(gameXP),
+                                };
+                                if (isSpy && iWon) statUpdates['stats.spy_wins']   = firebase.firestore.FieldValue.increment(1);
+                                if (!isSpy && iWon) statUpdates['stats.agent_wins'] = firebase.firestore.FieldValue.increment(1);
+                                statUpdates['stats.win_streak'] = iWon
+                                    ? firebase.firestore.FieldValue.increment(1)
+                                    : 0;
+
+                                await usersCollection.doc(user.uid).update(statUpdates);
+                                await incrementMissionProgress('gamesPlayed', 1);
+                                if (iWon) await incrementMissionProgress('gamesWon', 1);
+                                if (isSpy) await incrementMissionProgress('spyGames', 1);
+
+                                const updatedDoc = await usersCollection.doc(user.uid).get();
+                                if (updatedDoc.exists) await checkAndUnlockAchievements(updatedDoc.data());
+                            }
+                        } catch (e) { console.error('Game end stats error:', e); }
                     }
                 }
-            } catch (e) { console.error('Game end stats error:', e); }
-        }
-    } } else { setRoom(null); setRoomId(''); } }); return unsub; }, [roomId, isLoggedIn, user, incrementMissionProgress, checkAndUnlockAchievements]);
+            } else {
+                setRoom(null);
+                setRoomId('');
+            }
+        });
+        return unsub;
+    }, [roomId, isLoggedIn, user, incrementMissionProgress, checkAndUnlockAchievements]);
 
-    // ── Leaderboard — .get() instead of onSnapshot (no need for real-time, saves Firestore reads) ──
-    useEffect(() => {
-        if (activeView !== 'leaderboard' && activeView !== 'ranking') return;
-        usersCollection.orderBy('stats.wins', 'desc').limit(100).get()
-            .then(snap => {
-                let data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-                    .filter(d => !d.isAnonymous)
-                    .filter(d => !getUserRole(d, d.id));
-                setLeaderboardData(data);
-            })
-            .catch(() => {
-                usersCollection.limit(100).get().then(snap => {
-                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-                        .filter(d => !d.isAnonymous)
-                        .filter(d => !getUserRole(d, d.id));
-                    data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0));
-                    setLeaderboardData(data);
-                });
-            });
-    }, [activeView]);
+    // Leaderboard - Real-time
+    useEffect(() => { if (activeView === 'leaderboard' || activeView === 'ranking') { const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id)); setLeaderboardData(data); }, error => { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id)); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); }); return unsub; } }, [activeView]);
 
-    // ── Charisma Leaderboard — .get() instead of onSnapshot ──
+    // Charisma Leaderboard - Real-time
     useEffect(() => {
-        if ((activeView !== 'leaderboard' && activeView !== 'ranking') || leaderboardTab !== 'charisma') return;
-        usersCollection.orderBy('charisma', 'desc').limit(100).get()
-            .then(snap => {
-                let data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-                    .filter(d => !d.isAnonymous)
-                    .filter(d => !getUserRole(d, d.id));
+        if ((activeView === 'leaderboard' || activeView === 'ranking') && leaderboardTab === 'charisma') {
+            const unsub = usersCollection.orderBy('charisma', 'desc').limit(100).onSnapshot(snap => {
+                let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id));
                 setCharismaLeaderboard(data);
-            })
-            .catch(() => {
+            }, error => {
                 usersCollection.limit(100).get().then(snap => {
-                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-                        .filter(d => !d.isAnonymous)
-                        .filter(d => !getUserRole(d, d.id));
+                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id));
                     data.sort((a, b) => (b.charisma || 0) - (a.charisma || 0));
                     setCharismaLeaderboard(data);
                 });
             });
+            return unsub;
+        }
     }, [activeView, leaderboardTab]);
 
     // Family Leaderboard — by activeness
@@ -1019,90 +1011,6 @@ function App() {
         } catch (error) { setNotification(lang === 'ar' ? 'حدث خطأ!' : 'An error occurred!'); }
     }, [user, isLoggedIn, lang]);
 
-    // ══════════════════════════════════════════════════════
-    // 🧹 STALE ROOMS CLEANUP — يُنظّف الغرف المهجورة تلقائياً
-    // يُشغَّل مرة واحدة عند تسجيل الدخول
-    // يحذف الغرف التي مضى عليها أكثر من 3 ساعات وما زالت في حالة 'waiting'
-    // أو أكثر من 24 ساعة بصرف النظر عن الحالة
-    // ══════════════════════════════════════════════════════
-    const runStaleRoomsCleanup = useCallback(async () => {
-        if (!isLoggedIn || !user) return;
-        try {
-            const now = Date.now();
-            const THREE_HOURS  = 3  * 60 * 60 * 1000;
-            const TWENTY_FOUR  = 24 * 60 * 60 * 1000;
-
-            // جيب الغرف القديمة — بدون orderBy عشان ما يحتاج index مركّب
-            const snap = await roomsCollection.limit(200).get();
-            if (snap.empty) return;
-
-            const batch = db.batch();
-            let deleteCount = 0;
-
-            snap.docs.forEach(doc => {
-                const data = doc.data();
-                const createdAt = data.startedAt?.toMillis?.() || data.startedAt?.seconds * 1000 || null;
-                if (!createdAt) return; // غرفة بدون timestamp — سيبها
-
-                const age = now - createdAt;
-                const isFinished = data.status?.startsWith('finished');
-                const isWaiting  = data.status === 'waiting';
-                const isEmpty    = !data.players?.length;
-
-                // احذف لو:
-                // - خلصت ومضى عليها أكثر من ساعة
-                // - في حالة waiting ومضى عليها أكثر من 3 ساعات
-                // - فاضية ومضى عليها أكثر من ساعة
-                // - أي حالة ومضى عليها أكثر من 24 ساعة
-                if (
-                    (isFinished && age > 60 * 60 * 1000) ||
-                    (isWaiting  && age > THREE_HOURS)     ||
-                    (isEmpty    && age > 60 * 60 * 1000)  ||
-                    (age        > TWENTY_FOUR)
-                ) {
-                    batch.delete(doc.ref);
-                    deleteCount++;
-                }
-            });
-
-            if (deleteCount > 0) {
-                await batch.commit();
-                console.log(`[Cleanup] Deleted ${deleteCount} stale rooms`);
-            }
-        } catch (e) {
-            // Cleanup فاشل — مش مشكلة، هيتعمل في المرة الجاية
-            console.warn('[Cleanup] Stale rooms cleanup failed:', e);
-        }
-    }, [isLoggedIn, user]);
-
-    // شغّل الـ cleanup مرة واحدة عند تسجيل الدخول
-    useEffect(() => {
-        if (!isLoggedIn || !user) return;
-        // تأخير 5 ثواني عشان ما يبطّئ التحميل الأول
-        const t = setTimeout(() => runStaleRoomsCleanup(), 5000);
-        return () => clearTimeout(t);
-    }, [isLoggedIn, user?.uid]);
-
-    // ══════════════════════════════════════════════════════
-    // 🛡️ GIFT RATE LIMITER — يمنع إرسال هدايا بشكل مفرط
-    // ══════════════════════════════════════════════════════
-    const giftSendTimestamps = useRef([]); // timestamps of recent sends (in-memory)
-    const GIFT_RATE_WINDOW_MS  = 60 * 1000; // نافذة زمنية: دقيقة واحدة
-    const GIFT_RATE_MAX_SENDS  = 30;        // حد أقصى: 30 هدية في الدقيقة
-
-    const checkGiftRateLimit = useCallback(() => {
-        const now = Date.now();
-        // احذف الـ timestamps القديمة خارج النافذة
-        giftSendTimestamps.current = giftSendTimestamps.current.filter(
-            ts => now - ts < GIFT_RATE_WINDOW_MS
-        );
-        if (giftSendTimestamps.current.length >= GIFT_RATE_MAX_SENDS) {
-            return false; // Rate limit مُتجاوز
-        }
-        giftSendTimestamps.current.push(now);
-        return true; // مسموح
-    }, []);
-
     // Room Functions
     const handleCreateGame = useCallback(async () => {
         if (!nickname.trim()) return;
@@ -1111,7 +1019,7 @@ function App() {
         const uid = currentUID; const tempUserData = currentUserData;
         if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; }
         const id = Math.random().toString(36).substring(2, 7).toUpperCase();
-        await roomsCollection.doc(id).set({ id, admin: uid, status: 'waiting', players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {}, vip: tempUserData?.vip || {} }], scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: firebase.firestore.FieldValue.serverTimestamp(), summaryShown: false });
+        await roomsCollection.doc(id).set({ id, admin: uid, status: 'waiting', players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {}, vip: tempUserData?.vip || {} }], scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null, summaryShown: false });
         setRoomId(id); setLoading(false); setShowSetupModal(false); setActiveView('lobby');
         navigator.clipboard.writeText(id); setCopied(true); setTimeout(() => setCopied(false), 2000);
     }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, getDefaultPhoto]);
@@ -1360,15 +1268,6 @@ function App() {
     // 🎁 GIFT FUNCTIONS — BATCHED (one write per step, parallel logs)
     const handleSendGiftToUser = useCallback(async (gift, targetUser, qty = 1, fromInventory = false) => {
         if (!user || !isLoggedIn) return;
-
-        // 🛡️ Rate limit check — max 30 gifts per minute
-        if (!checkGiftRateLimit()) {
-            setNotification(lang === 'ar'
-                ? '⏱️ أرسلت كثيراً! انتظر لحظة'
-                : '⏱️ Sending too fast! Please wait');
-            return;
-        }
-
         const currency = userData?.currency || 0;
         const totalCost = fromInventory ? 0 : gift.cost * qty;
 
