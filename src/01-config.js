@@ -179,6 +179,18 @@ const FAMILY_COINS_SYMBOL = '🏅'; // Family Coins currency icon
 const FAMILY_REQUIRED_XP = [0, 500, 1500, 3500, 7000, 13000, 22000, 35000, 55000, 80000]; // XP thresholds per level
 const FAMILY_REQUIRED_ACTIVENESS = [0, 5000, 20000, 80000, 300000]; // Activeness thresholds per sign level
 
+// ════════════════════════════════════════════════════════
+// 🏴 FAMILY SIGN IMAGES CONFIG — ضع رابط صورة كل ساين هنا
+// ════════════════════════════════════════════════════════
+// threshold = الحد الأدنى من النشاط الأسبوعي للحصول على هذا الساين
+const FAMILY_SIGN_IMAGES = [
+    { level: 1, threshold: 1000,   imageURL: null }, // ← ضع رابط صورة المستوى 1 هنا
+    { level: 2, threshold: 10000,  imageURL: null }, // ← ضع رابط صورة المستوى 2 هنا
+    { level: 3, threshold: 30000,  imageURL: null }, // ← ضع رابط صورة المستوى 3 هنا
+    { level: 4, threshold: 100000, imageURL: null }, // ← ضع رابط صورة المستوى 4 هنا
+    { level: 5, threshold: 300000, imageURL: null }, // ← ضع رابط صورة المستوى 5 هنا
+];
+
 // Family Shop Items — purchasable ONLY with Family Coins
 const FAMILY_SHOP_ITEMS = [
     { id:'fs1', emoji:'🎖️', name_en:'Warrior Badge',   name_ar:'شارة المحارب',    cost:30,  type:'badge',  rarity:'rare',       desc_en:'Exclusive family warrior badge', desc_ar:'شارة محارب حصرية للعائلة' },
@@ -193,4 +205,4 @@ const FAMILY_SHOP_ITEMS = [
     { id:'fs10', emoji:'🦁', name_en:'Lion Title',     name_ar:'لقب الأسد',        cost:250, type:'title',  rarity:'epic',       desc_en:'Pride of the clan lion title',   desc_ar:'لقب أسد فخر العائلة' },
 ];
 
-// 🔊 AUDIO SYSTEM
+// 🔊 AUDIO SYSTEM`
