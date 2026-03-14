@@ -739,7 +739,7 @@ const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotif
                                     <span className="settings-account-label">✏️ {lang === 'ar' ? 'الاسم' : 'Name'}</span>
                                     {editingName ? (
                                         <div style={{display:'flex',gap:'4px'}}>
-                                            <input className="input-dark" style={{padding:'4px 8px',fontSize:'11px',borderRadius:'6px',width:'120px'}} value={newName} onChange={e => setNewName(e.target.value)} placeholder={userData?.displayName} />
+                                            <input className="input-dark" style={{padding:'4px 8px',fontSize:'11px',borderRadius:'6px',width:'120px'}} value={newName} onChange={e => setNewName(e.target.value)} maxLength={10} placeholder={userData?.displayName} />
                                             <button className="btn-neon" style={{padding:'2px 8px',fontSize:'10px',borderRadius:'6px'}} onClick={async() => {
                                                 if(newName.trim() && user) {
                                                     const now = new Date();
