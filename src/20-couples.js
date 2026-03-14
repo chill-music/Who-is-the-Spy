@@ -20,7 +20,7 @@ const couplesCollection = db.collection('artifacts').doc(appId)
 // ─────────────────────────────────────────────
 const RINGS_DATA = [
     { id:'ring_bronze',   emoji:'💍', imageURL:null, name_en:'Bronze Ring',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Common',    color:'#cd7f32', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:false, hidden:false, limited:false, limitedUntil:null },
-             { id:'kingshehab',   emoji:null, imageURL:'https://res.cloudinary.com/dqewgiqsh/image/upload/v1773448169/00_tgrd1l.gif', name_en:'King Rin',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:true, hidden:false, limited:false, limitedUntil:null },
+             { id:'kingshehab',   emoji:null, imageURL:'https://res.cloudinary.com/dqewgiqsh/image/upload/v1773406707/ringking_lxnly9.gif', name_en:'King Rin',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:true, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_silver',   emoji:'💍', imageURL:null, name_en:'Silver Ring',      name_ar:'خاتم فضي',        cost:1500,  levelReq:3,  rarity:'Uncommon',  color:'#c0c0c0', glow:'rgba(192,192,192,0.4)', desc_en:'Elegant and timeless.',       desc_ar:'أناقة خالدة.',            event:false, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_gold',     emoji:'💍', imageURL:null, name_en:'Gold Ring',        name_ar:'خاتم ذهبي',       cost:3000,  levelReq:5,  rarity:'Rare',      color:'#ffd700', glow:'rgba(255,215,0,0.5)',   desc_en:'Golden love, golden future.', desc_ar:'حب ذهبي، مستقبل ذهبي.',   event:false, hidden:false, limited:false, limitedUntil:null },
     { id:'ring_rose',     emoji:'💍', imageURL:null, name_en:'Rose Gold Ring',   name_ar:'خاتم ذهبي وردي',  cost:5000,  levelReq:7,  rarity:'Epic',      color:'#f9a8d4', glow:'rgba(249,168,212,0.5)', desc_en:'Blush pink, bold love.',      desc_ar:'وردي رقيق، حب جريء.',     event:false, hidden:false, limited:false, limitedUntil:null },
@@ -435,14 +435,14 @@ const IncomingProposalModal = ({ show, coupleDoc, fromData, currentUID, lang, on
 // ─────────────────────────────────────────────
 // 📨 PROPOSAL MODAL (proposer sends from shop)
 // ─────────────────────────────────────────────
-const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, onSend }) => {
-    const [selectedGift, setSelectedGift]     = useState(null);
-    const [message, setMessage]               = useState('');
-    const [targetId, setTargetId]             = useState('');
-    const [targetData, setTargetData]         = useState(null);
-    const [searching, setSearching]           = useState(false);
-    const [sending, setSending]               = useState(false);
-    const [searchErr, setSearchErr]           = useState('');
+const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, onSend, friendsData }) => {
+    const [selectedGift, setSelectedGift] = useState(null);
+    const [message, setMessage]           = useState('');
+    const [targetId, setTargetId]         = useState('');
+    const [targetData, setTargetData]     = useState(null);
+    const [searching, setSearching]       = useState(false);
+    const [sending, setSending]           = useState(false);
+    const [searchErr, setSearchErr]       = useState('');
 
     if (!show || !ring) return null;
 
@@ -451,11 +451,19 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
     const totalCost = ring.cost + giftCost;
     const canAfford = currency >= totalCost;
 
+    // Friends list filtered — not already married
+    const friends = (friendsData || []).filter(f => f && !f.isMarried && (f.id || f.uid) !== currentUID);
+
+    const selectFriend = (friend) => {
+        setTargetId(friend.customId || '');
+        setTargetData({ id: friend.id || friend.uid, ...friend });
+        setSearchErr('');
+    };
+
     const searchUser = async () => {
         if (!targetId.trim()) return;
         setSearching(true); setSearchErr(''); setTargetData(null);
         try {
-            // Search by customId
             const snap = await usersCollection.where('customId', '==', targetId.trim()).limit(1).get();
             if (snap.empty) {
                 setSearchErr(lang==='ar' ? 'لم يُعثر على المستخدم' : 'User not found');
@@ -501,18 +509,27 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
         },
             React.createElement(FloatingHearts),
 
-            /* Header */
+            /* ── Header: ring image/emoji + name ── */
             React.createElement('div', {
                 style:{ position:'relative', zIndex:1, display:'flex', alignItems:'center',
-                    justifyContent:'space-between', padding:'16px 18px',
+                    justifyContent:'space-between', padding:'14px 18px',
                     borderBottom:'1px solid rgba(236,72,153,0.2)',
                     background:'linear-gradient(135deg,rgba(236,72,153,0.15),rgba(168,85,247,0.12))' }
             },
-                React.createElement('div', null,
-                    React.createElement('div', { style:{ fontSize:'15px', fontWeight:900, color:'white' }},
-                        `${ring.emoji} ${lang==='ar' ? ring.name_ar : ring.name_en}`),
-                    React.createElement('div', { style:{ fontSize:'10px', color:'#f9a8d4', marginTop:'2px' }},
-                        lang==='ar' ? 'طلب الارتباط' : 'Marriage Proposal')
+                React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'10px' }},
+                    /* Ring image or emoji */
+                    React.createElement('div', { style:{ width:'42px', height:'42px', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }},
+                        ring.imageURL
+                            ? React.createElement('img', { src:ring.imageURL, alt:'',
+                                style:{ width:'42px', height:'42px', objectFit:'contain', mixBlendMode:'screen', display:'block' }})
+                            : React.createElement('span', { style:{ fontSize:'30px', filter:`drop-shadow(0 0 8px ${ring.glow})` }}, ring.emoji)
+                    ),
+                    React.createElement('div', null,
+                        React.createElement('div', { style:{ fontSize:'15px', fontWeight:900, color:'white' }},
+                            lang==='ar' ? ring.name_ar : ring.name_en),
+                        React.createElement('div', { style:{ fontSize:'10px', color:'#f9a8d4', marginTop:'1px' }},
+                            lang==='ar' ? '💍 طلب الارتباط' : '💍 Marriage Proposal')
+                    )
                 ),
                 React.createElement('button', {
                     onClick: onClose,
@@ -522,7 +539,7 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
                 }, '✕')
             ),
 
-            /* Scrollable body */
+            /* ── Scrollable body ── */
             React.createElement('div', { style:{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:'14px', position:'relative', zIndex:1 }},
 
                 /* Ring summary card */
@@ -532,12 +549,15 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
                         border:`1px solid ${ring.color}40`,
                         display:'flex', alignItems:'center', gap:'12px' }
                 },
-                    React.createElement('span', { style:{ fontSize:'28px' }}, ring.emoji),
+                    React.createElement('div', { style:{ width:'44px', height:'44px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }},
+                        ring.imageURL
+                            ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'44px', height:'44px', objectFit:'contain', mixBlendMode:'screen' }})
+                            : React.createElement('span', { style:{ fontSize:'28px', filter:`drop-shadow(0 0 6px ${ring.glow})` }}, ring.emoji)
+                    ),
                     React.createElement('div', { style:{ flex:1 }},
                         React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color: ring.color }},
                             lang==='ar' ? ring.name_ar : ring.name_en),
-                        React.createElement('div', { style:{ fontSize:'10px', color: RARITY_COLORS_C[ring.rarity], fontWeight:700 }},
-                            ring.rarity),
+                        React.createElement('div', { style:{ fontSize:'10px', color: RARITY_COLORS_C[ring.rarity], fontWeight:700 }}, ring.rarity),
                         React.createElement('div', { style:{ fontSize:'11px', color:'#9ca3af', marginTop:'2px' }},
                             lang==='ar' ? ring.desc_ar : ring.desc_en)
                     ),
@@ -545,14 +565,46 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
                         `${ring.cost.toLocaleString()} 🧠`)
                 ),
 
-                /* Target user search */
+                /* ── Friends quick-select (show if has friends) ── */
+                friends.length > 0 && React.createElement('div', null,
+                    React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4', marginBottom:'8px', fontWeight:700 }},
+                        lang==='ar' ? '👥 أصدقاؤك:' : '👥 Your Friends:'),
+                    React.createElement('div', { style:{ display:'flex', gap:'8px', flexWrap:'wrap' }},
+                        friends.slice(0, 8).map(friend => {
+                            const fid = friend.id || friend.uid;
+                            const isSelected = targetData?.id === fid;
+                            return React.createElement('button', {
+                                key: fid,
+                                onClick: () => selectFriend(friend),
+                                style:{
+                                    display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
+                                    padding:'6px 8px', borderRadius:'10px', cursor:'pointer',
+                                    border:`1px solid ${isSelected ? 'rgba(236,72,153,0.7)' : 'rgba(255,255,255,0.1)'}`,
+                                    background: isSelected ? 'rgba(236,72,153,0.18)' : 'rgba(255,255,255,0.04)',
+                                    transition:'.15s', minWidth:'52px',
+                                }
+                            },
+                                React.createElement('div', { style:{ width:'34px', height:'34px', borderRadius:'50%', overflow:'hidden', border:`1.5px solid ${isSelected ? 'rgba(236,72,153,0.7)' : 'rgba(255,255,255,0.15)'}` }},
+                                    friend.photoURL
+                                        ? React.createElement('img', { src:friend.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
+                                        : React.createElement('div', { style:{ width:'100%', height:'100%', background:'rgba(168,85,247,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' }}, '😎')
+                                ),
+                                React.createElement('span', { style:{ fontSize:'8px', color: isSelected ? '#f9a8d4' : '#9ca3af', fontWeight:700,
+                                    maxWidth:'52px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }},
+                                    friend.displayName || '?')
+                            );
+                        })
+                    )
+                ),
+
+                /* ── Target user search ── */
                 React.createElement('div', null,
                     React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4', marginBottom:'8px', fontWeight:700 }},
-                        lang==='ar' ? '💌 أرسل إلى (ادخل الـ ID):' : '💌 Send to (enter ID):'),
+                        lang==='ar' ? '💌 أو ابحث بالـ ID:' : '💌 Or search by ID:'),
                     React.createElement('div', { style:{ display:'flex', gap:'8px' }},
                         React.createElement('input', {
                             value: targetId,
-                            onChange: e => setTargetId(e.target.value),
+                            onChange: e => { setTargetId(e.target.value); setTargetData(null); setSearchErr(''); },
                             onKeyDown: e => e.key === 'Enter' && searchUser(),
                             placeholder: lang==='ar' ? 'الـ ID الرقمي...' : 'Numeric ID...',
                             style:{ flex:1, padding:'10px 12px', borderRadius:'10px',
@@ -578,13 +630,13 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
                         ),
                         React.createElement('div', { style:{ flex:1 }},
                             React.createElement('div', { style:{ fontSize:'12px', fontWeight:700, color:'#4ade80' }}, targetData.displayName),
-                            React.createElement('div', { style:{ fontSize:'10px', color:'#6b7280' }}, `#${targetData.customId}`)
+                            React.createElement('div', { style:{ fontSize:'10px', color:'#6b7280' }}, `#${targetData.customId || ''}`)
                         ),
                         React.createElement('span', { style:{ fontSize:'16px' }}, '✅')
                     )
                 ),
 
-                /* Gift selection */
+                /* ── Gift selection ── */
                 React.createElement('div', null,
                     React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4', marginBottom:'8px', fontWeight:700 }},
                         lang==='ar' ? '🎁 أضف هدية (اختياري):' : '🎁 Add a Gift (optional):'),
@@ -609,18 +661,15 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
                     )
                 ),
 
-                /* Message */
+                /* ── Message ── */
                 React.createElement('div', null,
                     React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4', marginBottom:'6px', fontWeight:700 }},
                         lang==='ar' ? '💬 رسالة رومانسية:' : '💬 Romantic message:'),
                     React.createElement('textarea', {
                         value: message,
                         onChange: e => setMessage(e.target.value),
-                        maxLength: 200,
-                        rows: 3,
-                        placeholder: lang==='ar'
-                            ? 'اكتب رسالتك هنا... 💕'
-                            : 'Write your message here... 💕',
+                        maxLength: 200, rows: 3,
+                        placeholder: lang==='ar' ? 'اكتب رسالتك هنا... 💕' : 'Write your message here... 💕',
                         style:{ width:'100%', padding:'10px 12px', borderRadius:'12px',
                             background:'rgba(255,255,255,0.05)', border:'1px solid rgba(236,72,153,0.25)',
                             color:'white', fontSize:'12px', outline:'none', resize:'none', lineHeight:1.6,
@@ -631,7 +680,7 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
                         `${message.length}/200`)
                 ),
 
-                /* Total cost + balance */
+                /* ── Total cost + balance ── */
                 React.createElement('div', {
                     style:{ padding:'12px 14px', borderRadius:'12px',
                         background: canAfford ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
@@ -650,15 +699,13 @@ const ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang,
                         lang==='ar' ? `تحتاج ${(totalCost - currency).toLocaleString()} إنتل إضافية` : `Need ${(totalCost - currency).toLocaleString()} more Intel`)
                 ),
 
-                /* Send button */
+                /* ── Send button ── */
                 React.createElement('button', {
                     onClick: handleSend,
                     disabled: !targetData || !canAfford || sending,
                     style:{
                         width:'100%', padding:'14px', borderRadius:'14px', border:'none',
-                        background: (!targetData || !canAfford)
-                            ? 'rgba(255,255,255,0.07)'
-                            : 'linear-gradient(135deg,#ec4899,#a855f7)',
+                        background: (!targetData || !canAfford) ? 'rgba(255,255,255,0.07)' : 'linear-gradient(135deg,#ec4899,#a855f7)',
                         color: (!targetData || !canAfford) ? '#4b5563' : 'white',
                         fontSize:'14px', fontWeight:900, cursor: (!targetData || !canAfford) ? 'not-allowed' : 'pointer',
                         boxShadow: (targetData && canAfford) ? '0 4px 24px rgba(236,72,153,0.45)' : 'none',
@@ -902,11 +949,12 @@ const CoupleCardModal = ({
                 currency: firebase.firestore.FieldValue.increment(-gift.cost)
             });
             const entry = {
-                sn: currentUserData?.displayName || '?',
+                sn: currentUserData?.displayName || currentUserData?.name || '?',
                 sp: currentUserData?.photoURL || null,
                 su: currentUID,
-                ge: gift.emoji,
-                gn: lang==='ar' ? gift.name_ar : gift.name_en,
+                ge: gift.emoji || '🎁',
+                gn: gift.name_en || gift.name_ar || gift.id || 'Gift',
+                gna: gift.name_ar || gift.name_en || 'هدية',
                 ts: Date.now(),
                 bp: gift.charisma,
             };
@@ -1161,123 +1209,131 @@ const CoupleCardModal = ({
 
                 /* ── RINGS POSTED section ── */
                 React.createElement('div', { style:{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.05)' }},
-                    React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }},
-                        React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px' }},
-                            React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color:'white' }},
-                                lang==='ar' ? 'الخواتم المُهداة' : 'Rings Posted'),
-                            React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280',
-                                background:'rgba(255,255,255,0.06)', borderRadius:'6px', padding:'1px 6px' }},
-                                '?')
-                        ),
-                        isMember && React.createElement('button', { onClick: () => setShowGiftRingPanel(v => !v),
-                            style:{ fontSize:'10px', color:ring.color, background:`${ring.color}15`,
-                                border:`1px solid ${ring.color}40`, borderRadius:'8px', padding:'4px 10px',
-                                cursor:'pointer', fontWeight:700, display:'flex', alignItems:'center', gap:'4px' }
-                        }, ring.emoji, ' ', lang==='ar' ? 'أهدِ خاتم' : 'Gift Ring')
-                    ),
+                    (() => {
+                        // Merge sharedRings + inventory rings + proposal ring into unique display set
+                        const shared = doc.sharedRings || [];
+                        const myInventoryRings = currentUserData?.inventory?.rings || [];
+                        const seen = {};
+                        // Start with proposal ring
+                        if (doc.ringId) seen[doc.ringId] = { ringId: doc.ringId };
+                        // Add gifted rings
+                        [...shared].reverse().forEach(s => { if (!seen[s.ringId]) seen[s.ringId] = s; });
+                        // Add inventory rings (so purchased rings show immediately)
+                        myInventoryRings.forEach(rid => { if (!seen[rid]) seen[rid] = { ringId: rid }; });
+                        const unique = Object.values(seen);
+                        unique.sort((a,b) => (b.ringId === doc.ringId ? 1 : 0) - (a.ringId === doc.ringId ? 1 : 0));
+                        const totalCount = unique.filter(s => RINGS_DATA.find(r => r.id === s.ringId)).length;
+                        return React.createElement(React.Fragment, null,
+                            React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }},
+                                React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px' }},
+                                    React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color:'white' }},
+                                        lang==='ar' ? 'الخواتم المُهداة' : 'Rings Posted'),
+                                    React.createElement('div', { style:{ fontSize:'9px', color:'#a78bfa',
+                                        background:'rgba(168,85,247,0.15)', borderRadius:'6px', padding:'1px 6px', fontWeight:700 }},
+                                        totalCount)
+                                ),
+                                isMember && React.createElement('button', { onClick: () => setShowGiftRingPanel(v => !v),
+                                    style:{ fontSize:'10px', color:ring.color, background:`${ring.color}15`,
+                                        border:`1px solid ${ring.color}40`, borderRadius:'8px', padding:'4px 10px',
+                                        cursor:'pointer', fontWeight:700, display:'flex', alignItems:'center', gap:'4px' }
+                                }, ring.imageURL
+                                    ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'14px', height:'14px', objectFit:'contain', mixBlendMode:'screen' }})
+                                    : ring.emoji,
+                                ' ', lang==='ar' ? 'أهدِ خاتم' : 'Gift Ring')
+                            ),
 
-                    /* Gift ring panel */
-                    showGiftRingPanel && isMember && React.createElement('div', { style:{ marginBottom:'12px', padding:'12px',
-                        background:'rgba(255,255,255,0.04)', borderRadius:'12px', border:`1px solid ${ring.color}30` }
-                    },
-                        React.createElement('div', { style:{ fontSize:'10px', color:'#9ca3af', marginBottom:'8px' }},
-                            lang==='ar' ? '💍 خواتمك في المخزون — اضغط لإهداء شريكك:' : '💍 Rings in your inventory — tap to gift partner:'),
-                        (() => {
-                            const myRings = currentUserData?.inventory?.rings || [];
-                            const uniqueMyRings = [...new Set(myRings)];
-                            if (uniqueMyRings.length === 0) return React.createElement('div', {
-                                style:{ fontSize:'10px', color:'#4b5563', textAlign:'center', padding:'8px 0' }
-                            }, lang==='ar' ? '🛒 لا خواتم في مخزونك — اشتر من متجر الزوجين' : '🛒 No rings in inventory — buy from couples shop');
-                            return React.createElement('div', { style:{ display:'flex', gap:'8px', flexWrap:'wrap' }},
-                                uniqueMyRings.map(rid => {
-                                    const rd = RINGS_DATA.find(r => r.id === rid);
+                            /* Gift ring panel */
+                            showGiftRingPanel && isMember && React.createElement('div', { style:{ marginBottom:'12px', padding:'12px',
+                                background:'rgba(255,255,255,0.04)', borderRadius:'12px', border:`1px solid ${ring.color}30` }
+                            },
+                                React.createElement('div', { style:{ fontSize:'10px', color:'#9ca3af', marginBottom:'8px' }},
+                                    lang==='ar' ? '💍 خواتمك في المخزون — اضغط لإهداء شريكك:' : '💍 Rings in your inventory — tap to gift partner:'),
+                                (() => {
+                                    const uniqueMyRings = [...new Set(myInventoryRings)];
+                                    if (uniqueMyRings.length === 0) return React.createElement('div', {
+                                        style:{ fontSize:'10px', color:'#4b5563', textAlign:'center', padding:'8px 0' }
+                                    }, lang==='ar' ? '🛒 لا خواتم في مخزونك — اشتر من متجر الزوجين' : '🛒 No rings in inventory — buy from couples shop');
+                                    return React.createElement('div', { style:{ display:'flex', gap:'8px', flexWrap:'wrap' }},
+                                        uniqueMyRings.map(rid => {
+                                            const rd = RINGS_DATA.find(r => r.id === rid);
+                                            if (!rd) return null;
+                                            return React.createElement('button', { key:rid, onClick: () => giftRingToPartner(rid),
+                                                disabled: giftingRing,
+                                                style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
+                                                    padding:'8px 12px', borderRadius:'10px', border:`1px solid ${rd.color}50`,
+                                                    background: rd.imageURL ? 'transparent' : `${rd.color}12`, cursor:'pointer', transition:'.15s' }
+                                            },
+                                                rd.imageURL
+                                                    ? React.createElement('img', { src:rd.imageURL, alt:'', style:{ width:'36px', height:'36px', objectFit:'contain', mixBlendMode:'screen', display:'block' }})
+                                                    : React.createElement('span', { style:{ fontSize:'22px', filter:`drop-shadow(0 0 5px ${rd.glow})` }}, rd.emoji),
+                                                React.createElement('span', { style:{ fontSize:'8px', color:rd.color, fontWeight:700 }}, lang==='ar'?rd.name_ar:rd.name_en)
+                                            );
+                                        })
+                                    );
+                                })(),
+                                giftRingOk && React.createElement('div', { style:{ fontSize:'11px', color:'#4ade80', marginTop:'6px', fontWeight:700, textAlign:'center' }}, giftRingOk),
+                                giftRingErr && React.createElement('div', { style:{ fontSize:'11px', color:'#f87171', marginTop:'6px', fontWeight:700, textAlign:'center' }}, giftRingErr)
+                            ),
+
+                            /* Shared rings display */
+                            React.createElement('div', { style:{ display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'flex-end' }},
+                                unique.map((s, i) => {
+                                    const rd = RINGS_DATA.find(r => r.id === s.ringId);
                                     if (!rd) return null;
-                                    return React.createElement('button', { key:rid, onClick: () => giftRingToPartner(rid),
-                                        disabled: giftingRing,
-                                        style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
-                                            padding:'8px 12px', borderRadius:'10px', border:`1px solid ${rd.color}50`,
-                                            background: rd.imageURL ? 'transparent' : `${rd.color}12`, cursor:'pointer', transition:'.15s' }
+                                    const isActive = doc.ringId === s.ringId;
+                                    const canSwitch = isMember && !isActive && !switchingRing;
+                                    return React.createElement('div', {
+                                        key: i,
+                                        onClick: canSwitch ? () => switchActiveRing(rd.id) : undefined,
+                                        title: canSwitch
+                                            ? (lang==='ar' ? `اضغط لتفعيل ${rd.name_ar}` : `Tap to activate ${rd.name_en}`)
+                                            : (lang==='ar' ? rd.name_ar : rd.name_en),
+                                        style:{
+                                            display:'flex', flexDirection:'column', alignItems:'center', gap:'4px',
+                                            cursor: canSwitch ? 'pointer' : 'default',
+                                            transition:'opacity .2s',
+                                            opacity: switchingRing && !isActive ? 0.45 : 1,
+                                        }
                                     },
-                                        rd.imageURL
-                                            ? React.createElement('img', { src:rd.imageURL, alt:'', style:{ width:'36px', height:'36px', objectFit:'contain', mixBlendMode:'screen', display:'block' }})
-                                            : React.createElement('span', { style:{ fontSize:'22px', filter:`drop-shadow(0 0 5px ${rd.glow})` }}, rd.emoji),
-                                        React.createElement('span', { style:{ fontSize:'8px', color:rd.color, fontWeight:700 }}, lang==='ar'?rd.name_ar:rd.name_en)
+                                        React.createElement('div', { style:{
+                                            width: isActive ? '62px' : '56px', height: isActive ? '62px' : '56px', borderRadius:'14px',
+                                            background: rd.imageURL ? 'transparent' : (isActive ? `${rd.color}22` : 'rgba(255,255,255,0.04)'),
+                                            border:`2px solid ${isActive ? rd.color : 'rgba(255,255,255,0.1)'}`,
+                                            display:'flex', alignItems:'center', justifyContent:'center',
+                                            boxShadow: isActive ? `0 0 20px ${rd.glow}, 0 0 8px ${rd.glow}` : 'none',
+                                            position:'relative', transition:'all .2s',
+                                            filter: rd.imageURL ? `drop-shadow(0 0 8px ${rd.glow})` : undefined,
+                                        }},
+                                            rd.imageURL
+                                                ? React.createElement('img', { src:rd.imageURL, alt:'', style:{
+                                                    width:'100%', height:'100%', objectFit:'contain',
+                                                    mixBlendMode:'screen', display:'block',
+                                                  }})
+                                                : React.createElement('span', { style:{ fontSize:'26px', filter:`drop-shadow(0 0 7px ${rd.glow})` }}, rd.emoji),
+                                            isActive && React.createElement('div', { style:{
+                                                position:'absolute', top:'-9px', left:'50%', transform:'translateX(-50%)',
+                                                fontSize:'11px', lineHeight:1,
+                                            }}, '✨'),
+                                            canSwitch && React.createElement('div', { style:{
+                                                position:'absolute', bottom:'-1px', right:'-1px',
+                                                width:'16px', height:'16px', borderRadius:'50%',
+                                                background:'rgba(0,242,255,0.9)', display:'flex',
+                                                alignItems:'center', justifyContent:'center',
+                                                fontSize:'9px', fontWeight:900, color:'#000',
+                                                boxShadow:'0 1px 5px rgba(0,0,0,0.6)',
+                                            }}, '↺')
+                                        ),
+                                        React.createElement('div', { style:{
+                                            fontSize:'8px', fontWeight:700, textAlign:'center',
+                                            color: isActive ? rd.color : '#6b7280',
+                                            maxWidth:'60px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                                        }}, lang==='ar' ? rd.name_ar : rd.name_en),
+                                        isActive && React.createElement('div', { style:{
+                                            fontSize:'7px', color:'#4ade80', fontWeight:800,
+                                        }}, lang==='ar' ? '● نشط' : '● Active')
                                     );
                                 })
-                            );
-                        })(),
-                        giftRingOk && React.createElement('div', { style:{ fontSize:'11px', color:'#4ade80', marginTop:'6px', fontWeight:700, textAlign:'center' }}, giftRingOk),
-                        giftRingErr && React.createElement('div', { style:{ fontSize:'11px', color:'#f87171', marginTop:'6px', fontWeight:700, textAlign:'center' }}, giftRingErr)
-                    ),
-
-                    /* Shared rings display — clickable to switch active ring */
-                    (() => {
-                        const shared = doc.sharedRings || [];
-                        const seen = {};
-                        [...shared].reverse().forEach(s => { if (!seen[s.ringId]) seen[s.ringId] = s; });
-                        // Always include the proposal ring even if no gifted rings yet
-                        if (!seen[doc.ringId]) seen[doc.ringId] = { ringId: doc.ringId };
-                        const unique = Object.values(seen);
-                        // Active ring first
-                        unique.sort((a,b) => (b.ringId === doc.ringId ? 1 : 0) - (a.ringId === doc.ringId ? 1 : 0));
-
-                        return React.createElement('div', { style:{ display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'flex-end' }},
-                            unique.map((s, i) => {
-                                const rd = RINGS_DATA.find(r => r.id === s.ringId);
-                                if (!rd) return null;
-                                const isActive = doc.ringId === s.ringId;
-                                const canSwitch = isMember && !isActive && !switchingRing;
-                                return React.createElement('div', {
-                                    key: i,
-                                    onClick: canSwitch ? () => switchActiveRing(rd.id) : undefined,
-                                    title: canSwitch
-                                        ? (lang==='ar' ? `اضغط لتفعيل ${rd.name_ar}` : `Tap to activate ${rd.name_en}`)
-                                        : (lang==='ar' ? rd.name_ar : rd.name_en),
-                                    style:{
-                                        display:'flex', flexDirection:'column', alignItems:'center', gap:'4px',
-                                        cursor: canSwitch ? 'pointer' : 'default',
-                                        transition:'opacity .2s',
-                                        opacity: switchingRing && !isActive ? 0.45 : 1,
-                                    }
-                                },
-                                    React.createElement('div', { style:{
-                                        width: isActive ? '62px' : '56px', height: isActive ? '62px' : '56px', borderRadius:'14px',
-                                        background: rd.imageURL ? 'transparent' : (isActive ? `${rd.color}22` : 'rgba(255,255,255,0.04)'),
-                                        border:`2px solid ${isActive ? rd.color : 'rgba(255,255,255,0.1)'}`,
-                                        display:'flex', alignItems:'center', justifyContent:'center',
-                                        boxShadow: isActive ? `0 0 20px ${rd.glow}, 0 0 8px ${rd.glow}` : 'none',
-                                        position:'relative', transition:'all .2s',
-                                        filter: rd.imageURL ? `drop-shadow(0 0 8px ${rd.glow})` : undefined,
-                                    }},
-                                        rd.imageURL
-                                            ? React.createElement('img', { src:rd.imageURL, alt:'', style:{
-                                                width:'100%', height:'100%', objectFit:'contain',
-                                                mixBlendMode:'screen', display:'block',
-                                              }})
-                                            : React.createElement('span', { style:{ fontSize:'26px', filter:`drop-shadow(0 0 7px ${rd.glow})` }}, rd.emoji),
-                                        isActive && React.createElement('div', { style:{
-                                            position:'absolute', top:'-9px', left:'50%', transform:'translateX(-50%)',
-                                            fontSize:'11px', lineHeight:1,
-                                        }}, '✨'),
-                                        canSwitch && React.createElement('div', { style:{
-                                            position:'absolute', bottom:'-1px', right:'-1px',
-                                            width:'16px', height:'16px', borderRadius:'50%',
-                                            background:'rgba(0,242,255,0.9)', display:'flex',
-                                            alignItems:'center', justifyContent:'center',
-                                            fontSize:'9px', fontWeight:900, color:'#000',
-                                            boxShadow:'0 1px 5px rgba(0,0,0,0.6)',
-                                        }}, '↺')
-                                    ),
-                                    React.createElement('div', { style:{
-                                        fontSize:'8px', fontWeight:700, textAlign:'center',
-                                        color: isActive ? rd.color : '#6b7280',
-                                        maxWidth:'60px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                                    }}, lang==='ar' ? rd.name_ar : rd.name_en),
-                                    isActive && React.createElement('div', { style:{
-                                        fontSize:'7px', color:'#4ade80', fontWeight:800,
-                                    }}, lang==='ar' ? '● نشط' : '● Active')
-                                );
-                            })
+                            )
                         );
                     })()
                 ),
@@ -1296,14 +1352,15 @@ const CoupleCardModal = ({
                                         : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' }}, '😎')
                                 ),
                                 React.createElement('div', { style:{ flex:1, minWidth:0 }},
-                                    React.createElement('div', { style:{ fontSize:'12px', fontWeight:700, color:'#e2e8f0' }}, entry.sn || '?'),
+                                    React.createElement('div', { style:{ fontSize:'12px', fontWeight:700, color:'#e2e8f0' }},
+                                        entry.sn && entry.sn !== '?' ? entry.sn : (entry.su ? entry.su.substring(0,8) : '?')),
                                     React.createElement('div', { style:{ fontSize:'10px', color:'#6b7280' }},
                                         new Date(entry.ts || 0).toLocaleString(lang==='ar'?'ar-EG':'en-US', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }))
                                 ),
                                 React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0, gap:'2px' }},
-                                    React.createElement('span', { style:{ fontSize:'26px', lineHeight:1 }}, entry.ge),
+                                    React.createElement('span', { style:{ fontSize:'26px', lineHeight:1 }}, entry.ge || '🎁'),
                                     React.createElement('span', { style:{ fontSize:'8px', color:'#c4b5fd', fontWeight:700 }},
-                                        (lang==='ar'?entry.gn:'') || entry.gn)
+                                        lang==='ar' ? (entry.gna || entry.gn || '') : (entry.gn || entry.gna || ''))
                                 )
                             )
                         )
