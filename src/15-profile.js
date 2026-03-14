@@ -1073,17 +1073,25 @@ const ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
     );
 };
 
-// ✨ PROFILE EFFECT OVERLAY (standalone full-screen, loops on profile open)
+// ✨ PROFILE EFFECT OVERLAY (confined to profile card, loops on profile open)
+// - GIF effects: rendered as overlay inside the card, sized to card
+// - Particle effects: fall inside card bounds only
+// - loopEvery / displayDuration read from effect.loopEvery / effect.displayDuration
 const ProfileEffectOverlay = ({ effectId }) => {
     const [particles, setParticles] = useState([]);
     const [alive, setAlive] = useState(false);
     const timerRef = useRef(null);
-    const loopRef = useRef(null);
+    const loopRef  = useRef(null);
 
     const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
 
+    // How often to re-burst — default 4s, override with effect.loopEvery (ms)
+    const loopEvery       = effect?.loopEvery       || 4000;
+    // How long each burst lasts — default 2200ms, override with effect.displayDuration (ms)
+    const displayDuration = effect?.displayDuration || (effect?.duration || 2200);
+
     const triggerBurst = useCallback(() => {
-        if (!effect || !Array.isArray(effect.particles)) return;
+        if (!effect || !Array.isArray(effect.particles) || effect.particles.length === 0) return;
         const all = [];
         effect.particles.forEach(p => {
             for (let i = 0; i < p.count; i++) all.push({
@@ -1098,64 +1106,79 @@ const ProfileEffectOverlay = ({ effectId }) => {
         setParticles(all);
         setAlive(true);
         if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => setAlive(false), (effect.duration || 2200) + 1200);
-    }, [effectId]);
+        timerRef.current = setTimeout(() => setAlive(false), displayDuration + 1200);
+    }, [effectId, displayDuration]);
 
     useEffect(() => {
         if (!effect) return;
-        triggerBurst();
-        // Loop every 4s
-        loopRef.current = setInterval(triggerBurst, 4000);
+        if (Array.isArray(effect.particles) && effect.particles.length > 0) {
+            triggerBurst();
+            loopRef.current = setInterval(triggerBurst, loopEvery);
+        }
         return () => {
             if (timerRef.current) clearTimeout(timerRef.current);
             if (loopRef.current) clearInterval(loopRef.current);
         };
-    }, [effectId]);
+    }, [effectId, loopEvery]);
 
     if (!effect) return null;
 
-    // Support for image/GIF effects (imageUrl field in effect)
+    // ── GIF / Image effect — confined to card, respects card border-radius ──
     if (effect.imageUrl && effect.imageUrl.trim() !== '') {
         return (
             <div style={{
-                position:'absolute', inset:0, borderRadius:'inherit',
-                overflow:'hidden', pointerEvents:'none', zIndex:2
+                position: 'absolute',
+                inset: 0,
+                borderRadius: 'inherit',  // matches profile-glass-card border-radius
+                overflow: 'hidden',
+                pointerEvents: 'none',
+                zIndex: 1,                // behind content (zIndex 2+), above background
             }}>
                 <img
                     src={effect.imageUrl}
-                    alt={effect.name_en}
+                    alt=""
                     style={{
-                        position:'absolute', inset:0,
-                        width:'100%', height:'100%',
-                        objectFit:'cover', objectPosition:'center',
-                        borderRadius:'inherit',
-                        opacity: 0.85
+                        position: 'absolute',
+                        inset: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center',
+                        opacity: effect.opacity ?? 0.82,
+                        mixBlendMode: effect.blendMode || 'normal',
                     }}
                 />
                 {effect.hasGlow && (
                     <div style={{
-                        position:'absolute', inset:0,
-                        background:'radial-gradient(circle at center, rgba(0,242,255,0.25) 0%, transparent 70%)',
-                        pointerEvents:'none'
+                        position: 'absolute', inset: 0,
+                        background: 'radial-gradient(circle at center, rgba(0,242,255,0.2) 0%, transparent 65%)',
+                        pointerEvents: 'none',
                     }} />
                 )}
             </div>
         );
     }
 
-    // Default: particle effect
+    // ── Particle effect — falls inside card bounds only ──
     if (!alive || particles.length === 0) return null;
     return (
-        <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:99998,overflow:'hidden'}}>
+        <div style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: 'inherit',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+            zIndex: 1,
+        }}>
             {particles.map(p => (
                 <div key={p.id} style={{
-                    position:'absolute', left:`${p.x}%`, top:'-8%',
-                    fontSize:`${p.size}px`, lineHeight:1, userSelect:'none',
-                    animation:`pef_fall ${p.dur}s ease-in ${p.delay}s forwards`,
+                    position: 'absolute', left: `${p.x}%`, top: '-8%',
+                    fontSize: `${p.size}px`, lineHeight: 1, userSelect: 'none',
+                    animation: `pef_card_fall ${p.dur}s ease-in ${p.delay}s forwards`,
                     opacity: 0,
                 }}>{p.emoji}</div>
             ))}
-            <style>{`@keyframes pef_fall{0%{opacity:0;transform:translateY(0) rotate(0deg)}10%{opacity:1}80%{opacity:.9}100%{opacity:0;transform:translateY(105vh) rotate(380deg)}}`}</style>
+            <style>{`@keyframes pef_card_fall{0%{opacity:0;transform:translateY(0) rotate(0deg)}10%{opacity:1}80%{opacity:.9}100%{opacity:0;transform:translateY(110%) rotate(360deg)}}`}</style>
         </div>
     );
 };
@@ -2172,7 +2195,81 @@ const CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
     );
 };
 
-// ── MomentsSettingsSection removed (dead code — never rendered anywhere in project)
+const MomentsSettingsSection = ({ currentUser, userData, lang }) => {
+    const [moments, setMoments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [selectedMoment, setSelectedMoment] = useState(null);
+
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+        const unsub = momentsCollection
+            .where('authorUID', '==', currentUser.uid)
+            .limit(20)
+            .onSnapshot(snap => {
+                const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                data.sort((a, b) => {
+                    const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
+                    const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+                    return tb - ta;
+                });
+                setMoments(data);
+                setLoading(false);
+            }, () => setLoading(false));
+        return unsub;
+    }, [currentUser?.uid]);
+
+    return (
+        <div>
+            <button
+                onClick={() => setShowCreateModal(true)}
+                style={{width:'100%', padding:'10px', borderRadius:'10px', background:'linear-gradient(135deg,rgba(0,242,255,0.15),rgba(112,0,255,0.1))', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', fontSize:'13px', fontWeight:800, cursor:'pointer', marginBottom:'12px', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}
+            >
+                <span>📸</span>
+                <span>{lang === 'ar' ? 'إضافة لحظة جديدة' : 'Add New Moment'}</span>
+            </button>
+
+            {loading ? (
+                <div style={{textAlign:'center', padding:'16px', color:'#64748b', fontSize:'12px'}}>...</div>
+            ) : moments.length === 0 ? (
+                <div style={{textAlign:'center', padding:'20px', color:'#64748b', fontSize:'12px'}}>
+                    {lang === 'ar' ? 'لا توجد لحظات بعد. أضف أول لحظة!' : 'No moments yet. Add your first moment!'}
+                </div>
+            ) : (
+                <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'6px'}}>
+                    {moments.map(moment => (
+                        <div key={moment.id} onClick={() => setSelectedMoment(moment)} style={{aspectRatio:'1', borderRadius:'8px', overflow:'hidden', background:'rgba(31,41,55,0.6)', border:'1px solid rgba(255,255,255,0.08)', cursor:'pointer', position:'relative', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                            {moment.type === 'text' ? (
+                                <div style={{padding:'6px', fontSize:'9px', color:'#e2e8f0', textAlign:'center', wordBreak:'break-word', lineHeight:1.4, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical'}}>{moment.content}</div>
+                            ) : moment.type === 'image' ? (
+                                <img src={moment.mediaUrl} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                            ) : (
+                                <div style={{width:'100%', height:'100%', position:'relative', background:'#000', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                                    <span style={{fontSize:'24px', opacity:0.7}}>🎥</span>
+                                </div>
+                            )}
+                            <div style={{position:'absolute', bottom:'2px', right:'2px', background:'rgba(0,0,0,0.7)', borderRadius:'6px', padding:'1px 5px', fontSize:'8px', color:'#f87171', fontWeight:700}}>
+                                ❤️ {moment.likesCount || 0}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {showCreateModal && <CreateMomentModal onClose={() => setShowCreateModal(false)} currentUser={currentUser} lang={lang} />}
+            {selectedMoment && (
+                <MomentDetailModal
+                    moment={selectedMoment}
+                    onClose={() => setSelectedMoment(null)}
+                    currentUser={currentUser}
+                    isOwnProfile={true}
+                    lang={lang}
+                    onDelete={(id) => { momentsCollection.doc(id).delete(); setSelectedMoment(null); }}
+                />
+            )}
+        </div>
+    );
+};
 
 // ════════════════════════════════════════════════════════════
 // 🔒 ADMIN BAN MODAL — لوحة الحظر للأدمن
@@ -2936,10 +3033,11 @@ const ProfileV11 = ({
 
     return (
         <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL}}>
-            {targetData?.equipped?.profileEffects && (
-                <ProfileEffectOverlay key={`fx-${targetUID}`} effectId={targetData.equipped.profileEffects} />
-            )}
-            <div className="profile-glass-card animate-pop" onClick={e => e.stopPropagation()}>
+            <div className="profile-glass-card animate-pop" style={{position:'relative'}} onClick={e => e.stopPropagation()}>
+                {/* Profile Effect — confined inside card, behind content */}
+                {targetData?.equipped?.profileEffects && (
+                    <ProfileEffectOverlay key={`fx-${targetUID}`} effectId={targetData.equipped.profileEffects} />
+                )}
 
                 {/* Profile Header Bar - X button on RIGHT, Three dots on LEFT of X */}
                 <div className="profile-header-bar">
