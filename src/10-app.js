@@ -1324,10 +1324,10 @@ function App() {
             for (let i = 0; i < qty; i++) {
                 parallelOps.push(giftsLogCollection.add({
                     senderId:     user.uid,
-                    senderName:   userData?.displayName || 'User',
-                    senderPhoto:  userData?.photoURL || null,
+                    senderName:   userData?.displayName || user?.displayName || nickname || 'User',
+                    senderPhoto:  userData?.photoURL || user?.photoURL || null,
                     receiverId:   isSelfSend ? user.uid : targetUser.uid,
-                    receiverName: isSelfSend ? (userData?.displayName || 'User') : (targetUser.displayName || 'User'),
+                    receiverName: isSelfSend ? (userData?.displayName || user?.displayName || nickname || 'User') : (targetUser.displayName || 'User'),
                     giftId:       gift.id,
                     giftName,
                     giftNameEn:   gift.name_en,
@@ -1344,8 +1344,8 @@ function App() {
             // Chat message
             const chatMsgBase = {
                 senderId:      user.uid,
-                senderName:    userData?.displayName || 'User',
-                senderPhoto:   userData?.photoURL || null,
+                senderName:    userData?.displayName || user?.displayName || nickname || 'User',
+                senderPhoto:   userData?.photoURL || user?.photoURL || null,
                 senderVipLevel: getVIPLevel(userData) || 0,
                 type:          'gift',
                 giftId:        gift.id,
