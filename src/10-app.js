@@ -839,7 +839,7 @@ function App() {
             photoURL: finalPhoto,
             gender: gender,
             country: country ? { code: country.code, flag: country.flag, name_ar: country.name_ar, name_en: country.name_en } : null,
-            customId: Math.floor(100000 + Math.random() * 900000).toString(),
+            customId: Math.floor(100000000 + Math.random() * 900000000).toString(),
             stats: { wins: 0, losses: 0, xp: 0 },
             achievements: [],
             friends: [],
@@ -1736,6 +1736,7 @@ function App() {
                 currentUID={currentUID}
                 lang={lang}
                 onSend={handleSendProposal}
+                friendsData={friendsData}
             />
 
             {/* 💑 Couple Card Modal */}
