@@ -1950,6 +1950,29 @@ function App() {
             <header className="new-header">
                 <div className="new-logo">PRO SPY</div>
                 <div className="new-header-right">
+                    {/* 🧠 Intel (currency) pill — always visible when logged in */}
+                    {(isLoggedIn || isGuest) && currentUserData && (
+                        <div
+                            onClick={() => setShowShop(true)}
+                            style={{
+                                display:'flex', alignItems:'center', gap:'4px',
+                                padding:'4px 10px', borderRadius:'20px', cursor:'pointer',
+                                background:'linear-gradient(135deg,rgba(0,242,255,0.12),rgba(112,0,255,0.10))',
+                                border:'1px solid rgba(0,242,255,0.25)',
+                                boxShadow:'0 0 8px rgba(0,242,255,0.12)',
+                                transition:'all 0.2s',
+                            }}
+                            title={lang==='ar'?'رصيدك':'Your Intel'}
+                        >
+                            <span style={{fontSize:'14px'}}>🧠</span>
+                            <span style={{fontSize:'12px',fontWeight:900,color:'#00f2ff',letterSpacing:'0.3px'}}>
+                                {(currentUserData?.currency||0) >= 1000
+                                    ? `${((currentUserData.currency)/1000).toFixed(1)}K`
+                                    : (currentUserData?.currency||0)
+                                }
+                            </span>
+                        </div>
+                    )}
                     {/* Login Rewards */}
                     {isLoggedIn && (
                         <button className="new-hbtn" onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}
@@ -2043,7 +2066,6 @@ function App() {
                                             <span>{lang==='ar'?'كاريزما':'Charisma'}</span>
                                         </div>
                                         <div className="stat-pill-new"><span>🔥</span><span className="sval green">{currentUserData?.loginRewards?.streak || 0}</span><span>Streak</span></div>
-                                        <div className="stat-pill-new"><span>💎</span><span className="sval">{currentUserData?.currency || 0}</span><span>{lang==='ar'?'جوهرة':'Gems'}</span></div>
                                     </div>
                                 </>
                             )}
@@ -2436,7 +2458,7 @@ function App() {
                                         <div className="me-hero-stats-row">
                                             <span>🏆 {currentUserData?.stats?.wins || 0}</span>
                                             <span>⭐ {(currentUserData?.charisma||0)>=1000?((currentUserData.charisma/1000).toFixed(1)+'K'):(currentUserData?.charisma||0)}</span>
-                                            <span>💎 {currentUserData?.currency || 0}</span>
+                                            <span>🧠 {(currentUserData?.currency||0)>=1000?((currentUserData.currency/1000).toFixed(1)+'K'):(currentUserData?.currency||0)}</span>
                                         </div>
                                     </div>
                                     <div style={{fontSize:'16px',color:'var(--text-muted)',flexShrink:0}}>›</div>
