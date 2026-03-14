@@ -4,11 +4,12 @@
 const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     const familyTag   = userData?.familyTag;
     const familyName  = userData?.familyName;
-    const signLevel   = userData?.familySignLevel   || 1;
+    const signLevel   = userData?.familySignLevel   || null;
     const signColor   = userData?.familySignColor   || '#6b7280';
     const signImgURL  = userData?.familySignImageURL || null;
 
-    if (!familyTag) return null;
+    // Only show if user has a family AND has earned a sign (level > 0)
+    if (!familyTag || !signLevel) return null;
 
     // Sign level glow for high levels
     const hasGlow = signLevel >= 4;
