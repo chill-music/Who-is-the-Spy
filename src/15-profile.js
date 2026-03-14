@@ -3311,38 +3311,36 @@ const ProfileV11 = ({
                     <div
                         onClick={() => setShowGuardModal(true)}
                         style={{
-                            display:'flex', alignItems:'center', gap:'6px',
-                            padding:'7px 14px',
-                            background:'linear-gradient(90deg,rgba(0,212,255,0.07),rgba(112,0,255,0.05))',
-                            borderBottom:'1px solid rgba(0,212,255,0.12)',
+                            display:'flex', alignItems:'center', justifyContent:'space-between',
+                            padding:'10px 16px',
+                            background:'rgba(255,255,255,0.04)',
+                            borderBottom:'1px solid rgba(255,255,255,0.07)',
+                            borderTop:'1px solid rgba(255,255,255,0.04)',
                             cursor:'pointer',
                         }}
                     >
-                        <span style={{fontSize:'13px'}}>🛡️</span>
-                        <span style={{fontSize:'11px',fontWeight:800,color:'#00f2ff',marginRight:'4px'}}>
-                            {lang==='ar'?'الحماية':'Guard'}
+                        {/* Left: Guard label */}
+                        <span style={{fontSize:'15px',fontWeight:900,color:'var(--text-main,#e5e7eb)',letterSpacing:'-0.3px'}}>
+                            Guard
                         </span>
-                        {/* Top 3 avatars */}
-                        <div style={{display:'flex',gap:'-6px',direction:'ltr'}}>
+                        {/* Center: Top 3 large circles */}
+                        <div style={{display:'flex',alignItems:'center',gap:'10px',direction:'ltr'}}>
                             {guardData.slice(0,3).map((g, i) => (
                                 <div key={g.uid} style={{
-                                    width:'26px', height:'26px', borderRadius:'50%', overflow:'hidden',
-                                    border:`2px solid ${i===0?'#ffd700':i===1?'#c0c0c0':'#cd7f32'}`,
-                                    marginLeft: i > 0 ? '-6px' : '0',
-                                    flexShrink:0, position:'relative', zIndex: 3-i,
-                                    boxShadow:`0 0 6px ${i===0?'rgba(255,215,0,0.5)':i===1?'rgba(192,192,192,0.3)':'rgba(205,127,50,0.3)'}`,
+                                    width:'62px', height:'62px', borderRadius:'50%', overflow:'hidden',
+                                    border:`3px solid ${i===0?'#f5a623':i===1?'#b0b8c8':'#e07b9a'}`,
+                                    flexShrink:0,
+                                    boxShadow:`0 2px 10px ${i===0?'rgba(245,166,35,0.35)':i===1?'rgba(176,184,200,0.25)':'rgba(224,123,154,0.3)'}`,
                                 }}>
                                     {g.photo
                                         ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                        : <div style={{width:'100%',height:'100%',background:'#1a1a3e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px'}}>👤</div>
+                                        : <div style={{width:'100%',height:'100%',background:'#1a1a3e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👤</div>
                                     }
                                 </div>
                             ))}
                         </div>
-                        {guardData.length > 3 && (
-                            <span style={{fontSize:'10px',color:'#6b7280',fontWeight:600}}>+{guardData.length-3}</span>
-                        )}
-                        <span style={{marginLeft:'auto',fontSize:'10px',color:'#6b7280'}}>›</span>
+                        {/* Right: arrow */}
+                        <span style={{fontSize:'18px',color:'rgba(255,255,255,0.35)',fontWeight:300}}>›</span>
                     </div>
                 )}
 
@@ -3591,103 +3589,145 @@ const ProfileV11 = ({
                         {/* 🛡️ GUARD MODAL */}
                         {showGuardModal && (
                             <PortalModal>
-                                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH,padding:'16px'}}
+                                <div style={{position:'fixed',inset:0,background:'#f2f3f8',display:'flex',flexDirection:'column',zIndex:Z.MODAL_HIGH,overflow:'hidden'}}
                                     onClick={() => setShowGuardModal(false)}>
-                                    <div style={{
-                                        background:'linear-gradient(160deg,#0a0a20,#0f0f2e)',
-                                        border:'1px solid rgba(0,212,255,0.25)',
-                                        borderRadius:'22px', padding:'20px', width:'100%', maxWidth:'340px',
-                                        maxHeight:'82vh', overflowY:'auto',
-                                        boxShadow:'0 0 50px rgba(0,212,255,0.12)',
-                                    }} onClick={e => e.stopPropagation()}>
+                                    <div style={{display:'flex',flexDirection:'column',height:'100%',maxWidth:'480px',margin:'0 auto',width:'100%',background:'#f2f3f8'}}
+                                        onClick={e => e.stopPropagation()}>
 
-                                        {/* Header */}
-                                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'18px'}}>
-                                            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                                                <div style={{width:'40px',height:'40px',borderRadius:'50%',overflow:'hidden',border:'2px solid rgba(0,212,255,0.4)',flexShrink:0}}>
-                                                    {targetData?.photoURL
-                                                        ? <img src={targetData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                                        : <div style={{width:'100%',height:'100%',background:'#1a1a3e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>👤</div>
-                                                    }
-                                                </div>
-                                                <div>
-                                                    <div style={{fontSize:'14px',fontWeight:900,color:'#fff'}}>
-                                                        {targetData?.displayName || ''}
-                                                    </div>
-                                                    <div style={{fontSize:'11px',color:'#00f2ff',fontWeight:700}}>
-                                                        🛡️ {lang==='ar'?'Guard Ranking':'Guard Ranking'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <button onClick={() => setShowGuardModal(false)} style={{background:'rgba(255,255,255,0.07)',border:'none',color:'#9ca3af',fontSize:'16px',cursor:'pointer',padding:'6px 10px',borderRadius:'10px'}}>✕</button>
+                                        {/* ── Top bar ── */}
+                                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 16px 10px',background:'#f2f3f8'}}>
+                                            <button onClick={() => setShowGuardModal(false)} style={{background:'none',border:'none',cursor:'pointer',padding:'4px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 19l-7-7 7-7" stroke="#222" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                            </button>
+                                            <span style={{fontSize:'17px',fontWeight:800,color:'#111',letterSpacing:'-0.3px'}}>Guard</span>
+                                            <div style={{width:'30px',height:'30px',borderRadius:'50%',background:'rgba(0,0,0,0.07)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'14px',color:'#888'}}>?</div>
                                         </div>
 
-                                        {/* Top 3 Podium */}
-                                        {guardData.length >= 1 && (
-                                            <div style={{display:'flex',alignItems:'flex-end',justifyContent:'center',gap:'10px',marginBottom:'20px',padding:'16px 8px',background:'rgba(255,255,255,0.03)',borderRadius:'16px'}}>
-                                                {/* 2nd */}
-                                                {guardData[1] ? (
-                                                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',flex:1}}>
-                                                        <div style={{width:'54px',height:'54px',borderRadius:'50%',overflow:'hidden',border:'2.5px solid #c0c0c0',boxShadow:'0 0 14px rgba(192,192,192,0.4)',margin:'0 auto'}}>
-                                                            {guardData[1].photo ? <img src={guardData[1].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👤</div>}
+                                        {/* ── Profile owner row ── */}
+                                        <div style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 16px 12px',background:'#fff',borderBottom:'1px solid #ebebeb'}}>
+                                            <div style={{width:'44px',height:'44px',borderRadius:'50%',overflow:'hidden',flexShrink:0,border:'2px solid #eee'}}>
+                                                {targetData?.photoURL
+                                                    ? <img src={targetData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                    : <div style={{width:'100%',height:'100%',background:'#ddd',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>👤</div>
+                                                }
+                                            </div>
+                                            <span style={{fontSize:'15px',fontWeight:700,color:'#111'}}>
+                                                <span style={{fontSize:'11px',color:'#888',marginRight:'2px'}}>¹</span>
+                                                {targetData?.displayName || ''}
+                                            </span>
+                                        </div>
+
+                                        {/* ── Scrollable content ── */}
+                                        <div style={{flex:1,overflowY:'auto',background:'#f2f3f8'}}>
+
+                                            {/* Guard Ranking title */}
+                                            <div style={{padding:'18px 16px 10px'}}>
+                                                <span style={{fontSize:'16px',fontWeight:900,color:'#111',letterSpacing:'-0.2px'}}>Guard Ranking</span>
+                                            </div>
+
+                                            {/* ── Top 3 Podium with shields ── */}
+                                            {guardData.length >= 1 && (() => {
+                                                const ShieldCard = ({gd, rank}) => {
+                                                    const cfg = {
+                                                        1: { borderColor:'#f5a72a', bgTop:'#fef3d7', bgBot:'#fce8a0', nameColor:'#b87a00', scoreColor:'#e07d00', crownColor:'#f5a72a', size:82, borderW:3 },
+                                                        2: { borderColor:'#8da4c8', bgTop:'#e8eef8', bgBot:'#cdd9ee', nameColor:'#3a5a8a', scoreColor:'#3a5a8a', crownColor:'#8da4c8', size:66, borderW:2.5 },
+                                                        3: { borderColor:'#e07b9a', bgTop:'#fce8ef', bgBot:'#f5c0d0', nameColor:'#a0405a', scoreColor:'#c0506a', crownColor:'#e07b9a', size:66, borderW:2.5 },
+                                                    }[rank];
+                                                    const s = cfg.size;
+                                                    const fmtTotal = (v) => v >= 1000 ? `${(v/1000).toFixed(1)}K` : v;
+                                                    return (
+                                                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'6px',flex:rank===1?1.3:1}}>
+                                                            {/* Crown / rank icon above shield */}
+                                                            <div style={{fontSize: rank===1?'22px':'16px', marginBottom:'-4px'}}>{rank===1?'👑':'🔹'}</div>
+                                                            {/* Shield shape using SVG clip + photo */}
+                                                            <div style={{position:'relative',width:`${s+12}px`,height:`${s+14}px`}}>
+                                                                <svg width={s+12} height={s+16} viewBox={`0 0 ${s+12} ${s+16}`} style={{position:'absolute',top:0,left:0}}>
+                                                                    {/* Shield path: rectangle top, pointed bottom */}
+                                                                    <path d={`M6,4 Q${(s+12)/2},0 ${s+6},4 L${s+6},${s*0.65} Q${(s+12)/2},${s+14} 6,${s*0.65} Z`}
+                                                                        fill={cfg.bgTop} stroke={cfg.borderColor} strokeWidth={cfg.borderW}/>
+                                                                    {/* Decorative inner border */}
+                                                                    <path d={`M11,8 Q${(s+12)/2},4 ${s+1},8 L${s+1},${s*0.62} Q${(s+12)/2},${s+8} 11,${s*0.62} Z`}
+                                                                        fill="none" stroke={cfg.borderColor} strokeWidth="1" opacity="0.4"/>
+                                                                </svg>
+                                                                {/* Photo clipped to circle inside shield */}
+                                                                <div style={{
+                                                                    position:'absolute',
+                                                                    top:'10px', left:'10px',
+                                                                    width:`${s-8}px`, height:`${s-8}px`,
+                                                                    borderRadius:'50%',
+                                                                    overflow:'hidden',
+                                                                    border:`2.5px solid ${cfg.borderColor}`,
+                                                                    boxShadow:`0 2px 12px ${cfg.borderColor}66`,
+                                                                }}>
+                                                                    {gd.photo
+                                                                        ? <img src={gd.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                                        : <div style={{width:'100%',height:'100%',background:'#e0e0e0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👤</div>
+                                                                    }
+                                                                </div>
+                                                                {/* Rank number badge bottom-right of shield */}
+                                                                <div style={{position:'absolute',bottom:'2px',right:'0',width:'20px',height:'20px',borderRadius:'50%',background:cfg.borderColor,border:'2px solid #fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px',fontWeight:900,color:'#fff'}}>
+                                                                    {rank}
+                                                                </div>
+                                                            </div>
+                                                            <span style={{fontSize:'12px',fontWeight:800,color:cfg.nameColor,maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{gd.name}</span>
+                                                            <span style={{fontSize:'14px',fontWeight:900,color:cfg.scoreColor}}>{fmtTotal(gd.total)}</span>
+                                                            <span style={{fontSize:'9px',color:'#999',fontWeight:600,letterSpacing:'0.3px'}}>Guard</span>
                                                         </div>
-                                                        <span style={{fontSize:'20px'}}>🥈</span>
-                                                        <span style={{fontSize:'10px',fontWeight:700,color:'#c0c0c0',maxWidth:'68px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[1].name}</span>
-                                                        <span style={{fontSize:'11px',color:'#4ade80',fontWeight:800}}>{guardData[1].total>=1000?`${(guardData[1].total/1000).toFixed(1)}K`:guardData[1].total}</span>
-                                                        <span style={{fontSize:'8px',color:'#6b7280'}}>Guard</span>
-                                                    </div>
-                                                ) : <div style={{flex:1}}/>}
-
-                                                {/* 1st */}
-                                                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',flex:1}}>
-                                                    <span style={{fontSize:'22px'}}>👑</span>
-                                                    <div style={{width:'70px',height:'70px',borderRadius:'50%',overflow:'hidden',border:'3px solid #ffd700',boxShadow:'0 0 22px rgba(255,215,0,0.65)',margin:'0 auto'}}>
-                                                        {guardData[0].photo ? <img src={guardData[0].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px'}}>👤</div>}
-                                                    </div>
-                                                    <span style={{fontSize:'22px'}}>🥇</span>
-                                                    <span style={{fontSize:'11px',fontWeight:900,color:'#ffd700',maxWidth:'78px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[0].name}</span>
-                                                    <span style={{fontSize:'13px',color:'#4ade80',fontWeight:900}}>{guardData[0].total>=1000?`${(guardData[0].total/1000).toFixed(1)}K`:guardData[0].total}</span>
-                                                    <span style={{fontSize:'8px',color:'#6b7280'}}>Guard</span>
-                                                </div>
-
-                                                {/* 3rd */}
-                                                {guardData[2] ? (
-                                                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',flex:1}}>
-                                                        <div style={{width:'54px',height:'54px',borderRadius:'50%',overflow:'hidden',border:'2.5px solid #cd7f32',boxShadow:'0 0 14px rgba(205,127,50,0.4)',margin:'0 auto'}}>
-                                                            {guardData[2].photo ? <img src={guardData[2].photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👤</div>}
+                                                    );
+                                                };
+                                                return (
+                                                    <div style={{display:'flex',alignItems:'flex-end',justifyContent:'center',gap:'8px',padding:'8px 20px 20px',background:'#fff',margin:'0 16px',borderRadius:'16px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+                                                        {/* 2nd */}
+                                                        {guardData[1]
+                                                            ? <ShieldCard gd={guardData[1]} rank={2}/>
+                                                            : <div style={{flex:1}}/>
+                                                        }
+                                                        {/* 1st — raised */}
+                                                        <div style={{marginBottom:'16px'}}>
+                                                            <ShieldCard gd={guardData[0]} rank={1}/>
                                                         </div>
-                                                        <span style={{fontSize:'20px'}}>🥉</span>
-                                                        <span style={{fontSize:'10px',fontWeight:700,color:'#cd7f32',maxWidth:'68px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{guardData[2].name}</span>
-                                                        <span style={{fontSize:'11px',color:'#4ade80',fontWeight:800}}>{guardData[2].total>=1000?`${(guardData[2].total/1000).toFixed(1)}K`:guardData[2].total}</span>
-                                                        <span style={{fontSize:'8px',color:'#6b7280'}}>Guard</span>
+                                                        {/* 3rd */}
+                                                        {guardData[2]
+                                                            ? <ShieldCard gd={guardData[2]} rank={3}/>
+                                                            : <div style={{flex:1}}/>
+                                                        }
                                                     </div>
-                                                ) : <div style={{flex:1}}/>}
-                                            </div>
-                                        )}
+                                                );
+                                            })()}
 
-                                        {/* Rest of list 4+ */}
-                                        {guardData.slice(3).map((g, i) => (
-                                            <div key={g.uid} style={{
-                                                display:'flex', alignItems:'center', gap:'10px',
-                                                padding:'9px 12px', borderRadius:'12px', marginBottom:'6px',
-                                                background:'rgba(255,255,255,0.04)',
-                                                border:'1px solid rgba(255,255,255,0.06)',
-                                            }}>
-                                                <span style={{fontSize:'13px',fontWeight:900,color:'#4b5563',minWidth:'22px',textAlign:'center'}}>#{i+4}</span>
-                                                <div style={{width:'36px',height:'36px',borderRadius:'50%',overflow:'hidden',border:'1.5px solid rgba(0,212,255,0.2)',flexShrink:0}}>
-                                                    {g.photo ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>👤</div>}
+                                            {/* ── Ranks 4+ ── */}
+                                            {guardData.length > 3 && (
+                                                <div style={{margin:'14px 16px 16px',background:'#fff',borderRadius:'16px',overflow:'hidden',boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}}>
+                                                    {guardData.slice(3).map((g, i) => (
+                                                        <div key={g.uid} style={{
+                                                            display:'flex', alignItems:'center', gap:'12px',
+                                                            padding:'11px 16px',
+                                                            borderBottom: i < guardData.length-4 ? '1px solid #f0f0f0' : 'none',
+                                                        }}>
+                                                            <span style={{fontSize:'13px',fontWeight:800,color:'#bbb',minWidth:'22px',textAlign:'center'}}>{i+4}</span>
+                                                            <div style={{width:'40px',height:'40px',borderRadius:'50%',overflow:'hidden',border:'2px solid #eee',flexShrink:0}}>
+                                                                {g.photo
+                                                                    ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                                    : <div style={{width:'100%',height:'100%',background:'#ddd',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>👤</div>
+                                                                }
+                                                            </div>
+                                                            <span style={{flex:1,fontSize:'14px',fontWeight:700,color:'#222',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{g.name}</span>
+                                                            <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end'}}>
+                                                                <span style={{fontSize:'14px',color:'#e0507a',fontWeight:800}}>{g.total>=1000?`${(g.total/1000).toFixed(1)}K`:g.total}</span>
+                                                                <span style={{fontSize:'9px',color:'#bbb',fontWeight:600}}>Guard</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                                <span style={{flex:1,fontSize:'12px',fontWeight:700,color:'#e5e7eb',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{g.name}</span>
-                                                <span style={{fontSize:'12px',color:'#4ade80',fontWeight:800}}>{g.total>=1000?`${(g.total/1000).toFixed(1)}K`:g.total}</span>
-                                                <span style={{fontSize:'9px',color:'#6b7280'}}>Guard</span>
-                                            </div>
-                                        ))}
+                                            )}
 
-                                        {guardData.length === 0 && (
-                                            <div style={{textAlign:'center',color:'#6b7280',fontSize:'13px',padding:'24px 0'}}>
-                                                {lang==='ar'?'لا يوجد حراس بعد 🛡️':'No guards yet 🛡️'}
-                                            </div>
-                                        )}
+                                            {guardData.length === 0 && (
+                                                <div style={{textAlign:'center',color:'#999',fontSize:'14px',padding:'40px 0'}}>
+                                                    {lang==='ar'?'لا يوجد حراس بعد 🛡️':'No guards yet 🛡️'}
+                                                </div>
+                                            )}
+                                            <div style={{height:'24px'}}/>
+                                        </div>
                                     </div>
                                 </div>
                             </PortalModal>
