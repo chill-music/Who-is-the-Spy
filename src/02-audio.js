@@ -115,7 +115,7 @@ if (typeof window !== 'undefined') {
 
 const playNotificationSound = () => playSound('notification');
 const playRewardSound = () => playSound('reward');
-const playGiftSound = () => playSound('gift');
+// playGiftSound removed — was never called anywhere in the project
 
 // LOGIN REWARDS - 30 DAYS
 
