@@ -1031,8 +1031,26 @@ const ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
     const tickRef = useRef(0);
     const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
 
+    // ── GIF-based effect: render as animated image overlay ──
+    if (effect && effect.imageUrl && effect.imageUrl.trim() !== '') {
+        return (
+            <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:20,overflow:'hidden',borderRadius:'50%'}}>
+                <img
+                    src={effect.imageUrl}
+                    alt=""
+                    style={{
+                        width:'100%', height:'100%',
+                        objectFit:'cover',
+                        mixBlendMode:'screen',
+                        display:'block',
+                    }}
+                />
+            </div>
+        );
+    }
+
     const spawnParticles = useCallback(() => {
-        if (!effect || !Array.isArray(effect.particles)) return;
+        if (!effect || !Array.isArray(effect.particles) || effect.particles.length === 0) return;
         const all = effect.particles.flatMap(p =>
             Array.from({ length: Math.ceil(p.count * 0.6) }, (_, i) => ({
                 id: `${p.emoji}-${i}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -1057,7 +1075,7 @@ const ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
         return () => clearInterval(interval);
     }, [effectId, loopEvery]);
 
-    if (!effect || !Array.isArray(effect.particles) || particles.length === 0) return null;
+    if (!effect || !Array.isArray(effect.particles) || effect.particles.length === 0 || particles.length === 0) return null;
     return (
         <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:20,overflow:'hidden',borderRadius:'50%'}}>
             {particles.map(p => (
