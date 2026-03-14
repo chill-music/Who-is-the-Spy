@@ -823,59 +823,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
 // ════════════════════════════════════════════════════════
 // 🏠 FAMILY CHAT ITEM — Shows in Chat section when user has a family
 // ════════════════════════════════════════════════════════
-const FamilyChatItem = ({ familyId, currentUID, currentUserData, lang, onOpenChat }) => {
-    const [family, setFamily] = React.useState(null);
-    const [hasUnread, setHasUnread] = React.useState(false);
-
-    React.useEffect(() => {
-        if (!familyId) return;
-        var unsub = familiesCollection.doc(familyId).onSnapshot(function(snap) {
-            if (snap.exists) {
-                var d = Object.assign({ id: snap.id }, snap.data());
-                setFamily(d);
-                var lastAtMs = d.lastChatAtMs || (d.lastChatAt && d.lastChatAt.toMillis && d.lastChatAt.toMillis()) || 0;
-                var readAtRaw = d.chatReadBy && d.chatReadBy[currentUID];
-                var readAtMs = readAtRaw && readAtRaw.toMillis ? readAtRaw.toMillis() : (readAtRaw && readAtRaw.seconds ? readAtRaw.seconds * 1000 : 0);
-                setHasUnread(lastAtMs > readAtMs && d.lastChatSenderId !== currentUID && lastAtMs > 0);
-            }
-        }, function() {});
-        return function() { unsub(); };
-    }, [familyId, currentUID]);
-
-    if (!family) return null;
-
-    var signData = getFamilySignLevelData(family.weeklyActiveness || 0) || { level:0, color:'#4b5563', glow:'rgba(75,85,99,0.3)', defaultIcon:'🏠' };
-    var fLvl = getFamilyLevel(family.xp || 0);
-    var lastTime = family.lastChatAt ? fmtFamilyTime(family.lastChatAt, lang) : '';
-
-    return React.createElement('div', {
-        onClick: function() { onOpenChat(family); },
-        style: { display:'flex', alignItems:'center', gap:'12px', padding:'12px 16px', cursor:'pointer', background: hasUnread?'linear-gradient(135deg,rgba(255,136,0,0.1),rgba(255,80,0,0.05))':'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.05)', transition:'background 0.2s' }
-    },
-        React.createElement('div', { style: { position:'relative', flexShrink:0 } },
-            React.createElement('div', {
-                style: { width:'46px', height:'46px', borderRadius:'50%', overflow:'hidden', background:'linear-gradient(135deg,' + signData.color + '22,rgba(0,0,0,0.3))', border:'2px solid ' + signData.color + '55', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px' }
-            }, family.photoURL ? React.createElement('img', { src: family.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}}) : family.emblem || '🏠'),
-            hasUnread && React.createElement('div', { style: { position:'absolute', top:'-2px', right:'-2px', width:'14px', height:'14px', borderRadius:'50%', background:'#f97316', border:'2px solid var(--bg-main)', boxShadow:'0 0 6px rgba(249,115,22,0.8)' }})
-        ),
-        React.createElement('div', { style: { flex:1, minWidth:0 } },
-            React.createElement('div', { style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'3px' } },
-                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'5px', flex:1, minWidth:0, flexWrap:'wrap' } },
-                    React.createElement('span', { style: { fontSize:'13px', fontWeight: hasUnread?800:600, color: hasUnread?'#e2e8f0':'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } }, family.name),
-                    signData.level > 0 && React.createElement(FamilySignBadge, { tag: family.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: family.signImageURL })
-                ),
-                React.createElement('span', { style: { fontSize:'9px', color:'#6b7280', flexShrink:0, marginLeft:'6px' } }, lastTime)
-            ),
-            React.createElement('div', { style: { fontSize:'11px', color: hasUnread?'#d1d5db':'#6b7280', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } },
-                '🏠 ' + (family.lastChatMessage || (lang==='ar'?'شات العائلة':'Family Chat'))
-            ),
-            React.createElement('div', { style: { fontSize:'9px', color: fLvl.color, marginTop:'2px' } },
-                fLvl.icon + ' Lv.' + fLvl.level + ' · ' + ((family.members && family.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members')
-            )
-        ),
-        React.createElement('div', { style: { fontSize:'16px', color:'#f97316', flexShrink:0 } }, '›')
-    );
-};
+// ── FamilyChatItem removed (dead code — component was never rendered anywhere in project)
 
 // ════════════════════════════════════════════════════════
 // 🏆 FAMILY RANKING INLINE — Used in ranking tab
@@ -987,8 +935,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const signImageFileRef = useRef(null);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [uploadingSign, setUploadingSign] = useState(false);
-    // Ranking modal state (was missing — caused ReferenceError on button click)
-    const [showRankingModal, setShowRankingModal] = useState(false);
 
     // ── Load family (real-time) ──
     useEffect(() => {
@@ -2551,13 +2497,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 </div>
             </div>
         </PortalModal>
-        {/* FamilyRankingModal — triggered from renderHome button */}
-        <FamilyRankingModal
-            show={showRankingModal}
-            onClose={() => setShowRankingModal(false)}
-            lang={lang}
-            currentFamilyId={family?.id}
-        />
         </>
     );
 };
