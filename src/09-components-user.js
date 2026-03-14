@@ -514,7 +514,7 @@ const LoginRewardsComponent = ({ userData, user, lang, onNotification }) => {
 // ════════════════════════════════════════════════════════
 // 👨‍👩‍👧 GROUPS SECTION — Group Chat System
 // ════════════════════════════════════════════════════════
-const groupsCollection = db.collection('artifacts').doc('pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('group_chats');
+const groupsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('group_chats');
 
 // ── Group Level System ──
 const GROUP_LEVEL_CONFIG = [
