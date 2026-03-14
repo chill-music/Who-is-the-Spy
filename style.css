@@ -22,14 +22,11 @@
     --radius-md: 12px;
     --radius-lg: 16px;
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 html, body { 
     height: 100%; 
     width: 100%; 
 }
-
 body { 
     background-color: var(--bg-dark); 
     color: var(--text-main); 
@@ -43,7 +40,6 @@ body {
     align-items: flex-start;
     overflow: hidden;
 }
-
 #root { 
     width: 100%;
     max-width: 480px;
@@ -53,7 +49,6 @@ body {
     margin: 0 auto;
     padding: 0;
 }
-
 #bg-canvas { 
     position: fixed; 
     top: 0; 
@@ -63,7 +58,6 @@ body {
     z-index: -1; 
     pointer-events: none; 
 }
-
 .glass-panel { 
     background: var(--bg-card); 
     backdrop-filter: blur(20px); 
@@ -71,9 +65,7 @@ body {
     border: 1px solid var(--border); 
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); 
 }
-
 .font-tech { font-family: 'Rajdhani', sans-serif; }
-
 /* ==========================================
    MAIN WRAPPER - FLEX MOBILE FIRST
    ========================================== */
@@ -86,7 +78,6 @@ body {
     min-height: 100vh;
     flex: 1;
 }
-
 /* ==========================================
    ANIMATIONS
    ========================================== */
@@ -94,7 +85,8 @@ body {
     0% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } 
     50% { text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--secondary); } 
     100% { text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); } 
-}@keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+}
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pop-in { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
 @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
@@ -105,18 +97,6 @@ body {
 @keyframes slide-up { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .animate-slide-up { animation: slide-up 0.3s ease-out; }
-/* ==========================================
-   BUTTONS
-   ========================================== */
-.btn { 
-    cursor: pointer; 
-    border: none; 
-    outline: none; 
-    font-family: inherit; 
-    transition: all 0.2s ease; 
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-}
 .btn-neon { 
     position: relative; 
     background: linear-gradient(90deg, var(--secondary), var(--primary)); 
@@ -152,7 +132,6 @@ body {
 .btn-google { background: white; color: #333; font-weight: bold; }
 .btn-unequip { background: linear-gradient(90deg, #6b7280, #9ca3af); color: white; font-size: 10px; }
 .btn-unequip:hover { background: linear-gradient(90deg, #ef4444, #dc2626); }
-
 /* ==========================================
    INPUTS
    ========================================== */
@@ -178,7 +157,6 @@ body {
     color: rgba(255, 255, 255, 0.6); 
     cursor: not-allowed; 
 }
-
 /* ==========================================
    SCROLLBAR
    ========================================== */
@@ -186,7 +164,6 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-
 /* ==========================================
    HEADER & LOGO
    ========================================== */
@@ -199,7 +176,6 @@ body {
     margin-bottom: var(--spacing-md);
     flex-shrink: 0;
 }
-
 .logo-container { 
     position: relative; 
     display: flex; 
@@ -249,13 +225,11 @@ body {
             0 0 50px rgba(0, 242, 255, 0.2);
     }
 }
-
 .header-actions {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
 }
-
 /* ==========================================
    CURRENCY DISPLAY
    ========================================== */
@@ -264,7 +238,6 @@ body {
     transform: scale(1.02);
 }
 .currency-value { font-size: 13px; font-weight: 700; color: var(--gold); }
-
 /* ==========================================
    CARD CONTAINER
    ========================================== */
@@ -278,7 +251,6 @@ body {
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
     width: 100%;
 }
-
 /* ==========================================
    PLAYER CARD
    ========================================== */
@@ -310,7 +282,6 @@ body {
     opacity: 0.6; 
     filter: grayscale(80%); 
 }
-
 /* ==========================================
    AVATAR WITH FRAME
    ========================================== */
@@ -321,22 +292,18 @@ body {
     justify-content: center;
     flex-shrink: 0;
 }
-
 .avatar-wrapper.size-sm { width: 52px; height: 52px; }
 .avatar-wrapper.size-md { width: 72px; height: 72px; }
 .avatar-wrapper.size-lg { width: 110px; height: 110px; }
 .avatar-wrapper.size-xl { width: 140px; height: 140px; }
-
 .avatar-wrapper.size-sm .avatar-image { width: 30px; height: 30px; }
 .avatar-wrapper.size-md .avatar-image { width: 40px; height: 40px; }
 .avatar-wrapper.size-lg .avatar-image { width: 60px; height: 60px; }
 .avatar-wrapper.size-xl .avatar-image { width: 80px; height: 80px; }
-
 .avatar-wrapper.size-sm .avatar-frame-mask { width: 32px; height: 32px; }
 .avatar-wrapper.size-md .avatar-frame-mask { width: 42px; height: 42px; }
 .avatar-wrapper.size-lg .avatar-frame-mask { width: 62px; height: 62px; }
 .avatar-wrapper.size-xl .avatar-frame-mask { width: 82px; height: 82px; }
-
 /* ==========================================
    TIMER
    ========================================== */
@@ -352,7 +319,6 @@ body {
     background: var(--primary); 
     transition: width 1s linear; 
 }
-
 /* ==========================================
    IDENTITY SQUARE
    ========================================== */
@@ -375,7 +341,6 @@ body {
 .identity-agent { border: 2px solid #10b981; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%); box-shadow: 0 0 40px rgba(16, 185, 129, 0.2); }
 .identity-informant { border: 2px solid #3b82f6; background: radial-gradient(circle at center, rgba(59, 130, 246, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(59, 130, 246, 0.3); }
 .identity-mrwhite { border: 2px solid var(--gold); background: radial-gradient(circle at center, rgba(255, 215, 0, 0.15), transparent 70%); box-shadow: 0 0 40px rgba(255, 215, 0, 0.3); }
-
 /* ==========================================
    CHARISMA SYSTEM
    ========================================== */
@@ -389,7 +354,17 @@ body {
 .charisma-container.has-glow { box-shadow: 0 0 20px rgba(255, 136, 0, 0.3); }
 .charisma-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm); }
 .charisma-label { font-size: 12px; font-weight: bold; color: var(--gold); display: flex; align-items: center; gap: 6px; }
-.charisma-level-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px var(--spacing-sm); border-radius: 12px; font-size: 11px; font-weight: bold; }
+.charisma-level-badge {
+    background: var(--gold);
+    color: var(--bg-dark);
+    font-size: 10px;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
 .charisma-level-badge.level-1-3 { background: linear-gradient(135deg, #ffd700, #ffec8b); color: #000; }
 .charisma-level-badge.level-4-6 { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: #fff; }
 .charisma-level-badge.level-7-9 { background: linear-gradient(135deg, #ffd700, #daa520); color: #000; }
@@ -409,7 +384,6 @@ body {
     50%       { box-shadow: 0 0 20px rgba(0,212,255,0.8), 0 0 40px rgba(0,212,255,0.4), 0 0 60px rgba(0,212,255,0.15); }
 }
 .glow-badge { animation: glow-pulse 2s infinite; }
-
 /* ═══════════════════════════════════════════
    🎨 NEW RARITY TIERS (beyond Mythic)
    ═══════════════════════════════════════════ */
@@ -423,7 +397,6 @@ body {
     0%, 100% { box-shadow: 0 0 6px rgba(194,65,12,0.4); border-color: rgba(194,65,12,0.65); }
     50%       { box-shadow: 0 0 14px rgba(194,65,12,0.7), 0 0 28px rgba(194,65,12,0.25); border-color: rgba(220,80,20,0.9); }
 }
-
 /* TRANSCENDENT — Metallic Purple/Magenta gradient + glowing border */
 .rarity-transcendent {
     border-color: rgba(192,38,211,0.75) !important;
@@ -436,7 +409,6 @@ body {
     66%  { box-shadow: 0 0 14px rgba(147,51,234,0.7), 0 0 20px rgba(192,38,211,0.3); }
     100% { box-shadow: 0 0 8px rgba(192,38,211,0.6), 0 0 0px rgba(219,39,119,0); }
 }
-
 /* IMMORTAL — Radiant White/Silver shimmer (Glitter) */
 .rarity-immortal {
     border-color: rgba(226,232,240,0.75) !important;
@@ -450,7 +422,6 @@ body {
     75%  { box-shadow: 0 0 20px rgba(255,255,255,0.9), 0 0 40px rgba(226,232,240,0.4); }
     100% { box-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 0 rgba(226,232,240,0); }
 }
-
 /* DIVINE — Celestial Light Blue/Cyan + soft aura outer shadow */
 .rarity-divine {
     border-color: rgba(0,212,255,0.80) !important;
@@ -466,11 +437,16 @@ body {
     100% { background-position: -200% 0; }
 }
 .charisma-bar-bg { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; }
-.charisma-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8800, var(--gold)); background-size: 200% 100%; animation: shimmer 2s linear infinite; transition: width 0.5s ease; }
-.charisma-info { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
-.charisma-current { font-size: 16px; font-weight: bold; color: var(--gold); }
+.charisma-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-dark), var(--gold));
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+    transition: width 0.5s ease;
+}
+.charisma-info { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; font-weight: 700; color: var(--text-muted); }
+.charisma-current { color: var(--gold); }
 .charisma-next { font-size: 10px; color: var(--text-muted); }
-
 /* ==========================================
    GIFT CARD
    ========================================== */
@@ -508,7 +484,6 @@ body {
     margin-top: 4px;
 }
 .gift-charisma { font-size: 9px; color: var(--gold); font-weight: 600; }
-
 /* ==========================================
    GIFT LOG IN PROFILE
    ========================================== */
@@ -519,7 +494,6 @@ body {
     border-radius: var(--radius-md);
     overflow: hidden;
 }
-
 .gift-mini-display {
     display: flex;
     align-items: center;
@@ -551,7 +525,6 @@ body {
 .gift-mini-info { display: flex; flex-direction: column; align-items: center; margin-left: auto; }
 .gift-mini-count { font-size: 18px; font-weight: 800; color: var(--gold); }
 .gift-mini-label { font-size: 9px; color: var(--text-muted); }
-
 .gift-log-tabs { display: flex; border-bottom: 1px solid rgba(255, 215, 0, 0.1); }
 .gift-log-tab {
     flex: 1;
@@ -569,7 +542,6 @@ body {
 .gift-log-tab.active { color: var(--gold); background: rgba(255, 215, 0, 0.1); border-bottom-color: var(--gold); }
 .gift-log-content { max-height: 280px; overflow-y: auto; }
 .gift-log-loading { text-align: center; padding: var(--spacing-xl); color: var(--text-muted); font-size: 12px; }
-
 .gift-wall-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: var(--spacing-sm); }
 .gift-wall-item {
     aspect-ratio: 1;
@@ -601,12 +573,10 @@ body {
     border-radius: 8px;
 }
 .gift-wall-sender { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--gold); }
-
 .gift-badge-section { padding: var(--spacing-xl); display: flex; align-items: center; justify-content: center; }
 .coming-soon-badge { display: flex; flex-direction: column; align-items: center; gap: var(--spacing-sm); }
 .coming-soon-icon { font-size: 32px; opacity: 0.5; }
 .coming-soon-text { font-size: 12px; color: var(--text-muted); }
-
 .gift-log-container {
     margin-top: var(--spacing-md);
     background: rgba(255, 215, 0, 0.05);
@@ -652,7 +622,6 @@ body {
 .gift-log-item-bonus { font-size: 9px; color: #10b981; }
 .gift-log-item-time { font-size: 9px; color: var(--text-muted); }
 .gift-log-empty { text-align: center; padding: var(--spacing-lg); color: var(--text-muted); font-size: 12px; }
-
 /* ==========================================
    MODAL
    ========================================== */
@@ -666,7 +635,6 @@ body {
     z-index: 100;
     padding: var(--spacing-md);
 }
-
 .modal-content {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -679,7 +647,6 @@ body {
     flex-direction: column;
     position: relative;
 }
-
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -706,23 +673,8 @@ body {
 .modal-close-btn:hover { background: rgba(255, 0, 85, 0.2); color: var(--accent); }
 .modal-body { padding: var(--spacing-lg); overflow-y: auto; flex: 1; }
 .modal-footer { padding: var(--spacing-md) var(--spacing-lg); border-top: 1px solid var(--border); flex-shrink: 0; }
-
-/* ==========================================
-   PROFILE - OLD VERSION
-   ========================================== */
-.profile-container { width: 100%; }
-.profile-header {
-    background: linear-gradient(135deg, rgba(112, 0, 255, 0.15), rgba(0, 242, 255, 0.15));
-    padding: var(--spacing-xl);
-    text-align: center;
-    position: relative;
-    border-radius: var(--radius-md);
-    margin-bottom: var(--spacing-md);
-}
-.profile-avatar-section { display: flex; flex-direction: column; align-items: center; margin-bottom: var(--spacing-md); }
 .profile-avatar-container { width: 110px; height: 110px; margin: 0 auto var(--spacing-md); position: relative; }
-.profile-name { font-size: 20px; font-weight: 700; margin-bottom: var(--spacing-xs); color: white; }
-.profile-title-container { display: flex; justify-content: center; margin-bottom: var(--spacing-sm); }
+.profile-name { font-size: 20px; font-weight: 800; color: #fff; }
 .profile-title-text {
     display: inline-flex;
     align-items: center;
@@ -741,7 +693,6 @@ body {
 .profile-title-image img { max-width: 120px; max-height: 40px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3)); }
 .profile-badge-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; margin-bottom: var(--spacing-sm); }
 .profile-badge { font-size: 28px; }
-.profile-badge-img { width: 28px; height: 28px; object-fit: contain; }
 .profile-account-type {
     display: inline-block;
     padding: 3px 12px;
@@ -753,23 +704,9 @@ body {
     margin-bottom: var(--spacing-sm);
 }
 .profile-account-type.guest { background: rgba(107, 114, 128, 0.3); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.3); }
-.profile-id {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.profile-id:hover { background: rgba(255, 255, 255, 0.15); }
 .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-sm); padding: var(--spacing-md); }
-.profile-stat { text-align: center; padding: var(--spacing-md); background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-md); }
-.profile-stat-value { font-size: 18px; font-weight: bold; color: var(--primary); }
-.profile-stat-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-
+.profile-stat-value { font-size: 16px; font-weight: 800; }
+.profile-stat-label { font-size: 8px; color: #64748b; text-transform: uppercase; margin-top: 2px; }
 /* ==========================================
    NOTIFICATION SYSTEM
    ========================================== */
@@ -797,7 +734,6 @@ body {
 .notification-icon { font-size: 18px; flex-shrink: 0; }
 .notification-text { flex: 1; font-size: 12.5px; font-weight: 600; color: #f1f5f9; }
 .notification-close { background: transparent; border: none; color: #6b7280; cursor: pointer; padding: 2px; font-size: 15px; }
-
 @keyframes toast-slide-down {
     from { transform: translateY(-120%) scale(0.9); opacity: 0; }
     to   { transform: translateY(0) scale(1); opacity: 1; }
@@ -810,7 +746,6 @@ body {
     from { transform: scaleX(1); }
     to   { transform: scaleX(0); }
 }
-
 .notification-bell {
     position: relative;
     width: 40px;
@@ -827,7 +762,6 @@ body {
 .notification-bell:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--primary); }
 .notification-bell-icon { font-size: 18px; }
 .notification-bell.ringing { animation: notification-sound 0.5s ease-in-out; }
-
 .notification-badge {
     position: absolute;
     top: -4px;
@@ -845,7 +779,6 @@ body {
     padding: 0 4px;
     animation: pulse-badge 2s infinite;
 }
-
 .notification-dropdown {
     position: fixed;
     top: 60px;
@@ -861,31 +794,13 @@ body {
     z-index: 1000;
     overflow: hidden;
 }
-
 .notification-center { position: relative; }
-.notification-dropdown {
-    position: fixed;
-    top: 60px;
-    right: 8px;
-    left: 8px;
-    width: auto;
-    max-width: 380px;
-    max-height: 450px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    overflow: hidden;
-}
 @media (min-width: 480px) {
-    .notification-dropdown {
+    .new-header-dropdown {
         position: absolute;
-        top: calc(100% + 8px);
+        top: calc(100% + 6px);
         right: 0;
         left: auto;
-        width: 340px;
-        max-width: none;
     }
 }
 .notification-dropdown-header {
@@ -915,7 +830,6 @@ body {
 .notification-item-message { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
 .notification-item-time { font-size: 10px; color: var(--text-muted); }
 .notification-empty { padding: var(--spacing-xl); text-align: center; color: var(--text-muted); font-size: 13px; }
-
 /* ==========================================
    INVENTORY & SHOP
    ========================================== */
@@ -937,7 +851,6 @@ body {
 .inventory-item-name { font-size: 11px; font-weight: 600; text-align: center; margin-bottom: var(--spacing-sm); }
 .inventory-item-actions { width: 100%; display: flex; gap: 6px; }
 .inventory-item-actions button { flex: 1; padding: 6px var(--spacing-sm); font-size: 10px; border-radius: 6px; }
-
 .shop-tabs-container {
     display: flex;
     gap: var(--spacing-xs);
@@ -963,7 +876,6 @@ body {
 }
 .shop-tab.active { background: rgba(255, 255, 255, 0.1); color: white; }
 .shop-tab:hover:not(.active) { color: white; background: rgba(255, 255, 255, 0.05); }
-
 /* ==========================================
    PRIVATE CHAT
    ========================================== */
@@ -1075,7 +987,6 @@ body {
 }
 .chat-send-btn:hover { transform: scale(1.1); }
 .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
 /* ==========================================
    EMOJI PICKER
    ========================================== */
@@ -1133,7 +1044,6 @@ body {
 .emoji-categories { display: flex; gap: 4px; margin-top: var(--spacing-sm); padding-top: var(--spacing-sm); border-top: 1px solid var(--border); overflow-x: auto; }
 .emoji-category-btn { font-size: 16px; padding: 6px 12px; border-radius: var(--radius-sm); background: rgba(255, 255, 255, 0.05); border: none; cursor: pointer; transition: all 0.2s; }
 .emoji-category-btn:hover, .emoji-category-btn.active { background: rgba(0, 242, 255, 0.2); }
-
 .gift-chat-btn {
     width: 36px;
     height: 36px;
@@ -1149,7 +1059,6 @@ body {
 }
 .gift-chat-btn:hover { background: linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(255, 136, 0, 0.4)); transform: scale(1.1); }
 .gift-chat-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
 .gift-message { animation: pop-in 0.3s ease-out; }
 .chat-message-row.gift-message .chat-message-content { max-width: 80%; }
 .gift-message-content {
@@ -1165,7 +1074,6 @@ body {
 .gift-message-details { display: flex; flex-direction: column; gap: 2px; }
 .gift-charisma-badge { background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 10px; }
 .gift-bonus-badge { background: linear-gradient(135deg, #10b981, #22c55e); color: white; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 10px; }
-
 /* ==========================================
    MISC
    ========================================== */
@@ -1220,7 +1128,6 @@ body {
     padding: 0 4px;
     box-shadow: 0 0 10px rgba(255,0,85,0.5);
 }
-
 /* ==========================================
    KD CIRCLE
    ========================================== */
@@ -1228,10 +1135,8 @@ body {
 .kd-circle-bg { fill: none; stroke: rgba(255, 255, 255, 0.1); }
 .kd-circle-progress { fill: none; stroke: url(#gradient); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.5s ease-out; }
 .kd-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; }
-.kd-value { font-size: 24px; font-weight: 800; color: white; display: block; }
 .kd-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
 .kd-rate { font-size: 24px; font-weight: 800; color: white; display: block; }
-
 /* ==========================================
    REPORT MODAL
    ========================================== */
@@ -1240,7 +1145,6 @@ body {
 .report-reason-option { background: rgba(255, 255, 255, 0.05); border: 1px solid transparent; padding: var(--spacing-md); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; margin-bottom: 6px; display: flex; align-items: center; gap: var(--spacing-sm); }
 .report-reason-option:hover { background: rgba(255, 255, 255, 0.1); }
 .report-reason-option.selected { border-color: var(--accent); background: rgba(255, 0, 85, 0.1); }
-
 /* ==========================================
    GUEST BANNER
    ========================================== */
@@ -1254,7 +1158,6 @@ body {
 }
 .guest-banner-title { font-size: 12px; font-weight: 700; color: #9ca3af; margin-bottom: 2px; }
 .guest-banner-desc { font-size: 10px; color: #6b7280; }
-
 /* ==========================================
    TABS
    ========================================== */
@@ -1281,7 +1184,6 @@ body {
 }
 .tab-button.active { background: rgba(255, 255, 255, 0.1); color: white; }
 .tab-button:hover:not(.active) { color: white; background: rgba(255, 255, 255, 0.05); }
-
 /* ==========================================
    FRIENDS PAGE
    ========================================== */
@@ -1300,12 +1202,14 @@ body {
 .friends-list-section { flex: 1; }
 .friends-list-header { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: var(--spacing-sm); }
 .friend-item { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm); border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s; }
-.friend-item:hover { background: rgba(255, 255, 255, 0.05); }
+.friend-item:hover {
+    background: rgba(0, 242, 255, 0.05);
+    border-color: rgba(0, 242, 255, 0.3);
+}
 .friend-info { flex: 1; }
 .friend-name { font-size: 13px; font-weight: 600; }
 .friend-status { font-size: 10px; color: var(--text-muted); }
 .friend-actions { display: flex; gap: var(--spacing-xs); }
-
 /* ==========================================
    BROWSE ROOMS
    ========================================== */
@@ -1338,7 +1242,6 @@ body {
     transition: all 0.2s;
 }
 .room-card-join-btn:hover { transform: scale(1.05); box-shadow: 0 0 10px var(--primary); }
-
 /* ==========================================
    LOGIN REWARDS
    ========================================== */
@@ -1399,7 +1302,6 @@ body {
 }
 .login-reward-claim-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); }
 .login-reward-claim-btn:disabled { background: rgba(107, 114, 128, 0.5); color: rgba(255, 255, 255, 0.5); cursor: not-allowed; transform: none; }
-
 .today-reward-display {
     margin-top: var(--spacing-md);
     padding: var(--spacing-md);
@@ -1411,7 +1313,6 @@ body {
 .today-reward-label { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; }
 .today-reward-name { font-size: 14px; font-weight: 700; color: white; }
 .today-reward-special { font-size: 10px; color: var(--gold); margin-top: 4px; }
-
 /* ==========================================
    LOBBY CODE WITH COPY
    ========================================== */
@@ -1440,7 +1341,6 @@ body {
     transition: all 0.2s;
 }
 .lobby-password-toggle:hover { background: rgba(255, 255, 255, 0.1); }
-
 /* ==========================================
    SETTINGS MODAL
    ========================================== */
@@ -1491,7 +1391,6 @@ body {
 }
 .blocked-user-name { flex: 1; font-size: 12px; font-weight: 600; }
 .no-blocked-users { text-align: center; padding: var(--spacing-lg); color: var(--text-muted); font-size: 12px; }
-
 /* ==========================================
    ACHIEVEMENTS STYLES
    ========================================== */
@@ -1503,39 +1402,26 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.2s;
-    border: 2px solid transparent;
 }
-.achievement-item:hover { transform: scale(1.05); background: rgba(255, 255, 255, 0.1); }
-.achievement-item.unlocked { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1)); border-color: var(--gold); }
-.achievement-item.locked { opacity: 0.6; }
+.achievement-item:hover { transform: scale(1.1); z-index: 10; }
+.achievement-item.unlocked { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1)); border: 1px solid rgba(16, 185, 129, 0.4); }
+.achievement-item.locked { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); opacity: 0.6; }
 .achievement-icon { font-size: 20px; }
 .achievement-icon-img { width: 24px; height: 24px; object-fit: contain; }
-.achievement-badge { position: absolute; top: 2px; right: 2px; font-size: 10px; color: #10b981; }
-.achievement-progress-mini { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 0 0 6px 6px; overflow: hidden; }
+.achievement-badge { position: absolute; top: 2px; right: 2px; width: 12px; height: 12px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; }
+.achievement-progress-mini { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 0 0 var(--radius-sm) var(--radius-sm); overflow: hidden; }
 .achievement-progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width 0.3s; }
 .achievement-progress-bar { margin-top: var(--spacing-sm); }
 .achievement-progress-text { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
 .achievement-progress-track { height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; }
 .achievement-progress-fill-bar { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8800); transition: width 0.3s; }
 .achievements-title { font-size: 12px; font-weight: 700; color: var(--gold); display: flex; align-items: center; gap: 6px; }
-/* ==========================================
-   CHARISMA RANK STYLES
-   ========================================== */
-.charisma-rank-item:hover { background: rgba(255, 255, 255, 0.08); }
 .charisma-rank-item.rank-1 { background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 136, 0, 0.1)); border: 1px solid rgba(255, 215, 0, 0.3); }
-.charisma-rank-item.rank-2 { background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(169, 169, 169, 0.08)); border: 1px solid rgba(192, 192, 192, 0.3); }
-.charisma-rank-item.rank-3 { background: linear-gradient(135deg, rgba(205, 127, 50, 0.15), rgba(184, 115, 51, 0.08)); border: 1px solid rgba(205, 127, 50, 0.3); }
-.charisma-rank-position { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border-radius: 50%; flex-shrink: 0; }
 .charisma-rank-item.rank-1 .charisma-rank-position { background: linear-gradient(135deg, #ffd700, #ff8800); color: #000; }
-.charisma-rank-item.rank-2 .charisma-rank-position { background: linear-gradient(135deg, #c0c0c0, #a9a9a9); color: #000; }
-.charisma-rank-item.rank-3 .charisma-rank-position { background: linear-gradient(135deg, #cd7f32, #b87333); color: #000; }
 .charisma-rank-item.rank-1 .charisma-rank-avatar { border-color: var(--gold); box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
-.charisma-rank-item.rank-2 .charisma-rank-avatar { border-color: #c0c0c0; box-shadow: 0 0 8px rgba(192, 192, 192, 0.3); }
-.charisma-rank-item.rank-3 .charisma-rank-avatar { border-color: #cd7f32; box-shadow: 0 0 8px rgba(205, 127, 50, 0.3); }
 /* ==========================================
    SOUND TOGGLE STYLES
    ========================================== */
@@ -1554,33 +1440,10 @@ body {
 }
 .header-sound-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--primary); }
 .header-sound-btn.muted { opacity: 0.5; }
-
-/* ==========================================
-   PROFILE SETTINGS BUTTON
-   ========================================== */
-.profile-settings-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
-    background: linear-gradient(135deg, rgba(112, 0, 255, 0.2), rgba(0, 242, 255, 0.1));
-    border: 1px solid rgba(112, 0, 255, 0.3);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.2s;
-    width: 100%;
-    margin-top: var(--spacing-sm);
-}
-.profile-settings-btn:hover { background: linear-gradient(135deg, rgba(112, 0, 255, 0.3), rgba(0, 242, 255, 0.2)); transform: translateY(-2px); }
-.profile-settings-icon { font-size: 16px; }
-.profile-settings-text { font-size: 12px; font-weight: 600; flex: 1; }
-.profile-settings-arrow { font-size: 12px; opacity: 0.5; }
-
 /* ==========================================
    BLOCK USER BUTTON
    ========================================== */
 .block-user-btn:hover { background: rgba(239, 68, 68, 0.2); }
-
 /* ==========================================
    LEADERBOARD TABS
    ========================================== */
@@ -1601,7 +1464,6 @@ body {
 .leaderboard-tab:hover { background: rgba(255, 255, 255, 0.08); }
 .leaderboard-tab.active { background: linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(112, 0, 255, 0.1)); border-color: var(--primary); color: var(--primary); }
 .leaderboard-tab.gold.active { background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 136, 0, 0.1)); border-color: var(--gold); color: var(--gold); }
-
 /* ==========================================
    RESPONSIVE - MOBILE FIRST
    ========================================== */
@@ -1621,20 +1483,20 @@ body {
     .emoji-picker-grid { grid-template-columns: repeat(7, 1fr); }
     .emoji-picker-item { font-size: 20px; padding: 5px; }
 }
-
 @media (min-width: 641px) {
     body { padding: var(--spacing-md); }
     #root { border-radius: var(--radius-lg); background: rgba(5, 5, 10, 0.5); box-shadow: 0 0 50px rgba(0, 0, 0, 0.5); }
 }
-
 /* ==========================================
    RTL SUPPORT
    ========================================== */
 [dir="rtl"] .notification-dropdown { right: auto; left: 0; }
-[dir="rtl"] .dropdown-menu { right: auto; left: 0; }
+[dir="rtl"] .dropdown-menu {
+    right: 0 !important;
+    left: auto !important;
+}
 [dir="rtl"] .friends-tab-badge { right: auto; left: 4px; }
 [dir="rtl"] .notification-badge { right: auto; left: -4px; }
-
 /* ==========================================
    GIFT PREVIEW MODAL
    ========================================== */
@@ -1644,7 +1506,6 @@ body {
 .gift-preview-stat-value { font-size: 14px; font-weight: 700; }
 .gift-preview-stat-value.charisma { color: var(--gold); }
 .gift-preview-stat-value.bonus { color: #10b981; }
-
 .friend-select-list { max-height: 150px; overflow-y: auto; background: rgba(0, 0, 0, 0.2); border-radius: var(--radius-sm); margin-top: var(--spacing-sm); }
 .friend-select-item {
     display: flex;
@@ -1663,7 +1524,6 @@ body {
 .friend-select-name { font-size: 12px; font-weight: 600; }
 .friend-select-status { font-size: 10px; color: var(--text-muted); }
 .friend-select-status.online { color: #10b981; }
-
 /* ==========================================
    PROFILE OPTIONS MENU
    ========================================== */
@@ -1682,18 +1542,20 @@ body {
     cursor: pointer;
     transition: all 0.2s;
 }
-.profile-options-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--text-main); }
+.profile-options-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
 .profile-options-menu {
     position: absolute;
     top: 100%;
     right: 0;
     margin-top: 4px;
-    min-width: 140px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    z-index: 100;
+    min-width: 130px;
+    background: rgba(15, 23, 42, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     overflow: hidden;
 }
 .profile-options-menu .option-item {
@@ -1713,7 +1575,6 @@ body {
 .profile-options-menu .option-item:hover { background: rgba(255, 255, 255, 0.05); }
 .profile-options-menu .option-item.block { color: #ef4444; }
 .profile-options-menu .option-item.unblock { color: #10b981; }
-
 /* ==========================================
    BLOCKED NOTICE & CONFIRM MODAL
    ========================================== */
@@ -1759,36 +1620,34 @@ body {
 .confirm-message { font-size: 13px; color: var(--text-muted); margin-bottom: var(--spacing-lg); line-height: 1.5; }
 .confirm-actions { display: flex; gap: var(--spacing-sm); }
 .confirm-actions button { flex: 1; padding: 10px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
-
 /* ==========================================
    ACHIEVEMENTS DISPLAY
    ========================================== */
 .achievements-container { margin-top: var(--spacing-md); }
-.achievements-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
-.achievement-item {
-    position: relative;
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all 0.2s;
+.achievement-detail-icon {
+    font-size: 56px;
+    margin-bottom: 12px;
+    display: block;
 }
-.achievement-item.unlocked { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1)); border: 1px solid rgba(16, 185, 129, 0.4); }
-.achievement-item.locked { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); opacity: 0.6; }
-.achievement-item:hover { transform: scale(1.1); z-index: 10; }
-.achievement-icon { font-size: 20px; }
-.achievement-icon-img { width: 24px; height: 24px; object-fit: contain; }
-.achievement-badge { position: absolute; top: 2px; right: 2px; width: 12px; height: 12px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; }
-.achievement-progress-mini { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 0 0 var(--radius-sm) var(--radius-sm); overflow: hidden; }
-.achievement-progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width 0.3s; }
-
-.achievement-detail-icon { font-size: 64px; margin-bottom: var(--spacing-md); }
-.achievement-detail-name { font-size: 18px; font-weight: 700; margin-bottom: var(--spacing-xs); }
-.achievement-detail-desc { font-size: 13px; color: var(--text-muted); margin-bottom: var(--spacing-md); }
+.achievement-detail-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+}
+.achievement-detail-desc {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
 .achievement-detail-progress { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; margin-bottom: var(--spacing-xs); }
-.achievement-detail-progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8800); transition: width 0.3s; }
+.achievement-detail-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #facc15, #f97316);
+    border-radius: 3px;
+    transition: width 0.3s;
+}
 /* ==========================================
    ACHIEVEMENTS SECTION IN SETTINGS
    ========================================== */
@@ -1818,7 +1677,6 @@ body {
 .profile-glass-card::-webkit-scrollbar { width: 3px; }
 .profile-glass-card::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #00f2ff, #7000ff); border-radius: 3px; }
 .profile-glass-card::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-
 /* ==========================================
    PROFILE HEADER BAR - FIXED LAYOUT
    ========================================== */
@@ -1835,7 +1693,6 @@ body {
     z-index: 100;
     min-height: 52px;
 }
-
 /* Close button - on the RIGHT */
 .profile-close-btn {
     width: 36px;
@@ -1858,7 +1715,6 @@ body {
     border-color: #ef4444;
     color: #f87171;
 }
-
 /* Options container - on the LEFT of X button */
 .profile-options-container {
     position: relative;
@@ -1880,22 +1736,6 @@ body {
     cursor: pointer;
     transition: all 0.2s;
 }
-.profile-options-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-}
-.profile-options-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 4px;
-    min-width: 130px;
-    background: rgba(15, 23, 42, 0.98);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    overflow: hidden;
-}
 .profile-options-item {
     display: flex;
     align-items: center;
@@ -1913,37 +1753,14 @@ body {
 .profile-options-item:hover { background: rgba(255, 255, 255, 0.05); }
 .profile-options-item.block { color: #ef4444; }
 .profile-options-item.unblock { color: #10b981; }
-
 /* ==========================================
    CHARISMA HEADER SECTION
    ========================================== */
 .charisma-label { display: flex; align-items: center; gap: var(--spacing-sm); }
 .charisma-label i { color: var(--gold); font-size: 14px; }
 .charisma-label span { font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.05em; }
-.charisma-level-badge {
-    background: var(--gold);
-    color: var(--bg-dark);
-    font-size: 10px;
-    font-weight: 900;
-    padding: 2px 8px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
 .charisma-level-badge i { font-size: 8px; }
 .charisma-level-badge.has-glow { animation: pulse-glow 2s infinite; }
-.charisma-bar { height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden; }
-.charisma-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--gold), var(--gold-dark), var(--gold));
-    background-size: 200% 100%;
-    animation: shimmer 2s linear infinite;
-    transition: width 0.5s ease;
-}
-.charisma-info { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; font-weight: 700; color: var(--text-muted); }
-.charisma-current { color: var(--gold); }
-
 /* ==========================================
    PROFILE COVER & AVATAR
    ========================================== */
@@ -1956,7 +1773,6 @@ body {
     align-items: flex-end;
     padding-bottom: 45px;
 }
-
 /* Avatar wrapper - centered */
 .profile-avatar-wrapper {
     position: absolute;
@@ -1967,7 +1783,6 @@ body {
     align-items: center;
     justify-content: center;
 }
-
 /* 💍 Couple badge on profile cover - bottom right */
 .profile-couple-badge {
     position: absolute;
@@ -1990,13 +1805,31 @@ body {
     flex-shrink: 0;
 }
 @media (max-width: 380px) {
-    .profile-couple-badge {
-        right: 8px;
-        max-width: calc(100vw - 110px);
-        padding: 3px 7px 3px 4px;
+    .header-actions {
+        gap: 3px;
     }
-    .profile-couple-badge .cb-name {
-        max-width: 50px !important;
+    .header-actions button {
+        padding: 3px 5px !important;
+        font-size: 10px !important;
+    }
+    .site-header h1 {
+        font-size: 13px !important;
+    }
+    .tab-button {
+        padding: 5px 8px;
+        font-size: 11px;
+    }
+    .card-container {
+        padding: var(--spacing-sm) !important;
+    }
+    .modal-content {
+        border-radius: 12px;
+    }
+    .gift-wall-grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+    }
+    .profile-name {
+        font-size: 14px !important;
     }
 }
 .profile-couple-badge:hover { transform: scale(1.05); }
@@ -2026,7 +1859,6 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-
 /* Avatar container with frame */
 .profile-avatar-container {
     position: relative;
@@ -2036,7 +1868,6 @@ body {
     width: 110px;
     height: 110px;
 }
-
 /* Avatar image - circular - CENTER */
 .profile-avatar {
     width: 65px;
@@ -2049,7 +1880,6 @@ body {
     z-index: 10;
     background: #0f172a;
 }
-
 /* Avatar frame - AROUND the avatar (larger) - OUTER RING */
 .profile-avatar-frame {
     position: absolute;
@@ -2069,7 +1899,6 @@ body {
     object-fit: cover;
     border-radius: 50%;
 }
-
 /* Online status dot */
 .profile-status-dot {
     position: absolute;
@@ -2083,7 +1912,6 @@ body {
     z-index: 20;
 }
 .profile-status-dot.offline { background: #6b7280; }
-
 /* ==========================================
    IDENTITY SECTION
    ========================================== */
@@ -2093,7 +1921,6 @@ body {
     text-align: center;
 }
 .profile-name-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; justify-content: center; }
-.profile-name { font-size: 20px; font-weight: 800; color: #fff; }
 .profile-id-display {
     display: inline-flex;
     align-items: center;
@@ -2113,7 +1940,6 @@ body {
 }
 .profile-id-display:hover { color: #00f2ff; background: rgba(255, 255, 255, 0.1); }
 .profile-id-display.copied { color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); }
-
 /* User Title */
 .profile-user-title {
     display: inline-flex;
@@ -2128,7 +1954,6 @@ body {
     color: #facc15;
 }
 .profile-user-title img { max-width: 60px; max-height: 20px; object-fit: contain; }
-
 /* Badges Row */
 .profile-badges-row { display: flex; align-items: center; gap: 6px; margin: 6px 0; flex-wrap: wrap; justify-content: center; }
 .profile-badge-chip {
@@ -2155,7 +1980,6 @@ body {
     border-radius: 4px;
     background: transparent;
 }
-
 /* ==========================================
    STATS DASHBOARD
    ========================================== */
@@ -2169,18 +1993,19 @@ body {
 }
 .profile-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .profile-stat-box {
-    background: rgba(31, 41, 55, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: 10px 6px;
-    border-radius: 12px;
-    text-align: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    gap: 3px;
 }
-.profile-stat-value { font-size: 16px; font-weight: 800; }
 .profile-stat-value.wins { color: #10b981; }
 .profile-stat-value.losses { color: #f87171; }
 .profile-stat-value.rank { color: #facc15; }
-.profile-stat-label { font-size: 8px; color: #64748b; text-transform: uppercase; margin-top: 2px; }
-
 /* Win Rate Circle */
 .profile-winrate-circle {
     width: 80px;
@@ -2222,7 +2047,6 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-
 /* ==========================================
    GIFT SECTION
    ========================================== */
@@ -2233,104 +2057,6 @@ body {
     padding: 10px;
     border: 1px solid rgba(255, 215, 0, 0.1);
 }
-.profile-gift-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-.profile-gift-tabs { display: flex; gap: 4px; }
-.profile-gift-tab {
-    font-size: 8px;
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: 4px 8px;
-    border-radius: 6px;
-    color: #64748b;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.profile-gift-tab.active { background: rgba(250, 204, 21, 0.15); color: #facc15; }
-.profile-gift-tab:hover:not(.active) { color: #cbd5e1; }
-.profile-gift-count { font-size: 8px; color: #facc15; font-weight: 700; }
-
-/* Gift Grid */
-.profile-gift-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
-.profile-gift-slot {
-    aspect-ratio: 1;
-    background: rgba(31, 41, 55, 0.4);
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    border: 1px solid transparent;
-    transition: all 0.2s;
-    position: relative;
-}
-.profile-gift-slot.unlocked { border-color: rgba(250, 204, 21, 0.4); background: rgba(250, 204, 21, 0.08); }
-.profile-gift-slot.locked { opacity: 0.25; filter: grayscale(1); }
-.profile-gift-slot:hover { transform: scale(1.08); }
-.profile-gift-slot img { width: 16px; height: 16px; object-fit: contain; }
-
-/* Gift icon centered in slot */
-.profile-gift-icon {
-    font-size: 16px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Gift count badge - small and centered below icon */
-.profile-gift-count-badge {
-    position: absolute;
-    bottom: 2px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, #facc15, #f59e0b);
-    color: #0f172a;
-    font-size: 7px;
-    padding: 1px 4px;
-    border-radius: 6px;
-    font-weight: 800;
-    min-width: 14px;
-    text-align: center;
-    line-height: 1.2;
-    white-space: nowrap;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Gift sender avatar - top left corner */
-.profile-gift-sender-avatar {
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 1px solid var(--gold);
-    object-fit: cover;
-    z-index: 10;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-}
-
-/* Gift glow effect */
-.profile-gift-glow {
-    position: absolute;
-    inset: -2px;
-    border-radius: 8px;
-    background: radial-gradient(circle at center, rgba(255, 215, 0, 0.2), transparent 70%);
-    animation: gift-glow-pulse 2s ease-in-out infinite;
-    pointer-events: none;
-    z-index: -1;
-}
-
 /* Gift empty state */
 .profile-gift-empty {
     display: flex;
@@ -2342,7 +2068,6 @@ body {
     color: var(--text-muted);
     font-size: 12px;
 }
-
 /* Gift Log */
 .profile-gift-log { max-height: 150px; overflow-y: auto; }
 .profile-gift-log-item {
@@ -2364,7 +2089,6 @@ body {
 .profile-gift-log-stats { text-align: right; }
 .profile-gift-log-charisma { font-size: 9px; font-weight: 700; color: #facc15; }
 .profile-gift-log-time { font-size: 7px; color: #475569; }
-
 /* ==========================================
    ACHIEVEMENTS SECTION
    ========================================== */
@@ -2382,24 +2106,6 @@ body {
 .profile-achievements-title i { color: #facc15; }
 .profile-achievements-count { font-size: 9px; color: #00f2ff; font-weight: 700; }
 .profile-achievements-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
-.profile-achievement-item {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: rgba(31, 41, 55, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 12px;
-}
-.profile-achievement-item:hover { transform: scale(1.1); }
-.profile-achievement-item.unlocked { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1)); border-color: rgba(16, 185, 129, 0.4); }
-.profile-achievement-item.locked { opacity: 0.35; filter: grayscale(1); }
-.profile-achievement-item img { width: 16px; height: 16px; object-fit: contain; }
 .profile-achievement-badge {
     position: absolute;
     top: 0;
@@ -2414,18 +2120,6 @@ body {
     justify-content: center;
     color: white;
 }
-.profile-achievement-progress {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 0 0 50% 50%;
-    overflow: hidden;
-}
-.profile-achievement-progress-fill { height: 100%; background: linear-gradient(90deg, #00f2ff, #7000ff); }
-
 /* ==========================================
    ACTIONS
    ========================================== */
@@ -2449,7 +2143,6 @@ body {
 .profile-action-btn.secondary { background: rgba(250, 204, 21, 0.15); border: 1px solid rgba(250, 204, 21, 0.3); color: #facc15; }
 .profile-action-btn.secondary:hover { background: rgba(250, 204, 21, 0.25); }
 .profile-action-btn.friends { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; }
-
 /* ==========================================
    NOTICES
    ========================================== */
@@ -2477,7 +2170,6 @@ body {
     font-size: 11px;
     color: #9ca3af;
 }
-
 /* ==========================================
    CONFIRM MODAL
    ========================================== */
@@ -2500,14 +2192,12 @@ body {
 .profile-confirm-actions .cancel:hover { background: rgba(255, 255, 255, 0.15); }
 .profile-confirm-actions .confirm { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
 .profile-confirm-actions .confirm:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
-
 /* ==========================================
    LOADING STATE
    ========================================== */
 .profile-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; color: #64748b; }
 .profile-loading-spinner { width: 36px; height: 36px; border: 3px solid rgba(255, 255, 255, 0.1); border-top-color: #00f2ff; border-radius: 50%; animation: spin 1s linear infinite; }
 .profile-loading-text { margin-top: 12px; font-size: 12px; }
-
 /* ==========================================
    RESPONSIVE FIXES
    ========================================== */
@@ -2521,7 +2211,6 @@ body {
     .profile-achievements-grid { grid-template-columns: repeat(8, 1fr); gap: 3px; }
     .profile-achievement-item { font-size: 10px; }
 }
-
 /* ==========================================
    ACHIEVEMENT DETAIL MODAL
    ========================================== */
@@ -2536,28 +2225,11 @@ body {
     animation: pop-in 0.3s ease-out;
     box-shadow: 0 0 40px rgba(139, 92, 246, 0.2);
 }
-.achievement-detail-icon {
-    font-size: 56px;
-    margin-bottom: 12px;
-    display: block;
-}
 .achievement-detail-icon-img {
     width: 56px;
     height: 56px;
     object-fit: contain;
     margin: 0 auto 12px;
-}
-.achievement-detail-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 6px;
-}
-.achievement-detail-desc {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-bottom: 12px;
-    line-height: 1.5;
 }
 .achievement-detail-progress-wrap {
     margin-bottom: 12px;
@@ -2574,12 +2246,6 @@ body {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
     overflow: hidden;
-}
-.achievement-detail-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #facc15, #f97316);
-    border-radius: 3px;
-    transition: width 0.3s;
 }
 .achievement-detail-status {
     display: inline-flex;
@@ -2617,7 +2283,6 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 5px 20px rgba(0, 242, 255, 0.3);
 }
-
 /* Charisma Display Under ID */
 .profile-charisma-under-id {
     display: flex;
@@ -2649,7 +2314,6 @@ body {
     justify-content: center;
     line-height: 1;
 }
-
 /* ============================================================
    🎨 BANNER CAMERA BUTTON
    ============================================================ */
@@ -2677,7 +2341,6 @@ body {
     border-color: #00f2ff;
     transform: scale(1.1);
 }
-
 /* ============================================================
    ✕ ACHIEVEMENT DETAIL CLOSE BOTTOM
    ============================================================ */
@@ -2699,7 +2362,6 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 5px 20px rgba(0, 242, 255, 0.35);
 }
-
 /* ============================================================
    ⚙️ SETTINGS - ACCOUNT INFO CARD
    ============================================================ */
@@ -2744,7 +2406,6 @@ body {
     flex-shrink: 0;
 }
 .settings-eye-btn:hover { opacity: 1; }
-
 /* ============================================================
    🎉 ONBOARDING MODAL
    ============================================================ */
@@ -2910,20 +2571,6 @@ body {
     opacity: 0.45;
     cursor: not-allowed;
 }
-
-
-/* ============================================================
-   👤 PROFILE - OWN PROFILE FOOTER
-   ============================================================ */
-.profile-own-footer {
-    padding: 12px 16px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    border-top: 1px solid rgba(255,255,255,0.07);
-    background: rgba(0,0,0,0.2);
-}
-
 /* ============================================================
    🚨 PROFILE OPTIONS - REPORT ITEM
    ============================================================ */
@@ -2934,7 +2581,6 @@ body {
 .profile-options-item.report:hover {
     background: rgba(248,113,113,0.12);
 }
-
 /* ============================================================
    🌟 CHARISMA - PROFILE GLASS STYLE (matches profile card)
    ============================================================ */
@@ -2955,15 +2601,6 @@ body {
     color: #00f2ff !important;
     border: 1px solid rgba(0,242,255,0.3) !important;
 }
-
-/* ============================================================
-   🎁 PROFILE GIFT SLOT - RELATIVE POSITIONING FIX
-   ============================================================ */
-.profile-gift-slot {
-    position: relative !important;
-}
-
-
 /* ============================================================
    📊 PROFILE STATS - ALL HORIZONTAL ONE ROW, FULL CARD WIDTH
    ============================================================ */
@@ -3008,7 +2645,6 @@ body {
 .profile-stats-main-row .profile-winrate-circle {
     flex-shrink: 0;
 }
-
 /* ============================================================
    📊 PROFILE STATS ROW (new unified layout)
    ============================================================ */
@@ -3018,17 +2654,6 @@ body {
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 4px;
-}
-.profile-stat-box {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px 6px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
-    gap: 3px;
 }
 .profile-stat-box .profile-stat-value {
     font-size: 20px;
@@ -3044,7 +2669,6 @@ body {
     text-align: center;
     font-weight: 600;
 }
-
 /* ============================================================
    🏆 ACHIEVEMENTS V2 GRID (vertical list)
    ============================================================ */
@@ -3141,7 +2765,6 @@ body {
     border-color: rgba(112,0,255,0.4);
     color: white;
 }
-
 /* ============================================================
    🎁 GIFT DETAIL MODAL
    ============================================================ */
@@ -3245,8 +2868,6 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(112,0,255,0.4);
 }
-
-
 /* ============================================================
    📸 MOMENTS SYSTEM
    ============================================================ */
@@ -3298,7 +2919,6 @@ body {
     color: #f87171;
     font-weight: 700;
 }
-
 /* ============================================================
    🔮 MYTHIC GLOW - Shows on any Mythic item everywhere
    ============================================================ */
@@ -3306,29 +2926,21 @@ body {
     0%, 100% { box-shadow: 0 0 18px rgba(255,215,0,0.4), inset 0 0 20px rgba(255,215,0,0.10); }
     50%       { box-shadow: 0 0 28px rgba(255,215,0,0.65), inset 0 0 28px rgba(255,215,0,0.18); }
 }
-
 @keyframes mythic-pulse {
     0%, 100% { box-shadow: 0 0 8px rgba(255,0,85,0.5), 0 0 20px rgba(255,0,85,0.2), inset 0 0 8px rgba(255,0,85,0.05); }
     50%       { box-shadow: 0 0 16px rgba(255,0,85,0.8), 0 0 36px rgba(255,0,85,0.35), inset 0 0 12px rgba(255,0,85,0.1); }
-}/* Gift slot with Mythic rarity */
-.profile-gift-slot.unlocked[data-rarity="Mythic"],
-.profile-gift-slot.mythic-rarity {
-    animation: mythic-pulse 2s ease-in-out infinite, mythic-border-pulse 2s ease-in-out infinite !important;
 }
-
 /* Generic mythic glow class - attach anywhere */
 .mythic-glow {
     animation: mythic-pulse 2s ease-in-out infinite !important;
     border-radius: inherit;
 }
-
 /* ============================================================
    👥 FRIENDS ONLINE/OFFLINE - improved header labels
    ============================================================ */
 .friends-list-section {
     padding: 4px 0;
 }
-
 /* ============================================================
    📊 STATS ROW - override any leftover old CSS
    ============================================================ */
@@ -3338,7 +2950,6 @@ body {
 .profile-stats-right-col {
     /* Cleared - using inline styles now */
 }
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    🔧 UTILITY CLASSES
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -3348,7 +2959,6 @@ body {
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
 .icon-24 { width: 24px; height: 24px; object-fit: contain; }
 .icon-16 { width: 16px; height: 16px; object-fit: contain; }
-
 /* ==========================================
    ✅ ALL 10 ENHANCEMENTS - CSS ADDITIONS
    ========================================== */
@@ -3364,79 +2974,38 @@ body {
     right: 0;
     transition: all 0.3s ease;
 }
-
 .status-indicator.online {
     background-color: #4ade80;
     box-shadow: 0 0 10px rgba(74, 222, 128, 0.8);
 }
-
 .status-indicator.away {
     background-color: #facc15;
     box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
 }
-
 .status-indicator.offline {
     background-color: #9ca3af;
     box-shadow: 0 0 5px rgba(156, 163, 175, 0.4);
 }
-
 /* Friend item with status */
 .friend-item {
     position: relative;
     transition: all 0.2s ease;
 }
-
-.friend-item:hover {
-    background: rgba(0, 242, 255, 0.05);
-    border-color: rgba(0, 242, 255, 0.3);
-}
-
 .friend-status-label {
     font-size: 11px;
     font-weight: 600;
     margin-top: 2px;
     transition: color 0.2s ease;
 }
-
 .friend-status-label.online {
     color: #4ade80;
 }
-
 .friend-status-label.away {
     color: #facc15;
 }
-
 .friend-status-label.offline {
     color: #9ca3af;
 }
-
-/* ========== #2: PROFILE EFFECTS WITH IMAGES ========== */
-.profile-effect-container {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 99999;
-    pointer-events: none;
-}
-
-.profile-effect-image {
-    width: 300px;
-    height: 300px;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 
-        0 0 40px rgba(0, 242, 255, 0.4),
-        0 20px 60px rgba(0, 0, 0, 0.9);
-    animation: effect-appear 0.4s ease-out;
-}
-
-.profile-effect-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
 @keyframes effect-appear {
     from {
         opacity: 0;
@@ -3447,14 +3016,12 @@ body {
         transform: scale(1);
     }
 }
-
 /* ========== #3: GUEST RESTRICTIONS STYLING ========== */
 .restricted-for-guest {
     opacity: 0.4;
     cursor: not-allowed;
     pointer-events: none !important;
 }
-
 .guest-user-badge {
     display: inline-block;
     padding: 4px 8px;
@@ -3466,7 +3033,6 @@ body {
     color: #ef4444;
     margin-top: 4px;
 }
-
 /* ========== #6: FUN PASS PURCHASE BADGE ========== */
 .funpass-owned-badge {
     display: flex;
@@ -3479,18 +3045,15 @@ body {
     margin: 8px 0;
     animation: badge-glow 2s ease-in-out infinite;
 }
-
 .funpass-owned-badge span {
     font-size: 14px;
     font-weight: 700;
     color: #ffd700;
 }
-
 .funpass-owned-badge small {
     font-size: 11px;
     color: #9ca3af;
 }
-
 @keyframes badge-glow {
     0%, 100% {
         box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
@@ -3499,21 +3062,18 @@ body {
         box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
     }
 }
-
 /* ========== #7: ACHIEVEMENTS ILLUMINATION ========== */
 .achievement-locked {
     opacity: 0.3;
     filter: grayscale(1);
     box-shadow: none;
 }
-
 .achievement-unlocked {
     opacity: 1;
     filter: none;
     box-shadow: 0 0 15px rgba(74, 222, 128, 0.5);
     animation: achievement-unlock 0.4s ease-out;
 }
-
 @keyframes achievement-unlock {
     0% {
         opacity: 0.3;
@@ -3526,7 +3086,6 @@ body {
         filter: none;
     }
 }
-
 /* ========== #8: LOGIN REWARDS STYLING ========== */
 .login-rewards-container {
     padding: 12px;
@@ -3534,7 +3093,6 @@ body {
     border-radius: 8px;
     margin-bottom: 12px;
 }
-
 .login-rewards-day {
     padding: 8px;
     border-radius: 6px;
@@ -3545,25 +3103,21 @@ body {
     text-align: center;
     transition: all 0.2s ease;
 }
-
 .login-rewards-day.claimed {
     background: rgba(74, 222, 128, 0.2);
     border-color: rgba(74, 222, 128, 0.5);
     color: #4ade80;
 }
-
 .login-rewards-day.available {
     background: rgba(255, 215, 0, 0.1);
     border-color: rgba(255, 215, 0, 0.3);
     color: #ffd700;
 }
-
 .login-rewards-day.locked {
     background: rgba(156, 163, 175, 0.1);
     border-color: rgba(156, 163, 175, 0.3);
     color: #9ca3af;
 }
-
 /* ========== #9: DAILY TASKS STYLING ========== */
 .daily-tasks-container {
     padding: 16px;
@@ -3571,13 +3125,11 @@ body {
     border-radius: 12px;
     margin-bottom: 12px;
 }
-
 .daily-tasks-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 8px;
 }
-
 .daily-task-box {
     padding: 12px 8px;
     border-radius: 8px;
@@ -3588,20 +3140,17 @@ body {
     transition: all 0.2s ease;
     text-align: center;
 }
-
 .daily-task-box.claimed {
     background: rgba(74, 222, 128, 0.15);
     border-color: rgba(74, 222, 128, 0.5);
     color: #4ade80;
 }
-
 .daily-task-box.available {
     background: rgba(0, 242, 255, 0.15);
     border-color: rgba(0, 242, 255, 0.5);
     color: #00f2ff;
     cursor: pointer;
 }
-
 .daily-task-box.locked {
     background: rgba(100, 100, 100, 0.1);
     border-color: rgba(156, 163, 175, 0.3);
@@ -3609,7 +3158,6 @@ body {
     cursor: not-allowed;
     opacity: 0.7;
 }
-
 .daily-task-box.coming-soon {
     background: rgba(156, 163, 175, 0.1);
     border-color: rgba(156, 163, 175, 0.3);
@@ -3617,34 +3165,28 @@ body {
     cursor: not-allowed;
     opacity: 0.5;
 }
-
 .daily-task-box:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 242, 255, 0.2);
 }
-
 .daily-task-icon {
     font-size: 24px;
     margin-bottom: 4px;
 }
-
 .daily-task-label {
     font-size: 10px;
     margin-top: 2px;
     white-space: normal;
 }
-
 /* ========== #1: MISSION VERIFICATION STYLING ========== */
 .mission-not-completed {
     animation: shake 0.4s ease-in-out;
 }
-
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-8px); }
     75% { transform: translateX(8px); }
 }
-
 .mission-completed-check {
     position: absolute;
     top: 4px;
@@ -3661,7 +3203,6 @@ body {
     font-size: 12px;
     animation: check-pop 0.3s ease-out;
 }
-
 @keyframes check-pop {
     from {
         transform: scale(0);
@@ -3670,7 +3211,6 @@ body {
         transform: scale(1);
     }
 }
-
 .mission-progress {
     display: flex;
     align-items: center;
@@ -3678,21 +3218,17 @@ body {
     font-size: 11px;
     color: #9ca3af;
 }
-
 .mission-progress.completed {
     color: #4ade80;
 }
-
 /* ========== MISSING: STATUS DOT AWAY STATE ========== */
 .profile-status-dot.away { background: #facc15; box-shadow: 0 0 6px rgba(250,204,21,0.6); }
-
 /* ========== MISSING: DAILY TASKS 4-COLUMN GRID ========== */
 .daily-tasks-grid-4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
 }
-
 /* ========== MISSING: VIP TASK BOX ========== */
 .daily-task-box.vip {
     background: rgba(245,158,11,0.08);
@@ -3701,7 +3237,6 @@ body {
     cursor: not-allowed;
     opacity: 0.7;
 }
-
 /* ========== MISSING: FRIENDS STATUS SECTION HEADERS ========== */
 .friends-status-section-header {
     font-size: 10px;
@@ -3718,7 +3253,6 @@ body {
 .friends-status-section-header.online { color: #4ade80; }
 .friends-status-section-header.away   { color: #facc15; }
 .friends-status-section-header.offline{ color: #9ca3af; }
-
 /* ========== MISSING: PROGRESS BAR IN DAILY TASK ========== */
 .daily-task-progress-bar {
     position: absolute;
@@ -3733,7 +3267,6 @@ body {
     border-radius: inherit;
     transition: width 0.5s ease;
 }
-
 /* ========== MISSING: FUNPASS OWNED CHECK ON PURCHASE BUTTON ========== */
 .funpass-purchase-check {
     display: flex;
@@ -3748,7 +3281,6 @@ body {
     font-weight: 800;
     font-size: 13px;
 }
-
 /* ==========================================
    NOTIFICATION TOAST — CENTERED + RESPONSIVE
    ========================================== */
@@ -3756,7 +3288,6 @@ body {
 [dir="rtl"] div[style*="translateX(-50%)"] {
     right: auto !important;
 }
-
 /* ==========================================
    MOBILE-FIRST COMPREHENSIVE RESPONSIVE FIXES
    ========================================== */
@@ -3765,13 +3296,11 @@ body {
 .modal-content {
     /* Already has display:flex;flex-direction:column;overflow:hidden */
 }
-
 /* Modal body must never overflow its container */
 .modal-body {
     min-height: 0;
     overflow-y: auto;
 }
-
 /* Header actions wrapping on very small screens */
 .header-actions {
     display: flex;
@@ -3780,36 +3309,6 @@ body {
     flex-wrap: nowrap;
     flex-shrink: 0;
 }
-
-@media (max-width: 380px) {
-    .header-actions {
-        gap: 3px;
-    }
-    .header-actions button {
-        padding: 3px 5px !important;
-        font-size: 10px !important;
-    }
-    .site-header h1 {
-        font-size: 13px !important;
-    }
-    .tab-button {
-        padding: 5px 8px;
-        font-size: 11px;
-    }
-    .card-container {
-        padding: var(--spacing-sm) !important;
-    }
-    .modal-content {
-        border-radius: 12px;
-    }
-    .gift-wall-grid {
-        grid-template-columns: repeat(5, 1fr) !important;
-    }
-    .profile-name {
-        font-size: 14px !important;
-    }
-}
-
 @media (max-width: 480px) {
     /* Root padding */
     #root {
@@ -3914,7 +3413,6 @@ body {
         height: 95vh !important;
     }
 }
-
 @media (max-width: 360px) {
     body {
         font-size: 12px;
@@ -3929,7 +3427,6 @@ body {
         grid-template-columns: repeat(4, 1fr) !important;
     }
 }
-
 /* Touch-friendly tap targets */
 @media (hover: none) {
     button, .clickable {
@@ -3947,7 +3444,6 @@ body {
         touch-action: manipulation;
     }
 }
-
 /* Landscape mobile */
 @media (max-width: 768px) and (orientation: landscape) {
     .modal-content {
@@ -3961,7 +3457,6 @@ body {
         gap: 12px !important;
     }
 }
-
 /* Scrollbar hide for mobile */
 @media (max-width: 640px) {
     ::-webkit-scrollbar {
@@ -3976,17 +3471,11 @@ body {
         border-radius: 10px;
     }
 }
-
 /* Ensure the notification dropdown doesn't escape viewport in RTL */
 [dir="rtl"] .notification-dropdown {
     right: 0 !important;
     left: auto !important;
 }
-[dir="rtl"] .dropdown-menu {
-    right: 0 !important;
-    left: auto !important;
-}
-
 /* ==========================================
    🚫 BAN SYSTEM STYLES
    ========================================== */
@@ -3996,7 +3485,6 @@ body {
     0%, 100% { box-shadow: 0 0 6px rgba(220,0,0,0.6); }
     50%       { box-shadow: 0 0 14px rgba(220,0,0,0.9); }
 }
-
 /* Leaderboard / Name Tag banned indicator */
 .banned-name-indicator {
     display: inline-flex;
@@ -4013,7 +3501,6 @@ body {
     vertical-align: middle;
     margin-left: 4px;
 }
-
 /* ==========================================
    👑 STAFF ROLE BADGE STYLES
    ========================================== */
@@ -4026,7 +3513,6 @@ body {
     0%, 100% { box-shadow: 0 0 6px rgba(255,215,0,0.5); }
     50%       { box-shadow: 0 0 16px rgba(255,215,0,0.9), 0 0 28px rgba(255,140,0,0.4); }
 }
-
 /* Admin badge — red glow */
 .role-badge-admin {
     animation: role-admin-pulse 2.5s ease-in-out infinite;
@@ -4035,7 +3521,6 @@ body {
     0%, 100% { box-shadow: 0 0 5px rgba(239,68,68,0.4); }
     50%       { box-shadow: 0 0 14px rgba(239,68,68,0.8); }
 }
-
 /* Moderator badge — blue glow */
 .role-badge-mod {
     animation: role-mod-pulse 2.5s ease-in-out infinite;
@@ -4044,7 +3529,6 @@ body {
     0%, 100% { box-shadow: 0 0 5px rgba(59,130,246,0.4); }
     50%       { box-shadow: 0 0 12px rgba(59,130,246,0.7); }
 }
-
 /* ══════════════════════════════════════════════════════════
    🆕 NEW SHELL DESIGN — Pro Spy Redesign
    ══════════════════════════════════════════════════════════ */
@@ -4060,7 +3544,6 @@ body {
     --new-border-bright: rgba(255,255,255,0.14);
     --new-nav-h: 68px;
 }
-
 /* ── APP SHELL ── */
 .app-shell {
     position: relative;
@@ -4074,7 +3557,6 @@ body {
     overflow: hidden;
     background: var(--bg-dark);
 }
-
 /* ── BG BLOBS ── */
 .bg-blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 .bg-blob-item {
@@ -4090,13 +3572,11 @@ body {
     0%, 100% { transform: scale(1); }
     50%       { transform: scale(1.18); }
 }
-
 @keyframes blob-drift {
     0%, 100% { transform: translate(0,0); }
     33% { transform: translate(15px,-20px); }
     66% { transform: translate(-10px,15px); }
 }
-
 /* ── NEW HEADER ── */
 .new-header {
     display: flex;
@@ -4187,7 +3667,6 @@ body {
     transition: .2s;
 }
 .new-lang-btn:hover { background: rgba(255,255,255,0.12); }
-
 /* ── PAGE CONTENT ── */
 .new-page-content {
     flex: 1;
@@ -4198,7 +3677,6 @@ body {
     padding-bottom: calc(var(--new-nav-h) + 12px);
 }
 .new-page-content::-webkit-scrollbar { display: none; }
-
 /* ── SECTION HEADER ── */
 .sec-head-new {
     display: flex;
@@ -4221,7 +3699,6 @@ body {
     background: none;
     border: none;
 }
-
 /* ── STATS STRIP ── */
 .stats-strip-new {
     display: flex;
@@ -4245,7 +3722,6 @@ body {
 .stat-pill-new .sval { font-weight: 700; color: var(--primary); font-size: 13px; }
 .stat-pill-new .sval.gold { color: var(--gold); }
 .stat-pill-new .sval.green { color: var(--new-green); }
-
 /* ── FUN PASS PROMO ── */
 .fp-promo-new {
     margin: 8px 16px 0;
@@ -4265,7 +3741,6 @@ body {
 .fp-promo-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
 .fp-promo-sub { font-size: 10px; color: var(--text-muted); }
 .fp-promo-arr { font-size: 16px; color: var(--secondary); }
-
 /* ── LOBBY HERO ── */
 .lobby-hero-new {
     margin: 8px 16px 0;
@@ -4345,7 +3820,6 @@ body {
     text-transform: uppercase;
     text-align: center;
 }
-
 /* ── LIVE ROOMS SCROLL ── */
 .rooms-scroll-new {
     display: flex;
@@ -4401,7 +3875,6 @@ body {
     font-weight: 600;
 }
 .rooms-browse-btn:hover { background: rgba(0,242,255,0.1); }
-
 /* ── TASKS CARD ── */
 .tasks-card-new {
     margin: 0 16px;
@@ -4452,7 +3925,6 @@ body {
     font-weight: 700;
     flex-shrink: 0;
 }
-
 /* ── LEADERBOARD NEW ── */
 .lb-tabs-new {
     display: flex;
@@ -4473,7 +3945,6 @@ body {
     color: var(--text-muted);
 }
 .lb-tab-new.active { background: var(--new-primary-dim); border-color: var(--primary); color: var(--primary); }
-
 /* Podium */
 .podium-new {
     display: flex;
@@ -4510,7 +3981,6 @@ body {
 .ps-2 .p-stand-new { height: 42px; background: linear-gradient(180deg,rgba(192,192,192,.2),rgba(192,192,192,.06)); color: #c0c0c0; }
 .ps-3 .p-avatar-new { width: 40px; height: 40px; border-color: #cd7f32; font-size: 16px; }
 .ps-3 .p-stand-new { height: 30px; background: linear-gradient(180deg,rgba(205,127,50,.2),rgba(205,127,50,.06)); color: #cd7f32; }
-
 /* LB List */
 .lb-list-new {
     margin: 0 16px;
@@ -4554,7 +4024,6 @@ body {
 .lb-val-new { font-size: 13px; font-weight: 900; color: var(--primary); flex-shrink: 0; }
 .lb-val-new.gold { color: var(--gold); }
 .lb-me-tag { font-size: 9px; background: var(--new-primary-dim); color: var(--primary); padding: 1px 5px; border-radius: 4px; margin-right: 4px; }
-
 /* ── BOTTOM NAV NEW ── */
 .bottom-nav-new {
     height: var(--new-nav-h);
@@ -4621,7 +4090,6 @@ body {
     flex-shrink: 0;
 }
 .nav-fab-new:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 6px 24px rgba(0,242,255,.4); }
-
 /* ── EXPLORE VIEW ── */
 .explore-coming-soon {
     display: flex;
@@ -4635,7 +4103,6 @@ body {
 .explore-icon { font-size: 52px; margin-bottom: 16px; }
 .explore-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text-main); }
 .explore-desc { font-size: 12px; line-height: 1.8; }
-
 /* ── ROOM VIEW inside new shell ── */
 .new-room-content {
     flex: 1;
@@ -4643,7 +4110,6 @@ body {
     padding: 12px;
 }
 .new-room-content::-webkit-scrollbar { display: none; }
-
 /* ── Dropdown in new header ── */
 .new-header-dropdown {
     position: fixed;
@@ -4652,15 +4118,6 @@ body {
     min-width: 170px;
     z-index: 9999;
 }
-@media (min-width: 480px) {
-    .new-header-dropdown {
-        position: absolute;
-        top: calc(100% + 6px);
-        right: 0;
-        left: auto;
-    }
-}
-
 /* ── Notification bell inside new header ── */
 .new-notif-center { position: relative; }
 .new-notif-bell {
@@ -4678,8 +4135,6 @@ body {
     position: relative;
 }
 .new-notif-bell:hover { background: var(--new-surface-hover); }
-
-
 /* ══════════════════════════════════════════════════════════
    👤 ME / أنا TAB — Styles
    ══════════════════════════════════════════════════════════ */
@@ -4707,7 +4162,6 @@ body {
     pointer-events: none;
 }
 .me-hero-card:hover { border-color: rgba(0,242,255,0.4); transform: translateY(-1px); }
-
 .me-hero-avatar {
     width: 60px;
     height: 60px;
@@ -4745,7 +4199,6 @@ body {
     color: var(--text-muted);
 }
 .me-hero-stats-row span { color: var(--text-main); }
-
 /* ── Actions Grid ── */
 .me-actions-grid {
     display: grid;
@@ -4784,14 +4237,11 @@ body {
     line-height: 1.2;
 }
 .me-action-card:hover .me-action-label { color: var(--text-main); }
-
 /* ── Friend Rows in Me tab ── */
 .me-friend-row {
     transition: background .15s;
 }
 .me-friend-row:hover { background: var(--new-surface-hover); }
-
-
 /* ══ DISCOVER CARDS — Coming Soon ══ */
 .discover-card-cs {
     margin: 0 16px 10px;
@@ -4847,7 +4297,6 @@ body {
     letter-spacing: .5px;
     text-transform: uppercase;
 }
-
 /* ══ DISCOVER GRID SQUARES (Instagram-style) ══ */
 .discover-grid {
     display: grid;
@@ -4898,7 +4347,6 @@ body {
     background: #ec4899;
     border: 1.5px solid rgba(0,0,0,0.5);
 }
-
 /* ══ RANKING PREVIEW CARD (in lobby) ══ */
 .ranking-preview-card {
     margin: 0 16px 10px;
@@ -4936,12 +4384,10 @@ body {
     font-weight: 700;
     margin-top: 4px;
 }
-
 /* ══ 4-tab nav (no FAB) ══ */
 .bottom-nav-new[style*="repeat(4"] {
     grid-template-columns: repeat(4, 1fr) !important;
 }
-
 /* ════════════════════════════════════════════════════
    📱 MOBILE RESPONSIVE — PRO SPY LOBBY + ADMIN PANEL
    ════════════════════════════════════════════════════ */
@@ -4973,7 +4419,6 @@ body {
 
     .room-card-new { width: 130px; }
 }
-
 /* ── Mobile (≤ 480px) ── */
 @media (max-width: 480px) {
     /* Header: tighten gaps */
@@ -5023,7 +4468,6 @@ body {
         padding: 4px 12px 4px;
     }
 }
-
 /* ── Landscape mobile ── */
 @media (max-width: 768px) and (orientation: landscape) {
     .lobby-hero-new { padding: 10px 14px; }
