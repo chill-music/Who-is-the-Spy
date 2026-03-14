@@ -1404,6 +1404,19 @@ function App() {
                     userData?.displayName || 'User',
                     { giftId: gift.id, giftEmoji: gift.emoji, giftName, charisma: totalCharisma, bonus: totalBonus, qty },
                 ));
+                // 🛡️ Guard log — record charisma gifted so receiver's Guard ranking updates
+                parallelOps.push(guardLogCollection.add({
+                    receiverId:   targetUser.uid,
+                    senderId:     user.uid,
+                    senderName:   userData?.displayName || 'User',
+                    senderPhoto:  userData?.photoURL || null,
+                    amount:       totalCharisma,
+                    charisma:     totalCharisma,
+                    giftId:       gift.id,
+                    giftEmoji:    gift.emoji,
+                    qty,
+                    timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
+                }));
             }
 
             // Mission progress
@@ -1844,6 +1857,7 @@ function App() {
                     friendsData={friendsData}
                     isOwnProfileOverride={true}
                     onOpenSettings={() => { setShowMyAccount(false); setShowSettings(true); }}
+                    onOpenMarriage={() => { setShowMyAccount(false); setShowWeddingHall(true); }}
                     onOpenShop={() => { setShowMyAccount(false); setShowShop(true); }}
                     onOpenInventory={() => { setShowMyAccount(false); setShowInventory(true); }}
                     onLogout={handleLogout}
@@ -2276,7 +2290,13 @@ function App() {
                                     <div style={{fontSize:'10px',fontWeight:700,color:'var(--gold)',padding:'8px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>⏳ {lang==='ar'?'طلبات صداقة':'Friend Requests'} ({friendRequests.length})</div>
                                     {friendRequests.map(req => (
                                         <div key={req.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 14px',borderTop:'1px solid rgba(255,255,255,0.04)'}}>
-                                            <div style={{flex:1,minWidth:0}}><PlayerNameTag player={req} lang={lang} size="sm" /></div>
+                                            <div
+                                                style={{flex:1,minWidth:0,cursor:'pointer'}}
+                                                onClick={() => { setTargetProfileUID(req.id); setShowUserProfile(true); }}
+                                                title={lang==='ar'?'عرض البروفايل':'View Profile'}
+                                            >
+                                                <PlayerNameTag player={req} lang={lang} size="sm" />
+                                            </div>
                                             <button onClick={() => handleAcceptRequest(req.id)} style={{padding:'4px 10px',borderRadius:'8px',background:'#00ff88',color:'#000',fontSize:'11px',fontWeight:700,border:'none',cursor:'pointer'}}>{t.accept} ✓</button>
                                             <button onClick={() => handleRejectRequest(req.id)} style={{padding:'4px 8px',borderRadius:'8px',background:'rgba(255,255,255,0.07)',color:'var(--text-muted)',fontSize:'11px',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>✕</button>
                                         </div>
