@@ -1031,26 +1031,8 @@ const ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
     const tickRef = useRef(0);
     const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
 
-    // ── GIF-based effect: render as animated image overlay ──
-    if (effect && effect.imageUrl && effect.imageUrl.trim() !== '') {
-        return (
-            <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:20,overflow:'hidden',borderRadius:'50%'}}>
-                <img
-                    src={effect.imageUrl}
-                    alt=""
-                    style={{
-                        width:'100%', height:'100%',
-                        objectFit:'cover',
-                        mixBlendMode:'screen',
-                        display:'block',
-                    }}
-                />
-            </div>
-        );
-    }
-
     const spawnParticles = useCallback(() => {
-        if (!effect || !Array.isArray(effect.particles) || effect.particles.length === 0) return;
+        if (!effect || !Array.isArray(effect.particles)) return;
         const all = effect.particles.flatMap(p =>
             Array.from({ length: Math.ceil(p.count * 0.6) }, (_, i) => ({
                 id: `${p.emoji}-${i}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -1075,7 +1057,7 @@ const ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
         return () => clearInterval(interval);
     }, [effectId, loopEvery]);
 
-    if (!effect || !Array.isArray(effect.particles) || effect.particles.length === 0 || particles.length === 0) return null;
+    if (!effect || !Array.isArray(effect.particles) || particles.length === 0) return null;
     return (
         <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:20,overflow:'hidden',borderRadius:'50%'}}>
             {particles.map(p => (
@@ -2190,81 +2172,7 @@ const CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
     );
 };
 
-const MomentsSettingsSection = ({ currentUser, userData, lang }) => {
-    const [moments, setMoments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [selectedMoment, setSelectedMoment] = useState(null);
-
-    useEffect(() => {
-        if (!currentUser?.uid) return;
-        const unsub = momentsCollection
-            .where('authorUID', '==', currentUser.uid)
-            .limit(20)
-            .onSnapshot(snap => {
-                const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                data.sort((a, b) => {
-                    const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
-                    const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
-                    return tb - ta;
-                });
-                setMoments(data);
-                setLoading(false);
-            }, () => setLoading(false));
-        return unsub;
-    }, [currentUser?.uid]);
-
-    return (
-        <div>
-            <button
-                onClick={() => setShowCreateModal(true)}
-                style={{width:'100%', padding:'10px', borderRadius:'10px', background:'linear-gradient(135deg,rgba(0,242,255,0.15),rgba(112,0,255,0.1))', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', fontSize:'13px', fontWeight:800, cursor:'pointer', marginBottom:'12px', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}
-            >
-                <span>📸</span>
-                <span>{lang === 'ar' ? 'إضافة لحظة جديدة' : 'Add New Moment'}</span>
-            </button>
-
-            {loading ? (
-                <div style={{textAlign:'center', padding:'16px', color:'#64748b', fontSize:'12px'}}>...</div>
-            ) : moments.length === 0 ? (
-                <div style={{textAlign:'center', padding:'20px', color:'#64748b', fontSize:'12px'}}>
-                    {lang === 'ar' ? 'لا توجد لحظات بعد. أضف أول لحظة!' : 'No moments yet. Add your first moment!'}
-                </div>
-            ) : (
-                <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'6px'}}>
-                    {moments.map(moment => (
-                        <div key={moment.id} onClick={() => setSelectedMoment(moment)} style={{aspectRatio:'1', borderRadius:'8px', overflow:'hidden', background:'rgba(31,41,55,0.6)', border:'1px solid rgba(255,255,255,0.08)', cursor:'pointer', position:'relative', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                            {moment.type === 'text' ? (
-                                <div style={{padding:'6px', fontSize:'9px', color:'#e2e8f0', textAlign:'center', wordBreak:'break-word', lineHeight:1.4, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical'}}>{moment.content}</div>
-                            ) : moment.type === 'image' ? (
-                                <img src={moment.mediaUrl} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}} />
-                            ) : (
-                                <div style={{width:'100%', height:'100%', position:'relative', background:'#000', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                                    <span style={{fontSize:'24px', opacity:0.7}}>🎥</span>
-                                </div>
-                            )}
-                            <div style={{position:'absolute', bottom:'2px', right:'2px', background:'rgba(0,0,0,0.7)', borderRadius:'6px', padding:'1px 5px', fontSize:'8px', color:'#f87171', fontWeight:700}}>
-                                ❤️ {moment.likesCount || 0}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {showCreateModal && <CreateMomentModal onClose={() => setShowCreateModal(false)} currentUser={currentUser} lang={lang} />}
-            {selectedMoment && (
-                <MomentDetailModal
-                    moment={selectedMoment}
-                    onClose={() => setSelectedMoment(null)}
-                    currentUser={currentUser}
-                    isOwnProfile={true}
-                    lang={lang}
-                    onDelete={(id) => { momentsCollection.doc(id).delete(); setSelectedMoment(null); }}
-                />
-            )}
-        </div>
-    );
-};
+// ── MomentsSettingsSection removed (dead code — never rendered anywhere in project)
 
 // ════════════════════════════════════════════════════════════
 // 🔒 ADMIN BAN MODAL — لوحة الحظر للأدمن
