@@ -1865,6 +1865,7 @@ function App() {
                     onOpenLoginRewards={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}
                     currency={currentUserData?.currency || 0}
                     onOpenProfile={(uid) => { setShowMyAccount(false); openProfile(uid); }}
+                    onOpenMarriage={() => { setShowMyAccount(false); setShowWeddingHall(true); }}
                     onOpenChat={(target) => {
                         setShowMyAccount(false);
                         if (target === 'self') {
@@ -2306,7 +2307,7 @@ function App() {
                                     <div style={{fontSize:'10px',fontWeight:700,color:'var(--gold)',padding:'8px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>⏳ {lang==='ar'?'طلبات صداقة':'Friend Requests'} ({friendRequests.length})</div>
                                     {friendRequests.map(req => (
                                         <div key={req.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 14px',borderTop:'1px solid rgba(255,255,255,0.04)'}}>
-                                            <div style={{flex:1,minWidth:0}}><PlayerNameTag player={req} lang={lang} size="sm" /></div>
+                                            <div style={{flex:1,minWidth:0,cursor:'pointer'}} onClick={() => { openProfile(req.id); }}><PlayerNameTag player={req} lang={lang} size="sm" /></div>
                                             <button onClick={() => handleAcceptRequest(req.id)} style={{padding:'4px 10px',borderRadius:'8px',background:'#00ff88',color:'#000',fontSize:'11px',fontWeight:700,border:'none',cursor:'pointer'}}>{t.accept} ✓</button>
                                             <button onClick={() => handleRejectRequest(req.id)} style={{padding:'4px 8px',borderRadius:'8px',background:'rgba(255,255,255,0.07)',color:'var(--text-muted)',fontSize:'11px',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>✕</button>
                                         </div>
