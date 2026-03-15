@@ -12,6 +12,10 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     if (!familyTag || !signLevel) return null;
 
     const hasGlow = signLevel >= 4;
+    // الـ glow يستخدم لون الساين نفسه — مستوى 5 أحمر، مستوى 4 برتقالي
+    const glowIntensity = signLevel === 5 ? 'dd' : signLevel === 4 ? 'cc' : '99';
+    const glowMid       = signLevel === 5 ? '88' : signLevel === 4 ? '77' : '55';
+    const glowFar       = signLevel === 5 ? '44' : '33';
 
     // لو في صورة: تظهر كبيرة مع التاج مكتوب فوقها باحتراف
     if (signImgURL) {
@@ -30,8 +34,8 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
                     display:'inline-flex', alignItems:'center', justifyContent:'center',
                     flexShrink:0, cursor: onClick ? 'pointer' : 'default',
                     width:`${imgW}px`, height:`${imgH}px`,
-                    filter: hasGlow
-                        ? `drop-shadow(0 0 6px ${signColor}cc) drop-shadow(0 0 12px ${signColor}66)`
+                filter: hasGlow
+                        ? `drop-shadow(0 0 6px ${signColor}${glowIntensity}) drop-shadow(0 0 14px ${signColor}${glowMid}) drop-shadow(0 0 22px ${signColor}${glowFar})`
                         : 'none',
                     transition:'all 0.2s',
                 }}
@@ -85,7 +89,7 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
                 fontWeight:800, fontStyle:'italic', cursor: onClick ? 'pointer' : 'default',
                 background:`${signColor}20`, border:`1px solid ${signColor}55`,
                 color:signColor, letterSpacing:'0.5px', whiteSpace:'nowrap', flexShrink:0,
-                boxShadow: hasGlow ? `0 0 10px ${signColor}55` : 'none',
+                boxShadow: hasGlow ? `0 0 10px ${signColor}55, 0 0 20px ${signColor}33` : 'none',
                 transition:'all 0.2s',
             }}
         >
