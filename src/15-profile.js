@@ -3306,51 +3306,6 @@ const ProfileV11 = ({
                     )}
                 </div>
 
-                {/* 🛡️ GUARD STRIP — always visible, shows empty slots until filled */}
-                {!loading && targetData && (
-                    <div
-                        onClick={() => setShowGuardModal(true)}
-                        style={{
-                            display:'flex', alignItems:'center', justifyContent:'space-between',
-                            padding:'10px 16px',
-                            background:'rgba(255,255,255,0.04)',
-                            borderBottom:'1px solid rgba(255,255,255,0.07)',
-                            borderTop:'1px solid rgba(255,255,255,0.04)',
-                            cursor:'pointer',
-                        }}
-                    >
-                        {/* Left: Guard label */}
-                        <span style={{fontSize:'15px',fontWeight:900,color:'var(--text-main,#e5e7eb)',letterSpacing:'-0.3px'}}>
-                            Guard
-                        </span>
-                        {/* Center: Top 3 circles — filled or empty slot */}
-                        <div style={{display:'flex',alignItems:'center',gap:'10px',direction:'ltr'}}>
-                            {[0,1,2].map(i => {
-                                const g = guardData[i];
-                                const colors = ['#f5a623','#b0b8c8','#e07b9a'];
-                                const shadows = ['rgba(245,166,35,0.35)','rgba(176,184,200,0.25)','rgba(224,123,154,0.3)'];
-                                return (
-                                    <div key={i} style={{
-                                        width:'62px', height:'62px', borderRadius:'50%', overflow:'hidden',
-                                        border:`3px solid ${colors[i]}`,
-                                        flexShrink:0,
-                                        boxShadow:`0 2px 10px ${shadows[i]}`,
-                                        background:'rgba(255,255,255,0.04)',
-                                    }}>
-                                        {g?.photo
-                                            ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                            : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',opacity:0.25}}>
-                                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#fff" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                                              </div>
-                                        }
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        {/* Right: arrow */}
-                        <span style={{fontSize:'18px',color:'rgba(255,255,255,0.35)',fontWeight:300}}>›</span>
-                    </div>
-                )}
 
                 {loading ? (
                     <div className="profile-loading">
@@ -3508,91 +3463,51 @@ const ProfileV11 = ({
 
                         <GiftWallV11 gifts={gifts} lang={lang} isOwnProfile={isOwnProfile} userData={userData} onOpenProfile={onOpenProfile} onSendGiftToSelf={isGuestProp ? null : (gift) => { setSelfGift(gift); setShowSelfGiftModal(true); }} />
 
-                        {/* 🛡️ GUARD SECTION — below Gift Wall */}
-                        <div style={{margin:'0 12px 8px'}}>
-                            <div style={{
-                                display:'flex', alignItems:'center', justifyContent:'space-between',
-                                marginBottom:'8px', paddingTop:'4px',
-                            }}>
-                                <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                                    <span style={{fontSize:'15px'}}>🛡️</span>
-                                    <span style={{fontSize:'12px',fontWeight:900,color:'#e5e7eb',letterSpacing:'0.3px'}}>
-                                        {lang==='ar'?'الحماية':'Guard'}
-                                    </span>
-                                </div>
-                                {guardData.length > 0 && (
-                                    <button
-                                        onClick={() => setShowGuardModal(true)}
-                                        style={{
-                                            background:'none', border:'1px solid rgba(0,212,255,0.25)',
-                                            borderRadius:'12px', padding:'3px 10px',
-                                            fontSize:'10px', color:'#00f2ff', fontWeight:700, cursor:'pointer',
-                                        }}
-                                    >
-                                        {lang==='ar'?'عرض الكل':'View All'}
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Top 5 guardians row */}
-                            {guardData.length > 0 ? (
-                                <div style={{
-                                    display:'flex', alignItems:'center', gap:'8px',
-                                    padding:'10px 12px',
-                                    background:'linear-gradient(135deg,rgba(0,212,255,0.06),rgba(112,0,255,0.05))',
-                                    border:'1px solid rgba(0,212,255,0.15)', borderRadius:'14px',
+                        {/* 🛡️ GUARD STRIP — always visible, shows empty slots until filled */}
+                        {!loading && targetData && (
+                            <div
+                                onClick={() => setShowGuardModal(true)}
+                                style={{
+                                    display:'flex', alignItems:'center', justifyContent:'space-between',
+                                    padding:'10px 16px',
+                                    background:'rgba(255,255,255,0.04)',
+                                    borderBottom:'1px solid rgba(255,255,255,0.07)',
+                                    borderTop:'1px solid rgba(255,255,255,0.04)',
                                     cursor:'pointer',
-                                }} onClick={() => setShowGuardModal(true)}>
-                                    {guardData.slice(0,5).map((g, i) => (
-                                        <div key={g.uid} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:1}}>
-                                            <div style={{
-                                                width: i===0?'44px':'36px',
-                                                height: i===0?'44px':'36px',
-                                                borderRadius:'50%', overflow:'hidden',
-                                                border:`2.5px solid ${i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(0,212,255,0.3)'}`,
-                                                boxShadow: i===0?'0 0 12px rgba(255,215,0,0.55)':i===1?'0 0 8px rgba(192,192,192,0.4)':i===2?'0 0 8px rgba(205,127,50,0.4)':'none',
-                                                flexShrink:0, margin:'0 auto',
+                                }}
+                            >
+                                {/* Left: Guard label */}
+                                <span style={{fontSize:'15px',fontWeight:900,color:'var(--text-main,#e5e7eb)',letterSpacing:'-0.3px'}}>
+                                    Guard
+                                </span>
+                                {/* Center: Top 3 circles — filled or empty slot */}
+                                <div style={{display:'flex',alignItems:'center',gap:'10px',direction:'ltr'}}>
+                                    {[0,1,2].map(i => {
+                                        const g = guardData[i];
+                                        const colors = ['#f5a623','#b0b8c8','#e07b9a'];
+                                        const shadows = ['rgba(245,166,35,0.35)','rgba(176,184,200,0.25)','rgba(224,123,154,0.3)'];
+                                        return (
+                                            <div key={i} style={{
+                                                width:'62px', height:'62px', borderRadius:'50%', overflow:'hidden',
+                                                border:`3px solid ${colors[i]}`,
+                                                flexShrink:0,
+                                                boxShadow:`0 2px 10px ${shadows[i]}`,
+                                                background:'rgba(255,255,255,0.04)',
                                             }}>
-                                                {g.photo
+                                                {g?.photo
                                                     ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                                    : <div style={{width:'100%',height:'100%',background:'#1a1a3e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>👤</div>
+                                                    : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',opacity:0.25}}>
+                                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#fff" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                                                      </div>
                                                 }
                                             </div>
-                                            <span style={{
-                                                fontSize:'9px', fontWeight:700,
-                                                color:i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'#9ca3af',
-                                                maxWidth:'50px', overflow:'hidden', textOverflow:'ellipsis',
-                                                whiteSpace:'nowrap', textAlign:'center',
-                                            }}>
-                                                {g.name?.split(' ')[0] || '?'}
-                                            </span>
-                                            <span style={{fontSize:'8px',color:'#4ade80',fontWeight:700}}>
-                                                {g.total >= 1000 ? `${(g.total/1000).toFixed(1)}K` : g.total}
-                                            </span>
-                                            <span style={{fontSize:'7px',color:'#6b7280'}}>Guard</span>
-                                        </div>
-                                    ))}
-                                    {guardData.length > 5 && (
-                                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:1}}>
-                                            <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'1px dashed rgba(255,255,255,0.15)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                                                <span style={{fontSize:'12px',color:'#6b7280',fontWeight:700}}>+{guardData.length-5}</span>
-                                            </div>
-                                            <span style={{fontSize:'8px',color:'#6b7280'}}>{lang==='ar'?'المزيد':'more'}</span>
-                                        </div>
-                                    )}
+                                        );
+                                    })}
                                 </div>
-                            ) : (
-                                <div style={{
-                                    padding:'12px', borderRadius:'14px', textAlign:'center',
-                                    background:'rgba(255,255,255,0.03)', border:'1px dashed rgba(255,255,255,0.08)',
-                                }}>
-                                    <div style={{fontSize:'20px',marginBottom:'4px'}}>🛡️</div>
-                                    <div style={{fontSize:'11px',color:'#4b5563',fontWeight:600}}>
-                                        {lang==='ar'?'لا يوجد حراس بعد':'No guards yet'}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                                {/* Right: arrow */}
+                                <span style={{fontSize:'18px',color:'rgba(255,255,255,0.35)',fontWeight:300}}>›</span>
+                            </div>
+                        )}
 
                         {/* 🛡️ GUARD MODAL */}
                         {showGuardModal && (
