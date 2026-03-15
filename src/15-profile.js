@@ -2862,6 +2862,7 @@ const ProfileV11 = ({
     currentViewerData,  // logged-in viewer's user data (for couple gift sending)
     onOpenMarriage,     // opens the marriage/wedding hall page
     onOpenFamily,       // opens family modal (pass familyId to view any family)
+    onOpenBFFModal,     // opens BFF modal for own profile
 }) => {
     const t = TRANSLATIONS[lang] || {};
 
@@ -3171,12 +3172,14 @@ const ProfileV11 = ({
         if (!reportReason || !currentUserUID || !targetUID) return;
         setReportSending(true);
         try {
-            await reportsCollection.add({
+            const reporterSnap = await usersCollection.doc(currentUserUID).get();
+            const reporterName = reporterSnap.exists ? (reporterSnap.data()?.displayName || 'User') : 'User';
+            const reportRef = await reportsCollection.add({
                 reportedUID:    targetUID,
                 reportedName:   targetData?.displayName || 'Unknown',
                 reportedPhoto:  targetData?.photoURL || '',
                 reporterUID:    currentUserUID,
-                reporterName:   targetData ? (await usersCollection.doc(currentUserUID).get()).data()?.displayName || 'User' : 'User',
+                reporterName,
                 reason:         reportReason,
                 description:    reportDescription.trim(),
                 imageBase64:    reportImagePreview || null,
@@ -3184,6 +3187,22 @@ const ProfileV11 = ({
                 status:         'pending',
                 type:           'user',
             });
+            // Send detective bot message to reporter
+            if (typeof botChatsCollection !== 'undefined') {
+                await botChatsCollection.add({
+                    botId: 'detective_bot',
+                    toUserId: currentUserUID,
+                    type: 'report_received',
+                    message: lang === 'ar'
+                        ? `🕵️ تم استلام بلاغك بنجاح ضد "${targetData?.displayName || 'Unknown'}".\nالسبب: ${reportReason}\n\nسيتم مراجعته من قِبل الفريق. انتظر الرد هنا.`
+                        : `🕵️ Your report against "${targetData?.displayName || 'Unknown'}" was received successfully.\nReason: ${reportReason}\n\nOur team will review it. Watch for a response here.`,
+                    fromName: null,
+                    fromPhoto: null,
+                    reportId: reportRef.id,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    read: false,
+                }).catch(() => {});
+            }
             setShowReportModal(false);
             setReportReason('');
             setReportDescription('');
@@ -3630,6 +3649,19 @@ const ProfileV11 = ({
                         </div>
 
                         <GiftWallV11 gifts={gifts} lang={lang} isOwnProfile={isOwnProfile} userData={userData} onOpenProfile={onOpenProfile} onSendGiftToSelf={isGuestProp ? null : (gift) => { setSelfGift(gift); setShowSelfGiftModal(true); }} />
+
+                        {/* 🤝 BFF STRIP — above Guard */}
+                        {!loading && targetData && (
+                            <BFFStripProfile
+                                targetUID={targetUID}
+                                currentUID={currentUserUID}
+                                currentUserData={userData}
+                                lang={lang}
+                                onNotification={onNotification}
+                                friendsData={currentUserFriends ? null : null}
+                                onOpenBFFModal={onOpenBFFModal}
+                            />
+                        )}
 
                         {/* 🛡️ GUARD STRIP — square compact design */}
                         {!loading && targetData && (
