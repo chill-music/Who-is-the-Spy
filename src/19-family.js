@@ -682,7 +682,7 @@ const FamilyRankingModal = ({ show, onClose, lang, currentFamilyId }) => {
 // ════════════════════════════════════════════════════════
 const CHAT_EMOJIS_FAM = ['😀','😂','❤️','👍','🔥','⭐','💎','🎁','🎉','😎','🤩','💪','✨','🙏','😊','👑','💖','🥳','🏆','🎯','😍','🤣','😭','😱','🫡','💯','🌹','🎮','🕵️','🏅'];
 
-const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang }) => {
+const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily }) => {
     const [messages, setMessages] = React.useState([]);
     const [chatInput, setChatInput] = React.useState('');
     const [sendingMsg, setSendingMsg] = React.useState(false);
@@ -705,6 +705,8 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
         if (show) setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 120);
     }, [messages.length, show]);
 
+    var canManageFamilyChat = familyData ? canManageFamily(familyData, currentUID) : false;
+
     const sendMessage = async (text, type, extra) => {
         type = type || 'text';
         extra = extra || {};
@@ -712,18 +714,32 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
         if (!familyId || !currentUID || sendingMsg) return;
         setSendingMsg(true);
         try {
+            // Check if it's an announcement command
+            var msgText = (text || '').trim();
+            var isAnnouncementCmd = canManageFamilyChat && type === 'text' && msgText.toLowerCase().startsWith('announcement ');
+            var finalType = isAnnouncementCmd ? 'announcement' : type;
+            var finalText = isAnnouncementCmd ? msgText.slice('announcement '.length).trim() : msgText;
+
+            if (isAnnouncementCmd && finalText) {
+                // Update family announcement field too
+                await familiesCollection.doc(familyId).update({
+                    announcement: finalText,
+                    announcementBy: currentUserData?.displayName || 'Admin',
+                }).catch(function() {});
+            }
+
             await familiesCollection.doc(familyId).collection('messages').add({
                 senderId: currentUID,
                 senderName: currentUserData?.displayName || 'Member',
                 senderPhoto: currentUserData?.photoURL || null,
-                text: (text || '').trim(),
-                type: type,
+                text: finalText,
+                type: finalType,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 ...extra,
             });
             if (type === 'text') setChatInput('');
             await familiesCollection.doc(familyId).update({
-                lastChatMessage: (text || '').trim() || (type === 'image' ? '📷' : ''),
+                lastChatMessage: finalText || (type === 'image' ? '📷' : ''),
                 lastChatSenderId: currentUID,
                 lastChatAt: firebase.firestore.FieldValue.serverTimestamp(),
                 lastChatAtMs: Date.now(),
@@ -784,16 +800,35 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
             },
                 React.createElement('button', { onClick: onClose, style: { background:'none', border:'none', color:'#00f2ff', fontSize:'20px', cursor:'pointer', padding:'0 4px' } }, '‹'),
                 React.createElement('div', {
-                    style: { width:'40px', height:'40px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'linear-gradient(135deg,' + signData.color + '22,rgba(0,0,0,0.3))', border:'2px solid ' + signData.color + '55', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px' }
+                    onClick: () => onOpenFamily && onOpenFamily(),
+                    style: { width:'40px', height:'40px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'linear-gradient(135deg,' + signData.color + '22,rgba(0,0,0,0.3))', border:'2px solid ' + signData.color + '55', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', cursor: onOpenFamily ? 'pointer' : 'default' }
                 }, familyData && familyData.photoURL ? React.createElement('img', { src: familyData.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}}) : (familyData && familyData.emblem) || '🏠'),
-                React.createElement('div', { style: { flex:1, minWidth:0 } },
+                React.createElement('div', {
+                    onClick: () => onOpenFamily && onOpenFamily(),
+                    style: { flex:1, minWidth:0, cursor: onOpenFamily ? 'pointer' : 'default' }
+                },
                     React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' } },
-                        React.createElement('span', { style: { fontSize:'14px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } }, (familyData && familyData.name) || (lang==='ar'?'شات العائلة':'Family Chat')),
+                        React.createElement('span', { style: { fontSize:'14px', fontWeight:800, color: onOpenFamily ? '#00f2ff' : 'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: onOpenFamily ? 'underline dotted rgba(0,242,255,0.4)' : 'none' } }, (familyData && familyData.name) || (lang==='ar'?'شات العائلة':'Family Chat')),
                         familyData && signData.level > 0 && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: familyData.signImageURL })
                     ),
                     React.createElement('div', { style: { fontSize:'10px', color:'#6b7280' } },
                         ((familyData && familyData.members && familyData.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members'),
                         fLvl && React.createElement('span', { style: { color: fLvl.color, marginLeft:'4px' } }, fLvl.icon + ' Lv.' + fLvl.level)
+                    )
+                )
+            ),
+            // Pinned Announcement Bar
+            familyData && familyData.announcement && React.createElement('div', {
+                style: { flexShrink:0, margin:'8px 10px 4px', padding:'9px 14px', borderRadius:'12px', background:'linear-gradient(135deg,rgba(255,165,0,0.18),rgba(255,80,0,0.12))', border:'1px solid rgba(255,165,0,0.45)', boxShadow:'0 0 16px rgba(255,140,0,0.2)', position:'relative', overflow:'hidden' }
+            },
+                React.createElement('div', { style: { position:'absolute', left:0, top:0, bottom:0, width:'4px', background:'linear-gradient(180deg,#ffd700,#ff8800)', borderRadius:'12px 0 0 12px' } }),
+                React.createElement('div', { style: { display:'flex', alignItems:'flex-start', gap:'8px', paddingLeft:'6px' } },
+                    React.createElement('span', { style: { fontSize:'16px', lineHeight:1, flexShrink:0 } }, '📢'),
+                    React.createElement('div', { style: { flex:1, minWidth:0 } },
+                        React.createElement('div', { style: { fontSize:'9px', fontWeight:800, color:'#fbbf24', letterSpacing:'1px', marginBottom:'3px', textTransform:'uppercase' } },
+                            (lang==='ar'?'إعلان من الإدارة':'ANNOUNCEMENT') + (familyData.announcementBy ? ' · ' + familyData.announcementBy : '')
+                        ),
+                        React.createElement('div', { style: { fontSize:'12px', color:'#fde68a', lineHeight:1.5, fontWeight:600, wordBreak:'break-word' } }, familyData.announcement)
                     )
                 )
             ),
@@ -818,6 +853,29 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                         React.createElement('div', { style: { background:'linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,140,0,0.1))', border:'1px solid rgba(255,215,0,0.3)', borderRadius:'12px', padding:'8px 14px', maxWidth:'90%', textAlign:'center' } },
                             React.createElement('div', { style: { fontSize:'12px', color:'#ffd700', fontWeight:800 } }, msg.text),
                             React.createElement('div', { style: { fontSize:'10px', color:'#6b7280', marginTop:'2px' } }, fmtTime(msg.timestamp))
+                        )
+                    );
+                    // ── Announcement message ──
+                    var isAnnouncement = msg.type === 'announcement';
+                    if (isAnnouncement) return React.createElement('div', { key: msg.id, style: { display:'flex', justifyContent:'center', padding:'6px 0' } },
+                        React.createElement('div', {
+                            style: { width:'100%', background:'linear-gradient(135deg,rgba(255,165,0,0.2),rgba(255,80,0,0.12))', border:'1.5px solid rgba(255,165,0,0.5)', borderRadius:'14px', padding:'10px 14px', position:'relative', overflow:'hidden', boxShadow:'0 0 18px rgba(255,140,0,0.18)' }
+                        },
+                            React.createElement('div', { style: { position:'absolute', left:0, top:0, bottom:0, width:'4px', background:'linear-gradient(180deg,#ffd700,#ff8800)', borderRadius:'14px 0 0 14px' } }),
+                            React.createElement('div', { style: { paddingLeft:'8px' } },
+                                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', marginBottom:'5px' } },
+                                    React.createElement('span', { style: { fontSize:'16px' } }, '📢'),
+                                    React.createElement('span', { style: { fontSize:'10px', fontWeight:900, color:'#fbbf24', letterSpacing:'1px', textTransform:'uppercase' } }, lang==='ar'?'إعلان رسمي':'OFFICIAL ANNOUNCEMENT'),
+                                    React.createElement('span', { style: { marginLeft:'auto', fontSize:'9px', color:'#6b7280' } }, fmtTime(msg.timestamp))
+                                ),
+                                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px' } },
+                                    msg.senderPhoto
+                                        ? React.createElement('img', { src: msg.senderPhoto, alt:'', style:{width:'18px',height:'18px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid rgba(255,215,0,0.5)'} })
+                                        : React.createElement('div', { style:{width:'18px',height:'18px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'9px'}}, '👤'),
+                                    React.createElement('span', { style: { fontSize:'10px', fontWeight:700, color:'#fde68a' } }, msg.senderName)
+                                ),
+                                React.createElement('div', { style: { fontSize:'13px', color:'#fef3c7', lineHeight:1.6, fontWeight:600, wordBreak:'break-word' } }, msg.text)
+                            )
                         )
                     );
                     return React.createElement('div', { key: msg.id, style: { display:'flex', flexDirection: isMe?'row-reverse':'row', gap:'8px', alignItems:'flex-end' } },
@@ -870,7 +928,9 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     onKeyDown: function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput); } },
                     maxLength: 400,
                     style: { flex:1, padding:'9px 12px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'13px', outline:'none' },
-                    placeholder: lang==='ar'?'اكتب رسالة...':'Type a message...'
+                    placeholder: canManageFamilyChat
+                        ? (lang==='ar'?'اكتب رسالة... أو "Announcement نصك"':'Type a message... or "Announcement text"')
+                        : (lang==='ar'?'اكتب رسالة...':'Type a message...')
                 }),
                 React.createElement('button', {
                     onClick: function() { sendMessage(chatInput); },
@@ -1625,7 +1685,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     ] : [
         { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
         { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
-        { id:'chat',     label_en:'Chat',    label_ar:'شات',      icon:'💬' },
         { id:'tasks',    label_en:'Tasks',   label_ar:'مهام',     icon:'🎯' },
         { id:'shop',     label_en:'Shop',    label_ar:'المتجر',   icon:'🏅' },
         { id:'news',     label_en:'News',    label_ar:'أخبار',    icon:'📰' },
@@ -1777,12 +1836,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                         </div>
                                     )}
                                 </div>
-                                {/* زر فتح الشات */}
-                                <button
-                                    onClick={() => setActiveTab('chat')}
-                                    style={{fontSize:'9px',fontWeight:700,color:'#fbbf24',background:'rgba(255,165,0,0.15)',border:'1px solid rgba(255,165,0,0.35)',borderRadius:'8px',padding:'3px 8px',cursor:'pointer'}}>
-                                    {lang==='ar'?'الشات ›':'Chat ›'}
-                                </button>
+                                {/* زر فتح الشات — محذوف لأن الشات انتقل لصفحة الشات الخارجية */}
                             </div>
                             <div style={{fontSize:'13px', color:'#fef3c7', lineHeight:1.6, fontWeight:600}}>{family.announcement}</div>
                         </div>
