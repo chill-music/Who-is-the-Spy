@@ -19,6 +19,52 @@ const BFF_RARITY_TO_LEVEL = {
 };
 
 // ─────────────────────────────────────────────
+// ⭐ BFF LEVEL SYSTEM — gift-point based
+// ─────────────────────────────────────────────
+const BFF_LEVELS = [
+    { level: 1, minPts: 0,     name_en: 'Friends',        name_ar: 'أصدقاء',          color: '#60a5fa', glow: 'rgba(96,165,250,0.5)',   icon: '🤝', stars: 1 },
+    { level: 2, minPts: 500,   name_en: 'Close Friends',  name_ar: 'أصدقاء مقربون',   color: '#4ade80', glow: 'rgba(74,222,128,0.5)',   icon: '💚', stars: 2 },
+    { level: 3, minPts: 2000,  name_en: 'Best Friends',   name_ar: 'أعز الأصدقاء',    color: '#f59e0b', glow: 'rgba(245,158,11,0.5)',   icon: '⭐', stars: 3 },
+    { level: 4, minPts: 6000,  name_en: 'Soulmates',      name_ar: 'أرواح توأم',       color: '#a78bfa', glow: 'rgba(167,139,250,0.5)', icon: '💜', stars: 4 },
+    { level: 5, minPts: 15000, name_en: 'Legendary Bond', name_ar: 'رابطة أسطورية',   color: '#ffd700', glow: 'rgba(255,215,0,0.6)',    icon: '👑', stars: 5 },
+    { level: 6, minPts: 40000, name_en: 'Eternal Bond',   name_ar: 'رابطة أبدية',     color: '#f0abfc', glow: 'rgba(240,171,252,0.7)', icon: '💎', stars: 6 },
+];
+
+const getBFFLevel = (giftPoints = 0) => {
+    let lv = BFF_LEVELS[0];
+    for (const l of BFF_LEVELS) { if (giftPoints >= l.minPts) lv = l; else break; }
+    const nextIdx = BFF_LEVELS.findIndex(l => l.level === lv.level) + 1;
+    const next = BFF_LEVELS[nextIdx] || null;
+    const pct = next
+        ? Math.min(100, Math.round(((giftPoints - lv.minPts) / (next.minPts - lv.minPts)) * 100))
+        : 100;
+    return { ...lv, pct, nextMinPts: next?.minPts || null, giftPoints };
+};
+
+// ─────────────────────────────────────────────
+// 🎁 Update BFF gift points when gift is sent
+// ─────────────────────────────────────────────
+const updateBFFGiftPoints = async (senderUID, receiverUID, charismaPoints) => {
+    try {
+        const [snap1, snap2] = await Promise.all([
+            bffCollection.where('uid1', '==', senderUID).where('uid2', '==', receiverUID).where('status', '==', 'active').limit(1).get(),
+            bffCollection.where('uid1', '==', receiverUID).where('uid2', '==', senderUID).where('status', '==', 'active').limit(1).get(),
+        ]);
+        const doc = snap1.docs[0] || snap2.docs[0];
+        if (!doc) return;
+        const current = doc.data();
+        const newPts = (current.giftPoints || 0) + (charismaPoints || 1);
+        const newLevel = getBFFLevel(newPts).level;
+        await bffCollection.doc(doc.id).update({
+            giftPoints: newPts,
+            level: newLevel,
+        });
+    } catch (e) {
+        console.warn('BFF gift points update failed', e);
+    }
+};
+
+// ─────────────────────────────────────────────
 // 🔧 FIRESTORE HELPERS
 // ─────────────────────────────────────────────
 const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotification, lang }) => {
@@ -253,6 +299,11 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
     const other = bffDoc.uid1 === currentUID ? partnerData : selfData;
     const me = bffDoc.uid1 === currentUID ? selfData : partnerData;
 
+    // Level info
+    const lvInfo = getBFFLevel(bffDoc.giftPoints || 0);
+    const levelColors = ['#60a5fa','#4ade80','#f59e0b','#a78bfa','#ffd700','#f0abfc'];
+    const levelColor = levelColors[(lvInfo.level - 1)] || '#60a5fa';
+
     const handleEnd = async () => {
         setEnding(true);
         await endBFFRelationship({ bffDocId: bffDoc.id, onNotification, lang });
@@ -261,100 +312,232 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
         onClose();
     };
 
+    // Stars row
+    const StarsRow = ({ count, color }) => (
+        <div style={{ display: 'flex', gap: '3px', justifyContent: 'center' }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+                <span key={i} style={{
+                    fontSize: '11px',
+                    filter: i < count ? `drop-shadow(0 0 4px ${color})` : 'none',
+                    opacity: i < count ? 1 : 0.2,
+                }}>★</span>
+            ))}
+        </div>
+    );
+
     return (
         <PortalModal>
             <div onClick={onClose} style={{
                 position: 'fixed', inset: 0, zIndex: Z.MODAL_HIGH + 5,
-                background: 'rgba(0,0,0,0.85)',
+                background: 'rgba(0,0,0,0.88)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
             }}>
                 <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
-                    width: '100%', maxWidth: '380px',
-                    background: 'linear-gradient(145deg,#0a0010,#100820)',
-                    borderRadius: '24px', overflow: 'hidden',
-                    boxShadow: `0 0 60px ${token.glow}, 0 30px 80px rgba(0,0,0,0.9)`,
-                    border: `1px solid ${token.color}44`,
+                    width: '100%', maxWidth: '360px',
+                    background: 'linear-gradient(160deg,#0c0018,#110a22)',
+                    borderRadius: '26px', overflow: 'hidden',
+                    boxShadow: `0 0 80px ${lvInfo.glow}, 0 30px 80px rgba(0,0,0,0.9)`,
+                    border: `1.5px solid ${lvInfo.color}50`,
                 }}>
-                    {/* Header */}
+
+                    {/* ── Top gradient header ── */}
                     <div style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '14px 18px',
-                        background: `linear-gradient(135deg,${token.color}22,${token.color}10)`,
-                        borderBottom: `1px solid ${token.color}30`,
+                        padding: '18px 18px 14px',
+                        background: `linear-gradient(135deg,${lvInfo.color}28,${lvInfo.color}10,transparent)`,
+                        borderBottom: `1px solid ${lvInfo.color}28`,
+                        position: 'relative', overflow: 'hidden',
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '26px', filter: `drop-shadow(0 0 8px ${token.glow})` }}>
-                                {token.imageURL
-                                    ? <img src={token.imageURL} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
-                                    : token.emoji}
-                            </span>
-                            <div>
-                                <div style={{ fontSize: '14px', fontWeight: 900, color: 'white' }}>
-                                    {lang === 'ar' ? token.name_ar : token.name_en}
+                        {/* glow blob */}
+                        <div style={{ position: 'absolute', top: '-30px', right: '-20px', width: '120px', height: '120px', borderRadius: '50%', background: lvInfo.glow, filter: 'blur(50px)', pointerEvents: 'none', opacity: 0.5 }} />
+
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                {/* Level badge */}
+                                <div style={{
+                                    width: '46px', height: '46px', borderRadius: '14px',
+                                    background: `linear-gradient(135deg,${lvInfo.color},${lvInfo.color}88)`,
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                    boxShadow: `0 4px 16px ${lvInfo.glow}`,
+                                    flexShrink: 0,
+                                }}>
+                                    <span style={{ fontSize: '9px', fontWeight: 900, color: '#000', letterSpacing: '0.5px' }}>LV</span>
+                                    <span style={{ fontSize: '18px', fontWeight: 900, color: '#000', lineHeight: 1 }}>{lvInfo.level}</span>
                                 </div>
-                                <div style={{ fontSize: '9px', color: BFF_RARITY_COLORS[token.rarity], fontWeight: 700 }}>{token.rarity}</div>
+                                <div>
+                                    <div style={{ fontSize: '15px', fontWeight: 900, color: 'white', lineHeight: 1.2 }}>
+                                        {lang === 'ar' ? lvInfo.name_ar : lvInfo.name_en}
+                                    </div>
+                                    <div style={{ fontSize: '10px', color: lvInfo.color, fontWeight: 700, marginTop: '2px' }}>
+                                        {token.emoji} {lang === 'ar' ? token.name_ar : token.name_en}
+                                    </div>
+                                    <StarsRow count={lvInfo.level} color={lvInfo.color} />
+                                </div>
                             </div>
+                            <button onClick={onClose} style={{
+                                background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '9px',
+                                color: '#9ca3af', fontSize: '16px', width: '30px', height: '30px', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                            }}>✕</button>
                         </div>
-                        <button onClick={onClose} style={{
-                            background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '8px',
-                            color: '#9ca3af', fontSize: '16px', width: '30px', height: '30px', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>✕</button>
                     </div>
 
-                    {/* Card with avatars */}
-                    <div style={{ padding: '16px' }}>
-                        <BFFCardBackground cardType={bffDoc.cardType || token.cardType} color={token.color} glow={token.glow}>
+                    <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+
+                        {/* ── Relationship Card ── */}
+                        <div style={{
+                            borderRadius: '18px', overflow: 'hidden', position: 'relative',
+                            background: `linear-gradient(145deg,${token.color}35,${token.color}15)`,
+                            border: `1.5px solid ${token.color}60`,
+                            boxShadow: `0 0 24px ${token.glow}55`,
+                            padding: '20px 14px 14px',
+                        }}>
+                            {/* Pattern overlay */}
                             <div style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                gap: '20px', padding: '24px 16px',
-                            }}>
-                                {/* Avatar 1 */}
+                                position: 'absolute', inset: 0,
+                                background: `repeating-linear-gradient(45deg, ${token.color}07 0, transparent 12px, ${token.color}04 12px, transparent 24px)`,
+                                pointerEvents: 'none',
+                            }} />
+
+                            {/* Decorative glow top */}
+                            <div style={{ position: 'absolute', top: '-20px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '40px', background: token.glow, filter: 'blur(20px)', opacity: 0.45, pointerEvents: 'none' }} />
+
+                            {/* Avatars row */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
+                                {/* Left avatar */}
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                                     <div style={{
-                                        width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden',
+                                        width: '68px', height: '68px', borderRadius: '50%', overflow: 'hidden',
                                         border: `3px solid ${token.color}`,
-                                        boxShadow: `0 0 16px ${token.glow}`,
+                                        boxShadow: `0 0 18px ${token.glow}`,
                                     }}>
                                         {me?.photoURL
                                             ? <img src={me.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', background: 'rgba(255,255,255,0.05)' }}>😎</div>}
                                     </div>
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'white', textAlign: 'center', maxWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'white', textAlign: 'center', maxWidth: '72px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>
                                         {me?.displayName || '—'}
                                     </span>
                                 </div>
 
-                                {/* Center icon */}
-                                <div style={{
-                                    fontSize: '28px',
-                                    filter: `drop-shadow(0 0 12px ${token.glow})`,
-                                    animation: 'float 2s ease-in-out infinite',
-                                }}>
-                                    {token.emoji}
+                                {/* Center: token icon + level icon */}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                                    <div style={{ fontSize: '32px', filter: `drop-shadow(0 0 14px ${token.glow})`, animation: 'float 2.2s ease-in-out infinite' }}>
+                                        {token.imageURL
+                                            ? <img src={token.imageURL} alt="" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
+                                            : token.emoji}
+                                    </div>
+                                    <div style={{
+                                        background: `linear-gradient(135deg,${lvInfo.color},${lvInfo.color}88)`,
+                                        color: '#000', fontSize: '8px', fontWeight: 900,
+                                        padding: '2px 7px', borderRadius: '10px',
+                                        boxShadow: `0 2px 8px ${lvInfo.glow}`,
+                                    }}>LV{lvInfo.level} {lvInfo.icon}</div>
                                 </div>
 
-                                {/* Avatar 2 */}
+                                {/* Right avatar */}
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                                     <div style={{
-                                        width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden',
+                                        width: '68px', height: '68px', borderRadius: '50%', overflow: 'hidden',
                                         border: `3px solid ${token.color}`,
-                                        boxShadow: `0 0 16px ${token.glow}`,
+                                        boxShadow: `0 0 18px ${token.glow}`,
                                     }}>
                                         {other?.photoURL
                                             ? <img src={other.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', background: 'rgba(255,255,255,0.05)' }}>😎</div>}
                                     </div>
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'white', textAlign: 'center', maxWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'white', textAlign: 'center', maxWidth: '72px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>
                                         {other?.displayName || '—'}
                                     </span>
                                 </div>
                             </div>
-                        </BFFCardBackground>
+                        </div>
 
-                        {/* End relationship button — only for members */}
+                        {/* ── Level Progress ── */}
+                        <div style={{
+                            borderRadius: '16px',
+                            background: 'rgba(255,255,255,0.03)',
+                            border: `1px solid ${lvInfo.color}30`,
+                            padding: '12px 14px',
+                        }}>
+                            {/* Level row */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span style={{ fontSize: '15px' }}>{lvInfo.icon}</span>
+                                    <span style={{ fontSize: '12px', fontWeight: 800, color: lvInfo.color }}>
+                                        {lang === 'ar' ? `المستوى ${lvInfo.level}` : `Level ${lvInfo.level}`}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ fontSize: '10px', color: '#6b7280' }}>
+                                        {(bffDoc.giftPoints || 0).toLocaleString()}
+                                    </span>
+                                    {lvInfo.nextMinPts && (
+                                        <span style={{ fontSize: '10px', color: '#4b5563' }}>
+                                            / {lvInfo.nextMinPts.toLocaleString()} ⭐
+                                        </span>
+                                    )}
+                                    {!lvInfo.nextMinPts && (
+                                        <span style={{ fontSize: '10px', color: lvInfo.color, fontWeight: 700 }}>MAX</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Progress bar */}
+                            <div style={{
+                                height: '8px', borderRadius: '8px',
+                                background: 'rgba(255,255,255,0.07)',
+                                overflow: 'hidden', marginBottom: '8px',
+                            }}>
+                                <div style={{
+                                    height: '100%',
+                                    width: `${lvInfo.pct}%`,
+                                    borderRadius: '8px',
+                                    background: `linear-gradient(90deg, ${lvInfo.color}99, ${lvInfo.color})`,
+                                    boxShadow: `0 0 8px ${lvInfo.glow}`,
+                                    transition: 'width 0.6s ease',
+                                }} />
+                            </div>
+
+                            {/* All level milestones */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                {BFF_LEVELS.map(l => {
+                                    const reached = (bffDoc.giftPoints || 0) >= l.minPts;
+                                    const isCurrent = l.level === lvInfo.level;
+                                    return (
+                                        <div key={l.level} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                            <div style={{
+                                                width: '22px', height: '22px', borderRadius: '50%',
+                                                background: reached
+                                                    ? `linear-gradient(135deg,${l.color},${l.color}88)`
+                                                    : 'rgba(255,255,255,0.06)',
+                                                border: isCurrent
+                                                    ? `2px solid ${l.color}`
+                                                    : `1.5px solid ${reached ? l.color + '60' : 'rgba(255,255,255,0.1)'}`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: '10px',
+                                                boxShadow: isCurrent ? `0 0 8px ${l.glow}` : 'none',
+                                            }}>
+                                                {reached ? l.icon : <span style={{ fontSize: '8px', color: '#374151', fontWeight: 800 }}>{l.level}</span>}
+                                            </div>
+                                            <span style={{ fontSize: '6px', color: reached ? l.color : '#374151', fontWeight: 700 }}>LV{l.level}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Next level hint */}
+                            {lvInfo.nextMinPts && (
+                                <div style={{ marginTop: '8px', fontSize: '9px', color: '#4b5563', textAlign: 'center' }}>
+                                    {lang === 'ar'
+                                        ? `🎁 تحتاج ${(lvInfo.nextMinPts - (bffDoc.giftPoints || 0)).toLocaleString()} نقطة للمستوى التالي`
+                                        : `🎁 ${(lvInfo.nextMinPts - (bffDoc.giftPoints || 0)).toLocaleString()} pts needed for next level`}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* End relationship button */}
                         {!viewOnly && isMyRelationship && (
-                            <div style={{ marginTop: '14px' }}>
+                            <div>
                                 {!confirmEnd
                                     ? <button onClick={() => setConfirmEnd(true)} style={{
                                         width: '100%', padding: '11px', borderRadius: '12px',
@@ -759,7 +942,7 @@ const BFFModal = ({
                                                 const partnerUID = rel.uid1 === currentUID ? rel.uid2 : rel.uid1;
                                                 const partner = partnerProfiles[partnerUID];
                                                 const token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
-                                                const level = BFF_RARITY_TO_LEVEL[token.rarity] || 1;
+                                                const lvInfo = getBFFLevel(rel.giftPoints || 0);
                                                 return (
                                                     <div key={rel.id} onClick={() => openCard(rel)} style={{
                                                         display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -781,17 +964,17 @@ const BFFModal = ({
                                                                 background: `repeating-linear-gradient(45deg, ${token.color}0a 0, transparent 10px, ${token.color}05 10px, transparent 20px)`,
                                                                 overflow: 'hidden', pointerEvents: 'none',
                                                             }} />
-                                                            {/* LV badge */}
+                                                            {/* LV badge — real earned level */}
                                                             <div style={{
                                                                 position: 'absolute', top: '6px', left: '6px',
-                                                                background: 'rgba(0,0,0,0.4)',
-                                                                borderRadius: '5px', padding: '2px 5px',
-                                                                fontSize: '7px', fontWeight: 900, color: '#fff',
+                                                                background: `linear-gradient(135deg,${lvInfo.color},${lvInfo.color}aa)`,
+                                                                borderRadius: '6px', padding: '2px 6px',
+                                                                fontSize: '7px', fontWeight: 900, color: '#000',
                                                                 display: 'flex', alignItems: 'center', gap: '2px',
-                                                                border: `1px solid ${token.color}80`, zIndex: 2,
+                                                                boxShadow: `0 2px 6px ${lvInfo.glow}`, zIndex: 2,
                                                             }}>
-                                                                <span>{token.emoji}</span>
-                                                                <span style={{ color: token.color }}>LV{level}</span>
+                                                                <span>{lvInfo.icon}</span>
+                                                                <span>LV{lvInfo.level}</span>
                                                             </div>
                                                             {/* Token icon */}
                                                             <span style={{ fontSize: '32px', zIndex: 1 }}>
@@ -803,9 +986,9 @@ const BFFModal = ({
                                                             <div style={{
                                                                 position: 'absolute', bottom: '-16px',
                                                                 width: '34px', height: '34px', borderRadius: '50%',
-                                                                border: `2.5px solid ${token.color}`,
+                                                                border: `2.5px solid ${lvInfo.color}`,
                                                                 overflow: 'hidden', background: '#0d0d1a',
-                                                                boxShadow: `0 2px 10px rgba(0,0,0,0.5)`,
+                                                                boxShadow: `0 2px 10px rgba(0,0,0,0.5), 0 0 6px ${lvInfo.glow}`,
                                                                 zIndex: 3,
                                                             }}>
                                                                 {partner?.photoURL
@@ -1250,7 +1433,7 @@ const BFFStripProfile = ({
                             const partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
                             const partner = partnerProfiles[partnerUID];
                             const token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
-                            const level = BFF_RARITY_TO_LEVEL[token.rarity] || 1;
+                            const lvInfo = getBFFLevel(rel.giftPoints || 0);
 
                             return (
                                 <div key={rel.id} onClick={handleClick} style={{
@@ -1275,17 +1458,17 @@ const BFFStripProfile = ({
                                             pointerEvents: 'none', overflow: 'hidden',
                                         }} />
 
-                                        {/* LV badge top-left */}
+                                        {/* LV badge top-left — real earned level */}
                                         <div style={{
                                             position: 'absolute', top: '4px', left: '4px',
-                                            background: `rgba(0,0,0,0.45)`,
+                                            background: `linear-gradient(135deg,${lvInfo.color},${lvInfo.color}99)`,
                                             borderRadius: '4px', padding: '1px 4px',
-                                            fontSize: '6px', fontWeight: 900, color: '#fff',
+                                            fontSize: '6px', fontWeight: 900, color: '#000',
                                             display: 'flex', alignItems: 'center', gap: '2px',
-                                            zIndex: 2, border: `1px solid ${token.color}70`,
+                                            zIndex: 2, boxShadow: `0 1px 5px ${lvInfo.glow}`,
                                         }}>
-                                            <span>{token.emoji}</span>
-                                            <span style={{ color: token.color }}>LV{level}</span>
+                                            <span>{lvInfo.icon}</span>
+                                            <span>LV{lvInfo.level}</span>
                                         </div>
 
                                         {/* Token emoji center */}
@@ -1295,9 +1478,9 @@ const BFFStripProfile = ({
                                         <div style={{
                                             position: 'absolute', bottom: '-13px',
                                             width: '26px', height: '26px', borderRadius: '50%',
-                                            border: `2px solid ${token.color}`,
+                                            border: `2px solid ${lvInfo.color}`,
                                             overflow: 'hidden', background: '#0d0d1a',
-                                            boxShadow: `0 1px 6px rgba(0,0,0,0.6)`,
+                                            boxShadow: `0 1px 6px rgba(0,0,0,0.6), 0 0 4px ${lvInfo.glow}`,
                                             zIndex: 3,
                                         }}>
                                             {partner?.photoURL
