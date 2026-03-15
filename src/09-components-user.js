@@ -543,7 +543,7 @@ const getGroupLevelProgress = (xp = 0) => {
     return Math.min(100, Math.round(((xp - cur.xp) / (nextCfg.xp - cur.xp)) * 100));
 };
 
-const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, lang, onNotification, isLoggedIn }) => {
+const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, lang, onNotification, isLoggedIn, onOpenProfile }) => {
     const [groups, setGroups] = React.useState([]);
     const [activeGroup, setActiveGroup] = React.useState(null);
     const [messages, setMessages] = React.useState([]);
@@ -598,6 +598,10 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
 
     const createGroup = async () => {
         if (!groupName.trim() || !currentUID || creating) return;
+        if (groupName.trim().length > 7) {
+            onNotification(lang === 'ar' ? '❌ اسم الجروب 7 أحرف كحد أقصى' : '❌ Group name max 7 chars');
+            return;
+        }
         // ── Check group limit ──
         const isVIP = currentUserData?.vip?.isActive;
         const maxGroups = isVIP ? 3 : 2;
@@ -613,7 +617,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
         try {
             const nowMs = Date.now();
             await groupsCollection.add({
-                name: groupName.trim(),
+                name: groupName.trim().slice(0, 7),
                 createdBy: currentUID,
                 creatorName: currentUserData?.displayName || 'User',
                 members: [currentUID],
@@ -662,10 +666,14 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
         setMsgText('');
         try {
             const nowMs = Date.now();
+            const senderVipLevel = (typeof getVIPLevel === 'function' ? (getVIPLevel(currentUserData) || 0) : 0);
+            const senderTitle = currentUserData?.activeTitle || currentUserData?.title || null;
             await groupsCollection.doc(activeGroup.id).collection('messages').add({
                 text, senderId: currentUID,
                 senderName: currentUserData?.displayName || 'User',
                 senderPhoto: currentUserData?.photoURL || null,
+                senderVipLevel,
+                senderTitle,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(), type: 'text'
             });
             // ── XP + level update ──
@@ -924,11 +932,26 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                                 const isImage=msg.type==='image';
                                 return(
                                     <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end'}}>
-                                        {!isMe&&<div style={{width:'26px',height:'26px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0}}>
+                                        {!isMe&&<div
+                                            onClick={()=>onOpenProfile && onOpenProfile(msg.senderId)}
+                                            style={{width:'26px',height:'26px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:onOpenProfile?'pointer':'default'}}>
                                             {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px'}}>😎</div>}
                                         </div>}
                                         <div style={{maxWidth:'72%'}}>
-                                            {!isMe&&<div style={{fontSize:'9px',color:'#a78bfa',fontWeight:700,marginBottom:'2px',paddingLeft:'4px'}}>{msg.senderName}</div>}
+                                            {!isMe&&<div style={{marginBottom:'2px',paddingLeft:'4px'}}>
+                                                <div style={{display:'flex',alignItems:'center',gap:'4px',flexWrap:'wrap',cursor:onOpenProfile?'pointer':'default'}} onClick={()=>onOpenProfile && onOpenProfile(msg.senderId)}>
+                                                    <span style={{fontSize:'9px',color:'#a78bfa',fontWeight:700}}>{msg.senderName}</span>
+                                                    {msg.senderVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' && VIP_CONFIG && (
+                                                        <span style={{fontSize:'7px',fontWeight:900,background:VIP_CONFIG[Math.min(msg.senderVipLevel-1,VIP_CONFIG.length-1)]?.nameColor||'#7c3aed',color:'#000',padding:'1px 3px',borderRadius:'2px',flexShrink:0}}>
+                                                            VIP{msg.senderVipLevel}
+                                                        </span>
+                                                    )}
+                                                    {msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && (
+                                                        <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'12px',objectFit:'contain'}}/>
+                                                    )}
+                                                </div>
+                                                {msg.senderTitle && <div style={{fontSize:'8px',color:'#fbbf24',marginTop:'1px',fontStyle:'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'140px'}}>{msg.senderTitle}</div>}
+                                            </div>}
                                             {isImage ? (
                                                 <div onClick={()=>{const w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}
                                                     style={{borderRadius:isMe?'14px 14px 4px 14px':'14px 14px 14px 4px',overflow:'hidden',border:`1px solid ${isMe?'rgba(0,242,255,0.18)':'rgba(255,255,255,0.09)'}`,cursor:'pointer',maxWidth:'200px'}}>
@@ -1003,9 +1026,13 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 <div style={{marginBottom:'14px',padding:'14px',background:'rgba(167,139,250,0.06)',border:'1px solid rgba(167,139,250,0.2)',borderRadius:'14px'}}>
                     <div style={{fontSize:'12px',fontWeight:700,color:'#a78bfa',marginBottom:'10px'}}>👨‍👩‍👧 {lang==='ar'?'إنشاء جروب جديد':'Create New Group'}</div>
                     <div style={{display:'flex',gap:'8px'}}>
-                        <input value={groupName} onChange={e=>setGroupName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&createGroup()}
-                            style={{flex:1,padding:'8px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',color:'white',fontSize:'12px',outline:'none'}}
-                            placeholder={lang==='ar'?'اسم الجروب...':'Group name...'}/>
+                        <div style={{flex:1,position:'relative'}}>
+                            <input value={groupName} onChange={e=>setGroupName(e.target.value.slice(0,7))} onKeyDown={e=>e.key==='Enter'&&createGroup()}
+                                maxLength={7}
+                                style={{width:'100%',padding:'8px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',color:'white',fontSize:'12px',outline:'none',boxSizing:'border-box'}}
+                                placeholder={lang==='ar'?'اسم الجروب (7 أحرف)...':'Group name (7 chars)...'}/>
+                            <span style={{position:'absolute',right:'8px',top:'50%',transform:'translateY(-50%)',fontSize:'9px',color:groupName.length>=7?'#f87171':'#6b7280',fontWeight:700}}>{groupName.length}/7</span>
+                        </div>
                         <button onClick={createGroup} disabled={!groupName.trim()||creating}
                             style={{padding:'8px 14px',borderRadius:'10px',border:'none',fontWeight:700,fontSize:'12px',cursor:'pointer',background:groupName.trim()?'linear-gradient(135deg,#7000ff,#a78bfa)':'rgba(255,255,255,0.06)',color:groupName.trim()?'white':'#6b7280'}}>
                             {creating?'...':(lang==='ar'?'إنشاء':'Create')}
@@ -1029,7 +1056,9 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                         return(
                             <div key={group.id} onClick={()=>setActiveGroup(group)} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',cursor:'pointer',background:unread?'linear-gradient(135deg,rgba(167,139,250,0.1),rgba(112,0,255,0.06))':'rgba(255,255,255,0.04)',border:unread?'1px solid rgba(167,139,250,0.3)':'1px solid rgba(255,255,255,0.07)',transition:'all 0.2s'}}>
                                 <div style={{position:'relative',flexShrink:0}}>
-                                    <div style={{width:'44px',height:'44px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(167,139,250,0.25),rgba(112,0,255,0.2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>👨‍👩‍👧</div>
+                                    <div style={{width:'44px',height:'44px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(167,139,250,0.25),rgba(112,0,255,0.2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',overflow:'hidden'}}>
+                                        {group.photoURL ? <img src={group.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : '👨‍👩‍👧'}
+                                    </div>
                                     {unread&&<div style={{position:'absolute',top:'-2px',right:'-2px',width:'12px',height:'12px',borderRadius:'50%',background:'#a78bfa',border:'2px solid var(--bg-main)',boxShadow:'0 0 6px rgba(167,139,250,0.8)'}}/>}
                                 </div>
                                 <div style={{flex:1,minWidth:0}}>
