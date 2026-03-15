@@ -3409,7 +3409,7 @@ const ProfileV11 = ({
                                 )}
                             </div>
 
-                            {/* ══ ROW 2: الجنس + الكاريزما Level (يسار معاً) + الفاميلي ساين (يمين) ══ */}
+                            {/* ══ ROW 2: الجنس + الكاريزما (يسار) | البلد + فاميلي ساين (يمين) ══ */}
                             <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', padding:'0 8px', marginBottom:'6px', minHeight:'26px'}}>
                                 {/* يسار: الجنس + الكاريزما مباشرة جنبه */}
                                 <div style={{display:'flex', alignItems:'center', gap:'6px', flexShrink:0}}>
@@ -3445,54 +3445,57 @@ const ProfileV11 = ({
                                         );
                                     })()}
                                 </div>
-                                {/* يمين: فاميلي ساين */}
-                                <div style={{flexShrink:0, display:'flex', justifyContent:'flex-end'}}>
+                                {/* يمين: البلد + فاميلي ساين */}
+                                <div style={{display:'flex', alignItems:'center', gap:'6px', flexShrink:0}}>
+                                    {targetData?.country?.flag && (
+                                        <span
+                                            title={lang === 'ar' ? targetData.country.name_ar : targetData.country.name_en}
+                                            style={{fontSize:'20px', lineHeight:1, cursor:'default'}}
+                                        >
+                                            {targetData.country.flag}
+                                        </span>
+                                    )}
                                     {targetData?.familyTag && (
                                         <ProfileFamilySignBadge userData={targetData} lang={lang} />
                                     )}
                                 </div>
                             </div>
 
-                            {/* ══ ROW 3: البلد ══ */}
-                            {targetData?.country?.flag && (
-                                <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', marginBottom:'6px'}}>
-                                    <span style={{fontSize:'20px', lineHeight:1}}>{targetData.country.flag}</span>
-                                    <span style={{fontSize:'11px', color:'#9ca3af', fontWeight:600}}>
-                                        {lang === 'ar' ? targetData.country.name_ar : targetData.country.name_en}
-                                    </span>
-                                </div>
-                            )}
-
-                            {/* ══ ROW 4: ID مع صورة VIP قبله + أيقونة ID مخصصة ══ */}
+                            {/* ══ ROW 4: ID على الشمال — صورة داخل الـ pill لو موجودة ══ */}
                             {(() => {
                                 const vipLvl = getVIPLevel(targetData);
                                 const vipCfg = vipLvl > 0 ? VIP_CONFIG.find(v => v.level === vipLvl) : null;
                                 const idBeforeImg = vipCfg?.idBeforeImageUrl || null;
-                                // أيقونة قبل نص ID (من الكونفجريشن العام أو من VIP 6-10)
                                 const idIconImg = (vipLvl >= 6 ? vipCfg?.idIconImageUrl : null) || ID_ICON_IMAGE_URL || null;
+                                const idValue = targetData?.customId || targetData?.uid?.substring(0, 8);
                                 return (
-                                    <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', marginBottom:'6px'}}>
+                                    <div style={{display:'flex', alignItems:'center', justifyContent:'flex-start', gap:'6px', marginBottom:'6px', padding:'0 8px'}}>
                                         {idBeforeImg && (
                                             <img src={idBeforeImg} alt="vip-id" style={{height:'22px', objectFit:'contain', flexShrink:0}} />
                                         )}
-                                        {/* أيقونة ID مخصصة أو أيقونة افتراضية */}
-                                        {idIconImg
-                                            ? <img src={idIconImg} alt="id-icon" style={{height:'18px', objectFit:'contain', flexShrink:0}} />
-                                            : <span style={{fontSize:'12px', opacity:0.5, flexShrink:0}}>🪪</span>
-                                        }
+                                        {/* الـ pill بتاع الـ ID */}
                                         <span
                                             className="profile-id-display"
-                                            style={{margin:0}}
+                                            style={{margin:0, display:'inline-flex', alignItems:'center', gap:'5px', cursor:'pointer'}}
                                             onClick={() => {
-                                                navigator.clipboard.writeText(targetData?.customId || targetData?.uid?.substring(0, 8));
+                                                navigator.clipboard.writeText(idValue);
                                                 setCopiedId(true);
                                                 setTimeout(() => setCopiedId(false), 2000);
                                             }}
                                         >
-                                            {copiedId
-                                                ? (lang === 'ar' ? '✓ تم النسخ!' : '✓ Copied!')
-                                                : `ID: ${targetData?.customId || targetData?.uid?.substring(0, 8)}`
-                                            }
+                                            {copiedId ? (
+                                                lang === 'ar' ? '✓ تم النسخ!' : '✓ Copied!'
+                                            ) : idIconImg ? (
+                                                /* لو في صورة: تظهر جوه الـ pill بدل "ID:" */
+                                                <>
+                                                    <img src={idIconImg} alt="id-icon"
+                                                        style={{width:'18px', height:'18px', borderRadius:'50%', objectFit:'cover', flexShrink:0}} />
+                                                    {idValue}
+                                                </>
+                                            ) : (
+                                                /* لو ما في صورة: الشكل العادي */
+                                                `ID: ${idValue}`
+                                            )}
                                         </span>
                                     </div>
                                 );
