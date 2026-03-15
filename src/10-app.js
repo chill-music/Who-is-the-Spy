@@ -1950,6 +1950,7 @@ function App() {
                     onOpenMarriage={() => { setShowMyAccount(false); setShowWeddingHall(true); }}
                     onOpenFamily={(fid) => { setShowMyAccount(false); setViewFamilyId(fid || null); setShowFamilyModal(true); }}
                     onOpenBFFModal={() => { setShowMyAccount(false); setShowBFFModal(true); }}
+                    onNotification={setNotification}
                     onOpenChat={(target) => {
                         setShowMyAccount(false);
                         if (target === 'self') {
@@ -1977,6 +1978,7 @@ function App() {
                 currentViewerData={userData}
                 onOpenProfile={(uid) => { setTargetProfileUID(uid); setShowUserProfile(true); }}
                 onOpenFamily={(fid) => { setShowUserProfile(false); setViewFamilyId(fid || null); setShowFamilyModal(true); }}
+                onNotification={setNotification}
                 onOpenChat={(friendData) => {
                     openPrivateChat(friendData);
                     setShowUserProfile(false);
