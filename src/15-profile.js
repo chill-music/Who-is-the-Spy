@@ -11,34 +11,6 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     // Only show if user has a family AND has earned a sign (level > 0)
     if (!familyTag || !signLevel) return null;
 
-    // If there's a custom sign image, show name above + image below, nothing else
-    if (signImgURL) {
-        const hasGlow = signLevel >= 4;
-        return (
-            <div
-                onClick={onClick}
-                title={familyName ? (lang === 'ar' ? `عائلة: ${familyName}` : `Family: ${familyName}`) : familyTag}
-                style={{display:'flex', flexDirection:'column', alignItems:'center', gap:'4px', cursor: onClick ? 'pointer' : 'default'}}
-            >
-                <span style={{
-                    fontSize:'11px', fontWeight:800, fontStyle:'italic',
-                    color: signColor, letterSpacing:'0.5px', whiteSpace:'nowrap',
-                    textShadow: hasGlow ? `0 0 8px ${signColor}99` : 'none',
-                }}>
-                    {familyTag}
-                </span>
-                <img
-                    src={signImgURL}
-                    alt={familyTag}
-                    style={{
-                        height:'36px', objectFit:'contain',
-                        filter: hasGlow ? `drop-shadow(0 0 6px ${signColor}88)` : 'none',
-                    }}
-                />
-            </div>
-        );
-    }
-
     // Sign level glow for high levels
     const hasGlow = signLevel >= 4;
 
@@ -56,6 +28,10 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
                 transition:'all 0.2s',
             }}
         >
+            {signImgURL
+                ? <img src={signImgURL} style={{height:'13px', objectFit:'contain', verticalAlign:'middle'}} alt=""/>
+                : null
+            }
             {familyTag}
         </span>
     );
@@ -2862,6 +2838,7 @@ const ProfileV11 = ({
     const [guardData, setGuardData]               = useState([]);   // top guardians [{uid,name,photo,total}]
     const [showGuardModal, setShowGuardModal]     = useState(false);
     const [guardGiven, setGuardGiven]             = useState(false); // did viewer already give guard today?
+    const [guardLockedUntil, setGuardLockedUntil] = useState(null); // timestamp of next unlock
     const guardCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guard_log');
 
     const optionsRef = useRef(null);
@@ -3027,9 +3004,38 @@ const ProfileV11 = ({
         return () => unsub();
     }, [show, targetUID, currentUserUID]);
 
-    // 🛡️ Give Guard handler
+    // 🛡️ Check daily guard status from localStorage
+    useEffect(() => {
+        if (!show || !currentUserUID || !targetUID) return;
+        const key = `guard_${currentUserUID}_${targetUID}`;
+        const stored = localStorage.getItem(key);
+        if (stored) {
+            const { date } = JSON.parse(stored);
+            const today = new Date().toDateString();
+            if (date === today) {
+                setGuardGiven(true);
+                // Calculate unlock time (midnight)
+                const now = new Date();
+                const midnight = new Date(now);
+                midnight.setDate(midnight.getDate() + 1);
+                midnight.setHours(0, 0, 0, 0);
+                setGuardLockedUntil(midnight);
+            } else {
+                setGuardGiven(false);
+                setGuardLockedUntil(null);
+            }
+        } else {
+            setGuardGiven(false);
+            setGuardLockedUntil(null);
+        }
+    }, [show, currentUserUID, targetUID]);
+
+    // 🛡️ Give Guard handler — friends only, once per day
     const handleGiveGuard = useCallback(async () => {
         if (!currentUserUID || !targetUID || guardGiven || !isLoggedInProp) return;
+        // Only friends can give guard
+        const isFriend = currentUserFriends?.includes(targetUID);
+        if (!isFriend) return;
         let amount = 1;
         try {
             const viewerDoc = await usersCollection.doc(currentUserUID).get();
@@ -3049,9 +3055,16 @@ const ProfileV11 = ({
                 amount,
                 timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
             });
+            // Save daily lock to localStorage
+            const key = `guard_${currentUserUID}_${targetUID}`;
+            localStorage.setItem(key, JSON.stringify({ date: new Date().toDateString() }));
             setGuardGiven(true);
+            const midnight = new Date();
+            midnight.setDate(midnight.getDate() + 1);
+            midnight.setHours(0, 0, 0, 0);
+            setGuardLockedUntil(midnight);
         } catch (e) {}
-    }, [currentUserUID, targetUID, guardGiven, isLoggedInProp, userData]);
+    }, [currentUserUID, targetUID, guardGiven, isLoggedInProp, userData, currentUserFriends]);
 
     if (!show) return null;
 
@@ -3362,77 +3375,130 @@ const ProfileV11 = ({
                         )}
 
                         <div className="profile-identity">
-                            <div className="profile-name-row">
-                                {/* 👑 Staff Role Badge — above name, clickable */}
-                                {getUserRole(targetData, targetData?.id || targetData?.uid) && (
-                                    <div style={{display:'flex', justifyContent:'center', marginBottom:'4px'}}>
-                                        <StaffRoleBadge
-                                            userData={targetData}
-                                            uid={targetData?.id || targetData?.uid}
-                                            lang={lang}
-                                            size="md"
-                                            onClick={() => setShowRoleInfoPopup(true)}
-                                        />
-                                    </div>
-                                )}
-                            <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
-                            <div style={{display:'flex', alignItems:'center', gap:'5px', justifyContent:'center', flexWrap:'wrap'}}>
-                                    <VIPName
-                                        displayName={targetData?.displayName || 'Unknown'}
+
+                            {/* ══ ROW 0: Staff Role Badge (if any) ══ */}
+                            {getUserRole(targetData, targetData?.id || targetData?.uid) && (
+                                <div style={{display:'flex', justifyContent:'center', marginBottom:'4px'}}>
+                                    <StaffRoleBadge
                                         userData={targetData}
-                                        className="profile-name"
+                                        uid={targetData?.id || targetData?.uid}
+                                        lang={lang}
+                                        size="md"
+                                        onClick={() => setShowRoleInfoPopup(true)}
                                     />
-                                    <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
+                                </div>
+                            )}
+
+                            {/* ══ ROW 1: الاسم + VIP Badge + Guard badge (وسط) ══ */}
+                            <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', flexWrap:'wrap', marginBottom:'6px'}}>
+                                <VIPName
+                                    displayName={targetData?.displayName || 'Unknown'}
+                                    userData={targetData}
+                                    className="profile-name"
+                                />
+                                <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
+                                {/* 🛡️ Guard badge جنب الاسم */}
+                                {guardData.length > 0 && (
+                                    <span
+                                        onClick={() => setShowGuardModal(true)}
+                                        style={{display:'inline-flex',alignItems:'center',gap:'3px',padding:'2px 7px',borderRadius:'10px',cursor:'pointer',background:'linear-gradient(135deg,rgba(0,212,255,0.14),rgba(112,0,255,0.12))',border:'1px solid rgba(0,212,255,0.28)',color:'#00f2ff',fontSize:'10px',fontWeight:800,flexShrink:0}}
+                                    >
+                                        <span style={{fontSize:'12px'}}>🛡️</span>
+                                        <span>{lang==='ar'?'جرد':'Guard'}</span>
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* ══ ROW 2: الجنس (يسار) + الكاريزما Level (وسط) + الفاميلي ساين (يمين) ══ */}
+                            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', padding:'0 8px', marginBottom:'6px', minHeight:'26px'}}>
+                                {/* يسار: الجنس */}
+                                <div style={{display:'flex', alignItems:'center', gap:'4px', flexShrink:0, minWidth:'24px'}}>
                                     {targetData?.gender === 'male' && (
-                                        <span style={{fontSize:'13px', color:'#60a5fa', fontWeight:700, lineHeight:1}}>♂️</span>
+                                        <span style={{fontSize:'18px', color:'#60a5fa', lineHeight:1}}>♂️</span>
                                     )}
                                     {targetData?.gender === 'female' && (
-                                        <span style={{fontSize:'13px', color:'#f472b6', fontWeight:700, lineHeight:1}}>♀️</span>
+                                        <span style={{fontSize:'18px', color:'#f472b6', lineHeight:1}}>♀️</span>
                                     )}
-                                    {targetData?.country?.flag && (
-                                        <span title={lang === 'ar' ? targetData.country.name_ar : targetData.country.name_en}
-                                            style={{fontSize:'16px', lineHeight:1, cursor:'default'}}>
-                                            {targetData.country.flag}
-                                        </span>
-                                    )}
-                                    {/* 🛡️ Guard badge - auto from gifts */}
-                                    {guardData.length > 0 && (
-                                        <span
-                                            onClick={() => setShowGuardModal(true)}
-                                            style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'3px 9px',borderRadius:'20px',cursor:'pointer',background:'linear-gradient(135deg,rgba(0,212,255,0.18),rgba(112,0,255,0.15))',border:'1px solid rgba(0,212,255,0.35)',color:'#00f2ff',fontSize:'11px',fontWeight:800}}
-                                        >
-                                            <span style={{fontSize:'13px'}}>🛡️</span>
-                                            <span>{lang==='ar'?'جرد':'Guard'}</span>
-                                        </span>
+                                    {!targetData?.gender && <span style={{width:'18px'}}/>}
+                                </div>
+                                {/* وسط: مستوى الكاريزما */}
+                                {(() => {
+                                    const { currentLevel: lvlData } = getCharismaLevel(targetData?.charisma || 0);
+                                    if (!lvlData) return <div style={{flex:1}}/>;
+                                    const hasGlow = lvlData.hasGlow;
+                                    const isDivine = lvlData.isDivine;
+                                    return (
+                                        <div style={{
+                                            display:'flex', alignItems:'center', gap:'4px',
+                                            padding:'3px 10px', borderRadius:'20px',
+                                            background: isDivine ? 'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))' : hasGlow ? `${lvlData.color}18` : 'rgba(255,255,255,0.06)',
+                                            border: isDivine ? '1px solid rgba(0,212,255,0.4)' : hasGlow ? `1px solid ${lvlData.color}55` : '1px solid rgba(255,255,255,0.1)',
+                                            boxShadow: isDivine ? '0 0 10px rgba(0,212,255,0.25)' : hasGlow ? `0 0 8px ${lvlData.color}44` : 'none',
+                                            flexShrink:0,
+                                        }}>
+                                            {lvlData.iconType === 'image' && lvlData.iconUrl
+                                                ? <img src={lvlData.iconUrl} alt="" style={{width:'16px', height:'16px', borderRadius: isDivine ? '50%' : '0', objectFit:'cover'}} />
+                                                : <span style={{fontSize:'13px'}}>{lvlData.icon}</span>
+                                            }
+                                            <span style={{fontSize:'10px', fontWeight:800, color: isDivine ? '#00d4ff' : lvlData.color}}>
+                                                Lv.{lvlData.level}
+                                            </span>
+                                        </div>
+                                    );
+                                })()}
+                                {/* يمين: فاميلي ساين */}
+                                <div style={{flexShrink:0, minWidth:'24px', display:'flex', justifyContent:'flex-end'}}>
+                                    {targetData?.familyTag && (
+                                        <ProfileFamilySignBadge userData={targetData} lang={lang} />
                                     )}
                                 </div>
                             </div>
 
-                            <UserBadgesV11 equipped={targetData?.equipped} lang={lang} />
-
-                            {/* 🏴 Family Sign Badge — shows if user is in a family */}
-                            {targetData?.familyTag && (
-                                <div style={{display:'flex', justifyContent:'center', marginTop:'2px'}}>
-                                    <ProfileFamilySignBadge userData={targetData} lang={lang} />
+                            {/* ══ ROW 3: البلد ══ */}
+                            {targetData?.country?.flag && (
+                                <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', marginBottom:'6px'}}>
+                                    <span style={{fontSize:'20px', lineHeight:1}}>{targetData.country.flag}</span>
+                                    <span style={{fontSize:'11px', color:'#9ca3af', fontWeight:600}}>
+                                        {lang === 'ar' ? targetData.country.name_ar : targetData.country.name_en}
+                                    </span>
                                 </div>
                             )}
 
-                            <span
-                                className="profile-id-display"
-                                onClick={() => {
-                                    navigator.clipboard.writeText(targetData?.customId || targetData?.uid?.substring(0, 8));
-                                    setCopiedId(true);
-                                    setTimeout(() => setCopiedId(false), 2000);
-                                }}
-                            >
-                                {copiedId
-                                    ? (lang === 'ar' ? '✓ تم النسخ!' : '✓ Copied!')
-                                    : `ID: ${targetData?.customId || targetData?.uid?.substring(0, 8)} 📋`
-                                }
-                            </span>
+                            {/* ══ ROW 4: ID مع صورة VIP قبله ══ */}
+                            {(() => {
+                                const vipLvl = getVIPLevel(targetData);
+                                const vipCfg = vipLvl > 0 ? VIP_CONFIG.find(v => v.level === vipLvl) : null;
+                                const idImg  = vipCfg?.idBeforeImageUrl || null;
+                                return (
+                                    <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', marginBottom:'6px'}}>
+                                        {idImg && (
+                                            <img src={idImg} alt="vip-id" style={{height:'22px', objectFit:'contain', flexShrink:0}} />
+                                        )}
+                                        <span
+                                            className="profile-id-display"
+                                            style={{margin:0}}
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(targetData?.customId || targetData?.uid?.substring(0, 8));
+                                                setCopiedId(true);
+                                                setTimeout(() => setCopiedId(false), 2000);
+                                            }}
+                                        >
+                                            {copiedId
+                                                ? (lang === 'ar' ? '✓ تم النسخ!' : '✓ Copied!')
+                                                : `ID: ${targetData?.customId || targetData?.uid?.substring(0, 8)} 📋`
+                                            }
+                                        </span>
+                                    </div>
+                                );
+                            })()}
 
-                            {/* Charisma Display */}
-                            {/* Moments Section - above Charisma */}
+                            {/* ══ ROW 5: البادجات (max 10) ══ */}
+                            <UserBadgesV11 equipped={targetData?.equipped} lang={lang} />
+
+                            {/* ══ ROW 6: التايتلز — كل التايتلز المفعّلة ══ */}
+                            <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
+
+                            {/* ══ Moments + Charisma ══ */}
                             <MomentsSection
                                 ownerUID={targetUID}
                                 ownerName={targetData?.displayName || ''}
@@ -3487,49 +3553,90 @@ const ProfileV11 = ({
 
                         <GiftWallV11 gifts={gifts} lang={lang} isOwnProfile={isOwnProfile} userData={userData} onOpenProfile={onOpenProfile} onSendGiftToSelf={isGuestProp ? null : (gift) => { setSelfGift(gift); setShowSelfGiftModal(true); }} />
 
-                        {/* 🛡️ GUARD STRIP — always visible, shows empty slots until filled */}
+                        {/* 🛡️ GUARD STRIP — square compact design */}
                         {!loading && targetData && (
                             <div
                                 onClick={() => setShowGuardModal(true)}
                                 style={{
                                     display:'flex', alignItems:'center', justifyContent:'space-between',
-                                    padding:'10px 16px',
-                                    background:'rgba(255,255,255,0.04)',
-                                    borderBottom:'1px solid rgba(255,255,255,0.07)',
-                                    borderTop:'1px solid rgba(255,255,255,0.04)',
+                                    padding:'8px 12px',
+                                    margin:'0 0 0 0',
+                                    background:'linear-gradient(135deg,rgba(0,212,255,0.05),rgba(112,0,255,0.05))',
+                                    borderTop:'1px solid rgba(0,212,255,0.08)',
+                                    borderBottom:'1px solid rgba(0,212,255,0.08)',
                                     cursor:'pointer',
+                                    transition:'background 0.15s',
                                 }}
+                                onMouseEnter={e=>{e.currentTarget.style.background='linear-gradient(135deg,rgba(0,212,255,0.09),rgba(112,0,255,0.09))';}}
+                                onMouseLeave={e=>{e.currentTarget.style.background='linear-gradient(135deg,rgba(0,212,255,0.05),rgba(112,0,255,0.05))';}}
                             >
-                                {/* Left: Guard label */}
-                                <span style={{fontSize:'15px',fontWeight:900,color:'var(--text-main,#e5e7eb)',letterSpacing:'-0.3px'}}>
-                                    Guard
-                                </span>
-                                {/* Center: Top 3 circles — filled or empty slot */}
-                                <div style={{display:'flex',alignItems:'center',gap:'10px',direction:'ltr'}}>
-                                    {[0,1,2].map(i => {
-                                        const g = guardData[i];
-                                        const colors = ['#f5a623','#b0b8c8','#e07b9a'];
-                                        const shadows = ['rgba(245,166,35,0.35)','rgba(176,184,200,0.25)','rgba(224,123,154,0.3)'];
-                                        return (
-                                            <div key={i} style={{
-                                                width:'62px', height:'62px', borderRadius:'50%', overflow:'hidden',
-                                                border:`3px solid ${colors[i]}`,
-                                                flexShrink:0,
-                                                boxShadow:`0 2px 10px ${shadows[i]}`,
-                                                background:'rgba(255,255,255,0.04)',
-                                            }}>
-                                                {g?.photo
-                                                    ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                                    : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',opacity:0.25}}>
-                                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#fff" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                                                      </div>
-                                                }
+                                {/* Left: Guard label + lock/give button */}
+                                <div style={{display:'flex', alignItems:'center', gap:'8px', flex:1}}>
+                                    <div style={{
+                                        width:'34px', height:'34px', borderRadius:'8px',
+                                        background:'linear-gradient(135deg,rgba(0,212,255,0.12),rgba(112,0,255,0.12))',
+                                        border:'1px solid rgba(0,212,255,0.2)',
+                                        display:'flex', alignItems:'center', justifyContent:'center',
+                                        fontSize:'16px', flexShrink:0,
+                                    }}>🛡️</div>
+                                    <div>
+                                        <div style={{fontSize:'12px', fontWeight:800, color:'#e5e7eb', letterSpacing:'-0.2px'}}>Guard</div>
+                                        {/* Give/Locked button — only for friends viewing others' profiles */}
+                                        {!isOwnProfile && isLoggedInProp && currentUserFriends?.includes(targetUID) && (
+                                            <div
+                                                onClick={e => { e.stopPropagation(); handleGiveGuard(); }}
+                                                style={{
+                                                    display:'inline-flex', alignItems:'center', gap:'3px',
+                                                    fontSize:'9px', fontWeight:700, marginTop:'2px',
+                                                    padding:'2px 7px', borderRadius:'5px', cursor: guardGiven ? 'default' : 'pointer',
+                                                    background: guardGiven
+                                                        ? 'rgba(107,114,128,0.15)'
+                                                        : 'linear-gradient(135deg,rgba(0,212,255,0.2),rgba(112,0,255,0.2))',
+                                                    border: guardGiven
+                                                        ? '1px solid rgba(107,114,128,0.2)'
+                                                        : '1px solid rgba(0,212,255,0.35)',
+                                                    color: guardGiven ? '#6b7280' : '#00f2ff',
+                                                    transition:'all 0.15s',
+                                                }}
+                                            >
+                                                {guardGiven ? (
+                                                    <>🔒 {lang==='ar'?'غداً':'Tomorrow'}</>
+                                                ) : (
+                                                    <>✨ {lang==='ar'?'أعطِ حماية':'Give Guard'}</>
+                                                )}
                                             </div>
-                                        );
-                                    })}
+                                        )}
+                                    </div>
                                 </div>
-                                {/* Right: arrow */}
-                                <span style={{fontSize:'18px',color:'rgba(255,255,255,0.35)',fontWeight:300}}>›</span>
+
+                                {/* Right: 3 small avatars + arrow */}
+                                <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                                    {/* 3 mini circles */}
+                                    <div style={{display:'flex', alignItems:'center', direction:'ltr'}}>
+                                        {[0,1,2].map(i => {
+                                            const g = guardData[i];
+                                            const colors = ['#f5a623','#b0b8c8','#e07b9a'];
+                                            return (
+                                                <div key={i} style={{
+                                                    width:'26px', height:'26px', borderRadius:'50%',
+                                                    border:`2px solid ${colors[i]}`,
+                                                    overflow:'hidden', flexShrink:0,
+                                                    marginLeft: i > 0 ? '-6px' : '0',
+                                                    background:'rgba(255,255,255,0.04)',
+                                                    boxShadow:`0 0 0 1px rgba(0,0,0,0.3)`,
+                                                }}>
+                                                    {g?.photo
+                                                        ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                        : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',opacity:0.2}}>
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#fff" strokeWidth="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
+                                                          </div>
+                                                    }
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <span style={{fontSize:'16px', color:'rgba(255,255,255,0.3)', fontWeight:300, marginLeft:'4px'}}>›</span>
+                                </div>
                             </div>
                         )}
 
