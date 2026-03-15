@@ -2863,6 +2863,7 @@ const ProfileV11 = ({
     onOpenMarriage,     // opens the marriage/wedding hall page
     onOpenFamily,       // opens family modal (pass familyId to view any family)
     onOpenBFFModal,     // opens BFF modal for own profile
+    onNotification = () => {},  // optional notification callback
 }) => {
     const t = TRANSLATIONS[lang] || {};
 
@@ -3658,7 +3659,7 @@ const ProfileV11 = ({
                                 currentUserData={userData}
                                 lang={lang}
                                 onNotification={onNotification}
-                                friendsData={currentUserFriends ? null : null}
+                                friendsData={null}
                                 onOpenBFFModal={onOpenBFFModal}
                             />
                         )}
