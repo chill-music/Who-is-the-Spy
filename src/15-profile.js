@@ -55,6 +55,7 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
                     fontStyle:'italic',
                     letterSpacing:'1.5px',
                     color:'#fff',
+                    marginTop:'2px',
                     textShadow:`
                         0 0 6px rgba(0,0,0,0.9),
                         0 0 12px rgba(0,0,0,0.7),
