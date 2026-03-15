@@ -29,22 +29,28 @@ const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotificatio
     }
 
     try {
-        // Check existing relationship
-        const [existing1, existing2] = await Promise.all([
-            bffCollection.where('uid1', '==', fromUID).where('uid2', '==', toUID).where('status', 'in', ['pending','active']).get(),
-            bffCollection.where('uid1', '==', toUID).where('uid2', '==', fromUID).where('status', 'in', ['pending','active']).get(),
+        // ── Simple single-field queries only (no composite index needed) ──
+        const [myAsUid1, myAsUid2] = await Promise.all([
+            bffCollection.where('uid1', '==', fromUID).get(),
+            bffCollection.where('uid2', '==', fromUID).get(),
         ]);
-        if (!existing1.empty || !existing2.empty) {
+        const allMyDocs = [
+            ...myAsUid1.docs.map(d => ({ id: d.id, ...d.data() })),
+            ...myAsUid2.docs.map(d => ({ id: d.id, ...d.data() })),
+        ];
+
+        // Check existing relationship with toUID
+        const alreadyExists = allMyDocs.some(r =>
+            (r.uid1 === toUID || r.uid2 === toUID) &&
+            (r.status === 'pending' || r.status === 'active')
+        );
+        if (alreadyExists) {
             onNotification && onNotification(lang === 'ar' ? '❌ يوجد علاقة نشطة بالفعل' : '❌ Relationship already exists');
             return { ok: false };
         }
 
-        // Check slot limit
-        const [myActive1, myActive2] = await Promise.all([
-            bffCollection.where('uid1', '==', fromUID).where('status', '==', 'active').get(),
-            bffCollection.where('uid2', '==', fromUID).where('status', '==', 'active').get(),
-        ]);
-        const totalActive = (myActive1.size || 0) + (myActive2.size || 0);
+        // Check slot limit (count active only)
+        const totalActive = allMyDocs.filter(r => r.status === 'active').length;
         const extraSlots = fromData?.bffExtraSlots || 0;
         const maxSlots = BFF_CONFIG.freeSlots + extraSlots;
         if (totalActive >= maxSlots) {
@@ -54,16 +60,15 @@ const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotificatio
             return { ok: false };
         }
 
-        const batch = db.batch();
+        // ── Write: update inventory + create BFF doc separately (no batch to avoid permission complexity) ──
         // Remove token from inventory
         const newTokens = [...myBffTokens];
         const idx = newTokens.indexOf(tokenId);
         if (idx > -1) newTokens.splice(idx, 1);
-        batch.update(usersCollection.doc(fromUID), { 'inventory.bff_tokens': newTokens });
+        await usersCollection.doc(fromUID).update({ 'inventory.bff_tokens': newTokens });
 
         // Create BFF doc
-        const bffRef = bffCollection.doc();
-        batch.set(bffRef, {
+        const bffRef = await bffCollection.add({
             uid1: fromUID,
             uid2: toUID,
             status: 'pending',
@@ -73,7 +78,6 @@ const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotificatio
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             acceptedAt: null,
         });
-        await batch.commit();
 
         // Notification to target
         await notificationsCollection.add({
@@ -466,13 +470,17 @@ const BFFModal = ({
     useEffect(() => {
         if (!show || !currentUID) return;
         setLoading(true);
+
+        // ── Single-field queries only (no composite indexes needed) ──
         const unsub1 = bffCollection
-            .where('uid1', '==', currentUID).where('status', '==', 'active')
+            .where('uid1', '==', currentUID)
             .onSnapshot(snap => {
                 const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Filter active client-side
+                const active = docs.filter(r => r.status === 'active');
                 setMyRelationships(prev => {
                     const other = prev.filter(r => r.uid2 === currentUID);
-                    const merged = [...docs, ...other];
+                    const merged = [...active, ...other];
                     merged.sort((a, b) => (b.acceptedAt?.seconds || 0) - (a.acceptedAt?.seconds || 0));
                     return merged;
                 });
@@ -480,23 +488,19 @@ const BFFModal = ({
             }, () => setLoading(false));
 
         const unsub2 = bffCollection
-            .where('uid2', '==', currentUID).where('status', '==', 'active')
+            .where('uid2', '==', currentUID)
             .onSnapshot(snap => {
                 const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const active = docs.filter(r => r.status === 'active');
+                const pending = docs.filter(r => r.status === 'pending');
                 setMyRelationships(prev => {
                     const other = prev.filter(r => r.uid1 === currentUID);
-                    const merged = [...other, ...docs];
+                    const merged = [...other, ...active];
                     merged.sort((a, b) => (b.acceptedAt?.seconds || 0) - (a.acceptedAt?.seconds || 0));
                     return merged;
                 });
-            }, () => {});
-
-        const unsub3 = bffCollection
-            .where('uid2', '==', currentUID).where('status', '==', 'pending')
-            .onSnapshot(snap => {
-                const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                setPendingRequests(docs);
-                const toLoad = docs.map(d => d.uid1).filter(uid => !requesterProfiles[uid]);
+                setPendingRequests(pending);
+                const toLoad = pending.map(d => d.uid1).filter(uid => !requesterProfiles[uid]);
                 if (toLoad.length > 0) {
                     Promise.all(toLoad.map(uid =>
                         usersCollection.doc(uid).get().then(d => d.exists ? { id: d.id, ...d.data() } : null).catch(() => null)
@@ -508,7 +512,7 @@ const BFFModal = ({
                 }
             }, () => {});
 
-        return () => { unsub1(); unsub2(); unsub3(); };
+        return () => { unsub1(); unsub2(); };
     }, [show, currentUID]);
 
     // Load partner profiles
@@ -874,18 +878,21 @@ const BFFStripProfile = ({
 
     useEffect(() => {
         if (!targetUID) return;
-        const unsub1 = bffCollection.where('uid1', '==', targetUID).where('status', '==', 'active')
+        // Single-field queries only — filter active client-side
+        const unsub1 = bffCollection.where('uid1', '==', targetUID)
             .onSnapshot(snap => {
+                const active = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.status === 'active');
                 setMyRelationships(prev => {
                     const other = prev.filter(r => r.uid2 === targetUID);
-                    return [...snap.docs.map(d => ({ id: d.id, ...d.data() })), ...other];
+                    return [...active, ...other];
                 });
             }, () => {});
-        const unsub2 = bffCollection.where('uid2', '==', targetUID).where('status', '==', 'active')
+        const unsub2 = bffCollection.where('uid2', '==', targetUID)
             .onSnapshot(snap => {
+                const active = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.status === 'active');
                 setMyRelationships(prev => {
                     const other = prev.filter(r => r.uid1 === targetUID);
-                    return [...other, ...snap.docs.map(d => ({ id: d.id, ...d.data() }))];
+                    return [...other, ...active];
                 });
             }, () => {});
 
@@ -1028,18 +1035,25 @@ const BotChatModal = ({
     useEffect(() => {
         if (!show || !currentUID || !botId) return;
         setLoading(true);
+        // Single-field query — filter by botId client-side
         const unsub = botChatsCollection
             .where('toUserId', '==', currentUID)
-            .where('botId', '==', botId)
-            .orderBy('timestamp', 'desc')
-            .limit(50)
             .onSnapshot(snap => {
-                const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
-                setMessages(msgs);
+                const allMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Filter by botId and sort by timestamp
+                const filtered = allMsgs
+                    .filter(m => m.botId === botId)
+                    .sort((a, b) => {
+                        const tA = a.timestamp?.toMillis?.() || (a.timestamp?.seconds * 1000) || 0;
+                        const tB = b.timestamp?.toMillis?.() || (b.timestamp?.seconds * 1000) || 0;
+                        return tA - tB;
+                    })
+                    .slice(-50); // last 50
+                setMessages(filtered);
                 setLoading(false);
-                // Mark all as read
+                // Mark this bot's messages as read
                 snap.docs.forEach(d => {
-                    if (!d.data().read) {
+                    if (d.data().botId === botId && !d.data().read) {
                         botChatsCollection.doc(d.id).update({ read: true }).catch(() => {});
                     }
                 });
