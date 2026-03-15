@@ -31,7 +31,7 @@ const CHARISMA_LEVELS = [
     { level: 18, threshold: 86000000, icon: '', iconType: 'image', iconUrl: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Legend3.png', name_en: 'Legend III', name_ar: 'أسطورة 3', color: '#f97316', badge_class: 'level-16-21', hasGlow: true },
     { level: 19, threshold: 120000000, icon: '', iconType: 'image', iconUrl: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Legend4.png', name_en: 'Legend IV', name_ar: 'أسطورة 4', color: '#f97316', badge_class: 'level-16-21', hasGlow: true },
     { level: 20, threshold: 240000000, icon: '', iconType: 'image', iconUrl: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Legend5.png', name_en: 'Legend V', name_ar: 'أسطورة 5', color: '#f97316', badge_class: 'level-16-21', hasGlow: true },
-    { level: 21, threshold: 360000000, icon: '', iconType: 'image', iconUrl: 'https://i.ibb.co/xtJfj64X/max.png', name_en: 'Ultimate Legend', name_ar: 'الأسطورة المطلقة', color: '#00d4ff', badge_class: 'level-divine', isDivine: true, isMaxLevel: true, hasGlow: true },
+    { level: 21, threshold: 360000000, icon: '', iconType: 'image', iconUrl: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/main/icos/Ultimate%20Legend.gif', name_en: 'Ultimate Legend', name_ar: 'الأسطورة المطلقة', color: '#00d4ff', badge_class: 'level-divine', isDivine: true, isMaxLevel: true, hasGlow: true },
 ];
 
 const getCharismaLevel = (charisma) => {
