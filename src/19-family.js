@@ -1717,28 +1717,40 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 {/* ── OFFICIAL ANNOUNCEMENT — at top for visibility ── */}
                 {family.announcement && (
                     <div style={{
-                        ...S.card,
-                        background:'linear-gradient(135deg,rgba(255,165,0,0.22),rgba(255,80,0,0.12))',
-                        border:'2px solid rgba(255,165,0,0.6)',
-                        boxShadow:'0 0 24px rgba(255,140,0,0.2)',
-                        position:'relative', overflow:'hidden',
+                        background:'linear-gradient(135deg,rgba(20,10,0,0.95),rgba(30,15,0,0.95))',
+                        border:'2px solid rgba(255,165,0,0.8)',
+                        boxShadow:'0 0 28px rgba(255,140,0,0.25), inset 0 0 20px rgba(255,140,0,0.05)',
+                        borderRadius:'14px',
+                        position:'relative',
+                        padding:'14px 14px 14px 22px',
                     }}>
                         {/* left glow bar */}
                         <div style={{position:'absolute',left:0,top:0,bottom:0,width:'5px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'14px 0 0 14px'}}/>
-                        <div style={{paddingLeft:'12px'}}>
-                            <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
-                                <span style={{fontSize:'22px'}}>📢</span>
-                                <div style={{flex:1}}>
-                                    <div style={{fontSize:'11px', fontWeight:900, color:'#fbbf24', letterSpacing:'1px', textTransform:'uppercase'}}>{lang==='ar'?'إعلان رسمي':'OFFICIAL ANNOUNCEMENT'}</div>
-                                    {family.announcementBy && (
-                                        <div style={{fontSize:'9px',color:'#9ca3af',marginTop:'1px'}}>
-                                            {lang==='ar'?'بواسطة:':'By:'} {family.announcementBy}
-                                        </div>
-                                    )}
+                        {/* Header row */}
+                        <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+                            <span style={{fontSize:'20px',flexShrink:0}}>📢</span>
+                            <div style={{flex:1}}>
+                                <div style={{fontSize:'10px', fontWeight:900, color:'#ffd700', letterSpacing:'1.5px', textTransform:'uppercase'}}>
+                                    {lang==='ar'?'إعلان رسمي':'OFFICIAL ANNOUNCEMENT'}
                                 </div>
+                                {family.announcementBy && (
+                                    <div style={{fontSize:'9px',color:'rgba(255,255,255,0.5)',marginTop:'1px'}}>
+                                        {lang==='ar'?'بواسطة:':'By:'} {family.announcementBy}
+                                    </div>
+                                )}
                             </div>
-                            <div style={{fontSize:'13px', color:'#fef3c7', lineHeight:1.6, fontWeight:600}}>{family.announcement}</div>
                         </div>
+                        {/* Announcement text — always fully visible */}
+                        <div style={{
+                            fontSize:'13px',
+                            color:'#ffffff',
+                            lineHeight:1.7,
+                            fontWeight:500,
+                            wordBreak:'break-word',
+                            whiteSpace:'pre-wrap',
+                            paddingTop:'4px',
+                            borderTop:'1px solid rgba(255,165,0,0.25)',
+                        }}>{family.announcement}</div>
                     </div>
                 )}
 
