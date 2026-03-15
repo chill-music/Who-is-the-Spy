@@ -183,7 +183,7 @@ const FAMILY_COINS_SYMBOL = '🏅'; // Family Coins currency icon
 // ════════════════════════════════════════════════════════
 // threshold = الحد الأدنى من النشاط الأسبوعي للحصول على هذا الساين
 const FAMILY_SIGN_IMAGES = [
-    { level: 1, threshold: 1000,   imageURL: null }, // ← ضع رابط صورة المستوى 1 هنا
+    { level: 1, threshold: 1000,   imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/fp.png' }, // ← ضع رابط صورة المستوى 1 هنا
     { level: 2, threshold: 10000,  imageURL: null }, // ← ضع رابط صورة المستوى 2 هنا
     { level: 3, threshold: 30000,  imageURL: null }, // ← ضع رابط صورة المستوى 3 هنا
     { level: 4, threshold: 100000, imageURL: null }, // ← ضع رابط صورة المستوى 4 هنا
