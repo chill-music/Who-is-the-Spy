@@ -565,7 +565,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
 
     // ✅ No orderBy → no index needed, sort client-side
     React.useEffect(() => {
-        if (!currentUID) { setLoadingGroups(false); return; }
+        if (!currentUID || !isLoggedIn) { setLoadingGroups(false); return; }
         const unsub = groupsCollection
             .where('members', 'array-contains', currentUID)
             .onSnapshot(snap => {
