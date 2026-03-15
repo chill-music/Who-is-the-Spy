@@ -130,7 +130,7 @@ const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
 
     const renderIcon = () => {
         if (currentLevel.iconType === 'image' && currentLevel.iconUrl) {
-            return <img src={currentLevel.iconUrl} alt="level" className={`w-5 h-5 ${hasGlow ? 'animate-pulse' : ''}`} style={isDivine ? {filter:'drop-shadow(0 0 8px #00d4ff) drop-shadow(0 0 16px rgba(0,212,255,0.5))'} : hasGlow ? {filter: 'drop-shadow(0 0 8px #ff6600)'} : {}} />;
+            return <img src={currentLevel.iconUrl} alt="level" className={`w-5 h-5 ${hasGlow ? 'animate-pulse' : ''}`} style={isDivine ? {borderRadius:'50%', objectFit:'cover', filter:'drop-shadow(0 0 8px #00d4ff) drop-shadow(0 0 16px rgba(0,212,255,0.5))'} : hasGlow ? {filter: 'drop-shadow(0 0 8px #ff6600)'} : {}} />;
         }
         return <span className="charisma-icon">{currentLevel.icon}</span>;
     };
