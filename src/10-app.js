@@ -79,10 +79,21 @@ function App() {
     const [showIncomingProposal, setShowIncomingProposal] = useState(false);
     const [showWeddingHall, setShowWeddingHall]         = useState(false);
 
+    // ── 👤 GUEST AVATAR MENU ──
+    const [showGuestMenu, setShowGuestMenu]             = useState(false);
+
     // ── 💬 GAME ROOM CHAT STATE ──
     const [gameChatInput, setGameChatInput]             = useState('');
     const [showGameChat, setShowGameChat]               = useState(true);
     const gameChatRef                                   = useRef(null);
+
+    // Close guest menu when clicking outside
+    useEffect(() => {
+        if (!showGuestMenu) return;
+        const handler = (e) => setShowGuestMenu(false);
+        document.addEventListener('click', handler);
+        return () => document.removeEventListener('click', handler);
+    }, [showGuestMenu]);
 
     // Click outside handler for notification dropdown
     useEffect(() => {
@@ -1404,19 +1415,6 @@ function App() {
                     userData?.displayName || 'User',
                     { giftId: gift.id, giftEmoji: gift.emoji, giftName, charisma: totalCharisma, bonus: totalBonus, qty },
                 ));
-                // 🛡️ Guard log — record charisma gifted so receiver's Guard ranking updates
-                parallelOps.push(guardLogCollection.add({
-                    receiverId:   targetUser.uid,
-                    senderId:     user.uid,
-                    senderName:   userData?.displayName || 'User',
-                    senderPhoto:  userData?.photoURL || null,
-                    amount:       totalCharisma,
-                    charisma:     totalCharisma,
-                    giftId:       gift.id,
-                    giftEmoji:    gift.emoji,
-                    qty,
-                    timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
-                }));
             }
 
             // Mission progress
@@ -1857,7 +1855,6 @@ function App() {
                     friendsData={friendsData}
                     isOwnProfileOverride={true}
                     onOpenSettings={() => { setShowMyAccount(false); setShowSettings(true); }}
-                    onOpenMarriage={() => { setShowMyAccount(false); setShowWeddingHall(true); }}
                     onOpenShop={() => { setShowMyAccount(false); setShowShop(true); }}
                     onOpenInventory={() => { setShowMyAccount(false); setShowInventory(true); }}
                     onLogout={handleLogout}
@@ -2009,14 +2006,38 @@ function App() {
                     {isLoggedIn && (
                         <div className="new-hbtn" onClick={() => setShowShop(true)} title={t.shop}>🛒</div>
                     )}
-                    {/* Avatar — opens profile directly */}
-                    <div className="new-avatar-btn"
-                        onClick={() => { if(isLoggedIn || isGuest) setShowMyAccount(true); else handleGoogleLogin(); }}
-                        title={lang==='ar'?'ملفي الشخصي':'My Profile'}>
-                        {(isLoggedIn || isGuest) && (currentUserData?.photoURL || currentUserData?.photo)
-                            ? <img src={currentUserData.photoURL || currentUserData.photo} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} alt="" />
-                            : <span style={{fontSize:'16px'}}>😎</span>
-                        }
+                    {/* Avatar — opens profile (logged-in) or guest menu */}
+                    <div style={{position:'relative'}}>
+                        <div className="new-avatar-btn"
+                            onClick={() => {
+                                if (isLoggedIn) { setShowMyAccount(true); }
+                                else if (isGuest) { setShowGuestMenu(g => !g); }
+                                else { handleGoogleLogin(); }
+                            }}
+                            title={lang==='ar'?'ملفي الشخصي':'My Profile'}>
+                            {(isLoggedIn || isGuest) && (currentUserData?.photoURL || currentUserData?.photo)
+                                ? <img src={currentUserData.photoURL || currentUserData.photo} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} alt="" />
+                                : <span style={{fontSize:'16px'}}>😎</span>
+                            }
+                        </div>
+                        {/* Guest quick-menu */}
+                        {showGuestMenu && isGuest && !isLoggedIn && (
+                            <div style={{position:'absolute',top:'calc(100% + 8px)',right:0,background:'linear-gradient(160deg,#0f0f25,#141432)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'14px',minWidth:'190px',zIndex:Z.TOOLTIP,boxShadow:'0 8px 32px rgba(0,0,0,0.6)',padding:'8px',overflow:'hidden'}}
+                                onClick={e => e.stopPropagation()}>
+                                <button
+                                    onClick={() => { setShowMyAccount(true); setShowGuestMenu(false); }}
+                                    style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.05)',border:'none',color:'#e5e7eb',fontSize:'13px',fontWeight:700,cursor:'pointer',marginBottom:'6px',textAlign:'left'}}>
+                                    <span style={{fontSize:'18px'}}>🖼️</span>
+                                    {lang==='ar'?'البروفايل':'Profile'}
+                                </button>
+                                <button
+                                    onClick={() => { handleGoogleLogin(); setShowGuestMenu(false); }}
+                                    style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'10px',background:'linear-gradient(135deg,rgba(66,133,244,0.25),rgba(26,115,232,0.2))',border:'1px solid rgba(66,133,244,0.35)',color:'#7cb3ff',fontSize:'13px',fontWeight:800,cursor:'pointer',textAlign:'left'}}>
+                                    <span style={{fontSize:'18px'}}>🔑</span>
+                                    {lang==='ar'?'تسجيل الدخول بجوجل':'Login with Google'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>
@@ -2264,8 +2285,19 @@ function App() {
                     {/* ══ CHAT / شات VIEW (Friends) ══ */}
                     {activeView === 'chat' && (
                         <div style={{paddingBottom:'8px'}}>
-                            {/* ── Chat Tabs: Friends / Groups ── */}
-                            <div style={{display:'flex',gap:'4px',padding:'10px 16px 0',borderBottom:'1px solid rgba(255,255,255,0.06)',marginBottom:'10px'}}>
+                            {/* ── Guest gate — must log in to use friends/groups ── */}
+                            {isGuest && !isLoggedIn && (
+                                <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'48px 24px',gap:'16px',textAlign:'center'}}>
+                                    <div style={{fontSize:'48px'}}>🔐</div>
+                                    <div style={{fontSize:'16px',fontWeight:800,color:'#e5e7eb'}}>{lang==='ar'?'سجّل دخولك أولاً':'Login Required'}</div>
+                                    <div style={{fontSize:'12px',color:'#6b7280',maxWidth:'240px'}}>{lang==='ar'?'سجّل الدخول بجوجل للوصول للأصدقاء والجروبات':'Sign in with Google to access friends & groups'}</div>
+                                    <button onClick={handleGoogleLogin} style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 24px',borderRadius:'14px',background:'linear-gradient(135deg,#4285f4,#1a73e8)',border:'none',color:'#fff',fontWeight:800,fontSize:'14px',cursor:'pointer',boxShadow:'0 4px 16px rgba(66,133,244,0.4)'}}>
+                                        <span style={{fontSize:'18px'}}>🔑</span> {lang==='ar'?'تسجيل الدخول بجوجل':'Sign in with Google'}
+                                    </button>
+                                </div>
+                            )}
+                            {/* ── Chat Tabs: Friends / Groups (only for logged-in) ── */}
+                            {(!isGuest || isLoggedIn) && <div style={{display:'flex',gap:'4px',padding:'10px 16px 0',borderBottom:'1px solid rgba(255,255,255,0.06)',marginBottom:'10px'}}>
                                 <button id="chat-tab-friends" onClick={() => { document.getElementById('chat-section-friends').style.display='block'; document.getElementById('chat-section-groups').style.display='none'; document.getElementById('chat-tab-friends').style.color='#00f2ff'; document.getElementById('chat-tab-friends').style.borderBottom='2px solid #00f2ff'; document.getElementById('chat-tab-groups').style.color='#6b7280'; document.getElementById('chat-tab-groups').style.borderBottom='2px solid transparent'; }} style={{flex:1,padding:'8px 0',borderRadius:'10px 10px 0 0',border:'none',cursor:'pointer',fontSize:'12px',fontWeight:700,background:'transparent',color:'#00f2ff',borderBottom:'2px solid #00f2ff',transition:'all 0.2s'}}>
                                     👥 {lang==='ar'?'الأصدقاء':t.tabFriends}
                                     {friendRequests.length > 0 && <span style={{marginLeft:'4px',fontSize:'9px',background:'var(--accent)',color:'#fff',borderRadius:'10px',padding:'1px 5px',fontWeight:700}}>{friendRequests.length}</span>}
@@ -2290,13 +2322,7 @@ function App() {
                                     <div style={{fontSize:'10px',fontWeight:700,color:'var(--gold)',padding:'8px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>⏳ {lang==='ar'?'طلبات صداقة':'Friend Requests'} ({friendRequests.length})</div>
                                     {friendRequests.map(req => (
                                         <div key={req.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 14px',borderTop:'1px solid rgba(255,255,255,0.04)'}}>
-                                            <div
-                                                style={{flex:1,minWidth:0,cursor:'pointer'}}
-                                                onClick={() => { setTargetProfileUID(req.id); setShowUserProfile(true); }}
-                                                title={lang==='ar'?'عرض البروفايل':'View Profile'}
-                                            >
-                                                <PlayerNameTag player={req} lang={lang} size="sm" />
-                                            </div>
+                                            <div style={{flex:1,minWidth:0}}><PlayerNameTag player={req} lang={lang} size="sm" /></div>
                                             <button onClick={() => handleAcceptRequest(req.id)} style={{padding:'4px 10px',borderRadius:'8px',background:'#00ff88',color:'#000',fontSize:'11px',fontWeight:700,border:'none',cursor:'pointer'}}>{t.accept} ✓</button>
                                             <button onClick={() => handleRejectRequest(req.id)} style={{padding:'4px 8px',borderRadius:'8px',background:'rgba(255,255,255,0.07)',color:'var(--text-muted)',fontSize:'11px',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>✕</button>
                                         </div>
@@ -2377,6 +2403,7 @@ function App() {
                                     isLoggedIn={isLoggedIn}
                                 />
                             </div>
+                        </div>}{/* end logged-in tabs */}
                         </div>
                     )}
 
@@ -2961,7 +2988,13 @@ function App() {
                         <div className="nav-icon-new">🔥</div>
                         <div className="nav-label-new">{lang==='ar'?'اكتشف':'Discover'}</div>
                     </div>
-                    <div className={`nav-item-new ${activeView==='me'?'active':''}`} onClick={() => setActiveView('me')}>
+                    <div className={`nav-item-new ${activeView==='me'?'active':''}`}
+                        onClick={() => {
+                            if (isLoggedIn) { setActiveView('me'); }
+                            else if (isGuest) { setShowGuestMenu(g => !g); }
+                            else { setActiveView('me'); }
+                        }}
+                        style={{position:'relative'}}>
                         <div className="nav-icon-new">
                             {(isLoggedIn || isGuest) && (currentUserData?.photoURL || currentUserData?.photo)
                                 ? <img src={currentUserData.photoURL || currentUserData.photo} alt="" style={{width:'24px',height:'24px',objectFit:'cover',borderRadius:'50%',border:`2px solid ${activeView==='me'?'var(--primary)':'rgba(255,255,255,0.2)'}`}} />
@@ -2969,6 +3002,24 @@ function App() {
                             }
                         </div>
                         <div className="nav-label-new">{lang==='ar'?'أنا':'Me'}</div>
+                        {/* Guest quick-menu from bottom nav */}
+                        {showGuestMenu && isGuest && !isLoggedIn && (
+                            <div style={{position:'absolute',bottom:'calc(100% + 8px)',right:0,background:'linear-gradient(160deg,#0f0f25,#141432)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'14px',minWidth:'190px',zIndex:Z.TOOLTIP,boxShadow:'0 8px 32px rgba(0,0,0,0.6)',padding:'8px'}}
+                                onClick={e => e.stopPropagation()}>
+                                <button
+                                    onClick={() => { setShowMyAccount(true); setShowGuestMenu(false); }}
+                                    style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.05)',border:'none',color:'#e5e7eb',fontSize:'13px',fontWeight:700,cursor:'pointer',marginBottom:'6px',textAlign:'left'}}>
+                                    <span style={{fontSize:'18px'}}>🖼️</span>
+                                    {lang==='ar'?'البروفايل':'Profile'}
+                                </button>
+                                <button
+                                    onClick={() => { handleGoogleLogin(); setShowGuestMenu(false); }}
+                                    style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'10px',background:'linear-gradient(135deg,rgba(66,133,244,0.25),rgba(26,115,232,0.2))',border:'1px solid rgba(66,133,244,0.35)',color:'#7cb3ff',fontSize:'13px',fontWeight:800,cursor:'pointer',textAlign:'left'}}>
+                                    <span style={{fontSize:'18px'}}>🔑</span>
+                                    {lang==='ar'?'تسجيل الدخول بجوجل':'Login with Google'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </nav>
             )}
