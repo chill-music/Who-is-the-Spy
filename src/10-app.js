@@ -80,6 +80,17 @@ function App() {
     const [showIncomingProposal, setShowIncomingProposal] = useState(false);
     const [showWeddingHall, setShowWeddingHall]         = useState(false);
 
+    // ── 🤝 BFF SYSTEM STATE ──
+    const [showBFFModal, setShowBFFModal]               = useState(false);
+    const [bffInitialTab, setBffInitialTab]             = useState('relationships');
+    const [bffUnreadCount, setBffUnreadCount]           = useState(0);
+
+    // ── 🤖 BOT CHATS STATE ──
+    const [showDetectiveBot, setShowDetectiveBot]       = useState(false);
+    const [showLoveBot, setShowLoveBot]                 = useState(false);
+    const [detectiveBotUnread, setDetectiveBotUnread]   = useState(0);
+    const [loveBotUnread, setLoveBotUnread]             = useState(0);
+
     // ── 👤 GUEST AVATAR MENU ──
     const [showGuestMenu, setShowGuestMenu]             = useState(false);
 
@@ -136,6 +147,21 @@ function App() {
                 }
             }, () => {});
         return () => unsub();
+    }, [currentUID, isLoggedIn]);
+
+    // ── 🤖 Bot chat unread listeners ──
+    useEffect(() => {
+        if (!currentUID || !isLoggedIn) return;
+        const unsub1 = botChatsCollection
+            .where('toUserId', '==', currentUID).where('botId', '==', 'detective_bot').where('read', '==', false)
+            .onSnapshot(snap => setDetectiveBotUnread(snap.size), () => {});
+        const unsub2 = botChatsCollection
+            .where('toUserId', '==', currentUID).where('botId', '==', 'love_bot').where('read', '==', false)
+            .onSnapshot(snap => setLoveBotUnread(snap.size), () => {});
+        const unsub3 = bffCollection
+            .where('uid2', '==', currentUID).where('status', '==', 'pending')
+            .onSnapshot(snap => setBffUnreadCount(snap.size), () => {});
+        return () => { unsub1(); unsub2(); unsub3(); };
     }, [currentUID, isLoggedIn]);
 
     // ── 💍 Listen to couple doc (accepted or pending for me) ──
@@ -1478,6 +1504,20 @@ function App() {
             return;
         }
 
+        // ✅ BFF Token purchase — stackable in inventory
+        if (item.cardType !== undefined) {
+            try {
+                await usersCollection.doc(user.uid).update({
+                    currency: firebase.firestore.FieldValue.increment(-item.cost),
+                    'inventory.bff_tokens': firebase.firestore.FieldValue.arrayUnion(item.id),
+                });
+                playSound('success');
+                const tokenName = lang === 'ar' ? item.name_ar : item.name_en;
+                setNotification(`🤝 ${tokenName} ${lang === 'ar' ? 'أُضيف للمخزون!' : 'added to inventory!'}`);
+            } catch (e) { setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+            return;
+        }
+
         if (inventory[item.type]?.includes(item.id)) { setNotification(t.alreadyOwned); return; }
         try {
             const newInventory = { ...inventory, [item.type]: [...(inventory[item.type] || []), item.id] };
@@ -1843,6 +1883,45 @@ function App() {
                 />
             )}
 
+            {/* 🤝 BFF Modal */}
+            {showBFFModal && (
+                <BFFModal
+                    show={showBFFModal}
+                    onClose={() => setShowBFFModal(false)}
+                    lang={lang}
+                    currentUID={currentUID}
+                    currentUserData={currentUserData}
+                    onNotification={setNotification}
+                    friendsData={friendsData}
+                />
+            )}
+
+            {/* 🕵️ Detective Bot Chat */}
+            {showDetectiveBot && (
+                <BotChatModal
+                    show={showDetectiveBot}
+                    onClose={() => setShowDetectiveBot(false)}
+                    botId="detective_bot"
+                    currentUID={currentUID}
+                    currentUserData={currentUserData}
+                    lang={lang}
+                />
+            )}
+
+            {/* 💌 Love Bot Chat */}
+            {showLoveBot && (
+                <BotChatModal
+                    show={showLoveBot}
+                    onClose={() => setShowLoveBot(false)}
+                    botId="love_bot"
+                    currentUID={currentUID}
+                    currentUserData={currentUserData}
+                    lang={lang}
+                    onOpenWeddingHall={(tab) => { setShowLoveBot(false); setShowWeddingHall(true); }}
+                    onOpenBFFModal={(tab) => { setShowLoveBot(false); setShowBFFModal(true); setBffInitialTab(tab || 'requests'); }}
+                />
+            )}
+
             {showMyAccount && currentUID && (
                 <ProfileV11
                     show={showMyAccount}
@@ -1870,6 +1949,7 @@ function App() {
                     onOpenProfile={(uid) => { setShowMyAccount(false); openProfile(uid); }}
                     onOpenMarriage={() => { setShowMyAccount(false); setShowWeddingHall(true); }}
                     onOpenFamily={(fid) => { setShowMyAccount(false); setViewFamilyId(fid || null); setShowFamilyModal(true); }}
+                    onOpenBFFModal={() => { setShowMyAccount(false); setShowBFFModal(true); }}
                     onOpenChat={(target) => {
                         setShowMyAccount(false);
                         if (target === 'self') {
@@ -2306,6 +2386,45 @@ function App() {
                             </div>
                             {friendSearchMsg && <p style={{fontSize:'11px',textAlign:'center',padding:'0 16px 8px',color:friendSearchMsg.includes('تم')||friendSearchMsg.includes('Sent')?'#4ade80':'#ff4d4d'}}>{friendSearchMsg}</p>}
 
+                            {/* ── Official Bot Chats ── */}
+                            {isLoggedIn && (
+                                <div style={{margin:'0 16px 10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'12px',overflow:'hidden'}}>
+                                    <div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',padding:'6px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>🤖 {lang==='ar'?'قنوات رسمية':'Official Channels'}</div>
+                                    {/* Detective Bot */}
+                                    <div onClick={()=>setShowDetectiveBot(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderTop:'1px solid rgba(255,255,255,0.04)',cursor:'pointer',background:detectiveBotUnread>0?'rgba(0,212,255,0.05)':'transparent'}} className="me-friend-row">
+                                        <div style={{position:'relative',flexShrink:0}}>
+                                            <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(0,212,255,0.25),rgba(0,212,255,0.1))',border:'1.5px solid rgba(0,212,255,0.4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',overflow:'hidden'}}>
+                                                {BOT_CHATS_CONFIG[0]?.photoURL?<img src={BOT_CHATS_CONFIG[0].photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:'🕵️'}
+                                            </div>
+                                            {detectiveBotUnread>0&&<div style={{position:'absolute',top:'-2px',right:'-2px',width:'10px',height:'10px',borderRadius:'50%',background:'#ef4444',border:'1.5px solid var(--bg-main)',boxShadow:'0 0 6px rgba(239,68,68,0.8)'}}/>}
+                                        </div>
+                                        <div style={{flex:1,minWidth:0}}>
+                                            <div style={{display:'flex',alignItems:'center',gap:'5px'}}>
+                                                <span style={{fontSize:'13px',fontWeight:detectiveBotUnread>0?800:600,color:detectiveBotUnread>0?'#e2e8f0':'#9ca3af'}}>{lang==='ar'?'المحقق':'The Detective'}</span>
+                                                <span style={{fontSize:'8px',fontWeight:900,background:'#00d4ff',color:'#000',padding:'1px 4px',borderRadius:'3px'}}>OFFICIAL</span>
+                                            </div>
+                                            <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'البلاغات والردود':'Reports & Responses'}</div>
+                                        </div>
+                                    </div>
+                                    {/* Love Bot */}
+                                    <div onClick={()=>setShowLoveBot(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderTop:'1px solid rgba(255,255,255,0.04)',cursor:'pointer',background:loveBotUnread>0?'rgba(249,168,212,0.05)':'transparent'}} className="me-friend-row">
+                                        <div style={{position:'relative',flexShrink:0}}>
+                                            <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(249,168,212,0.25),rgba(249,168,212,0.1))',border:'1.5px solid rgba(249,168,212,0.4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',overflow:'hidden'}}>
+                                                {BOT_CHATS_CONFIG[1]?.photoURL?<img src={BOT_CHATS_CONFIG[1].photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:'💌'}
+                                            </div>
+                                            {(loveBotUnread>0||bffUnreadCount>0)&&<div style={{position:'absolute',top:'-2px',right:'-2px',width:'10px',height:'10px',borderRadius:'50%',background:'#ec4899',border:'1.5px solid var(--bg-main)',boxShadow:'0 0 6px rgba(236,72,153,0.8)'}}/>}
+                                        </div>
+                                        <div style={{flex:1,minWidth:0}}>
+                                            <div style={{display:'flex',alignItems:'center',gap:'5px'}}>
+                                                <span style={{fontSize:'13px',fontWeight:loveBotUnread>0||bffUnreadCount>0?800:600,color:loveBotUnread>0||bffUnreadCount>0?'#e2e8f0':'#9ca3af'}}>{lang==='ar'?'دواء بوت':'Dawa Bot'}</span>
+                                                <span style={{fontSize:'8px',fontWeight:900,background:'#f9a8d4',color:'#000',padding:'1px 4px',borderRadius:'3px'}}>OFFICIAL</span>
+                                            </div>
+                                            <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'إشعارات الزواج و BFF':'Wedding & BFF Notifications'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Friend Requests */}
                             {friendRequests.length > 0 && (
                                 <div style={{margin:'0 16px 10px',background:'rgba(255,215,0,0.05)',border:'1px solid rgba(255,215,0,0.15)',borderRadius:'12px',overflow:'hidden'}}>
@@ -2367,10 +2486,12 @@ function App() {
                                     const statusColor = (f) => f.onlineStatus==='online' ? '#4ade80' : f.onlineStatus==='away' ? '#facc15' : '#6b7280';
                                     const renderFriend = (friend) => (
                                         <div key={friend.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)'}} className="me-friend-row">
-                                            <div style={{flex:1,minWidth:0}}><PlayerNameTag player={friend} lang={lang} size="sm" showStatus={statusColor(friend)} /></div>
+                                            {/* Clickable avatar+info */}
+                                            <div style={{flex:1,minWidth:0,cursor:'pointer'}} onClick={() => openProfile(friend.id)}>
+                                                <PlayerNameTag player={friend} lang={lang} size="sm" showStatus={statusColor(friend)} />
+                                            </div>
                                             <div style={{display:'flex',gap:'6px',flexShrink:0}}>
                                                 <button onClick={() => openPrivateChat(friend)} className="btn-ghost" style={{padding:'5px 8px',borderRadius:'8px',fontSize:'12px'}}>💬</button>
-                                                <button onClick={() => openProfile(friend.id)} className="btn-ghost" style={{padding:'5px 8px',borderRadius:'8px',fontSize:'12px'}}>👤</button>
                                             </div>
                                         </div>
                                     );
