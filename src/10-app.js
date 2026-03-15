@@ -1454,6 +1454,11 @@ function App() {
             // ═══ STEP 4: Run all parallel ops ═══
             await Promise.all(parallelOps);
 
+            // ── BFF gift points update (non-blocking, best-effort) ──
+            if (!isSelfSend && typeof updateBFFGiftPoints === 'function') {
+                updateBFFGiftPoints(user.uid, targetUser.uid, totalCharisma).catch(() => {});
+            }
+
             // ✅ Notification toast
             setNotification(qty > 1 ? `🎁 ${t.giftSent} ×${qty}!` : `🎁 ${t.giftSent}!`);
 
