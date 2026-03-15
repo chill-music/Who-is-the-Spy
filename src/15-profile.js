@@ -2861,6 +2861,7 @@ const ProfileV11 = ({
     onOpenProfile,
     currentViewerData,  // logged-in viewer's user data (for couple gift sending)
     onOpenMarriage,     // opens the marriage/wedding hall page
+    onOpenFamily,       // opens family modal (pass familyId to view any family)
 }) => {
     const t = TRANSLATIONS[lang] || {};
 
@@ -3507,7 +3508,11 @@ const ProfileV11 = ({
                                     })()}
                                     {/* فاميلي ساين جنب الكاريزما على الشمال */}
                                     {targetData?.familyTag && (
-                                        <ProfileFamilySignBadge userData={targetData} lang={lang} />
+                                        <ProfileFamilySignBadge
+                                            userData={targetData}
+                                            lang={lang}
+                                            onClick={onOpenFamily ? () => onOpenFamily(targetData?.familyId) : undefined}
+                                        />
                                     )}
                                 </div>
                                 {/* يمين: البلد فقط */}
