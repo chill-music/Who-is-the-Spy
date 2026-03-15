@@ -13,31 +13,62 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
 
     const hasGlow = signLevel >= 4;
 
-    // لو في صورة: تظهر بدون مربع — عرضها يتناسب مع طول التاج (3-5 أحرف)
+    // لو في صورة: تظهر كبيرة مع التاج مكتوب فوقها باحتراف
     if (signImgURL) {
-        // كل حرف ≈ 9px (font bold italic 11-12px)
-        const approxWidth = Math.max(familyTag.length * 9, 27);
+        // عرض الصورة يتناسب مع عدد الأحرف — 3→52px  4→62px  5→72px
+        const imgW = 44 + (familyTag.length * 6);
+        const imgH = Math.round(imgW * 0.55); // نسبة عرض/ارتفاع ثابتة
+        // حجم الخط يتناسب مع حجم الصورة
+        const fontSize = familyTag.length <= 3 ? 11 : familyTag.length === 4 ? 10 : 9;
+
         return (
             <span
                 onClick={onClick}
                 title={familyName ? (lang === 'ar' ? `عائلة: ${familyName}` : `Family: ${familyName}`) : familyTag}
                 style={{
+                    position:'relative',
                     display:'inline-flex', alignItems:'center', justifyContent:'center',
                     flexShrink:0, cursor: onClick ? 'pointer' : 'default',
-                    filter: hasGlow ? `drop-shadow(0 0 5px ${signColor}99)` : 'none',
+                    width:`${imgW}px`, height:`${imgH}px`,
+                    filter: hasGlow
+                        ? `drop-shadow(0 0 6px ${signColor}cc) drop-shadow(0 0 12px ${signColor}66)`
+                        : 'none',
                     transition:'all 0.2s',
                 }}
             >
+                {/* الصورة الخلفية */}
                 <img
                     src={signImgURL}
-                    alt={familyTag}
+                    alt=""
                     style={{
-                        width: `${approxWidth}px`,
-                        height:'20px',
+                        position:'absolute', inset:0,
+                        width:'100%', height:'100%',
                         objectFit:'contain',
                         display:'block',
                     }}
                 />
+                {/* التاج مكتوب فوق الصورة */}
+                <span style={{
+                    position:'relative', zIndex:1,
+                    fontSize:`${fontSize}px`,
+                    fontWeight:900,
+                    fontStyle:'italic',
+                    letterSpacing:'1.5px',
+                    color:'#fff',
+                    textShadow:`
+                        0 0 6px rgba(0,0,0,0.9),
+                        0 0 12px rgba(0,0,0,0.7),
+                        1px 1px 0 rgba(0,0,0,0.8),
+                        -1px -1px 0 rgba(0,0,0,0.8),
+                        1px -1px 0 rgba(0,0,0,0.8),
+                        -1px 1px 0 rgba(0,0,0,0.8),
+                        0 0 18px ${signColor}cc
+                    `,
+                    userSelect:'none',
+                    lineHeight:1,
+                }}>
+                    {familyTag}
+                </span>
             </span>
         );
     }
