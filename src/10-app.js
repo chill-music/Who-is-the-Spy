@@ -152,16 +152,20 @@ function App() {
     // ── 🤖 Bot chat unread listeners ──
     useEffect(() => {
         if (!currentUID || !isLoggedIn) return;
+        // Single-field query only — filter client-side to avoid composite index
         const unsub1 = botChatsCollection
-            .where('toUserId', '==', currentUID).where('botId', '==', 'detective_bot').where('read', '==', false)
-            .onSnapshot(snap => setDetectiveBotUnread(snap.size), () => {});
-        const unsub2 = botChatsCollection
-            .where('toUserId', '==', currentUID).where('botId', '==', 'love_bot').where('read', '==', false)
-            .onSnapshot(snap => setLoveBotUnread(snap.size), () => {});
-        const unsub3 = bffCollection
-            .where('uid2', '==', currentUID).where('status', '==', 'pending')
-            .onSnapshot(snap => setBffUnreadCount(snap.size), () => {});
-        return () => { unsub1(); unsub2(); unsub3(); };
+            .where('toUserId', '==', currentUID)
+            .onSnapshot(snap => {
+                const docs = snap.docs.map(d => d.data());
+                setDetectiveBotUnread(docs.filter(d => d.botId === 'detective_bot' && !d.read).length);
+                setLoveBotUnread(docs.filter(d => d.botId === 'love_bot' && !d.read).length);
+            }, () => {});
+        const unsub2 = bffCollection
+            .where('uid2', '==', currentUID)
+            .onSnapshot(snap => {
+                setBffUnreadCount(snap.docs.filter(d => d.data().status === 'pending').length);
+            }, () => {});
+        return () => { unsub1(); unsub2(); };
     }, [currentUID, isLoggedIn]);
 
     // ── 💍 Listen to couple doc (accepted or pending for me) ──
@@ -2486,17 +2490,79 @@ function App() {
                                     const away = friendsData.filter(f => f.onlineStatus === 'away');
                                     const offline = friendsData.filter(f => !f.onlineStatus || f.onlineStatus === 'offline');
                                     const statusColor = (f) => f.onlineStatus==='online' ? '#4ade80' : f.onlineStatus==='away' ? '#facc15' : '#6b7280';
-                                    const renderFriend = (friend) => (
-                                        <div key={friend.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)'}} className="me-friend-row">
-                                            {/* Clickable avatar+info */}
-                                            <div style={{flex:1,minWidth:0,cursor:'pointer'}} onClick={() => openProfile(friend.id)}>
-                                                <PlayerNameTag player={friend} lang={lang} size="sm" showStatus={statusColor(friend)} />
+                                    const renderFriend = (friend) => {
+                                        const fVipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(friend) || 0) : 0;
+                                        const fVipCfg = fVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(fVipLevel-1, VIP_CONFIG.length-1)] : null;
+                                        const fEquipped = friend.equipped || {};
+                                        const fBadgeIds = (fEquipped.badges || []).slice(0, 3);
+                                        const fTitleId = fEquipped.titles || null;
+                                        const fTitleItem = fTitleId && typeof SHOP_ITEMS !== 'undefined' ? SHOP_ITEMS.titles?.find(t => t.id === fTitleId) : null;
+                                        const sc = statusColor(friend);
+                                        return (
+                                            <div key={friend.id} onClick={() => openProfile(friend.id)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer'}} className="me-friend-row">
+                                                {/* Avatar with status dot */}
+                                                <div style={{position:'relative',flexShrink:0}}>
+                                                    <div style={{
+                                                        width:'38px', height:'38px', borderRadius:'50%', overflow:'hidden',
+                                                        border: fVipCfg ? `2px solid ${fVipCfg.nameColor}` : '2px solid rgba(255,255,255,0.1)',
+                                                        boxShadow: fVipCfg ? `0 0 8px ${fVipCfg.nameColor}44` : 'none',
+                                                    }}>
+                                                        {friend.photoURL
+                                                            ? <img src={friend.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                            : <div style={{width:'100%',height:'100%',background:'rgba(255,255,255,0.06)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',color:'#6b7280',fontWeight:700}}>{(friend.displayName||'U')[0].toUpperCase()}</div>
+                                                        }
+                                                    </div>
+                                                    {/* Online status dot */}
+                                                    <div style={{position:'absolute',bottom:'0px',right:'0px',width:'9px',height:'9px',borderRadius:'50%',background:sc,border:'1.5px solid #0a0a14'}}/>
+                                                </div>
+                                                {/* Info */}
+                                                <div style={{flex:1,minWidth:0}}>
+                                                    {/* Row 1: name + VIP badge */}
+                                                    <div style={{display:'flex',alignItems:'center',gap:'4px',flexWrap:'nowrap',marginBottom: (fBadgeIds.length>0||fTitleItem) ? '2px' : '0'}}>
+                                                        <span style={{
+                                                            fontSize:'13px', fontWeight:700,
+                                                            color: fVipCfg ? fVipCfg.nameColor : '#e2e8f0',
+                                                            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'130px',
+                                                            textShadow: fVipCfg ? `0 0 8px ${fVipCfg.nameColor}55` : 'none',
+                                                        }}>{friend.displayName || friend.name || '—'}</span>
+                                                        {fVipLevel > 0 && fVipCfg && (
+                                                            <span style={{fontSize:'7px',fontWeight:900,background:fVipCfg.nameColor,color:'#000',padding:'1px 3px',borderRadius:'2px',flexShrink:0}}>VIP{fVipLevel}</span>
+                                                        )}
+                                                        {/* Staff role badge */}
+                                                        {friend.staffRole?.role && typeof StaffRoleBadge !== 'undefined' && (
+                                                            <StaffRoleBadge userData={friend} uid={friend.id} lang={lang} size="sm" />
+                                                        )}
+                                                    </div>
+                                                    {/* Row 2: Badges (max 3) */}
+                                                    {fBadgeIds.length > 0 && typeof SHOP_ITEMS !== 'undefined' && (
+                                                        <div style={{display:'flex',alignItems:'center',gap:'2px',marginBottom:'2px'}}>
+                                                            {fBadgeIds.map((bid, idx) => {
+                                                                const b = SHOP_ITEMS.badges?.find(b => b.id === bid);
+                                                                if (!b) return null;
+                                                                return b.imageUrl && b.imageUrl.trim() !== '' ? (
+                                                                    <img key={idx} src={b.imageUrl} alt="" style={{width:'13px',height:'13px',objectFit:'contain'}}/>
+                                                                ) : (
+                                                                    <span key={idx} style={{fontSize:'11px',lineHeight:1}}>{b.preview}</span>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                    {/* Row 3: Title */}
+                                                    {fTitleItem && (
+                                                        <div style={{display:'flex',alignItems:'center',gap:'2px'}}>
+                                                            {fTitleItem.imageUrl && fTitleItem.imageUrl.trim() !== '' ? (
+                                                                <img src={fTitleItem.imageUrl} alt="" style={{maxWidth:'70px',maxHeight:'12px',objectFit:'contain'}}/>
+                                                            ) : (
+                                                                <span style={{fontSize:'9px',color:'#a78bfa',lineHeight:1,whiteSpace:'nowrap'}}>🌐 {lang==='ar'?fTitleItem.name_ar:fTitleItem.name_en}</span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {/* Chat button */}
+                                                <button onClick={(e)=>{e.stopPropagation();openPrivateChat(friend);}} className="btn-ghost" style={{padding:'5px 8px',borderRadius:'8px',fontSize:'12px',flexShrink:0}}>💬</button>
                                             </div>
-                                            <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                                                <button onClick={() => openPrivateChat(friend)} className="btn-ghost" style={{padding:'5px 8px',borderRadius:'8px',fontSize:'12px'}}>💬</button>
-                                            </div>
-                                        </div>
-                                    );
+                                        );
+                                    };
                                     return (<>
                                         {online.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#4ade80',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block'}}/>{t.online} ({online.length})</div>{online.map(renderFriend)}</>)}
                                         {away.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#facc15',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#facc15',display:'inline-block'}}/>{lang==='ar'?'بعيد':'Away'} ({away.length})</div>{away.map(renderFriend)}</>)}
