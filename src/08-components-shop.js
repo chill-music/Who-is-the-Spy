@@ -67,6 +67,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     const tabs = [
         { id: 'vip',            icon: '👑', label_ar: 'VIP',       label_en: 'VIP'     },
         { id: 'rings',          icon: '💍', label_ar: 'خواتم',     label_en: 'Rings'   },
+        { id: 'bff_tokens',     icon: '🤝', label_ar: 'BFF',       label_en: 'BFF'     },
         { id: 'gifts',          icon: '🎁', label_ar: 'هدايا',     label_en: 'Gifts'   },
         { id: 'frames',         icon: '🖼️', label_ar: 'إطارات',   label_en: 'Frames'  },
         { id: 'titles',         icon: '🏷️', label_ar: 'ألقاب',    label_en: 'Titles'  },
@@ -75,6 +76,10 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     ];
 
     const getTabItems = (tab) => {
+        if (tab === 'bff_tokens') {
+            // Return BFF_TOKEN_ITEMS from config (not hidden ones)
+            return typeof BFF_TOKEN_ITEMS !== 'undefined' ? BFF_TOKEN_ITEMS.filter(t => !t.hidden) : [];
+        }
         if (tab === 'gifts') {
             const regular  = (SHOP_ITEMS.gifts     || []).filter(item => !item.hidden);
             const vipGifts = (SHOP_ITEMS.gifts_vip || []).filter(item => !item.hidden && item.vipExclusive !== false);
@@ -214,6 +219,86 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                             onPropose={onPropose||(() => {})} coupleData={coupleData}
                             onOpenCoupleCard={onOpenCoupleCard}
                         />
+                    )}
+
+                    {/* ════ BFF TOKENS ════ */}
+                    {activeTab === 'bff_tokens' && (
+                        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                            {/* Info header */}
+                            <div style={{
+                                padding:'12px 14px', borderRadius:'14px',
+                                background:'linear-gradient(135deg,rgba(167,139,250,0.12),rgba(112,0,255,0.08))',
+                                border:'1px solid rgba(167,139,250,0.3)',
+                            }}>
+                                <div style={{fontSize:'13px',fontWeight:800,color:'#e9d5ff',marginBottom:'4px'}}>
+                                    🤝 {lang==='ar'?'توكنات BFF':'BFF Tokens'}
+                                </div>
+                                <div style={{fontSize:'11px',color:'#9ca3af',lineHeight:1.5}}>
+                                    {lang==='ar'
+                                        ? `اشترِ توكن لإنشاء علاقة صداقة. لديك ${BFF_CONFIG.freeSlots} خانات مجانية.`
+                                        : `Buy a token to create a friendship. You have ${BFF_CONFIG.freeSlots} free slots.`}
+                                </div>
+                            </div>
+                            {/* Token grid */}
+                            {(typeof BFF_TOKEN_ITEMS !== 'undefined' ? BFF_TOKEN_ITEMS : []).map(token => {
+                                const myTokenCount = (userData?.inventory?.bff_tokens || []).filter(t => t === token.id).length;
+                                const canAfford = (userData?.currency || 0) >= token.cost;
+                                return (
+                                    <div key={token.id} style={{
+                                        padding:'14px 16px', borderRadius:'16px',
+                                        background:`linear-gradient(135deg,${token.color}10,${token.color}05)`,
+                                        border:`1px solid ${token.color}35`,
+                                        display:'flex', alignItems:'center', gap:'14px',
+                                    }}>
+                                        {/* Token icon */}
+                                        <div style={{
+                                            width:'50px', height:'50px', flexShrink:0, borderRadius:'14px',
+                                            background:`${token.color}18`, border:`1px solid ${token.color}40`,
+                                            display:'flex', alignItems:'center', justifyContent:'center', fontSize:'28px',
+                                            boxShadow:`0 0 12px ${token.glow}`,
+                                        }}>
+                                            {token.imageURL
+                                                ? <img src={token.imageURL} alt="" style={{width:'36px',height:'36px',objectFit:'contain'}}/>
+                                                : token.emoji}
+                                        </div>
+                                        {/* Info */}
+                                        <div style={{flex:1, minWidth:0}}>
+                                            <div style={{fontSize:'13px', fontWeight:800, color:'white', marginBottom:'2px'}}>
+                                                {lang==='ar' ? token.name_ar : token.name_en}
+                                            </div>
+                                            <div style={{fontSize:'9px', color:BFF_RARITY_COLORS?.[token.rarity]||'#9ca3af', fontWeight:700, marginBottom:'3px'}}>{token.rarity}</div>
+                                            <div style={{fontSize:'10px', color:'#6b7280'}}>
+                                                {lang==='ar' ? token.desc_ar : token.desc_en}
+                                            </div>
+                                            {myTokenCount > 0 && (
+                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, marginTop:'3px'}}>
+                                                    ✅ {lang==='ar'?`لديك ${myTokenCount} توكن`:`You have ${myTokenCount} token(s)`}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Buy button */}
+                                        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
+                                            <div style={{fontSize:'12px', fontWeight:800, color:'#fcd34d'}}>
+                                                {token.cost.toLocaleString()} 🧠
+                                            </div>
+                                            <button
+                                                onClick={() => onPurchase && onPurchase(token)}
+                                                disabled={!canAfford}
+                                                style={{
+                                                    padding:'7px 14px', borderRadius:'10px', border:'none', cursor:canAfford?'pointer':'not-allowed',
+                                                    background:canAfford?`linear-gradient(135deg,${token.color},${token.color}88)`:'rgba(255,255,255,0.06)',
+                                                    color:canAfford?'#000':'#4b5563',
+                                                    fontSize:'11px', fontWeight:800,
+                                                    boxShadow:canAfford?`0 3px 12px ${token.glow}`:'none',
+                                                    transition:'all 0.2s',
+                                                }}>
+                                                🤝 {lang==='ar'?'شراء':'Buy'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     )}
 
                     {/* ════ VIP ════ */}
@@ -421,7 +506,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                     )}
 
                     {/* ════ ITEMS GRID ════ */}
-                    {activeTab !== 'vip' && activeTab !== 'rings' && (
+                    {activeTab !== 'vip' && activeTab !== 'rings' && activeTab !== 'bff_tokens' && (
                         <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
 
                             {/* Gift filters */}
