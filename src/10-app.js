@@ -2297,7 +2297,8 @@ function App() {
                                 </div>
                             )}
                             {/* ── Chat Tabs: Friends / Groups (only for logged-in) ── */}
-                            {(!isGuest || isLoggedIn) && <div style={{display:'flex',gap:'4px',padding:'10px 16px 0',borderBottom:'1px solid rgba(255,255,255,0.06)',marginBottom:'10px'}}>
+                            {(!isGuest || isLoggedIn) && (<>
+                            <div style={{display:'flex',gap:'4px',padding:'10px 16px 0',borderBottom:'1px solid rgba(255,255,255,0.06)',marginBottom:'10px'}}>
                                 <button id="chat-tab-friends" onClick={() => { document.getElementById('chat-section-friends').style.display='block'; document.getElementById('chat-section-groups').style.display='none'; document.getElementById('chat-tab-friends').style.color='#00f2ff'; document.getElementById('chat-tab-friends').style.borderBottom='2px solid #00f2ff'; document.getElementById('chat-tab-groups').style.color='#6b7280'; document.getElementById('chat-tab-groups').style.borderBottom='2px solid transparent'; }} style={{flex:1,padding:'8px 0',borderRadius:'10px 10px 0 0',border:'none',cursor:'pointer',fontSize:'12px',fontWeight:700,background:'transparent',color:'#00f2ff',borderBottom:'2px solid #00f2ff',transition:'all 0.2s'}}>
                                     👥 {lang==='ar'?'الأصدقاء':t.tabFriends}
                                     {friendRequests.length > 0 && <span style={{marginLeft:'4px',fontSize:'9px',background:'var(--accent)',color:'#fff',borderRadius:'10px',padding:'1px 5px',fontWeight:700}}>{friendRequests.length}</span>}
@@ -2403,7 +2404,7 @@ function App() {
                                     isLoggedIn={isLoggedIn}
                                 />
                             </div>
-                        </div>}{/* end logged-in tabs */}
+                        </div></>)}
                         </div>
                     )}
 
