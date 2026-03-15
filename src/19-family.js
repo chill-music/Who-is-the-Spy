@@ -31,8 +31,8 @@ const FAMILY_SIGN_LEVELS = [
     { level:1, threshold:1000,   name_ar:'ساين المستوى 1',  name_en:'Sign Level 1',  color:'#6b7280', glow:'rgba(107,114,128,0.3)', defaultIcon:'🏠', bg:'rgba(107,114,128,0.15)' },
     { level:2, threshold:10000,  name_ar:'ساين المستوى 2',  name_en:'Sign Level 2',  color:'#22d3ee', glow:'rgba(34,211,238,0.4)',  defaultIcon:'⚔️', bg:'rgba(34,211,238,0.15)' },
     { level:3, threshold:30000,  name_ar:'ساين المستوى 3',  name_en:'Sign Level 3',  color:'#fbbf24', glow:'rgba(251,191,36,0.4)',  defaultIcon:'🛡️', bg:'rgba(251,191,36,0.15)' },
-    { level:4, threshold:100000, name_ar:'ساين المستوى 4',  name_en:'Sign Level 4',  color:'#f97316', glow:'rgba(249,115,22,0.4)',  defaultIcon:'👑', bg:'rgba(249,115,22,0.15)' },
-    { level:5, threshold:300000, name_ar:'ساين المستوى 5',  name_en:'Sign Level 5',  color:'#00d4ff', glow:'rgba(0,212,255,0.5)',   defaultIcon:'🌟', bg:'rgba(0,212,255,0.15)' },
+    { level:4, threshold:100000, name_ar:'ساين المستوى 4',  name_en:'Sign Level 4',  color:'#f97316', glow:'rgba(249,115,22,0.55)', defaultIcon:'👑', bg:'rgba(249,115,22,0.15)',  hasGlow:true },
+    { level:5, threshold:300000, name_ar:'ساين المستوى 5',  name_en:'Sign Level 5',  color:'#ef4444', glow:'rgba(239,68,68,0.65)',  defaultIcon:'🌟', bg:'rgba(239,68,68,0.15)',   hasGlow:true },
 ];
 
 // Get sign image URL from config (FAMILY_SIGN_IMAGES defined in 01-config.js)
@@ -152,7 +152,12 @@ const FamilyRoleBadge = ({ role, lang, small = false }) => {
 // Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
 const FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = null, signLevel = 1 }) => {
     const imgSrc = imageURL || (typeof getFamilySignImage === 'function' ? getFamilySignImage(signLevel) : null);
-    const hasGlow = signLevel >= 4;
+    // استخدم hasGlow من بيانات المستوى نفسه
+    const signLevelData = typeof FAMILY_SIGN_LEVELS !== 'undefined'
+        ? FAMILY_SIGN_LEVELS.find(s => s.level === signLevel)
+        : null;
+    const hasGlow = signLevelData?.hasGlow || signLevel >= 4;
+    const glowColor = signLevelData?.glow || `${color}88`;
     const displayTag = tag || 'FAM';
 
     // لو في صورة: تظهر مع التاج مكتوب فوقها
@@ -172,7 +177,7 @@ const FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = nul
                 flexShrink:0,
                 width:`${imgW}px`, height:`${imgH}px`,
                 filter: hasGlow
-                    ? `drop-shadow(0 0 5px ${color}cc) drop-shadow(0 0 10px ${color}66)`
+                    ? `drop-shadow(0 0 6px ${color}dd) drop-shadow(0 0 14px ${color}88) drop-shadow(0 0 22px ${color}44)`
                     : 'none',
                 transition:'all 0.2s',
             }}>
@@ -223,7 +228,7 @@ const FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = nul
             fontWeight:800, fontStyle:'italic',
             background:`${color}20`, border:`1px solid ${color}55`,
             color:color, letterSpacing:'0.5px', whiteSpace:'nowrap', flexShrink:0,
-            boxShadow: hasGlow ? `0 0 8px ${color}44` : 'none',
+            boxShadow: hasGlow ? `0 0 10px ${color}55, 0 0 20px ${color}33` : 'none',
         }}>
             {displayTag}
         </span>
@@ -2240,40 +2245,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         })}
                     </div>
 
-                    {/* Sign image upload (owner/admin only) */}
-                    {canManage && (
-                        <div style={{borderTop:'1px solid rgba(255,255,255,0.07)', paddingTop:'12px'}}>
-                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'8px'}}>
-                                {lang==='ar'?'📷 رفع صورة مخصصة للشارة (اختياري)':'📷 Upload custom sign image (optional)'}
-                            </div>
-                            <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
-                                <div>
-                                    <input type="file" ref={signImageFileRef} style={{display:'none'}} accept="image/*" onChange={handleSignImageUpload} />
-                                    <button onClick={()=>signImageFileRef.current?.click()} disabled={uploadingSign}
-                                        style={{...S.btn, padding:'7px 14px', fontSize:'11px',
-                                            background: signData ? `${signData.color}20` : 'rgba(0,242,255,0.1)',
-                                            border:`1px solid ${signData ? signData.color+'40' : 'rgba(0,242,255,0.3)'}`,
-                                            color: signData ? signData.color : '#00f2ff'}}>
-                                        {uploadingSign ? '⏳' : (lang==='ar'?'📷 رفع صورة الشارة':'📷 Upload Sign Image')}
-                                    </button>
-                                </div>
-                                {family.signImageURL && (
-                                    <button onClick={async()=>{
-                                        try {
-                                            await familiesCollection.doc(family.id).update({ signImageURL: null });
-                                            for (const uid of (family.members||[])) {
-                                                await usersCollection.doc(uid).update({ familySignImageURL: null }).catch(()=>{});
-                                            }
-                                            onNotification(lang==='ar'?'✅ تم حذف الصورة':'✅ Image removed');
-                                        } catch(e){}
-                                    }} style={{...S.btn, padding:'7px 14px', fontSize:'11px',
-                                        background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)', color:'#f87171'}}>
-                                        🗑️ {lang==='ar'?'حذف':'Remove'}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* ── Announcement ── */}
