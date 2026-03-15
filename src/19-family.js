@@ -1003,7 +1003,7 @@ const FamilyRankingInline = ({ lang, currentFamilyId }) => {
 // ════════════════════════════════════════════════════════
 // 🏠 FAMILY MODAL — Main Component V2
 // ════════════════════════════════════════════════════════
-const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification }) => {
+const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification, viewFamilyId }) => {
     const [activeTab, setActiveTab] = useState('profile');
     const [family, setFamily] = useState(null);
     const [loadingFamily, setLoadingFamily] = useState(true);
@@ -1011,6 +1011,11 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const [newsLog, setNewsLog] = useState([]);
     const [donationSort, setDonationSort] = useState('intel');
     const [memberSearch, setMemberSearch] = useState('');
+    // Gear menu state for member management
+    const [gearMenuUid, setGearMenuUid] = useState(null); // uid of member whose gear is open
+    // Tag editing state
+    const [editTag, setEditTag] = useState('');
+    const [savingTag, setSavingTag] = useState(false);
     const [joinRequesterProfiles, setJoinRequesterProfiles] = useState([]);
 
     // Chat state
@@ -1051,11 +1056,12 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [uploadingSign, setUploadingSign] = useState(false);
 
-    // ── Load family (real-time) ──
+    // ── Load family (real-time) ── supports viewFamilyId for viewing external families
     useEffect(() => {
-        if (!show || !currentUID) { setLoadingFamily(false); return; }
+        if (!show) { setLoadingFamily(false); return; }
         setLoadingFamily(true);
-        const fid = currentUserData?.familyId;
+        // If viewFamilyId passed (from profile badge click), load that family in read-only mode
+        const fid = viewFamilyId || currentUserData?.familyId;
         if (!fid) { setFamily(null); setLoadingFamily(false); return; }
         const unsub = familiesCollection.doc(fid).onSnapshot(snap => {
             if (snap.exists) {
@@ -1065,14 +1071,17 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 setEditName(d.name || '');
                 setEditDesc(d.description || '');
                 setJoinMode(d.joinMode || 'open');
+                setEditTag(d.tag || '');
             } else {
                 setFamily(null);
-                usersCollection.doc(currentUID).update({ familyId: null, familyName: null, familyTag: null }).catch(() => {});
+                if (!viewFamilyId) {
+                    usersCollection.doc(currentUID).update({ familyId: null, familyName: null, familyTag: null }).catch(() => {});
+                }
             }
             setLoadingFamily(false);
         }, () => setLoadingFamily(false));
         return () => unsub();
-    }, [show, currentUID, currentUserData?.familyId]);
+    }, [show, currentUID, currentUserData?.familyId, viewFamilyId]);
 
     // ── Load chat messages (real-time) ──
     useEffect(() => {
@@ -1416,7 +1425,41 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         } catch (e) {}
     };
 
-    const claimActiveMilestone = async (idx) => {
+    const setMemberRole = async (uid, newRole) => {
+        if (!family?.id || uid === family.createdBy) return;
+        const myRole = getFamilyRole(family, currentUID);
+        // Only owner can set admin; owner+admin can set moderator
+        if (newRole === 'admin' && myRole !== 'owner') return;
+        if (newRole === 'member' && myRole !== 'owner' && getFamilyRole(family, uid) === 'admin') return;
+        try {
+            await familiesCollection.doc(family.id).update({
+                [`memberRoles.${uid}`]: newRole,
+            });
+            const m = familyMembers.find(fm => fm.id === uid);
+            const roleName = { admin: lang==='ar'?'أدمن':'Admin', moderator: lang==='ar'?'مشرف':'Mod', member: lang==='ar'?'عضو':'Member' }[newRole] || newRole;
+            await postSystemMessage(family.id, `${m?.displayName || 'Member'} → ${roleName}`);
+            onNotification(lang==='ar'?`✅ تم تعيين ${roleName}`:`✅ Set as ${roleName}`);
+        } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+        setGearMenuUid(null);
+    };
+
+    const saveTag = async () => {
+        if (!family?.id || !canManageFamily(family, currentUID)) return;
+        const clean = editTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+        if (clean.length < 3) { onNotification(lang==='ar'?'❌ الوسم 3 أحرف على الأقل':'❌ Tag: min 3 chars'); return; }
+        setSavingTag(true);
+        try {
+            const tagCheck = await familiesCollection.where('tag', '==', clean).get();
+            const alreadyMine = tagCheck.docs.some(d => d.id === family.id);
+            if (!tagCheck.empty && !alreadyMine) { onNotification(lang==='ar'?'❌ هذا الوسم مستخدم':'❌ Tag already taken'); setSavingTag(false); return; }
+            await familiesCollection.doc(family.id).update({ tag: clean });
+            for (const uid of (family.members || [])) {
+                await usersCollection.doc(uid).update({ familyTag: clean }).catch(() => {});
+            }
+            onNotification(lang==='ar'?'✅ تم تغيير الوسم':'✅ Tag updated');
+        } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+        setSavingTag(false);
+    };
         if (!family?.id || !canManageFamily(family, currentUID)) return;
         try {
             await familiesCollection.doc(family.id).update({
@@ -1544,7 +1587,16 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         divider: { height:'1px', background:'rgba(255,255,255,0.06)', margin:'8px 0' },
     };
 
-    const TABS = [
+    // هل المستخدم بيشوف قبيلة من الخارج (مش عضو فيها)؟
+    const isExternalView = !!(viewFamilyId && (!currentUserData?.familyId || currentUserData?.familyId !== viewFamilyId));
+    const isMemberOfThisFamily = family ? (family.members || []).includes(currentUID) : false;
+    const isReadOnly = isExternalView && !isMemberOfThisFamily;
+
+    const TABS = isReadOnly ? [
+        { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
+        { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
+        { id:'news',     label_en:'News',    label_ar:'أخبار',    icon:'📰' },
+    ] : [
         { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
         { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
         { id:'tasks',    label_en:'Tasks',   label_ar:'مهام',     icon:'🎯' },
@@ -1781,11 +1833,20 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         if (!family) return null;
         const donations = family.memberDonations || {};
         const actData   = family.memberActiveness || {};
+        const myRole = getFamilyRole(family, currentUID);
+        const canManage = myRole === 'owner' || myRole === 'admin';
+
         const sorted = [...familyMembers].sort((a, b) => {
             const aD = donations[a.id] || {};
             const bD = donations[b.id] || {};
-            const aV = donationSort === 'intel' ? (aD.totalIntel || aD.total || 0) : (aD.weeklyIntel || aD.weekly || 0);
-            const bV = donationSort === 'intel' ? (bD.totalIntel || bD.total || 0) : (bD.weeklyIntel || bD.weekly || 0);
+            let aV, bV;
+            if (donationSort === 'intel') {
+                aV = aD.totalIntel || aD.total || 0;
+                bV = bD.totalIntel || bD.total || 0;
+            } else {
+                aV = (actData[a.id]?.weekly || 0);
+                bV = (actData[b.id]?.weekly || 0);
+            }
             const aOwner = getFamilyRole(family, a.id) === 'owner' ? 1 : 0;
             const bOwner = getFamilyRole(family, b.id) === 'owner' ? 1 : 0;
             if (aOwner !== bOwner) return bOwner - aOwner;
@@ -1796,63 +1857,147 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0}}>
                 {/* Header */}
                 <div style={{padding:'10px 14px', borderBottom:'1px solid rgba(255,255,255,0.06)', flexShrink:0}}>
-                    <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'6px 10px'}}>
-                        <span style={{fontSize:'14px'}}>🔍</span>
-                        <input value={memberSearch} onChange={e=>setMemberSearch(e.target.value)} style={{flex:1, background:'transparent', border:'none', outline:'none', color:'white', fontSize:'12px'}} placeholder={lang==='ar'?'بحث...':'Search...'} />
-                        <span style={{fontSize:'10px', color:'#6b7280', fontWeight:700}}>{family.members?.length||0}/{getFamilyLevel(family.xp||0).maxMembers}</span>
+                    {/* Search + member count */}
+                    <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}}>
+                        <div style={{flex:1, display:'flex', alignItems:'center', gap:'6px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'5px 10px'}}>
+                            <span style={{fontSize:'13px'}}>🔍</span>
+                            <input value={memberSearch} onChange={e=>setMemberSearch(e.target.value)}
+                                style={{flex:1, background:'transparent', border:'none', outline:'none', color:'white', fontSize:'11px'}}
+                                placeholder={lang==='ar'?'بحث...':'Search...'} />
+                        </div>
+                        <span style={{fontSize:'10px', color:'#6b7280', fontWeight:700, flexShrink:0}}>
+                            {family.members?.length||0}/{getFamilyLevel(family.xp||0).maxMembers}
+                        </span>
                     </div>
+                    {/* Tab buttons */}
                     <div style={{display:'flex', gap:'6px'}}>
-                        {[
-                            ['intel',  lang==='ar' ? '🧠 إجمالي التبرع' : '🧠 Total Donated'],
-                            ['weekly', lang==='ar' ? '⚡ أسبوعي'        : '⚡ Weekly']
-                        ].map(([s, lbl]) => (
-                            <button key={s} onClick={()=>setDonationSort(s)} style={{flex:1, padding:'5px', borderRadius:'8px', border:`1px solid ${donationSort===s?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.07)'}`, background:donationSort===s?'rgba(0,242,255,0.1)':'transparent', color:donationSort===s?'#00f2ff':'#6b7280', fontSize:'10px', fontWeight:donationSort===s?800:500, cursor:'pointer'}}>
-                                {lbl}
-                            </button>
-                        ))}
+                        <button onClick={()=>setDonationSort('intel')} style={{flex:1, padding:'5px', borderRadius:'8px', border:`1px solid ${donationSort==='intel'?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.07)'}`, background:donationSort==='intel'?'rgba(0,242,255,0.1)':'transparent', color:donationSort==='intel'?'#00f2ff':'#6b7280', fontSize:'10px', fontWeight:donationSort==='intel'?800:500, cursor:'pointer'}}>
+                            🧠 {lang==='ar'?'التبرعات':'Donations'}
+                        </button>
+                        <button onClick={()=>setDonationSort('activity')} style={{flex:1, padding:'5px', borderRadius:'8px', border:`1px solid ${donationSort==='activity'?'rgba(251,191,36,0.4)':'rgba(255,255,255,0.07)'}`, background:donationSort==='activity'?'rgba(251,191,36,0.1)':'transparent', color:donationSort==='activity'?'#fbbf24':'#6b7280', fontSize:'10px', fontWeight:donationSort==='activity'?800:500, cursor:'pointer'}}>
+                            ⚡ {lang==='ar'?'الاكتيفيتي':'Activity'}
+                        </button>
                     </div>
                 </div>
 
                 {/* List */}
-                <div style={{flex:1, overflowY:'auto'}}>
+                <div style={{flex:1, overflowY:'auto'}} onClick={()=>gearMenuUid&&setGearMenuUid(null)}>
                     {sorted.map((m, i) => {
                         const role = getFamilyRole(family, m.id);
                         const rCfg = FAMILY_ROLE_CONFIG[role];
                         const don  = donations[m.id] || {};
                         const act  = actData[m.id]   || {};
-                        const total       = donationSort === 'intel' ? (don.totalIntel || don.total || 0) : (don.weeklyIntel || don.weekly || 0);
-                        const weeklyAct   = act.weekly || 0;
-                        const totalAct    = act.total  || 0;
+
+                        // donation tab values
+                        const weeklyDon = don.weeklyIntel || don.weekly || 0;
+                        const totalDon  = don.totalIntel  || don.total  || 0;
+                        // activity tab values
+                        const weeklyAct = act.weekly || 0;
+                        const totalAct  = act.total  || 0;
+
                         const isTop3 = i < 3;
                         const topColors = ['rgba(255,215,0,0.06)','rgba(192,192,192,0.04)','rgba(205,127,50,0.04)'];
+                        const isGearOpen = gearMenuUid === m.id;
+
+                        // Can current user manage this member?
+                        const targetRole = getFamilyRole(family, m.id);
+                        const canKick = canManage && m.id !== currentUID && targetRole !== 'owner' && !(myRole === 'admin' && targetRole === 'admin');
+                        const canSetAdmin = myRole === 'owner' && m.id !== currentUID && targetRole !== 'owner';
+                        const canSetMod = canManage && m.id !== currentUID && targetRole !== 'owner' && !(myRole === 'admin' && targetRole === 'admin');
+                        const showGear = canKick || canSetAdmin || canSetMod;
+
                         return (
-                            <div key={m.id} style={{display:'flex', alignItems:'center', padding:'10px 14px', borderBottom:'1px solid rgba(255,255,255,0.04)', background:isTop3?topColors[i]:'transparent'}}>
+                            <div key={m.id} style={{position:'relative', display:'flex', alignItems:'center', padding:'10px 14px', borderBottom:'1px solid rgba(255,255,255,0.04)', background:isTop3?topColors[i]:'transparent'}}>
+                                {/* Rank */}
                                 <div style={{width:'20px', textAlign:'center', fontSize:'11px', color:i===0?'#ffd700':i===1?'#9ca3af':i===2?'#fb923c':'#4b5563', fontWeight:800, marginRight:'8px', flexShrink:0}}>
                                     {i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`}
                                 </div>
+                                {/* Avatar */}
                                 <div style={{position:'relative', flexShrink:0, marginRight:'10px'}}>
-                                    <div style={{width:'44px', height:'44px', borderRadius:'50%', border:`2px solid ${rCfg.color}66`, overflow:'hidden', background:'rgba(255,255,255,0.08)'}}>
-                                        {m.photoURL ? <img src={m.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>😎</div>}
+                                    <div style={{width:'40px', height:'40px', borderRadius:'50%', border:`2px solid ${rCfg.color}66`, overflow:'hidden', background:'rgba(255,255,255,0.08)'}}>
+                                        {m.photoURL ? <img src={m.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>😎</div>}
                                     </div>
-                                    {role==='owner' && <div style={{position:'absolute', top:'-4px', right:'-4px', fontSize:'11px'}}>👑</div>}
+                                    {role==='owner' && <div style={{position:'absolute', top:'-4px', right:'-4px', fontSize:'10px'}}>👑</div>}
                                 </div>
+                                {/* Name + role */}
                                 <div style={{flex:1, minWidth:0}}>
-                                    <div style={{display:'flex', alignItems:'center', gap:'5px', flexWrap:'wrap', marginBottom:'2px'}}>
-                                        <span style={{fontSize:'12px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'90px', fontStyle:'italic'}}>{m.displayName}</span>
+                                    <div style={{display:'flex', alignItems:'center', gap:'5px', marginBottom:'2px'}}>
+                                        <span style={{fontSize:'12px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'90px'}}>{m.displayName}</span>
                                         {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />}
                                     </div>
                                     <FamilyRoleBadge role={role} lang={lang} small />
                                 </div>
-                                {/* Analytics: Weekly + Total Activeness */}
-                                <div style={{textAlign:'right', flexShrink:0, display:'flex', flexDirection:'column', gap:'2px'}}>
-                                    <div style={{fontSize:'11px', fontWeight:900, color:'#fbbf24', fontStyle:'italic'}}>{fmtFamilyNum(total)} 🧠</div>
-                                    <div style={{display:'flex', gap:'6px', justifyContent:'flex-end'}}>
-                                        <span style={{fontSize:'9px', color:'#00f2ff', fontWeight:700}}>⚡{fmtFamilyNum(weeklyAct)}</span>
-                                        <span style={{fontSize:'9px', color:'#6b7280'}}>|</span>
-                                        <span style={{fontSize:'9px', color:'#a78bfa', fontWeight:700}}>∑{fmtFamilyNum(totalAct)}</span>
-                                    </div>
-                                    <div style={{fontSize:'8px', color:'#4b5563'}}>{lang==='ar'?'أسبوعي | إجمالي':'weekly | total'}</div>
+                                {/* Stats */}
+                                <div style={{textAlign:'right', flexShrink:0, marginRight: showGear ? '6px' : '0'}}>
+                                    {donationSort === 'intel' ? (
+                                        <div style={{display:'flex', flexDirection:'column', gap:'2px', alignItems:'flex-end'}}>
+                                            <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                                                <span style={{fontSize:'8px', color:'#6b7280'}}>W</span>
+                                                <span style={{fontSize:'11px', fontWeight:800, color:'#00f2ff'}}>{fmtFamilyNum(weeklyDon)}🧠</span>
+                                            </div>
+                                            <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                                                <span style={{fontSize:'8px', color:'#6b7280'}}>T</span>
+                                                <span style={{fontSize:'11px', fontWeight:800, color:'#fbbf24'}}>{fmtFamilyNum(totalDon)}🧠</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{display:'flex', flexDirection:'column', gap:'2px', alignItems:'flex-end'}}>
+                                            <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                                                <span style={{fontSize:'8px', color:'#6b7280'}}>W</span>
+                                                <span style={{fontSize:'11px', fontWeight:800, color:'#fbbf24'}}>⚡{fmtFamilyNum(weeklyAct)}</span>
+                                            </div>
+                                            <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                                                <span style={{fontSize:'8px', color:'#6b7280'}}>T</span>
+                                                <span style={{fontSize:'11px', fontWeight:800, color:'#a78bfa'}}>∑{fmtFamilyNum(totalAct)}</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
+                                {/* Gear button */}
+                                {showGear && (
+                                    <div style={{position:'relative', flexShrink:0}}>
+                                        <button
+                                            onClick={e=>{ e.stopPropagation(); setGearMenuUid(isGearOpen ? null : m.id); }}
+                                            style={{width:'28px', height:'28px', borderRadius:'8px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1}}
+                                        >⚙️</button>
+                                        {/* Gear dropdown */}
+                                        {isGearOpen && (
+                                            <div onClick={e=>e.stopPropagation()} style={{position:'absolute', top:'32px', right:0, zIndex:50, background:'#0f1628', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'12px', padding:'6px', minWidth:'140px', boxShadow:'0 8px 32px rgba(0,0,0,0.6)'}}>
+                                                {/* Role options */}
+                                                {canSetAdmin && targetRole !== 'admin' && (
+                                                    <button onClick={()=>setMemberRole(m.id,'admin')} style={{width:'100%', padding:'7px 10px', borderRadius:'8px', background:'transparent', border:'none', color:'#ef4444', fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'right', display:'flex', alignItems:'center', gap:'6px'}}
+                                                        onMouseEnter={e=>e.currentTarget.style.background='rgba(239,68,68,0.1)'}
+                                                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                                        🛡️ {lang==='ar'?'ترقية لأدمن':'Set Admin'}
+                                                    </button>
+                                                )}
+                                                {canSetMod && targetRole !== 'moderator' && (
+                                                    <button onClick={()=>setMemberRole(m.id,'moderator')} style={{width:'100%', padding:'7px 10px', borderRadius:'8px', background:'transparent', border:'none', color:'#3b82f6', fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'right', display:'flex', alignItems:'center', gap:'6px'}}
+                                                        onMouseEnter={e=>e.currentTarget.style.background='rgba(59,130,246,0.1)'}
+                                                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                                        🔰 {lang==='ar'?'ترقية لمشرف':'Set Mod'}
+                                                    </button>
+                                                )}
+                                                {(targetRole === 'admin' || targetRole === 'moderator') && canSetAdmin && (
+                                                    <button onClick={()=>setMemberRole(m.id,'member')} style={{width:'100%', padding:'7px 10px', borderRadius:'8px', background:'transparent', border:'none', color:'#6b7280', fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'right', display:'flex', alignItems:'center', gap:'6px'}}
+                                                        onMouseEnter={e=>e.currentTarget.style.background='rgba(107,114,128,0.1)'}
+                                                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                                        👤 {lang==='ar'?'تخفيض لعضو':'Set Member'}
+                                                    </button>
+                                                )}
+                                                {/* Divider */}
+                                                {canKick && <div style={{height:'1px', background:'rgba(255,255,255,0.07)', margin:'4px 0'}}/>}
+                                                {canKick && (
+                                                    <button onClick={()=>{ kickMember(m.id); setGearMenuUid(null); }} style={{width:'100%', padding:'7px 10px', borderRadius:'8px', background:'transparent', border:'none', color:'#f87171', fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'right', display:'flex', alignItems:'center', gap:'6px'}}
+                                                        onMouseEnter={e=>e.currentTarget.style.background='rgba(239,68,68,0.1)'}
+                                                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                                        🚫 {lang==='ar'?'طرد من القبيلة':'Kick'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
@@ -2138,6 +2283,28 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                             ? <input value={editName} onChange={e=>setEditName(e.target.value)} maxLength={10} style={S.input} />
                             : <div style={{...S.input, color:'#d1d5db', cursor:'default'}}>{family.name}</div>
                         }
+                    </div>
+                    <div style={{marginBottom:'8px'}}>
+                        <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>🏷️ {lang==='ar'?'وسم القبيلة (Tag)':'Family Tag'}</div>
+                        {canManage ? (
+                            <div style={{display:'flex', gap:'8px', alignItems:'center'}}>
+                                <input
+                                    value={editTag}
+                                    onChange={e=>setEditTag(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5))}
+                                    maxLength={5}
+                                    style={{...S.input, flex:1, letterSpacing:'3px', fontWeight:800, color:'#00f2ff', fontSize:'14px'}}
+                                    placeholder='TAG'
+                                />
+                                <button onClick={saveTag} disabled={savingTag || !editTag.trim()} style={{...S.btn, padding:'8px 14px', fontSize:'11px', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', flexShrink:0}}>
+                                    {savingTag ? '⏳' : (lang==='ar'?'حفظ':'Save')}
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{...S.input, color:'#00f2ff', cursor:'default', letterSpacing:'3px', fontWeight:800}}>{family.tag}</div>
+                        )}
+                        <div style={{fontSize:'9px', color:'#4b5563', marginTop:'3px'}}>
+                            {lang==='ar'?'3-5 أحرف إنجليزية أو أرقام':'3-5 English letters or numbers'}
+                        </div>
                     </div>
                     <div style={{marginBottom:'10px'}}>
                         <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>📝 {lang==='ar'?'الوصف':'Description'}</div>
