@@ -60,6 +60,68 @@ const guardLogCollection = db.collection('artifacts').doc(appId).collection('pub
 const momentsCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('moments');
 const vip10RequestsCollection   = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('vip10_requests');
 const vip10IdRequestsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('vip10_id_requests');
+const bffCollection             = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('bff_relationships');
+const botChatsCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('bot_chats');
+
+// ════════════════════════════════════════════════════════
+// 🤝 BFF SYSTEM CONFIG
+// ════════════════════════════════════════════════════════
+const BFF_CONFIG = {
+    freeSlots: 3,           // عدد العلاقات المجانية
+    extraSlotCost: 1000,    // تكلفة فتح خانة إضافية بالعملة
+    // صور الكارت الخلفي لكل نوع علاقة — ضع روابط صور هنا
+    cardImages: {
+        paper_plane: null,  // ← ضع رابط صورة الكارت للطيارة الورقية
+        airplane:    null,  // ← ضع رابط صورة الكارت للطيارة
+        house:       null,  // ← ضع رابط صورة الكارت للبيت
+        car:         null,  // ← ضع رابط صورة الكارت للعربية
+        yacht:       null,  // ← ضع رابط صورة الكارت لليخت
+        castle:      null,  // ← ضع رابط صورة الكارت للقلعة
+        default:     null,  // ← الصورة الافتراضية للكارت لو ما في نوع محدد
+    },
+};
+
+// BFF Token items — تُضاف للشوب وتُستخدم لإنشاء علاقة
+const BFF_TOKEN_ITEMS = [
+    { id:'bff_paper_plane', emoji:'✈️', name_en:'Paper Plane Relationship', name_ar:'علاقة طيارة ورق',   cost:500,  rarity:'Common',    cardType:'paper_plane', imageURL: null, color:'#60a5fa', glow:'rgba(96,165,250,0.5)',  desc_en:'A simple, sweet bond.',        desc_ar:'رابطة بسيطة وحلوة.' },
+    { id:'bff_airplane',    emoji:'🛫', name_en:'Airplane Relationship',    name_ar:'علاقة طيارة',       cost:1000, rarity:'Uncommon',  cardType:'airplane',    imageURL: null, color:'#4ade80', glow:'rgba(74,222,128,0.5)',  desc_en:'Soaring friendship.',          desc_ar:'صداقة تحلق في السماء.' },
+    { id:'bff_house',       emoji:'🏠', name_en:'House Relationship',       name_ar:'علاقة بيت',         cost:1500, rarity:'Rare',      cardType:'house',       imageURL: null, color:'#f59e0b', glow:'rgba(245,158,11,0.5)',  desc_en:'A warm, homey bond.',          desc_ar:'رابطة دافئة كالبيت.' },
+    { id:'bff_car',         emoji:'🚗', name_en:'Car Relationship',         name_ar:'علاقة عربية',       cost:2500, rarity:'Epic',      cardType:'car',         imageURL: null, color:'#a78bfa', glow:'rgba(167,139,250,0.5)', desc_en:'Fast and exciting.',           desc_ar:'سريعة ومثيرة.' },
+    { id:'bff_yacht',       emoji:'🛥️', name_en:'Royal Yacht Relationship', name_ar:'علاقة يخت ملكي',   cost:5000, rarity:'Legendary', cardType:'yacht',       imageURL: null, color:'#ffd700', glow:'rgba(255,215,0,0.6)',   desc_en:'Luxury friendship at sea.',    desc_ar:'صداقة فاخرة على البحر.' },
+    { id:'bff_castle',      emoji:'🏰', name_en:'Friends Castle',           name_ar:'قلعة الأصدقاء',     cost:8000, rarity:'Mythic',    cardType:'castle',      imageURL: null, color:'#f0abfc', glow:'rgba(240,171,252,0.7)', desc_en:'An unbreakable legendary bond.', desc_ar:'رابطة أسطورية لا تنكسر.' },
+];
+
+// ════════════════════════════════════════════════════════
+// 🤖 OFFICIAL BOT CHATS CONFIG
+// ════════════════════════════════════════════════════════
+const BOT_CHATS_CONFIG = [
+    {
+        id: 'detective_bot',
+        name_ar: 'المحقق',
+        name_en: 'The Detective',
+        emoji: '🕵️',
+        description_ar: 'نظام البلاغات الرسمي — البلاغات والردود',
+        description_en: 'Official report system — reports & responses',
+        color: '#00d4ff',
+        glow: 'rgba(0,212,255,0.4)',
+        photoURL: null, // ← ضع رابط صورة المحقق هنا (الأونر فقط يغيرها)
+        official: true,
+        readOnly: true, // لا يمكن للمستخدمين الكتابة
+    },
+    {
+        id: 'love_bot',
+        name_ar: 'بوت دواء',
+        name_en: 'Dawa Bot',
+        emoji: '💌',
+        description_ar: 'إشعارات الزواج وعلاقات BFF الرسمية',
+        description_en: 'Official wedding & BFF notifications',
+        color: '#f9a8d4',
+        glow: 'rgba(249,168,212,0.4)',
+        photoURL: null, // ← ضع رابط صورة البوت هنا (الأونر فقط يغيرها)
+        official: true,
+        readOnly: true,
+    },
+];
 
 // --- Constants ---
 const CURRENCY_NAME = "Intel";
