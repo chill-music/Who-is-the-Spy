@@ -14,6 +14,10 @@ const BFF_RARITY_COLORS = {
     Epic: '#a78bfa', Legendary: '#ffd700', Mythic: '#f0abfc',
 };
 
+const BFF_RARITY_TO_LEVEL = {
+    Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5, Mythic: 6,
+};
+
 // ─────────────────────────────────────────────
 // 🔧 FIRESTORE HELPERS
 // ─────────────────────────────────────────────
@@ -859,6 +863,138 @@ const BFFModal = ({
 };
 
 // ─────────────────────────────────────────────
+// 📋 BFF PROFILE LIST MODAL — full card grid view
+// ─────────────────────────────────────────────
+const BFFProfileListModal = ({ show, onClose, relationships, partnerProfiles, targetUID, lang }) => {
+    if (!show) return null;
+
+    return (
+        <PortalModal>
+            <div onClick={onClose} style={{
+                position: 'fixed', inset: 0, zIndex: Z.MODAL_HIGH + 4,
+                background: 'rgba(0,0,0,0.78)',
+                display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+            }}>
+                <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
+                    width: '100%', maxWidth: '480px', maxHeight: '85vh',
+                    background: 'linear-gradient(160deg, #1a0a2e, #0d0d1a)',
+                    borderRadius: '24px 24px 0 0',
+                    display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                    boxShadow: '0 -10px 60px rgba(167,139,250,0.22)',
+                    border: '1px solid rgba(167,139,250,0.18)', borderBottom: 'none',
+                }}>
+                    {/* Handle */}
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}>
+                        <div style={{ width: '40px', height: '4px', borderRadius: '4px', background: 'rgba(255,255,255,0.15)' }} />
+                    </div>
+
+                    {/* Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 18px 14px', flexShrink: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '16px', fontWeight: 900, color: 'white' }}>
+                                {lang === 'ar' ? 'علاقات BFF' : 'My BFF'}
+                            </span>
+                            <span style={{ fontSize: '14px' }}>❤️</span>
+                            <span style={{ fontSize: '16px', fontWeight: 900, color: '#f472b6' }}>{relationships.length}</span>
+                        </div>
+                        <button onClick={onClose} style={{
+                            background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '10px',
+                            color: '#9ca3af', fontSize: '18px', width: '34px', height: '34px', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>✕</button>
+                    </div>
+
+                    {/* Cards grid */}
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '0 14px 24px' }}>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(3, 1fr)',
+                            gap: '14px 10px',
+                        }}>
+                            {relationships.map(rel => {
+                                const partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
+                                const partner = partnerProfiles[partnerUID];
+                                const token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
+                                const level = BFF_RARITY_TO_LEVEL[token.rarity] || 1;
+
+                                return (
+                                    <div key={rel.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        {/* Card body */}
+                                        <div style={{
+                                            width: '100%',
+                                            height: '110px',
+                                            borderRadius: '14px',
+                                            position: 'relative',
+                                            background: `linear-gradient(145deg, ${token.color}30, ${token.color}12)`,
+                                            border: `1.5px solid ${token.color}55`,
+                                            boxShadow: `0 4px 16px ${token.glow}55`,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            marginBottom: '20px',
+                                            overflow: 'visible',
+                                        }}>
+                                            {/* Geometric pattern overlay */}
+                                            <div style={{
+                                                position: 'absolute', inset: 0, borderRadius: '12px',
+                                                background: `repeating-linear-gradient(45deg, ${token.color}09 0px, transparent 12px, ${token.color}05 12px, transparent 24px)`,
+                                                pointerEvents: 'none', overflow: 'hidden',
+                                            }} />
+
+                                            {/* LV badge top-left */}
+                                            <div style={{
+                                                position: 'absolute', top: '6px', left: '6px',
+                                                background: `linear-gradient(135deg, ${token.color}ee, ${token.color}99)`,
+                                                borderRadius: '6px', padding: '2px 5px',
+                                                fontSize: '8px', fontWeight: 900, color: '#fff',
+                                                display: 'flex', alignItems: 'center', gap: '2px',
+                                                zIndex: 2,
+                                            }}>
+                                                <span style={{ fontSize: '9px' }}>{token.emoji}</span>
+                                                {' '}LV{level}
+                                            </div>
+
+                                            {/* Token icon center */}
+                                            <div style={{ fontSize: '30px', zIndex: 1 }}>
+                                                {token.imageURL
+                                                    ? <img src={token.imageURL} alt="" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
+                                                    : token.emoji}
+                                            </div>
+
+                                            {/* Avatar circle overlapping bottom */}
+                                            <div style={{
+                                                position: 'absolute', bottom: '-18px',
+                                                width: '36px', height: '36px', borderRadius: '50%',
+                                                border: `2.5px solid ${token.color}`,
+                                                overflow: 'hidden', background: '#120820',
+                                                boxShadow: `0 2px 10px rgba(0,0,0,0.6), 0 0 8px ${token.glow}`,
+                                                zIndex: 3,
+                                            }}>
+                                                {partner?.photoURL
+                                                    ? <img src={partner.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>😎</div>}
+                                            </div>
+                                        </div>
+
+                                        {/* Name */}
+                                        <div style={{
+                                            fontSize: '10px', fontWeight: 700,
+                                            color: '#d1d5db', textAlign: 'center',
+                                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                            width: '100%', padding: '0 2px',
+                                        }}>
+                                            {partner?.displayName || '...'}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </PortalModal>
+    );
+};
+
+// ─────────────────────────────────────────────
 // 📌 BFF STRIP — shown in profile above Guard
 // ─────────────────────────────────────────────
 const BFFStripProfile = ({
@@ -868,11 +1004,8 @@ const BFFStripProfile = ({
 }) => {
     const [myRelationships, setMyRelationships] = useState([]);
     const [partnerProfiles, setPartnerProfiles] = useState({});
-    const [showCard, setShowCard] = useState(false);
-    const [cardDoc, setCardDoc] = useState(null);
-    const [cardSelf, setCardSelf] = useState(null);
-    const [cardPartner, setCardPartner] = useState(null);
     const [targetData, setTargetData] = useState(null);
+    const [showListModal, setShowListModal] = useState(false);
 
     const isOwnProfile = targetUID === currentUID;
 
@@ -924,95 +1057,140 @@ const BFFStripProfile = ({
         if (isOwnProfile) {
             onOpenBFFModal && onOpenBFFModal();
         } else {
-            // Show first shared relationship card
-            const rel = myRelationships[0];
-            if (!rel) return;
-            const partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
-            const partner = partnerProfiles[partnerUID];
-            if (!partner) return;
-            setCardDoc(rel);
-            setCardSelf(targetData);
-            setCardPartner(partner);
-            setShowCard(true);
+            if (myRelationships.length > 0) setShowListModal(true);
         }
     };
 
     return (
         <>
-            <div onClick={handleClick} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '8px 12px', cursor: 'pointer',
-                background: 'linear-gradient(135deg,rgba(167,139,250,0.06),rgba(112,0,255,0.04))',
+            {/* ── BFF SECTION ── */}
+            <div style={{
+                background: 'linear-gradient(135deg, rgba(167,139,250,0.06), rgba(112,0,255,0.04))',
                 borderTop: '1px solid rgba(167,139,250,0.1)',
                 borderBottom: '1px solid rgba(167,139,250,0.1)',
-                transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg,rgba(167,139,250,0.12),rgba(112,0,255,0.09))'}
-            onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg,rgba(167,139,250,0.06),rgba(112,0,255,0.04))'}
-            >
-                {/* Left: BFF label */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                    <div style={{
-                        width: '34px', height: '34px', borderRadius: '8px',
-                        background: 'linear-gradient(135deg,rgba(167,139,250,0.18),rgba(112,0,255,0.14))',
-                        border: '1px solid rgba(167,139,250,0.25)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '16px', flexShrink: 0,
-                    }}>🤝</div>
-                    <div>
-                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#e5e7eb', letterSpacing: '-0.2px' }}>BFF</div>
+            }}>
+                {/* Header row: BFF ❤️ [count] + arrow */}
+                <div onClick={handleClick} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 14px 6px', cursor: 'pointer',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 900, color: '#e5e7eb' }}>BFF</span>
+                        <span style={{ fontSize: '13px' }}>❤️</span>
+                        <span style={{ fontSize: '13px', fontWeight: 900, color: '#f472b6' }}>{myRelationships.length}</span>
                         {isOwnProfile && (
-                            <div style={{
-                                display: 'inline-flex', alignItems: 'center', gap: '3px',
-                                fontSize: '9px', fontWeight: 700, marginTop: '2px',
-                                padding: '2px 7px', borderRadius: '5px',
-                                background: 'linear-gradient(135deg,rgba(167,139,250,0.2),rgba(112,0,255,0.2))',
-                                border: '1px solid rgba(167,139,250,0.35)', color: '#a78bfa',
+                            <span style={{
+                                fontSize: '9px', fontWeight: 700, marginLeft: '4px',
+                                padding: '1px 6px', borderRadius: '5px',
+                                background: 'rgba(167,139,250,0.18)',
+                                border: '1px solid rgba(167,139,250,0.3)', color: '#a78bfa',
                             }}>
-                                ✨ {lang === 'ar' ? 'إدارة العلاقات' : 'Manage'}
-                            </div>
+                                {lang === 'ar' ? 'إدارة' : 'Manage'}
+                            </span>
                         )}
                     </div>
+                    <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.3)' }}>›</span>
                 </div>
 
-                {/* Right: partner avatars */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', direction: 'ltr' }}>
-                        {myRelationships.slice(0, 3).map((rel, i) => {
+                {/* 3 mini-cards row */}
+                {myRelationships.length > 0 ? (
+                    <div style={{
+                        display: 'flex', gap: '8px',
+                        padding: '4px 12px 22px',
+                    }}>
+                        {myRelationships.slice(0, 3).map(rel => {
                             const partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
                             const partner = partnerProfiles[partnerUID];
                             const token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
+                            const level = BFF_RARITY_TO_LEVEL[token.rarity] || 1;
+
                             return (
-                                <div key={rel.id} style={{
-                                    width: '26px', height: '26px', borderRadius: '50%',
-                                    border: `2px solid ${token.color}`,
-                                    overflow: 'hidden', flexShrink: 0,
-                                    marginLeft: i > 0 ? '-6px' : '0',
-                                    background: 'rgba(167,139,250,0.1)',
-                                    boxShadow: '0 0 0 1px rgba(0,0,0,0.3)',
+                                <div key={rel.id} onClick={handleClick} style={{
+                                    flex: 1,
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                    cursor: 'pointer',
                                 }}>
-                                    {partner?.photoURL
-                                        ? <img src={partner.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>🤝</div>}
+                                    {/* Card body */}
+                                    <div style={{
+                                        width: '100%', height: '88px',
+                                        borderRadius: '12px', position: 'relative',
+                                        background: `linear-gradient(145deg, ${token.color}28, ${token.color}10)`,
+                                        border: `1.5px solid ${token.color}50`,
+                                        boxShadow: `0 3px 12px ${token.glow}40`,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        overflow: 'visible',
+                                    }}>
+                                        {/* Subtle diamond pattern overlay */}
+                                        <div style={{
+                                            position: 'absolute', inset: 0, borderRadius: '10px',
+                                            background: `repeating-linear-gradient(45deg, ${token.color}09 0, transparent 10px, ${token.color}05 10px, transparent 20px)`,
+                                            pointerEvents: 'none', overflow: 'hidden',
+                                        }} />
+
+                                        {/* LV badge top-left */}
+                                        <div style={{
+                                            position: 'absolute', top: '5px', left: '5px',
+                                            background: token.color,
+                                            borderRadius: '5px', padding: '1px 5px',
+                                            fontSize: '7px', fontWeight: 900, color: '#000',
+                                            display: 'flex', alignItems: 'center', gap: '2px',
+                                            zIndex: 2,
+                                        }}>
+                                            <span>{token.emoji}</span>
+                                            <span>LV{level}</span>
+                                        </div>
+
+                                        {/* Token emoji center */}
+                                        <span style={{ fontSize: '26px', zIndex: 1 }}>{token.emoji}</span>
+
+                                        {/* Avatar at bottom (overlapping) */}
+                                        <div style={{
+                                            position: 'absolute', bottom: '-16px',
+                                            width: '32px', height: '32px', borderRadius: '50%',
+                                            border: `2px solid ${token.color}`,
+                                            overflow: 'hidden', background: '#0d0d1a',
+                                            boxShadow: `0 2px 8px rgba(0,0,0,0.5), 0 0 6px ${token.glow}`,
+                                            zIndex: 3,
+                                        }}>
+                                            {partner?.photoURL
+                                                ? <img src={partner.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>😎</div>}
+                                        </div>
+                                    </div>
+
+                                    {/* Name below card */}
+                                    <div style={{
+                                        marginTop: '20px',
+                                        fontSize: '9px', fontWeight: 600,
+                                        color: '#9ca3af', textAlign: 'center',
+                                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                        width: '100%',
+                                    }}>
+                                        {partner?.displayName || '...'}
+                                    </div>
                                 </div>
                             );
                         })}
                     </div>
-                    <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.3)', marginLeft: '4px' }}>›</span>
-                </div>
+                ) : isOwnProfile ? (
+                    <div onClick={handleClick} style={{
+                        padding: '8px 14px 14px', cursor: 'pointer',
+                        textAlign: 'center', fontSize: '11px', color: '#6b7280',
+                    }}>
+                        {lang === 'ar' ? '+ أضف علاقة BFF' : '+ Add BFF Relationship'}
+                    </div>
+                ) : null}
             </div>
 
-            {showCard && cardDoc && (
-                <BFFCardModal
-                    show={showCard}
-                    onClose={() => setShowCard(false)}
-                    bffDoc={cardDoc}
-                    selfData={cardSelf}
-                    partnerData={cardPartner}
-                    currentUID={currentUID}
+            {/* Full list modal for non-own profiles */}
+            {!isOwnProfile && showListModal && (
+                <BFFProfileListModal
+                    show={showListModal}
+                    onClose={() => setShowListModal(false)}
+                    relationships={myRelationships}
+                    partnerProfiles={partnerProfiles}
+                    targetUID={targetUID}
                     lang={lang}
-                    onNotification={onNotification}
-                    viewOnly={!isOwnProfile}
                 />
             )}
         </>
