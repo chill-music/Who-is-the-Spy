@@ -3533,7 +3533,9 @@ const ProfileV11 = ({
                                 const vipLvl = getVIPLevel(targetData);
                                 const vipCfg = vipLvl > 0 ? VIP_CONFIG.find(v => v.level === vipLvl) : null;
                                 const idBeforeImg = vipCfg?.idBeforeImageUrl || null;
-                                const idIconImg = (vipLvl >= 6 ? vipCfg?.idIconImageUrl : null) || ID_ICON_IMAGE_URL || null;
+                                const idIconImg = (vipLvl >= 6
+                                    ? (vipCfg?.idIconImageUrl || (typeof VIP_ID_ICONS !== 'undefined' ? VIP_ID_ICONS[vipLvl] : null) || null)
+                                    : null) || ID_ICON_IMAGE_URL || null;
                                 const idValue = targetData?.customId || targetData?.uid?.substring(0, 8);
                                 return (
                                     <div style={{display:'flex', alignItems:'center', justifyContent:'flex-start', gap:'6px', marginBottom:'6px', padding:'0 8px'}}>
@@ -3556,7 +3558,7 @@ const ProfileV11 = ({
                                                 /* لو في صورة: تظهر جوه الـ pill بدل "ID:" */
                                                 <>
                                                     <img src={idIconImg} alt="id-icon"
-                                                        style={{width:'18px', height:'18px', borderRadius:'50%', objectFit:'cover', flexShrink:0}} />
+                                                        style={{width:'24px', height:'24px', borderRadius:'50%', objectFit:'cover', flexShrink:0, filter:'drop-shadow(0 0 4px rgba(0,242,255,0.5))'}} />
                                                     {idValue}
                                                 </>
                                             ) : (
