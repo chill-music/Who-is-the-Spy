@@ -3397,57 +3397,56 @@ const ProfileV11 = ({
                                     className="profile-name"
                                 />
                                 <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
-                                {/* 🛡️ Guard badge جنب الاسم */}
+                                {/* 🛡️ Guard icon جنب الاسم — بدون نص */}
                                 {guardData.length > 0 && (
                                     <span
                                         onClick={() => setShowGuardModal(true)}
-                                        style={{display:'inline-flex',alignItems:'center',gap:'3px',padding:'2px 7px',borderRadius:'10px',cursor:'pointer',background:'linear-gradient(135deg,rgba(0,212,255,0.14),rgba(112,0,255,0.12))',border:'1px solid rgba(0,212,255,0.28)',color:'#00f2ff',fontSize:'10px',fontWeight:800,flexShrink:0}}
+                                        title="Guard Ranking"
+                                        style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:'22px',height:'22px',borderRadius:'50%',cursor:'pointer',background:'linear-gradient(135deg,rgba(0,212,255,0.14),rgba(112,0,255,0.12))',border:'1px solid rgba(0,212,255,0.28)',flexShrink:0}}
                                     >
-                                        <span style={{fontSize:'12px'}}>🛡️</span>
-                                        <span>{lang==='ar'?'جرد':'Guard'}</span>
+                                        <span style={{fontSize:'12px',lineHeight:1}}>🛡️</span>
                                     </span>
                                 )}
                             </div>
 
-                            {/* ══ ROW 2: الجنس (يسار) + الكاريزما Level (وسط) + الفاميلي ساين (يمين) ══ */}
+                            {/* ══ ROW 2: الجنس + الكاريزما Level (يسار معاً) + الفاميلي ساين (يمين) ══ */}
                             <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', padding:'0 8px', marginBottom:'6px', minHeight:'26px'}}>
-                                {/* يسار: الجنس */}
-                                <div style={{display:'flex', alignItems:'center', gap:'4px', flexShrink:0, minWidth:'24px'}}>
+                                {/* يسار: الجنس + الكاريزما مباشرة جنبه */}
+                                <div style={{display:'flex', alignItems:'center', gap:'6px', flexShrink:0}}>
                                     {targetData?.gender === 'male' && (
                                         <span style={{fontSize:'18px', color:'#60a5fa', lineHeight:1}}>♂️</span>
                                     )}
                                     {targetData?.gender === 'female' && (
                                         <span style={{fontSize:'18px', color:'#f472b6', lineHeight:1}}>♀️</span>
                                     )}
-                                    {!targetData?.gender && <span style={{width:'18px'}}/>}
+                                    {/* الكاريزما مباشرة بعد الجنس */}
+                                    {(() => {
+                                        const { currentLevel: lvlData } = getCharismaLevel(targetData?.charisma || 0);
+                                        if (!lvlData) return null;
+                                        const hasGlow = lvlData.hasGlow;
+                                        const isDivine = lvlData.isDivine;
+                                        return (
+                                            <div style={{
+                                                display:'flex', alignItems:'center', gap:'4px',
+                                                padding:'3px 10px', borderRadius:'20px',
+                                                background: isDivine ? 'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))' : hasGlow ? `${lvlData.color}18` : 'rgba(255,255,255,0.06)',
+                                                border: isDivine ? '1px solid rgba(0,212,255,0.4)' : hasGlow ? `1px solid ${lvlData.color}55` : '1px solid rgba(255,255,255,0.1)',
+                                                boxShadow: isDivine ? '0 0 10px rgba(0,212,255,0.25)' : hasGlow ? `0 0 8px ${lvlData.color}44` : 'none',
+                                                flexShrink:0,
+                                            }}>
+                                                {lvlData.iconType === 'image' && lvlData.iconUrl
+                                                    ? <img src={lvlData.iconUrl} alt="" style={{width:'16px', height:'16px', borderRadius: isDivine ? '50%' : '0', objectFit:'cover'}} />
+                                                    : <span style={{fontSize:'13px'}}>{lvlData.icon}</span>
+                                                }
+                                                <span style={{fontSize:'10px', fontWeight:800, color: isDivine ? '#00d4ff' : lvlData.color}}>
+                                                    Lv.{lvlData.level}
+                                                </span>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
-                                {/* وسط: مستوى الكاريزما */}
-                                {(() => {
-                                    const { currentLevel: lvlData } = getCharismaLevel(targetData?.charisma || 0);
-                                    if (!lvlData) return <div style={{flex:1}}/>;
-                                    const hasGlow = lvlData.hasGlow;
-                                    const isDivine = lvlData.isDivine;
-                                    return (
-                                        <div style={{
-                                            display:'flex', alignItems:'center', gap:'4px',
-                                            padding:'3px 10px', borderRadius:'20px',
-                                            background: isDivine ? 'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))' : hasGlow ? `${lvlData.color}18` : 'rgba(255,255,255,0.06)',
-                                            border: isDivine ? '1px solid rgba(0,212,255,0.4)' : hasGlow ? `1px solid ${lvlData.color}55` : '1px solid rgba(255,255,255,0.1)',
-                                            boxShadow: isDivine ? '0 0 10px rgba(0,212,255,0.25)' : hasGlow ? `0 0 8px ${lvlData.color}44` : 'none',
-                                            flexShrink:0,
-                                        }}>
-                                            {lvlData.iconType === 'image' && lvlData.iconUrl
-                                                ? <img src={lvlData.iconUrl} alt="" style={{width:'16px', height:'16px', borderRadius: isDivine ? '50%' : '0', objectFit:'cover'}} />
-                                                : <span style={{fontSize:'13px'}}>{lvlData.icon}</span>
-                                            }
-                                            <span style={{fontSize:'10px', fontWeight:800, color: isDivine ? '#00d4ff' : lvlData.color}}>
-                                                Lv.{lvlData.level}
-                                            </span>
-                                        </div>
-                                    );
-                                })()}
                                 {/* يمين: فاميلي ساين */}
-                                <div style={{flexShrink:0, minWidth:'24px', display:'flex', justifyContent:'flex-end'}}>
+                                <div style={{flexShrink:0, display:'flex', justifyContent:'flex-end'}}>
                                     {targetData?.familyTag && (
                                         <ProfileFamilySignBadge userData={targetData} lang={lang} />
                                     )}
@@ -3464,16 +3463,23 @@ const ProfileV11 = ({
                                 </div>
                             )}
 
-                            {/* ══ ROW 4: ID مع صورة VIP قبله ══ */}
+                            {/* ══ ROW 4: ID مع صورة VIP قبله + أيقونة ID مخصصة ══ */}
                             {(() => {
                                 const vipLvl = getVIPLevel(targetData);
                                 const vipCfg = vipLvl > 0 ? VIP_CONFIG.find(v => v.level === vipLvl) : null;
-                                const idImg  = vipCfg?.idBeforeImageUrl || null;
+                                const idBeforeImg = vipCfg?.idBeforeImageUrl || null;
+                                // أيقونة قبل نص ID (من الكونفجريشن العام أو من VIP 6-10)
+                                const idIconImg = (vipLvl >= 6 ? vipCfg?.idIconImageUrl : null) || ID_ICON_IMAGE_URL || null;
                                 return (
                                     <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', marginBottom:'6px'}}>
-                                        {idImg && (
-                                            <img src={idImg} alt="vip-id" style={{height:'22px', objectFit:'contain', flexShrink:0}} />
+                                        {idBeforeImg && (
+                                            <img src={idBeforeImg} alt="vip-id" style={{height:'22px', objectFit:'contain', flexShrink:0}} />
                                         )}
+                                        {/* أيقونة ID مخصصة أو أيقونة افتراضية */}
+                                        {idIconImg
+                                            ? <img src={idIconImg} alt="id-icon" style={{height:'18px', objectFit:'contain', flexShrink:0}} />
+                                            : <span style={{fontSize:'12px', opacity:0.5, flexShrink:0}}>🪪</span>
+                                        }
                                         <span
                                             className="profile-id-display"
                                             style={{margin:0}}
@@ -3485,7 +3491,7 @@ const ProfileV11 = ({
                                         >
                                             {copiedId
                                                 ? (lang === 'ar' ? '✓ تم النسخ!' : '✓ Copied!')
-                                                : `ID: ${targetData?.customId || targetData?.uid?.substring(0, 8)} 📋`
+                                                : `ID: ${targetData?.customId || targetData?.uid?.substring(0, 8)}`
                                             }
                                         </span>
                                     </div>
@@ -3670,6 +3676,47 @@ const ProfileV11 = ({
                                             </div>
                                             <button onClick={() => setShowGuardModal(false)} style={{background:'rgba(255,255,255,0.08)',border:'none',color:'#9ca3af',fontSize:'16px',cursor:'pointer',padding:'5px 9px',borderRadius:'8px',lineHeight:1}}>✕</button>
                                         </div>
+
+                                        {/* ── Protection Button — للأصدقاء فقط ── */}
+                                        {!isOwnProfile && isLoggedInProp && currentUserFriends?.includes(targetUID) && (
+                                            <div style={{padding:'12px 14px 6px'}}>
+                                                <button
+                                                    onClick={e => { e.stopPropagation(); handleGiveGuard(); }}
+                                                    disabled={guardGiven}
+                                                    style={{
+                                                        width:'100%', padding:'11px 16px',
+                                                        borderRadius:'12px', border:'none',
+                                                        background: guardGiven
+                                                            ? 'rgba(107,114,128,0.15)'
+                                                            : 'linear-gradient(135deg,rgba(0,212,255,0.22),rgba(112,0,255,0.22))',
+                                                        border: guardGiven
+                                                            ? '1px solid rgba(107,114,128,0.18)'
+                                                            : '1px solid rgba(0,212,255,0.38)',
+                                                        color: guardGiven ? '#4b5563' : '#00f2ff',
+                                                        fontSize:'13px', fontWeight:800,
+                                                        cursor: guardGiven ? 'not-allowed' : 'pointer',
+                                                        display:'flex', alignItems:'center', justifyContent:'center', gap:'8px',
+                                                        transition:'all 0.18s',
+                                                        boxShadow: guardGiven ? 'none' : '0 0 18px rgba(0,212,255,0.15)',
+                                                    }}
+                                                    onMouseEnter={e=>{ if(!guardGiven){ e.currentTarget.style.background='linear-gradient(135deg,rgba(0,212,255,0.32),rgba(112,0,255,0.32))'; e.currentTarget.style.boxShadow='0 0 24px rgba(0,212,255,0.28)'; } }}
+                                                    onMouseLeave={e=>{ if(!guardGiven){ e.currentTarget.style.background='linear-gradient(135deg,rgba(0,212,255,0.22),rgba(112,0,255,0.22))'; e.currentTarget.style.boxShadow='0 0 18px rgba(0,212,255,0.15)'; } }}
+                                                >
+                                                    {guardGiven ? (
+                                                        <>🔒 {lang==='ar'?'لقد أعطيت حماية اليوم — عُد غداً':'Already protected today — come back tomorrow'}</>
+                                                    ) : (
+                                                        <>🛡️ {lang==='ar'?'أعطِ حماية يومية':'Give Daily Protection'}</>
+                                                    )}
+                                                </button>
+                                                {!guardGiven && (
+                                                    <div style={{fontSize:'9px',color:'rgba(255,255,255,0.28)',textAlign:'center',marginTop:'5px'}}>
+                                                        {lang==='ar'
+                                                            ? 'كل يوم مرة واحدة — الحماية تعتمد على عدد أصدقائك (1–70)'
+                                                            : 'Once per day — protection based on your friends count (1–70)'}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
 
                                         {/* ── Top 3 shields — always rendered with empty fallback ── */}
                                         {(() => {
