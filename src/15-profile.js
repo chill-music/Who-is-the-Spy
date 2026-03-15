@@ -11,9 +11,38 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     // Only show if user has a family AND has earned a sign (level > 0)
     if (!familyTag || !signLevel) return null;
 
-    // Sign level glow for high levels
     const hasGlow = signLevel >= 4;
 
+    // لو في صورة: تظهر بدون مربع — عرضها يتناسب مع طول التاج (3-5 أحرف)
+    if (signImgURL) {
+        // كل حرف ≈ 9px (font bold italic 11-12px)
+        const approxWidth = Math.max(familyTag.length * 9, 27);
+        return (
+            <span
+                onClick={onClick}
+                title={familyName ? (lang === 'ar' ? `عائلة: ${familyName}` : `Family: ${familyName}`) : familyTag}
+                style={{
+                    display:'inline-flex', alignItems:'center', justifyContent:'center',
+                    flexShrink:0, cursor: onClick ? 'pointer' : 'default',
+                    filter: hasGlow ? `drop-shadow(0 0 5px ${signColor}99)` : 'none',
+                    transition:'all 0.2s',
+                }}
+            >
+                <img
+                    src={signImgURL}
+                    alt={familyTag}
+                    style={{
+                        width: `${approxWidth}px`,
+                        height:'20px',
+                        objectFit:'contain',
+                        display:'block',
+                    }}
+                />
+            </span>
+        );
+    }
+
+    // لو ما في صورة: badge نصي عادي
     return (
         <span
             onClick={onClick}
@@ -28,10 +57,6 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
                 transition:'all 0.2s',
             }}
         >
-            {signImgURL
-                ? <img src={signImgURL} style={{height:'13px', objectFit:'contain', verticalAlign:'middle'}} alt=""/>
-                : null
-            }
             {familyTag}
         </span>
     );
@@ -3409,10 +3434,10 @@ const ProfileV11 = ({
                                 )}
                             </div>
 
-                            {/* ══ ROW 2: الجنس + الكاريزما (يسار) | البلد + فاميلي ساين (يمين) ══ */}
+                            {/* ══ ROW 2: الجنس + الكاريزما + فاميلي ساين (يسار) | البلد (يمين) ══ */}
                             <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', padding:'0 8px', marginBottom:'6px', minHeight:'26px'}}>
-                                {/* يسار: الجنس + الكاريزما مباشرة جنبه */}
-                                <div style={{display:'flex', alignItems:'center', gap:'6px', flexShrink:0}}>
+                                {/* يسار: الجنس + الكاريزما + فاميلي ساين */}
+                                <div style={{display:'flex', alignItems:'center', gap:'6px', flexShrink:0, flexWrap:'wrap'}}>
                                     {targetData?.gender === 'male' && (
                                         <span style={{fontSize:'18px', color:'#60a5fa', lineHeight:1}}>♂️</span>
                                     )}
@@ -3444,9 +3469,13 @@ const ProfileV11 = ({
                                             </div>
                                         );
                                     })()}
+                                    {/* فاميلي ساين جنب الكاريزما على الشمال */}
+                                    {targetData?.familyTag && (
+                                        <ProfileFamilySignBadge userData={targetData} lang={lang} />
+                                    )}
                                 </div>
-                                {/* يمين: البلد + فاميلي ساين */}
-                                <div style={{display:'flex', alignItems:'center', gap:'6px', flexShrink:0}}>
+                                {/* يمين: البلد فقط */}
+                                <div style={{display:'flex', alignItems:'center', gap:'4px', flexShrink:0}}>
                                     {targetData?.country?.flag && (
                                         <span
                                             title={lang === 'ar' ? targetData.country.name_ar : targetData.country.name_en}
@@ -3454,9 +3483,6 @@ const ProfileV11 = ({
                                         >
                                             {targetData.country.flag}
                                         </span>
-                                    )}
-                                    {targetData?.familyTag && (
-                                        <ProfileFamilySignBadge userData={targetData} lang={lang} />
                                     )}
                                 </div>
                             </div>
