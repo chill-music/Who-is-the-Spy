@@ -3647,6 +3647,22 @@ const ProfileV11 = ({
                             </div>
                         )}
 
+                        {/* ── GUEST LOGIN BANNER — shown to guest viewing their own profile ── */}
+                        {isOwnProfile && isGuestProp && onLoginGoogle && (
+                            <div style={{margin:'8px 12px',padding:'14px 16px',borderRadius:'16px',background:'linear-gradient(135deg,rgba(66,133,244,0.13),rgba(26,115,232,0.08))',border:'1px solid rgba(66,133,244,0.3)',display:'flex',alignItems:'center',gap:'12px'}}>
+                                <span style={{fontSize:'28px',flexShrink:0}}>🔑</span>
+                                <div style={{flex:1,minWidth:0}}>
+                                    <div style={{fontSize:'13px',fontWeight:800,color:'#e5e7eb',marginBottom:'2px'}}>{lang==='ar'?'سجّل دخولك بجوجل':'Sign in with Google'}</div>
+                                    <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'احفظ تقدمك واستمتع بكل الميزات':'Save progress & unlock all features'}</div>
+                                </div>
+                                <button
+                                    onClick={onLoginGoogle}
+                                    style={{flexShrink:0,padding:'8px 14px',borderRadius:'10px',background:'linear-gradient(135deg,#4285f4,#1a73e8)',border:'none',color:'#fff',fontWeight:800,fontSize:'12px',cursor:'pointer',whiteSpace:'nowrap',boxShadow:'0 2px 10px rgba(66,133,244,0.4)'}}>
+                                    {lang==='ar'?'دخول':'Login'}
+                                </button>
+                            </div>
+                        )}
+
                         {/* ── GUEST BADGE - visible to ALL viewers ── */}
                         {isTargetGuest && (
                             <div style={{
