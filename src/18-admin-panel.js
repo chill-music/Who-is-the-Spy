@@ -716,6 +716,32 @@ const BanPanelInline = ({ reportedUID, reportedName, reportId, currentUser, curr
                 reportedUID, reportedName,
                 `Reason: ${banReason} | Duration: ${banDuration} | From report: ${reportId}`
             );
+            // Mark report as resolved
+            if (reportId) {
+                const reportDoc = await reportsCollection.doc(reportId).get().catch(()=>null);
+                if (reportDoc && reportDoc.exists) {
+                    const reporterUID = reportDoc.data()?.reporterUID;
+                    await reportsCollection.doc(reportId).update({ resolved: true, resolvedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
+                    // Send detective bot message to reporter
+                    if (reporterUID && typeof botChatsCollection !== 'undefined') {
+                        const durLabel = banDuration === 'perm'
+                            ? (lang==='ar'?'حظر دائم':'permanent ban')
+                            : `${banDuration} ${lang==='ar'?'يوم':'day ban'}`;
+                        await botChatsCollection.add({
+                            botId: 'detective_bot',
+                            toUserId: reporterUID,
+                            type: 'report_resolved',
+                            message: lang==='ar'
+                                ? `🕵️ تم مراجعة بلاغك ضد "${reportedName}".\n✅ الإجراء: ${durLabel}\nالسبب: ${banReason}\n\nشكراً لمساعدتنا في الحفاظ على سلامة المجتمع.`
+                                : `🕵️ Your report against "${reportedName}" has been reviewed.\n✅ Action taken: ${durLabel}\nReason: ${banReason}\n\nThank you for keeping the community safe.`,
+                            fromName: null,
+                            fromPhoto: null,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            read: false,
+                        }).catch(()=>{});
+                    }
+                }
+            }
             onDone(`🔨 ${lang==='ar'?`تم حظر ${reportedName}`:`${reportedName} banned`}`);
         } catch(e) {
             onDone('❌ Error banning user');
@@ -893,6 +919,22 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, on
                 getReportedName(reportData),
                 `Report type: ${reportData.type||'user'} | Reason: ${reportData.reason||''}`
             );
+            // Send detective bot message to reporter (no action taken)
+            const reporterUID = reportData.reporterUID;
+            if (reporterUID && typeof botChatsCollection !== 'undefined') {
+                await botChatsCollection.add({
+                    botId: 'detective_bot',
+                    toUserId: reporterUID,
+                    type: 'report_resolved_no_action',
+                    message: lang==='ar'
+                        ? `🕵️ تم مراجعة بلاغك ضد "${reportData.reportedName || 'المستخدم'}".\nℹ️ بعد التحقيق، لم يتم اتخاذ إجراء في هذه المرة.\n\nشكراً لمساعدتنا.`
+                        : `🕵️ Your report against "${reportData.reportedName || 'user'}" has been reviewed.\nℹ️ After investigation, no action was taken at this time.\n\nThank you for your report.`,
+                    fromName: null,
+                    fromPhoto: null,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    read: false,
+                }).catch(()=>{});
+            }
             onNotification(`✅ ${lang==='ar'?'تم حل البلاغ':'Report resolved'}`);
         } catch(e) { onNotification('❌ Error'); }
     };
