@@ -1172,7 +1172,11 @@ const CoupleCardModal = ({
                 /* ── Shared Bio (compact, top of scroll) ── */
                 React.createElement('div', { style:{ padding:'12px 16px', borderBottom:'1px solid rgba(255,255,255,0.06)' }},
                     React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'8px' }},
-                        React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4', fontWeight:700, flex:1 }},
+                        React.createElement('div', { style:{
+                            fontSize:'11px', color:'#f9a8d4', fontWeight:700, flex:1,
+                            wordBreak:'break-word', whiteSpace:'pre-wrap',
+                            maxWidth:'100%', lineHeight:1.6,
+                        }},
                             doc.sharedBio || (lang==='ar' ? '💕 لا يوجد بيو مشترك بعد' : '💕 No shared bio yet')
                         ),
                         isMember && React.createElement('button', {
@@ -1183,14 +1187,29 @@ const CoupleCardModal = ({
                                 padding:'3px 10px', cursor:'pointer', flexShrink:0 }
                         }, savingBio ? '⏳' : (editingBio ? (lang==='ar'?'💾':'💾') : (lang==='ar'?'✏️':'✏️')))
                     ),
-                    editingBio && isMember && React.createElement('textarea', {
-                        value: bioText, onChange: e => setBioText(e.target.value),
-                        maxLength: 120, rows: 2,
-                        style:{ width:'100%', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(236,72,153,0.3)',
-                            borderRadius:'8px', padding:'8px', color:'white', fontSize:'12px',
-                            outline:'none', resize:'none', lineHeight:1.6, fontFamily:'inherit',
-                            boxSizing:'border-box', marginTop:'8px', direction: lang==='ar' ? 'rtl' : 'ltr' }
-                    })
+                    editingBio && isMember && React.createElement('div', { style:{ marginTop:'8px' }},
+                        React.createElement('textarea', {
+                            value: bioText,
+                            onChange: e => {
+                                // Allow wrapping every 20 chars
+                                const raw = e.target.value;
+                                // Only enforce max 120 total chars
+                                if (raw.length <= 120) setBioText(raw);
+                            },
+                            maxLength: 120, rows: 3,
+                            style:{ width:'100%', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(236,72,153,0.3)',
+                                borderRadius:'8px', padding:'8px', color:'white', fontSize:'12px',
+                                outline:'none', resize:'none', lineHeight:1.8, fontFamily:'inherit',
+                                boxSizing:'border-box', direction: lang==='ar' ? 'rtl' : 'ltr',
+                                wordBreak:'break-word', whiteSpace:'pre-wrap' }
+                        }),
+                        React.createElement('div', { style:{ display:'flex', justifyContent:'space-between', marginTop:'4px' }},
+                            React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280' }},
+                                lang==='ar' ? '💡 ينكسر تلقائياً كل 20 حرف' : '💡 Wraps every 20 chars'),
+                            React.createElement('div', { style:{ fontSize:'9px', color: bioText.length >= 110 ? '#f87171' : '#6b7280' }},
+                                `${bioText.length}/120`)
+                        )
+                    )
                 ),
 
                 /* ── Love Level bar ── */
@@ -1564,6 +1583,74 @@ const RingsShopSection = ({ userData, lang, currentUID, onPropose, onNotificatio
 };
 
 // ─────────────────────────────────────────────
+// 📩 PROPOSAL ITEM — standalone so useState works correctly (no hooks-in-map)
+// ─────────────────────────────────────────────
+const ProposalItem = ({ proposal, fromData, lang, onNotification }) => {
+    const [handling, setHandling] = useState(false);
+    const ring = RINGS_DATA.find(r => r.id === proposal.ringId) || RINGS_DATA[0];
+    const gift = PROPOSAL_GIFTS.find(g => g.id === proposal.giftId);
+
+    const handle = async (accept) => {
+        setHandling(true);
+        if (accept) {
+            await acceptProposal({ coupleDocId: proposal.id, uid1: proposal.uid1, uid2: proposal.uid2, onNotification, lang });
+        } else {
+            await declineProposal({ coupleDocId: proposal.id, fromUID: proposal.uid1, toUID: proposal.uid2, ringCost: ring.cost, giftCost: gift?.cost || 0, onNotification, lang });
+        }
+        setHandling(false);
+    };
+
+    return React.createElement('div', {
+        style:{ background:'linear-gradient(135deg,rgba(236,72,153,0.1),rgba(168,85,247,0.08))', border:'1px solid rgba(236,72,153,0.3)', borderRadius:'16px', padding:'14px 16px', position:'relative', overflow:'hidden' }
+    },
+        /* Ring glow bg */
+        React.createElement('div', { style:{ position:'absolute', top:'-20px', right:'-20px', width:'80px', height:'80px', borderRadius:'50%', background: ring.glow, filter:'blur(30px)', pointerEvents:'none' }}),
+        /* Sender */
+        React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'12px', position:'relative' }},
+            React.createElement('div', { style:{ width:'44px', height:'44px', borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(236,72,153,0.5)', flexShrink:0 }},
+                fromData?.photoURL
+                    ? React.createElement('img', { src:fromData.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
+                    : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', background:'rgba(236,72,153,0.1)' }}, '😎')
+            ),
+            React.createElement('div', { style:{ flex:1 }},
+                React.createElement('div', { style:{ fontSize:'14px', fontWeight:800, color:'white' }}, fromData?.displayName || '—'),
+                React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4' }},
+                    lang==='ar' ? '💍 يطلب ارتباطك' : '💍 proposing to you')
+            ),
+            /* Ring */
+            React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px', background:`${ring.color}15`, border:`1px solid ${ring.color}40`, borderRadius:'10px', padding:'5px 10px' }},
+                ring.imageURL
+                    ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'22px', height:'22px', objectFit:'contain', mixBlendMode:'screen' }})
+                    : React.createElement('span', { style:{ fontSize:'20px', filter:`drop-shadow(0 0 6px ${ring.glow})` }}, ring.emoji),
+                React.createElement('div', null,
+                    React.createElement('div', { style:{ fontSize:'10px', fontWeight:700, color:ring.color }}, lang==='ar' ? ring.name_ar : ring.name_en),
+                    React.createElement('div', { style:{ fontSize:'9px', color: RARITY_COLORS_C[ring.rarity] }}, ring.rarity)
+                )
+            )
+        ),
+        /* Gift */
+        gift && React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'8px', padding:'6px 10px', borderRadius:'8px', background:'rgba(249,168,212,0.06)', border:'1px solid rgba(249,168,212,0.15)', marginBottom:'10px' }},
+            React.createElement('span', { style:{ fontSize:'16px' }}, gift.emoji),
+            React.createElement('span', { style:{ fontSize:'11px', color:'#f9a8d4' }}, lang==='ar' ? `هدية: ${gift.name_ar}` : `Gift: ${gift.name_en}`)
+        ),
+        /* Message */
+        proposal.proposalMessage && React.createElement('div', { style:{ padding:'8px 12px', borderRadius:'10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', fontSize:'12px', color:'#f3f4f6', fontStyle:'italic', marginBottom:'10px' }},
+            `" ${proposal.proposalMessage} "`),
+        /* Buttons */
+        React.createElement('div', { style:{ display:'flex', gap:'10px' }},
+            React.createElement('button', {
+                onClick: () => handle(false), disabled: handling,
+                style:{ flex:1, padding:'11px', borderRadius:'12px', border:'1px solid rgba(239,68,68,0.4)', background:'rgba(239,68,68,0.1)', color:'#f87171', fontSize:'13px', fontWeight:700, cursor:'pointer' }
+            }, handling ? '⏳' : (lang==='ar' ? '❌ رفض' : '❌ Decline')),
+            React.createElement('button', {
+                onClick: () => handle(true), disabled: handling,
+                style:{ flex:1, padding:'11px', borderRadius:'12px', border:'none', background:'linear-gradient(135deg,#ec4899,#a855f7)', color:'white', fontSize:'13px', fontWeight:800, cursor:'pointer', boxShadow:'0 4px 16px rgba(236,72,153,0.4)' }
+            }, handling ? '⏳' : (lang==='ar' ? '💖 قبول' : '💖 Accept'))
+        )
+    );
+};
+
+// ─────────────────────────────────────────────
 // 💒 WEDDING HALL MODAL
 // ─────────────────────────────────────────────
 const WeddingHallModal = ({
@@ -1574,7 +1661,7 @@ const WeddingHallModal = ({
     onDivorce,          // calls divorceCouple
     onNotification,
 }) => {
-    const [tab, setTab]             = useState('feed');   // 'feed' | 'divorce'
+    const [tab, setTab]             = useState('feed');   // 'feed' | 'divorce' | 'proposals'
     const [couples, setCouples]     = useState([]);
     const [loadingFeed, setLoadingFeed] = useState(true);
     const [coupleProfiles, setCoupleProfiles] = useState({}); // uid → userData
@@ -1584,6 +1671,32 @@ const WeddingHallModal = ({
     const [showViewCard, setShowViewCard] = useState(false);
     const [divorcing, setDivorcing]     = useState(false);
     const [divorceConfirm, setDivorceConfirm] = useState(false);
+    // Incoming proposals
+    const [pendingProposals, setPendingProposals] = useState([]);
+    const [proposerProfiles, setProposerProfiles] = useState({});
+
+    // Listen for pending proposals sent TO this user
+    useEffect(() => {
+        if (!show || !currentUID) return;
+        const unsub1 = couplesCollection
+            .where('uid2', '==', currentUID)
+            .where('status', '==', 'pending')
+            .onSnapshot(snap => {
+                const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setPendingProposals(docs);
+                // load proposer profiles
+                const toLoad = docs.map(d => d.uid1).filter(uid => !proposerProfiles[uid]);
+                if (toLoad.length > 0) {
+                    Promise.all(toLoad.map(uid => usersCollection.doc(uid).get().then(d => d.exists ? { id: d.id, ...d.data() } : null).catch(() => null)))
+                        .then(results => {
+                            const map = { ...proposerProfiles };
+                            results.forEach(u => { if (u) map[u.id] = u; });
+                            setProposerProfiles(map);
+                        });
+                }
+            }, () => {});
+        return () => unsub1();
+    }, [show, currentUID]);
 
     useEffect(() => {
         if (!show) return;
@@ -1708,7 +1821,7 @@ const WeddingHallModal = ({
                 }, '✕')
             ),
 
-            /* ── 3 Action Buttons ── */
+            /* ── 4 Action Buttons ── */
             React.createElement('div', { style:{
                 display:'flex', gap:'10px', padding:'0 16px 14px', flexShrink:0
             }},
@@ -1726,6 +1839,37 @@ const WeddingHallModal = ({
                     React.createElement('span', { style:{ fontSize:'18px' }}, '💍'),
                     lang==='ar' ? 'خطبة' : 'Propose'
                 ),
+                /* Incoming Proposals */
+                React.createElement('button', {
+                    onClick: () => setTab('proposals'),
+                    style:{
+                        flex:1, padding:'11px 6px', borderRadius:'14px', cursor:'pointer',
+                        background: tab === 'proposals'
+                            ? 'linear-gradient(135deg,#ec4899,#a855f7)'
+                            : 'rgba(236,72,153,0.12)',
+                        border: tab === 'proposals' ? 'none' : '1px solid rgba(236,72,153,0.3)',
+                        color:'white', fontSize:'12px', fontWeight:800,
+                        boxShadow: tab === 'proposals' ? '0 4px 16px rgba(236,72,153,0.4)' : 'none',
+                        display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
+                        position:'relative',
+                    }
+                },
+                    React.createElement('div', { style:{ position:'relative', display:'inline-block' }},
+                        React.createElement('span', { style:{ fontSize:'18px' }}, '📩'),
+                        pendingProposals.length > 0 && React.createElement('div', {
+                            style:{ position:'absolute', top:'-3px', right:'-3px', width:'10px', height:'10px',
+                                borderRadius:'50%', background:'#ef4444',
+                                boxShadow:'0 0 6px rgba(239,68,68,0.9)',
+                                animation:'pulse-ring 1.2s ease-in-out infinite',
+                            }
+                        })
+                    ),
+                    lang==='ar' ? 'طلباتي' : 'Proposals',
+                    pendingProposals.length > 0 && React.createElement('span', {
+                        style:{ fontSize:'8px', background:'rgba(239,68,68,0.8)', borderRadius:'8px',
+                            padding:'1px 5px', fontWeight:900 }
+                    }, pendingProposals.length)
+                ),
                 /* Today's Weddings */
                 React.createElement('button', {
                     onClick: () => setTab('feed'),
@@ -1741,7 +1885,7 @@ const WeddingHallModal = ({
                     }
                 },
                     React.createElement('span', { style:{ fontSize:'18px' }}, '💒'),
-                    lang==='ar' ? 'أفراح اليوم' : 'Weddings'
+                    lang==='ar' ? 'أفراح' : 'Weddings'
                 ),
                 /* Divorce */
                 React.createElement('button', {
@@ -1767,6 +1911,26 @@ const WeddingHallModal = ({
 
             /* ── Content ── */
             React.createElement('div', { style:{ flex:1, overflowY:'auto', padding:'14px 16px' }},
+
+                /* ──── PROPOSALS TAB ──── */
+                tab === 'proposals' && (
+                    pendingProposals.length === 0
+                        ? React.createElement('div', { style:{ textAlign:'center', padding:'40px' }},
+                            React.createElement('div', { style:{ fontSize:'40px', marginBottom:'12px' }}, '📩'),
+                            React.createElement('div', { style:{ fontSize:'13px', color:'#6b7280' }},
+                                lang==='ar' ? 'لا توجد طلبات ارتباط حالياً' : 'No pending proposals'))
+                        : React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'14px' }},
+                            pendingProposals.map(proposal =>
+                                React.createElement(ProposalItem, {
+                                    key: proposal.id,
+                                    proposal,
+                                    fromData: proposerProfiles[proposal.uid1],
+                                    lang,
+                                    onNotification,
+                                })
+                            )
+                        )
+                ),
 
                 /* ──── FEED TAB ──── */
                 tab === 'feed' && (
