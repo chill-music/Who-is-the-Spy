@@ -1839,6 +1839,7 @@ function App() {
                     currentUID={currentUID}
                     currentUserData={currentUserData}
                     lang={lang}
+                    onOpenFamily={() => { setShowFamilyChat(false); setShowFamilyModal(true); }}
                 />
             )}
 
@@ -2351,7 +2352,9 @@ function App() {
                                                 </div>
                                                 <div style={{fontSize:'11px',color:'#6b7280',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{userFamily.lastChatMessage||(lang==='ar'?'شات العائلة':'Family Chat')}</div>
                                             </div>
-                                            <div style={{fontSize:'9px',fontWeight:700,color:'#f97316',background:'rgba(255,136,0,0.1)',border:'1px solid rgba(255,136,0,0.25)',borderRadius:'6px',padding:'2px 7px',flexShrink:0}}>🏠 {lang==='ar'?'عائلة':'Family'}</div>
+                                            <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
+                                                <div style={{fontSize:'9px',fontWeight:700,color:'#f97316',background:'rgba(255,136,0,0.1)',border:'1px solid rgba(255,136,0,0.25)',borderRadius:'6px',padding:'2px 7px',cursor:'pointer'}} onClick={(e)=>{e.stopPropagation();setShowFamilyModal(true);}}>🏠 {lang==='ar'?'عائلة':'Family'}</div>
+                                            </div>
                                         </div>
                                     );
                                 })()}
@@ -2390,6 +2393,7 @@ function App() {
                                     lang={lang}
                                     onNotification={setNotification}
                                     isLoggedIn={isLoggedIn}
+                                    onOpenProfile={openProfile}
                                 />
                             </div>
                         </>)}
