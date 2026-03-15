@@ -1319,6 +1319,12 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         setDonating(true);
         try {
             const don = family.memberDonations?.[currentUID] || { weekly: 0, total: 0, weeklyIntel: 0, totalIntel: 0 };
+
+            // ── Mission ft3: Donate 500 Intel (per-user) ──
+            const ft3Key = `ft3_${currentUID}`;
+            const ft3Prog = family.taskProgress?.[ft3Key] || { current: 0, claimed: false };
+            const newFt3 = ft3Prog.claimed ? ft3Prog.current : Math.min(500, (ft3Prog.current || 0) + amount);
+
             await familiesCollection.doc(family.id).update({
                 treasury: firebase.firestore.FieldValue.increment(amount),
                 xp: firebase.firestore.FieldValue.increment(Math.floor(amount / 10)),
@@ -1328,6 +1334,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 [`memberDonations.${currentUID}.total`]: (don.total || 0) + amount,
                 [`memberDonations.${currentUID}.weeklyIntel`]: (don.weeklyIntel || 0) + amount,
                 [`memberDonations.${currentUID}.totalIntel`]: (don.totalIntel || 0) + amount,
+                ...(ft3Prog.claimed ? {} : { [`taskProgress.${ft3Key}.current`]: newFt3 }),
                 lastActivity: firebase.firestore.FieldValue.serverTimestamp(),
             });
             await usersCollection.doc(currentUID).update({
@@ -1356,21 +1363,38 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         setSendingMsg(true);
         const text = chatInput.trim();
         setChatInput('');
+
+        // ── Check if it's an Announcement (owner/admin only) ──
+        const isAnnouncement = /^Announcement\b/i.test(text) && canManage;
+
         try {
-            await familiesCollection.doc(family.id).collection('messages').add({
+            const msgData = {
                 senderId: currentUID,
                 senderName: currentUserData?.displayName || 'Member',
                 senderPhoto: currentUserData?.photoURL || null,
-                type: 'text', text,
+                senderRole: myRole || 'member',
+                type: isAnnouncement ? 'announcement' : 'text',
+                text,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            });
-            // Mission progress: chat
-            if (typeof incrementMissionProgress === 'function') {
-                // Update task progress ft6
-                const cur = family.taskProgress?.ft6?.current || 0;
+            };
+            await familiesCollection.doc(family.id).collection('messages').add(msgData);
+
+            // لو إعلان → نحفظه في بيانات العائلة كمان
+            if (isAnnouncement) {
                 await familiesCollection.doc(family.id).update({
-                    'taskProgress.ft6.current': Math.min(10, cur + 1),
+                    announcement: text,
+                    announcementAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    announcementBy: currentUserData?.displayName || 'Leader',
+                });
+            }
+
+            // ── Mission ft6: Chat 10 messages (per-user) ──
+            const userChatProg = family.taskProgress?.[`ft6_${currentUID}`] || { current: 0, claimed: false };
+            if (!userChatProg.claimed) {
+                await familiesCollection.doc(family.id).update({
+                    [`taskProgress.ft6_${currentUID}.current`]: Math.min(10, (userChatProg.current || 0) + 1),
                     activeness: firebase.firestore.FieldValue.increment(5),
+                    weeklyActiveness: firebase.firestore.FieldValue.increment(5),
                 });
             }
         } catch (e) {}
@@ -1601,6 +1625,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     ] : [
         { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
         { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
+        { id:'chat',     label_en:'Chat',    label_ar:'شات',      icon:'💬' },
         { id:'tasks',    label_en:'Tasks',   label_ar:'مهام',     icon:'🎯' },
         { id:'shop',     label_en:'Shop',    label_ar:'المتجر',   icon:'🏅' },
         { id:'news',     label_en:'News',    label_ar:'أخبار',    icon:'📰' },
@@ -1732,9 +1757,35 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
                 {/* ── Announcement ── */}
                 {family.announcement && (
-                    <div style={{...S.card, background:'rgba(0,242,255,0.04)', border:'1px solid rgba(0,242,255,0.15)'}}>
-                        <div style={{fontSize:'10px', fontWeight:800, color:'#00f2ff', marginBottom:'6px'}}>📢 {lang==='ar'?'إعلان':'Announcement'}</div>
-                        <div style={{fontSize:'12px', color:'#d1d5db', lineHeight:1.6}}>{family.announcement}</div>
+                    <div style={{
+                        ...S.card,
+                        background:'linear-gradient(135deg,rgba(255,165,0,0.18),rgba(255,80,0,0.1))',
+                        border:'1.5px solid rgba(255,165,0,0.5)',
+                        boxShadow:'0 0 20px rgba(255,140,0,0.15)',
+                        position:'relative', overflow:'hidden',
+                    }}>
+                        {/* left glow bar */}
+                        <div style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'14px 0 0 14px'}}/>
+                        <div style={{paddingLeft:'10px'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'7px'}}>
+                                <span style={{fontSize:'20px'}}>📢</span>
+                                <div style={{flex:1}}>
+                                    <div style={{fontSize:'10px', fontWeight:900, color:'#fbbf24', letterSpacing:'1px', textTransform:'uppercase'}}>{lang==='ar'?'إعلان من الإدارة':'OFFICIAL ANNOUNCEMENT'}</div>
+                                    {family.announcementBy && (
+                                        <div style={{fontSize:'9px',color:'#9ca3af',marginTop:'1px'}}>
+                                            {lang==='ar'?'بواسطة:':'By:'} {family.announcementBy}
+                                        </div>
+                                    )}
+                                </div>
+                                {/* زر فتح الشات */}
+                                <button
+                                    onClick={() => setActiveTab('chat')}
+                                    style={{fontSize:'9px',fontWeight:700,color:'#fbbf24',background:'rgba(255,165,0,0.15)',border:'1px solid rgba(255,165,0,0.35)',borderRadius:'8px',padding:'3px 8px',cursor:'pointer'}}>
+                                    {lang==='ar'?'الشات ›':'Chat ›'}
+                                </button>
+                            </div>
+                            <div style={{fontSize:'13px', color:'#fef3c7', lineHeight:1.6, fontWeight:600}}>{family.announcement}</div>
+                        </div>
                     </div>
                 )}
 
@@ -1748,11 +1799,47 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     // ─────────────────────────────────────────────
     const renderChat = () => {
         if (!family) return null;
+
+        // آخر إعلان من الرسائل أو من بيانات العائلة
+        const pinnedAnnouncement = family.announcement || null;
+        const announcementBy = family.announcementBy || '';
+
         return (
             <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0}}>
+
+                {/* ── Pinned Announcement Bar ── */}
+                {pinnedAnnouncement && (
+                    <div style={{
+                        flexShrink:0,
+                        margin:'8px 10px 4px',
+                        padding:'10px 14px',
+                        borderRadius:'12px',
+                        background:'linear-gradient(135deg,rgba(255,165,0,0.18),rgba(255,80,0,0.12))',
+                        border:'1px solid rgba(255,165,0,0.45)',
+                        boxShadow:'0 0 16px rgba(255,140,0,0.2)',
+                        position:'relative',
+                        overflow:'hidden',
+                    }}>
+                        {/* animated left bar */}
+                        <div style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'12px 0 0 12px'}}/>
+                        <div style={{display:'flex',alignItems:'flex-start',gap:'8px',paddingLeft:'6px'}}>
+                            <span style={{fontSize:'18px',lineHeight:1,flexShrink:0}}>📢</span>
+                            <div style={{flex:1,minWidth:0}}>
+                                <div style={{fontSize:'9px',fontWeight:800,color:'#fbbf24',letterSpacing:'1px',marginBottom:'3px',textTransform:'uppercase'}}>
+                                    {lang==='ar'?'إعلان من الإدارة':'ANNOUNCEMENT'}
+                                    {announcementBy ? ` · ${announcementBy}` : ''}
+                                </div>
+                                <div style={{fontSize:'12px',color:'#fde68a',lineHeight:1.5,fontWeight:600,wordBreak:'break-word'}}>
+                                    {pinnedAnnouncement}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Messages */}
                 <div style={{flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px'}}>
-                    {chatMessages.length === 0 && (
+                    {chatMessages.length === 0 && !pinnedAnnouncement && (
                         <div style={{textAlign:'center', padding:'40px 20px', color:'#4b5563'}}>
                             <div style={{fontSize:'36px', marginBottom:'10px'}}>💬</div>
                             <div style={{fontSize:'12px'}}>{lang==='ar'?'كن أول من يتحدث!':'Be the first to chat!'}</div>
@@ -1762,6 +1849,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         const isMe = msg.senderId === currentUID;
                         const isSystem = msg.senderId === 'system' || msg.type === 'system';
                         const isDonation = msg.type === 'donation';
+                        const isAnnouncement = msg.type === 'announcement';
 
                         if (isSystem) return (
                             <div key={msg.id} style={{textAlign:'center', padding:'4px 12px'}}>
@@ -1774,6 +1862,41 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 <div style={{background:'linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,140,0,0.1))', border:'1px solid rgba(255,215,0,0.3)', borderRadius:'12px', padding:'8px 14px', maxWidth:'90%', textAlign:'center'}}>
                                     <div style={{fontSize:'12px', color:'#ffd700', fontWeight:800}}>{msg.text}</div>
                                     <div style={{fontSize:'10px', color:'#6b7280', marginTop:'2px'}}>{fmtFamilyTime(msg.timestamp, lang)}</div>
+                                </div>
+                            </div>
+                        );
+
+                        // ── Announcement message — مميز داخل الشات ──
+                        if (isAnnouncement) return (
+                            <div key={msg.id} style={{display:'flex', justifyContent:'center', padding:'6px 0'}}>
+                                <div style={{
+                                    width:'100%',
+                                    background:'linear-gradient(135deg,rgba(255,165,0,0.2),rgba(255,80,0,0.12))',
+                                    border:'1.5px solid rgba(255,165,0,0.5)',
+                                    borderRadius:'14px', padding:'10px 14px',
+                                    position:'relative', overflow:'hidden',
+                                    boxShadow:'0 0 18px rgba(255,140,0,0.18)',
+                                }}>
+                                    <div style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'14px 0 0 14px'}}/>
+                                    <div style={{paddingLeft:'8px'}}>
+                                        <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'5px'}}>
+                                            <span style={{fontSize:'16px'}}>📢</span>
+                                            <span style={{fontSize:'10px',fontWeight:900,color:'#fbbf24',letterSpacing:'1px',textTransform:'uppercase'}}>{lang==='ar'?'إعلان رسمي':'OFFICIAL ANNOUNCEMENT'}</span>
+                                            <span style={{marginLeft:'auto',fontSize:'9px',color:'#6b7280'}}>{fmtFamilyTime(msg.timestamp, lang)}</span>
+                                        </div>
+                                        {/* sender info */}
+                                        <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'6px'}}>
+                                            {msg.senderPhoto
+                                                ? <img src={msg.senderPhoto} alt="" style={{width:'20px',height:'20px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid rgba(255,215,0,0.5)'}}/>
+                                                : <div style={{width:'20px',height:'20px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px'}}>👤</div>
+                                            }
+                                            <span style={{fontSize:'10px',fontWeight:700,color:'#fde68a'}}>{msg.senderName}</span>
+                                            <FamilyRoleBadge role={msg.senderRole||'owner'} lang={lang} small />
+                                        </div>
+                                        <div style={{fontSize:'13px',color:'#fef3c7',lineHeight:1.6,fontWeight:600,wordBreak:'break-word'}}>
+                                            {msg.text}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -1817,7 +1940,10 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChatMessage()}
                         maxLength={300}
                         style={{...S.input, flex:1, padding:'9px 12px', fontSize:'12px'}}
-                        placeholder={lang==='ar'?'اكتب رسالة...':'Type a message...'}
+                        placeholder={canManage
+                            ? (lang==='ar'?'اكتب رسالة... أو "Announcement نصك"':'Type a message... or "Announcement your text"')
+                            : (lang==='ar'?'اكتب رسالة...':'Type a message...')
+                        }
                     />
                     <button onClick={sendChatMessage} disabled={!chatInput.trim()||sendingMsg}
                         style={{width:'38px', height:'38px', borderRadius:'10px', border:'none', flexShrink:0, background:chatInput.trim()?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color:chatInput.trim()?'white':'#4b5563', fontSize:'16px', cursor:chatInput.trim()?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center'}}>
@@ -2016,6 +2142,51 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         if (!family) return null;
         const taskProgress = family.taskProgress || {};
 
+        // ── دالة Claim للمهمة ──
+        const claimTask = async (task) => {
+            const key = `${task.id}_${currentUID}`;
+            const prog = taskProgress[key] || { current: 0, claimed: false };
+            const isDone = prog.current >= task.target;
+            if (!isDone || prog.claimed || !family?.id) return;
+            try {
+                const r = task.reward;
+                await familiesCollection.doc(family.id).update({
+                    [`taskProgress.${key}.claimed`]: true,
+                    xp:          firebase.firestore.FieldValue.increment(r.xp || 0),
+                    activeness:  firebase.firestore.FieldValue.increment((r.xp || 0) * 2),
+                    weeklyActiveness: firebase.firestore.FieldValue.increment((r.xp || 0) * 2),
+                    familyCoins: firebase.firestore.FieldValue.increment(r.coins || 0),
+                });
+                await usersCollection.doc(currentUID).update({
+                    currency: firebase.firestore.FieldValue.increment(r.intel || r.amount || 0),
+                });
+                onNotification(`✅ +${r.intel||r.amount||0}🧠 +${r.xp||0}XP +${r.coins||0}${FAMILY_COINS_SYMBOL}`);
+            } catch(e) {}
+        };
+
+        // ── دالة Daily Check-in (ft4) ──
+        const handleCheckIn = async () => {
+            if (!family?.id || !currentUID) return;
+            const key = `ft4_${currentUID}`;
+            const prog = taskProgress[key] || { current: 0, claimed: false, lastCheckIn: null };
+            const today = new Date().toDateString();
+            const lastCheck = prog.lastCheckIn;
+            if (lastCheck === today) {
+                onNotification(lang === 'ar' ? '✅ سجّلت حضورك اليوم!' : '✅ Already checked in today!');
+                return;
+            }
+            try {
+                await familiesCollection.doc(family.id).update({
+                    [`taskProgress.${key}.current`]: 1,
+                    [`taskProgress.${key}.lastCheckIn`]: today,
+                    [`taskProgress.${key}.claimed`]: false,
+                    activeness: firebase.firestore.FieldValue.increment(50),
+                    weeklyActiveness: firebase.firestore.FieldValue.increment(50),
+                });
+                onNotification(lang === 'ar' ? '✅ تم تسجيل الحضور!' : '✅ Checked in!');
+            } catch(e) {}
+        };
+
         return (
             <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'10px'}}>
                 <div style={{...S.card, background:'rgba(0,242,255,0.04)', border:'1px solid rgba(0,242,255,0.15)', padding:'10px 14px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
@@ -2029,11 +2200,30 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </div>
                 </div>
 
+                {/* ── تعليمة المهام ── */}
+                <div style={{fontSize:'10px', color:'#6b7280', textAlign:'center', padding:'4px', background:'rgba(255,255,255,0.03)', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.06)'}}>
+                    {lang==='ar'
+                        ? '📌 المهام شخصية — كل عضو يكمّل مهامه بشكل منفصل'
+                        : '📌 Tasks are personal — each member tracks their own progress'}
+                </div>
+
                 {FAMILY_TASKS_CONFIG.map(task => {
-                    const prog = taskProgress[task.id] || { current: 0, claimed: false };
-                    const pct = Math.min(100, Math.round((prog.current / task.target) * 100));
-                    const isDone = prog.current >= task.target;
-                    const isClaimed = prog.claimed;
+                    const key = `${task.id}_${currentUID}`;
+                    const prog = taskProgress[key] || { current: 0, claimed: false };
+
+                    // Daily task reset logic
+                    const today = new Date().toDateString();
+                    const isDaily = task.daily;
+                    const isDailyDone = isDaily && prog.lastCheckIn === today && prog.current >= task.target;
+                    const effectiveProg = isDaily && prog.lastCheckIn !== today ? { current: 0, claimed: false } : prog;
+
+                    const pct = Math.min(100, Math.round((effectiveProg.current / task.target) * 100));
+                    const isDone = effectiveProg.current >= task.target;
+                    const isClaimed = effectiveProg.claimed;
+
+                    // ft4 special check-in state
+                    const isFt4 = task.id === 'ft4';
+                    const alreadyCheckedIn = isFt4 && prog.lastCheckIn === today;
 
                     return (
                         <div key={task.id} style={{...S.card, border:`1px solid ${isClaimed?'rgba(16,185,129,0.25)':isDone?'rgba(0,242,255,0.2)':'rgba(255,255,255,0.07)'}`}}>
@@ -2042,14 +2232,21 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                     {isClaimed ? '✅' : isDone ? '🎯' : task.icon}
                                 </div>
                                 <div style={{flex:1, minWidth:0}}>
-                                    <div style={{fontSize:'12px', fontWeight:700, color:isClaimed?'#10b981':isDone?'#00f2ff':'#e2e8f0', marginBottom:'2px'}}>
-                                        {lang==='ar' ? task.title_ar : task.title_en}
+                                    <div style={{display:'flex', alignItems:'center', gap:'5px', marginBottom:'2px'}}>
+                                        <div style={{fontSize:'12px', fontWeight:700, color:isClaimed?'#10b981':isDone?'#00f2ff':'#e2e8f0'}}>
+                                            {lang==='ar' ? task.title_ar : task.title_en}
+                                        </div>
+                                        {isDaily && (
+                                            <span style={{fontSize:'8px', fontWeight:800, color:'#f97316', background:'rgba(249,115,22,0.15)', border:'1px solid rgba(249,115,22,0.3)', padding:'1px 5px', borderRadius:'6px'}}>
+                                                {lang==='ar'?'يومي':'DAILY'}
+                                            </span>
+                                        )}
                                     </div>
                                     <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'6px'}}>{lang==='ar' ? task.sub_ar : task.sub_en}</div>
                                     {!isClaimed && (
                                         <div>
                                             <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#4b5563', marginBottom:'3px'}}>
-                                                <span>{prog.current}/{task.target}</span>
+                                                <span>{effectiveProg.current}/{task.target}</span>
                                                 <span>{pct}%</span>
                                             </div>
                                             <div style={{height:'4px', borderRadius:'2px', background:'rgba(255,255,255,0.07)', overflow:'hidden'}}>
@@ -2068,27 +2265,26 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                     <div style={{fontSize:'9px', fontWeight:700, color:'#a78bfa'}}>
                                         +{task.reward.coins||0}{FAMILY_COINS_SYMBOL}
                                     </div>
-                                    <button
-                                        disabled={isClaimed || !isDone}
-                                        onClick={async () => {
-                                            if (!isDone || isClaimed || !family?.id) return;
-                                            try {
-                                                const r = task.reward;
-                                                await familiesCollection.doc(family.id).update({
-                                                    [`taskProgress.${task.id}.claimed`]: true,
-                                                    xp:         firebase.firestore.FieldValue.increment(r.xp || 0),
-                                                    activeness: firebase.firestore.FieldValue.increment((r.xp || 0) * 2),
-                                                    familyCoins: firebase.firestore.FieldValue.increment(r.coins || 0),
-                                                });
-                                                await usersCollection.doc(currentUID).update({
-                                                    currency: firebase.firestore.FieldValue.increment(r.intel || r.amount || 0),
-                                                });
-                                                onNotification(`✅ +${r.intel||r.amount||0}🧠 +${r.xp||0}XP +${r.coins||0}${FAMILY_COINS_SYMBOL}`);
-                                            } catch(e) {}
-                                        }}
-                                        style={{...S.btn, padding:'5px 12px', fontSize:'11px', background:isClaimed?'rgba(16,185,129,0.15)':isDone?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color:isClaimed?'#10b981':isDone?'white':'#4b5563', cursor:isDone&&!isClaimed?'pointer':'not-allowed', border:'none'}}>
-                                        {isClaimed ? (lang==='ar'?'تم':'Done') : isDone ? (lang==='ar'?'اجمع':'Claim') : (lang==='ar'?'ابدأ':'Go')}
-                                    </button>
+                                    {/* ft4 check-in button */}
+                                    {isFt4 ? (
+                                        <button
+                                            onClick={alreadyCheckedIn ? () => {} : handleCheckIn}
+                                            style={{...S.btn, padding:'5px 10px', fontSize:'10px',
+                                                background: isClaimed?'rgba(16,185,129,0.15)':alreadyCheckedIn&&!isClaimed?'linear-gradient(135deg,#00f2ff,#7000ff)':isDone?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(249,115,22,0.2)',
+                                                color: isClaimed?'#10b981':alreadyCheckedIn||isDone?'white':'#f97316',
+                                                cursor: isClaimed?'not-allowed':'pointer',
+                                                border: isClaimed?'none':alreadyCheckedIn||isDone?'none':'1px solid rgba(249,115,22,0.4)',
+                                            }}>
+                                            {isClaimed?(lang==='ar'?'تم':'Done'):alreadyCheckedIn?(lang==='ar'?'اجمع':'Claim'):(lang==='ar'?'تسجيل':'Check-in')}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            disabled={isClaimed || !isDone}
+                                            onClick={() => claimTask(task)}
+                                            style={{...S.btn, padding:'5px 12px', fontSize:'11px', background:isClaimed?'rgba(16,185,129,0.15)':isDone?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color:isClaimed?'#10b981':isDone?'white':'#4b5563', cursor:isDone&&!isClaimed?'pointer':'not-allowed', border:'none'}}>
+                                            {isClaimed ? (lang==='ar'?'تم':'Done') : isDone ? (lang==='ar'?'اجمع':'Claim') : (lang==='ar'?'ابدأ':'Go')}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -2666,7 +2862,16 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 </div>
                                 <div style={{flex:1, minWidth:0}}>
                                     <div style={{display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap'}}>
-                                        <span style={{fontSize:'14px', fontWeight:900, color:'white', fontStyle:'italic', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'120px'}}>{family.name}</span>
+                                        {/* ── اسم القبيلة clickable يفتح الصفحة الرئيسية ── */}
+                                        <span
+                                            onClick={() => setActiveTab('profile')}
+                                            style={{fontSize:'14px', fontWeight:900, color:'white', fontStyle:'italic', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'120px', cursor:'pointer', transition:'color 0.2s'}}
+                                            onMouseEnter={e => e.currentTarget.style.color='#00f2ff'}
+                                            onMouseLeave={e => e.currentTarget.style.color='white'}
+                                            title={lang==='ar'?'انتقل للصفحة الرئيسية':'Go to family home'}
+                                        >
+                                            {family.name}
+                                        </span>
                                         {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />}
                                     </div>
                                     <div style={{fontSize:'9px', color:'#6b7280', display:'flex', alignItems:'center', gap:'6px'}}>
@@ -2703,6 +2908,10 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 }}>
                                     <div style={{fontSize:'14px', marginBottom:'1px'}}>{tab.icon}</div>
                                     <div>{lang==='ar'?tab.label_ar:tab.label_en}</div>
+                                    {/* Unread badge for chat tab */}
+                                    {tab.id==='chat' && family?.announcement && activeTab!=='chat' && (
+                                        <span style={{position:'absolute', top:'4px', right:'6px', fontSize:'7px', background:'#f97316', color:'white', borderRadius:'50%', width:'14px', height:'14px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900}}>📢</span>
+                                    )}
                                     {tab.id==='manage'&&(family?.joinRequests?.length>0)&&<span style={{position:'absolute', top:'4px', right:'6px', fontSize:'8px', background:'#f97316', color:'white', borderRadius:'50%', width:'14px', height:'14px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900}}>{family.joinRequests.length}</span>}
                                 </button>
                             ))}
@@ -2719,6 +2928,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                             <>
                                 {activeTab==='profile'  && renderProfile()}
                                 {activeTab==='members'  && renderMembers()}
+                                {activeTab==='chat'     && renderChat()}
                                 {activeTab==='tasks'    && renderTasks()}
                                 {activeTab==='shop'     && renderShop()}
                                 {activeTab==='ranking'  && renderRankingTab()}
