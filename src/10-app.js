@@ -2404,7 +2404,7 @@ function App() {
                                     isLoggedIn={isLoggedIn}
                                 />
                             </div>
-                        </div></>)}
+                        </>)}
                         </div>
                     )}
 
