@@ -1,11 +1,14 @@
+// ═══════════════════════════════════════════════════════════════
+// 🛒  SHOP MODAL — Premium Dark Gaming Store
+// ═══════════════════════════════════════════════════════════════
 const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedItem, setSelectedItem] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
     // ✅ Gift filter state
-    const [giftSort, setGiftSort] = useState('default'); // 'default' | 'price_asc' | 'price_desc'
-    const [giftRarityFilter, setGiftRarityFilter] = useState('all'); // 'all' | 'Common' | 'Rare' | 'Epic' | 'Legendary' | 'Mythic'
+    const [giftSort, setGiftSort] = useState('default');
+    const [giftRarityFilter, setGiftRarityFilter] = useState('all');
     const [giftVIPOnly, setGiftVIPOnly] = useState(false);
     const [showGiftFilter, setShowGiftFilter] = useState(false);
     // ✅ VIP confirmation dialog
@@ -18,8 +21,8 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     const equipped     = userData?.equipped  || {};
     const vipLevel     = getVIPLevel(userData);
     const vipXpInfo    = getVIPXPProgress(userData?.vip?.xp || 0);
+    const hasVIP       = vipLevel >= 1;
 
-    // ✅ VIP days remaining
     const vipExpiresAt = userData?.vip?.expiresAt;
     const vipDaysLeft = (() => {
         if (!vipExpiresAt) return null;
@@ -29,7 +32,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
         return diff > 0 ? diff : 0;
     })();
 
-    const isOwned  = (item) => inventory[item.type]?.includes(item.id);
+    const isOwned    = (item) => inventory[item.type]?.includes(item.id);
     const isEquipped = (item) => {
         if (item.type === 'badges') {
             const eb = equipped.badges || [];
@@ -40,36 +43,35 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 
     const renderPreview = (item) => {
         if (item.type === 'frames') return item.preview?.startsWith('http')
-            ? <img src={item.preview} alt="" style={{width:'32px',height:'32px',borderRadius:'50%',objectFit:'cover'}} />
-            : <div style={{width:'32px',height:'32px',borderRadius:'50%',background:item.preview}} />;
+            ? <img src={item.preview} alt="" style={{width:'36px',height:'36px',borderRadius:'50%',objectFit:'cover'}} />
+            : <div style={{width:'36px',height:'36px',borderRadius:'50%',background:item.preview}} />;
         if (item.type === 'badges') return item.imageUrl
+            ? <img src={item.imageUrl} alt="" style={{width:'32px',height:'32px',objectFit:'contain'}} />
+            : <span style={{fontSize:'26px'}}>{item.preview}</span>;
+        if (item.type === 'titles') return item.imageUrl
             ? <img src={item.imageUrl} alt="" style={{width:'28px',height:'28px',objectFit:'contain'}} />
             : <span style={{fontSize:'22px'}}>{item.preview}</span>;
-        if (item.type === 'titles') return item.imageUrl
-            ? <img src={item.imageUrl} alt="" style={{width:'24px',height:'24px',objectFit:'contain'}} />
-            : <span style={{fontSize:'18px'}}>{item.preview}</span>;
         if (item.type === 'gifts' || item.type === 'gifts_vip') return item.imageUrl
-            ? <img src={item.imageUrl} alt="" style={{width:'26px',height:'26px',objectFit:'contain'}} />
-            : <span style={{fontSize:'22px'}}>{item.emoji}</span>;
+            ? <img src={item.imageUrl} alt="" style={{width:'32px',height:'32px',objectFit:'contain'}} />
+            : <span style={{fontSize:'26px'}}>{item.emoji}</span>;
         if (item.type === 'profileEffects') {
             const src = typeof item.particles === 'string' && item.particles.startsWith('http')
                 ? item.particles : (item.imageUrl || null);
             return src
-                ? <img src={src} alt={item.name_en} style={{width:'26px',height:'26px',objectFit:'contain',borderRadius:'4px'}} />
-                : <span style={{fontSize:'22px'}}>{item.preview}</span>;
+                ? <img src={src} alt={item.name_en} style={{width:'32px',height:'32px',objectFit:'contain',borderRadius:'6px'}} />
+                : <span style={{fontSize:'26px'}}>{item.preview}</span>;
         }
-        return <span style={{fontSize:'18px'}}>🎨</span>;
+        return <span style={{fontSize:'22px'}}>🎨</span>;
     };
 
-    // Tabs — تبويبات الشوب (هدايا VIP مدمجة مع تاب الهدايا)
     const tabs = [
-        { id: 'vip',           label: '👑 VIP',   icon: '👑' },
-        { id: 'rings',         label: lang==='ar'?'💍 خواتم':'💍 Rings', icon: '💍' },
-        { id: 'gifts',         label: t.gifts,    icon: '🎁' },
-        { id: 'frames',        label: t.frames,   icon: '🖼️' },
-        { id: 'titles',        label: t.titles,   icon: '🏷️' },
-        { id: 'badges',        label: t.badges,   icon: '🏅' },
-        { id: 'profileEffects',label: lang === 'ar' ? 'تأثيرات' : 'Effects', icon: '✨' },
+        { id: 'vip',            icon: '👑', label_ar: 'VIP',       label_en: 'VIP'     },
+        { id: 'rings',          icon: '💍', label_ar: 'خواتم',     label_en: 'Rings'   },
+        { id: 'gifts',          icon: '🎁', label_ar: 'هدايا',     label_en: 'Gifts'   },
+        { id: 'frames',         icon: '🖼️', label_ar: 'إطارات',   label_en: 'Frames'  },
+        { id: 'titles',         icon: '🏷️', label_ar: 'ألقاب',    label_en: 'Titles'  },
+        { id: 'badges',         icon: '🏅', label_ar: 'شارات',     label_en: 'Badges'  },
+        { id: 'profileEffects', icon: '✨', label_ar: 'تأثيرات',   label_en: 'Effects' },
     ];
 
     const getTabItems = (tab) => {
@@ -77,18 +79,15 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
             const regular  = (SHOP_ITEMS.gifts     || []).filter(item => !item.hidden);
             const vipGifts = (SHOP_ITEMS.gifts_vip || []).filter(item => !item.hidden && item.vipExclusive !== false);
             let items = giftVIPOnly ? vipGifts : [...regular, ...vipGifts];
-            // Rarity filter
             if (giftRarityFilter !== 'all') {
                 items = items.filter(item => {
                     const rKey = item.type === 'gifts_vip' ? 'Legendary' : getGiftRarity(item.cost);
                     return rKey === giftRarityFilter;
                 });
             }
-            // Sort
             if (giftSort === 'price_desc') items = [...items].sort((a,b) => b.cost - a.cost);
             else if (giftSort === 'price_asc') items = [...items].sort((a,b) => a.cost - b.cost);
             else {
-                // Default: sort by rarity priority
                 const RARITY_ORDER = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
                 items = [...items].sort((a,b) => {
                     const rA = RARITY_ORDER.indexOf(a.type==='gifts_vip'?'Legendary':getGiftRarity(a.cost));
@@ -103,157 +102,186 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 
     return (
     <React.Fragment>
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay" onClick={onClose} style={{backdropFilter:'blur(6px)'}}>
             <div
-                className="modal-content animate-pop"
                 onClick={e => e.stopPropagation()}
-                style={{ maxWidth: '520px', width: '96vw', maxHeight: '90vh' }}
+                style={{
+                    background:'linear-gradient(160deg,#0a0e1f 0%,#0d1225 55%,#080c1a 100%)',
+                    border:'1px solid rgba(0,242,255,0.12)',
+                    borderRadius:'20px',
+                    width:'96vw', maxWidth:'540px',
+                    maxHeight:'92vh',
+                    display:'flex', flexDirection:'column',
+                    overflow:'hidden',
+                    boxShadow:'0 0 80px rgba(0,0,0,0.8),0 0 140px rgba(0,80,255,0.04),inset 0 1px 0 rgba(255,255,255,0.05)',
+                    position:'relative',
+                }}
             >
-                {/* Header */}
-                <div className="modal-header">
-                    <h2 className="modal-title">🛒 {t.shop}</h2>
-                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                        {/* VIP XP mini */}
-                        {vipLevel > 0 && (
-                            <div style={{
-                                display:'flex',alignItems:'center',gap:'4px',
-                                background:'rgba(112,0,255,0.15)',
-                                border:'1px solid rgba(112,0,255,0.3)',
-                                borderRadius:'8px',padding:'2px 8px'
-                            }}>
-                                <span style={{fontSize:'10px',color:'#c4b5fd',fontWeight:700}}>
-                                    VIP {vipLevel}
-                                </span>
-                                <span style={{fontSize:'9px',color:'#7c3aed'}}>
-                                    {vipXpInfo.progress}%
-                                </span>
+                {/* Top accent line */}
+                <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:'linear-gradient(90deg,transparent,#00f2ff,#7c3aed,transparent)',zIndex:2}} />
+
+                {/* ══ HEADER ══ */}
+                <div style={{
+                    background:'linear-gradient(135deg,rgba(0,242,255,0.055) 0%,rgba(112,0,255,0.055) 100%)',
+                    borderBottom:'1px solid rgba(255,255,255,0.06)',
+                    padding:'14px 16px 12px',
+                    display:'flex',alignItems:'center',justifyContent:'space-between',
+                    flexShrink:0,
+                }}>
+                    <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                        <div style={{
+                            width:'38px',height:'38px',borderRadius:'11px',
+                            background:'linear-gradient(135deg,rgba(0,242,255,0.14),rgba(112,0,255,0.14))',
+                            border:'1px solid rgba(0,242,255,0.2)',
+                            display:'flex',alignItems:'center',justifyContent:'center',fontSize:'19px',
+                            flexShrink:0,
+                        }}>🛒</div>
+                        <div>
+                            <div style={{fontSize:'15px',fontWeight:900,color:'#f1f5f9',letterSpacing:'0.2px'}}>
+                                {t.shop || (lang==='ar'?'المتجر':'Store')}
                             </div>
-                        )}
-                        <span style={{color:'#fbbf24',fontWeight:700,fontSize:'12px'}}>🧠 {currency.toLocaleString()}</span>
-                        {/* 🎒 Inventory bag button */}
+                            {vipLevel > 0 && (
+                                <div style={{fontSize:'9px',color:'#a78bfa',fontWeight:700,marginTop:'1px',display:'flex',alignItems:'center',gap:'4px'}}>
+                                    <span style={{background:'rgba(124,58,237,0.22)',borderRadius:'4px',padding:'0 5px',lineHeight:'14px'}}>VIP {vipLevel}</span>
+                                    <span style={{color:'#4b5563'}}>{vipXpInfo.progress}% → VIP {vipLevel+1}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:'7px'}}>
+                        <div style={{
+                            display:'flex',alignItems:'center',gap:'5px',
+                            background:'linear-gradient(135deg,rgba(251,191,36,0.1),rgba(245,158,11,0.05))',
+                            border:'1px solid rgba(251,191,36,0.22)',
+                            borderRadius:'10px',padding:'5px 10px',
+                        }}>
+                            <span style={{fontSize:'13px'}}>🧠</span>
+                            <span style={{fontSize:'12px',fontWeight:800,color:'#fbbf24'}}>{currency.toLocaleString()}</span>
+                        </div>
                         {onOpenInventory && (
-                            <button
-                                onClick={() => { onClose(); setTimeout(onOpenInventory, 100); }}
-                                title={lang === 'ar' ? 'مخزوني' : 'My Inventory'}
-                                style={{
-                                    background:'rgba(0,242,255,0.1)',
-                                    border:'1px solid rgba(0,242,255,0.3)',
-                                    borderRadius:'8px', padding:'4px 8px',
-                                    fontSize:'16px', cursor:'pointer', lineHeight:1,
-                                    display:'flex', alignItems:'center', justifyContent:'center',
-                                    transition:'all 0.15s'
-                                }}
-                                onMouseEnter={e => { e.currentTarget.style.background='rgba(0,242,255,0.2)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background='rgba(0,242,255,0.1)'; }}
+                            <button onClick={() => { onClose(); setTimeout(onOpenInventory,100); }}
+                                title={lang==='ar'?'مخزوني':'My Inventory'}
+                                style={{width:'34px',height:'34px',borderRadius:'10px',background:'rgba(0,242,255,0.07)',border:'1px solid rgba(0,242,255,0.18)',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
+                                onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,242,255,0.17)';e.currentTarget.style.transform='scale(1.06)';}}
+                                onMouseLeave={e=>{e.currentTarget.style.background='rgba(0,242,255,0.07)';e.currentTarget.style.transform='scale(1)';}}
                             >🎒</button>
                         )}
-                        <ModalCloseBtn onClose={onClose} />
+                        <button onClick={onClose}
+                            style={{width:'34px',height:'34px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',color:'#6b7280',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
+                            onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.14)';e.currentTarget.style.color='#f87171';}}
+                            onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.color='#6b7280';}}
+                        >✕</button>
                     </div>
                 </div>
 
-                {/* Tabs */}
+                {/* ══ TAB BAR ══ */}
                 <div style={{
-                    display:'flex',overflowX:'auto',gap:'4px',padding:'8px 8px 0',
-                    borderBottom:'1px solid rgba(255,255,255,0.06)',
-                    scrollbarWidth:'none', flexShrink:0,
-                    position:'sticky', top:0, zIndex:10,
-                    background:'var(--bg-card)',
+                    display:'flex',overflowX:'auto',gap:'3px',
+                    padding:'10px 10px 0',
+                    borderBottom:'1px solid rgba(255,255,255,0.05)',
+                    scrollbarWidth:'none',flexShrink:0,
+                    background:'rgba(0,0,0,0.14)',
                 }}>
-                    {tabs.map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            style={{
-                                flexShrink:0, padding:'5px 10px', borderRadius:'8px 8px 0 0',
-                                fontSize:'11px', fontWeight:700, cursor:'pointer', border:'none',
-                                background: activeTab === tab.id
-                                    ? 'rgba(0,242,255,0.12)' : 'rgba(255,255,255,0.04)',
-                                color: activeTab === tab.id ? '#00f2ff' : '#6b7280',
-                                borderBottom: activeTab === tab.id
-                                    ? '2px solid #00f2ff' : '2px solid transparent',
-                                transition:'all 0.15s'
-                            }}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
+                    {tabs.map(tab => {
+                        const active = activeTab === tab.id;
+                        return (
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+                                flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',
+                                padding:'6px 12px 8px',borderRadius:'10px 10px 0 0',
+                                fontSize:'10px',fontWeight:active?800:500,cursor:'pointer',border:'none',
+                                background:active?'rgba(0,242,255,0.09)':'transparent',
+                                color:active?'#00f2ff':'#4b6070',
+                                borderBottom:active?'2px solid #00f2ff':'2px solid transparent',
+                                transition:'all 0.18s',minWidth:'50px',
+                            }}>
+                                <span style={{fontSize:'16px',lineHeight:1}}>{tab.icon}</span>
+                                <span>{lang==='ar'?tab.label_ar:tab.label_en}</span>
+                            </button>
+                        );
+                    })}
                 </div>
 
-                {/* Body */}
-                <div className="modal-body" style={{padding:'10px', overflowY:'auto', minHeight:0}}>
+                {/* ══ BODY ══ */}
+                <div style={{
+                    flex:1,overflowY:'auto',padding:'14px',
+                    scrollbarWidth:'thin',scrollbarColor:'rgba(0,242,255,0.18) transparent',
+                }}>
 
-                    {/* ════ RINGS TAB ════ */}
+                    {/* ════ RINGS ════ */}
                     {activeTab === 'rings' && (
                         <RingsShopSection
-                            userData={userData}
-                            lang={lang}
-                            currentUID={currentUID}
-                            onPropose={onPropose || (() => {})}
-                            coupleData={coupleData}
+                            userData={userData} lang={lang} currentUID={currentUID}
+                            onPropose={onPropose||(() => {})} coupleData={coupleData}
                             onOpenCoupleCard={onOpenCoupleCard}
                         />
                     )}
 
-                    {/* ════ VIP TAB ════ */}
+                    {/* ════ VIP ════ */}
                     {activeTab === 'vip' && (
-                        <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+                        <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
 
-                            {/* Mini XP bar */}
+                            {/* XP Progress */}
                             <div style={{
-                                background:'linear-gradient(135deg,rgba(112,0,255,0.12),rgba(15,15,26,0.97))',
-                                border:'1px solid rgba(112,0,255,0.3)',
-                                borderRadius:'12px', padding:'14px'
+                                background:'linear-gradient(135deg,rgba(124,58,237,0.11),rgba(10,8,35,0.98))',
+                                border:'1px solid rgba(124,58,237,0.28)',
+                                borderRadius:'16px',padding:'16px',position:'relative',overflow:'hidden',
                             }}>
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
-                                    <span style={{fontWeight:800,fontSize:'14px',color:'#c4b5fd'}}>
-                                        👑 {lang==='ar'?'مستوى VIP الحالي':'Current VIP Level'}
-                                    </span>
-                                    <span style={{
-                                        background:'rgba(112,0,255,0.3)',color:'#c4b5fd',
-                                        fontWeight:900,padding:'3px 10px',borderRadius:'6px',fontSize:'13px'
-                                    }}>
-                                        VIP {vipLevel}
-                                    </span>
-                                </div>
-                                <div style={{height:'8px',borderRadius:'4px',background:'rgba(255,255,255,0.06)',overflow:'hidden',marginBottom:'5px'}}>
+                                <div style={{position:'absolute',top:0,left:0,right:0,height:'2px',background:'linear-gradient(90deg,transparent,#a855f7,#c4b5fd,transparent)'}} />
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+                                    <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                                        <span style={{fontSize:'32px',lineHeight:1}}>👑</span>
+                                        <div>
+                                            <div style={{fontSize:'13px',fontWeight:900,color:'#c4b5fd'}}>
+                                                {lang==='ar'?'مستوى VIP الحالي':'Current VIP Level'}
+                                            </div>
+                                            <div style={{fontSize:'10px',color:'#6b3aad',marginTop:'1px'}}>
+                                                {(userData?.vip?.xp||0).toLocaleString()} XP
+                                                {vipLevel<10&&<span style={{color:'#374151'}}> / {VIP_XP_THRESHOLDS[vipLevel+1]?.toLocaleString()}</span>}
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div style={{
-                                        width:`${vipXpInfo.progress}%`,height:'100%',borderRadius:'4px',
-                                        background:'linear-gradient(90deg,#7c3aed,#c4b5fd)',
-                                        transition:'width 0.5s ease'
+                                        background:'rgba(124,58,237,0.28)',color:'#e9d5ff',
+                                        fontWeight:900,padding:'4px 12px',borderRadius:'9px',
+                                        fontSize:'14px',border:'1px solid rgba(124,58,237,0.4)',
+                                        boxShadow:'0 0 12px rgba(124,58,237,0.25)',
+                                    }}>VIP {vipLevel}</div>
+                                </div>
+                                <div style={{height:'6px',borderRadius:'3px',background:'rgba(255,255,255,0.05)',overflow:'hidden',marginBottom:'5px'}}>
+                                    <div style={{
+                                        width:`${vipXpInfo.progress}%`,height:'100%',borderRadius:'3px',
+                                        background:'linear-gradient(90deg,#6d28d9,#a855f7,#c4b5fd)',
+                                        transition:'width 0.6s ease',
+                                        boxShadow:'0 0 8px rgba(168,85,247,0.55)',
                                     }}/>
                                 </div>
-                                <div style={{display:'flex',justifyContent:'space-between',fontSize:'10px',color:'#6b7280'}}>
-                                    <span>{(userData?.vip?.xp||0).toLocaleString()} XP</span>
-                                    {vipLevel < 10 && <span>{lang==='ar'?'التالي':'Next'}: {VIP_XP_THRESHOLDS[vipLevel+1]?.toLocaleString()} XP</span>}
+                                <div style={{display:'flex',justifyContent:'space-between',fontSize:'9px',color:'#4b5563'}}>
+                                    <span>VIP {vipLevel}</span>
+                                    {vipLevel<10&&<span>VIP {vipLevel+1}</span>}
                                 </div>
                             </div>
 
-                            {/* VIP 1 Purchase Card */}
+                            {/* Buy / Status card */}
                             <div style={{
-                                background:'linear-gradient(135deg,rgba(239,68,68,0.1),rgba(15,15,26,0.97))',
-                                border:'1.5px solid rgba(239,68,68,0.35)',
-                                borderRadius:'14px', padding:'16px',
-                                position:'relative', overflow:'hidden'
+                                background:'linear-gradient(135deg,rgba(239,68,68,0.07),rgba(8,5,25,0.98))',
+                                border:'1.5px solid rgba(239,68,68,0.28)',
+                                borderRadius:'16px',padding:'16px',position:'relative',overflow:'hidden',
                             }}>
-                                {/* Glow top strip */}
-                                <div style={{position:'absolute',top:0,left:0,right:0,height:'2px',background:'linear-gradient(90deg,transparent,#ef4444,transparent)'}}/>
-
-                                <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'12px'}}>
-                                    <div style={{fontSize:'40px',lineHeight:1}}>👑</div>
+                                <div style={{position:'absolute',top:0,left:0,right:0,height:'2px',background:'linear-gradient(90deg,transparent,#ef4444,transparent)'}} />
+                                <div style={{display:'flex',alignItems:'flex-start',gap:'12px',marginBottom:'14px'}}>
+                                    <span style={{fontSize:'36px',lineHeight:1,flexShrink:0}}>👑</span>
                                     <div>
-                                        <div style={{fontWeight:900,fontSize:'16px',color:'#ef4444'}}>
-                                            {lang==='ar'?'احصل على VIP 1':'Get VIP 1'}
+                                        <div style={{fontWeight:900,fontSize:'15px',color:'#fca5a5',marginBottom:'4px'}}>
+                                            {lang==='ar'?'احصل على VIP':'Get VIP'}
                                         </div>
-                                        <div style={{fontSize:'11px',color:'#9ca3af',marginTop:'2px'}}>
+                                        <div style={{fontSize:'10px',color:'#9ca3af',lineHeight:1.5}}>
                                             {lang==='ar'
-                                                ? 'ابدأ رحلة VIP وارتقِ عبر إرسال الهدايا!'
-                                                : 'Start your VIP journey — level up by sending gifts!'}
+                                                ?'ابدأ رحلة VIP وارتقِ عبر إرسال الهدايا!'
+                                                :'Start your VIP journey — level up by sending gifts!'}
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Features list */}
-                                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'5px',marginBottom:'14px'}}>
+                                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px',marginBottom:'14px'}}>
                                     {[
                                         {icon:'⭐',ar:'اسم أحمر مميز',en:'Red VIP Name'},
                                         {icon:'⚡',ar:'مضاعف XP × 1.2',en:'1.2× XP Multiplier'},
@@ -261,186 +289,128 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                         {icon:'🔥',ar:'ارتقِ للمستوى 10',en:'Level up to VIP 10'},
                                     ].map((f,i) => (
                                         <div key={i} style={{
-                                            display:'flex',alignItems:'center',gap:'5px',
+                                            display:'flex',alignItems:'center',gap:'6px',
                                             fontSize:'10px',color:'#d1d5db',
-                                            background:'rgba(255,255,255,0.03)',
-                                            borderRadius:'6px',padding:'5px 8px'
+                                            background:'rgba(255,255,255,0.025)',
+                                            border:'1px solid rgba(255,255,255,0.055)',
+                                            borderRadius:'8px',padding:'6px 8px',
                                         }}>
-                                            <span>{f.icon}</span>
+                                            <span style={{fontSize:'14px'}}>{f.icon}</span>
                                             <span>{lang==='ar'?f.ar:f.en}</span>
                                         </div>
                                     ))}
                                 </div>
-
-                                {/* XP gain info */}
                                 <div style={{
-                                    background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',
-                                    borderRadius:'8px',padding:'8px 10px',marginBottom:'12px',
-                                    fontSize:'10px',color:'#fca5a5',textAlign:'center'
+                                    background:'rgba(239,68,68,0.055)',border:'1px solid rgba(239,68,68,0.14)',
+                                    borderRadius:'8px',padding:'8px 10px',marginBottom:'14px',
+                                    fontSize:'10px',color:'#fca5a5',textAlign:'center',lineHeight:1.5,
                                 }}>
                                     🎁 {lang==='ar'
-                                        ? 'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر كلما ارتفع مستواك!'
-                                        : 'Every gift you send gives VIP XP — the more you give, the higher you level!'}
+                                        ?'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر كلما ارتفع مستواك!'
+                                        :'Every gift you send gives VIP XP — the more you give, the higher you level!'}
                                 </div>
-
-                                {/* Price + Buy button */}
                                 {vipLevel >= 1 ? (
-                                    <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
-                                        {/* ✅ Modern days remaining display */}
+                                    <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
                                         {vipDaysLeft !== null && (
                                             <div style={{
-                                                borderRadius:'12px', overflow:'hidden',
-                                                background: vipDaysLeft <= 5
-                                                    ? 'linear-gradient(135deg,rgba(239,68,68,0.15),rgba(15,15,26,0.97))'
-                                                    : 'linear-gradient(135deg,rgba(74,222,128,0.12),rgba(15,15,26,0.97))',
-                                                border: vipDaysLeft <= 5 ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(74,222,128,0.3)',
+                                                borderRadius:'12px',overflow:'hidden',
+                                                background:vipDaysLeft<=5
+                                                    ?'linear-gradient(135deg,rgba(239,68,68,0.11),rgba(8,5,25,0.96))'
+                                                    :'linear-gradient(135deg,rgba(74,222,128,0.09),rgba(8,5,25,0.96))',
+                                                border:vipDaysLeft<=5?'1px solid rgba(239,68,68,0.32)':'1px solid rgba(74,222,128,0.22)',
                                             }}>
-                                                <div style={{
-                                                    padding:'10px 14px',
-                                                    display:'flex', alignItems:'center', justifyContent:'space-between'
-                                                }}>
+                                                <div style={{padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                                                     <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                                                        <span style={{fontSize:'20px'}}>{vipDaysLeft <= 5 ? '⚠️' : '🛡️'}</span>
+                                                        <span style={{fontSize:'20px'}}>{vipDaysLeft<=5?'⚠️':'🛡️'}</span>
                                                         <div>
-                                                            <div style={{fontSize:'10px', color: vipDaysLeft <= 5 ? '#f87171' : '#4ade80', fontWeight:700}}>
-                                                                {lang === 'ar' ? 'الوقت المتبقي' : 'Time Remaining'}
+                                                            <div style={{fontSize:'10px',color:vipDaysLeft<=5?'#f87171':'#4ade80',fontWeight:700}}>
+                                                                {lang==='ar'?'الوقت المتبقي':'Time Remaining'}
                                                             </div>
-                                                            <div style={{fontSize:'8px', color:'#6b7280'}}>
-                                                                {vipDaysLeft <= 5 ? (lang === 'ar' ? '⚡ قريباً ينتهي!' : '⚡ Expiring soon!') : (lang === 'ar' ? 'VIP نشط ✓' : 'VIP Active ✓')}
+                                                            <div style={{fontSize:'9px',color:'#4b5563'}}>
+                                                                {vipDaysLeft<=5?(lang==='ar'?'⚡ قريباً ينتهي!':'⚡ Expiring soon!'):(lang==='ar'?'VIP نشط ✓':'VIP Active ✓')}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    {/* Day counter badges */}
-                                                    <div style={{display:'flex', alignItems:'baseline', gap:'2px'}}>
-                                                        <span style={{
-                                                            fontSize:'28px', fontWeight:900, lineHeight:1,
-                                                            color: vipDaysLeft <= 5 ? '#f87171' : '#4ade80',
-                                                            textShadow: vipDaysLeft <= 5
-                                                                ? '0 0 15px rgba(239,68,68,0.6)'
-                                                                : '0 0 15px rgba(74,222,128,0.5)',
-                                                            fontFamily: 'monospace',
-                                                        }}>{vipDaysLeft}</span>
-                                                        <span style={{fontSize:'11px', color:'#9ca3af', fontWeight:700}}>
-                                                            {lang === 'ar' ? ' يوم' : 'd'}
-                                                        </span>
+                                                    <div style={{display:'flex',alignItems:'baseline',gap:'2px'}}>
+                                                        <span style={{fontSize:'30px',fontWeight:900,lineHeight:1,color:vipDaysLeft<=5?'#f87171':'#4ade80',textShadow:vipDaysLeft<=5?'0 0 14px rgba(239,68,68,0.55)':'0 0 14px rgba(74,222,128,0.45)',fontFamily:'monospace'}}>{vipDaysLeft}</span>
+                                                        <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:700}}>{lang==='ar'?' يوم':'d'}</span>
                                                     </div>
                                                 </div>
-                                                {/* Progress bar */}
-                                                <div style={{height:'3px', background:'rgba(255,255,255,0.06)'}}>
-                                                    <div style={{
-                                                        height:'100%',
-                                                        width:`${Math.min(100, (vipDaysLeft / 30) * 100)}%`,
-                                                        background: vipDaysLeft <= 5
-                                                            ? 'linear-gradient(90deg,#dc2626,#f87171)'
-                                                            : 'linear-gradient(90deg,#16a34a,#4ade80)',
-                                                        transition:'width 0.5s ease'
-                                                    }}/>
+                                                <div style={{height:'3px',background:'rgba(255,255,255,0.04)'}}>
+                                                    <div style={{height:'100%',width:`${Math.min(100,(vipDaysLeft/30)*100)}%`,background:vipDaysLeft<=5?'linear-gradient(90deg,#dc2626,#f87171)':'linear-gradient(90deg,#16a34a,#4ade80)',transition:'width 0.5s'}}/>
                                                 </div>
                                             </div>
                                         )}
-                                        {/* VIP Active / Deactivated status */}
                                         <div style={{
-                                            display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',
+                                            display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',
                                             padding:'10px',borderRadius:'10px',
-                                            background: (vipDaysLeft !== null && vipDaysLeft > 0)
-                                                ? 'linear-gradient(135deg,rgba(74,222,128,0.12),rgba(16,185,129,0.06))'
-                                                : 'rgba(239,68,68,0.08)',
-                                            border: (vipDaysLeft !== null && vipDaysLeft > 0)
-                                                ? '1px solid rgba(74,222,128,0.35)'
-                                                : '1px solid rgba(239,68,68,0.3)',
+                                            background:(vipDaysLeft!==null&&vipDaysLeft>0)?'linear-gradient(135deg,rgba(74,222,128,0.09),rgba(16,185,129,0.04))':'rgba(239,68,68,0.06)',
+                                            border:(vipDaysLeft!==null&&vipDaysLeft>0)?'1px solid rgba(74,222,128,0.28)':'1px solid rgba(239,68,68,0.22)',
                                         }}>
-                                            <span style={{fontSize:'16px'}}>
-                                                {(vipDaysLeft !== null && vipDaysLeft > 0) ? '✅' : '❌'}
-                                            </span>
-                                            <span style={{
-                                                fontWeight:900, fontSize:'13px',
-                                                color: (vipDaysLeft !== null && vipDaysLeft > 0) ? '#4ade80' : '#f87171',
-                                                letterSpacing:'0.5px'
-                                            }}>
-                                                {(vipDaysLeft !== null && vipDaysLeft > 0)
-                                                    ? (lang === 'ar' ? '🔥 VIP مفعّل' : '🔥 VIP ACTIVE')
-                                                    : (lang === 'ar' ? 'VIP منتهي' : 'VIP DEACTIVATED')}
+                                            <span style={{fontSize:'14px'}}>{(vipDaysLeft!==null&&vipDaysLeft>0)?'✅':'❌'}</span>
+                                            <span style={{fontWeight:900,fontSize:'12px',color:(vipDaysLeft!==null&&vipDaysLeft>0)?'#4ade80':'#f87171'}}>
+                                                {(vipDaysLeft!==null&&vipDaysLeft>0)?(lang==='ar'?'🔥 VIP مفعّل':'🔥 VIP ACTIVE'):(lang==='ar'?'VIP منتهي':'VIP DEACTIVATED')}
                                             </span>
                                         </div>
-                                        {/* ✅ Renewal button with confirm */}
                                         <button
-                                            onClick={() => { if (currency >= 50000) setShowVIPConfirm(true); }}
-                                            disabled={currency < 50000}
+                                            onClick={() => { if(currency>=50000) setShowVIPConfirm(true); }}
+                                            disabled={currency<50000}
                                             style={{
-                                                width:'100%',padding:'10px',borderRadius:'10px',
-                                                background: currency >= 50000
-                                                    ? 'linear-gradient(135deg,#7c3aed,#a855f7)'
-                                                    : 'rgba(100,100,100,0.2)',
-                                                border: currency >= 50000
-                                                    ? '1px solid rgba(167,139,250,0.5)' : '1px solid rgba(255,255,255,0.08)',
-                                                color: currency >= 50000 ? '#fff' : '#6b7280',
-                                                fontWeight:800, fontSize:'13px', cursor: currency >= 50000 ? 'pointer' : 'default',
-                                                boxShadow: currency >= 50000 ? '0 0 16px rgba(167,139,250,0.4)' : 'none',
-                                                transition:'all 0.2s'
+                                                width:'100%',padding:'11px',borderRadius:'11px',border:'none',
+                                                background:currency>=50000?'linear-gradient(135deg,#6d28d9,#a855f7)':'rgba(100,100,100,0.15)',
+                                                color:currency>=50000?'#fff':'#4b5563',fontWeight:800,fontSize:'13px',
+                                                cursor:currency>=50000?'pointer':'not-allowed',
+                                                boxShadow:currency>=50000?'0 4px 18px rgba(124,58,237,0.38)':'none',
+                                                transition:'all 0.2s',
                                             }}
                                         >
-                                            {currency >= 50000
-                                                ? `🔄 ${lang==='ar'?'تجديد +30 يوم':'Renew +30 days'} — 50,000 🧠`
-                                                : `❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠`
-                                            }
+                                            {currency>=50000
+                                                ?`🔄 ${lang==='ar'?'تجديد +30 يوم':'Renew +30 days'} — 50,000 🧠`
+                                                :`❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠`}
                                         </button>
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={() => { if (currency >= 50000) setShowVIPConfirm(true); }}
-                                        disabled={currency < 50000}
+                                        onClick={() => { if(currency>=50000) setShowVIPConfirm(true); }}
+                                        disabled={currency<50000}
                                         style={{
-                                            width:'100%',padding:'12px',borderRadius:'10px',
-                                            background: currency >= 50000
-                                                ? 'linear-gradient(135deg,#ef4444,#b91c1c)'
-                                                : 'rgba(100,100,100,0.2)',
-                                            border: currency >= 50000
-                                                ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.08)',
-                                            color: currency >= 50000 ? '#fff' : '#6b7280',
-                                            fontWeight:900, fontSize:'14px', cursor: currency >= 50000 ? 'pointer' : 'default',
-                                            boxShadow: currency >= 50000 ? '0 0 20px rgba(239,68,68,0.4)' : 'none',
-                                            transition:'all 0.2s'
+                                            width:'100%',padding:'13px',borderRadius:'11px',border:'none',
+                                            background:currency>=50000?'linear-gradient(135deg,#ef4444,#b91c1c)':'rgba(100,100,100,0.15)',
+                                            color:currency>=50000?'#fff':'#4b5563',fontWeight:900,fontSize:'14px',
+                                            cursor:currency>=50000?'pointer':'not-allowed',
+                                            boxShadow:currency>=50000?'0 4px 20px rgba(239,68,68,0.38)':'none',
+                                            transition:'all 0.2s',
                                         }}
                                     >
-                                        {currency >= 50000
-                                            ? `👑 ${lang==='ar'?'اشترِ VIP 1':'Buy VIP 1'} — 50,000 🧠`
-                                            : `❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠 (${lang==='ar'?'لديك':'Have'}: ${currency.toLocaleString()})`
-                                        }
+                                        {currency>=50000
+                                            ?`👑 ${lang==='ar'?'اشترِ VIP 1':'Buy VIP 1'} — 50,000 🧠`
+                                            :`❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠 (${lang==='ar'?'لديك':'Have'}: ${currency.toLocaleString()})`}
                                     </button>
                                 )}
                             </div>
 
-                            {/* VIP Levels Table */}
-                            <div style={{
-                                background:'rgba(0,0,0,0.2)',border:'1px solid rgba(255,255,255,0.06)',
-                                borderRadius:'12px',overflow:'hidden'
-                            }}>
-                                <div style={{padding:'10px 12px',borderBottom:'1px solid rgba(255,255,255,0.06)',fontSize:'11px',fontWeight:700,color:'#9ca3af'}}>
+                            {/* Levels table */}
+                            <div style={{background:'rgba(0,0,0,0.18)',border:'1px solid rgba(255,255,255,0.055)',borderRadius:'14px',overflow:'hidden'}}>
+                                <div style={{padding:'10px 14px',borderBottom:'1px solid rgba(255,255,255,0.055)',fontSize:'11px',fontWeight:700,color:'#9ca3af',display:'flex',alignItems:'center',gap:'6px'}}>
                                     📊 {lang==='ar'?'جدول مستويات VIP':'VIP Level Table'}
                                 </div>
                                 {VIP_CONFIG.map(cfg => {
-                                    const isCurrentLevel = vipLevel === cfg.level;
-                                    const isPassed = vipLevel > cfg.level;
+                                    const isCurrentLevel = vipLevel===cfg.level;
+                                    const isPassed       = vipLevel>cfg.level;
                                     return (
                                         <div key={cfg.level} style={{
-                                            display:'flex',alignItems:'center',gap:'8px',
-                                            padding:'7px 12px',
-                                            borderBottom:'1px solid rgba(255,255,255,0.04)',
-                                            background: isCurrentLevel ? `${cfg.nameColor}11` : 'transparent',
+                                            display:'flex',alignItems:'center',gap:'10px',
+                                            padding:'8px 14px',
+                                            borderBottom:'1px solid rgba(255,255,255,0.028)',
+                                            background:isCurrentLevel?`${cfg.nameColor}0c`:'transparent',
                                         }}>
-                                            <span style={{
-                                                minWidth:'36px',fontWeight:900,fontSize:'11px',
-                                                color: isCurrentLevel ? cfg.nameColor : isPassed ? '#4ade80' : '#6b7280'
-                                            }}>
-                                                {isPassed ? '✅' : isCurrentLevel ? '▶' : ''} VIP {cfg.level}
+                                            <span style={{minWidth:'42px',fontWeight:900,fontSize:'11px',color:isCurrentLevel?cfg.nameColor:isPassed?'#4ade80':'#2d3748'}}>
+                                                {isPassed?'✅':isCurrentLevel?'▶':''} VIP {cfg.level}
                                             </span>
-                                            <div style={{flex:1,height:'4px',borderRadius:'2px',background:'rgba(255,255,255,0.06)',overflow:'hidden'}}>
-                                                <div style={{
-                                                    width: isPassed ? '100%' : isCurrentLevel ? `${vipXpInfo.progress}%` : '0%',
-                                                    height:'100%',background:cfg.nameColor,transition:'width 0.5s'
-                                                }}/>
+                                            <div style={{flex:1,height:'4px',borderRadius:'2px',background:'rgba(255,255,255,0.04)',overflow:'hidden'}}>
+                                                <div style={{width:isPassed?'100%':isCurrentLevel?`${vipXpInfo.progress}%`:'0%',height:'100%',background:cfg.nameColor,transition:'width 0.5s',boxShadow:isCurrentLevel?`0 0 5px ${cfg.nameColor}`:'none'}}/>
                                             </div>
-                                            <span style={{fontSize:'9px',color:'#6b7280',minWidth:'60px',textAlign:'right'}}>
+                                            <span style={{fontSize:'9px',color:'#374151',minWidth:'62px',textAlign:'right'}}>
                                                 {VIP_XP_THRESHOLDS[cfg.level].toLocaleString()} XP
                                             </span>
                                         </div>
@@ -451,300 +421,242 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                     )}
 
                     {/* ════ ITEMS GRID ════ */}
-                    {activeTab !== 'vip' && (
-                        <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+                    {activeTab !== 'vip' && activeTab !== 'rings' && (
+                        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
 
-                        {/* ✅ Gift filter panel — only for gifts tab */}
-                        {activeTab === 'gifts' && (
-                            <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
-                                <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                                    <button
-                                        onClick={() => setShowGiftFilter(p => !p)}
-                                        style={{
-                                            display:'flex',alignItems:'center',gap:'4px',
-                                            padding:'4px 10px',borderRadius:'7px',fontSize:'10px',fontWeight:700,
-                                            background: showGiftFilter ? 'rgba(0,242,255,0.12)' : 'rgba(255,255,255,0.06)',
-                                            border: showGiftFilter ? '1px solid rgba(0,242,255,0.3)' : '1px solid rgba(255,255,255,0.1)',
-                                            color: showGiftFilter ? '#00f2ff' : '#9ca3af', cursor:'pointer'
-                                        }}
-                                    >
-                                        🔍 {lang==='ar'?'فلتر':'Filter'}
-                                        {(giftRarityFilter !== 'all' || giftVIPOnly || giftSort !== 'default') && (
-                                            <span style={{
-                                                background:'#ef4444',color:'#fff',borderRadius:'50%',
-                                                width:'14px',height:'14px',fontSize:'8px',fontWeight:900,
-                                                display:'flex',alignItems:'center',justifyContent:'center'
-                                            }}>!</span>
-                                        )}
-                                    </button>
-                                    {/* Quick sort buttons */}
-                                    {['default','price_asc','price_desc'].map(s => (
-                                        <button key={s} onClick={() => setGiftSort(s)} style={{
-                                            padding:'4px 8px',borderRadius:'6px',fontSize:'9px',fontWeight:700,
-                                            background: giftSort===s ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)',
-                                            border: giftSort===s ? '1px solid rgba(251,191,36,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                                            color: giftSort===s ? '#fbbf24' : '#6b7280', cursor:'pointer'
+                            {/* Gift filters */}
+                            {activeTab === 'gifts' && (
+                                <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                    <div style={{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}}>
+                                        <button onClick={() => setShowGiftFilter(p=>!p)} style={{
+                                            display:'flex',alignItems:'center',gap:'5px',
+                                            padding:'5px 11px',borderRadius:'8px',fontSize:'10px',fontWeight:700,
+                                            background:showGiftFilter?'rgba(0,242,255,0.09)':'rgba(255,255,255,0.04)',
+                                            border:showGiftFilter?'1px solid rgba(0,242,255,0.28)':'1px solid rgba(255,255,255,0.07)',
+                                            color:showGiftFilter?'#00f2ff':'#4b6070',cursor:'pointer',transition:'all 0.15s',
                                         }}>
-                                            {s==='default'?(lang==='ar'?'افتراضي':'Default'):s==='price_asc'?'↑ '+( lang==='ar'?'سعر':'Price'):'↓ '+(lang==='ar'?'سعر':'Price')}
+                                            🔍 {lang==='ar'?'فلتر':'Filter'}
+                                            {(giftRarityFilter!=='all'||giftVIPOnly||giftSort!=='default')&&(
+                                                <span style={{background:'#ef4444',color:'#fff',borderRadius:'50%',width:'14px',height:'14px',fontSize:'8px',fontWeight:900,display:'flex',alignItems:'center',justifyContent:'center'}}>!</span>
+                                            )}
                                         </button>
-                                    ))}
-                                </div>
-                                {showGiftFilter && (
-                                    <div style={{
-                                        background:'rgba(0,0,0,0.25)',border:'1px solid rgba(255,255,255,0.07)',
-                                        borderRadius:'10px',padding:'10px',display:'flex',flexDirection:'column',gap:'8px'
-                                    }}>
-                                        {/* Rarity filter */}
-                                        <div>
-                                            <div style={{fontSize:'9px',color:'#6b7280',fontWeight:700,marginBottom:'4px'}}>
-                                                {lang==='ar'?'🎨 اللون/النادرية':'🎨 Rarity'}
-                                            </div>
-                                            <div style={{display:'flex',flexWrap:'wrap',gap:'4px'}}>
-                                                {['all','Common','Uncommon','Rare','Epic','Legendary','Mythic'].map(r => {
-                                                    const rc = RARITY_CONFIG[r] || {};
-                                                    return (
-                                                        <button key={r} onClick={() => setGiftRarityFilter(r)} style={{
-                                                            padding:'3px 8px',borderRadius:'6px',fontSize:'9px',fontWeight:700,cursor:'pointer',
-                                                            background: giftRarityFilter===r ? (rc.bg||'rgba(0,242,255,0.15)') : 'rgba(255,255,255,0.04)',
-                                                            border: giftRarityFilter===r ? `1px solid ${rc.border||'#00f2ff'}` : '1px solid rgba(255,255,255,0.08)',
-                                                            color: giftRarityFilter===r ? (rc.color||'#00f2ff') : '#6b7280',
-                                                        }}>
-                                                            {r==='all'?(lang==='ar'?'الكل':'All'):(rc.icon||'')+' '+(lang==='ar'?(RARITY_CONFIG[r]?.name_ar||r):(RARITY_CONFIG[r]?.name_en||r))}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                        {/* VIP only toggle */}
-                                        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                                            <button onClick={() => setGiftVIPOnly(p => !p)} style={{
-                                                padding:'4px 10px',borderRadius:'7px',fontSize:'10px',fontWeight:700,cursor:'pointer',
-                                                background: giftVIPOnly ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.05)',
-                                                border: giftVIPOnly ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                                                color: giftVIPOnly ? '#ef4444' : '#6b7280'
+                                        {['default','price_asc','price_desc'].map(s=>(
+                                            <button key={s} onClick={()=>setGiftSort(s)} style={{
+                                                padding:'5px 9px',borderRadius:'7px',fontSize:'9px',fontWeight:700,
+                                                background:giftSort===s?'rgba(251,191,36,0.1)':'rgba(255,255,255,0.04)',
+                                                border:giftSort===s?'1px solid rgba(251,191,36,0.32)':'1px solid rgba(255,255,255,0.06)',
+                                                color:giftSort===s?'#fbbf24':'#4b6070',cursor:'pointer',transition:'all 0.15s',
                                             }}>
-                                                👑 {lang==='ar'?'هدايا VIP فقط':'VIP Gifts Only'}
+                                                {s==='default'?(lang==='ar'?'افتراضي':'Default'):s==='price_asc'?'↑ '+(lang==='ar'?'سعر':'Price'):'↓ '+(lang==='ar'?'سعر':'Price')}
                                             </button>
-                                            {(giftRarityFilter !== 'all' || giftVIPOnly || giftSort !== 'default') && (
-                                                <button onClick={() => { setGiftRarityFilter('all'); setGiftVIPOnly(false); setGiftSort('default'); }} style={{
-                                                    padding:'4px 8px',borderRadius:'6px',fontSize:'9px',fontWeight:700,cursor:'pointer',
-                                                    background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',color:'#f87171'
-                                                }}>
-                                                    ✕ {lang==='ar'?'مسح الفلاتر':'Clear'}
-                                                </button>
-                                            )}
-                                        </div>
+                                        ))}
                                     </div>
-                                )}
-                            </div>
-                        )}
-
-                        <div style={{
-                            display:'grid',
-                            gridTemplateColumns: activeTab === 'gifts'
-                                ? 'repeat(auto-fill, minmax(80px, 1fr))'
-                                : 'repeat(auto-fill, minmax(100px, 1fr))',
-                            gap:'8px'
-                        }}>
-                            {getTabItems(activeTab)?.map(item => {
-                                const owned       = isOwned(item);
-                                const equippedItem = isEquipped(item);
-                                const isEventItem = item.isEvent;
-                                const isLimited   = item.limitedTime;
-                                const isEventOnly = item.eventOnly;
-
-                                if (activeTab === 'gifts') {
-                                    const isVIPGift    = item.type === 'gifts_vip';
-                                    const vipRequired  = item.vipMinLevel || 0;
-                                    const isVIPLocked  = isVIPGift && vipLevel < vipRequired;
-                                    const isVIPMaxGift = isVIPGift && vipRequired >= 10;
-                                    const vipGlowType  = item.vipGlowType || null;
-                                    const rKey   = getGiftRarity(item.cost);
-                                    const rarity = RARITY_CONFIG[rKey];
-                                    const vipCfg        = vipRequired > 0 ? VIP_CONFIG[vipRequired - 1] : null;
-                                    const vipGlowColor  = vipCfg ? vipCfg.nameColor : '#7c3aed';
-                                    const cardBorder    = isVIPGift ? `1.5px solid ${vipGlowColor}88` : `1.5px solid ${rarity.border}`;
-                                    const cardBg        = isVIPGift && !isVIPLocked ? `linear-gradient(135deg, ${vipGlowColor}11, rgba(15,15,26,0.97))` : rarity.bg;
-                                    // box shadow: use CSS class for special glows, inline for others
-                                    const hasSpecialGlow = !isVIPLocked && vipGlowType;
-                                    const cardShadow    = hasSpecialGlow ? 'none'
-                                        : isVIPGift && !isVIPLocked
-                                            ? (isVIPMaxGift ? `0 0 14px ${vipGlowColor}99, 0 0 28px ${vipGlowColor}44` : `0 0 8px ${vipGlowColor}66`)
-                                            : (rarity.glow && rKey==='Mythic' ? '0 0 14px rgba(255,0,85,0.7)' : rarity.glow ? `0 0 8px ${rarity.color}55` : 'none');
-                                    // CSS animation class
-                                    const glowClass = hasSpecialGlow ? `glow-${vipGlowType}` : '';
-                                    // card animation (inline) only for mythic non-special
-                                    const cardAnim = !hasSpecialGlow && (
-                                        (isVIPMaxGift && !isVIPLocked) ? 'mythic-pulse 2s ease-in-out infinite'
-                                        : (rKey==='Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none')
-                                    );
-                                    return (
-                                        <div
-                                            key={item.id}
-                                            className={glowClass}
-                                            onClick={() => { if (!isEventOnly) { setSelectedItem(item); setShowPreview(true); } }}
-                                            style={{
-                                                position:'relative', cursor: isEventOnly ? 'default' : 'pointer',
-                                                border: cardBorder, background: cardBg, boxShadow: cardShadow,
-                                                borderRadius:'10px', padding:'8px 4px',
-                                                display:'flex', flexDirection:'column',
-                                                alignItems:'center', justifyContent:'center',
-                                                minHeight:'80px',
-                                                opacity: (isEventOnly || isVIPLocked) ? 0.65 : 1,
-                                                animation: cardAnim || 'none',
-                                                transition:'transform 0.15s',
-                                            }}
-                                            onMouseEnter={e => { if (!isEventOnly && !isVIPLocked) e.currentTarget.style.transform='scale(1.04)'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}
-                                        >
-                                            <span style={{position:'absolute',top:'2px',left:'2px',fontSize:'8px'}}>{rarity.icon}</span>
-                                            {isEventItem && <span className="shop-event-tag">⚡</span>}
-                                            {isLimited   && <span className="shop-limited-tag">⏳</span>}
-                                            {/* VIP badge tag */}
-                                            {isVIPGift && (
-                                                <span style={{
-                                                    position:'absolute', top:'2px', right:'2px',
-                                                    fontSize:'7px', fontWeight:900,
-                                                    background: vipGlowColor, color:'#000',
-                                                    padding:'1px 4px', borderRadius:'4px',
-                                                    boxShadow: isVIPMaxGift ? `0 0 8px ${vipGlowColor}` : 'none',
-                                                    animation: isVIPMaxGift ? 'mythic-pulse 2s ease-in-out infinite' : 'none'
-                                                }}>
-                                                    VIP {vipRequired}
-                                                </span>
-                                            )}
-                                            {item.imageUrl
-                                                ? <img src={item.imageUrl} alt="" style={{width:'28px',height:'28px',objectFit:'contain',marginBottom:'3px'}}/>
-                                                : <span style={{fontSize:'24px',lineHeight:1,marginBottom:'3px'}}>{item.emoji}</span>
-                                            }
-                                            <div style={{fontSize:'9px',fontWeight:700,color:'#fbbf24'}}>{item.cost.toLocaleString()}🧠</div>
-                                            <div style={{fontSize:'8px',color:'#9ca3af'}}>+{formatCharisma(item.charisma)}⭐</div>
-                                            <div style={{fontSize:'7px',color:'#7c3aed',fontWeight:700,marginTop:'1px'}}>
-                                                +{getGiftVIPXP(item)} VXP
+                                    {showGiftFilter && (
+                                        <div style={{background:'rgba(0,0,0,0.28)',border:'1px solid rgba(255,255,255,0.065)',borderRadius:'12px',padding:'12px',display:'flex',flexDirection:'column',gap:'10px'}}>
+                                            <div>
+                                                <div style={{fontSize:'9px',color:'#4b6070',fontWeight:700,marginBottom:'5px',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+                                                    {lang==='ar'?'🎨 النادرية':'🎨 Rarity'}
+                                                </div>
+                                                <div style={{display:'flex',flexWrap:'wrap',gap:'4px'}}>
+                                                    {['all','Common','Uncommon','Rare','Epic','Legendary','Mythic'].map(r=>{
+                                                        const rc=RARITY_CONFIG[r]||{};
+                                                        return (
+                                                            <button key={r} onClick={()=>setGiftRarityFilter(r)} style={{
+                                                                padding:'3px 9px',borderRadius:'6px',fontSize:'9px',fontWeight:700,cursor:'pointer',transition:'all 0.12s',
+                                                                background:giftRarityFilter===r?(rc.bg||'rgba(0,242,255,0.13)'):'rgba(255,255,255,0.03)',
+                                                                border:giftRarityFilter===r?`1px solid ${rc.border||'#00f2ff'}`:'1px solid rgba(255,255,255,0.06)',
+                                                                color:giftRarityFilter===r?(rc.color||'#00f2ff'):'#4b6070',
+                                                            }}>
+                                                                {r==='all'?(lang==='ar'?'الكل':'All'):(rc.icon||'')+' '+(lang==='ar'?(RARITY_CONFIG[r]?.name_ar||r):(RARITY_CONFIG[r]?.name_en||r))}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
-                                            {/* Lock overlay for VIP locked gifts */}
-                                            {isVIPLocked && (
-                                                <div style={{
-                                                    position:'absolute', inset:0,
-                                                    background:'rgba(0,0,0,0.55)', borderRadius:'8px',
-                                                    display:'flex', flexDirection:'column',
-                                                    alignItems:'center', justifyContent:'center', gap:'2px'
+                                            <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                                                <button onClick={()=>setGiftVIPOnly(p=>!p)} style={{
+                                                    padding:'4px 10px',borderRadius:'7px',fontSize:'10px',fontWeight:700,cursor:'pointer',transition:'all 0.15s',
+                                                    background:giftVIPOnly?'rgba(239,68,68,0.09)':'rgba(255,255,255,0.04)',
+                                                    border:giftVIPOnly?'1px solid rgba(239,68,68,0.3)':'1px solid rgba(255,255,255,0.06)',
+                                                    color:giftVIPOnly?'#ef4444':'#4b6070',
                                                 }}>
-                                                    <span style={{fontSize:'16px'}}>🔒</span>
-                                                    <span style={{fontSize:'7px', color: vipGlowColor, fontWeight:800}}>VIP {vipRequired}+</span>
-                                                </div>
-                                            )}
-                                            {/* Event only overlay */}
-                                            {isEventOnly && !isVIPLocked && (
-                                                <div style={{
-                                                    position:'absolute', inset:0, background:'rgba(0,0,0,0.5)',
-                                                    borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center'
-                                                }}>
-                                                    <span style={{fontSize:'18px'}}>🔒</span>
-                                                </div>
+                                                    👑 {lang==='ar'?'هدايا VIP فقط':'VIP Gifts Only'}
+                                                </button>
+                                                {(giftRarityFilter!=='all'||giftVIPOnly||giftSort!=='default')&&(
+                                                    <button onClick={()=>{setGiftRarityFilter('all');setGiftVIPOnly(false);setGiftSort('default');}} style={{
+                                                        padding:'4px 9px',borderRadius:'6px',fontSize:'9px',fontWeight:700,cursor:'pointer',
+                                                        background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.22)',color:'#f87171',
+                                                    }}>
+                                                        ✕ {lang==='ar'?'مسح الفلاتر':'Clear'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Grid */}
+                            <div style={{
+                                display:'grid',
+                                gridTemplateColumns:activeTab==='gifts'?'repeat(auto-fill,minmax(82px,1fr))':'repeat(auto-fill,minmax(106px,1fr))',
+                                gap:'8px',
+                            }}>
+                                {getTabItems(activeTab)?.map(item => {
+                                    const owned        = isOwned(item);
+                                    const equippedItem = isEquipped(item);
+                                    const isEventItem  = item.isEvent;
+                                    const isLimited    = item.limitedTime;
+                                    const isEventOnly  = item.eventOnly;
+
+                                    /* Gift cards */
+                                    if (activeTab === 'gifts') {
+                                        const isVIPGift    = item.type==='gifts_vip';
+                                        const vipRequired  = item.vipMinLevel||0;
+                                        const isVIPLocked  = isVIPGift&&vipLevel<vipRequired;
+                                        const isVIPMaxGift = isVIPGift&&vipRequired>=10;
+                                        const vipGlowType  = item.vipGlowType||null;
+                                        const rKey   = getGiftRarity(item.cost);
+                                        const rarity = RARITY_CONFIG[rKey];
+                                        const vipCfg        = vipRequired>0?VIP_CONFIG[vipRequired-1]:null;
+                                        const vipGlowColor  = vipCfg?vipCfg.nameColor:'#7c3aed';
+                                        const cardBorder    = isVIPGift?`1.5px solid ${vipGlowColor}66`:`1.5px solid ${rarity.border}`;
+                                        const cardBg        = isVIPGift&&!isVIPLocked?`linear-gradient(145deg,${vipGlowColor}0e,rgba(8,10,28,0.98))`:rarity.bg;
+                                        const hasSpecialGlow= !isVIPLocked&&vipGlowType;
+                                        const cardShadow    = hasSpecialGlow?'none'
+                                            :isVIPGift&&!isVIPLocked
+                                                ?(isVIPMaxGift?`0 0 16px ${vipGlowColor}99,0 0 30px ${vipGlowColor}44`:`0 0 9px ${vipGlowColor}55`)
+                                                :(rarity.glow&&rKey==='Mythic'?'0 0 14px rgba(255,0,85,0.6)':rarity.glow?`0 0 8px ${rarity.color}44`:'none');
+                                        const glowClass = hasSpecialGlow?`glow-${vipGlowType}`:'';
+                                        const cardAnim  = !hasSpecialGlow&&(
+                                            (isVIPMaxGift&&!isVIPLocked)?'mythic-pulse 2s ease-in-out infinite'
+                                            :(rKey==='Mythic'?'mythic-pulse 2s ease-in-out infinite':'none')
+                                        );
+                                        return (
+                                            <div key={item.id} className={glowClass}
+                                                onClick={()=>{if(!isEventOnly){setSelectedItem(item);setShowPreview(true);}}}
+                                                style={{
+                                                    position:'relative',cursor:isEventOnly?'default':'pointer',
+                                                    border:cardBorder,background:cardBg,boxShadow:cardShadow,
+                                                    borderRadius:'12px',padding:'10px 6px',
+                                                    display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+                                                    minHeight:'90px',gap:'4px',
+                                                    opacity:(isEventOnly||isVIPLocked)?0.58:1,
+                                                    animation:cardAnim||'none',transition:'transform 0.14s',
+                                                }}
+                                                onMouseEnter={e=>{if(!isEventOnly&&!isVIPLocked)e.currentTarget.style.transform='scale(1.06)';}}
+                                                onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
+                                            >
+                                                <span style={{position:'absolute',top:'3px',left:'3px',fontSize:'8px'}}>{rarity.icon}</span>
+                                                {isEventItem&&<span className="shop-event-tag">⚡</span>}
+                                                {isLimited  &&<span className="shop-limited-tag">⏳</span>}
+                                                {isVIPGift&&(
+                                                    <span style={{position:'absolute',top:'3px',right:'3px',fontSize:'7px',fontWeight:900,background:vipGlowColor,color:'#000',padding:'1px 4px',borderRadius:'4px',boxShadow:isVIPMaxGift?`0 0 8px ${vipGlowColor}`:'none',animation:isVIPMaxGift?'mythic-pulse 2s ease-in-out infinite':'none'}}>
+                                                        VIP {vipRequired}
+                                                    </span>
+                                                )}
+                                                {item.imageUrl
+                                                    ?<img src={item.imageUrl} alt="" style={{width:'32px',height:'32px',objectFit:'contain',marginBottom:'2px'}}/>
+                                                    :<span style={{fontSize:'26px',lineHeight:1,marginBottom:'2px'}}>{item.emoji}</span>
+                                                }
+                                                <div style={{fontSize:'9px',fontWeight:800,color:'#fbbf24'}}>{item.cost.toLocaleString()}🧠</div>
+                                                <div style={{fontSize:'8px',color:'#9ca3af'}}>+{formatCharisma(item.charisma)}⭐</div>
+                                                <div style={{fontSize:'7px',color:'#a78bfa',fontWeight:700}}>+{getGiftVIPXP(item)} VXP</div>
+                                                {isVIPLocked&&(
+                                                    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.62)',borderRadius:'10px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'2px'}}>
+                                                        <span style={{fontSize:'16px'}}>🔒</span>
+                                                        <span style={{fontSize:'7px',color:vipGlowColor,fontWeight:800}}>VIP {vipRequired}+</span>
+                                                    </div>
+                                                )}
+                                                {isEventOnly&&!isVIPLocked&&(
+                                                    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.55)',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                                        <span style={{fontSize:'18px'}}>🔒</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    }
+
+                                    /* Non-gift cards */
+                                    const rKey2   = getItemRarity(item);
+                                    const rarity2 = RARITY_CONFIG[rKey2];
+                                    return (
+                                        <div key={item.id}
+                                            onClick={()=>{if(!item.eventOnly){setSelectedItem(item);setShowPreview(true);}}}
+                                            style={{
+                                                position:'relative',cursor:item.eventOnly?'default':'pointer',
+                                                border:`1.5px solid ${equippedItem?'rgba(0,242,255,0.45)':rarity2.border}`,
+                                                background:equippedItem?'linear-gradient(145deg,rgba(0,242,255,0.07),rgba(8,10,28,0.98))':rarity2.bg,
+                                                boxShadow:equippedItem?'0 0 14px rgba(0,242,255,0.22)':(rarity2.glow?`0 0 8px ${rarity2.color}33`:'none'),
+                                                borderRadius:'12px',padding:'10px 8px',
+                                                display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',
+                                                opacity:item.eventOnly?0.58:1,
+                                                transition:'transform 0.14s',
+                                            }}
+                                            onMouseEnter={e=>{if(!item.eventOnly)e.currentTarget.style.transform='scale(1.05)';}}
+                                            onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
+                                        >
+                                            <span style={{position:'absolute',top:'3px',left:'3px',fontSize:'8px'}}>{rarity2.icon}</span>
+                                            {item.isEvent    &&<span className="shop-event-tag">⚡</span>}
+                                            {item.limitedTime&&<span className="shop-limited-tag">⏳</span>}
+                                            {equippedItem&&<div style={{position:'absolute',top:'4px',right:'4px',width:'7px',height:'7px',borderRadius:'50%',background:'#00f2ff',boxShadow:'0 0 6px #00f2ff'}}/>}
+                                            <div style={{marginTop:'4px'}}>{renderPreview(item)}</div>
+                                            <div style={{fontSize:'9px',fontWeight:700,color:equippedItem?'#00f2ff':'#d1d5db',textAlign:'center',lineHeight:1.3,maxWidth:'90px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                                                {lang==='ar'?item.name_ar:item.name_en}
+                                            </div>
+                                            {item.eventOnly ? (
+                                                <div style={{fontSize:'8px',color:'#7c3aed',fontWeight:700}}>🔒 Event</div>
+                                            ) : owned ? (
+                                                equippedItem
+                                                    ?<button onClick={e=>{e.stopPropagation();onUnequip(item.type,item.id);}} style={{width:'100%',fontSize:'8px',padding:'3px 0',borderRadius:'5px',background:'rgba(239,68,68,0.13)',border:'1px solid rgba(239,68,68,0.32)',color:'#f87171',cursor:'pointer',fontWeight:700,transition:'all 0.12s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.22)';}} onMouseLeave={e=>{e.currentTarget.style.background='rgba(239,68,68,0.13)';}}>{t.unequip}</button>
+                                                    :<button onClick={e=>{e.stopPropagation();onEquip(item);}} style={{width:'100%',fontSize:'8px',padding:'3px 0',borderRadius:'5px',background:'rgba(74,222,128,0.13)',border:'1px solid rgba(74,222,128,0.32)',color:'#4ade80',cursor:'pointer',fontWeight:700,transition:'all 0.12s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(74,222,128,0.22)';}} onMouseLeave={e=>{e.currentTarget.style.background='rgba(74,222,128,0.13)';}}>{t.equip}</button>
+                                            ) : (
+                                                <div style={{fontSize:'9px',color:'#fbbf24',fontWeight:800}}>{item.cost.toLocaleString()}🧠</div>
                                             )}
                                         </div>
                                     );
-                                }
-
-                                // Non-gift items
-                                const rKey2   = getItemRarity(item);
-                                const rarity2 = RARITY_CONFIG[rKey2];
-                                return (
-                                    <div
-                                        key={item.id}
-                                        onClick={() => { if (!item.eventOnly) { setSelectedItem(item); setShowPreview(true); } }}
-                                        style={{
-                                            position:'relative', cursor: item.eventOnly ? 'default' : 'pointer',
-                                            border:`1.5px solid ${equippedItem ? '#00f2ff' : rarity2.border}`,
-                                            background: equippedItem ? 'rgba(0,242,255,0.08)' : rarity2.bg,
-                                            boxShadow: equippedItem ? '0 0 10px rgba(0,242,255,0.3)' : rarity2.glow ? `0 0 8px ${rarity2.color}44` : 'none',
-                                            borderRadius:'10px', padding:'8px 6px',
-                                            display:'flex',flexDirection:'column',
-                                            alignItems:'center', gap:'4px',
-                                            opacity: item.eventOnly ? 0.65 : 1,
-                                            transition:'transform 0.15s',
-                                        }}
-                                        onMouseEnter={e => { if (!item.eventOnly) e.currentTarget.style.transform='scale(1.04)'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}
-                                    >
-                                        <span style={{position:'absolute',top:'2px',left:'2px',fontSize:'8px'}}>{rarity2.icon}</span>
-                                        {item.isEvent    && <span className="shop-event-tag">⚡</span>}
-                                        {item.limitedTime && <span className="shop-limited-tag">⏳</span>}
-                                        <div style={{marginTop:'4px'}}>{renderPreview(item)}</div>
-                                        <div style={{fontSize:'9px',fontWeight:700,color:equippedItem?'#00f2ff':'#d1d5db',textAlign:'center',lineHeight:1.2}}>
-                                            {lang==='ar' ? item.name_ar : item.name_en}
-                                        </div>
-                                        {item.eventOnly ? (
-                                            <div style={{fontSize:'8px',color:'#7c3aed',fontWeight:700}}>🔒 Event</div>
-                                        ) : owned ? (
-                                            equippedItem
-                                                ? <button onClick={e=>{e.stopPropagation();onUnequip(item.type,item.id);}} style={{width:'100%',fontSize:'8px',padding:'3px',borderRadius:'4px',background:'rgba(239,68,68,0.2)',border:'1px solid rgba(239,68,68,0.4)',color:'#f87171',cursor:'pointer'}}>{t.unequip}</button>
-                                                : <button onClick={e=>{e.stopPropagation();onEquip(item);}} style={{width:'100%',fontSize:'8px',padding:'3px',borderRadius:'4px',background:'rgba(74,222,128,0.2)',border:'1px solid rgba(74,222,128,0.4)',color:'#4ade80',cursor:'pointer'}}>{t.equip}</button>
-                                        ) : (
-                                            <div style={{fontSize:'9px',color:'#fbbf24',fontWeight:700}}>{item.cost.toLocaleString()}🧠</div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                })}
+                            </div>
                         </div>
                     )}
-                </div>
+                </div>{/* end body */}
             </div>
         </div>
 
-        {/* VIP Confirm Dialog */}
+        {/* ── VIP Confirm Dialog ── */}
         {showVIPConfirm && ReactDOM.createPortal(
-            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999 }}
-                onClick={() => setShowVIPConfirm(false)}>
-                <div style={{ background:'linear-gradient(135deg,#1a0533,#0d0d2b)', border:'2px solid #a855f7', borderRadius:'16px', padding:'24px', maxWidth:'300px', width:'90%', textAlign:'center' }}
-                    onClick={e => e.stopPropagation()}>
-                    <div style={{ fontSize:'40px', marginBottom:'8px' }}>👑</div>
-                    <div style={{ color:'#e9d5ff', fontWeight:700, fontSize:'18px', marginBottom:'8px' }}>
-                        {hasVIP ? (t.renewVIP || 'Renew VIP?') : (t.activateVIP || 'Activate VIP?')}
+            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.76)',backdropFilter:'blur(7px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999}}
+                onClick={()=>setShowVIPConfirm(false)}>
+                <div style={{background:'linear-gradient(135deg,#1a0533,#0d0d2b)',border:'2px solid #a855f7',borderRadius:'20px',padding:'28px',maxWidth:'300px',width:'90%',textAlign:'center',boxShadow:'0 0 60px rgba(168,85,247,0.28)'}}
+                    onClick={e=>e.stopPropagation()}>
+                    <div style={{fontSize:'44px',marginBottom:'10px'}}>👑</div>
+                    <div style={{color:'#e9d5ff',fontWeight:900,fontSize:'17px',marginBottom:'8px'}}>
+                        {hasVIP?(t.renewVIP||'Renew VIP?'):(t.activateVIP||'Activate VIP?')}
                     </div>
-                    <div style={{ color:'#a78bfa', fontSize:'13px', marginBottom:'16px' }}>
-                        {hasVIP
-                            ? (t.renewVIPDesc || 'Add 30 more days to your VIP status.')
-                            : (t.activateVIPDesc || 'Get 30 days of VIP perks + 5,000 XP bonus!')}
+                    <div style={{color:'#a78bfa',fontSize:'12px',marginBottom:'14px',lineHeight:1.6}}>
+                        {hasVIP?(t.renewVIPDesc||'Add 30 more days to your VIP status.'):(t.activateVIPDesc||'Get 30 days of VIP perks + 5,000 XP bonus!')}
                     </div>
-                    <div style={{ color:'#fbbf24', fontWeight:700, fontSize:'16px', marginBottom:'20px' }}>
-                        50,000 🧠
-                    </div>
-                    <div style={{ display:'flex', gap:'10px', justifyContent:'center' }}>
-                        <button
-                            onClick={() => setShowVIPConfirm(false)}
-                            style={{ padding:'10px 20px', borderRadius:'10px', border:'1px solid #6b7280', background:'transparent', color:'#9ca3af', fontWeight:600, cursor:'pointer' }}>
-                            {t.cancel || 'Cancel'}
-                        </button>
-                        <button
-                            onClick={() => { setShowVIPConfirm(false); onBuyVIP(); }}
-                            style={{ padding:'10px 20px', borderRadius:'10px', border:'none', background:'linear-gradient(135deg,#7c3aed,#a855f7)', color:'#fff', fontWeight:700, cursor:'pointer', boxShadow:'0 0 16px rgba(168,85,247,0.5)' }}>
-                            {t.confirm || 'Confirm'}
-                        </button>
+                    <div style={{color:'#fbbf24',fontWeight:900,fontSize:'18px',marginBottom:'22px',textShadow:'0 0 12px rgba(251,191,36,0.38)'}}>50,000 🧠</div>
+                    <div style={{display:'flex',gap:'10px',justifyContent:'center'}}>
+                        <button onClick={()=>setShowVIPConfirm(false)} style={{padding:'10px 20px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'#9ca3af',fontWeight:600,cursor:'pointer'}}>{t.cancel||'Cancel'}</button>
+                        <button onClick={()=>{setShowVIPConfirm(false);onBuyVIP();}} style={{padding:'10px 24px',borderRadius:'10px',border:'none',background:'linear-gradient(135deg,#7c3aed,#a855f7)',color:'#fff',fontWeight:800,cursor:'pointer',boxShadow:'0 0 20px rgba(168,85,247,0.45)',fontSize:'14px'}}>{t.confirm||'Confirm'}</button>
                     </div>
                 </div>
             </div>,
             document.body
         )}
 
-        {/* Gift Preview Modal portal */}
+        {/* ── Gift Preview Modal ── */}
         {showPreview && selectedItem && ReactDOM.createPortal(
             <GiftPreviewModal
                 show={showPreview}
-                onClose={() => setShowPreview(false)}
+                onClose={()=>setShowPreview(false)}
                 gift={selectedItem}
                 lang={lang}
-                onBuy={(item, target) => {
-                    if (currency >= item.cost) {
-                        onPurchase(item, target);
-                        setShowPreview(false);
-                    }
-                }}
+                onBuy={(item,target)=>{ if(currency>=item.cost){onPurchase(item,target);setShowPreview(false);} }}
                 currency={currency}
                 friendsData={[]}
-                user={{ uid: userData?.uid }}
+                user={{uid:userData?.uid}}
                 currentUserData={userData}
             />,
             document.body
@@ -753,24 +665,26 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     );
 };
 
-// 📦 INVENTORY MODAL
+// ═══════════════════════════════════════════════════════════════
+// 📦  INVENTORY MODAL — Premium Dark Collection Viewer
+// ═══════════════════════════════════════════════════════════════
 const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData, user, coupleData, onOpenCoupleCard, onPropose }) => {
     const t = TRANSLATIONS[lang];
-    const [activeTab, setActiveTab] = useState('frames');
+    const [activeTab, setActiveTab]       = useState('frames');
     const [selectedGift, setSelectedGift] = useState(null);
     const [showGiftPreview, setShowGiftPreview] = useState(false);
 
     if (!show) return null;
 
-    const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [], rings: [] };
-    const equipped = userData?.equipped || {};
+    const inventory  = userData?.inventory || { frames:[],titles:[],themes:[],badges:[],gifts:[],rings:[] };
+    const equipped   = userData?.equipped  || {};
     const giftCounts = inventory.giftCounts || {};
-    const myRings = inventory.rings || [];
+    const myRings    = inventory.rings || [];
+
     const getOwnedItems = (type) => {
         const ownedIds = inventory[type] || [];
         if (type === 'gifts') {
-            // Only show gifts that still have count > 0
-            return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id) && (giftCounts[item.id] || 0) > 0) || [];
+            return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id) && (giftCounts[item.id]||0) > 0) || [];
         }
         if (type === 'rings') {
             const uniqueIds = [...new Set(ownedIds)];
@@ -778,171 +692,257 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
         }
         return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || [];
     };
-    const isEquipped = (item) => { if (item.type === 'badges') { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.includes(item.id) : equipped.badges === item.id; } return equipped[item.type] === item.id; };
-    const getEquippedBadgeCount = () => { const eb = equipped.badges || []; return Array.isArray(eb) ? eb.length : (equipped.badges ? 1 : 0); };
+
+    const isEquipped = (item) => {
+        if (item.type === 'badges') { const eb=equipped.badges||[]; return Array.isArray(eb)?eb.includes(item.id):equipped.badges===item.id; }
+        return equipped[item.type] === item.id;
+    };
+    const getEquippedBadgeCount = () => { const eb=equipped.badges||[]; return Array.isArray(eb)?eb.length:(equipped.badges?1:0); };
 
     const renderPreview = (item) => {
-        if (item.type === 'frames') return item.preview.startsWith('http') ? <img src={item.preview} alt={item.name_en} className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full" style={{ background: item.preview }}></div>;
-        if (item.type === 'badges') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.preview}</span>;
-        if (item.type === 'titles') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-6 h-6 object-contain" /> : <span className="text-xl">{item.preview}</span>;
-        if (item.type === 'gifts') return item.imageUrl ? <img src={item.imageUrl} alt={item.name_en} className="w-8 h-8 object-contain" /> : <span className="text-2xl">{item.emoji}</span>;
+        if (item.type === 'frames') return item.preview.startsWith('http')
+            ?<img src={item.preview} alt={item.name_en} style={{width:'40px',height:'40px',borderRadius:'50%',objectFit:'cover'}}/>
+            :<div style={{width:'40px',height:'40px',borderRadius:'50%',background:item.preview}}/>;
+        if (item.type === 'badges') return item.imageUrl?<img src={item.imageUrl} alt={item.name_en} style={{width:'34px',height:'34px',objectFit:'contain'}}/>:<span style={{fontSize:'26px'}}>{item.preview}</span>;
+        if (item.type === 'titles') return item.imageUrl?<img src={item.imageUrl} alt={item.name_en} style={{width:'30px',height:'30px',objectFit:'contain'}}/>:<span style={{fontSize:'24px'}}>{item.preview}</span>;
+        if (item.type === 'gifts')  return item.imageUrl?<img src={item.imageUrl} alt={item.name_en} style={{width:'34px',height:'34px',objectFit:'contain'}}/>:<span style={{fontSize:'26px'}}>{item.emoji}</span>;
         if (item.type === 'profileEffects') {
-            const src = typeof item.particles === 'string' && item.particles.startsWith('http')
-                ? item.particles : (item.imageUrl || null);
-            return src
-                ? <img src={src} alt={item.name_en} style={{width:'38px',height:'38px',objectFit:'contain',borderRadius:'6px'}} />
-                : <span style={{fontSize:'26px',lineHeight:1}}>{item.preview}</span>;
+            const src=typeof item.particles==='string'&&item.particles.startsWith('http')?item.particles:(item.imageUrl||null);
+            return src?<img src={src} alt={item.name_en} style={{width:'38px',height:'38px',objectFit:'contain',borderRadius:'6px'}}/>:<span style={{fontSize:'28px',lineHeight:1}}>{item.preview}</span>;
         }
-        return <span className="text-xl">🎨</span>;
+        return <span style={{fontSize:'24px'}}>🎨</span>;
     };
 
-    const tabs = ['frames', 'titles', 'badges', 'profileEffects', 'gifts', 'rings'];
+    const TABS = [
+        {id:'frames',         icon:'🖼️', label_ar:'إطارات',   label_en:'Frames'  },
+        {id:'titles',         icon:'🏷️', label_ar:'ألقاب',    label_en:'Titles'  },
+        {id:'badges',         icon:'🏅', label_ar:'شارات',     label_en:'Badges'  },
+        {id:'profileEffects', icon:'✨', label_ar:'تأثيرات',   label_en:'Effects' },
+        {id:'gifts',          icon:'🎁', label_ar:'هدايا',     label_en:'Gifts'   },
+        {id:'rings',          icon:'💍', label_ar:'خواتم',     label_en:'Rings'   },
+    ];
     const ownedItems = getOwnedItems(activeTab);
 
     return (
         <>
-            <div className="modal-overlay" onClick={onClose}>
-                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', maxHeight: '85vh' }}>
-                    <div className="modal-header">
-                        <h2 className="modal-title">{t.myInventory}</h2>
-                        {activeTab === 'badges' && <span className="text-[10px] text-gray-400">{getEquippedBadgeCount()}/{MAX_BADGES}</span>}
-                        <ModalCloseBtn onClose={onClose} />
-                    </div>
-                    <div className="modal-body" style={{ padding: '8px' }}>
-                        <div className="shop-tabs-container" style={{ margin: '4px', marginBottom: 0 }}>{tabs.map(tab => {
-                            const label = tab === 'rings'
-                                ? (lang === 'ar' ? `💍 خواتم (${getOwnedItems('rings').length})` : `💍 Rings (${getOwnedItems('rings').length})`)
-                                : `${t[tab] || tab} (${getOwnedItems(tab).length})`;
-                            return <button key={tab} onClick={() => setActiveTab(tab)} className={`shop-tab ${activeTab === tab ? 'active' : ''}`}>{label}</button>;
-                        })}</div>
-                        <div className="p-2">
-                            {/* ══ RINGS TAB in Inventory ══ */}
-                            {activeTab === 'rings' && (
-                                <div>
-                                    {myRings.length === 0 ? (
-                                        <div className="text-center py-6 text-gray-400">
-                                            <div className="text-3xl mb-2">💍</div>
-                                            <p style={{fontSize:'12px'}}>{lang==='ar' ? 'لا خواتم في مخزونك' : 'No rings in your inventory'}</p>
-                                            <p style={{fontSize:'11px',color:'#4b5563',marginTop:'4px'}}>{lang==='ar' ? 'اشتر خواتم من متجر الخواتم' : 'Buy rings from the Rings shop'}</p>
-                                        </div>
-                                    ) : (
-                                        <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
-                                            {[...new Set(myRings)].map(rid => {
-                                                const rd = typeof RINGS_DATA !== 'undefined' ? RINGS_DATA.find(r => r.id === rid) : null;
-                                                if (!rd) return null;
-                                                const count = myRings.filter(id => id === rid).length;
-                                                return (
-                                                    <div key={rid} style={{
-                                                        display:'flex', alignItems:'center', gap:'12px',
-                                                        padding:'12px 14px', borderRadius:'14px',
-                                                        background:`linear-gradient(135deg, ${rd.color}12, ${rd.color}06)`,
-                                                        border:`1px solid ${rd.color}40`,
-                                                    }}>
-                                                        <div style={{flexShrink:0, width:'40px', height:'40px', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                                                            {rd.imageURL
-                                                                ? <img src={rd.imageURL} alt="" style={{width:'36px', height:'36px', objectFit:'contain', filter:`drop-shadow(0 0 6px ${rd.glow})`}} />
-                                                                : <span style={{fontSize:'28px', filter:`drop-shadow(0 0 6px ${rd.glow})`}}>{rd.emoji}</span>
-                                                            }
-                                                        </div>
-                                                        <div style={{flex:1, minWidth:0}}>
-                                                            <div style={{fontSize:'13px', fontWeight:800, color:rd.color}}>{lang==='ar' ? rd.name_ar : rd.name_en}</div>
-                                                            <div style={{fontSize:'10px', color:'#9ca3af', marginTop:'2px'}}>{rd.rarity}</div>
-                                                            {count > 1 && <div style={{fontSize:'10px', color:'#fcd34d', marginTop:'1px'}}>×{count} {lang==='ar'?'نسخ':'copies'}</div>}
-                                                        </div>
-                                                        <button
-                                                            onClick={() => {
-                                                                if (coupleData) {
-                                                                    onOpenCoupleCard && onOpenCoupleCard();
-                                                                } else {
-                                                                    onPropose && onPropose(rd);
-                                                                }
-                                                            }}
-                                                            style={{
-                                                                padding:'8px 14px', borderRadius:'10px', border:`1px solid ${rd.color}50`,
-                                                                background:`${rd.color}18`, color:rd.color, fontSize:'11px',
-                                                                fontWeight:800, cursor:'pointer', flexShrink:0,
-                                                            }}
-                                                        >
-                                                            {coupleData
-                                                                ? (lang==='ar' ? '💍 أهدِ' : '💍 Gift')
-                                                                : (lang==='ar' ? '📤 استخدم' : '📤 Use')
-                                                            }
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+        <div className="modal-overlay" onClick={onClose} style={{backdropFilter:'blur(6px)'}}>
+            <div onClick={e=>e.stopPropagation()} style={{
+                background:'linear-gradient(160deg,#0a0e1f 0%,#0d1225 55%,#080c1a 100%)',
+                border:'1px solid rgba(0,242,255,0.1)',
+                borderRadius:'20px',
+                width:'96vw',maxWidth:'440px',
+                maxHeight:'90vh',
+                display:'flex',flexDirection:'column',
+                overflow:'hidden',
+                boxShadow:'0 0 70px rgba(0,0,0,0.8),inset 0 1px 0 rgba(255,255,255,0.04)',
+                position:'relative',
+            }}>
+                {/* Top accent line */}
+                <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:'linear-gradient(90deg,transparent,#00f2ff,#7c3aed,transparent)',zIndex:2}}/>
+
+                {/* ══ HEADER ══ */}
+                <div style={{
+                    background:'linear-gradient(135deg,rgba(0,242,255,0.05) 0%,rgba(112,0,255,0.05) 100%)',
+                    borderBottom:'1px solid rgba(255,255,255,0.055)',
+                    padding:'14px 16px 12px',
+                    display:'flex',alignItems:'center',justifyContent:'space-between',
+                    flexShrink:0,
+                }}>
+                    <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                        <div style={{
+                            width:'38px',height:'38px',borderRadius:'11px',
+                            background:'linear-gradient(135deg,rgba(0,242,255,0.11),rgba(112,0,255,0.11))',
+                            border:'1px solid rgba(0,242,255,0.17)',
+                            display:'flex',alignItems:'center',justifyContent:'center',fontSize:'19px',flexShrink:0,
+                        }}>🎒</div>
+                        <div>
+                            <div style={{fontSize:'15px',fontWeight:900,color:'#f1f5f9',letterSpacing:'0.2px'}}>
+                                {t.myInventory||(lang==='ar'?'مخزوني':'My Inventory')}
+                            </div>
+                            {activeTab==='badges'&&(
+                                <div style={{fontSize:'9px',color:'#9ca3af',marginTop:'1px'}}>
+                                    <span style={{color:'#00f2ff',fontWeight:700}}>{getEquippedBadgeCount()}</span>
+                                    <span style={{color:'#374151'}}> / {MAX_BADGES} {lang==='ar'?'شارة مفعّلة':'equipped'}</span>
                                 </div>
                             )}
-                            {activeTab !== 'rings' && (ownedItems.length === 0 ? <div className="text-center py-6 text-gray-400"><div className="text-3xl mb-2">📦</div><p>{t.owned}: 0</p></div> : (
-                                <div className="inventory-grid">
-                                    {ownedItems.map(item => {
-                                        const equippedItem = isEquipped(item);
-                                        if (activeTab === 'gifts') return (
-                                            <div key={item.id} className="inventory-item" style={{ position:'relative' }}>
-                                                {/* Quantity badge */}
-                                                {(giftCounts[item.id] || 0) > 0 && (
-                                                    <div style={{
-                                                        position:'absolute', top:'3px', right:'3px',
-                                                        background:'linear-gradient(135deg,#7c3aed,#a855f7)',
-                                                        color:'#fff', fontWeight:900, fontSize:'9px',
-                                                        padding:'1px 5px', borderRadius:'8px',
-                                                        boxShadow:'0 0 6px rgba(124,58,237,0.5)',
-                                                        zIndex:1,
-                                                    }}>×{giftCounts[item.id]}</div>
-                                                )}
-                                                <div className="inventory-item-preview">{renderPreview(item)}</div>
-                                                <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedGift(item);
-                                                        setShowGiftPreview(true);
-                                                    }}
-                                                    className="btn-gold w-full text-[10px] py-0.5 rounded mt-1"
-                                                >
-                                                    {t.sendGiftToFriend}
-                                                </button>
-                                            </div>
-                                        );
+                        </div>
+                    </div>
+                    <button onClick={onClose}
+                        style={{width:'34px',height:'34px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.065)',color:'#6b7280',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
+                        onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.13)';e.currentTarget.style.color='#f87171';}}
+                        onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.color='#6b7280';}}
+                    >✕</button>
+                </div>
+
+                {/* ══ TAB BAR ══ */}
+                <div style={{display:'flex',overflowX:'auto',gap:'3px',padding:'10px 10px 0',borderBottom:'1px solid rgba(255,255,255,0.048)',scrollbarWidth:'none',flexShrink:0,background:'rgba(0,0,0,0.13)'}}>
+                    {TABS.map(tab=>{
+                        const active=activeTab===tab.id;
+                        const cnt=tab.id==='rings'?myRings.length:getOwnedItems(tab.id).length;
+                        return (
+                            <button key={tab.id} onClick={()=>setActiveTab(tab.id)} style={{
+                                flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',
+                                padding:'5px 10px 7px',borderRadius:'10px 10px 0 0',
+                                fontSize:'9px',fontWeight:active?800:500,cursor:'pointer',border:'none',
+                                background:active?'rgba(0,242,255,0.085)':'transparent',
+                                color:active?'#00f2ff':'#4b6070',
+                                borderBottom:active?'2px solid #00f2ff':'2px solid transparent',
+                                transition:'all 0.18s',minWidth:'44px',
+                            }}>
+                                <span style={{fontSize:'15px',lineHeight:1,position:'relative'}}>
+                                    {tab.icon}
+                                    {cnt>0&&<span style={{position:'absolute',top:'-4px',right:'-6px',background:active?'#00f2ff':'#1f2937',color:active?'#000':'#9ca3af',borderRadius:'8px',fontSize:'7px',fontWeight:900,padding:'0 3px',lineHeight:'12px',minWidth:'12px',textAlign:'center'}}>{cnt}</span>}
+                                </span>
+                                <span>{lang==='ar'?tab.label_ar:tab.label_en}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* ══ BODY ══ */}
+                <div style={{flex:1,overflowY:'auto',padding:'12px',scrollbarWidth:'thin',scrollbarColor:'rgba(0,242,255,0.18) transparent'}}>
+
+                    {/* Rings */}
+                    {activeTab==='rings'&&(
+                        <div>
+                            {myRings.length===0?(
+                                <div style={{textAlign:'center',padding:'40px 20px'}}>
+                                    <div style={{fontSize:'44px',marginBottom:'12px'}}>💍</div>
+                                    <div style={{fontSize:'13px',color:'#374151',fontWeight:600}}>{lang==='ar'?'لا خواتم في مخزونك':'No rings in your inventory'}</div>
+                                    <div style={{fontSize:'11px',color:'#1f2937',marginTop:'4px'}}>{lang==='ar'?'اشتر خواتم من متجر الخواتم':'Buy rings from the Rings shop'}</div>
+                                </div>
+                            ):(
+                                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                                    {[...new Set(myRings)].map(rid=>{
+                                        const rd=typeof RINGS_DATA!=='undefined'?RINGS_DATA.find(r=>r.id===rid):null;
+                                        if(!rd) return null;
+                                        const count=myRings.filter(id=>id===rid).length;
                                         return (
-                                            <div key={item.id} className={`inventory-item ${equippedItem ? 'equipped' : ''}`}>
-                                                <div className="inventory-item-preview">{renderPreview(item)}</div>
-                                                <div className="inventory-item-name">{lang === 'ar' ? item.name_ar : item.name_en}</div>
-                                                {equippedItem ?
-                                                    <button onClick={() => onUnequip(item.type, item.id)} className="btn-unequip w-full">{t.unequip}</button> :
-                                                    <button
-                                                        onClick={() => onEquip(item)}
-                                                        disabled={activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES}
-                                                        className={`btn-success w-full text-[10px] py-0.5 rounded ${(activeTab === 'badges' && getEquippedBadgeCount() >= MAX_BADGES) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    >
-                                                        {t.equip}
-                                                    </button>
-                                                }
+                                            <div key={rid} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',background:`linear-gradient(135deg,${rd.color}0f,${rd.color}05)`,border:`1px solid ${rd.color}32`,transition:'all 0.15s'}}
+                                                onMouseEnter={e=>{e.currentTarget.style.background=`linear-gradient(135deg,${rd.color}1a,${rd.color}08)`;}}
+                                                onMouseLeave={e=>{e.currentTarget.style.background=`linear-gradient(135deg,${rd.color}0f,${rd.color}05)`;}}
+                                            >
+                                                <div style={{flexShrink:0,width:'44px',height:'44px',display:'flex',alignItems:'center',justifyContent:'center',background:`${rd.color}10`,borderRadius:'12px',border:`1px solid ${rd.color}22`}}>
+                                                    {rd.imageURL?<img src={rd.imageURL} alt="" style={{width:'34px',height:'34px',objectFit:'contain',filter:`drop-shadow(0 0 6px ${rd.glow})`}}/>:<span style={{fontSize:'26px',filter:`drop-shadow(0 0 6px ${rd.glow})`}}>{rd.emoji}</span>}
+                                                </div>
+                                                <div style={{flex:1,minWidth:0}}>
+                                                    <div style={{fontSize:'13px',fontWeight:800,color:rd.color}}>{lang==='ar'?rd.name_ar:rd.name_en}</div>
+                                                    <div style={{fontSize:'10px',color:'#4b5563',marginTop:'2px'}}>{rd.rarity}</div>
+                                                    {count>1&&<div style={{fontSize:'10px',color:'#fcd34d',marginTop:'2px',fontWeight:700}}>×{count} {lang==='ar'?'نسخ':'copies'}</div>}
+                                                </div>
+                                                <button onClick={()=>{if(coupleData){onOpenCoupleCard&&onOpenCoupleCard();}else{onPropose&&onPropose(rd);}}}
+                                                    style={{padding:'7px 14px',borderRadius:'10px',border:`1px solid ${rd.color}40`,background:`${rd.color}13`,color:rd.color,fontSize:'11px',fontWeight:800,cursor:'pointer',flexShrink:0,transition:'all 0.15s'}}
+                                                    onMouseEnter={e=>{e.currentTarget.style.background=`${rd.color}26`;}}
+                                                    onMouseLeave={e=>{e.currentTarget.style.background=`${rd.color}13`;}}
+                                                >
+                                                    {coupleData?(lang==='ar'?'💍 أهدِ':'💍 Gift'):(lang==='ar'?'📤 استخدم':'📤 Use')}
+                                                </button>
                                             </div>
                                         );
                                     })}
                                 </div>
-                            ))}
+                            )}
                         </div>
-                    </div>
-                </div>
+                    )}
+
+                    {/* Other tabs */}
+                    {activeTab!=='rings'&&(
+                        ownedItems.length===0?(
+                            <div style={{textAlign:'center',padding:'40px 20px'}}>
+                                <div style={{fontSize:'40px',marginBottom:'10px'}}>📦</div>
+                                <div style={{fontSize:'12px',color:'#374151',fontWeight:600}}>{t.owned}: 0</div>
+                            </div>
+                        ):(
+                            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(96px,1fr))',gap:'8px'}}>
+                                {ownedItems.map(item=>{
+                                    const equippedItem=isEquipped(item);
+                                    /* Gift items */
+                                    if(activeTab==='gifts'){
+                                        const cnt=giftCounts[item.id]||0;
+                                        return (
+                                            <div key={item.id} style={{position:'relative',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.065)',borderRadius:'12px',padding:'10px 8px',display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',transition:'all 0.15s'}}
+                                                onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.transform='scale(1.04)';}}
+                                                onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.02)';e.currentTarget.style.transform='scale(1)';}}
+                                            >
+                                                {cnt>0&&<div style={{position:'absolute',top:'4px',right:'4px',background:'linear-gradient(135deg,#7c3aed,#a855f7)',color:'#fff',fontWeight:900,fontSize:'8px',padding:'1px 5px',borderRadius:'8px',boxShadow:'0 0 6px rgba(124,58,237,0.45)',zIndex:1}}>×{cnt}</div>}
+                                                <div style={{marginTop:'4px'}}>{renderPreview(item)}</div>
+                                                <div style={{fontSize:'9px',fontWeight:700,color:'#d1d5db',textAlign:'center',lineHeight:1.3,maxWidth:'84px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lang==='ar'?item.name_ar:item.name_en}</div>
+                                                <button onClick={()=>{setSelectedGift(item);setShowGiftPreview(true);}}
+                                                    style={{width:'100%',padding:'4px 0',borderRadius:'6px',background:'linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06))',border:'1px solid rgba(251,191,36,0.26)',color:'#fbbf24',fontSize:'9px',fontWeight:800,cursor:'pointer',transition:'all 0.12s'}}
+                                                    onMouseEnter={e=>{e.currentTarget.style.background='linear-gradient(135deg,rgba(251,191,36,0.22),rgba(245,158,11,0.12))';}}
+                                                    onMouseLeave={e=>{e.currentTarget.style.background='linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06))';}}
+                                                >{t.sendGiftToFriend}</button>
+                                            </div>
+                                        );
+                                    }
+                                    /* Equippable items */
+                                    return (
+                                        <div key={item.id} style={{
+                                            position:'relative',
+                                            background:equippedItem?'linear-gradient(145deg,rgba(0,242,255,0.075),rgba(8,10,28,0.98))':'rgba(255,255,255,0.02)',
+                                            border:equippedItem?'1.5px solid rgba(0,242,255,0.38)':'1px solid rgba(255,255,255,0.065)',
+                                            boxShadow:equippedItem?'0 0 12px rgba(0,242,255,0.13)':'none',
+                                            borderRadius:'12px',padding:'10px 8px',
+                                            display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',
+                                            transition:'all 0.15s',
+                                        }}
+                                        onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.04)';}}
+                                        onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
+                                        >
+                                            {equippedItem&&<div style={{position:'absolute',top:'5px',right:'5px',width:'7px',height:'7px',borderRadius:'50%',background:'#00f2ff',boxShadow:'0 0 6px #00f2ff'}}/>}
+                                            <div style={{marginTop:'4px'}}>{renderPreview(item)}</div>
+                                            <div style={{fontSize:'9px',fontWeight:700,color:equippedItem?'#00f2ff':'#d1d5db',textAlign:'center',lineHeight:1.3,maxWidth:'84px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                                                {lang==='ar'?item.name_ar:item.name_en}
+                                            </div>
+                                            {equippedItem?(
+                                                <button onClick={()=>onUnequip(item.type,item.id)}
+                                                    style={{width:'100%',padding:'4px 0',borderRadius:'6px',background:'rgba(239,68,68,0.11)',border:'1px solid rgba(239,68,68,0.28)',color:'#f87171',fontSize:'8px',fontWeight:800,cursor:'pointer',transition:'all 0.12s'}}
+                                                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.2)';}}
+                                                    onMouseLeave={e=>{e.currentTarget.style.background='rgba(239,68,68,0.11)';}}
+                                                >{t.unequip}</button>
+                                            ):(
+                                                <button onClick={()=>onEquip(item)}
+                                                    disabled={activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES}
+                                                    style={{
+                                                        width:'100%',padding:'4px 0',borderRadius:'6px',
+                                                        background:activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES?'rgba(255,255,255,0.03)':'rgba(74,222,128,0.11)',
+                                                        border:activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES?'1px solid rgba(255,255,255,0.055)':'1px solid rgba(74,222,128,0.28)',
+                                                        color:activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES?'#1f2937':'#4ade80',
+                                                        fontSize:'8px',fontWeight:800,
+                                                        cursor:activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES?'not-allowed':'pointer',
+                                                        opacity:activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES?0.45:1,
+                                                        transition:'all 0.12s',
+                                                    }}
+                                                    onMouseEnter={e=>{if(!(activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES))e.currentTarget.style.background='rgba(74,222,128,0.2)';}}
+                                                    onMouseLeave={e=>{if(!(activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES))e.currentTarget.style.background='rgba(74,222,128,0.11)';}}
+                                                >{t.equip}</button>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )
+                    )}
+                </div>{/* end body */}
             </div>
-            {showGiftPreview && selectedGift && (
-                <GiftPreviewModal
-                    show={showGiftPreview}
-                    onClose={() => setShowGiftPreview(false)}
-                    gift={selectedGift}
-                    lang={lang}
-                    onBuy={() => {}}
-                    currency={userData?.currency || 0}
-                    isFromInventory={true}
-                    onSendFromInventory={onSendGift}
-                    friendsData={friendsData}
-                    currentUserData={currentUserData}
-                    user={user}
-                />
-            )}
+        </div>
+
+        {/* Gift Preview Modal */}
+        {showGiftPreview&&selectedGift&&(
+            <GiftPreviewModal
+                show={showGiftPreview}
+                onClose={()=>setShowGiftPreview(false)}
+                gift={selectedGift}
+                lang={lang}
+                onBuy={()=>{}}
+                currency={userData?.currency||0}
+                isFromInventory={true}
+                onSendFromInventory={onSendGift}
+                friendsData={friendsData}
+                currentUserData={currentUserData}
+                user={user}
+            />
+        )}
         </>
     );
 };
