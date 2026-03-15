@@ -1897,6 +1897,8 @@ function App() {
                     currentUserData={currentUserData}
                     onNotification={setNotification}
                     friendsData={friendsData}
+                    coupleData={coupleData}
+                    couplePartnerData={partnerData}
                 />
             )}
 
