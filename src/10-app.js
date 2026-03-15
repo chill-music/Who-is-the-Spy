@@ -2011,7 +2011,7 @@ function App() {
                         <div className="new-avatar-btn"
                             onClick={() => {
                                 if (isLoggedIn) { setShowMyAccount(true); }
-                                else if (isGuest) { setShowGuestMenu(g => !g); }
+                                else if (isGuest) { setShowMyAccount(true); }
                                 else { handleGoogleLogin(); }
                             }}
                             title={lang==='ar'?'ملفي الشخصي':'My Profile'}>
@@ -2020,24 +2020,7 @@ function App() {
                                 : <span style={{fontSize:'16px'}}>😎</span>
                             }
                         </div>
-                        {/* Guest quick-menu */}
-                        {showGuestMenu && isGuest && !isLoggedIn && (
-                            <div style={{position:'absolute',top:'calc(100% + 8px)',right:0,background:'linear-gradient(160deg,#0f0f25,#141432)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'14px',minWidth:'190px',zIndex:Z.TOOLTIP,boxShadow:'0 8px 32px rgba(0,0,0,0.6)',padding:'8px',overflow:'hidden'}}
-                                onClick={e => e.stopPropagation()}>
-                                <button
-                                    onClick={() => { setShowMyAccount(true); setShowGuestMenu(false); }}
-                                    style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.05)',border:'none',color:'#e5e7eb',fontSize:'13px',fontWeight:700,cursor:'pointer',marginBottom:'6px',textAlign:'left'}}>
-                                    <span style={{fontSize:'18px'}}>🖼️</span>
-                                    {lang==='ar'?'البروفايل':'Profile'}
-                                </button>
-                                <button
-                                    onClick={() => { handleGoogleLogin(); setShowGuestMenu(false); }}
-                                    style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'10px',background:'linear-gradient(135deg,rgba(66,133,244,0.25),rgba(26,115,232,0.2))',border:'1px solid rgba(66,133,244,0.35)',color:'#7cb3ff',fontSize:'13px',fontWeight:800,cursor:'pointer',textAlign:'left'}}>
-                                    <span style={{fontSize:'18px'}}>🔑</span>
-                                    {lang==='ar'?'تسجيل الدخول بجوجل':'Login with Google'}
-                                </button>
-                            </div>
-                        )}
+
                     </div>
                 </div>
             </header>
@@ -2524,6 +2507,20 @@ function App() {
                                 </div>
                             )}
 
+                            {/* ── Guest login banner in Me view ── */}
+                            {isGuest && !isLoggedIn && (
+                                <div style={{margin:'10px 16px 4px',padding:'14px 16px',borderRadius:'16px',background:'linear-gradient(135deg,rgba(66,133,244,0.13),rgba(26,115,232,0.08))',border:'1px solid rgba(66,133,244,0.28)',display:'flex',alignItems:'center',gap:'12px'}}>
+                                    <span style={{fontSize:'28px',flexShrink:0}}>🔑</span>
+                                    <div style={{flex:1,minWidth:0}}>
+                                        <div style={{fontSize:'13px',fontWeight:800,color:'#e5e7eb',marginBottom:'2px'}}>{lang==='ar'?'سجّل دخولك بجوجل':'Sign in with Google'}</div>
+                                        <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'احفظ تقدمك واستمتع بكل الميزات':'Save progress & unlock all features'}</div>
+                                    </div>
+                                    <button onClick={handleGoogleLogin} style={{flexShrink:0,padding:'8px 14px',borderRadius:'10px',background:'linear-gradient(135deg,#4285f4,#1a73e8)',border:'none',color:'#fff',fontWeight:800,fontSize:'12px',cursor:'pointer',whiteSpace:'nowrap'}}>
+                                        {lang==='ar'?'دخول':'Login'}
+                                    </button>
+                                </div>
+                            )}
+
                             {/* ── Quick Actions Grid ── */}
                             <div className="sec-head-new" style={{paddingTop:'14px'}}>
                                 <span className="sec-title-new">{lang==='ar'?'الإعدادات والأدوات':'Settings & Tools'}</span>
@@ -2990,12 +2987,7 @@ function App() {
                         <div className="nav-label-new">{lang==='ar'?'اكتشف':'Discover'}</div>
                     </div>
                     <div className={`nav-item-new ${activeView==='me'?'active':''}`}
-                        onClick={() => {
-                            if (isLoggedIn) { setActiveView('me'); }
-                            else if (isGuest) { setShowGuestMenu(g => !g); }
-                            else { setActiveView('me'); }
-                        }}
-                        style={{position:'relative'}}>
+                        onClick={() => setActiveView('me')}>
                         <div className="nav-icon-new">
                             {(isLoggedIn || isGuest) && (currentUserData?.photoURL || currentUserData?.photo)
                                 ? <img src={currentUserData.photoURL || currentUserData.photo} alt="" style={{width:'24px',height:'24px',objectFit:'cover',borderRadius:'50%',border:`2px solid ${activeView==='me'?'var(--primary)':'rgba(255,255,255,0.2)'}`}} />
@@ -3003,24 +2995,6 @@ function App() {
                             }
                         </div>
                         <div className="nav-label-new">{lang==='ar'?'أنا':'Me'}</div>
-                        {/* Guest quick-menu from bottom nav */}
-                        {showGuestMenu && isGuest && !isLoggedIn && (
-                            <div style={{position:'absolute',bottom:'calc(100% + 8px)',right:0,background:'linear-gradient(160deg,#0f0f25,#141432)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'14px',minWidth:'190px',zIndex:Z.TOOLTIP,boxShadow:'0 8px 32px rgba(0,0,0,0.6)',padding:'8px'}}
-                                onClick={e => e.stopPropagation()}>
-                                <button
-                                    onClick={() => { setShowMyAccount(true); setShowGuestMenu(false); }}
-                                    style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.05)',border:'none',color:'#e5e7eb',fontSize:'13px',fontWeight:700,cursor:'pointer',marginBottom:'6px',textAlign:'left'}}>
-                                    <span style={{fontSize:'18px'}}>🖼️</span>
-                                    {lang==='ar'?'البروفايل':'Profile'}
-                                </button>
-                                <button
-                                    onClick={() => { handleGoogleLogin(); setShowGuestMenu(false); }}
-                                    style={{width:'100%',display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'10px',background:'linear-gradient(135deg,rgba(66,133,244,0.25),rgba(26,115,232,0.2))',border:'1px solid rgba(66,133,244,0.35)',color:'#7cb3ff',fontSize:'13px',fontWeight:800,cursor:'pointer',textAlign:'left'}}>
-                                    <span style={{fontSize:'18px'}}>🔑</span>
-                                    {lang==='ar'?'تسجيل الدخول بجوجل':'Login with Google'}
-                                </button>
-                            </div>
-                        )}
                     </div>
                 </nav>
             )}
