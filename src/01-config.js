@@ -208,17 +208,17 @@ const FAMILY_SHOP_ITEMS = [
 // 🪪 ID ICON CONFIG — أيقونة قبل رقم الـ ID في البروفايل
 // ════════════════════════════════════════════════════════
 // الأيقونة الافتراضية لكل المستخدمين (ضع رابط صورة/GIF أو null لاستخدام 🪪)
-const ID_ICON_IMAGE_URL = null; // ← ضع رابط الصورة العامة هنا (لكل المستخدمين)
+const ID_ICON_IMAGE_URL = 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idon.png'; // ← ضع رابط الصورة العامة هنا (لكل المستخدمين)
 
 // أيقونات مميزة حصرية لـ VIP 6 → 10
 // هذه تُضاف أيضاً في VIP_CONFIG داخل 17-vip.js بنفس الحقل idIconImageUrl
 // لكن يمكنك تعيينها هنا مركزياً للرجوع إليها بسهولة
 const VIP_ID_ICONS = {
-    6:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/download.jpg', // ← VIP 6:  ضع رابط الأيقونة الذهبية هنا
+    6:  null, // ← VIP 6:  ضع رابط الأيقونة الذهبية هنا
     7:  null, // ← VIP 7:  ضع رابط الأيقونة المميزة هنا
     8:  null, // ← VIP 8:  ضع رابط الأيقونة المميزة هنا
     9:  null, // ← VIP 9:  ضع رابط الأيقونة الأنيمشن هنا
-    10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/download.jpg', // ← VIP 10: ضع رابط الأيقونة الأسطورية هنا
+    10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip10.png', // ← VIP 10: ضع رابط الأيقونة الأسطورية هنا
 };
 // دالة مساعدة للحصول على أيقونة الـ ID حسب مستوى VIP
 const getIdIconForVIP = (vipLevel) => {
