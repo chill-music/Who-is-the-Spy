@@ -207,6 +207,7 @@ const VIP_CONFIG = [
         // 🎁 VIP Items Level 6 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip6', type: 'frames' }]
         idBeforeImageUrl: null, // ← VIP 6: ضع رابط الصورة هنا
+        idIconImageUrl: null,   // ← VIP 6: أيقونة مميزة أمام الـ ID (ذهبية مثلاً)
         benefits_en: ['1.7× XP', 'Gold Name Glow', 'Custom 6-Digit ID', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.7', 'توهج اسم ذهبي', 'ID مخصص 6 أرقام', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -225,6 +226,7 @@ const VIP_CONFIG = [
         // 🎁 VIP Items Level 7 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip7', type: 'frames' }]
         idBeforeImageUrl: null, // ← VIP 7: ضع رابط الصورة هنا
+        idIconImageUrl: null,   // ← VIP 7: أيقونة مميزة أمام الـ ID
         benefits_en: ['1.8× XP', 'Gold Name Glow', 'Custom 5-Digit ID', 'Exclusive Gifts'],
         benefits_ar: ['مضاعف XP × 1.8', 'توهج اسم ذهبي', 'ID مخصص 5 أرقام', 'هدايا حصرية'],
     },
@@ -243,6 +245,7 @@ const VIP_CONFIG = [
         // 🎁 VIP Items Level 8 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip8', type: 'frames' }]
         idBeforeImageUrl: null, // ← VIP 8: ضع رابط الصورة هنا
+        idIconImageUrl: null,   // ← VIP 8: أيقونة مميزة أمام الـ ID
         benefits_en: ['1.9× XP', 'Gold Name Glow', 'Custom 4-Digit ID', 'Exclusive Gifts'],
         benefits_ar: ['مضاعف XP × 1.9', 'توهج اسم ذهبي', 'ID مخصص 4 أرقام', 'هدايا حصرية'],
     },
@@ -262,6 +265,7 @@ const VIP_CONFIG = [
         // 🎁 VIP Items Level 9 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip9', type: 'frames' }]
         idBeforeImageUrl: null, // ← VIP 9: ضع رابط الصورة هنا
+        idIconImageUrl: null,   // ← VIP 9: أيقونة أنيمشن أمام الـ ID
         benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 3-Digit ID', 'Exclusive Gifts'],
         benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص 3 أرقام', 'هدايا حصرية'],
     },
@@ -280,6 +284,7 @@ const VIP_CONFIG = [
         // 🎁 VIP Items Level 10 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip10', type: 'frames' }]
         idBeforeImageUrl: null, // ← VIP 10: ضع رابط الصورة هنا
+        idIconImageUrl: null,   // ← VIP 10: أيقونة أسطورية أمام الـ ID
         benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 2-Digit ID', 'Exclusive Gifts', 'Custom Gift Request'],
         benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص رقمين', 'هدايا حصرية', 'طلب هدية مخصصة'],
     },
