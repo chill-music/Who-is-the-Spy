@@ -196,6 +196,18 @@ const sendProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message,
             read: false,
         });
 
+        // Love Bot notification
+        if (typeof sendLoveBotMessage === 'function') {
+            await sendLoveBotMessage(toUID, {
+                type: 'proposal',
+                fromName: fromData?.displayName || 'Someone',
+                fromPhoto: fromData?.photoURL || null,
+                fromUID,
+                coupleDocId: coupleRef.id,
+                lang,
+            });
+        }
+
         onNotification && onNotification(lang==='ar' ? '💍 تم إرسال الطلب!' : '💍 Proposal sent!');
         return { ok: true, coupleDocId: coupleRef.id };
     } catch(e) {
