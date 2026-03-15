@@ -11,6 +11,34 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     // Only show if user has a family AND has earned a sign (level > 0)
     if (!familyTag || !signLevel) return null;
 
+    // If there's a custom sign image, show name above + image below, nothing else
+    if (signImgURL) {
+        const hasGlow = signLevel >= 4;
+        return (
+            <div
+                onClick={onClick}
+                title={familyName ? (lang === 'ar' ? `عائلة: ${familyName}` : `Family: ${familyName}`) : familyTag}
+                style={{display:'flex', flexDirection:'column', alignItems:'center', gap:'4px', cursor: onClick ? 'pointer' : 'default'}}
+            >
+                <span style={{
+                    fontSize:'11px', fontWeight:800, fontStyle:'italic',
+                    color: signColor, letterSpacing:'0.5px', whiteSpace:'nowrap',
+                    textShadow: hasGlow ? `0 0 8px ${signColor}99` : 'none',
+                }}>
+                    {familyTag}
+                </span>
+                <img
+                    src={signImgURL}
+                    alt={familyTag}
+                    style={{
+                        height:'36px', objectFit:'contain',
+                        filter: hasGlow ? `drop-shadow(0 0 6px ${signColor}88)` : 'none',
+                    }}
+                />
+            </div>
+        );
+    }
+
     // Sign level glow for high levels
     const hasGlow = signLevel >= 4;
 
@@ -28,10 +56,6 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
                 transition:'all 0.2s',
             }}
         >
-            {signImgURL
-                ? <img src={signImgURL} style={{height:'13px', objectFit:'contain', verticalAlign:'middle'}} alt=""/>
-                : null
-            }
             {familyTag}
         </span>
     );
