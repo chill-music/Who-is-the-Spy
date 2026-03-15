@@ -177,6 +177,8 @@ const SHOP_ITEMS = {
         { id: 'effect_test', name_en: "shehabtest",      name_ar: "نبضة الأورا",  cost: 3500, type: 'profileEffects', rarity: 'Mythic',    preview: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/main/icos/Pi7_GIF_CMP.gif', imageUrl: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/main/icos/Pi7_GIF_CMP.gif', particles: [], duration: 2, loopEvery: 9999999, displayDuration: 2000, showOnce: true, opacity: 0.88, blendMode: 'screen', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, maxSendOptions: null },
 
     ],
+    // ✅ BFF TOKENS — purchased to create relationships
+    bff_tokens: [], // populated from BFF_TOKEN_ITEMS in 01-config.js at runtime
     // ✅ GIFTS — Charisma & Bonus Formula (v2)
     // 📐 charisma = cost ÷ 5 | maxBonus = charisma × 25 (= cost × 5)
     // 🎯 Min reward = 120 coins | gifts giving <120 coins → charisma only, no coin reward
