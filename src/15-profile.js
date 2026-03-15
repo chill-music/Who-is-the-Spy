@@ -3683,13 +3683,6 @@ const ProfileV11 = ({
                             >
                                 {/* Left: Guard label + lock/give button */}
                                 <div style={{display:'flex', alignItems:'center', gap:'8px', flex:1}}>
-                                    <div style={{
-                                        width:'34px', height:'34px', borderRadius:'8px',
-                                        background:'linear-gradient(135deg,rgba(0,212,255,0.12),rgba(112,0,255,0.12))',
-                                        border:'1px solid rgba(0,212,255,0.2)',
-                                        display:'flex', alignItems:'center', justifyContent:'center',
-                                        fontSize:'16px', flexShrink:0,
-                                    }}>🛡️</div>
                                     <div>
                                         <div style={{fontSize:'12px', fontWeight:800, color:'#e5e7eb', letterSpacing:'-0.2px'}}>Guard</div>
                                         {/* Give/Locked button — only for friends viewing others' profiles */}
@@ -3720,33 +3713,33 @@ const ProfileV11 = ({
                                     </div>
                                 </div>
 
-                                {/* Right: 3 small avatars + arrow */}
+                                {/* Right: 3 avatars + arrow */}
                                 <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
-                                    {/* 3 mini circles */}
+                                    {/* 3 overlapping circles */}
                                     <div style={{display:'flex', alignItems:'center', direction:'ltr'}}>
                                         {[0,1,2].map(i => {
                                             const g = guardData[i];
                                             const colors = ['#f5a623','#b0b8c8','#e07b9a'];
                                             return (
                                                 <div key={i} style={{
-                                                    width:'26px', height:'26px', borderRadius:'50%',
-                                                    border:`2px solid ${colors[i]}`,
+                                                    width:'38px', height:'38px', borderRadius:'50%',
+                                                    border:`2.5px solid ${colors[i]}`,
                                                     overflow:'hidden', flexShrink:0,
-                                                    marginLeft: i > 0 ? '-6px' : '0',
+                                                    marginLeft: i > 0 ? '-10px' : '0',
                                                     background:'rgba(255,255,255,0.04)',
-                                                    boxShadow:`0 0 0 1px rgba(0,0,0,0.3)`,
+                                                    boxShadow:`0 0 0 1.5px rgba(0,0,0,0.4)`,
                                                 }}>
                                                     {g?.photo
                                                         ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
                                                         : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',opacity:0.2}}>
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#fff" strokeWidth="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#fff" strokeWidth="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
                                                           </div>
                                                     }
                                                 </div>
                                             );
                                         })}
                                     </div>
-                                    <span style={{fontSize:'16px', color:'rgba(255,255,255,0.3)', fontWeight:300, marginLeft:'4px'}}>›</span>
+                                    <span style={{fontSize:'16px', color:'rgba(255,255,255,0.3)', fontWeight:300, marginLeft:'6px'}}>›</span>
                                 </div>
                             </div>
                         )}
