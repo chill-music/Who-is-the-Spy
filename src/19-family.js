@@ -1714,6 +1714,34 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         return (
             <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'12px'}}>
 
+                {/* ── OFFICIAL ANNOUNCEMENT — at top for visibility ── */}
+                {family.announcement && (
+                    <div style={{
+                        ...S.card,
+                        background:'linear-gradient(135deg,rgba(255,165,0,0.22),rgba(255,80,0,0.12))',
+                        border:'2px solid rgba(255,165,0,0.6)',
+                        boxShadow:'0 0 24px rgba(255,140,0,0.2)',
+                        position:'relative', overflow:'hidden',
+                    }}>
+                        {/* left glow bar */}
+                        <div style={{position:'absolute',left:0,top:0,bottom:0,width:'5px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'14px 0 0 14px'}}/>
+                        <div style={{paddingLeft:'12px'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+                                <span style={{fontSize:'22px'}}>📢</span>
+                                <div style={{flex:1}}>
+                                    <div style={{fontSize:'11px', fontWeight:900, color:'#fbbf24', letterSpacing:'1px', textTransform:'uppercase'}}>{lang==='ar'?'إعلان رسمي':'OFFICIAL ANNOUNCEMENT'}</div>
+                                    {family.announcementBy && (
+                                        <div style={{fontSize:'9px',color:'#9ca3af',marginTop:'1px'}}>
+                                            {lang==='ar'?'بواسطة:':'By:'} {family.announcementBy}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div style={{fontSize:'13px', color:'#fef3c7', lineHeight:1.6, fontWeight:600}}>{family.announcement}</div>
+                        </div>
+                    </div>
+                )}
+
                 {/* ── Family Hero ── */}
                 <div style={{...S.card, background:`linear-gradient(135deg,rgba(0,242,255,0.06),rgba(112,0,255,0.06))`, border:`1px solid rgba(0,242,255,0.15)`, padding:'14px'}}>
                     <div style={{display:'flex', alignItems:'center', gap:'14px'}}>
@@ -1814,34 +1842,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </div>
                 </div>
 
-                {/* ── Announcement ── */}
-                {family.announcement && (
-                    <div style={{
-                        ...S.card,
-                        background:'linear-gradient(135deg,rgba(255,165,0,0.18),rgba(255,80,0,0.1))',
-                        border:'1.5px solid rgba(255,165,0,0.5)',
-                        boxShadow:'0 0 20px rgba(255,140,0,0.15)',
-                        position:'relative', overflow:'hidden',
-                    }}>
-                        {/* left glow bar */}
-                        <div style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'14px 0 0 14px'}}/>
-                        <div style={{paddingLeft:'10px'}}>
-                            <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'7px'}}>
-                                <span style={{fontSize:'20px'}}>📢</span>
-                                <div style={{flex:1}}>
-                                    <div style={{fontSize:'10px', fontWeight:900, color:'#fbbf24', letterSpacing:'1px', textTransform:'uppercase'}}>{lang==='ar'?'إعلان من الإدارة':'OFFICIAL ANNOUNCEMENT'}</div>
-                                    {family.announcementBy && (
-                                        <div style={{fontSize:'9px',color:'#9ca3af',marginTop:'1px'}}>
-                                            {lang==='ar'?'بواسطة:':'By:'} {family.announcementBy}
-                                        </div>
-                                    )}
-                                </div>
-                                {/* زر فتح الشات — محذوف لأن الشات انتقل لصفحة الشات الخارجية */}
-                            </div>
-                            <div style={{fontSize:'13px', color:'#fef3c7', lineHeight:1.6, fontWeight:600}}>{family.announcement}</div>
-                        </div>
-                    </div>
-                )}
+                {/* ── Announcement moved to top of page for visibility ── */}
 
                 <div style={{height:'12px'}} />
             </div>
