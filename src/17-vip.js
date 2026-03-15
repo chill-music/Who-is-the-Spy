@@ -113,6 +113,8 @@ const VIP_CONFIG = [
         // 🎁 VIP Items — عناصر تُضاف للإنفنتري عند الشراء وتختفي لما VIP ينتهي
         // مثال: [{ id: 'frame_vip1_gold', type: 'frames' }, { id: 'badge_vip1_star', type: 'badges' }]
         vipItems: [],  // ← VIP 1 أضف هنا عناصر المستوى الأول
+        // 🖼️ صورة قبل الـ ID في البروفايل — ضع رابط صورة/GIF هنا أو null
+        idBeforeImageUrl: null, // ← VIP 1: ضع رابط الصورة هنا
         benefits_en: ['1.2× XP Multiplier', 'VIP Badge'],
         benefits_ar: ['مضاعف XP × 1.2', 'بادج VIP'],
     },
@@ -130,6 +132,8 @@ const VIP_CONFIG = [
         exclusiveForm: false,
         // 🎁 VIP Items Level 2 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip2', type: 'frames' }]
+        // 🖼️ صورة قبل الـ ID في البروفايل
+        idBeforeImageUrl: null, // ← VIP 2: ضع رابط الصورة هنا
         benefits_en: ['1.3× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.3', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -147,6 +151,7 @@ const VIP_CONFIG = [
         exclusiveForm: false,
         // 🎁 VIP Items Level 3 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip3', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 3: ضع رابط الصورة هنا
         benefits_en: ['1.4× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.4', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -164,6 +169,7 @@ const VIP_CONFIG = [
         exclusiveForm: false,
         // 🎁 VIP Items Level 4 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip4', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 4: ضع رابط الصورة هنا
         benefits_en: ['1.5× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.5', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -181,6 +187,7 @@ const VIP_CONFIG = [
         exclusiveForm: false,
         // 🎁 VIP Items Level 5 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip5', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 5: ضع رابط الصورة هنا
         benefits_en: ['1.6× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.6', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -199,6 +206,7 @@ const VIP_CONFIG = [
         exclusiveForm: false,
         // 🎁 VIP Items Level 6 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip6', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 6: ضع رابط الصورة هنا
         benefits_en: ['1.7× XP', 'Gold Name Glow', 'Custom 6-Digit ID', 'Exclusive Gifts', 'VIP Daily Tasks'],
         benefits_ar: ['مضاعف XP × 1.7', 'توهج اسم ذهبي', 'ID مخصص 6 أرقام', 'هدايا حصرية', 'مهام يومية VIP'],
     },
@@ -216,6 +224,7 @@ const VIP_CONFIG = [
         exclusiveForm: false,
         // 🎁 VIP Items Level 7 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip7', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 7: ضع رابط الصورة هنا
         benefits_en: ['1.8× XP', 'Gold Name Glow', 'Custom 5-Digit ID', 'Exclusive Gifts'],
         benefits_ar: ['مضاعف XP × 1.8', 'توهج اسم ذهبي', 'ID مخصص 5 أرقام', 'هدايا حصرية'],
     },
@@ -233,6 +242,7 @@ const VIP_CONFIG = [
         exclusiveForm: false,
         // 🎁 VIP Items Level 8 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip8', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 8: ضع رابط الصورة هنا
         benefits_en: ['1.9× XP', 'Gold Name Glow', 'Custom 4-Digit ID', 'Exclusive Gifts'],
         benefits_ar: ['مضاعف XP × 1.9', 'توهج اسم ذهبي', 'ID مخصص 4 أرقام', 'هدايا حصرية'],
     },
@@ -251,6 +261,7 @@ const VIP_CONFIG = [
         exclusiveForm: false,
         // 🎁 VIP Items Level 9 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip9', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 9: ضع رابط الصورة هنا
         benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 3-Digit ID', 'Exclusive Gifts'],
         benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص 3 أرقام', 'هدايا حصرية'],
     },
@@ -268,6 +279,7 @@ const VIP_CONFIG = [
         exclusiveForm: true,          // 📋 فورم هدايا مخصصة
         // 🎁 VIP Items Level 10 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
         vipItems: [],  // ← مثال: [{ id: 'frame_vip10', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 10: ضع رابط الصورة هنا
         benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 2-Digit ID', 'Exclusive Gifts', 'Custom Gift Request'],
         benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص رقمين', 'هدايا حصرية', 'طلب هدية مخصصة'],
     },
