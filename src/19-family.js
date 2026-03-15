@@ -1460,6 +1460,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
         setSavingTag(false);
     };
+
+    const claimActiveMilestone = async (idx) => {
         if (!family?.id || !canManageFamily(family, currentUID)) return;
         try {
             await familiesCollection.doc(family.id).update({
