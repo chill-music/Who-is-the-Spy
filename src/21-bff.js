@@ -453,6 +453,8 @@ const BFFModal = ({
     currentUID, currentUserData,
     onNotification,
     friendsData,
+    coupleData,
+    couplePartnerData,
 }) => {
     const [tab, setTab] = useState('relationships'); // 'relationships' | 'requests' | 'send'
     const [myRelationships, setMyRelationships] = useState([]);
@@ -601,7 +603,7 @@ const BFFModal = ({
                     {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 18px 12px', flexShrink: 0 }}>
                         <div>
-                            <div style={{ fontSize: '16px', fontWeight: 900, color: 'white' }}>🤝 {lang === 'ar' ? 'نظام BFF' : 'BFF System'}</div>
+                            <div style={{ fontSize: '16px', fontWeight: 900, color: 'white' }}>❤️ {lang === 'ar' ? 'BFF الخاص بي' : 'My BFF'}</div>
                             <div style={{ fontSize: '10px', color: '#a78bfa', marginTop: '2px' }}>
                                 {myRelationships.length}/{maxSlots} {lang === 'ar' ? 'علاقات' : 'relationships'}
                             </div>
@@ -648,69 +650,215 @@ const BFFModal = ({
                         {tab === 'relationships' && (
                             loading
                                 ? <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>⏳</div>
-                                : <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    {/* Slot bar */}
-                                    <div style={{
-                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                        padding: '10px 14px', borderRadius: '14px',
-                                        background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.15)',
-                                        marginBottom: '4px',
-                                    }}>
-                                        <div style={{ fontSize: '12px', color: '#e2e8f0', fontWeight: 700 }}>
-                                            {myRelationships.length}/{maxSlots} {lang === 'ar' ? 'مستخدمة' : 'used'}
-                                        </div>
-                                        <button onClick={async () => { setBuyingSlot(true); await buyBFFExtraSlot({ uid: currentUID, userData: currentUserData, onNotification, lang }); setBuyingSlot(false); }}
-                                            disabled={buyingSlot || currency < BFF_CONFIG.extraSlotCost}
-                                            style={{
-                                                padding: '5px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                                                background: currency >= BFF_CONFIG.extraSlotCost ? 'linear-gradient(135deg,#a78bfa,#7c3aed)' : 'rgba(255,255,255,0.05)',
-                                                color: currency >= BFF_CONFIG.extraSlotCost ? 'white' : '#4b5563',
-                                                fontSize: '10px', fontWeight: 700,
-                                            }}>
-                                            {buyingSlot ? '⏳' : `+ ${lang === 'ar' ? 'خانة' : 'Slot'} (${BFF_CONFIG.extraSlotCost} 🧠)`}
-                                        </button>
-                                    </div>
+                                : <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-                                    {myRelationships.length === 0
+                                    {/* ── CP Banner ── */}
+                                    {coupleData && couplePartnerData && (() => {
+                                        const ring = typeof RINGS_DATA !== 'undefined'
+                                            ? RINGS_DATA.find(r => r.id === coupleData.ringId)
+                                            : null;
+                                        const diff = coupleData?.marriageDate
+                                            ? (() => { const s = coupleData.marriageDate.toDate ? coupleData.marriageDate.toDate() : new Date(coupleData.marriageDate.seconds * 1000); return Math.floor((Date.now() - s.getTime()) / 86400000); })()
+                                            : 0;
+                                        // CP level from LOVE_LEVELS if available
+                                        let cpLevel = 1;
+                                        if (typeof LOVE_LEVELS !== 'undefined') {
+                                            let lv = 1;
+                                            for (const l of LOVE_LEVELS) { if (diff >= l.days) lv++; else break; }
+                                            cpLevel = lv;
+                                        }
+                                        return (
+                                            <div style={{
+                                                borderRadius: '16px', overflow: 'hidden',
+                                                background: 'linear-gradient(135deg, #f9a8d4, #ec4899, #be185d)',
+                                                padding: '14px 12px',
+                                                position: 'relative',
+                                            }}>
+                                                {/* Decorative sparkles */}
+                                                <div style={{ position: 'absolute', top: 6, left: 10, fontSize: '10px', opacity: 0.6 }}>✦</div>
+                                                <div style={{ position: 'absolute', top: 8, right: 14, fontSize: '8px', opacity: 0.5 }}>✦</div>
+                                                <div style={{ position: 'absolute', bottom: 10, left: 20, fontSize: '7px', opacity: 0.4 }}>✦</div>
+                                                <div style={{ position: 'absolute', bottom: 8, right: 10, fontSize: '9px', opacity: 0.5 }}>✦</div>
+
+                                                {/* CP Level badge */}
+                                                <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                                                    <span style={{
+                                                        background: 'linear-gradient(135deg, #a855f7, #7c3aed)',
+                                                        color: '#fff', fontSize: '11px', fontWeight: 900,
+                                                        padding: '3px 14px', borderRadius: '20px',
+                                                        boxShadow: '0 2px 10px rgba(168,85,247,0.5)',
+                                                    }}>CP LV{cpLevel}</span>
+                                                </div>
+
+                                                {/* Avatars + Ring */}
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0' }}>
+                                                    {/* Left user */}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', flex: 1 }}>
+                                                        <div style={{
+                                                            width: '60px', height: '60px', borderRadius: '50%',
+                                                            border: '3px solid rgba(255,255,255,0.7)',
+                                                            overflow: 'hidden', background: 'rgba(255,255,255,0.2)',
+                                                            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+                                                        }}>
+                                                            {currentUserData?.photoURL
+                                                                ? <img src={currentUserData.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>😊</div>}
+                                                        </div>
+                                                        <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)', maxWidth: '70px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {currentUserData?.displayName || '...'}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Ring center */}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flex: 1 }}>
+                                                        <div style={{ fontSize: '32px', filter: 'drop-shadow(0 2px 8px rgba(255,255,255,0.5))' }}>
+                                                            {ring?.imageURL
+                                                                ? <img src={ring.imageURL} alt="" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
+                                                                : (ring?.emoji || '💍')}
+                                                        </div>
+                                                        <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.85)', fontWeight: 600, textAlign: 'center' }}>
+                                                            {lang === 'ar' ? `معاً ${diff} يوم` : `Be together ${diff} days`}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Right user */}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', flex: 1 }}>
+                                                        <div style={{
+                                                            width: '60px', height: '60px', borderRadius: '50%',
+                                                            border: '3px solid rgba(255,255,255,0.7)',
+                                                            overflow: 'hidden', background: 'rgba(255,255,255,0.2)',
+                                                            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+                                                        }}>
+                                                            {couplePartnerData?.photoURL
+                                                                ? <img src={couplePartnerData.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>😊</div>}
+                                                        </div>
+                                                        <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)', maxWidth: '70px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {couplePartnerData?.displayName || '...'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* ── BFF Cards Grid ── */}
+                                    {myRelationships.length === 0 && !coupleData
                                         ? <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                                             <div style={{ fontSize: '48px', marginBottom: '12px' }}>🤝</div>
                                             <div style={{ fontSize: '13px', color: '#6b7280' }}>
                                                 {lang === 'ar' ? 'لا علاقات بعد — أرسل طلب صداقة!' : 'No relationships yet — send a request!'}
                                             </div>
                                         </div>
-                                        : myRelationships.map(rel => {
-                                            const partnerUID = rel.uid1 === currentUID ? rel.uid2 : rel.uid1;
-                                            const partner = partnerProfiles[partnerUID];
-                                            const token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
-                                            return (
-                                                <div key={rel.id} onClick={() => openCard(rel)} style={{
-                                                    display: 'flex', alignItems: 'center', gap: '12px',
-                                                    padding: '12px 14px', borderRadius: '16px', cursor: 'pointer',
-                                                    background: `linear-gradient(135deg,${token.color}10,${token.color}05)`,
-                                                    border: `1px solid ${token.color}35`,
-                                                    transition: 'all 0.2s',
-                                                }}>
-                                                    <div style={{
-                                                        width: '44px', height: '44px', borderRadius: '50%', overflow: 'hidden',
-                                                        border: `2px solid ${token.color}`, flexShrink: 0,
+                                        : <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(3, 1fr)',
+                                            gap: '12px 10px',
+                                        }}>
+                                            {myRelationships.map(rel => {
+                                                const partnerUID = rel.uid1 === currentUID ? rel.uid2 : rel.uid1;
+                                                const partner = partnerProfiles[partnerUID];
+                                                const token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
+                                                const level = BFF_RARITY_TO_LEVEL[token.rarity] || 1;
+                                                return (
+                                                    <div key={rel.id} onClick={() => openCard(rel)} style={{
+                                                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                                        cursor: 'pointer',
                                                     }}>
-                                                        {partner?.photoURL
-                                                            ? <img src={partner.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>😎</div>}
-                                                    </div>
-                                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                                        <div style={{ fontSize: '13px', fontWeight: 800, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                        {/* Card */}
+                                                        <div style={{
+                                                            width: '100%', height: '110px',
+                                                            borderRadius: '14px', position: 'relative',
+                                                            background: `linear-gradient(145deg, ${token.color}38, ${token.color}18)`,
+                                                            border: `1.5px solid ${token.color}60`,
+                                                            boxShadow: `0 4px 16px ${token.glow}40`,
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            overflow: 'visible',
+                                                        }}>
+                                                            {/* Diamond pattern */}
+                                                            <div style={{
+                                                                position: 'absolute', inset: 0, borderRadius: '12px',
+                                                                background: `repeating-linear-gradient(45deg, ${token.color}0a 0, transparent 10px, ${token.color}05 10px, transparent 20px)`,
+                                                                overflow: 'hidden', pointerEvents: 'none',
+                                                            }} />
+                                                            {/* LV badge */}
+                                                            <div style={{
+                                                                position: 'absolute', top: '6px', left: '6px',
+                                                                background: 'rgba(0,0,0,0.4)',
+                                                                borderRadius: '5px', padding: '2px 5px',
+                                                                fontSize: '7px', fontWeight: 900, color: '#fff',
+                                                                display: 'flex', alignItems: 'center', gap: '2px',
+                                                                border: `1px solid ${token.color}80`, zIndex: 2,
+                                                            }}>
+                                                                <span>{token.emoji}</span>
+                                                                <span style={{ color: token.color }}>LV{level}</span>
+                                                            </div>
+                                                            {/* Token icon */}
+                                                            <span style={{ fontSize: '32px', zIndex: 1 }}>
+                                                                {token.imageURL
+                                                                    ? <img src={token.imageURL} alt="" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
+                                                                    : token.emoji}
+                                                            </span>
+                                                            {/* Avatar overlapping bottom */}
+                                                            <div style={{
+                                                                position: 'absolute', bottom: '-16px',
+                                                                width: '34px', height: '34px', borderRadius: '50%',
+                                                                border: `2.5px solid ${token.color}`,
+                                                                overflow: 'hidden', background: '#0d0d1a',
+                                                                boxShadow: `0 2px 10px rgba(0,0,0,0.5)`,
+                                                                zIndex: 3,
+                                                            }}>
+                                                                {partner?.photoURL
+                                                                    ? <img src={partner.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>😎</div>}
+                                                            </div>
+                                                        </div>
+                                                        {/* Name */}
+                                                        <div style={{
+                                                            marginTop: '20px',
+                                                            fontSize: '10px', fontWeight: 600,
+                                                            color: '#d1d5db', textAlign: 'center',
+                                                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                                            width: '100%',
+                                                        }}>
                                                             {partner?.displayName || '...'}
                                                         </div>
-                                                        <div style={{ fontSize: '10px', color: token.color, fontWeight: 700 }}>
-                                                            {token.emoji} {lang === 'ar' ? token.name_ar : token.name_en}
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {/* ── Locked slots ── */}
+                                            {Array.from({ length: Math.max(0, maxSlots - myRelationships.length) }).map((_, i) => (
+                                                <div key={`locked-${i}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                    <div style={{
+                                                        width: '100%', height: '110px',
+                                                        borderRadius: '14px',
+                                                        background: 'rgba(255,255,255,0.03)',
+                                                        border: '1.5px dashed rgba(255,255,255,0.12)',
+                                                        display: 'flex', flexDirection: 'column',
+                                                        alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                                    }}>
+                                                        <div style={{ fontSize: '20px', opacity: 0.25 }}>🔒</div>
+                                                        <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.28)', textAlign: 'center', padding: '0 6px', lineHeight: 1.4 }}>
+                                                            {lang === 'ar' ? 'اضغط لفتح مزيد من الخانات' : 'Tap to unlock more slots for your BFF'}
                                                         </div>
                                                     </div>
-                                                    <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.3)' }}>›</span>
                                                 </div>
-                                            );
-                                        })
+                                            ))}
+                                        </div>
                                     }
+
+                                    {/* Buy slot button */}
+                                    <button onClick={async () => { setBuyingSlot(true); await buyBFFExtraSlot({ uid: currentUID, userData: currentUserData, onNotification, lang }); setBuyingSlot(false); }}
+                                        disabled={buyingSlot || currency < BFF_CONFIG.extraSlotCost}
+                                        style={{
+                                            width: '100%', padding: '10px', borderRadius: '12px', border: 'none', cursor: 'pointer',
+                                            background: currency >= BFF_CONFIG.extraSlotCost ? 'linear-gradient(135deg,#a78bfa,#7c3aed)' : 'rgba(255,255,255,0.05)',
+                                            color: currency >= BFF_CONFIG.extraSlotCost ? 'white' : '#4b5563',
+                                            fontSize: '11px', fontWeight: 700,
+                                        }}>
+                                        {buyingSlot ? '⏳' : `+ ${lang === 'ar' ? 'فتح خانة جديدة' : 'Unlock New Slot'} (${BFF_CONFIG.extraSlotCost} 🧠)`}
+                                    </button>
                                 </div>
                         )}
 
