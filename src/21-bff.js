@@ -1095,8 +1095,8 @@ const BFFStripProfile = ({
                 {/* 3 mini-cards row */}
                 {myRelationships.length > 0 ? (
                     <div style={{
-                        display: 'flex', gap: '8px',
-                        padding: '4px 12px 22px',
+                        display: 'flex', gap: '6px',
+                        padding: '2px 10px 18px',
                     }}>
                         {myRelationships.slice(0, 3).map(rel => {
                             const partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
@@ -1112,55 +1112,55 @@ const BFFStripProfile = ({
                                 }}>
                                     {/* Card body */}
                                     <div style={{
-                                        width: '100%', height: '88px',
-                                        borderRadius: '12px', position: 'relative',
-                                        background: `linear-gradient(145deg, ${token.color}28, ${token.color}10)`,
-                                        border: `1.5px solid ${token.color}50`,
-                                        boxShadow: `0 3px 12px ${token.glow}40`,
+                                        width: '100%', height: '70px',
+                                        borderRadius: '10px', position: 'relative',
+                                        background: `linear-gradient(145deg, ${token.color}35, ${token.color}18)`,
+                                        border: `1.5px solid ${token.color}55`,
+                                        boxShadow: `0 2px 8px ${token.glow}35`,
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         overflow: 'visible',
                                     }}>
-                                        {/* Subtle diamond pattern overlay */}
+                                        {/* Diamond pattern overlay */}
                                         <div style={{
-                                            position: 'absolute', inset: 0, borderRadius: '10px',
-                                            background: `repeating-linear-gradient(45deg, ${token.color}09 0, transparent 10px, ${token.color}05 10px, transparent 20px)`,
+                                            position: 'absolute', inset: 0, borderRadius: '8px',
+                                            background: `repeating-linear-gradient(45deg, ${token.color}0a 0, transparent 8px, ${token.color}04 8px, transparent 16px)`,
                                             pointerEvents: 'none', overflow: 'hidden',
                                         }} />
 
                                         {/* LV badge top-left */}
                                         <div style={{
-                                            position: 'absolute', top: '5px', left: '5px',
-                                            background: token.color,
-                                            borderRadius: '5px', padding: '1px 5px',
-                                            fontSize: '7px', fontWeight: 900, color: '#000',
+                                            position: 'absolute', top: '4px', left: '4px',
+                                            background: `rgba(0,0,0,0.45)`,
+                                            borderRadius: '4px', padding: '1px 4px',
+                                            fontSize: '6px', fontWeight: 900, color: '#fff',
                                             display: 'flex', alignItems: 'center', gap: '2px',
-                                            zIndex: 2,
+                                            zIndex: 2, border: `1px solid ${token.color}70`,
                                         }}>
                                             <span>{token.emoji}</span>
-                                            <span>LV{level}</span>
+                                            <span style={{ color: token.color }}>LV{level}</span>
                                         </div>
 
                                         {/* Token emoji center */}
-                                        <span style={{ fontSize: '26px', zIndex: 1 }}>{token.emoji}</span>
+                                        <span style={{ fontSize: '22px', zIndex: 1 }}>{token.emoji}</span>
 
                                         {/* Avatar at bottom (overlapping) */}
                                         <div style={{
-                                            position: 'absolute', bottom: '-16px',
-                                            width: '32px', height: '32px', borderRadius: '50%',
+                                            position: 'absolute', bottom: '-13px',
+                                            width: '26px', height: '26px', borderRadius: '50%',
                                             border: `2px solid ${token.color}`,
                                             overflow: 'hidden', background: '#0d0d1a',
-                                            boxShadow: `0 2px 8px rgba(0,0,0,0.5), 0 0 6px ${token.glow}`,
+                                            boxShadow: `0 1px 6px rgba(0,0,0,0.6)`,
                                             zIndex: 3,
                                         }}>
                                             {partner?.photoURL
                                                 ? <img src={partner.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>😎</div>}
+                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>😎</div>}
                                         </div>
                                     </div>
 
                                     {/* Name below card */}
                                     <div style={{
-                                        marginTop: '20px',
+                                        marginTop: '16px',
                                         fontSize: '9px', fontWeight: 600,
                                         color: '#9ca3af', textAlign: 'center',
                                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
