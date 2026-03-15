@@ -964,6 +964,10 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     // Header dots menu
     // header menu state removed (three-dot removed; ranking is now a tab)
 
+    // Confirmation dialogs state
+    const [showCreateConfirm, setShowCreateConfirm] = useState(false);
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
     // Create/Join state
     const [view, setView] = useState('home');
     const [tribeName, setFamilyName] = useState('');
@@ -2182,40 +2186,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         })}
                     </div>
 
-                    {/* Sign image upload (owner/admin only) */}
-                    {canManage && (
-                        <div style={{borderTop:'1px solid rgba(255,255,255,0.07)', paddingTop:'12px'}}>
-                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'8px'}}>
-                                {lang==='ar'?'📷 رفع صورة مخصصة للشارة (اختياري)':'📷 Upload custom sign image (optional)'}
-                            </div>
-                            <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
-                                <div>
-                                    <input type="file" ref={signImageFileRef} style={{display:'none'}} accept="image/*" onChange={handleSignImageUpload} />
-                                    <button onClick={()=>signImageFileRef.current?.click()} disabled={uploadingSign}
-                                        style={{...S.btn, padding:'7px 14px', fontSize:'11px',
-                                            background: signData ? `${signData.color}20` : 'rgba(0,242,255,0.1)',
-                                            border:`1px solid ${signData ? signData.color+'40' : 'rgba(0,242,255,0.3)'}`,
-                                            color: signData ? signData.color : '#00f2ff'}}>
-                                        {uploadingSign ? '⏳' : (lang==='ar'?'📷 رفع صورة الشارة':'📷 Upload Sign Image')}
-                                    </button>
-                                </div>
-                                {family.signImageURL && (
-                                    <button onClick={async()=>{
-                                        try {
-                                            await familiesCollection.doc(family.id).update({ signImageURL: null });
-                                            for (const uid of (family.members||[])) {
-                                                await usersCollection.doc(uid).update({ familySignImageURL: null }).catch(()=>{});
-                                            }
-                                            onNotification(lang==='ar'?'✅ تم حذف الصورة':'✅ Image removed');
-                                        } catch(e){}
-                                    }} style={{...S.btn, padding:'7px 14px', fontSize:'11px',
-                                        background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)', color:'#f87171'}}>
-                                        🗑️ {lang==='ar'?'حذف':'Remove'}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* ── Announcement ── */}
@@ -2293,7 +2263,16 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 {/* ── Leave Family — always at bottom ── */}
                 <div style={{marginTop:'8px', paddingTop:'12px', borderTop:'1px solid rgba(255,255,255,0.06)'}}>
                     <button
-                        onClick={leaveFamily}
+                        onClick={() => {
+                            const role = getFamilyRole(family, currentUID);
+                            const isOwner = role === 'owner';
+                            const hasOtherMembers = (family.members || []).length > 1;
+                            if (isOwner && hasOtherMembers) {
+                                onNotification(lang === 'ar' ? '❌ أنت القائد، انقل القيادة لعضو آخر أولاً' : '❌ You are the owner, transfer leadership first');
+                                return;
+                            }
+                            setShowLeaveConfirm(true);
+                        }}
                         style={{...S.btn, width:'100%', padding:'12px', background:'rgba(239,68,68,0.06)', border:'1px solid rgba(239,68,68,0.2)', color:'rgba(239,68,68,0.65)', fontSize:'12px', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', gap:'6px'}}>
                         🚪 {lang==='ar'?'مغادرة العائلة':'Leave Family'}
                     </button>
@@ -2392,7 +2371,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             <div style={{padding:'10px 12px', borderRadius:'10px', background:'rgba(255,215,0,0.07)', border:'1px solid rgba(255,215,0,0.2)', fontSize:'11px', color:'#fbbf24'}}>
                 💡 {lang==='ar' ? `سيُخصم ${FAMILY_CREATE_COST} إنتل (رصيدك: ${currentUserData?.currency||0} 🧠)` : `${FAMILY_CREATE_COST} Intel will be deducted (Balance: ${currentUserData?.currency||0} 🧠)`}
             </div>
-            <button onClick={createFamily} disabled={!tribeName.trim()||!tribeTag.trim()||creating} style={{...S.btn, width:'100%', padding:'13px', fontSize:'13px', background:tribeName.trim()&&tribeTag.trim()&&!creating?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color:tribeName.trim()&&tribeTag.trim()?'white':'#4b5563', cursor:tribeName.trim()&&tribeTag.trim()&&!creating?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}>
+            <button onClick={() => { if(!tribeName.trim()||!tribeTag.trim()||creating) return; setShowCreateConfirm(true); }} disabled={!tribeName.trim()||!tribeTag.trim()||creating} style={{...S.btn, width:'100%', padding:'13px', fontSize:'13px', background:tribeName.trim()&&tribeTag.trim()&&!creating?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color:tribeName.trim()&&tribeTag.trim()?'white':'#4b5563', cursor:tribeName.trim()&&tribeTag.trim()&&!creating?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}>
                 {creating?'⏳🏗️':`🏠 ${lang==='ar'?'إنشاء العائلة':'Create Family'}`}
             </button>
         </div>
@@ -2532,6 +2511,59 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 </div>
             </div>
         </PortalModal>
+
+        {/* ── Confirm Create Family ── */}
+        {showCreateConfirm && (
+            <PortalModal>
+                <div className="modal-overlay" onClick={() => setShowCreateConfirm(false)} style={{zIndex: Z.MODAL_HIGH + 10}}>
+                    <div onClick={e=>e.stopPropagation()} style={{background:'#0f1628', border:'1px solid rgba(0,242,255,0.2)', borderRadius:'16px', padding:'24px', maxWidth:'320px', width:'90%', margin:'auto', textAlign:'center', boxShadow:'0 0 40px rgba(0,212,255,0.1)'}}>
+                        <div style={{fontSize:'36px', marginBottom:'12px'}}>🏠</div>
+                        <div style={{fontSize:'15px', fontWeight:800, color:'white', marginBottom:'8px'}}>{lang==='ar'?'تأكيد إنشاء العائلة':'Confirm Create Family'}</div>
+                        <div style={{fontSize:'12px', color:'#9ca3af', marginBottom:'6px', lineHeight:1.6}}>
+                            {lang==='ar'
+                                ? `أنت على وشك إنشاء عائلة باسم "${tribeName.trim()}" بوسم [${tribeTag.trim().toUpperCase()}]`
+                                : `You are about to create a family named "${tribeName.trim()}" with tag [${tribeTag.trim().toUpperCase()}]`}
+                        </div>
+                        <div style={{fontSize:'11px', color:'#fbbf24', background:'rgba(255,215,0,0.07)', border:'1px solid rgba(255,215,0,0.2)', borderRadius:'8px', padding:'8px', marginBottom:'16px'}}>
+                            💡 {lang==='ar' ? `سيُخصم ${FAMILY_CREATE_COST} إنتل` : `${FAMILY_CREATE_COST} Intel will be deducted`}
+                        </div>
+                        <div style={{display:'flex', gap:'10px'}}>
+                            <button onClick={() => setShowCreateConfirm(false)} style={{flex:1, padding:'10px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'#9ca3af', fontSize:'12px', fontWeight:700, cursor:'pointer'}}>
+                                {lang==='ar'?'إلغاء':'Cancel'}
+                            </button>
+                            <button onClick={() => { setShowCreateConfirm(false); createFamily(); }} style={{flex:1, padding:'10px', borderRadius:'10px', border:'none', background:'linear-gradient(135deg,#00f2ff,#7000ff)', color:'white', fontSize:'12px', fontWeight:700, cursor:'pointer'}}>
+                                🏠 {lang==='ar'?'إنشاء':'Create'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </PortalModal>
+        )}
+
+        {/* ── Confirm Leave Family ── */}
+        {showLeaveConfirm && (
+            <PortalModal>
+                <div className="modal-overlay" onClick={() => setShowLeaveConfirm(false)} style={{zIndex: Z.MODAL_HIGH + 10}}>
+                    <div onClick={e=>e.stopPropagation()} style={{background:'#0f1628', border:'1px solid rgba(239,68,68,0.25)', borderRadius:'16px', padding:'24px', maxWidth:'320px', width:'90%', margin:'auto', textAlign:'center', boxShadow:'0 0 40px rgba(239,68,68,0.1)'}}>
+                        <div style={{fontSize:'36px', marginBottom:'12px'}}>🚪</div>
+                        <div style={{fontSize:'15px', fontWeight:800, color:'white', marginBottom:'8px'}}>{lang==='ar'?'مغادرة العائلة':'Leave Family'}</div>
+                        <div style={{fontSize:'12px', color:'#9ca3af', marginBottom:'16px', lineHeight:1.6}}>
+                            {lang==='ar'
+                                ? `أنت على وشك مغادرة عائلة "${family?.name}". لا يمكن التراجع عن هذا القرار.`
+                                : `You are about to leave the family "${family?.name}". This action cannot be undone.`}
+                        </div>
+                        <div style={{display:'flex', gap:'10px'}}>
+                            <button onClick={() => setShowLeaveConfirm(false)} style={{flex:1, padding:'10px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'#9ca3af', fontSize:'12px', fontWeight:700, cursor:'pointer'}}>
+                                {lang==='ar'?'إلغاء':'Cancel'}
+                            </button>
+                            <button onClick={() => { setShowLeaveConfirm(false); leaveFamily(); }} style={{flex:1, padding:'10px', borderRadius:'10px', border:'none', background:'linear-gradient(135deg,#ef4444,#b91c1c)', color:'white', fontSize:'12px', fontWeight:700, cursor:'pointer'}}>
+                                🚪 {lang==='ar'?'مغادرة':'Leave'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </PortalModal>
+        )}
         </>
     );
 };
