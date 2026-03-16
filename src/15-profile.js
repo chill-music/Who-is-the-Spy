@@ -3538,12 +3538,12 @@ const ProfileV11 = ({
                                 {/* يمين: البلد فقط */}
                                 <div style={{display:'flex', alignItems:'center', gap:'4px', flexShrink:0}}>
                                     {targetData?.country?.flag && (
-                                        <span
-                                            title={lang === 'ar' ? targetData.country.name_ar : targetData.country.name_en}
-                                            style={{fontSize:'20px', lineHeight:1, cursor:'default'}}
-                                        >
-                                            {targetData.country.flag}
-                                        </span>
+                                        /* ✅ FIX: Use FlagDisplay for cross-platform flag rendering (Windows Chrome) */
+                                        <FlagDisplay
+                                            countryCode={targetData.country.code}
+                                            flagEmoji={targetData.country.flag}
+                                            size={22}
+                                        />
                                     )}
                                 </div>
                             </div>
