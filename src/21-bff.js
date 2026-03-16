@@ -1337,6 +1337,8 @@ const BFFStripProfile = ({
     const [partnerProfiles, setPartnerProfiles] = useState({});
     const [targetData, setTargetData] = useState(null);
     const [showListModal, setShowListModal] = useState(false);
+    // ✅ FIX 1: state to open card modal when ring image clicked
+    const [cardModal, setCardModal] = useState(null); // { rel, self, partner }
 
     const isOwnProfile = targetUID === currentUID;
 
@@ -1392,6 +1394,15 @@ const BFFStripProfile = ({
         }
     };
 
+    // ✅ FIX 1: open card modal when token image clicked
+    const handleTokenClick = (e, rel) => {
+        e.stopPropagation();
+        const partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
+        const partner = partnerProfiles[partnerUID];
+        const self = targetData;
+        if (partner) setCardModal({ rel, self, partner });
+    };
+
     return (
         <>
             {/* ── BFF SECTION ── */}
@@ -1401,10 +1412,15 @@ const BFFStripProfile = ({
                 borderBottom: '1px solid rgba(167,139,250,0.1)',
             }}>
                 {/* Header row: BFF ❤️ [count] + arrow */}
-                <div onClick={handleClick} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '10px 14px 6px', cursor: 'pointer',
-                }}>
+                <div
+                    onClick={handleClick}
+                    style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '10px 14px 6px', cursor: 'pointer',
+                        WebkitTapHighlightColor: 'transparent',
+                        userSelect: 'none',
+                    }}
+                >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 900, color: '#e5e7eb' }}>BFF</span>
                         <span style={{ fontSize: '13px' }}>❤️</span>
@@ -1436,11 +1452,17 @@ const BFFStripProfile = ({
                             const lvInfo = getBFFLevel(rel.giftPoints || 0);
 
                             return (
-                                <div key={rel.id} onClick={handleClick} style={{
-                                    flex: 1,
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                    cursor: 'pointer',
-                                }}>
+                                <div key={rel.id}
+                                    onClick={handleClick}
+                                    style={{
+                                        flex: 1,
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                        cursor: 'pointer',
+                                        WebkitTapHighlightColor: 'transparent',
+                                        // ✅ FIX 2: minimum touch target for mobile
+                                        minHeight: '44px',
+                                    }}
+                                >
                                     {/* Card body */}
                                     <div style={{
                                         width: '100%', height: '70px',
@@ -1471,8 +1493,23 @@ const BFFStripProfile = ({
                                             <span>LV{lvInfo.level}</span>
                                         </div>
 
-                                        {/* Token emoji center */}
-                                        <span style={{ fontSize: '22px', zIndex: 1 }}>{token.emoji}</span>
+                                        {/* ✅ FIX 1: Token emoji/image — clicking opens BFFCardModal */}
+                                        <span
+                                            onClick={(e) => handleTokenClick(e, rel)}
+                                            style={{
+                                                fontSize: '22px', zIndex: 1,
+                                                cursor: 'pointer',
+                                                padding: '4px',
+                                                WebkitTapHighlightColor: 'transparent',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                // ✅ FIX 2: bigger touch target on mobile
+                                                minWidth: '36px', minHeight: '36px',
+                                            }}
+                                        >
+                                            {token.imageURL
+                                                ? <img src={token.imageURL} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                                                : token.emoji}
+                                        </span>
 
                                         {/* Avatar at bottom (overlapping) */}
                                         <div style={{
@@ -1507,6 +1544,7 @@ const BFFStripProfile = ({
                     <div onClick={handleClick} style={{
                         padding: '8px 14px 14px', cursor: 'pointer',
                         textAlign: 'center', fontSize: '11px', color: '#6b7280',
+                        WebkitTapHighlightColor: 'transparent',
                     }}>
                         {lang === 'ar' ? '+ أضف علاقة BFF' : '+ Add BFF Relationship'}
                     </div>
@@ -1522,6 +1560,21 @@ const BFFStripProfile = ({
                     partnerProfiles={partnerProfiles}
                     targetUID={targetUID}
                     lang={lang}
+                />
+            )}
+
+            {/* ✅ FIX 1: BFF card modal opened when ring image is clicked */}
+            {cardModal && (
+                <BFFCardModal
+                    show={!!cardModal}
+                    onClose={() => setCardModal(null)}
+                    bffDoc={cardModal.rel}
+                    selfData={cardModal.self}
+                    partnerData={cardModal.partner}
+                    currentUID={targetUID}
+                    lang={lang}
+                    onNotification={onNotification}
+                    viewOnly={true}
                 />
             )}
         </>
