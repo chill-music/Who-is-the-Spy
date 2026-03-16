@@ -303,212 +303,180 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 
                     {/* ════ VIP ════ */}
                     {activeTab === 'vip' && (
-                        <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
+                        <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
 
-                            {/* ── Hero banner ── */}
+                            {/* XP Progress */}
                             <div style={{
-                                borderRadius:'20px', overflow:'hidden', position:'relative',
-                                background:'linear-gradient(135deg,#1a0035 0%,#2d0060 40%,#1a0035 100%)',
-                                border:'1.5px solid rgba(168,85,247,0.45)',
-                                boxShadow:'0 0 60px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.08)',
-                                padding:'22px 18px 18px',
+                                background:'linear-gradient(135deg,rgba(124,58,237,0.11),rgba(10,8,35,0.98))',
+                                border:'1px solid rgba(124,58,237,0.28)',
+                                borderRadius:'16px',padding:'16px',position:'relative',overflow:'hidden',
                             }}>
-                                {/* Animated glow orbs */}
-                                <div style={{position:'absolute',top:'-30px',right:'-20px',width:'140px',height:'140px',borderRadius:'50%',background:'radial-gradient(circle,rgba(168,85,247,0.35),transparent 70%)',pointerEvents:'none'}}/>
-                                <div style={{position:'absolute',bottom:'-20px',left:'-20px',width:'100px',height:'100px',borderRadius:'50%',background:'radial-gradient(circle,rgba(124,58,237,0.28),transparent 70%)',pointerEvents:'none'}}/>
-                                {/* Top accent */}
-                                <div style={{position:'absolute',top:0,left:'10%',right:'10%',height:'2px',background:'linear-gradient(90deg,transparent,#c4b5fd,#a855f7,#c4b5fd,transparent)'}}/>
-
-                                <div style={{position:'relative',zIndex:1}}>
-                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'14px'}}>
-                                        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-                                            <div style={{
-                                                width:'52px',height:'52px',borderRadius:'16px',
-                                                background:'linear-gradient(135deg,#7c3aed,#a855f7)',
-                                                display:'flex',alignItems:'center',justifyContent:'center',
-                                                fontSize:'28px',boxShadow:'0 4px 20px rgba(124,58,237,0.55)',
-                                                border:'2px solid rgba(196,181,253,0.3)',
-                                            }}>👑</div>
-                                            <div>
-                                                <div style={{fontSize:'18px',fontWeight:900,color:'#f5f3ff',letterSpacing:'0.5px'}}>VIP</div>
-                                                <div style={{fontSize:'11px',color:'#a78bfa',fontWeight:600,marginTop:'1px'}}>
-                                                    {lang==='ar'?'نظام التميز الحصري':'Exclusive Premium System'}
-                                                </div>
+                                <div style={{position:'absolute',top:0,left:0,right:0,height:'2px',background:'linear-gradient(90deg,transparent,#a855f7,#c4b5fd,transparent)'}} />
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+                                    <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                                        <span style={{fontSize:'32px',lineHeight:1}}>👑</span>
+                                        <div>
+                                            <div style={{fontSize:'13px',fontWeight:900,color:'#c4b5fd'}}>
+                                                {lang==='ar'?'مستوى VIP الحالي':'Current VIP Level'}
                                             </div>
-                                        </div>
-                                        <div style={{
-                                            background:'linear-gradient(135deg,rgba(124,58,237,0.5),rgba(168,85,247,0.3))',
-                                            border:'1.5px solid rgba(196,181,253,0.4)',
-                                            borderRadius:'14px',padding:'6px 14px',
-                                            fontSize:'16px',fontWeight:900,color:'#e9d5ff',
-                                            boxShadow:'0 0 18px rgba(124,58,237,0.4)',
-                                        }}>VIP {vipLevel}</div>
-                                    </div>
-
-                                    {/* XP bar */}
-                                    <div style={{marginBottom:'10px'}}>
-                                        <div style={{display:'flex',justifyContent:'space-between',fontSize:'9px',color:'#7c3aed',fontWeight:700,marginBottom:'5px'}}>
-                                            <span style={{color:'#a78bfa'}}>{(userData?.vip?.xp||0).toLocaleString()} XP</span>
-                                            {vipLevel<10&&<span style={{color:'#6b21a8'}}>{lang==='ar'?`الهدف: `:'Goal: '}{VIP_XP_THRESHOLDS[vipLevel+1]?.toLocaleString()} XP → VIP {vipLevel+1}</span>}
-                                            {vipLevel>=10&&<span style={{color:'#fbbf24',fontWeight:900}}>👑 MAX LEVEL</span>}
-                                        </div>
-                                        <div style={{height:'8px',borderRadius:'4px',background:'rgba(255,255,255,0.06)',overflow:'hidden',boxShadow:'inset 0 1px 3px rgba(0,0,0,0.4)'}}>
-                                            <div style={{
-                                                width:`${vipXpInfo.progress}%`,height:'100%',borderRadius:'4px',
-                                                background:'linear-gradient(90deg,#5b21b6,#7c3aed,#a855f7,#c4b5fd)',
-                                                transition:'width 0.7s ease',
-                                                boxShadow:'0 0 10px rgba(168,85,247,0.7)',
-                                                position:'relative',overflow:'hidden',
-                                            }}>
-                                                <div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)',animation:'shimmer 1.8s infinite'}}/>
+                                            <div style={{fontSize:'10px',color:'#6b3aad',marginTop:'1px'}}>
+                                                {(userData?.vip?.xp||0).toLocaleString()} XP
+                                                {vipLevel<10&&<span style={{color:'#374151'}}> / {VIP_XP_THRESHOLDS[vipLevel+1]?.toLocaleString()}</span>}
                                             </div>
                                         </div>
                                     </div>
-
-                                    {/* Feature pills */}
-                                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
-                                        {[
-                                            {icon:'🎨',ar:'اسم ملون مميز',en:'Colored VIP Name'},
-                                            {icon:'⚡',ar:'مضاعف XP ×1.2',en:'1.2× XP Multiplier'},
-                                            {icon:'🏅',ar:'بادج VIP حصري',en:'Exclusive VIP Badge'},
-                                            {icon:'🎁',ar:'هدايا VIP مقفلة',en:'Locked VIP Gifts'},
-                                            {icon:'🔥',ar:'ترقية حتى VIP 10',en:'Rank up to VIP 10'},
-                                            {icon:'💎',ar:'مزايا حصرية للمستوى',en:'Level-exclusive perks'},
-                                        ].map((f,i)=>(
-                                            <div key={i} style={{
-                                                display:'flex',alignItems:'center',gap:'7px',
-                                                fontSize:'10px',color:'#e9d5ff',
-                                                background:'rgba(124,58,237,0.12)',
-                                                border:'1px solid rgba(196,181,253,0.14)',
-                                                borderRadius:'9px',padding:'7px 9px',
-                                            }}>
-                                                <span style={{fontSize:'14px',flexShrink:0}}>{f.icon}</span>
-                                                <span style={{fontWeight:600,lineHeight:1.3}}>{lang==='ar'?f.ar:f.en}</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <div style={{
+                                        background:'rgba(124,58,237,0.28)',color:'#e9d5ff',
+                                        fontWeight:900,padding:'4px 12px',borderRadius:'9px',
+                                        fontSize:'14px',border:'1px solid rgba(124,58,237,0.4)',
+                                        boxShadow:'0 0 12px rgba(124,58,237,0.25)',
+                                    }}>VIP {vipLevel}</div>
+                                </div>
+                                <div style={{height:'6px',borderRadius:'3px',background:'rgba(255,255,255,0.05)',overflow:'hidden',marginBottom:'5px'}}>
+                                    <div style={{
+                                        width:`${vipXpInfo.progress}%`,height:'100%',borderRadius:'3px',
+                                        background:'linear-gradient(90deg,#6d28d9,#a855f7,#c4b5fd)',
+                                        transition:'width 0.6s ease',
+                                        boxShadow:'0 0 8px rgba(168,85,247,0.55)',
+                                    }}/>
+                                </div>
+                                <div style={{display:'flex',justifyContent:'space-between',fontSize:'9px',color:'#4b5563'}}>
+                                    <span>VIP {vipLevel}</span>
+                                    {vipLevel<10&&<span>VIP {vipLevel+1}</span>}
                                 </div>
                             </div>
 
-                            {/* ── Status + Action card ── */}
-                            {vipLevel >= 1 ? (
-                                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-                                    {/* Days remaining */}
-                                    {vipDaysLeft !== null && (
-                                        <div style={{
-                                            borderRadius:'14px', overflow:'hidden',
-                                            background: vipDaysLeft<=5
-                                                ? 'linear-gradient(135deg,rgba(239,68,68,0.12),rgba(10,5,25,0.96))'
-                                                : 'linear-gradient(135deg,rgba(74,222,128,0.1),rgba(10,5,25,0.96))',
-                                            border: vipDaysLeft<=5 ? '1.5px solid rgba(239,68,68,0.38)' : '1.5px solid rgba(74,222,128,0.28)',
-                                            boxShadow: vipDaysLeft<=5 ? '0 0 20px rgba(239,68,68,0.15)' : '0 0 20px rgba(74,222,128,0.12)',
+                            {/* Buy / Status card */}
+                            <div style={{
+                                background:'linear-gradient(135deg,rgba(239,68,68,0.07),rgba(8,5,25,0.98))',
+                                border:'1.5px solid rgba(239,68,68,0.28)',
+                                borderRadius:'16px',padding:'16px',position:'relative',overflow:'hidden',
+                            }}>
+                                <div style={{position:'absolute',top:0,left:0,right:0,height:'2px',background:'linear-gradient(90deg,transparent,#ef4444,transparent)'}} />
+                                <div style={{display:'flex',alignItems:'flex-start',gap:'12px',marginBottom:'14px'}}>
+                                    <span style={{fontSize:'36px',lineHeight:1,flexShrink:0}}>👑</span>
+                                    <div>
+                                        <div style={{fontWeight:900,fontSize:'15px',color:'#fca5a5',marginBottom:'4px'}}>
+                                            {lang==='ar'?'احصل على VIP':'Get VIP'}
+                                        </div>
+                                        <div style={{fontSize:'10px',color:'#9ca3af',lineHeight:1.5}}>
+                                            {lang==='ar'
+                                                ?'ابدأ رحلة VIP وارتقِ عبر إرسال الهدايا!'
+                                                :'Start your VIP journey — level up by sending gifts!'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px',marginBottom:'14px'}}>
+                                    {[
+                                        {icon:'⭐',ar:'اسم أحمر مميز',en:'Red VIP Name'},
+                                        {icon:'⚡',ar:'مضاعف XP × 1.2',en:'1.2× XP Multiplier'},
+                                        {icon:'🏅',ar:'بادج VIP حصري',en:'Exclusive VIP Badge'},
+                                        {icon:'🔥',ar:'ارتقِ للمستوى 10',en:'Level up to VIP 10'},
+                                    ].map((f,i) => (
+                                        <div key={i} style={{
+                                            display:'flex',alignItems:'center',gap:'6px',
+                                            fontSize:'10px',color:'#d1d5db',
+                                            background:'rgba(255,255,255,0.025)',
+                                            border:'1px solid rgba(255,255,255,0.055)',
+                                            borderRadius:'8px',padding:'6px 8px',
                                         }}>
-                                            <div style={{padding:'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                                                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                                                    <div style={{
-                                                        width:'38px',height:'38px',borderRadius:'10px',
-                                                        background:vipDaysLeft<=5?'rgba(239,68,68,0.18)':'rgba(74,222,128,0.15)',
-                                                        display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',
-                                                    }}>{vipDaysLeft<=5?'⚠️':'🛡️'}</div>
-                                                    <div>
-                                                        <div style={{fontSize:'12px',color:vipDaysLeft<=5?'#f87171':'#4ade80',fontWeight:800}}>
-                                                            {lang==='ar'?'الوقت المتبقي':'Time Remaining'}
-                                                        </div>
-                                                        <div style={{fontSize:'9px',color:'#6b7280',marginTop:'1px'}}>
-                                                            {vipDaysLeft<=5?(lang==='ar'?'⚡ سينتهي قريباً!':'⚡ Expiring soon!'):(lang==='ar'?'✓ VIP نشط':'✓ VIP Active')}
+                                            <span style={{fontSize:'14px'}}>{f.icon}</span>
+                                            <span>{lang==='ar'?f.ar:f.en}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div style={{
+                                    background:'rgba(239,68,68,0.055)',border:'1px solid rgba(239,68,68,0.14)',
+                                    borderRadius:'8px',padding:'8px 10px',marginBottom:'14px',
+                                    fontSize:'10px',color:'#fca5a5',textAlign:'center',lineHeight:1.5,
+                                }}>
+                                    🎁 {lang==='ar'
+                                        ?'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر كلما ارتفع مستواك!'
+                                        :'Every gift you send gives VIP XP — the more you give, the higher you level!'}
+                                </div>
+                                {vipLevel >= 1 ? (
+                                    <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                        {vipDaysLeft !== null && (
+                                            <div style={{
+                                                borderRadius:'12px',overflow:'hidden',
+                                                background:vipDaysLeft<=5
+                                                    ?'linear-gradient(135deg,rgba(239,68,68,0.11),rgba(8,5,25,0.96))'
+                                                    :'linear-gradient(135deg,rgba(74,222,128,0.09),rgba(8,5,25,0.96))',
+                                                border:vipDaysLeft<=5?'1px solid rgba(239,68,68,0.32)':'1px solid rgba(74,222,128,0.22)',
+                                            }}>
+                                                <div style={{padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                                                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                                        <span style={{fontSize:'20px'}}>{vipDaysLeft<=5?'⚠️':'🛡️'}</span>
+                                                        <div>
+                                                            <div style={{fontSize:'10px',color:vipDaysLeft<=5?'#f87171':'#4ade80',fontWeight:700}}>
+                                                                {lang==='ar'?'الوقت المتبقي':'Time Remaining'}
+                                                            </div>
+                                                            <div style={{fontSize:'9px',color:'#4b5563'}}>
+                                                                {vipDaysLeft<=5?(lang==='ar'?'⚡ قريباً ينتهي!':'⚡ Expiring soon!'):(lang==='ar'?'VIP نشط ✓':'VIP Active ✓')}
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    <div style={{display:'flex',alignItems:'baseline',gap:'2px'}}>
+                                                        <span style={{fontSize:'30px',fontWeight:900,lineHeight:1,color:vipDaysLeft<=5?'#f87171':'#4ade80',textShadow:vipDaysLeft<=5?'0 0 14px rgba(239,68,68,0.55)':'0 0 14px rgba(74,222,128,0.45)',fontFamily:'monospace'}}>{vipDaysLeft}</span>
+                                                        <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:700}}>{lang==='ar'?' يوم':'d'}</span>
+                                                    </div>
                                                 </div>
-                                                <div style={{textAlign:'center'}}>
-                                                    <span style={{
-                                                        fontSize:'34px',fontWeight:900,lineHeight:1,fontFamily:'monospace',
-                                                        color:vipDaysLeft<=5?'#f87171':'#4ade80',
-                                                        textShadow:vipDaysLeft<=5?'0 0 16px rgba(239,68,68,0.6)':'0 0 16px rgba(74,222,128,0.5)',
-                                                    }}>{vipDaysLeft}</span>
-                                                    <div style={{fontSize:'10px',color:'#9ca3af',fontWeight:700}}>{lang==='ar'?'يوم':'days'}</div>
+                                                <div style={{height:'3px',background:'rgba(255,255,255,0.04)'}}>
+                                                    <div style={{height:'100%',width:`${Math.min(100,(vipDaysLeft/30)*100)}%`,background:vipDaysLeft<=5?'linear-gradient(90deg,#dc2626,#f87171)':'linear-gradient(90deg,#16a34a,#4ade80)',transition:'width 0.5s'}}/>
                                                 </div>
                                             </div>
-                                            <div style={{height:'4px',background:'rgba(255,255,255,0.04)'}}>
-                                                <div style={{height:'100%',width:`${Math.min(100,(vipDaysLeft/30)*100)}%`,background:vipDaysLeft<=5?'linear-gradient(90deg,#dc2626,#f87171)':'linear-gradient(90deg,#16a34a,#4ade80)',transition:'width 0.6s'}}/>
-                                            </div>
+                                        )}
+                                        <div style={{
+                                            display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',
+                                            padding:'10px',borderRadius:'10px',
+                                            background:(vipDaysLeft!==null&&vipDaysLeft>0)?'linear-gradient(135deg,rgba(74,222,128,0.09),rgba(16,185,129,0.04))':'rgba(239,68,68,0.06)',
+                                            border:(vipDaysLeft!==null&&vipDaysLeft>0)?'1px solid rgba(74,222,128,0.28)':'1px solid rgba(239,68,68,0.22)',
+                                        }}>
+                                            <span style={{fontSize:'14px'}}>{(vipDaysLeft!==null&&vipDaysLeft>0)?'✅':'❌'}</span>
+                                            <span style={{fontWeight:900,fontSize:'12px',color:(vipDaysLeft!==null&&vipDaysLeft>0)?'#4ade80':'#f87171'}}>
+                                                {(vipDaysLeft!==null&&vipDaysLeft>0)?(lang==='ar'?'🔥 VIP مفعّل':'🔥 VIP ACTIVE'):(lang==='ar'?'VIP منتهي':'VIP DEACTIVATED')}
+                                            </span>
                                         </div>
-                                    )}
-                                    {/* Status pill */}
-                                    <div style={{
-                                        display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',
-                                        padding:'10px',borderRadius:'12px',
-                                        background:(vipDaysLeft!==null&&vipDaysLeft>0)?'rgba(74,222,128,0.07)':'rgba(239,68,68,0.07)',
-                                        border:(vipDaysLeft!==null&&vipDaysLeft>0)?'1px solid rgba(74,222,128,0.25)':'1px solid rgba(239,68,68,0.22)',
-                                    }}>
-                                        <span style={{fontSize:'16px'}}>{(vipDaysLeft!==null&&vipDaysLeft>0)?'✅':'❌'}</span>
-                                        <span style={{fontWeight:900,fontSize:'13px',color:(vipDaysLeft!==null&&vipDaysLeft>0)?'#4ade80':'#f87171'}}>
-                                            {(vipDaysLeft!==null&&vipDaysLeft>0)?(lang==='ar'?'🔥 VIP مفعّل':'🔥 VIP ACTIVE'):(lang==='ar'?'VIP منتهي':'VIP EXPIRED')}
-                                        </span>
-                                    </div>
-                                    {/* Renew button */}
-                                    <button
-                                        onClick={()=>{ if(currency>=50000) setShowVIPConfirm(true); }}
-                                        disabled={currency<50000}
-                                        style={{
-                                            width:'100%',padding:'13px',borderRadius:'13px',border:'none',
-                                            background:currency>=50000?'linear-gradient(135deg,#5b21b6,#7c3aed,#a855f7)':'rgba(100,100,100,0.12)',
-                                            color:currency>=50000?'#fff':'#4b5563',fontWeight:900,fontSize:'14px',
-                                            cursor:currency>=50000?'pointer':'not-allowed',
-                                            boxShadow:currency>=50000?'0 6px 24px rgba(124,58,237,0.45)':'none',
-                                            transition:'all 0.2s', letterSpacing:'0.3px',
-                                            position:'relative',overflow:'hidden',
-                                        }}
-                                    >
-                                        {currency>=50000&&<div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)',animation:'shimmer 2s infinite'}}/>}
-                                        <span style={{position:'relative'}}>
+                                        <button
+                                            onClick={() => { if(currency>=50000) setShowVIPConfirm(true); }}
+                                            disabled={currency<50000}
+                                            style={{
+                                                width:'100%',padding:'11px',borderRadius:'11px',border:'none',
+                                                background:currency>=50000?'linear-gradient(135deg,#6d28d9,#a855f7)':'rgba(100,100,100,0.15)',
+                                                color:currency>=50000?'#fff':'#4b5563',fontWeight:800,fontSize:'13px',
+                                                cursor:currency>=50000?'pointer':'not-allowed',
+                                                boxShadow:currency>=50000?'0 4px 18px rgba(124,58,237,0.38)':'none',
+                                                transition:'all 0.2s',
+                                            }}
+                                        >
                                             {currency>=50000
                                                 ?`🔄 ${lang==='ar'?'تجديد +30 يوم':'Renew +30 days'} — 50,000 🧠`
                                                 :`❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠`}
-                                        </span>
-                                    </button>
-                                </div>
-                            ) : (
-                                /* Buy VIP for first time */
-                                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-                                    <div style={{
-                                        borderRadius:'14px',padding:'14px',
-                                        background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.18)',
-                                        fontSize:'11px',color:'#fca5a5',textAlign:'center',lineHeight:1.6,
-                                    }}>
-                                        🎁 {lang==='ar'
-                                            ?'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر ارتفع مستواك!'
-                                            :'Every gift you send earns VIP XP — the more you give, the higher you level!'}
+                                        </button>
                                     </div>
+                                ) : (
                                     <button
-                                        onClick={()=>{ if(currency>=50000) setShowVIPConfirm(true); }}
+                                        onClick={() => { if(currency>=50000) setShowVIPConfirm(true); }}
                                         disabled={currency<50000}
                                         style={{
-                                            width:'100%',padding:'14px',borderRadius:'13px',border:'none',
-                                            background:currency>=50000?'linear-gradient(135deg,#b91c1c,#ef4444,#f87171)':'rgba(100,100,100,0.12)',
-                                            color:currency>=50000?'#fff':'#4b5563',fontWeight:900,fontSize:'15px',
+                                            width:'100%',padding:'13px',borderRadius:'11px',border:'none',
+                                            background:currency>=50000?'linear-gradient(135deg,#ef4444,#b91c1c)':'rgba(100,100,100,0.15)',
+                                            color:currency>=50000?'#fff':'#4b5563',fontWeight:900,fontSize:'14px',
                                             cursor:currency>=50000?'pointer':'not-allowed',
-                                            boxShadow:currency>=50000?'0 6px 24px rgba(239,68,68,0.4)':'none',
-                                            transition:'all 0.2s',position:'relative',overflow:'hidden',
+                                            boxShadow:currency>=50000?'0 4px 20px rgba(239,68,68,0.38)':'none',
+                                            transition:'all 0.2s',
                                         }}
                                     >
-                                        {currency>=50000&&<div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)',animation:'shimmer 2s infinite'}}/>}
-                                        <span style={{position:'relative'}}>
-                                            {currency>=50000
-                                                ?`👑 ${lang==='ar'?'اشترِ VIP 1':'Buy VIP 1'} — 50,000 🧠`
-                                                :`❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠 (${lang==='ar'?'لديك':'Have'}: ${currency.toLocaleString()})`}
-                                        </span>
+                                        {currency>=50000
+                                            ?`👑 ${lang==='ar'?'اشترِ VIP 1':'Buy VIP 1'} — 50,000 🧠`
+                                            :`❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠 (${lang==='ar'?'لديك':'Have'}: ${currency.toLocaleString()})`}
                                     </button>
-                                </div>
-                            )}
+                                )}
+                            </div>
 
-                            {/* ── Level table — premium styled ── */}
-                            <div style={{borderRadius:'16px',overflow:'hidden',border:'1px solid rgba(124,58,237,0.2)',background:'rgba(0,0,0,0.22)'}}>
-                                <div style={{
-                                    padding:'11px 16px',borderBottom:'1px solid rgba(124,58,237,0.15)',
-                                    fontSize:'11px',fontWeight:700,color:'#7c3aed',
-                                    display:'flex',alignItems:'center',gap:'7px',
-                                    background:'rgba(124,58,237,0.06)',
-                                }}>
+                            {/* Levels table */}
+                            <div style={{background:'rgba(0,0,0,0.18)',border:'1px solid rgba(255,255,255,0.055)',borderRadius:'14px',overflow:'hidden'}}>
+                                <div style={{padding:'10px 14px',borderBottom:'1px solid rgba(255,255,255,0.055)',fontSize:'11px',fontWeight:700,color:'#9ca3af',display:'flex',alignItems:'center',gap:'6px'}}>
                                     📊 {lang==='ar'?'جدول مستويات VIP':'VIP Level Table'}
                                 </div>
                                 {VIP_CONFIG.map(cfg => {
@@ -517,27 +485,17 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                     return (
                                         <div key={cfg.level} style={{
                                             display:'flex',alignItems:'center',gap:'10px',
-                                            padding:'9px 16px',
-                                            borderBottom:'1px solid rgba(255,255,255,0.026)',
-                                            background:isCurrentLevel?`${cfg.nameColor}0e`:'transparent',
-                                            transition:'background 0.2s',
+                                            padding:'8px 14px',
+                                            borderBottom:'1px solid rgba(255,255,255,0.028)',
+                                            background:isCurrentLevel?`${cfg.nameColor}0c`:'transparent',
                                         }}>
-                                            <span style={{
-                                                minWidth:'46px',fontWeight:900,fontSize:'11px',
-                                                color:isCurrentLevel?cfg.nameColor:isPassed?'#4ade80':'#2d3748',
-                                            }}>
+                                            <span style={{minWidth:'42px',fontWeight:900,fontSize:'11px',color:isCurrentLevel?cfg.nameColor:isPassed?'#4ade80':'#2d3748'}}>
                                                 {isPassed?'✅':isCurrentLevel?'▶':''} VIP {cfg.level}
                                             </span>
-                                            <div style={{flex:1,height:'5px',borderRadius:'3px',background:'rgba(255,255,255,0.04)',overflow:'hidden'}}>
-                                                <div style={{
-                                                    width:isPassed?'100%':isCurrentLevel?`${vipXpInfo.progress}%`:'0%',
-                                                    height:'100%',background:cfg.nameColor,
-                                                    transition:'width 0.5s',
-                                                    boxShadow:isCurrentLevel?`0 0 6px ${cfg.nameColor}`:'none',
-                                                    borderRadius:'3px',
-                                                }}/>
+                                            <div style={{flex:1,height:'4px',borderRadius:'2px',background:'rgba(255,255,255,0.04)',overflow:'hidden'}}>
+                                                <div style={{width:isPassed?'100%':isCurrentLevel?`${vipXpInfo.progress}%`:'0%',height:'100%',background:cfg.nameColor,transition:'width 0.5s',boxShadow:isCurrentLevel?`0 0 5px ${cfg.nameColor}`:'none'}}/>
                                             </div>
-                                            <span style={{fontSize:'9px',color:'#374151',minWidth:'66px',textAlign:'right'}}>
+                                            <span style={{fontSize:'9px',color:'#374151',minWidth:'62px',textAlign:'right'}}>
                                                 {VIP_XP_THRESHOLDS[cfg.level].toLocaleString()} XP
                                             </span>
                                         </div>
@@ -677,6 +635,12 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                 <span style={{position:'absolute',top:'3px',left:'3px',fontSize:'8px'}}>{rarity.icon}</span>
                                                 {isEventItem&&<span className="shop-event-tag">⚡</span>}
                                                 {isLimited  &&<span className="shop-limited-tag">⏳</span>}
+                                                {/* ✅ FIX 4: Show timer badge for durationDays gifts */}
+                                                {item.durationDays&&!isLimited&&(
+                                                    <span style={{position:'absolute',bottom:'3px',left:'3px',fontSize:'6px',fontWeight:900,background:'rgba(245,158,11,0.85)',color:'#000',padding:'1px 3px',borderRadius:'3px'}}>
+                                                        {item.durationDays}d
+                                                    </span>
+                                                )}
                                                 {isVIPGift&&(
                                                     <span style={{position:'absolute',top:'3px',right:'3px',fontSize:'7px',fontWeight:900,background:vipGlowColor,color:'#000',padding:'1px 4px',borderRadius:'4px',boxShadow:isVIPMaxGift?`0 0 8px ${vipGlowColor}`:'none',animation:isVIPMaxGift?'mythic-pulse 2s ease-in-out infinite':'none'}}>
                                                         VIP {vipRequired}
@@ -800,6 +764,8 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     const [activeTab, setActiveTab]       = useState('frames');
     const [selectedGift, setSelectedGift] = useState(null);
     const [showGiftPreview, setShowGiftPreview] = useState(false);
+    // ✅ FIX 2: item details popup
+    const [detailItem, setDetailItem]     = useState(null);
 
     if (!show) return null;
 
@@ -807,6 +773,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     const equipped   = userData?.equipped  || {};
     const giftCounts = inventory.giftCounts || {};
     const myRings    = inventory.rings || [];
+    const expiry     = inventory.expiry || {}; // { itemId: timestampMs }
 
     const getOwnedItems = (type) => {
         const ownedIds = inventory[type] || [];
@@ -826,6 +793,15 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     };
     const getEquippedBadgeCount = () => { const eb=equipped.badges||[]; return Array.isArray(eb)?eb.length:(equipped.badges?1:0); };
 
+    // ✅ FIX 2: days remaining helper
+    const getDaysLeft = (itemId) => {
+        const exp = expiry[itemId];
+        if (!exp) return null;
+        const ms = exp - Date.now();
+        if (ms <= 0) return 0;
+        return Math.ceil(ms / 86400000);
+    };
+
     const renderPreview = (item) => {
         if (item.type === 'frames') return item.preview.startsWith('http')
             ?<img src={item.preview} alt={item.name_en} style={{width:'40px',height:'40px',borderRadius:'50%',objectFit:'cover'}}/>
@@ -838,6 +814,81 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
             return src?<img src={src} alt={item.name_en} style={{width:'38px',height:'38px',objectFit:'contain',borderRadius:'6px'}}/>:<span style={{fontSize:'28px',lineHeight:1}}>{item.preview}</span>;
         }
         return <span style={{fontSize:'24px'}}>🎨</span>;
+    };
+
+    // ✅ FIX 2: Item Details Popup Component
+    const ItemDetailPopup = ({ item, onClose: closePopup }) => {
+        if (!item) return null;
+        const daysLeft = getDaysLeft(item.id);
+        const desc = lang === 'ar' ? (item.desc_ar || item.description_ar || '') : (item.desc_en || item.description_en || '');
+        const name = lang === 'ar' ? item.name_ar : item.name_en;
+        return (
+            <div onClick={closePopup} style={{
+                position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',
+                display:'flex',alignItems:'center',justifyContent:'center',
+                zIndex:Z.TOOLTIP, padding:'20px',
+            }}>
+                <div onClick={e=>e.stopPropagation()} className="animate-pop" style={{
+                    background:'linear-gradient(160deg,#0d1225,#0a0e1f)',
+                    border:'1px solid rgba(0,242,255,0.18)',
+                    borderRadius:'18px',padding:'18px',
+                    width:'100%',maxWidth:'300px',
+                    boxShadow:'0 20px 60px rgba(0,0,0,0.7)',
+                }}>
+                    {/* Preview */}
+                    <div style={{textAlign:'center',marginBottom:'12px'}}>
+                        {renderPreview(item)}
+                        <div style={{fontSize:'14px',fontWeight:900,color:'#f1f5f9',marginTop:'8px'}}>{name}</div>
+                    </div>
+                    {/* Description */}
+                    {desc && (
+                        <div style={{
+                            background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',
+                            borderRadius:'10px',padding:'10px 12px',marginBottom:'10px',
+                            fontSize:'11px',color:'#9ca3af',lineHeight:1.6,textAlign:'center',
+                        }}>{desc}</div>
+                    )}
+                    {/* Expiry info */}
+                    {daysLeft !== null && (
+                        <div style={{
+                            display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',
+                            padding:'8px 12px',borderRadius:'9px',marginBottom:'10px',
+                            background: daysLeft <= 3 ? 'rgba(239,68,68,0.1)' : daysLeft <= 7 ? 'rgba(245,158,11,0.1)' : 'rgba(74,222,128,0.08)',
+                            border: daysLeft <= 3 ? '1px solid rgba(239,68,68,0.3)' : daysLeft <= 7 ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(74,222,128,0.22)',
+                        }}>
+                            <span style={{fontSize:'14px'}}>{daysLeft===0?'❌':daysLeft<=3?'⚠️':daysLeft<=7?'⏳':'✅'}</span>
+                            <span style={{fontSize:'11px',fontWeight:700,color:daysLeft===0?'#f87171':daysLeft<=3?'#f87171':daysLeft<=7?'#fbbf24':'#4ade80'}}>
+                                {daysLeft===0
+                                    ?(lang==='ar'?'انتهت الصلاحية':'Expired')
+                                    :lang==='ar'
+                                        ?`تنتهي بعد ${daysLeft} يوم`
+                                        :`Expires in ${daysLeft} day${daysLeft===1?'':'s'}`}
+                            </span>
+                        </div>
+                    )}
+                    {daysLeft === null && (
+                        <div style={{
+                            display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',
+                            padding:'6px 10px',borderRadius:'8px',marginBottom:'10px',
+                            background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',
+                        }}>
+                            <span style={{fontSize:'12px'}}>♾️</span>
+                            <span style={{fontSize:'10px',color:'#a78bfa',fontWeight:600}}>
+                                {lang==='ar'?'دائم — لا ينتهي':'Permanent — never expires'}
+                            </span>
+                        </div>
+                    )}
+                    {/* Close */}
+                    <button onClick={closePopup} style={{
+                        width:'100%',padding:'9px',borderRadius:'10px',border:'none',
+                        background:'rgba(255,255,255,0.06)',color:'#9ca3af',
+                        fontSize:'12px',fontWeight:700,cursor:'pointer',
+                    }}>
+                        {lang==='ar'?'إغلاق':'Close'}
+                    </button>
+                </div>
+            </div>
+        );
     };
 
     const TABS = [
@@ -983,22 +1034,33 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(96px,1fr))',gap:'8px'}}>
                                 {ownedItems.map(item=>{
                                     const equippedItem=isEquipped(item);
+                                    const daysLeft = getDaysLeft(item.id);
+                                    const isExpired = daysLeft === 0;
                                     /* Gift items */
                                     if(activeTab==='gifts'){
                                         const cnt=giftCounts[item.id]||0;
                                         return (
-                                            <div key={item.id} style={{position:'relative',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.065)',borderRadius:'12px',padding:'10px 8px',display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',transition:'all 0.15s'}}
+                                            <div key={item.id} style={{position:'relative',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.065)',borderRadius:'12px',padding:'10px 8px',display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',transition:'all 0.15s',opacity:isExpired?0.5:1}}
                                                 onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.transform='scale(1.04)';}}
                                                 onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.02)';e.currentTarget.style.transform='scale(1)';}}
                                             >
                                                 {cnt>0&&<div style={{position:'absolute',top:'4px',right:'4px',background:'linear-gradient(135deg,#7c3aed,#a855f7)',color:'#fff',fontWeight:900,fontSize:'8px',padding:'1px 5px',borderRadius:'8px',boxShadow:'0 0 6px rgba(124,58,237,0.45)',zIndex:1}}>×{cnt}</div>}
+                                                {/* ✅ FIX2: info button */}
+                                                <div onClick={()=>setDetailItem(item)} style={{position:'absolute',top:'4px',left:'4px',width:'14px',height:'14px',borderRadius:'50%',background:'rgba(0,242,255,0.18)',border:'1px solid rgba(0,242,255,0.3)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'8px',color:'#00f2ff',fontWeight:900,zIndex:2}}>i</div>
+                                                {/* ✅ FIX2: expiry badge */}
+                                                {daysLeft!==null&&daysLeft>0&&(
+                                                    <div style={{position:'absolute',bottom:'28px',left:'2px',background:daysLeft<=3?'rgba(239,68,68,0.9)':daysLeft<=7?'rgba(245,158,11,0.9)':'rgba(74,222,128,0.8)',borderRadius:'4px',padding:'1px 4px',fontSize:'7px',fontWeight:800,color:'#fff',zIndex:2}}>
+                                                        {daysLeft}d
+                                                    </div>
+                                                )}
                                                 <div style={{marginTop:'4px'}}>{renderPreview(item)}</div>
                                                 <div style={{fontSize:'9px',fontWeight:700,color:'#d1d5db',textAlign:'center',lineHeight:1.3,maxWidth:'84px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lang==='ar'?item.name_ar:item.name_en}</div>
                                                 <button onClick={()=>{setSelectedGift(item);setShowGiftPreview(true);}}
-                                                    style={{width:'100%',padding:'4px 0',borderRadius:'6px',background:'linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06))',border:'1px solid rgba(251,191,36,0.26)',color:'#fbbf24',fontSize:'9px',fontWeight:800,cursor:'pointer',transition:'all 0.12s'}}
-                                                    onMouseEnter={e=>{e.currentTarget.style.background='linear-gradient(135deg,rgba(251,191,36,0.22),rgba(245,158,11,0.12))';}}
-                                                    onMouseLeave={e=>{e.currentTarget.style.background='linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06))';}}
-                                                >{t.sendGiftToFriend}</button>
+                                                    disabled={isExpired}
+                                                    style={{width:'100%',padding:'4px 0',borderRadius:'6px',background:isExpired?'rgba(100,100,100,0.1)':'linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06))',border:isExpired?'1px solid rgba(100,100,100,0.2)':'1px solid rgba(251,191,36,0.26)',color:isExpired?'#4b5563':'#fbbf24',fontSize:'9px',fontWeight:800,cursor:isExpired?'not-allowed':'pointer',transition:'all 0.12s'}}
+                                                    onMouseEnter={e=>{if(!isExpired)e.currentTarget.style.background='linear-gradient(135deg,rgba(251,191,36,0.22),rgba(245,158,11,0.12))';}}
+                                                    onMouseLeave={e=>{if(!isExpired)e.currentTarget.style.background='linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06))';}}
+                                                >{isExpired?(lang==='ar'?'منتهي':'Expired'):t.sendGiftToFriend}</button>
                                             </div>
                                         );
                                     }
@@ -1012,16 +1074,29 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                             borderRadius:'12px',padding:'10px 8px',
                                             display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',
                                             transition:'all 0.15s',
+                                            opacity:isExpired?0.5:1,
                                         }}
                                         onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.04)';}}
                                         onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
                                         >
                                             {equippedItem&&<div style={{position:'absolute',top:'5px',right:'5px',width:'7px',height:'7px',borderRadius:'50%',background:'#00f2ff',boxShadow:'0 0 6px #00f2ff'}}/>}
+                                            {/* ✅ FIX2: info button on equippable items */}
+                                            <div onClick={()=>setDetailItem(item)} style={{position:'absolute',top:'4px',left:'4px',width:'14px',height:'14px',borderRadius:'50%',background:'rgba(0,242,255,0.14)',border:'1px solid rgba(0,242,255,0.25)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'8px',color:'#00f2ff',fontWeight:900,zIndex:2}}>i</div>
+                                            {/* ✅ FIX2: expiry badge */}
+                                            {daysLeft!==null&&daysLeft>0&&(
+                                                <div style={{position:'absolute',bottom:'28px',left:'2px',background:daysLeft<=3?'rgba(239,68,68,0.9)':daysLeft<=7?'rgba(245,158,11,0.9)':'rgba(74,222,128,0.8)',borderRadius:'4px',padding:'1px 4px',fontSize:'7px',fontWeight:800,color:'#fff',zIndex:2}}>
+                                                    {daysLeft}d
+                                                </div>
+                                            )}
                                             <div style={{marginTop:'4px'}}>{renderPreview(item)}</div>
                                             <div style={{fontSize:'9px',fontWeight:700,color:equippedItem?'#00f2ff':'#d1d5db',textAlign:'center',lineHeight:1.3,maxWidth:'84px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                                                 {lang==='ar'?item.name_ar:item.name_en}
                                             </div>
-                                            {equippedItem?(
+                                            {isExpired ? (
+                                                <div style={{fontSize:'8px',color:'#f87171',fontWeight:700,textAlign:'center'}}>
+                                                    ❌ {lang==='ar'?'منتهي':'Expired'}
+                                                </div>
+                                            ) : equippedItem?(
                                                 <button onClick={()=>onUnequip(item.type,item.id)}
                                                     style={{width:'100%',padding:'4px 0',borderRadius:'6px',background:'rgba(239,68,68,0.11)',border:'1px solid rgba(239,68,68,0.28)',color:'#f87171',fontSize:'8px',fontWeight:800,cursor:'pointer',transition:'all 0.12s'}}
                                                     onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.2)';}}
@@ -1053,6 +1128,9 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                 </div>{/* end body */}
             </div>
         </div>
+
+        {/* ✅ FIX2: Item Detail Popup */}
+        {detailItem && <ItemDetailPopup item={detailItem} onClose={()=>setDetailItem(null)} />}
 
         {/* Gift Preview Modal */}
         {showGiftPreview&&selectedGift&&(
