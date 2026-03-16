@@ -466,6 +466,15 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                                     </div>
                                 </div>
                             )}
+                            {/* ✅ FIX 4: Duration days info */}
+                            {gift.durationDays && (
+                                <div className="gift-preview-stat">
+                                    <div className="gift-preview-stat-label">⏳ {lang === 'ar' ? 'تنتهي بعد' : 'Expires in'}</div>
+                                    <div className="gift-preview-stat-value" style={{color:'#f59e0b', fontWeight:800}}>
+                                        {gift.durationDays} {lang === 'ar' ? 'يوم' : 'days'}
+                                    </div>
+                                </div>
+                            )}
                             {/* Price */}
                             <div className="gift-preview-stat">
                                 <div className="gift-preview-stat-label">💰 {lang === 'ar' ? 'السعر' : 'Price'}</div>
@@ -769,44 +778,52 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
 // 🔥 COMBO SEND OVERLAY — bottom-right floating card, no backdrop
 // ══════════════════════════════════════════════════
 const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => {
-    const [comboCount, setComboCount] = useState(0);
-    const [ringProgress, setRingProgress] = useState(1);
-    const [comboActive, setComboActive] = useState(true);
-    const [totalBonus, setTotalBonus] = useState(0);
-    const [totalCharisma, setTotalCharisma] = useState(0);
-    const [closing, setClosing] = useState(false);
-    const [comboLog, setComboLog] = useState([]);
-    const [showFinalLog, setShowFinalLog] = useState(false);
-    // ✅ FIX: Changed from 8000 → 2000ms as requested
-    const COMBO_DURATION = 2000;
-    const ringIntervalRef = React.useRef(null);
-    const timerRef = React.useRef(null);
-    const ringStartRef = React.useRef(null);
-    const comboCountRef = React.useRef(0);
-    // ✅ FIX: Use ref for onClose to prevent stale closure causing early disappear
-    const onCloseRef = React.useRef(onClose);
-    useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+    const COMBO_DURATION = 3000; // ✅ 3 seconds
 
+    // ─── ALL STATE ───
+    const [comboCount,    setComboCount]    = useState(0);
+    const [ringProgress,  setRingProgress]  = useState(1);
+    const [comboActive,   setComboActive]   = useState(true);
+    const [totalBonus,    setTotalBonus]    = useState(0);
+    const [totalCharisma, setTotalCharisma] = useState(0);
+    const [closing,       setClosing]       = useState(false);
+    const [showFinalLog,  setShowFinalLog]  = useState(false);
+
+    // ─── ALL REFS — never go stale ───
+    const ringIntervalRef  = React.useRef(null);
+    const timerRef         = React.useRef(null);
+    const ringStartRef     = React.useRef(null);
+    const comboCountRef    = React.useRef(0);
+    const isClosedRef      = React.useRef(false);   // ✅ guard: prevent double-close
+    const onCloseRef       = React.useRef(onClose);
+    const currencyRef      = React.useRef(currency);
+    useEffect(() => { onCloseRef.current = onClose; },  [onClose]);
+    useEffect(() => { currencyRef.current = currency; }, [currency]);
+
+    // ─── CLOSE — called only once ───
     const close = React.useCallback(() => {
-        setClosing(true);
+        if (isClosedRef.current) return;      // ✅ prevent double-fire
+        isClosedRef.current = true;
         clearInterval(ringIntervalRef.current);
         clearTimeout(timerRef.current);
+        setClosing(true);
         if (comboCountRef.current > 0) {
             setShowFinalLog(true);
-            setTimeout(() => onCloseRef.current && onCloseRef.current(), 1800);
+            setTimeout(() => { onCloseRef.current && onCloseRef.current(); }, 1800);
         } else {
-            setTimeout(() => onCloseRef.current && onCloseRef.current(), 350);
+            setTimeout(() => { onCloseRef.current && onCloseRef.current(); }, 350);
         }
-    }, []); // ✅ FIX: empty deps — close never recreated, no stale closure
+    }, []); // ✅ empty deps — never recreated, never stale
 
+    // ─── COUNTDOWN ───
     const startCountdown = React.useCallback(() => {
-        if (ringIntervalRef.current) clearInterval(ringIntervalRef.current);
-        if (timerRef.current) clearTimeout(timerRef.current);
+        clearInterval(ringIntervalRef.current);
+        clearTimeout(timerRef.current);
         ringStartRef.current = Date.now();
         setRingProgress(1);
         setComboActive(true);
         ringIntervalRef.current = setInterval(() => {
-            const elapsed = Date.now() - ringStartRef.current;
+            const elapsed  = Date.now() - ringStartRef.current;
             const progress = 1 - elapsed / COMBO_DURATION;
             if (progress <= 0) {
                 clearInterval(ringIntervalRef.current);
@@ -815,68 +832,67 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
             } else {
                 setRingProgress(progress);
             }
-        }, 50);
+        }, 40);
         timerRef.current = setTimeout(() => {
             clearInterval(ringIntervalRef.current);
             close();
-        }, COMBO_DURATION + 100);
+        }, COMBO_DURATION + 80);
     }, [close]);
 
+    // ─── MOUNT / UNMOUNT ───
     useEffect(() => {
+        isClosedRef.current = false;
         startCountdown();
         return () => {
             clearInterval(ringIntervalRef.current);
             clearTimeout(timerRef.current);
         };
-    }, []);
+    }, []); // ✅ run only once on mount
 
-    // ✅ FIX: handleTap handles both pointer and the whole ring area
+    // ─── TAP HANDLER — uses refs, never stale ───
     const handleTap = React.useCallback((e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!comboActive && comboCount > 0) return;
-        if (currency < gift.cost) return;
+        if (isClosedRef.current) return;
+        if (currencyRef.current < gift.cost) return;
         onSend(gift, target, 1);
-        const bonus = generateRandomBonus(gift.minBonus || 1, gift.maxBonus || Math.floor(gift.cost * 0.1), gift.cost);
+        const bonus    = generateRandomBonus(gift.minBonus || 1, gift.maxBonus || Math.floor(gift.cost * 0.1), gift.cost);
         const charisma = gift.charisma || 0;
-        setTotalBonus(prev => prev + bonus);
+        setTotalBonus   (prev => prev + bonus);
         setTotalCharisma(prev => prev + charisma);
-        setComboLog(prev => [...prev, { bonus, charisma }]);
-        const newCount = comboCountRef.current + 1;
-        comboCountRef.current = newCount;
-        setComboCount(newCount);
-        startCountdown();
-    }, [comboActive, comboCount, currency, gift, target, onSend, startCountdown]);
+        comboCountRef.current += 1;
+        setComboCount(comboCountRef.current);
+        startCountdown(); // ✅ reset timer on every tap
+    }, [gift, target, onSend, startCountdown]);
 
-    const RING_R = 42;
-    const RING_C = 2 * Math.PI * RING_R;
-    const ringColor = comboCount >= 10 ? '#f59e0b' : comboCount >= 5 ? '#a78bfa' : '#00d4ff';
+    const RING_R    = 42;
+    const RING_C    = 2 * Math.PI * RING_R;
+    const ringColor = comboCountRef.current >= 10 ? '#f59e0b'
+                    : comboCountRef.current >= 5  ? '#a78bfa'
+                    : '#00d4ff';
 
-    // ✅ Final log — small card, no full-screen overlay
-    if (showFinalLog && comboCount > 0) {
+    // ─── FINAL LOG CARD ───
+    if (showFinalLog && comboCountRef.current > 0) {
         return (
             <div style={{
-                position: 'fixed',
-                bottom: '80px',
-                right: '12px',
-                zIndex: Z.OVERLAY,
-                width: '200px',
-                background: 'linear-gradient(135deg,rgba(20,20,40,0.98),rgba(10,10,25,0.99))',
-                border: `1px solid ${ringColor}55`,
-                borderRadius: '16px',
-                padding: '14px',
-                boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 20px ${ringColor}22`,
-                animation: 'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+                position:'fixed', bottom:'80px', right:'12px', zIndex:Z.OVERLAY,
+                width:'200px',
+                background:'linear-gradient(135deg,rgba(20,20,40,0.98),rgba(10,10,25,0.99))',
+                border:`1px solid ${ringColor}55`,
+                borderRadius:'16px', padding:'14px',
+                boxShadow:`0 8px 32px rgba(0,0,0,0.6), 0 0 20px ${ringColor}22`,
+                animation:'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+                pointerEvents:'none',
             }}>
-                <div style={{textAlign:'center', marginBottom:'10px'}}>
-                    <div style={{fontSize:'28px', marginBottom:'2px'}}>
-                        {gift.imageUrl ? <img src={gift.imageUrl} alt="" style={{width:'34px',height:'34px',objectFit:'contain'}} /> : gift.emoji}
+                <div style={{textAlign:'center',marginBottom:'10px'}}>
+                    <div style={{fontSize:'28px',marginBottom:'2px'}}>
+                        {gift.imageUrl?<img src={gift.imageUrl} alt="" style={{width:'34px',height:'34px',objectFit:'contain'}}/>:gift.emoji}
                     </div>
-                    <div style={{fontSize:'15px', fontWeight:900, color:ringColor, textShadow:`0 0 12px ${ringColor}`}}>
+                    <div style={{fontSize:'15px',fontWeight:900,color:ringColor,textShadow:`0 0 12px ${ringColor}`}}>
                         ×{comboCount} COMBO! 🎉
                     </div>
                 </div>
-                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px', marginBottom:'8px'}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
                     <div style={{background:'rgba(74,222,128,0.08)',border:'1px solid rgba(74,222,128,0.25)',borderRadius:'8px',padding:'6px',textAlign:'center'}}>
                         <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'بونص':'Bonus'}</div>
                         <div style={{fontSize:'13px',fontWeight:900,color:'#4ade80'}}>+{totalBonus>=1000?`${(totalBonus/1000).toFixed(1)}k`:totalBonus}🧠</div>
@@ -890,104 +906,95 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
         );
     }
 
-    // ✅ Main combo card — floating bottom-right, NO background overlay
+    // ─── MAIN COMBO CARD ───
     return (
         <div
             style={{
-                position: 'fixed',
-                bottom: '80px',
-                right: '12px',
-                zIndex: Z.OVERLAY,
-                width: '160px',
-                background: 'linear-gradient(135deg,rgba(15,15,35,0.97),rgba(8,8,22,0.98))',
-                border: `1.5px solid ${ringColor}66`,
-                borderRadius: '18px',
-                padding: '14px 12px',
-                boxShadow: `0 8px 32px rgba(0,0,0,0.65), 0 0 24px ${ringColor}22`,
+                position:'fixed', bottom:'80px', right:'12px', zIndex:Z.OVERLAY,
+                width:'160px',
+                background:'linear-gradient(135deg,rgba(15,15,35,0.97),rgba(8,8,22,0.98))',
+                border:`1.5px solid ${ringColor}66`,
+                borderRadius:'18px', padding:'14px 12px',
+                boxShadow:`0 8px 32px rgba(0,0,0,0.65), 0 0 24px ${ringColor}22`,
                 animation: closing
                     ? 'toast-slide-up 0.35s ease forwards'
                     : 'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '10px',
+                display:'flex', flexDirection:'column', alignItems:'center', gap:'10px',
             }}
+            onPointerDown={e => e.stopPropagation()}
             onClick={e => e.stopPropagation()}
         >
             {/* Gift image + name */}
             <div style={{textAlign:'center'}}>
-                {gift.imageUrl ? (
-                    <img src={gift.imageUrl} alt={gift.name_en} style={{width:'48px',height:'48px',objectFit:'contain'}} />
-                ) : (
-                    <span style={{fontSize:'38px',lineHeight:1}}>{gift.emoji || '🎁'}</span>
-                )}
+                {gift.imageUrl
+                    ? <img src={gift.imageUrl} alt={gift.name_en} style={{width:'48px',height:'48px',objectFit:'contain'}}/>
+                    : <span style={{fontSize:'38px',lineHeight:1}}>{gift.emoji||'🎁'}</span>
+                }
                 <div style={{fontSize:'10px',fontWeight:800,color:'#f1f5f9',marginTop:'3px'}}>
-                    {lang === 'ar' ? gift.name_ar : gift.name_en}
+                    {lang==='ar'?gift.name_ar:gift.name_en}
                 </div>
                 <div style={{fontSize:'9px',color:'#fbbf24',fontWeight:700}}>
-                    {gift.cost} 🧠 {lang === 'ar' ? 'لكل إرسال' : 'each'}
+                    {gift.cost} 🧠 {lang==='ar'?'لكل إرسال':'each'}
                 </div>
             </div>
 
             {/* Combo counter */}
             {comboCount > 0 && (
                 <div style={{
-                    fontSize:'16px', fontWeight:900, color:ringColor,
-                    textShadow: `0 0 16px ${ringColor}`,
-                    animation: comboCount >= 5 ? 'mythic-pulse 0.6s ease-in-out infinite' : 'none',
+                    fontSize:'16px',fontWeight:900,color:ringColor,
+                    textShadow:`0 0 16px ${ringColor}`,
+                    animation:comboCount>=5?'mythic-pulse 0.6s ease-in-out infinite':'none',
                 }}>
                     ×{comboCount} COMBO!
                 </div>
             )}
 
-            {/* Ring timer + tap button — ✅ FIX: entire 100x100 area is clickable */}
+            {/* ✅ FIX: entire 100×100 area tappable — not just the inner button */}
             <div
                 onPointerDown={currency >= gift.cost ? handleTap : undefined}
                 style={{
                     position:'relative', width:'100px', height:'100px',
                     display:'flex', alignItems:'center', justifyContent:'center',
                     cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
-                    userSelect:'none', WebkitUserSelect:'none', touchAction:'manipulation',
+                    userSelect:'none', WebkitUserSelect:'none',
+                    touchAction:'manipulation',
                     WebkitTapHighlightColor:'transparent',
                 }}
             >
-                <svg width="100" height="100" style={{position:'absolute',top:0,left:0,transform:'rotate(-90deg)', pointerEvents:'none'}}>
+                {/* SVG ring — pointer-events none so parent gets all taps */}
+                <svg width="100" height="100" style={{position:'absolute',top:0,left:0,transform:'rotate(-90deg)',pointerEvents:'none'}}>
                     <circle cx="50" cy="50" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5"/>
                     <circle
                         cx="50" cy="50" r={RING_R} fill="none"
-                        stroke={comboActive ? ringColor : 'rgba(255,255,255,0.15)'}
+                        stroke={comboActive?ringColor:'rgba(255,255,255,0.15)'}
                         strokeWidth="5"
                         strokeDasharray={RING_C}
-                        strokeDashoffset={RING_C * (1 - ringProgress)}
+                        strokeDashoffset={RING_C*(1-ringProgress)}
                         strokeLinecap="round"
-                        style={{filter: comboActive ? `drop-shadow(0 0 6px ${ringColor})` : 'none', transition:'stroke 0.3s'}}
+                        style={{filter:comboActive?`drop-shadow(0 0 6px ${ringColor})`:'none',transition:'stroke 0.3s'}}
                     />
                 </svg>
-                {/* Inner button — visual only, pointer-events none (parent handles tap) */}
-                <div
-                    style={{
-                        width:'76px', height:'76px', borderRadius:'50%',
-                        fontSize:'13px', fontWeight:900,
-                        background: comboActive
-                            ? `linear-gradient(135deg,${ringColor}cc,${ringColor}88)`
-                            : 'rgba(100,100,100,0.2)',
-                        color: '#fff',
-                        boxShadow: comboActive ? `0 0 24px ${ringColor}88` : 'none',
-                        transition: 'background 0.15s, box-shadow 0.15s',
-                        pointerEvents: 'none',
-                        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px'
-                    }}
-                >
-                    <span style={{fontSize:'20px',lineHeight:1}}>{gift.emoji || '🎁'}</span>
-                    <span style={{fontSize:'9px',fontWeight:800,opacity:0.9}}>
-                        {lang === 'ar' ? 'اضغط!' : 'TAP!'}
+                {/* Inner visual button — pointer-events none */}
+                <div style={{
+                    width:'76px', height:'76px', borderRadius:'50%',
+                    background:comboActive
+                        ?`linear-gradient(135deg,${ringColor}cc,${ringColor}88)`
+                        :'rgba(100,100,100,0.2)',
+                    boxShadow:comboActive?`0 0 24px ${ringColor}88`:'none',
+                    transition:'background 0.15s,box-shadow 0.15s',
+                    pointerEvents:'none',
+                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px',
+                }}>
+                    <span style={{fontSize:'20px',lineHeight:1}}>{gift.emoji||'🎁'}</span>
+                    <span style={{fontSize:'9px',fontWeight:800,color:'#fff',opacity:0.9}}>
+                        {lang==='ar'?'اضغط!':'TAP!'}
                     </span>
                 </div>
             </div>
 
             {totalBonus > 0 && (
                 <div style={{fontSize:'10px',fontWeight:800,color:'#4ade80',textAlign:'center'}}>
-                    +{totalBonus >= 1000 ? `${(totalBonus/1000).toFixed(1)}k` : totalBonus} 🧠
+                    +{totalBonus>=1000?`${(totalBonus/1000).toFixed(1)}k`:totalBonus} 🧠
                 </div>
             )}
         </div>
