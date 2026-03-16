@@ -1,46 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════
-// ⏳ ITEM EXPIRY SYSTEM — دالة الوقت لكل آيتم في الإنفنتري
-// ═══════════════════════════════════════════════════════════════════════
-//
-// 📖 كيفية الاستخدام في الشوب أو الفان باس:
-//   1. كل آيتم عنده حقل "durationDays" — لو null يعني أبدي، لو رقم يعني يوم
-//   2. لما تضيف آيتم للإنفنتري، اكتب معه "expiresAt" في Firestore:
-//      expiresAt = Date.now() + (item.durationDays * 24 * 60 * 60 * 1000)
-//   3. الدالة "isItemExpired" تتحقق منه كل مرة
-//
-// ✅ مثال إضافة آيتم بوقت:
-//   await usersCollection.doc(uid).update({
-//     [`inventory.frames`]: firebase.firestore.FieldValue.arrayUnion(item.id),
-//     [`inventory.expiry.${item.id}`]: item.durationDays
-//         ? Date.now() + item.durationDays * 86400000
-//         : null,
-//   });
-//
-// ✅ التحقق:
-//   const expired = isItemExpired(userData?.inventory?.expiry?.[item.id]);
-//   if (expired) { /* خذ الآيتم من الإنفنتري */ }
-// ═══════════════════════════════════════════════════════════════════════
-
-// Returns true if the item has expired
-const isItemExpired = (expiryTimestamp) => {
-    if (!expiryTimestamp) return false; // null = permanent
-    return Date.now() > expiryTimestamp;
-};
-
-// Returns days remaining (null = permanent, 0 = expired)
-const getItemDaysLeft = (expiryTimestamp) => {
-    if (!expiryTimestamp) return null;
-    const ms = expiryTimestamp - Date.now();
-    if (ms <= 0) return 0;
-    return Math.ceil(ms / 86400000);
-};
-
-// Build expiresAt timestamp when buying/awarding an item
-const buildItemExpiresAt = (durationDays) => {
-    if (!durationDays) return null;
-    return Date.now() + durationDays * 86400000;
-};
-
 const DAILY_TASKS_CONFIG = [
     { id: 1, label_en: '1 min',   label_ar: '١ دقيقة',   duration: 60000,   reward: { type:'currency', amount:50,  icon:'🧠'}, comingSoon: false },
     { id: 2, label_en: '5 min',   label_ar: '٥ دقائق',   duration: 300000,  reward: { type:'currency', amount:100, icon:'🧠'}, comingSoon: false },
@@ -229,7 +186,7 @@ const SHOP_ITEMS = {
     // 🔧 vipXP = charisma ÷ 20 (min 1)
     gifts: [
         // ── بدون مردود كوين (cost < 25 → maxBonus < 120) ──
-        { id: 'gift_rose',      name_en: "Rose",          name_ar: "وردة",         cost: 1,      type: 'gifts', charisma: 1,      vipXP: 1,    minBonus: 0,   maxBonus: 0,         desc_ar: "عبّر عن مشاعرك",           desc_en: "Express your feelings",    emoji: "🌹", imageUrl: "",  hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: '30', season: null, maxSendOptions: null },
+        { id: 'gift_rose',      name_en: "Rose",          name_ar: "وردة",         cost: 1,      type: 'gifts', charisma: 1,      vipXP: 1,    minBonus: 0,   maxBonus: 0,         desc_ar: "عبّر عن مشاعرك",           desc_en: "Express your feelings",    emoji: "🌹", imageUrl: "",  hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, maxSendOptions: null },
         { id: 'gift_candy',     name_en: "Poop",         name_ar: "Poop",         cost: 10,      type: 'gifts', charisma: 2,      vipXP: 1,    minBonus: 0,   maxBonus: 0,         desc_ar: "حلاوة تُفرح القلب",        desc_en: "Sweetness for the heart",  emoji: "🍬", imageUrl: "",  hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, maxSendOptions: [1,3,5,10] },
         { id: 'gift_cookie',    name_en: "Pills",        name_ar: "حبوب",       cost: 10,      type: 'gifts', charisma: 2,      vipXP: 1,    minBonus: 0,   maxBonus: 0,         desc_ar: "بسكويت لذيذ",              desc_en: "Delicious cookie",         emoji: "🍪", imageUrl: "",  hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, maxSendOptions: [1,3,5,10] },
         { id: 'gift_chocolate', name_en: "Chocolate",     name_ar: "شوكولاتة",     cost: 120,      type: 'gifts', charisma: 24,    vipXP: 5,    minBonus: 1,   maxBonus: 600,         desc_ar: "شوكولاتة فاخرة",           desc_en: "Premium chocolate",        emoji: "🍫", imageUrl: "",  hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, maxSendOptions: [1,3,5,10] },
@@ -280,6 +237,13 @@ const SHOP_ITEMS = {
         { id: 'gift_event_hidden',   name_en: "Event Only Gift", name_ar: "هدية الحدث فقط",  cost: 1500,  type: 'gifts', charisma: 300,  vipXP: 15,  minBonus: 120, maxBonus: 7500,   desc_ar: "تظهر في الشوب لكن للحدث فقط", desc_en: "Visible but event-only purchase",         emoji: "🗝️", imageUrl: "", hidden: false, isEvent: true,  limitedTime: false, eventOnly: true },
         { id: 'gift_phoenix',        name_en: "Phoenix",         name_ar: "طائر الفينيق",     cost: 25000, type: 'gifts', charisma: 5000, vipXP: 250, minBonus: 120, maxBonus: 125000, desc_ar: "طائر الفينيق الأسطوري — حصري لوقت محدود!", desc_en: "Legendary Phoenix — Limited time exclusive!", emoji: "🦅", imageUrl: "", hidden: false, isEvent: true, limitedTime: true, eventOnly: false, durationDays: null, season: null, maxSendOptions: [1,3,5,10], eventEndsAt: '2025-12-31', rarity: 'Mythic' },
         { id: 'gift_crystal_dragon', name_en: "Crystal Dragon",  name_ar: "تنين الكريستال",   cost: 50000, type: 'gifts', charisma: 10000,vipXP: 500, minBonus: 120, maxBonus: 250000, desc_ar: "تنين الكريستال للنخبة فقط — إيفنت حصري!", desc_en: "Crystal Dragon — Elite exclusive event gift!", emoji: "🐲", imageUrl: "", hidden: false, isEvent: true, limitedTime: true, eventOnly: false, durationDays: null, season: null, maxSendOptions: [1,3,5,10], eventEndsAt: '2025-12-31', rarity: 'Mythic' },
+
+        // ════ ⏳ TIMED GIFTS — هدايا بوقت محدد (لتجربة سيستم التايم) ════
+        // 🌠 Shooting Star — تبقى 7 أيام في الإنفنتري بعد الاستلام
+        { id: 'gift_shooting_star', name_en: "Shooting Star", name_ar: "نجم ساقط", cost: 800, type: 'gifts', charisma: 160, vipXP: 8, minBonus: 40, maxBonus: 4000, desc_ar: "⭐ نجم ساقط نادر — يظل معك 7 أيام فقط! أرسله قبل أن يختفي", desc_en: "⭐ Rare shooting star — stays with you for 7 days only! Send it before it fades", emoji: "🌠", imageUrl: "", hidden: false, isEvent: false, limitedTime: true, eventOnly: false, durationDays: 7, season: null, maxSendOptions: [1,3,5,10] },
+        // 🪄 Magic Lamp — تبقى 30 يوم في الإنفنتري بعد الاستلام
+        { id: 'gift_magic_lamp', name_en: "Magic Lamp", name_ar: "مصباح سحري", cost: 2000, type: 'gifts', charisma: 400, vipXP: 20, minBonus: 100, maxBonus: 10000, desc_ar: "🪄 المصباح السحري الأسطوري — تنتهي صلاحيته بعد 30 يوماً من الاستلام!", desc_en: "🪄 Legendary magic lamp — expires 30 days after receiving!", emoji: "🪔", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: 30, season: null, maxSendOptions: [1,3,5,10] },
+
         // ════ 🎫 FUNPASS EXCLUSIVE GIFTS ════
         { id: 'gift_fp_lucky',   name_en: "Lucky Clover", name_ar: "البرسيم المحظوظ", cost: 500,  type: 'gifts', charisma: 100,  vipXP: 5,  minBonus: 120, maxBonus: 2500,  desc_ar: "هدية FunPass حصرية 🍀", desc_en: "Exclusive FunPass gift 🍀", emoji: "🍀", imageUrl: "", hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, maxSendOptions: [1,3,5,10] },
         { id: 'gift_fp_crystal', name_en: "FP Crystal",   name_ar: "كريستال FanPass",  cost: 1200, type: 'gifts', charisma: 240,  vipXP: 12, minBonus: 120, maxBonus: 6000,  desc_ar: "هدية FunPass نادرة 💎", desc_en: "Rare FunPass gift 💎",    emoji: "🔷", imageUrl: "", hidden: true, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, maxSendOptions: [1,3,5,10] },
