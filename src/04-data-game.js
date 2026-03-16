@@ -1,3 +1,53 @@
+// ═══════════════════════════════════════════════════════════════════════
+// ⏳ ITEM EXPIRY SYSTEM — دالة الوقت لكل آيتم في الإنفنتري
+// ═══════════════════════════════════════════════════════════════════════
+//
+// 📖 كيفية الاستخدام في الشوب أو الفان باس:
+//   1. كل آيتم عنده حقل "durationDays" — لو null يعني أبدي، لو رقم يعني يوم
+//   2. لما تضيف آيتم للإنفنتري، اكتب معه "expiresAt" في Firestore:
+//      expiresAt = Date.now() + (item.durationDays * 24 * 60 * 60 * 1000)
+//   3. الدالة "isItemExpired" تتحقق منه كل مرة
+//
+// ✅ مثال إضافة آيتم بوقت (frames/badges/titles):
+//   await usersCollection.doc(uid).update({
+//     [`inventory.frames`]: firebase.firestore.FieldValue.arrayUnion(item.id),
+//     [`inventory.expiry.${item.id}`]: item.durationDays
+//         ? Date.now() + item.durationDays * 86400000
+//         : null,
+//   });
+//
+// ✅ مثال إضافة هدية بوقت (gifts):
+//   await usersCollection.doc(uid).update({
+//     'inventory.gifts': firebase.firestore.FieldValue.arrayUnion(item.id),
+//     [`inventory.giftCounts.${item.id}`]: currentCount + 1,
+//     [`inventory.expiry.${item.id}`]: buildItemExpiresAt(item.durationDays),
+//   });
+//
+// ✅ التحقق من الانتهاء:
+//   const expired = isItemExpired(userData?.inventory?.expiry?.[item.id]);
+//   if (expired) { /* حذف الآيتم من الإنفنتري */ }
+// ═══════════════════════════════════════════════════════════════════════
+
+// Returns true if the item has expired
+const isItemExpired = (expiryTimestamp) => {
+    if (!expiryTimestamp) return false; // null = permanent
+    return Date.now() > expiryTimestamp;
+};
+
+// Returns days remaining (null = permanent, 0 = expired)
+const getItemDaysLeft = (expiryTimestamp) => {
+    if (!expiryTimestamp) return null;
+    const ms = expiryTimestamp - Date.now();
+    if (ms <= 0) return 0;
+    return Math.ceil(ms / 86400000);
+};
+
+// Build expiresAt timestamp when buying/awarding an item
+const buildItemExpiresAt = (durationDays) => {
+    if (!durationDays) return null;
+    return Date.now() + durationDays * 86400000;
+};
+
 const DAILY_TASKS_CONFIG = [
     { id: 1, label_en: '1 min',   label_ar: '١ دقيقة',   duration: 60000,   reward: { type:'currency', amount:50,  icon:'🧠'}, comingSoon: false },
     { id: 2, label_en: '5 min',   label_ar: '٥ دقائق',   duration: 300000,  reward: { type:'currency', amount:100, icon:'🧠'}, comingSoon: false },
