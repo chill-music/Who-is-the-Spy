@@ -1459,6 +1459,22 @@ function App() {
                 updateBFFGiftPoints(user.uid, targetUser.uid, totalCharisma).catch(() => {});
             }
 
+            // ✅ FIX: Guard Ranking — write charisma gift amount to guard_log
+            // This populates the Guard Ranking on the receiver's profile
+            if (!isSelfSend && typeof guardLogCollection !== 'undefined') {
+                guardLogCollection.add({
+                    receiverId:   targetUser.uid,
+                    senderId:     user.uid,
+                    senderName:   userData?.displayName || 'User',
+                    senderPhoto:  userData?.photoURL || null,
+                    amount:       totalCharisma,
+                    charisma:     totalCharisma,
+                    giftId:       gift.id,
+                    qty,
+                    timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
+                }).catch(() => {});
+            }
+
             // ✅ Notification toast
             setNotification(qty > 1 ? `🎁 ${t.giftSent} ×${qty}!` : `🎁 ${t.giftSent}!`);
 
@@ -1501,14 +1517,27 @@ function App() {
             const giftCounts = userData?.inventory?.giftCounts || {};
             const currentCount = giftCounts[item.id] || 0;
             try {
-                await usersCollection.doc(user.uid).update({
+                const updateData = {
                     currency: firebase.firestore.FieldValue.increment(-item.cost),
                     'inventory.gifts': firebase.firestore.FieldValue.arrayUnion(item.id),
                     [`inventory.giftCounts.${item.id}`]: currentCount + 1,
-                });
+                };
+                // ✅ FIX 4: Store expiry timestamp for timed gifts (durationDays)
+                if (item.durationDays && item.durationDays > 0) {
+                    const expiresAt = Date.now() + item.durationDays * 86400000;
+                    // Only set expiry if not already set (first purchase) or extend it
+                    const existingExpiry = userData?.inventory?.expiry?.[item.id];
+                    if (!existingExpiry || existingExpiry < Date.now()) {
+                        updateData[`inventory.expiry.${item.id}`] = expiresAt;
+                    }
+                }
+                await usersCollection.doc(user.uid).update(updateData);
                 playSound('success');
                 const giftName = lang === 'ar' ? item.name_ar : item.name_en;
-                setNotification(`🎁 ${giftName} ${lang === 'ar' ? 'أُضيفت للمخزون!' : 'added to inventory!'}`);
+                const timerMsg = item.durationDays
+                    ? (lang === 'ar' ? ` (⏳ ${item.durationDays} أيام)` : ` (⏳ ${item.durationDays} days)`)
+                    : '';
+                setNotification(`🎁 ${giftName}${timerMsg} ${lang === 'ar' ? 'أُضيفت للمخزون!' : 'added to inventory!'}`);
             } catch (e) { setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
             return;
         }
