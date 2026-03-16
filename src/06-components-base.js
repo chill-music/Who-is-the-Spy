@@ -180,6 +180,9 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, la
         !banData.expiresAt ||
         new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))
     );
+    // ✅ FIX: detect if photoURL is an image URL or an emoji/text
+    const isImageURL = photoURL && (photoURL.startsWith('http') || photoURL.startsWith('data:') || photoURL.startsWith('/'));
+    const avatarStyle = { width: config.avatar + 'px', height: config.avatar + 'px', borderRadius: '50%', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, border: '2px solid rgba(0,0,0,0.5)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', filter: showBan ? 'grayscale(70%) brightness(0.5)' : 'none' };
 
     const renderFrame = () => {
         if (!frameItem) return null;
@@ -192,7 +195,19 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, la
     return (
         <div style={{ position: 'relative', width: config.wrapper + 'px', height: config.wrapper + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: onClick ? 'pointer' : 'default', flexShrink: 0 }} onClick={onClick}>
             {renderFrame()}
-            <img src={photoURL || `https://ui-avatars.com/api/?name=User&background=random`} style={{ width: config.avatar + 'px', height: config.avatar + 'px', borderRadius: '50%', objectFit: 'cover', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, border: '2px solid rgba(0,0,0,0.5)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', filter: showBan ? 'grayscale(70%) brightness(0.5)' : 'none' }} alt="avatar" />
+            {isImageURL ? (
+                /* ✅ Real image URL (includes animated GIFs) */
+                <img src={photoURL} style={{ ...avatarStyle, objectFit: 'cover' }} alt="avatar"
+                    onError={e => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=User&background=random`; }} />
+            ) : photoURL ? (
+                /* ✅ Emoji or text avatar */
+                <div style={{ ...avatarStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(30,30,60,0.85)', fontSize: Math.round(config.avatar * 0.52) + 'px', userSelect: 'none' }}>
+                    {photoURL}
+                </div>
+            ) : (
+                /* ✅ Fallback: ui-avatars */
+                <img src={`https://ui-avatars.com/api/?name=User&background=random`} style={{ ...avatarStyle, objectFit: 'cover' }} alt="avatar" />
+            )}
             {/* 🚫 Ban Overlay */}
             {showBan && (
                 <div style={{
