@@ -777,11 +777,15 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
     const [closing, setClosing] = useState(false);
     const [comboLog, setComboLog] = useState([]);
     const [showFinalLog, setShowFinalLog] = useState(false);
-    const COMBO_DURATION = 8000;
+    // ✅ FIX: Changed from 8000 → 2000ms as requested
+    const COMBO_DURATION = 2000;
     const ringIntervalRef = React.useRef(null);
     const timerRef = React.useRef(null);
     const ringStartRef = React.useRef(null);
     const comboCountRef = React.useRef(0);
+    // ✅ FIX: Use ref for onClose to prevent stale closure causing early disappear
+    const onCloseRef = React.useRef(onClose);
+    useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
     const close = React.useCallback(() => {
         setClosing(true);
@@ -789,11 +793,11 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
         clearTimeout(timerRef.current);
         if (comboCountRef.current > 0) {
             setShowFinalLog(true);
-            setTimeout(onClose, 2500);
+            setTimeout(() => onCloseRef.current && onCloseRef.current(), 1800);
         } else {
-            setTimeout(onClose, 350);
+            setTimeout(() => onCloseRef.current && onCloseRef.current(), 350);
         }
-    }, [onClose]);
+    }, []); // ✅ FIX: empty deps — close never recreated, no stale closure
 
     const startCountdown = React.useCallback(() => {
         if (ringIntervalRef.current) clearInterval(ringIntervalRef.current);
@@ -826,7 +830,8 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
         };
     }, []);
 
-    const handleTap = (e) => {
+    // ✅ FIX: handleTap handles both pointer and the whole ring area
+    const handleTap = React.useCallback((e) => {
         e.preventDefault();
         e.stopPropagation();
         if (!comboActive && comboCount > 0) return;
@@ -837,11 +842,11 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
         setTotalBonus(prev => prev + bonus);
         setTotalCharisma(prev => prev + charisma);
         setComboLog(prev => [...prev, { bonus, charisma }]);
-        const newCount = comboCount + 1;
+        const newCount = comboCountRef.current + 1;
         comboCountRef.current = newCount;
         setComboCount(newCount);
         startCountdown();
-    };
+    }, [comboActive, comboCount, currency, gift, target, onSend, startCountdown]);
 
     const RING_R = 42;
     const RING_C = 2 * Math.PI * RING_R;
@@ -935,9 +940,18 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                 </div>
             )}
 
-            {/* Ring timer + tap button */}
-            <div style={{position:'relative',width:'100px',height:'100px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <svg width="100" height="100" style={{position:'absolute',top:0,left:0,transform:'rotate(-90deg)'}}>
+            {/* Ring timer + tap button — ✅ FIX: entire 100x100 area is clickable */}
+            <div
+                onPointerDown={currency >= gift.cost ? handleTap : undefined}
+                style={{
+                    position:'relative', width:'100px', height:'100px',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
+                    userSelect:'none', WebkitUserSelect:'none', touchAction:'manipulation',
+                    WebkitTapHighlightColor:'transparent',
+                }}
+            >
+                <svg width="100" height="100" style={{position:'absolute',top:0,left:0,transform:'rotate(-90deg)', pointerEvents:'none'}}>
                     <circle cx="50" cy="50" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5"/>
                     <circle
                         cx="50" cy="50" r={RING_R} fill="none"
@@ -949,20 +963,18 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                         style={{filter: comboActive ? `drop-shadow(0 0 6px ${ringColor})` : 'none', transition:'stroke 0.3s'}}
                     />
                 </svg>
-                <button
-                    onPointerDown={handleTap}
-                    disabled={currency < gift.cost}
+                {/* Inner button — visual only, pointer-events none (parent handles tap) */}
+                <div
                     style={{
                         width:'76px', height:'76px', borderRadius:'50%',
-                        fontSize:'13px', fontWeight:900, border:'none',
-                        cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
+                        fontSize:'13px', fontWeight:900,
                         background: comboActive
                             ? `linear-gradient(135deg,${ringColor}cc,${ringColor}88)`
                             : 'rgba(100,100,100,0.2)',
                         color: '#fff',
                         boxShadow: comboActive ? `0 0 24px ${ringColor}88` : 'none',
                         transition: 'background 0.15s, box-shadow 0.15s',
-                        userSelect:'none', WebkitUserSelect:'none', touchAction:'manipulation',
+                        pointerEvents: 'none',
                         display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px'
                     }}
                 >
@@ -970,7 +982,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                     <span style={{fontSize:'9px',fontWeight:800,opacity:0.9}}>
                         {lang === 'ar' ? 'اضغط!' : 'TAP!'}
                     </span>
-                </button>
+                </div>
             </div>
 
             {totalBonus > 0 && (
