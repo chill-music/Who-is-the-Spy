@@ -483,6 +483,37 @@ const StaffRoleBadge = ({ userData, uid, lang, size = 'sm', onClick }) => {
 //   size        — 'sm' (default) | 'md'
 //   showStatus  — لون نقطة الستاتوس (مثلاً '#4ade80') أو null
 // ════════════════════════════════════════════════════════════
+// ✅ FIX: FlagDisplay — works on ALL platforms including Windows Chrome
+// Windows Chrome does NOT render flag emoji. We use flagcdn.com image as primary
+// and fall back to emoji if the image fails.
+const FlagDisplay = ({ countryCode, flagEmoji, size = 20, style = {} }) => {
+    const [imgFailed, setImgFailed] = React.useState(false);
+    if (!countryCode && !flagEmoji) return null;
+    const code = (countryCode || '').toLowerCase();
+    const imgUrl = code ? `https://flagcdn.com/w${size}/${code}.png` : null;
+    if (imgUrl && !imgFailed) {
+        return (
+            <img
+                src={imgUrl}
+                alt={flagEmoji || code}
+                onError={() => setImgFailed(true)}
+                style={{
+                    width: size + 'px',
+                    height: Math.round(size * 0.7) + 'px',
+                    objectFit: 'cover',
+                    borderRadius: '2px',
+                    display: 'inline-block',
+                    verticalAlign: 'middle',
+                    flexShrink: 0,
+                    ...style,
+                }}
+            />
+        );
+    }
+    // fallback: emoji
+    return <span style={{ fontSize: (size * 1.1) + 'px', lineHeight: 1, ...style }}>{flagEmoji || ''}</span>;
+};
+
 const PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
     if (!player) return null;
 
