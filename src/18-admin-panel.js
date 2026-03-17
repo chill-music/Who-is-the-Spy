@@ -2045,6 +2045,236 @@ const FinancialLogSection = ({ lang }) => {
 // ════════════════════════════════════════════════════════
 // 🎮 MAIN ADMIN PANEL COMPONENT
 // ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+// ❓ FAQ MANAGEMENT SECTION — Admin adds Q&A for Help Center
+// ════════════════════════════════════════════════════════
+const FAQManagementSection = ({ lang, onNotification }) => {
+    const [faqs, setFaqs] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [showForm, setShowForm] = React.useState(false);
+    const [editId, setEditId] = React.useState(null);
+    const [formData, setFormData] = React.useState({ emoji: '❓', question_ar: '', question_en: '', answer_ar: '', answer_en: '', order: 1 });
+    const [saving, setSaving] = React.useState(false);
+    const [deleting, setDeleting] = React.useState(null);
+
+    React.useEffect(() => {
+        const unsub = helpFaqCollection.onSnapshot(snap => {
+            let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            data.sort((a, b) => (a.order||99) - (b.order||99));
+            setFaqs(data);
+            setLoading(false);
+        }, () => setLoading(false));
+        return () => unsub();
+    }, []);
+
+    const handleSave = async () => {
+        if (!formData.question_ar.trim() || !formData.answer_ar.trim()) {
+            onNotification(lang==='ar'?'❌ السؤال والإجابة مطلوبان':'❌ Question and answer required'); return;
+        }
+        setSaving(true);
+        try {
+            const data = { ...formData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+            if (editId) {
+                await helpFaqCollection.doc(editId).update(data);
+                onNotification(lang==='ar'?'✅ تم التعديل':'✅ Updated');
+            } else {
+                await helpFaqCollection.add({ ...data, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                onNotification(lang==='ar'?'✅ تم الإضافة':'✅ Added');
+            }
+            setShowForm(false); setEditId(null);
+            setFormData({ emoji:'❓', question_ar:'', question_en:'', answer_ar:'', answer_en:'', order:1 });
+        } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+        setSaving(false);
+    };
+
+    const handleDelete = async (id) => {
+        setDeleting(id);
+        try { await helpFaqCollection.doc(id).delete(); onNotification(lang==='ar'?'✅ تم الحذف':'✅ Deleted'); }
+        catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+        setDeleting(null);
+    };
+
+    const startEdit = (faq) => {
+        setFormData({ emoji:faq.emoji||'❓', question_ar:faq.question_ar||'', question_en:faq.question_en||'', answer_ar:faq.answer_ar||'', answer_en:faq.answer_en||'', order:faq.order||1 });
+        setEditId(faq.id); setShowForm(true);
+    };
+
+    const inp = (placeholder, key, multiline) => multiline ? (
+        <textarea value={formData[key]} onChange={e=>setFormData(p=>({...p,[key]:e.target.value}))} placeholder={placeholder}
+            style={{width:'100%',padding:'8px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'12px',outline:'none',resize:'vertical',minHeight:'60px',boxSizing:'border-box',marginBottom:'8px'}}/>
+    ) : (
+        <input type={key==='order'?'number':'text'} value={formData[key]} onChange={e=>setFormData(p=>({...p,[key]:key==='order'?parseInt(e.target.value)||1:e.target.value}))} placeholder={placeholder}
+            style={{width:'100%',padding:'8px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'12px',outline:'none',boxSizing:'border-box',marginBottom:'8px'}}/>
+    );
+
+    return (
+        <div style={{padding:'16px',maxHeight:'calc(100vh - 160px)',overflowY:'auto'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+                <div style={{fontSize:'14px',fontWeight:800,color:'#00f2ff'}}>❓ {lang==='ar'?'إدارة الأسئلة الشائعة':'FAQ Management'}</div>
+                <button onClick={()=>{setShowForm(!showForm);setEditId(null);setFormData({emoji:'❓',question_ar:'',question_en:'',answer_ar:'',answer_en:'',order:faqs.length+1});}}
+                    style={{padding:'7px 14px',borderRadius:'10px',border:'1px solid rgba(0,242,255,0.4)',background:'rgba(0,242,255,0.1)',color:'#00f2ff',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>
+                    {showForm&&!editId?'✕':('+ '+(lang==='ar'?'إضافة سؤال':'Add FAQ'))}
+                </button>
+            </div>
+
+            {showForm && (
+                <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(0,242,255,0.2)',borderRadius:'14px',padding:'16px',marginBottom:'16px'}}>
+                    <div style={{fontSize:'12px',fontWeight:700,color:'#00f2ff',marginBottom:'12px'}}>{editId?(lang==='ar'?'تعديل السؤال':'Edit FAQ'):(lang==='ar'?'إضافة سؤال جديد':'Add New FAQ')}</div>
+                    <div style={{display:'grid',gridTemplateColumns:'60px 1fr',gap:'8px',marginBottom:'8px',alignItems:'center'}}>
+                        <div style={{fontSize:'11px',color:'#9ca3af'}}>Emoji</div>
+                        {inp('❓','emoji')}
+                    </div>
+                    <div style={{fontSize:'11px',color:'#9ca3af',marginBottom:'4px'}}>🇸🇦 {lang==='ar'?'السؤال (عربي)':'Question (Arabic)'}</div>
+                    {inp(lang==='ar'?'السؤال بالعربية...':'Arabic question...','question_ar')}
+                    <div style={{fontSize:'11px',color:'#9ca3af',marginBottom:'4px'}}>🇬🇧 {lang==='ar'?'السؤال (إنجليزي)':'Question (English)'}</div>
+                    {inp('English question...','question_en')}
+                    <div style={{fontSize:'11px',color:'#9ca3af',marginBottom:'4px'}}>🇸🇦 {lang==='ar'?'الإجابة (عربي)':'Answer (Arabic)'}</div>
+                    {inp(lang==='ar'?'الإجابة بالعربية...':'Arabic answer...','answer_ar',true)}
+                    <div style={{fontSize:'11px',color:'#9ca3af',marginBottom:'4px'}}>🇬🇧 {lang==='ar'?'الإجابة (إنجليزي)':'Answer (English)'}</div>
+                    {inp('English answer...','answer_en',true)}
+                    <div style={{fontSize:'11px',color:'#9ca3af',marginBottom:'4px'}}>{lang==='ar'?'الترتيب':'Order'}</div>
+                    {inp('1','order')}
+                    <div style={{display:'flex',gap:'8px',marginTop:'4px'}}>
+                        <button onClick={handleSave} disabled={saving} style={{flex:1,padding:'9px',borderRadius:'10px',border:'none',background:'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.15))',color:'#00f2ff',fontSize:'12px',fontWeight:800,cursor:'pointer',opacity:saving?0.6:1}}>
+                            {saving?'⏳...':(`💾 ${lang==='ar'?'حفظ':'Save'}`)}
+                        </button>
+                        <button onClick={()=>{setShowForm(false);setEditId(null);}} style={{padding:'9px 16px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'#9ca3af',fontSize:'12px',cursor:'pointer'}}>✕</button>
+                    </div>
+                </div>
+            )}
+
+            {loading ? <div style={{textAlign:'center',padding:'32px',color:'#6b7280'}}>⏳</div> :
+             faqs.length===0 ? <div style={{textAlign:'center',padding:'32px',color:'#4b5563'}}>
+                <div style={{fontSize:'32px',marginBottom:'8px'}}>❓</div>
+                <div style={{fontSize:'12px'}}>{lang==='ar'?'لا أسئلة بعد':'No FAQs yet'}</div>
+             </div> :
+             faqs.map(faq => (
+                <div key={faq.id} style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'12px',padding:'12px 14px',marginBottom:'8px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'10px'}}>
+                        <div style={{flex:1}}>
+                            <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
+                                <span style={{fontSize:'18px'}}>{faq.emoji||'❓'}</span>
+                                <span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>{lang==='ar'?faq.question_ar:faq.question_en}</span>
+                                <span style={{fontSize:'9px',padding:'1px 6px',borderRadius:'6px',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.2)',color:'#00f2ff'}}>#{faq.order||1}</span>
+                            </div>
+                            <div style={{fontSize:'11px',color:'#6b7280',lineHeight:1.5,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'300px'}}>{lang==='ar'?faq.answer_ar:faq.answer_en}</div>
+                        </div>
+                        <div style={{display:'flex',gap:'4px',flexShrink:0}}>
+                            <button onClick={()=>startEdit(faq)} style={{padding:'5px 10px',borderRadius:'8px',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',color:'#00f2ff',fontSize:'10px',fontWeight:700,cursor:'pointer'}}>✏️</button>
+                            <button onClick={()=>handleDelete(faq.id)} disabled={deleting===faq.id} style={{padding:'5px 10px',borderRadius:'8px',background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.25)',color:'#f87171',fontSize:'10px',fontWeight:700,cursor:'pointer',opacity:deleting===faq.id?0.5:1}}>🗑️</button>
+                        </div>
+                    </div>
+                </div>
+             ))}
+        </div>
+    );
+};
+
+// ════════════════════════════════════════════════════════
+// 📝 FEEDBACK INBOX SECTION — Admin views user feedback
+// ════════════════════════════════════════════════════════
+const FeedbackInboxSection = ({ lang, onNotification }) => {
+    const [feedbacks, setFeedbacks] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [filter, setFilter] = React.useState('all'); // 'all' | 'new' | 'reviewed'
+
+    React.useEffect(() => {
+        const unsub = feedbackCollection.onSnapshot(snap => {
+            let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            data.sort((a, b) => {
+                const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds*1000 || 0;
+                const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds*1000 || 0;
+                return tb - ta;
+            });
+            setFeedbacks(data);
+            setLoading(false);
+        }, () => setLoading(false));
+        return () => unsub();
+    }, []);
+
+    const markReviewed = async (id) => {
+        try {
+            await feedbackCollection.doc(id).update({ status: 'reviewed' });
+            onNotification(lang==='ar'?'✅ تم التعليم كمراجَع':'✅ Marked as reviewed');
+        } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+    };
+
+    const deleteFeedback = async (id) => {
+        try {
+            await feedbackCollection.doc(id).delete();
+            onNotification(lang==='ar'?'✅ تم الحذف':'✅ Deleted');
+        } catch(e) {}
+    };
+
+    const fmtDate = (ts) => {
+        if (!ts) return '—';
+        const d = ts?.toDate ? ts.toDate() : new Date(ts?.seconds*1000||ts);
+        return d.toLocaleDateString(lang==='ar'?'ar-EG':'en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    };
+
+    const shown = feedbacks.filter(f => filter==='all' ? true : f.status===filter);
+    const newCount = feedbacks.filter(f=>f.status==='new').length;
+
+    return (
+        <div style={{padding:'16px',maxHeight:'calc(100vh - 160px)',overflowY:'auto'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                    <div style={{fontSize:'14px',fontWeight:800,color:'#4ade80'}}>📝 {lang==='ar'?'صندوق الفيدباك':'Feedback Inbox'}</div>
+                    {newCount > 0 && <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'10px',background:'rgba(74,222,128,0.2)',border:'1px solid rgba(74,222,128,0.4)',color:'#4ade80',fontWeight:700}}>{newCount} {lang==='ar'?'جديد':'new'}</span>}
+                </div>
+            </div>
+            {/* Filter Tabs */}
+            <div style={{display:'flex',gap:'6px',marginBottom:'14px'}}>
+                {['all','new','reviewed'].map(f=>(
+                    <button key={f} onClick={()=>setFilter(f)} style={{padding:'5px 12px',borderRadius:'8px',border:`1px solid ${filter===f?'rgba(74,222,128,0.4)':'rgba(255,255,255,0.1)'}`,background:filter===f?'rgba(74,222,128,0.1)':'rgba(255,255,255,0.03)',color:filter===f?'#4ade80':'#6b7280',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>
+                        {f==='all'?(lang==='ar'?'الكل':'All'):f==='new'?(lang==='ar'?'جديد':'New'):(lang==='ar'?'تم المراجعة':'Reviewed')}
+                    </button>
+                ))}
+            </div>
+            {loading ? <div style={{textAlign:'center',padding:'32px',color:'#6b7280'}}>⏳</div> :
+             shown.length===0 ? <div style={{textAlign:'center',padding:'32px',color:'#4b5563'}}>
+                <div style={{fontSize:'32px',marginBottom:'8px'}}>📝</div>
+                <div style={{fontSize:'12px'}}>{lang==='ar'?'لا فيدباك':'No feedback'}</div>
+             </div> :
+             shown.map(fb => (
+                <div key={fb.id} style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${fb.status==='new'?'rgba(74,222,128,0.2)':'rgba(255,255,255,0.07)'}`,borderRadius:'12px',padding:'12px 14px',marginBottom:'8px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px',marginBottom:'8px'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                            <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0}}>
+                                {fb.userPhoto?<img src={fb.userPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>😎</div>}
+                            </div>
+                            <div>
+                                <div style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>{fb.userName||'User'}</div>
+                                <div style={{fontSize:'9px',color:'#6b7280'}}>{fmtDate(fb.createdAt)}</div>
+                            </div>
+                        </div>
+                        <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0}}>
+                            {/* Star rating */}
+                            <div style={{display:'flex',gap:'1px'}}>
+                                {[1,2,3,4,5].map(s=><span key={s} style={{fontSize:'10px',opacity:fb.rating>=s?1:0.25}}>⭐</span>)}
+                            </div>
+                            <span style={{fontSize:'9px',padding:'1px 6px',borderRadius:'6px',background:fb.status==='new'?'rgba(74,222,128,0.15)':'rgba(255,255,255,0.06)',border:`1px solid ${fb.status==='new'?'rgba(74,222,128,0.35)':'rgba(255,255,255,0.1)'}`,color:fb.status==='new'?'#4ade80':'#6b7280',fontWeight:700}}>
+                                {fb.status==='new'?(lang==='ar'?'جديد':'New'):(lang==='ar'?'مراجَع':'Reviewed')}
+                            </span>
+                        </div>
+                    </div>
+                    <div style={{fontSize:'12px',color:'#d1d5db',lineHeight:1.6,marginBottom:'10px',background:'rgba(255,255,255,0.03)',padding:'8px 10px',borderRadius:'8px'}}>{fb.text}</div>
+                    <div style={{display:'flex',gap:'6px'}}>
+                        {fb.status==='new' && (
+                            <button onClick={()=>markReviewed(fb.id)} style={{padding:'5px 12px',borderRadius:'8px',background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.25)',color:'#4ade80',fontSize:'10px',fontWeight:700,cursor:'pointer'}}>
+                                ✅ {lang==='ar'?'تم المراجعة':'Mark Reviewed'}
+                            </button>
+                        )}
+                        <button onClick={()=>deleteFeedback(fb.id)} style={{padding:'5px 10px',borderRadius:'8px',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',color:'#f87171',fontSize:'10px',fontWeight:700,cursor:'pointer'}}>
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+             ))}
+        </div>
+    );
+};
+
 const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenProfile }) => {
     const [activeSection, setActiveSection] = useState('overview');
     const [notification, setNotification] = useState(null);
@@ -2093,7 +2323,9 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenP
     navItems.push(
         { id:'reports',  icon:'🚨', label_en:'Reports',        label_ar:'البلاغات',      color:'#ef4444', roles:['owner','admin','moderator'] },
         { id:'tickets',  icon:'🎫', label_en:'Tickets',        label_ar:'التذاكر',       color:'#6366f1', roles:['owner','admin','moderator'] },
-        { id:'moments',  icon:'🔍', label_en:'Content Review', label_ar:'مراجعة المحتوى', color:'#8b5cf6', roles:['owner','admin'] }
+        { id:'moments',  icon:'🔍', label_en:'Content Review', label_ar:'مراجعة المحتوى', color:'#8b5cf6', roles:['owner','admin'] },
+        { id:'faq',      icon:'❓', label_en:'FAQ Mgmt',       label_ar:'الأسئلة الشائعة', color:'#00f2ff', roles:['owner','admin'] },
+        { id:'feedback', icon:'📝', label_en:'Feedback',       label_ar:'الفيدباك',      color:'#4ade80', roles:['owner','admin'] }
     );
 
     const rc = ROLE_CONFIG[role];
@@ -2110,6 +2342,8 @@ const AdminPanel = ({ show, onClose, currentUser, currentUserData, lang, onOpenP
             case 'reports':    return <ReportsSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} onOpenProfile={onOpenProfile} />;
             case 'tickets':    return <TicketsSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} />;
             case 'moments':    return <MomentsModerationSection currentUser={currentUser} currentUserData={currentUserData} lang={lang} onNotification={setNotification} onOpenProfile={onOpenProfile} />;
+            case 'faq':        return <FAQManagementSection lang={lang} onNotification={setNotification} />;
+            case 'feedback':   return <FeedbackInboxSection lang={lang} onNotification={setNotification} />;
             default: return null;
         }
     };
