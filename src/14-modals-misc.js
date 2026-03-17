@@ -898,6 +898,125 @@ const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotif
 // 🎯 PROFILE V11 - NEW PREMIUM DESIGN COMPONENTS
 
 // ════════════════════════════════════════════════════════
+// 🌍 LOBBY PUBLIC CHAT BOX — Inline in Lobby
+// ════════════════════════════════════════════════════════
+const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, currentUID, onOpenFull }) => {
+    const [messages, setMessages] = React.useState([]);
+    const [msgText, setMsgText] = React.useState('');
+    const [sending, setSending] = React.useState(false);
+    const messagesEndRef = React.useRef(null);
+    const inputRef = React.useRef(null);
+
+    React.useEffect(() => {
+        const unsub = publicChatCollection
+            .orderBy('createdAt', 'asc')
+            .limitToLast(30)
+            .onSnapshot(snap => {
+                setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 80);
+            }, () => {});
+        return () => unsub();
+    }, []);
+
+    const sendMsg = async () => {
+        if (!msgText.trim() || !user || !isLoggedIn || sending) return;
+        const text = msgText.trim(); setMsgText(''); setSending(true);
+        try {
+            const vipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(currentUser) || 0) : 0;
+            await publicChatCollection.add({
+                type: 'text', text,
+                senderId: user.uid,
+                senderName: currentUser?.displayName || 'User',
+                senderPhoto: currentUser?.photoURL || null,
+                senderVipLevel: vipLevel,
+                senderTitle: currentUser?.activeTitle || null,
+                senderFrame: currentUser?.equipped?.frames || null,
+                senderBadges: (currentUser?.equipped?.badges || []).slice(0, 3),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+        } catch(e) { setMsgText(text); }
+        setSending(false);
+    };
+
+    const fmtTs = (ts) => {
+        if (!ts) return '';
+        const d = ts?.toDate ? ts.toDate() : new Date((ts?.seconds||0)*1000);
+        return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    };
+
+    const visibleMsgs = messages.filter(m => m.type === 'text' || m.type === 'image' || m.type === 'red_packet');
+
+    return (
+        <div style={{margin:'0 16px 16px',background:'linear-gradient(160deg,rgba(5,5,18,0.98),rgba(9,8,26,0.96))',border:'1px solid rgba(74,222,128,0.15)',borderRadius:'16px',overflow:'hidden'}}>
+            {/* Messages */}
+            <div style={{height:'180px',overflowY:'auto',padding:'10px 10px 4px',display:'flex',flexDirection:'column',gap:'4px'}}>
+                {visibleMsgs.length === 0 && (
+                    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',color:'#4b5563',fontSize:'11px',flexDirection:'column',gap:'4px'}}>
+                        <span style={{fontSize:'24px'}}>🌍</span>
+                        <span>{lang==='ar'?'لا رسائل بعد — كن الأول!':'No messages yet — be the first!'}</span>
+                    </div>
+                )}
+                {visibleMsgs.map((msg, i) => {
+                    const isMe = msg.senderId === currentUID;
+                    const vipCfg = msg.senderVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msg.senderVipLevel-1, VIP_CONFIG.length-1)] : null;
+                    if (msg.type === 'red_packet') return (
+                        <div key={msg.id||i} style={{alignSelf:'center',fontSize:'10px',color:'#ffd700',padding:'3px 10px',background:'rgba(239,68,68,0.08)',borderRadius:'12px',border:'1px solid rgba(239,68,68,0.2)'}}>
+                            🧧 {msg.senderName} {lang==='ar'?'أرسل مغلف':'sent a packet'} {msg.rpAmount?.toLocaleString()} 🧠
+                        </div>
+                    );
+                    return (
+                        <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'6px',alignItems:'flex-end'}}>
+                            {/* Avatar — clickable */}
+                            <div onClick={() => onOpenProfile && onOpenProfile(msg.senderId)}
+                                style={{width:'24px',height:'24px',borderRadius:'50%',overflow:'hidden',flexShrink:0,cursor:'pointer',border:vipCfg?`1.5px solid ${vipCfg.nameColor}`:'1.5px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.08)'}}>
+                                {msg.senderPhoto ? <img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <span style={{fontSize:'11px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
+                            </div>
+                            <div style={{maxWidth:'70%'}}>
+                                <div onClick={() => onOpenProfile && onOpenProfile(msg.senderId)}
+                                    style={{display:'flex',alignItems:'center',gap:'3px',marginBottom:'1px',cursor:'pointer',justifyContent:isMe?'flex-end':'flex-start'}}>
+                                    <span style={{fontSize:'8px',fontWeight:700,color:vipCfg?vipCfg.nameColor:'#a78bfa'}}>{msg.senderName}</span>
+                                    {vipCfg && <span style={{fontSize:'7px',fontWeight:900,background:vipCfg.nameColor,color:'#000',padding:'0 2px',borderRadius:'2px'}}>VIP{msg.senderVipLevel}</span>}
+                                    {msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'10px',objectFit:'contain'}}/>}
+                                </div>
+                                {msg.type === 'image' ? (
+                                    <div style={{borderRadius:'8px',overflow:'hidden',border:'1px solid rgba(255,255,255,0.08)',maxWidth:'120px'}}>
+                                        <img src={msg.imageData} alt="📷" style={{display:'block',maxWidth:'120px',maxHeight:'120px',objectFit:'cover'}}/>
+                                    </div>
+                                ) : (
+                                    <div style={{padding:'6px 10px',borderRadius:isMe?'12px 4px 12px 12px':'4px 12px 12px 12px',background:isMe?'linear-gradient(135deg,rgba(112,0,255,0.35),rgba(0,242,255,0.15))':'rgba(255,255,255,0.07)',border:isMe?'1px solid rgba(0,242,255,0.15)':'1px solid rgba(255,255,255,0.08)',fontSize:'11px',color:'#e2e8f0',lineHeight:1.4,wordBreak:'break-word'}}>
+                                        {msg.text}
+                                    </div>
+                                )}
+                                <div style={{fontSize:'8px',color:'#374151',marginTop:'1px',textAlign:isMe?'right':'left',paddingLeft:'2px'}}>{fmtTs(msg.createdAt)}</div>
+                            </div>
+                        </div>
+                    );
+                })}
+                <div ref={messagesEndRef}/>
+            </div>
+            {/* Input */}
+            {isLoggedIn ? (
+                <div style={{display:'flex',gap:'5px',padding:'7px 10px',borderTop:'1px solid rgba(255,255,255,0.06)',background:'rgba(0,0,0,0.3)'}}>
+                    <input ref={inputRef} value={msgText} onChange={e=>setMsgText(e.target.value)}
+                        onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),sendMsg())}
+                        style={{flex:1,padding:'7px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'12px',outline:'none'}}
+                        placeholder={lang==='ar'?'اكتب للعموم...':'Write publicly...'}/>
+                    <button onClick={sendMsg} disabled={!msgText.trim()||sending}
+                        style={{width:'34px',height:'34px',borderRadius:'10px',border:'none',background:msgText.trim()?'linear-gradient(135deg,#7000ff,#00f2ff)':'rgba(255,255,255,0.05)',color:msgText.trim()?'white':'#4b5563',fontSize:'14px',cursor:msgText.trim()?'pointer':'default',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>➤</button>
+                    <button onClick={onOpenFull}
+                        style={{width:'34px',height:'34px',borderRadius:'10px',border:'1px solid rgba(74,222,128,0.3)',background:'rgba(74,222,128,0.08)',color:'#4ade80',fontSize:'13px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}} title={lang==='ar'?'فتح كامل':'Open full'}>⛶</button>
+                </div>
+            ) : (
+                <div style={{padding:'8px 12px',borderTop:'1px solid rgba(255,255,255,0.06)',textAlign:'center',color:'#6b7280',fontSize:'11px'}}>
+                    🔐 {lang==='ar'?'سجّل دخول للكتابة':'Login to chat'}
+                    <button onClick={onOpenFull} style={{marginLeft:'8px',padding:'3px 10px',borderRadius:'8px',background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ade80',fontSize:'10px',fontWeight:700,cursor:'pointer'}}>{lang==='ar'?'قراءة':'Read'}</button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ════════════════════════════════════════════════════════
 // 👑 VIP CENTER MODAL — Standalone full-screen
 // ════════════════════════════════════════════════════════
 const VIPCenterModal = ({ show, onClose, userData, user, lang, onNotification, onOpenShop }) => {
