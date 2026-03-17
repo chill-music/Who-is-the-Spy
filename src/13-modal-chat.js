@@ -94,13 +94,19 @@ const PrivateChatModal = ({
     // ── @ Mention ──
     const [showMentionSuggestion, setShowMentionSuggestion] = useState(false);
     // ── Mini Profile ──
-    const [miniProfile, setMiniProfile]     = useState(null); // { uid, name, photo, customId, bannerUrl, gender }
+    const [miniProfile, setMiniProfile]     = useState(null);
     const [loadingMiniProfile, setLoadingMiniProfile] = useState(false);
+    const [showMiniMenu, setShowMiniMenu]   = useState(false);
+    // ── Pen menu position (fixed) ──
+    const [msgMenuPos, setMsgMenuPos]       = useState({ top: 0, right: 0 });
+    // ── 3-dot header button rect ──
+    const [menuBtnRect, setMenuBtnRect]     = useState(null);
 
-    const messagesEndRef  = useRef(null);
-    const inputRef        = useRef(null);
-    const fileInputRef    = useRef(null);
-    const typingTimerRef  = useRef(null);
+    const messagesEndRef    = useRef(null);
+    const inputRef          = useRef(null);
+    const fileInputRef      = useRef(null);
+    const typingTimerRef    = useRef(null);
+    const headerMenuBtnRef  = useRef(null);
 
     // VIP level helpers
     const myVipLevel     = useMemo(() => { try { return getVIPLevel ? (getVIPLevel(currentUser) || 0) : 0; } catch { return 0; } }, [currentUser]);
@@ -308,11 +314,25 @@ const PrivateChatModal = ({
     const openMiniProfile = async (uid) => {
         if (!uid) return;
         setLoadingMiniProfile(true);
-        setMiniProfile({ uid, name: '...', photo: null, customId: null, bannerUrl: null, gender: null });
+        setShowMiniMenu(false);
+        setMiniProfile({ uid, name: '...', photo: null, customId: null, bannerUrl: null, gender: null, loading: true });
         try {
             const doc = await usersCollection.doc(uid).get();
             if (doc.exists) {
                 const d = doc.data();
+                const stats = d.stats || {};
+                const wins = stats.wins || 0;
+                const losses = stats.losses || 0;
+                const total = wins + losses;
+                const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+                const unlockedBadgeIds = Array.isArray(d.achievements)
+                    ? d.achievements.map(a => typeof a === 'string' ? a : a?.id).filter(Boolean)
+                    : ((d.achievements?.badges) || []).map(b => b?.id || b).filter(Boolean);
+                const topBadges = typeof ACHIEVEMENTS !== 'undefined'
+                    ? ACHIEVEMENTS.filter(a => unlockedBadgeIds.includes(a.id))
+                        .sort((a, b) => (b.tier || 0) - (a.tier || 0))
+                        .slice(0, 3)
+                    : [];
                 setMiniProfile({
                     uid,
                     name: d.displayName || 'User',
@@ -321,6 +341,15 @@ const PrivateChatModal = ({
                     bannerUrl: d.profileBanner || d.bannerUrl || null,
                     gender: d.gender || null,
                     isFriend: (currentUser?.friends || []).includes(uid),
+                    charisma: d.charisma || 0,
+                    familyTag: d.familyTag || null,
+                    familyName: d.familyName || null,
+                    familySignLevel: d.familySignLevel || null,
+                    familySignColor: d.familySignColor || null,
+                    familySignImageURL: d.familySignImageURL || null,
+                    gamesPlayed: total,
+                    winRate,
+                    topBadges,
                 });
             }
         } catch(e) {}
@@ -507,6 +536,7 @@ const PrivateChatModal = ({
 
                 {/* ── 3-dot menu button ── */}
                 <button
+                  ref={headerMenuBtnRef}
                   onClick={e => { e.stopPropagation(); setShowHeaderMenu(v => !v); }}
                   style={{
                     background: showHeaderMenu ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
@@ -738,49 +768,24 @@ const PrivateChatModal = ({
                           </div>
                           {/* ✏️ قلم التعديل/الحذف */}
                           {isMine && !isGift && !isImage && msg.type !== 'deleted' && (
-                            <div style={{ position: 'relative' }}>
-                              <button
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  setMsgMenuId(msgMenuId === msg.id ? null : msg.id);
-                                }}
-                                style={{
-                                  background: 'none', border: 'none', cursor: 'pointer',
-                                  fontSize: '11px', color: '#4b5563', padding: '2px 3px',
-                                  lineHeight: 1, borderRadius: '4px',
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.color = '#9ca3af'}
-                                onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
-                              >✏️</button>
-                              {msgMenuId === msg.id && (
-                                <div style={{
-                                  position: 'absolute',
-                                  bottom: '22px',
-                                  right: isMine ? 0 : 'auto',
-                                  left: isMine ? 'auto' : 0,
-                                  background: 'linear-gradient(160deg,#0e0e22,#13122a)',
-                                  border: '1px solid rgba(255,255,255,0.12)',
-                                  borderRadius: '10px', padding: '5px',
-                                  zIndex: 9999,
-                                  boxShadow: '0 8px 24px rgba(0,0,0,0.9)',
-                                  minWidth: '130px',
-                                  whiteSpace: 'nowrap',
-                                }}>
-                                  <button
-                                    onClick={e => { e.stopPropagation(); setEditingMsgId(msg.id); setEditMsgText(msg.text || ''); setMsgMenuId(null); }}
-                                    style={{ width:'100%', padding:'7px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', fontSize:'12px', color:'#00f2ff', fontWeight:700, textAlign:'left', display:'flex', alignItems:'center', gap:'7px' }}
-                                    onMouseEnter={e => e.currentTarget.style.background='rgba(0,242,255,0.1)'}
-                                    onMouseLeave={e => e.currentTarget.style.background='none'}
-                                  >✏️ {lang==='ar'?'تعديل':'Edit'}</button>
-                                  <button
-                                    onClick={e => { e.stopPropagation(); setMsgMenuId(null); handleDeleteMessage(msg.id); }}
-                                    style={{ width:'100%', padding:'7px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', fontSize:'12px', color:'#f87171', fontWeight:700, textAlign:'left', display:'flex', alignItems:'center', gap:'7px' }}
-                                    onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}
-                                    onMouseLeave={e => e.currentTarget.style.background='none'}
-                                  >🗑️ {lang==='ar'?'حذف':'Delete'}</button>
-                                </div>
-                              )}
-                            </div>
+                            <button
+                              onClick={e => {
+                                e.stopPropagation();
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setMsgMenuPos({
+                                  bottom: window.innerHeight - rect.top + 4,
+                                  right: Math.max(8, window.innerWidth - rect.right),
+                                });
+                                setMsgMenuId(msgMenuId === msg.id ? null : msg.id);
+                              }}
+                              style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                fontSize: '11px', color: '#4b5563', padding: '2px 3px',
+                                lineHeight: 1, borderRadius: '4px',
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.color = '#9ca3af'}
+                              onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
+                            >✏️</button>
                           )}
                           {/* ── DM evidence select ── */}
                           {showReportModal && reportStep === 'dm' && !isMine && !isGift && !isImage && (
@@ -1025,119 +1030,242 @@ const PrivateChatModal = ({
         )}
 
         {/* ── Header 3-dot dropdown — rendered as fixed overlay ── */}
-        {showHeaderMenu && (
-          <div style={{ position:'fixed', inset:0, zIndex: Z.TOOLTIP - 1 }}
-            onClick={() => setShowHeaderMenu(false)}>
-            <div style={{
-              position:'fixed', top:'60px', right:'calc(50vw - 210px + 8px)',
-              background:'linear-gradient(160deg,#0e0e22,#13122a)',
-              border:'1px solid rgba(255,255,255,0.13)',
-              borderRadius:'14px', padding:'7px',
-              zIndex: Z.TOOLTIP,
-              minWidth:'185px',
-              boxShadow:'0 16px 44px rgba(0,0,0,0.9)',
-            }} onClick={e => e.stopPropagation()}>
-              <button onClick={() => { setShowHeaderMenu(false); setShowDeleteChatConfirm(true); }}
-                style={{ width:'100%', padding:'10px 13px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', fontSize:'13px', fontWeight:700, color:'#f87171', textAlign:'left' }}
-                onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.12)'}
-                onMouseLeave={e => e.currentTarget.style.background='none'}
-              >🗑️ {lang==='ar'?'حذف المحادثة':'Delete Chat'}</button>
-              <button onClick={() => { isBlocked ? handleUnblock() : handleBlock(); }}
-                style={{ width:'100%', padding:'10px 13px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', fontSize:'13px', fontWeight:700, color: isBlocked?'#4ade80':'#f59e0b', textAlign:'left' }}
-                onMouseEnter={e => e.currentTarget.style.background = isBlocked?'rgba(74,222,128,0.1)':'rgba(245,158,11,0.1)'}
-                onMouseLeave={e => e.currentTarget.style.background='none'}
-              >{isBlocked?`✅ ${lang==='ar'?'إلغاء الحظر':'Unblock'}`:`🚫 ${lang==='ar'?'حظر المستخدم':'Block User'}`}</button>
-              <button onClick={() => { setShowHeaderMenu(false); setReportStep('reason'); setReportReason(''); setReportDMMsg(null); setShowReportModal(true); }}
-                style={{ width:'100%', padding:'10px 13px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', fontSize:'13px', fontWeight:700, color:'#9ca3af', textAlign:'left' }}
-                onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.07)'}
-                onMouseLeave={e => e.currentTarget.style.background='none'}
-              >🚨 {lang==='ar'?'إبلاغ':'Report'}</button>
+        {showHeaderMenu && (() => {
+          const rect = headerMenuBtnRef.current?.getBoundingClientRect();
+          const dropTop = rect ? rect.bottom + 4 : 60;
+          const dropRight = rect ? Math.max(8, window.innerWidth - rect.right) : 8;
+          return (
+            <div style={{ position:'fixed', inset:0, zIndex: Z.TOOLTIP - 1 }}
+              onClick={() => setShowHeaderMenu(false)}>
+              <div style={{
+                position:'fixed', top:`${dropTop}px`, right:`${dropRight}px`,
+                background:'linear-gradient(160deg,#0e0e22,#13122a)',
+                border:'1px solid rgba(255,255,255,0.13)',
+                borderRadius:'14px', padding:'7px',
+                zIndex: Z.TOOLTIP,
+                minWidth:'185px',
+                boxShadow:'0 16px 44px rgba(0,0,0,0.9)',
+              }} onClick={e => e.stopPropagation()}>
+                <button onClick={() => { setShowHeaderMenu(false); setShowDeleteChatConfirm(true); }}
+                  style={{ width:'100%', padding:'10px 13px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', fontSize:'13px', fontWeight:700, color:'#f87171', textAlign:'left' }}
+                  onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.12)'}
+                  onMouseLeave={e => e.currentTarget.style.background='none'}
+                >🗑️ {lang==='ar'?'حذف المحادثة':'Delete Chat'}</button>
+                <button onClick={() => { isBlocked ? handleUnblock() : handleBlock(); }}
+                  style={{ width:'100%', padding:'10px 13px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', fontSize:'13px', fontWeight:700, color: isBlocked?'#4ade80':'#f59e0b', textAlign:'left' }}
+                  onMouseEnter={e => e.currentTarget.style.background = isBlocked?'rgba(74,222,128,0.1)':'rgba(245,158,11,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.background='none'}
+                >{isBlocked?`✅ ${lang==='ar'?'إلغاء الحظر':'Unblock'}`:`🚫 ${lang==='ar'?'حظر المستخدم':'Block User'}`}</button>
+                <button onClick={() => { setShowHeaderMenu(false); setReportStep('reason'); setReportReason(''); setReportDMMsg(null); setShowReportModal(true); }}
+                  style={{ width:'100%', padding:'10px 13px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', fontSize:'13px', fontWeight:700, color:'#9ca3af', textAlign:'left' }}
+                  onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.07)'}
+                  onMouseLeave={e => e.currentTarget.style.background='none'}
+                >🚨 {lang==='ar'?'إبلاغ':'Report'}</button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
-        {/* ── Message pen menu click-outside ── */}
-        {msgMenuId && (
-          <div style={{ position:'fixed', inset:0, zIndex: 9998 }}
-            onClick={() => setMsgMenuId(null)} />
-        )}
+        {/* ── Pen message menu — fixed overlay ── */}
+        {msgMenuId && (() => {
+          const activeMsg = messages.find(m => m.id === msgMenuId);
+          if (!activeMsg) return null;
+          return (
+            <div style={{ position:'fixed', inset:0, zIndex: 9998 }} onClick={() => setMsgMenuId(null)}>
+              <div style={{
+                position:'fixed',
+                bottom: `${msgMenuPos.bottom}px`,
+                right: `${msgMenuPos.right}px`,
+                background: 'linear-gradient(160deg,#0e0e22,#13122a)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: '10px', padding: '5px',
+                zIndex: 9999,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.9)',
+                minWidth: '130px',
+                whiteSpace: 'nowrap',
+              }} onClick={e => e.stopPropagation()}>
+                <button
+                  onClick={e => { e.stopPropagation(); setEditingMsgId(msgMenuId); setEditMsgText(activeMsg.text || ''); setMsgMenuId(null); }}
+                  style={{ width:'100%', padding:'7px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', fontSize:'12px', color:'#00f2ff', fontWeight:700, textAlign:'left', display:'flex', alignItems:'center', gap:'7px' }}
+                  onMouseEnter={e => e.currentTarget.style.background='rgba(0,242,255,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.background='none'}
+                >✏️ {lang==='ar'?'تعديل':'Edit'}</button>
+                <button
+                  onClick={e => { e.stopPropagation(); setMsgMenuId(null); handleDeleteMessage(msgMenuId); }}
+                  style={{ width:'100%', padding:'7px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', fontSize:'12px', color:'#f87171', fontWeight:700, textAlign:'left', display:'flex', alignItems:'center', gap:'7px' }}
+                  onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.background='none'}
+                >🗑️ {lang==='ar'?'حذف':'Delete'}</button>
+              </div>
+            </div>
+          );
+        })()}
 
-        {/* ── Mini Profile Modal ── */}
+        {/* ── Mini Profile Modal — New Design ── */}
         {miniProfile && (
           <div style={{
             position:'fixed', inset:0, zIndex: Z.OVERLAY,
-            background:'rgba(0,0,0,0.7)',
+            background:'rgba(0,0,0,0.78)',
             display:'flex', alignItems:'center', justifyContent:'center',
             padding:'16px',
-          }} onClick={() => setMiniProfile(null)}>
+          }} onClick={() => { setMiniProfile(null); setShowMiniMenu(false); }}>
             <div style={{
               width:'100%', maxWidth:'320px',
               borderRadius:'22px', overflow:'hidden',
-              boxShadow:'0 28px 70px rgba(0,0,0,0.95)',
               background:'#0d0d1f',
-              border:'1px solid rgba(255,255,255,0.08)',
+              border:'1px solid rgba(255,255,255,0.1)',
+              boxShadow:'0 28px 70px rgba(0,0,0,0.95)',
               position:'relative',
             }} onClick={e => e.stopPropagation()}>
 
-              {/* 3 نقاط فوق يمين */}
-              <button
-                onClick={() => { setMiniProfile(null); setReportStep('reason'); setReportReason(''); setReportDMMsg(null); setShowReportModal(true); }}
-                style={{ position:'absolute', top:'10px', right:'10px', zIndex:2, background:'rgba(0,0,0,0.45)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white', fontSize:'18px', fontWeight:900, lineHeight:1 }}
-                title={lang==='ar'?'إبلاغ':'Report'}
-              >⋮</button>
-
-              {/* Banner / خلفية */}
+              {/* ── Banner ── */}
               <div style={{
-                height:'130px',
+                position:'relative', height:'130px',
                 background: miniProfile.bannerUrl
                   ? `url(${miniProfile.bannerUrl}) center/cover no-repeat`
                   : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)',
-                position:'relative',
               }}>
-                {/* صورة البروفايل */}
-                <div style={{
-                  position:'absolute', bottom:'-36px', left:'50%', transform:'translateX(-50%)',
-                  width:'76px', height:'76px', borderRadius:'50%',
-                  border:'3px solid #0d0d1f',
-                  overflow:'hidden',
-                  background:'#1a1a2e',
-                  boxShadow:'0 4px 20px rgba(0,0,0,0.6)',
-                }}>
-                  {miniProfile.photo
-                    ? <img src={miniProfile.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                    : <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'30px'}}>😎</div>
-                  }
+                {/* dark overlay */}
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.25) 0%,rgba(13,13,31,0.72) 100%)' }} />
+
+                {/* Top-right: badges + 3-dot */}
+                <div style={{ position:'absolute', top:'10px', right:'10px', zIndex:3, display:'flex', alignItems:'center', gap:'6px' }}>
+                  {/* Top 3 badges */}
+                  {(miniProfile.topBadges || []).map((badge, i) => (
+                    <div key={i} title={badge.title_en || badge.name_en || ''} style={{
+                      width:'28px', height:'28px', borderRadius:'8px',
+                      background:'rgba(0,0,0,0.55)',
+                      border:'1px solid rgba(255,255,255,0.18)',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize:'15px',
+                    }}>{badge.icon || '🏅'}</div>
+                  ))}
+                  {/* 3-dot menu */}
+                  <div style={{ position:'relative' }}>
+                    <button
+                      onClick={e => { e.stopPropagation(); setShowMiniMenu(v => !v); }}
+                      style={{
+                        background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.18)',
+                        borderRadius:'50%', width:'30px', height:'30px',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        cursor:'pointer', color:'white', fontSize:'17px', fontWeight:900, lineHeight:1,
+                      }}
+                    >⋮</button>
+                    {showMiniMenu && (
+                      <div style={{
+                        position:'absolute', top:'34px', right:0,
+                        background:'linear-gradient(160deg,#0e0e22,#13122a)',
+                        border:'1px solid rgba(255,255,255,0.13)',
+                        borderRadius:'12px', padding:'5px',
+                        minWidth:'160px',
+                        boxShadow:'0 10px 30px rgba(0,0,0,0.9)',
+                        zIndex:5,
+                      }} onClick={e => e.stopPropagation()}>
+                        <button
+                          onClick={() => { setMiniProfile(null); setShowMiniMenu(false); setReportStep('reason'); setReportReason(''); setReportDMMsg(null); setShowReportModal(true); }}
+                          style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#9ca3af', textAlign:'left' }}
+                          onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.07)'}
+                          onMouseLeave={e => e.currentTarget.style.background='none'}
+                        >🚨 {lang==='ar'?'إبلاغ':'Report'}</button>
+                        {miniProfile.uid !== user?.uid && (
+                          <button
+                            onClick={async () => { if (isBlocked) { await handleUnblock(); } else { await handleBlock(); } setShowMiniMenu(false); setMiniProfile(null); }}
+                            style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color: isBlocked?'#4ade80':'#f59e0b', textAlign:'left' }}
+                            onMouseEnter={e => e.currentTarget.style.background = isBlocked?'rgba(74,222,128,0.1)':'rgba(245,158,11,0.1)'}
+                            onMouseLeave={e => e.currentTarget.style.background='none'}
+                          >{isBlocked ? `✅ ${lang==='ar'?'إلغاء الحظر':'Unblock'}` : `🚫 ${lang==='ar'?'حظر':'Block'}`}</button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* المحتوى */}
-              <div style={{ paddingTop:'44px', paddingBottom:'20px', paddingLeft:'16px', paddingRight:'16px', textAlign:'center' }}>
-                {/* الاسم + الجنس */}
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', marginBottom:'4px' }}>
-                  <span style={{ fontSize:'18px', fontWeight:900, color:'white' }}>{miniProfile.name}</span>
-                  {miniProfile.gender && (
-                    <span style={{ fontSize:'16px' }}>{miniProfile.gender==='male'?'♂️':'♀️'}</span>
-                  )}
-                </div>
-                {/* ID */}
-                {miniProfile.customId && (
-                  <div style={{ fontSize:'13px', color:'#6b7280', marginBottom:'20px', display:'flex', alignItems:'center', justifyContent:'center', gap:'5px' }}>
-                    <span>ID: {miniProfile.customId}</span>
-                    <button onClick={() => { navigator.clipboard?.writeText(miniProfile.customId); }}
-                      style={{ background:'none', border:'none', cursor:'pointer', fontSize:'13px', color:'#4b5563', padding:'0 2px' }}>⎘</button>
+              {/* ── Profile section ── */}
+              <div style={{ padding:'0 16px 20px', position:'relative' }}>
+                {/* Avatar + info row */}
+                <div style={{ display:'flex', alignItems:'flex-end', gap:'12px', marginTop:'-36px', marginBottom:'14px' }}>
+                  {/* Avatar */}
+                  <div style={{
+                    width:'72px', height:'72px', borderRadius:'50%',
+                    border:'3px solid #0d0d1f',
+                    overflow:'hidden', background:'#1a1a2e',
+                    boxShadow:'0 4px 16px rgba(0,0,0,0.6)',
+                    flexShrink:0, zIndex:2,
+                  }}>
+                    {miniProfile.photo
+                      ? <img src={miniProfile.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      : <div style={{ width:'100%', height:'100%', background:'linear-gradient(135deg,#4f46e5,#7c3aed)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'28px' }}>😎</div>
+                    }
                   </div>
-                )}
+                  {/* Text info */}
+                  <div style={{ flex:1, paddingBottom:'4px', minWidth:0 }}>
+                    {/* Name + gender */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px' }}>
+                      <span style={{ fontSize:'16px', fontWeight:900, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{miniProfile.name}</span>
+                      {miniProfile.gender && <span style={{ fontSize:'13px', flexShrink:0 }}>{miniProfile.gender==='male'?'♂️':'♀️'}</span>}
+                    </div>
+                    {/* Charisma rank + family sign */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'5px' }}>
+                      {(() => {
+                        if (typeof CHARISMA_LEVELS === 'undefined') return null;
+                        const ch = miniProfile.charisma || 0;
+                        let lvl = CHARISMA_LEVELS[0];
+                        for (let ci = CHARISMA_LEVELS.length - 1; ci >= 0; ci--) {
+                          if (ch >= CHARISMA_LEVELS[ci].threshold) { lvl = CHARISMA_LEVELS[ci]; break; }
+                        }
+                        return lvl.iconUrl
+                          ? <img src={lvl.iconUrl} alt="" style={{ height:'22px', objectFit:'contain' }} />
+                          : <span style={{ fontSize:'15px' }}>{lvl.icon}</span>;
+                      })()}
+                      {miniProfile.familyTag && (
+                        typeof ProfileFamilySignBadge !== 'undefined'
+                          ? <ProfileFamilySignBadge
+                              userData={{
+                                familyTag: miniProfile.familyTag,
+                                familyName: miniProfile.familyName,
+                                familySignLevel: miniProfile.familySignLevel,
+                                familySignColor: miniProfile.familySignColor || '#00f2ff',
+                                familySignImageURL: miniProfile.familySignImageURL,
+                              }}
+                              lang={lang}
+                            />
+                          : <span style={{ fontSize:'10px', fontWeight:800, color:'#00f2ff', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', borderRadius:'6px', padding:'2px 8px' }}>{miniProfile.familyTag}</span>
+                      )}
+                    </div>
+                    {/* ID */}
+                    {miniProfile.customId && (
+                      <div style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'11px', color:'#6b7280' }}>
+                        <span>ID: {miniProfile.customId}</span>
+                        <button onClick={() => navigator.clipboard?.writeText(miniProfile.customId)}
+                          style={{ background:'none', border:'none', cursor:'pointer', fontSize:'12px', color:'#4b5563', padding:'0 2px', lineHeight:1 }}>⎘</button>
+                      </div>
+                    )}
+                    {miniProfile.loading && <div style={{ fontSize:'11px', color:'#4b5563', fontStyle:'italic' }}>⏳</div>}
+                  </div>
+                </div>
 
-                {/* أزرار الأكشن */}
-                <div style={{ display:'flex', gap:'14px', justifyContent:'center' }}>
-                  {/* هدية — وردي */}
-                  {miniProfile.uid !== user?.uid && onSendGift && (
-                    <button onClick={() => { setMiniProfile(null); setShowGiftModal(true); }}
-                      style={{ width:'58px', height:'58px', borderRadius:'50%', background:'linear-gradient(135deg,#ec4899,#db2777)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 14px rgba(236,72,153,0.45)' }}>
-                      <span style={{ fontSize:'26px' }}>🎁</span>
-                    </button>
-                  )}
-                  {/* إضافة صديق — أخضر */}
+                {/* Stats row */}
+                <div style={{ display:'flex', borderTop:'1px solid rgba(255,255,255,0.07)', borderBottom:'1px solid rgba(255,255,255,0.07)', margin:'0 0 16px', padding:'12px 0' }}>
+                  <div style={{ flex:1, textAlign:'center' }}>
+                    <div style={{ fontSize:'22px', fontWeight:900, color:'white', lineHeight:1 }}>{miniProfile.gamesPlayed ?? 0}</div>
+                    <div style={{ fontSize:'10px', color:'#6b7280', marginTop:'3px' }}>{lang==='ar'?'مباريات':'Games'}</div>
+                  </div>
+                  <div style={{ width:'1px', background:'rgba(255,255,255,0.08)', margin:'4px 0' }} />
+                  <div style={{ flex:1, textAlign:'center' }}>
+                    {(() => {
+                      const rate = miniProfile.winRate ?? 0;
+                      const col = rate >= 70 ? '#10b981' : rate >= 50 ? '#facc15' : '#f97316';
+                      return <>
+                        <div style={{ fontSize:'22px', fontWeight:900, color:col, lineHeight:1 }}>{rate}%</div>
+                        <div style={{ fontSize:'10px', color:'#6b7280', marginTop:'3px' }}>{lang==='ar'?'نسبة الفوز':'Winning Rate'}</div>
+                      </>;
+                    })()}
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div style={{ display:'flex', gap:'10px' }}>
                   {miniProfile.uid !== user?.uid && !miniProfile.isFriend && (
                     <button onClick={async () => {
                         try {
@@ -1145,12 +1273,25 @@ const PrivateChatModal = ({
                           setMiniProfile(p => ({ ...p, isFriend: true }));
                         } catch(e) {}
                       }}
-                      style={{ width:'58px', height:'58px', borderRadius:'50%', background:'linear-gradient(135deg,#10b981,#059669)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 14px rgba(16,185,129,0.45)' }}>
-                      <span style={{ fontSize:'26px' }}>👤+</span>
+                      style={{ flex:1, padding:'11px', borderRadius:'50px', background:'linear-gradient(135deg,rgba(0,242,255,0.22),rgba(0,180,255,0.18))', border:'1px solid rgba(0,242,255,0.4)', color:'#00f2ff', fontSize:'13px', fontWeight:800, cursor:'pointer' }}>
+                      {lang==='ar'?'إضافة':'Add'}
                     </button>
                   )}
-                  {miniProfile.isFriend && (
-                    <div style={{ width:'58px', height:'58px', borderRadius:'50%', background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px' }}>✅</div>
+                  {miniProfile.uid !== user?.uid && miniProfile.isFriend && (
+                    <div style={{ flex:1, padding:'11px', borderRadius:'50px', background:'rgba(16,185,129,0.12)', border:'1px solid rgba(16,185,129,0.3)', color:'#10b981', fontSize:'13px', fontWeight:800, textAlign:'center' }}>
+                      ✅ {lang==='ar'?'صديق':'Friends'}
+                    </div>
+                  )}
+                  {miniProfile.uid !== user?.uid && onSendGift && (
+                    <button onClick={() => { setMiniProfile(null); setShowMiniMenu(false); setShowGiftModal(true); }}
+                      style={{ flex:1, padding:'11px', borderRadius:'50px', background:'linear-gradient(135deg,rgba(255,80,150,0.26),rgba(236,72,153,0.18))', border:'1px solid rgba(255,80,150,0.4)', color:'#f472b6', fontSize:'13px', fontWeight:800, cursor:'pointer' }}>
+                      {lang==='ar'?'إرسال هدية':'Send Gift'}
+                    </button>
+                  )}
+                  {miniProfile.uid === user?.uid && (
+                    <div style={{ flex:1, padding:'11px', borderRadius:'50px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'#6b7280', fontSize:'13px', fontWeight:700, textAlign:'center' }}>
+                      {lang==='ar'?'أنت 👤':'You 👤'}
+                    </div>
                   )}
                 </div>
               </div>
