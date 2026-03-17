@@ -2282,23 +2282,6 @@ function App() {
                                     fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.2s',
                                 }}
                             >📊 {lang==='ar' ? 'رانكينج' : 'Ranking'}</button>
-                            {/* 🆕 Family shortcut in lobby header */}
-                            <button
-                                onClick={() => { setViewFamilyId(userFamily?.id || null); setShowFamilyModal(true); }}
-                                style={{
-                                    flex:1, padding:'9px 0', borderRadius:'10px 10px 0 0', border:'none',
-                                    background: 'rgba(255,255,255,0.03)',
-                                    color: userFamily ? '#f97316' : '#6b7280',
-                                    borderBottom: '2px solid transparent',
-                                    fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.2s',
-                                    display:'flex', alignItems:'center', justifyContent:'center', gap:'4px',
-                                }}
-                            >
-                                🏠 {lang==='ar' ? 'فاميلي' : 'Family'}
-                                {userFamily && (
-                                    <span style={{fontSize:'8px',padding:'1px 5px',borderRadius:'8px',background:'rgba(249,115,22,0.2)',border:'1px solid rgba(249,115,22,0.4)',color:'#f97316',fontWeight:800,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'50px'}}>{userFamily.name}</span>
-                                )}
-                            </button>
                         </div>
                     )}
 
@@ -2393,6 +2376,21 @@ function App() {
                                     </div>
                                 </>
                             )}
+
+                            {/* ── 🌍 INLINE PUBLIC CHAT in Lobby ── */}
+                            <div className="sec-head-new" style={{marginTop:'8px'}}>
+                                <span className="sec-title-new">🌍 {lang==='ar'?'الشات العام':'Public Chat'}</span>
+                                <button className="sec-action-new" onClick={() => setShowPublicChat(true)}>{lang==='ar'?'فتح':'Open'}</button>
+                            </div>
+                            <LobbyPublicChatBox
+                                currentUser={isLoggedIn ? userData : null}
+                                user={user}
+                                lang={lang}
+                                isLoggedIn={isLoggedIn}
+                                onOpenProfile={(uid) => { setTargetProfileUID(uid); setShowUserProfile(true); }}
+                                currentUID={currentUID}
+                                onOpenFull={() => setShowPublicChat(true)}
+                            />
                         </div>
                     )}
 
@@ -2419,7 +2417,9 @@ function App() {
                                                     top3[0] ? {p:top3[0], cls:'ps-1', medal:'👑', crown:true} : null,
                                                     top3[2] ? {p:top3[2], cls:'ps-3', medal:'🥉'} : null,
                                                 ].filter(Boolean).map((slot, i) => (
-                                                    <div key={i} className={`podium-slot-new ${slot.cls}`}>
+                                                    <div key={i} className={`podium-slot-new ${slot.cls}`}
+                                                        onClick={() => { setViewFamilyId(slot.p.id); setShowFamilyModal(true); }}
+                                                        style={{cursor:'pointer'}}>
                                                         {slot.crown && <div style={{fontSize:'18px',marginBottom:'2px'}}>👑</div>}
                                                         <div className="p-avatar-new">
                                                             {slot.p.photoURL
@@ -2433,9 +2433,13 @@ function App() {
                                                 ))}
                                             </div>
                                         )}
-                                        <div className="lb-list-new">
+                        <div className="lb-list-new">
                                             {rest.map((fam, i) => (
-                                                <div key={fam.id} className="lb-row-new" style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)'}}>
+                                                <div key={fam.id} className="lb-row-new"
+                                                    onClick={() => { setViewFamilyId(fam.id); setShowFamilyModal(true); }}
+                                                    style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer'}}
+                                                    onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.04)'}
+                                                    onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                                                     <div className="lb-num-new">#{i+4}</div>
                                                     <div className="lb-av-new">
                                                         {fam.photoURL ? <img src={fam.photoURL} alt="" /> : <span style={{fontSize:'18px'}}>{fam.emblem||'🏠'}</span>}
@@ -2444,7 +2448,10 @@ function App() {
                                                         <div className="lb-name-new">{fam.name}</div>
                                                         <div className="lb-sub-new">{fam.tag} · {fam.memberCount||0} {lang==='ar'?'عضو':'members'}</div>
                                                     </div>
-                                                    <div style={{fontSize:'12px',fontWeight:800,color:'#f97316'}}>{(fam.activeness||0).toLocaleString()} ⚡</div>
+                                                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                                        <div style={{fontSize:'12px',fontWeight:800,color:'#f97316'}}>{(fam.activeness||0).toLocaleString()} ⚡</div>
+                                                        {!userFamily && isLoggedIn && <span style={{fontSize:'9px',padding:'2px 7px',borderRadius:'8px',background:'rgba(74,222,128,0.12)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ade80',fontWeight:700}}>{lang==='ar'?'انضم':'Join'}</span>}
+                                                    </div>
                                                 </div>
                                             ))}
                                             {data.length === 0 && <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>🏠 {lang==='ar'?'لا توجد عائلات بعد':'No families yet'}</div>}
