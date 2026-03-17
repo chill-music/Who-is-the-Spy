@@ -980,11 +980,8 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                         style: { position:'relative', height:'130px', background: miniProfile.bannerUrl ? ('url(' + miniProfile.bannerUrl + ') center/cover no-repeat') : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)' }
                     },
                         React.createElement('div', { style: { position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.25) 0%,rgba(13,13,31,0.72) 100%)' } }),
-                        // Top-right: badges + 3-dot
-                        React.createElement('div', { style: { position:'absolute', top:'10px', right:'10px', zIndex:3, display:'flex', alignItems:'center', gap:'6px' } },
-                            (miniProfile.topBadges || []).map(function(badge, i) {
-                                return React.createElement('div', { key: i, title: badge.title_en || badge.name_en || '', style: { width:'28px', height:'28px', borderRadius:'8px', background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'15px' } }, badge.icon || '🏅');
-                            }),
+                        // 3-dot only — top right
+                        React.createElement('div', { style: { position:'absolute', top:'10px', right:'10px', zIndex:3 } },
                             React.createElement('div', { style: { position:'relative' } },
                                 React.createElement('button', {
                                     onClick: function(e) { e.stopPropagation(); setShowMiniMenuFam(function(v) { return !v; }); },
@@ -1004,21 +1001,41 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                             )
                         )
                     ),
+                    // Badges row — below banner
+                    (miniProfile.topBadges || []).length > 0 && React.createElement('div', {
+                        style: { display:'flex', gap:'6px', padding:'8px 16px 0', justifyContent:'flex-start' }
+                    },
+                        (miniProfile.topBadges || []).map(function(badge, i) {
+                            return React.createElement('div', {
+                                key: i, title: badge.title_en || badge.name_en || '',
+                                style: { width:'32px', height:'32px', borderRadius:'10px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px' }
+                            }, badge.imageUrl
+                                ? React.createElement('img', { src: badge.imageUrl, alt:'', style: { width:'22px', height:'22px', objectFit:'contain' } })
+                                : (badge.icon || '🏅')
+                            );
+                        })
+                    ),
                     // Profile section
-                    React.createElement('div', { style: { padding:'0 16px 20px', position:'relative' } },
+                    React.createElement('div', { style: { padding: (miniProfile.topBadges||[]).length > 0 ? '6px 16px 20px' : '0 16px 20px', position:'relative' } },
                         // Avatar + info row
-                        React.createElement('div', { style: { display:'flex', alignItems:'flex-end', gap:'12px', marginTop:'-36px', marginBottom:'14px' } },
-                            // Avatar
-                            React.createElement('div', { style: { width:'72px', height:'72px', borderRadius:'50%', border:'3px solid #0d0d1f', overflow:'hidden', background:'#1a1a2e', boxShadow:'0 4px 16px rgba(0,0,0,0.6)', flexShrink:0, zIndex:2 } },
+                        React.createElement('div', { style: { display:'flex', alignItems:'flex-end', gap:'12px', marginTop: (miniProfile.topBadges||[]).length > 0 ? '-48px' : '-36px', marginBottom:'14px' } },
+                            // Avatar — clickable opens full profile
+                            React.createElement('div', {
+                                onClick: function() { setMiniProfile(null); setShowMiniMenuFam(false); },
+                                style: { width:'72px', height:'72px', borderRadius:'50%', border:'3px solid #0d0d1f', overflow:'hidden', background:'#1a1a2e', boxShadow:'0 4px 16px rgba(0,0,0,0.6)', flexShrink:0, zIndex:2, cursor:'pointer' }
+                            },
                                 miniProfile.photo
                                     ? React.createElement('img', { src: miniProfile.photo, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'} })
                                     : React.createElement('div', { style:{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px'} }, '😎')
                             ),
                             // Info
                             React.createElement('div', { style: { flex:1, paddingBottom:'4px', minWidth:0 } },
-                                // Name + gender
-                                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px' } },
-                                    React.createElement('span', { style: { fontSize:'16px', fontWeight:900, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } }, miniProfile.name),
+                                // Name + gender — clickable opens full profile
+                                React.createElement('div', {
+                                    onClick: function() { setMiniProfile(null); setShowMiniMenuFam(false); },
+                                    style: { display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px', cursor:'pointer' }
+                                },
+                                    React.createElement('span', { style: { fontSize:'16px', fontWeight:900, color:'#00f2ff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration:'underline dotted rgba(0,242,255,0.4)' } }, miniProfile.name),
                                     miniProfile.gender && React.createElement('span', { style: { fontSize:'13px', flexShrink:0 } }, miniProfile.gender==='male'?'♂️':'♀️')
                                 ),
                                 // Charisma + Family sign
