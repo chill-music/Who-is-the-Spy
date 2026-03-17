@@ -572,6 +572,9 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
     const [showTransferConfirm, setShowTransferConfirm] = React.useState(false);
     const [sendingRedPacket, setSendingRedPacket] = React.useState(false);
     const [showRedPacketModal, setShowRedPacketModal] = React.useState(false);
+    // ── Mini Profile in group chat ──
+    const [groupMiniProfile, setGroupMiniProfile] = React.useState(null);
+    const [groupMiniMenuOpen, setGroupMiniMenuOpen] = React.useState(false);
     const messagesEndRef = React.useRef(null);
     const chatInputRef = React.useRef(null);
     const fileInputRef = React.useRef(null);
@@ -952,7 +955,51 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
     };
 
-    // Load member details when showing the details panel
+    const openGroupMiniProfile = async (uid, basicData) => {
+        if (!uid) return;
+        setGroupMiniMenuOpen(false);
+        setGroupMiniProfile({ uid, name: basicData?.name || '...', photo: basicData?.photo || null, loading: true });
+        try {
+            const doc = await usersCollection.doc(uid).get();
+            if (doc.exists) {
+                const d = doc.data();
+                const stats = d.stats || {};
+                const wins = stats.wins || 0;
+                const losses = stats.losses || 0;
+                const total = wins + losses;
+                const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+                const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
+                const vipCfg = vipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(vipLevel - 1, VIP_CONFIG.length - 1)] : null;
+                let signImgURL = d.familySignImageURL || null;
+                if (!signImgURL && d.familySignLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined') {
+                    const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === d.familySignLevel);
+                    signImgURL = cfg?.imageURL || null;
+                }
+                setGroupMiniProfile({
+                    uid,
+                    name: d.displayName || 'User',
+                    photo: d.photoURL || null,
+                    customId: d.customId || null,
+                    bannerUrl: d.profileBanner || d.bannerUrl || null,
+                    gender: d.gender || null,
+                    isFriend: (currentUserData?.friends || []).includes(uid),
+                    charisma: d.charisma || 0,
+                    familyTag: d.familyTag || null,
+                    familyName: d.familyName || null,
+                    familySignLevel: d.familySignLevel || null,
+                    familySignColor: d.familySignColor || null,
+                    familySignImageURL: signImgURL,
+                    gamesPlayed: total,
+                    winRate,
+                    vipLevel,
+                    vipCfg,
+                    coupleRingEmoji: d.coupleRingEmoji || null,
+                    coupleRingImageUrl: d.coupleRingImageUrl || null,
+                    loading: false,
+                });
+            }
+        } catch(e) { console.error('openGroupMiniProfile error:', e); }
+    };
     React.useEffect(() => {
         if (!showDetails || !activeGroup) return;
         setLoadingMembers(true);
@@ -1387,15 +1434,21 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                                 );
                                 // 🧧 Red Packet message
                                 if(msg.type==='red_packet') {
-                                    const rpCfg = (typeof RED_PACKETS_CONFIG!=='undefined'?RED_PACKETS_CONFIG:[]).find(r=>r.id===msg.rpConfigId)||{color:'#ef4444',bg:'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(185,28,28,0.12))',border:'rgba(239,68,68,0.4)',glow:'rgba(239,68,68,0.5)'};
                                     const isMe=msg.senderId===currentUID;
+                                    const vipCfgRP = msg.senderVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msg.senderVipLevel-1,VIP_CONFIG.length-1)] : null;
                                     return(
                                         <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end',marginBottom:'4px'}}>
-                                            {!isMe&&<div style={{width:'26px',height:'26px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0}}>
+                                            <div onClick={()=>openGroupMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}
+                                                style={{width:'28px',height:'28px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:'pointer',border:vipCfgRP?`2px solid ${vipCfgRP.nameColor}`:'2px solid rgba(255,255,255,0.1)'}}>
                                                 {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px'}}>😎</div>}
-                                            </div>}
+                                            </div>
                                             <div style={{maxWidth:'220px'}}>
-                                                {!isMe&&<div style={{fontSize:'9px',color:'#a78bfa',fontWeight:700,marginBottom:'3px',paddingLeft:'4px'}}>{msg.senderName}</div>}
+                                                <div onClick={()=>openGroupMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}
+                                                    style={{fontSize:'9px',color:vipCfgRP?vipCfgRP.nameColor:'#a78bfa',fontWeight:700,marginBottom:'3px',paddingLeft:'4px',cursor:'pointer',display:'flex',alignItems:'center',gap:'3px'}}>
+                                                    {vipCfgRP && <span style={{fontSize:'7px',fontWeight:900,background:vipCfgRP.nameColor,color:'#000',padding:'0 3px',borderRadius:'2px'}}>VIP{msg.senderVipLevel}</span>}
+                                                    {msg.senderName}
+                                                    {isMe&&<span style={{fontSize:'8px',color:'#4b5563'}}> ({lang==='ar'?'أنت':'you'})</span>}
+                                                </div>
                                                 <button onClick={()=>claimRedPacket(msg.rpId)} style={{
                                                     display:'flex',alignItems:'center',gap:'10px',padding:'12px 16px',borderRadius:'16px',
                                                     background:`linear-gradient(135deg,rgba(239,68,68,0.25),rgba(185,28,28,0.2))`,
@@ -1416,28 +1469,30 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                                 }
                                 const isMe=msg.senderId===currentUID;
                                 const isImage=msg.type==='image';
+                                const vipCfgMsg = msg.senderVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msg.senderVipLevel-1,VIP_CONFIG.length-1)] : null;
                                 return(
                                     <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end'}}>
-                                        {!isMe&&<div
-                                            onClick={()=>onOpenProfile && onOpenProfile(msg.senderId)}
-                                            style={{width:'26px',height:'26px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:onOpenProfile?'pointer':'default'}}>
+                                        {/* Avatar — shown for ALL senders including self */}
+                                        <div
+                                            onClick={()=>openGroupMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}
+                                            style={{width:'28px',height:'28px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:'pointer',border:vipCfgMsg?`2px solid ${vipCfgMsg.nameColor}`:'2px solid rgba(255,255,255,0.1)',boxShadow:vipCfgMsg?`0 0 6px ${vipCfgMsg.nameColor}66`:'none'}}>
                                             {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px'}}>😎</div>}
-                                        </div>}
-                                        <div style={{maxWidth:'72%'}}>
-                                            {!isMe&&<div style={{marginBottom:'2px',paddingLeft:'4px'}}>
-                                                <div style={{display:'flex',alignItems:'center',gap:'4px',flexWrap:'wrap',cursor:onOpenProfile?'pointer':'default'}} onClick={()=>onOpenProfile && onOpenProfile(msg.senderId)}>
-                                                    <span style={{fontSize:'9px',color:'#a78bfa',fontWeight:700}}>{msg.senderName}</span>
-                                                    {msg.senderVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' && VIP_CONFIG && (
-                                                        <span style={{fontSize:'7px',fontWeight:900,background:VIP_CONFIG[Math.min(msg.senderVipLevel-1,VIP_CONFIG.length-1)]?.nameColor||'#7c3aed',color:'#000',padding:'1px 3px',borderRadius:'2px',flexShrink:0}}>
-                                                            VIP{msg.senderVipLevel}
-                                                        </span>
+                                        </div>
+                                        <div style={{maxWidth:'70%'}}>
+                                            {/* Name row — shown for ALL including self */}
+                                            <div style={{marginBottom:'2px',paddingLeft:isMe?0:'4px',paddingRight:isMe?'4px':0}}>
+                                                <div style={{display:'flex',alignItems:'center',gap:'4px',flexWrap:'wrap',cursor:'pointer',justifyContent:isMe?'flex-end':'flex-start'}}
+                                                    onClick={()=>openGroupMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}>
+                                                    {vipCfgMsg && (
+                                                        <span style={{fontSize:'7px',fontWeight:900,background:vipCfgMsg.nameColor,color:'#000',padding:'1px 3px',borderRadius:'2px',flexShrink:0}}>VIP{msg.senderVipLevel}</span>
                                                     )}
+                                                    <span style={{fontSize:'9px',color:isMe?'#00f2ff':'#a78bfa',fontWeight:700}}>{msg.senderName}{isMe?` (${lang==='ar'?'أنت':'you'})`:''}</span>
                                                     {msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && (
-                                                        <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'12px',objectFit:'contain'}}/>
+                                                        <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'11px',objectFit:'contain'}}/>
                                                     )}
                                                 </div>
-                                                {msg.senderTitle && <div style={{fontSize:'8px',color:'#fbbf24',marginTop:'1px',fontStyle:'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'140px'}}>{msg.senderTitle}</div>}
-                                            </div>}
+                                                {msg.senderTitle && <div style={{fontSize:'8px',color:'#fbbf24',marginTop:'1px',fontStyle:'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'140px',textAlign:isMe?'right':'left'}}>{msg.senderTitle}</div>}
+                                            </div>
                                             {isImage ? (
                                                 <div onClick={()=>{const w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}
                                                     style={{borderRadius:isMe?'14px 14px 4px 14px':'14px 14px 14px 4px',overflow:'hidden',border:`1px solid ${isMe?'rgba(0,242,255,0.18)':'rgba(255,255,255,0.09)'}`,cursor:'pointer',maxWidth:'200px'}}>
@@ -1523,6 +1578,118 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                     </div>
                 </div>
             </PortalModal>
+
+            {/* ── GROUP MINI PROFILE POPUP ── */}
+            {groupMiniProfile && (
+                <PortalModal>
+                    <div style={{position:'fixed',inset:0,zIndex:Z.OVERLAY,background:'rgba(0,0,0,0.78)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}
+                        onClick={()=>{setGroupMiniProfile(null);setGroupMiniMenuOpen(false);}}>
+                        <div style={{width:'100%',maxWidth:'310px',borderRadius:'22px',overflow:'hidden',background:'#0d0d1f',border:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 28px 70px rgba(0,0,0,0.95)',position:'relative'}}
+                            onClick={e=>e.stopPropagation()}>
+                            {/* Banner */}
+                            <div style={{position:'relative',height:'120px',background:groupMiniProfile.bannerUrl?`url(${groupMiniProfile.bannerUrl}) center/cover no-repeat`:'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)'}}>
+                                <div style={{position:'absolute',inset:0,background:'linear-gradient(180deg,rgba(0,0,0,0.2) 0%,rgba(13,13,31,0.7) 100%)'}}/>
+                                {/* 3-dot */}
+                                <div style={{position:'absolute',top:'10px',right:'10px',zIndex:3}}>
+                                    <button onClick={e=>{e.stopPropagation();setGroupMiniMenuOpen(v=>!v);}}
+                                        style={{background:'rgba(0,0,0,0.55)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:'50%',width:'28px',height:'28px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'white',fontSize:'16px',fontWeight:900}}>⋮</button>
+                                    {groupMiniMenuOpen && (
+                                        <div style={{position:'absolute',top:'32px',right:0,background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'1px solid rgba(255,255,255,0.13)',borderRadius:'12px',padding:'5px',minWidth:'155px',boxShadow:'0 10px 30px rgba(0,0,0,0.9)',zIndex:5}}
+                                            onClick={e=>e.stopPropagation()}>
+                                            <button onClick={()=>{setGroupMiniMenuOpen(false);setGroupMiniProfile(null);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}}
+                                                style={{width:'100%',padding:'8px 12px',borderRadius:'8px',background:'none',border:'none',cursor:'pointer',fontSize:'12px',fontWeight:700,color:'#00f2ff',textAlign:'left',display:'flex',alignItems:'center',gap:'8px'}}
+                                                onMouseEnter={e=>e.currentTarget.style.background='rgba(0,242,255,0.08)'}
+                                                onMouseLeave={e=>e.currentTarget.style.background='none'}>👤 {lang==='ar'?'فتح البروفايل':'Open Profile'}</button>
+                                            {groupMiniProfile.uid !== currentUID && (
+                                                <button onClick={async()=>{
+                                                    try{await reportsCollection.add({type:'user',reporterUID:currentUID,reporterName:currentUserData?.displayName||'User',reportedUID:groupMiniProfile.uid,reportedName:groupMiniProfile.name,reason:'group_chat_report',createdAt:firebase.firestore.FieldValue.serverTimestamp(),status:'pending'});}catch(e){}
+                                                    setGroupMiniMenuOpen(false);setGroupMiniProfile(null);
+                                                    onNotification(lang==='ar'?'✅ تم إرسال البلاغ':'✅ Report sent');
+                                                }}
+                                                    style={{width:'100%',padding:'8px 12px',borderRadius:'8px',background:'none',border:'none',cursor:'pointer',fontSize:'12px',fontWeight:700,color:'#f87171',textAlign:'left',display:'flex',alignItems:'center',gap:'8px'}}
+                                                    onMouseEnter={e=>e.currentTarget.style.background='rgba(239,68,68,0.1)'}
+                                                    onMouseLeave={e=>e.currentTarget.style.background='none'}>🚨 {lang==='ar'?'إبلاغ':'Report'}</button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Couple ring */}
+                                {(groupMiniProfile.coupleRingEmoji||groupMiniProfile.coupleRingImageUrl)&&(
+                                    <div style={{position:'absolute',top:'44px',right:'12px',zIndex:2}}>
+                                        {groupMiniProfile.coupleRingImageUrl?<img src={groupMiniProfile.coupleRingImageUrl} alt="" style={{width:'26px',height:'26px',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}/>:<span style={{fontSize:'20px',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}>{groupMiniProfile.coupleRingEmoji}</span>}
+                                    </div>
+                                )}
+                            </div>
+                            {/* Body */}
+                            <div style={{padding:'0 16px 18px',position:'relative'}}>
+                                <div style={{display:'flex',alignItems:'flex-end',gap:'12px',marginTop:'-36px',marginBottom:'12px'}}>
+                                    {/* Avatar */}
+                                    <div onClick={()=>{setGroupMiniProfile(null);setGroupMiniMenuOpen(false);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}}
+                                        style={{width:'70px',height:'70px',borderRadius:'50%',border:groupMiniProfile.vipCfg?`3px solid ${groupMiniProfile.vipCfg.nameColor}`:'3px solid #0d0d1f',overflow:'hidden',background:'#1a1a2e',boxShadow:groupMiniProfile.vipCfg?`0 0 14px ${groupMiniProfile.vipCfg.nameColor}88,0 4px 16px rgba(0,0,0,0.6)`:'0 4px 16px rgba(0,0,0,0.6)',flexShrink:0,zIndex:2,cursor:'pointer'}}>
+                                        {groupMiniProfile.photo?<img src={groupMiniProfile.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px'}}>😎</div>}
+                                    </div>
+                                    <div style={{flex:1,paddingBottom:'4px',minWidth:0}}>
+                                        {/* Name + VIP + gender */}
+                                        <div onClick={()=>{setGroupMiniProfile(null);setGroupMiniMenuOpen(false);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}}
+                                            style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'4px',cursor:'pointer',flexWrap:'wrap'}}>
+                                            {groupMiniProfile.vipCfg&&<span style={{fontSize:'7px',fontWeight:900,background:groupMiniProfile.vipCfg.nameColor,color:'#000',padding:'1px 4px',borderRadius:'3px',flexShrink:0}}>VIP{groupMiniProfile.vipLevel}</span>}
+                                            <span style={{fontSize:'15px',fontWeight:900,color:'#00f2ff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textDecoration:'underline dotted rgba(0,242,255,0.4)'}}>{groupMiniProfile.name}</span>
+                                            {groupMiniProfile.gender&&<span style={{fontSize:'12px',flexShrink:0}}>{groupMiniProfile.gender==='male'?'♂️':'♀️'}</span>}
+                                        </div>
+                                        {/* Family sign */}
+                                        {groupMiniProfile.familyTag&&(()=>{
+                                            const signImgURL = groupMiniProfile.familySignImageURL;
+                                            if(signImgURL){
+                                                const tag=groupMiniProfile.familyTag||'';
+                                                const imgW=44+(tag.length*6); const imgH=Math.round(imgW*0.55);
+                                                const fs=tag.length<=3?11:tag.length===4?10:9;
+                                                const sc=groupMiniProfile.familySignColor||'#00f2ff';
+                                                const hasGlow=(groupMiniProfile.familySignLevel||0)>=4;
+                                                return(<span style={{position:'relative',display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0,width:`${imgW}px`,height:`${imgH}px`,filter:hasGlow?`drop-shadow(0 0 6px ${sc}cc)`:'none'}}>
+                                                    <img src={signImgURL} alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain'}}/>
+                                                    <span style={{position:'relative',zIndex:1,fontSize:`${fs}px`,fontWeight:900,fontStyle:'italic',letterSpacing:'1.5px',color:'#fff',textShadow:'0 0 6px rgba(0,0,0,0.9)'}}>{tag}</span>
+                                                </span>);
+                                            }
+                                            return(<span style={{fontSize:'10px',fontWeight:800,color:'#00f2ff',background:'rgba(0,242,255,0.15)',border:'1px solid rgba(0,242,255,0.3)',borderRadius:'6px',padding:'2px 8px'}}>{groupMiniProfile.familyTag}</span>);
+                                        })()}
+                                        {/* ID */}
+                                        {groupMiniProfile.customId&&<div style={{fontSize:'10px',color:'#6b7280',marginTop:'2px'}}>ID: {groupMiniProfile.customId}</div>}
+                                    </div>
+                                </div>
+                                {/* Stats */}
+                                <div style={{display:'flex',borderTop:'1px solid rgba(255,255,255,0.07)',borderBottom:'1px solid rgba(255,255,255,0.07)',margin:'0 0 14px',padding:'10px 0'}}>
+                                    <div style={{flex:1,textAlign:'center'}}>
+                                        <div style={{fontSize:'20px',fontWeight:900,color:'white',lineHeight:1}}>{groupMiniProfile.gamesPlayed??0}</div>
+                                        <div style={{fontSize:'9px',color:'#6b7280',marginTop:'2px'}}>{lang==='ar'?'مباريات':'Games'}</div>
+                                    </div>
+                                    <div style={{width:'1px',background:'rgba(255,255,255,0.08)'}}/>
+                                    <div style={{flex:1,textAlign:'center'}}>
+                                        {(()=>{const r=groupMiniProfile.winRate??0;const c=r>=70?'#10b981':r>=50?'#facc15':'#f97316';return<><div style={{fontSize:'20px',fontWeight:900,color:c,lineHeight:1}}>{r}%</div><div style={{fontSize:'9px',color:'#6b7280',marginTop:'2px'}}>{lang==='ar'?'نسبة الفوز':'Win Rate'}</div></>;})()}
+                                    </div>
+                                </div>
+                                {/* Actions */}
+                                <div style={{display:'flex',gap:'8px'}}>
+                                    {groupMiniProfile.uid===currentUID ? (
+                                        <button onClick={()=>{setGroupMiniProfile(null);setGroupMiniMenuOpen(false);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}}
+                                            style={{flex:1,padding:'10px',borderRadius:'50px',background:'rgba(0,242,255,0.08)',border:'1px solid rgba(0,242,255,0.25)',color:'#00f2ff',fontSize:'12px',fontWeight:700,cursor:'pointer',textAlign:'center'}}>
+                                            👤 {lang==='ar'?'بروفايلي':'My Profile'}
+                                        </button>
+                                    ) : (
+                                        <>
+                                        {!groupMiniProfile.isFriend&&<button onClick={async()=>{try{await usersCollection.doc(groupMiniProfile.uid).update({friendRequests:firebase.firestore.FieldValue.arrayUnion(currentUID)});setGroupMiniProfile(p=>({...p,isFriend:true}));}catch(e){}}}
+                                            style={{flex:1,padding:'10px',borderRadius:'50px',background:'linear-gradient(135deg,rgba(0,242,255,0.22),rgba(0,180,255,0.18))',border:'1px solid rgba(0,242,255,0.4)',color:'#00f2ff',fontSize:'12px',fontWeight:800,cursor:'pointer'}}>
+                                            {lang==='ar'?'إضافة':'Add'}
+                                        </button>}
+                                        {groupMiniProfile.isFriend&&<div style={{flex:1,padding:'10px',borderRadius:'50px',background:'rgba(16,185,129,0.12)',border:'1px solid rgba(16,185,129,0.3)',color:'#10b981',fontSize:'12px',fontWeight:800,textAlign:'center'}}>✅ {lang==='ar'?'صديق':'Friends'}</div>}
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </PortalModal>
+            )}
+        </React.Fragment>
         );
     }
 
