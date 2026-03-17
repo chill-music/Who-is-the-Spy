@@ -64,11 +64,11 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
         return <span style={{fontSize:'22px'}}>🎨</span>;
     };
 
+    // 🎁 تاب الهدايا أُزيل من الشوب — الهدايا متاحة فقط من البروفايل والشاتات
     const tabs = [
         { id: 'vip',            icon: '👑', label_ar: 'VIP',       label_en: 'VIP'     },
         { id: 'rings',          icon: '💍', label_ar: 'خواتم',     label_en: 'Rings'   },
         { id: 'bff_tokens',     icon: '🤝', label_ar: 'BFF',       label_en: 'BFF'     },
-        { id: 'gifts',          icon: '🎁', label_ar: 'هدايا',     label_en: 'Gifts'   },
         { id: 'frames',         icon: '🖼️', label_ar: 'إطارات',   label_en: 'Frames'  },
         { id: 'titles',         icon: '🏷️', label_ar: 'ألقاب',    label_en: 'Titles'  },
         { id: 'badges',         icon: '🏅', label_ar: 'شارات',     label_en: 'Badges'  },
