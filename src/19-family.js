@@ -2108,10 +2108,13 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             setTimeout(() => chatInputRef.current?.focus(), 50);
         };
 
-        // ── أعضاء العائلة المُصفّاة للمنشن ──
-        const mentionMembers = familyMembers
-            .filter(m => m.id !== currentUID)
-            .filter(m => !mentionSearch || m.displayName?.toLowerCase().includes(mentionSearch));
+        // ── أعضاء العائلة المُصفّاة للمنشن — تشمل المستخدم نفسه ──
+        const mentionMembers = [
+            // نفسه أولاً
+            ...(currentUID && currentUserData ? [{ id: currentUID, displayName: currentUserData.displayName, photoURL: currentUserData.photoURL, _isSelf: true }] : []),
+            // بقية الأعضاء
+            ...familyMembers.filter(m => m.id !== currentUID),
+        ].filter(m => !mentionSearch || (m.displayName || '').toLowerCase().includes(mentionSearch));
 
         return (
             <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0, position:'relative'}}>
@@ -2276,11 +2279,20 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                         fontSize:'12px', color:'#e2e8f0', lineHeight:1.5,
                                         wordBreak:'break-word',
                                     }}>
-                                        {/* عرض المنشن بلون مميز */}
+                                        {/* عرض المنشن بلون مميز + قابل للضغط */}
                                         {msg.text?.split(/(@\w[\w\s]*?)(?=\s|$)/g).map((part, pi) =>
-                                            part.startsWith('@')
-                                                ? <span key={pi} style={{color:'#00f2ff', fontWeight:700}}>{part}</span>
-                                                : part
+                                            part.startsWith('@') ? (
+                                                <span key={pi}
+                                                    style={{ color:'#00f2ff', fontWeight:700, cursor:'pointer', textDecoration:'underline dotted rgba(0,242,255,0.4)' }}
+                                                    onClick={() => {
+                                                        const mentionName = part.slice(1).trim();
+                                                        const member = familyMembers.find(m => m.displayName === mentionName);
+                                                        const selfMatch = (currentUserData?.displayName === mentionName);
+                                                        if (member) setMiniProfileMember({ uid: member.id, name: member.displayName, photo: member.photoURL, customId: member.customId });
+                                                        else if (selfMatch) setMiniProfileMember({ uid: currentUID, name: currentUserData?.displayName, photo: currentUserData?.photoURL, customId: currentUserData?.customId });
+                                                    }}
+                                                >{part}</span>
+                                            ) : part
                                         )}
                                     </div>
                                     <div style={{fontSize:'9px', color:'#4b5563', marginTop:'2px', textAlign: isMe ? 'right' : 'left', paddingLeft:'4px', paddingRight:'4px'}}>
@@ -2313,7 +2325,10 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                     {m.photoURL ? <img src={m.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <span style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',fontSize:'13px'}}>😎</span>}
                                 </div>
                                 <span style={{fontSize:'12px',fontWeight:700,color:'white'}}>@{m.displayName}</span>
-                                <FamilyRoleBadge role={getFamilyRole(family, m.id)} lang={lang} small />
+                                {m._isSelf
+                                    ? <span style={{fontSize:'10px',color:'#6b7280'}}>{lang==='ar'?'(أنت)':'(you)'}</span>
+                                    : <FamilyRoleBadge role={getFamilyRole(family, m.id)} lang={lang} small />
+                                }
                             </div>
                         ))}
                     </div>
