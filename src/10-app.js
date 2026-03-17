@@ -423,6 +423,16 @@ function App() {
         return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
     }, []);
 
+    // ── Global: open family by ID from ranking ──
+    useEffect(() => {
+        const handler = (e) => {
+            const fid = e.detail?.familyId;
+            if (fid) { setViewFamilyId(fid); setShowFamilyModal(true); }
+        };
+        window.addEventListener('openFamilyById', handler);
+        return () => window.removeEventListener('openFamilyById', handler);
+    }, []);
+
     // Auth State Listener
     useEffect(() => {
         setAuthLoading(true);
