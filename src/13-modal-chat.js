@@ -101,6 +101,9 @@ const PrivateChatModal = ({
     const [msgMenuPos, setMsgMenuPos]       = useState({ top: 0, right: 0 });
     // ── 3-dot header button rect ──
     const [menuBtnRect, setMenuBtnRect]     = useState(null);
+    // ── 🧧 DM Red Packet ──
+    const [showDMRedPacket, setShowDMRedPacket] = useState(false);
+    const [sendingDMRedPacket, setSendingDMRedPacket] = useState(false);
 
     const messagesEndRef    = useRef(null);
     const inputRef          = useRef(null);
@@ -595,11 +598,49 @@ const PrivateChatModal = ({
                 const isMine      = msg.senderId === user?.uid;
                 const isGift      = msg.type === 'gift';
                 const isImage     = msg.type === 'image';
+                const isRedPacket = msg.type === 'red_packet';
                 const prevSender  = idx > 0 ? messages[idx - 1]?.senderId : null;
                 const nextSender  = idx < messages.length - 1 ? messages[idx + 1]?.senderId : null;
                 const showAvatar  = !isMine && prevSender !== msg.senderId;
                 const showName    = !isMine && prevSender !== msg.senderId;
                 const isLastGroup = nextSender !== msg.senderId;
+
+                // 🧧 Red Packet bubble
+                if(isRedPacket) return (
+                  <div key={msg.id||idx} style={{display:'flex',flexDirection:isMine?'row-reverse':'row',alignItems:'flex-end',gap:'6px',marginBottom:isLastGroup?'4px':'1px'}}>
+                    {!isMine&&<div style={{width:'28px',flexShrink:0,alignSelf:'flex-end'}}>
+                      {showAvatar?<img src={msg.senderPhoto||`https://ui-avatars.com/api/?name=${encodeURIComponent(msg.senderName||'U')}&background=6366f1&color=fff&size=56`} alt="" style={{width:'28px',height:'28px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid rgba(0,242,255,0.15)'}}/>:<div style={{width:'28px'}}/>}
+                    </div>}
+                    <div style={{display:'flex',flexDirection:'column',alignItems:isMine?'flex-end':'flex-start',maxWidth:'72%',gap:'2px'}}>
+                      {showName&&<div style={{fontSize:'10px',fontWeight:700,color:'#00f2ff',paddingLeft:'4px'}}>{msg.senderName}</div>}
+                      <button onClick={async()=>{
+                        if(!msg.rpId||!user) return;
+                        try {
+                          const rpDoc = await redPacketsCollection.doc(msg.rpId).get();
+                          if(!rpDoc.exists){return;}
+                          const rp=rpDoc.data();
+                          if(rp.claimedBy?.includes(user.uid)){return;}
+                          if(rp.claimedBy?.length>=rp.maxClaims){return;}
+                          await redPacketsCollection.doc(msg.rpId).update({claimedBy:firebase.firestore.FieldValue.arrayUnion(user.uid),status:'exhausted'});
+                          await usersCollection.doc(user.uid).update({currency:firebase.firestore.FieldValue.increment(rp.amount)});
+                        } catch(e){console.error(e);}
+                      }} style={{
+                        display:'flex',alignItems:'center',gap:'10px',padding:'12px 16px',borderRadius:'16px',
+                        background:'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(185,28,28,0.2))',
+                        border:'1px solid rgba(239,68,68,0.5)',cursor:'pointer',
+                        boxShadow:'0 4px 16px rgba(239,68,68,0.3)',textAlign:'left',
+                      }}>
+                        <div style={{fontSize:'32px',filter:'drop-shadow(0 0 8px rgba(239,68,68,0.7))'}}>🧧</div>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:'12px',fontWeight:800,color:'#ffd700'}}>{lang==='ar'?'مغلف أحمر':'Red Packet'}</div>
+                          <div style={{fontSize:'10px',color:'#fca5a5',marginTop:'2px'}}>{msg.rpAmount?.toLocaleString()} 🧠</div>
+                          <div style={{fontSize:'9px',color:'rgba(252,165,165,0.7)',marginTop:'2px'}}>{lang==='ar'?'اضغط للاستلام':'Tap to claim'} 🎁</div>
+                        </div>
+                      </button>
+                      <div style={{fontSize:'9px',color:'#374151',marginTop:'2px',textAlign:isMine?'right':'left',paddingLeft:'4px',paddingRight:'4px'}}>{_fmtChatTs(msg.timestamp)}</div>
+                    </div>
+                  </div>
+                );
 
                 return (
                   <div key={msg.id || idx} style={{
@@ -913,6 +954,21 @@ const PrivateChatModal = ({
                     }}
                   >{uploadingImg ? '⏳' : '🖼️'}</button>
 
+                  {/* 🧧 Red Packet button */}
+                  <button
+                    onClick={() => {
+                      if (typeof setShowDMRedPacket === 'function') setShowDMRedPacket(true);
+                    }}
+                    title={lang === 'ar' ? 'مغلف أحمر' : 'Red Packet'}
+                    style={{
+                      background: 'rgba(239,68,68,0.1)',
+                      border: '1px solid rgba(239,68,68,0.3)',
+                      borderRadius: '10px', width: '36px', height: '36px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', fontSize: '16px', flexShrink: 0,
+                    }}
+                  >🧧</button>
+
                   {/* Text input */}
                   <input
                     ref={inputRef}
@@ -1014,6 +1070,64 @@ const PrivateChatModal = ({
             </div>
           </div>
         </div>
+
+        {/* 🧧 DM Red Packet Modal */}
+        {showDMRedPacket && (
+          <div style={{position:'fixed',inset:0,zIndex:Z.TOOLTIP,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'flex-end',justifyContent:'center'}}>
+            <div style={{width:'100%',maxWidth:'440px',background:'linear-gradient(160deg,#0e0e22,#13122a)',borderRadius:'20px 20px 0 0',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+                <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444'}}>🧧 {lang==='ar'?'أرسل مغلف أحمر':'Send Red Packet'}</div>
+                <button onClick={()=>setShowDMRedPacket(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>✕</button>
+              </div>
+              <div style={{padding:'14px'}}>
+                <div style={{fontSize:'11px',color:'#6b7280',marginBottom:'12px',textAlign:'center'}}>
+                  {lang==='ar'?'إلى':'To'}: <span style={{color:'#a78bfa',fontWeight:700}}>{friend?.displayName}</span>
+                  {' · '}{lang==='ar'?'رصيدك':'Balance'}: <span style={{color:'#ffd700',fontWeight:700}}>{(currency||0).toLocaleString()} 🧠</span>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:'8px',maxHeight:'320px',overflowY:'auto'}}>
+                  {(typeof RED_PACKETS_CONFIG!=='undefined'?RED_PACKETS_CONFIG:[]).map(rp=>(
+                    <button key={rp.id} onClick={async()=>{
+                      if(sendingDMRedPacket||(currency||0)<rp.amount) return;
+                      setSendingDMRedPacket(true);
+                      try {
+                        const rpRef = await redPacketsCollection.add({
+                          configId:rp.id, amount:rp.amount,
+                          senderId:user.uid, senderName:currentUser?.displayName||'User', senderPhoto:currentUser?.photoURL||null,
+                          targetType:'dm', targetId:friend.uid, targetName:friend.displayName,
+                          claimedBy:[], maxClaims:1, remaining:rp.amount,
+                          createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'active',
+                        });
+                        await usersCollection.doc(user.uid).update({currency:firebase.firestore.FieldValue.increment(-rp.amount)});
+                        await chatsCollection.doc(chatId).collection('messages').add({
+                          type:'red_packet', rpId:rpRef.id, rpAmount:rp.amount, rpConfigId:rp.id,
+                          senderId:user.uid, senderName:currentUser?.displayName||'User', senderPhoto:currentUser?.photoURL||null,
+                          text:`🧧 ${rp.amount}`, timestamp:firebase.firestore.FieldValue.serverTimestamp(), maxClaims:1,
+                        });
+                        // Announce
+                        await publicChatCollection.add({
+                          type:'red_packet_announce', senderId:user.uid, senderName:currentUser?.displayName||'User',
+                          amount:rp.amount, targetType:'dm', targetName:friend.displayName,
+                          text:lang==='ar'?`🧧 ${currentUser?.displayName} أرسل مغلف ${rp.amount} إلى ${friend.displayName}`:`🧧 ${currentUser?.displayName} sent a ${rp.amount} packet to ${friend.displayName}`,
+                          createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+                        });
+                        setShowDMRedPacket(false);
+                      } catch(e) { console.error(e); }
+                      setSendingDMRedPacket(false);
+                    }} disabled={sendingDMRedPacket||(currency||0)<rp.amount}
+                    style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 16px',borderRadius:'14px',background:rp.bg,border:`1px solid ${rp.border}`,cursor:(currency||0)<rp.amount?'not-allowed':'pointer',opacity:(currency||0)<rp.amount?0.4:1,textAlign:'left'}}>
+                      {rp.imageURL?<img src={rp.imageURL} alt="" style={{width:'42px',height:'42px',objectFit:'contain'}}/>:<div style={{width:'42px',height:'42px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>🧧</div>}
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:'13px',fontWeight:800,color:rp.color}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
+                        <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'2px'}}>{lang==='ar'?rp.desc_ar:rp.desc_en}</div>
+                      </div>
+                      <div style={{fontSize:'13px',fontWeight:800,color:rp.color}}>{rp.amount.toLocaleString()} 🧠</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Gift modal */}
         {showGiftModal && (
