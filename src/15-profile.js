@@ -6,7 +6,12 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     const familyName  = userData?.familyName;
     const signLevel   = userData?.familySignLevel   || null;
     const signColor   = userData?.familySignColor   || '#6b7280';
-    const signImgURL  = userData?.familySignImageURL || null;
+    // Try direct URL first, then resolve from FAMILY_SIGN_IMAGES config
+    let signImgURL    = userData?.familySignImageURL || null;
+    if (!signImgURL && signLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined') {
+        const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === signLevel);
+        signImgURL = cfg?.imageURL || null;
+    }
 
     // Only show if user has a family AND has earned a sign (level > 0)
     if (!familyTag || !signLevel) return null;
@@ -3471,7 +3476,7 @@ const ProfileV11 = ({
                                 </div>
                             )}
 
-                            {/* ══ ROW 1: الاسم + VIP Badge + Guard badge (وسط) ══ */}
+                            {/* ══ ROW 1: الاسم + VIP Badge (وسط) ══ */}
                             <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', flexWrap:'wrap', marginBottom:'6px'}}>
                                 <VIPName
                                     displayName={targetData?.displayName || 'Unknown'}
@@ -3479,16 +3484,6 @@ const ProfileV11 = ({
                                     className="profile-name"
                                 />
                                 <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
-                                {/* 🛡️ Guard icon جنب الاسم — بدون نص */}
-                                {guardData.length > 0 && (
-                                    <span
-                                        onClick={() => setShowGuardModal(true)}
-                                        title="Guard Ranking"
-                                        style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:'22px',height:'22px',borderRadius:'50%',cursor:'pointer',background:'linear-gradient(135deg,rgba(0,212,255,0.14),rgba(112,0,255,0.12))',border:'1px solid rgba(0,212,255,0.28)',flexShrink:0}}
-                                    >
-                                        <span style={{fontSize:'12px',lineHeight:1}}>🛡️</span>
-                                    </span>
-                                )}
                             </div>
 
                             {/* ══ ROW 2: الجنس + الكاريزما + فاميلي ساين (يسار) | البلد (يمين) ══ */}
