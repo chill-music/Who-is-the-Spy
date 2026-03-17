@@ -613,27 +613,113 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     );
 };
 
-// 🎁 SEND GIFT MODAL - IMPROVED WITH DIRECT TARGET
+// 🎁 SEND GIFT MODAL — New Design v2 (Matching reference image)
 const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency, friendsData }) => {
     const t = TRANSLATIONS[lang];
-    const [selectedGift, setSelectedGift] = useState(null);
-    const [showPreview, setShowPreview] = useState(false);
-    // ✅ Combo overlay state
-    const [comboOverlay, setComboOverlay] = useState(null); // { gift, target } | null
+    const [activeTab, setActiveTab]         = useState('gifts');
+    const [selectedGift, setSelectedGift]   = useState(null);
+    const [showPreview, setShowPreview]     = useState(false);
+    const [comboOverlay, setComboOverlay]   = useState(null);
+    const [qty, setQty]                     = useState(1);
+    const tabsRef = useRef(null);
 
-    if(!show) return null;
+    if (!show) return null;
 
     const hasDirectTarget = targetUser && targetUser.uid !== 'self';
     const vipLevel = currentUser ? (getVIPLevel ? getVIPLevel(currentUser) : 0) : 0;
-    // Gift filter tabs
-    const [activeGiftTab, setActiveGiftTab] = useState('all');
+    const userFamilyLevel = currentUser?.familyLevel || 0;
+    const inventory = currentUser?.inventory || {};
 
-    // All gifts combined: regular + VIP (sorted by cost)
-    const regularGifts = (SHOP_ITEMS.gifts || []).filter(g => !g.hidden && !g.eventOnly);
-    const vipGifts     = (SHOP_ITEMS.gifts_vip || []).filter(g => !g.hidden);
-    const allGifts     = activeGiftTab === 'vip' ? vipGifts : activeGiftTab === 'regular' ? regularGifts : [...regularGifts, ...vipGifts];
+    // ── Tab config ──
+    const TABS = [
+        { id: 'inventory', icon: '🎒', label_ar: 'انفنتري',      label_en: 'Inventory' },
+        { id: 'gifts',     icon: '🎁', label_ar: 'هدايا',         label_en: 'Gifts'    },
+        { id: 'family',    icon: '🏰', label_ar: 'هدايا القبيلة', label_en: 'Family'   },
+        { id: 'special',   icon: '🎰', label_ar: 'سبيشيال',       label_en: 'Special'  },
+        { id: 'flag',      icon: '🚩', label_ar: 'أعلام',          label_en: 'Flag'     },
+        { id: 'vip',       icon: '👑', label_ar: 'VIP',            label_en: 'VIP'      },
+    ];
 
-    // When combo overlay is active, hide the gift modal entirely (prevents backdrop from closing combo)
+    // ── Gift lists by tab ──
+    const getGiftsForTab = () => {
+        switch (activeTab) {
+            case 'inventory': {
+                // هدايا في الإنفنتري (من FunPass أو إيفنت)
+                const invGiftIds = inventory.gifts || [];
+                const allGiftItems = [...(SHOP_ITEMS.gifts || []), ...(SHOP_ITEMS.gifts_vip || [])];
+                return invGiftIds.map(gid => {
+                    const g = allGiftItems.find(x => x.id === gid);
+                    if (!g) return null;
+                    const expiryTs = inventory.expiry?.[gid];
+                    const daysLeft = expiryTs ? Math.max(0, Math.ceil((expiryTs - Date.now()) / 86400000)) : null;
+                    return { ...g, fromInventory: true, daysLeft, qty: inventory.giftCounts?.[gid] || 1 };
+                }).filter(Boolean);
+            }
+            case 'gifts':
+                return (SHOP_ITEMS.gifts || []).filter(g => !g.hidden && !g.eventOnly);
+            case 'family':
+                return (SHOP_ITEMS.gifts_family || []);
+            case 'special':
+                return (SHOP_ITEMS.gifts_special || []);
+            case 'flag':
+                return (SHOP_ITEMS.gifts_flag || []);
+            case 'vip':
+                return (SHOP_ITEMS.gifts_vip || []).filter(g => !g.hidden);
+            default:
+                return [];
+        }
+    };
+
+    const gifts = getGiftsForTab();
+
+    // ── Info bar: charisma + gold for selected gift ──
+    const getInfoBar = () => {
+        if (!selectedGift) return null;
+        const charisma = (selectedGift.charisma || 0) * qty;
+        const maxGold  = (selectedGift.maxBonus || 0) * qty;
+        if (charisma === 0 && maxGold === 0) return null;
+        return (
+            <div style={{
+                display:'flex', alignItems:'center', justifyContent:'space-between',
+                padding:'7px 14px', margin:'0 0 4px',
+                background:'rgba(255,215,0,0.07)', borderRadius:'10px',
+                border:'1px solid rgba(255,215,0,0.18)', fontSize:'11px',
+            }}>
+                <span style={{ color:'#d1d5db' }}>
+                    {lang==='ar' ? 'كاريزما المستلم' : "Receiver's Charm"} <span style={{ color:'#facc15', fontWeight:800 }}>+{formatCharisma(charisma)}</span>
+                    {maxGold > 0 && <span style={{ color:'#9ca3af', marginLeft:'6px' }}>
+                        {lang==='ar' ? `حصل على ما يصل إلى ${maxGold.toLocaleString()} 🧠` : `Gain up to ${maxGold.toLocaleString()} Intel 🧠`}
+                    </span>}
+                    {selectedGift.specialType === 'lottery' && <span style={{ color:'#a78bfa', marginLeft:'6px' }}>🎰</span>}
+                </span>
+                <button style={{ background:'none', border:'none', color:'#6b7280', fontSize:'15px', cursor:'pointer', lineHeight:1 }}>?</button>
+            </div>
+        );
+    };
+
+    // ── Gift card tag ──
+    const getGiftTag = (gift) => {
+        if (gift.specialType === 'lottery' || gift.isEvent)        return { label: lang==='ar'?'يانصيب':'Lottery',        bg:'#8b5cf6' };
+        if (gift.limitedTime)                                       return { label: lang==='ar'?'محدود':'Limited',          bg:'#f97316' };
+        if (gift.type === 'gifts_vip' || gift.vipExclusive)        return { label: 'VIP',                                   bg:'#f59e0b' };
+        if (gift.type === 'gifts_family')                           return { label: lang==='ar'?'قبيلة':'Family',            bg:'#10b981' };
+        if ((gift.charisma || 0) >= 400 || (gift.cost || 0) >= 2000) return { label: lang==='ar'?'مفاجأة الذهب':'Golds Surprise', bg:'#ef4444' };
+        return null;
+    };
+
+    // ── Send handler ──
+    const handleSend = (gift, sendQty) => {
+        const target = hasDirectTarget ? targetUser : null;
+        if (!target && !gift) return;
+        onSendGift(gift, target, sendQty || qty);
+        const allowsMulti = gift?.maxSendOptions != null;
+        if ((sendQty || qty) === 1 && target && target.uid !== 'self' && allowsMulti) {
+            setComboOverlay({ gift, target });
+        } else {
+            onClose();
+        }
+    };
+
     if (comboOverlay) {
         return (
             <PortalModal>
@@ -641,7 +727,7 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                     gift={comboOverlay.gift}
                     target={comboOverlay.target}
                     currency={currency}
-                    onSend={(g, t, qty) => onSendGift(g, t, qty)}
+                    onSend={(g, t, q) => onSendGift(g, t, q)}
                     onClose={() => { setComboOverlay(null); onClose(); }}
                     lang={lang}
                 />
@@ -650,127 +736,211 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
     }
 
     return (
-        <>
-            <div className="modal-overlay" onClick={onClose}>
-                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{maxWidth:'400px', width:'96vw'}}>
-                    <div className="modal-header">
-                        <h2 className="modal-title">{t.sendGift}</h2>
-                        <ModalCloseBtn onClose={onClose} />
-                    </div>
-                    <div className="modal-body py-3">
+        <PortalModal>
+            <div style={{
+                position:'fixed', inset:0, zIndex: Z.MODAL_HIGH,
+                background:'rgba(0,0,0,0.82)',
+                display:'flex', alignItems:'flex-end', justifyContent:'center',
+            }} onClick={onClose}>
+                <div style={{
+                    width:'100%', maxWidth:'480px',
+                    background:'linear-gradient(180deg,#111122 0%,#0a0a18 100%)',
+                    borderRadius:'22px 22px 0 0',
+                    border:'1px solid rgba(255,255,255,0.1)',
+                    borderBottom:'none',
+                    overflow:'hidden',
+                    maxHeight:'88vh',
+                    display:'flex', flexDirection:'column',
+                    boxShadow:'0 -10px 60px rgba(0,0,0,0.8)',
+                }} onClick={e => e.stopPropagation()}>
+
+                    {/* ── Header ── */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'10px', padding:'14px 16px 10px', borderBottom:'1px solid rgba(255,255,255,0.07)', flexShrink:0 }}>
                         {hasDirectTarget && (
-                            <div className="flex items-center gap-2 mb-2 p-1.5 bg-white/5 rounded">
-                                <AvatarWithFrame photoURL={targetUser.photoURL} equipped={targetUser.equipped} size="sm" />
-                                <div>
-                                    <div className="font-bold text-xs">{targetUser.displayName}</div>
-                                    <div className="text-[9px] text-gray-400">{t.charisma}: {formatCharisma(targetUser.charisma || 0)}</div>
+                            <>
+                                <img
+                                    src={targetUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(targetUser.displayName||'U')}&background=6366f1&color=fff`}
+                                    alt="" style={{ width:'32px', height:'32px', borderRadius:'50%', objectFit:'cover', border:'2px solid rgba(0,242,255,0.3)', flexShrink:0 }}
+                                />
+                                <div style={{ flex:1, minWidth:0 }}>
+                                    <div style={{ fontSize:'12px', color:'#9ca3af' }}>{lang==='ar'?'إرسال إلى':'Send to'}</div>
+                                    <div style={{ fontSize:'14px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{targetUser.displayName}</div>
                                 </div>
-                            </div>
+                            </>
                         )}
-                        <div className="flex items-center gap-2 mb-2 text-[10px] text-yellow-400">
-                            <span>🧠 {currency} {CURRENCY_NAME}</span>
+                        {!hasDirectTarget && <div style={{ flex:1, fontSize:'15px', fontWeight:900, color:'white' }}>{lang==='ar'?'إرسال هدية':'Send Gift'}</div>}
+                        <button onClick={onClose} style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#9ca3af', fontSize:'14px', flexShrink:0 }}>✕</button>
+                    </div>
+
+                    {/* ── Tabs ── */}
+                    <div ref={tabsRef} style={{ display:'flex', overflowX:'auto', padding:'8px 12px 0', gap:'4px', flexShrink:0, scrollbarWidth:'none' }}>
+                        {TABS.map(tab => (
+                            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSelectedGift(null); setQty(1); }}
+                                style={{
+                                    flexShrink:0, padding:'6px 14px', borderRadius:'20px', border:'none', cursor:'pointer',
+                                    fontSize:'11px', fontWeight:800, whiteSpace:'nowrap',
+                                    background: activeTab === tab.id ? 'rgba(0,242,255,0.18)' : 'rgba(255,255,255,0.06)',
+                                    color: activeTab === tab.id ? '#00f2ff' : '#9ca3af',
+                                    borderBottom: activeTab === tab.id ? '2px solid #00f2ff' : '2px solid transparent',
+                                    transition:'all 0.15s',
+                                }}
+                            >{tab.icon} {lang==='ar' ? tab.label_ar : tab.label_en}</button>
+                        ))}
+                        <div style={{ minWidth:'8px', flexShrink:0 }} />
+                    </div>
+
+                    {/* ── Info bar ── */}
+                    <div style={{ padding:'8px 12px 0', flexShrink:0 }}>
+                        {getInfoBar()}
+                    </div>
+
+                    {/* ── Family locked notice ── */}
+                    {activeTab === 'family' && !currentUser?.familyId && (
+                        <div style={{ margin:'8px 12px', padding:'10px 14px', borderRadius:'10px', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.25)', fontSize:'11px', color:'#34d399', textAlign:'center', flexShrink:0 }}>
+                            🏰 {lang==='ar' ? 'يجب أن تكون في قبيلة لاستخدام هدايا القبيلة' : 'You must be in a family to use Family Gifts'}
                         </div>
-                        {/* Gift type tabs */}
-                        <div style={{display:'flex', gap:'4px', marginBottom:'8px'}}>
-                            {[
-                                {id:'all',     label: lang==='ar' ? '🎁 الكل' : '🎁 All'},
-                                {id:'regular', label: lang==='ar' ? '🎀 عادية' : '🎀 Regular'},
-                                {id:'vip',     label: lang==='ar' ? '👑 VIP' : '👑 VIP'},
-                            ].map(tab => (
-                                <button key={tab.id} onClick={() => setActiveGiftTab(tab.id)}
-                                    style={{
-                                        flex:1, padding:'4px 6px', borderRadius:'6px', fontSize:'10px',
-                                        fontWeight:700, cursor:'pointer', border:'none',
-                                        background: activeGiftTab === tab.id ? 'rgba(0,242,255,0.15)' : 'rgba(255,255,255,0.05)',
-                                        color: activeGiftTab === tab.id ? '#00f2ff' : '#6b7280',
-                                        borderBottom: activeGiftTab === tab.id ? '2px solid #00f2ff' : '2px solid transparent'
+                    )}
+
+                    {/* ── Gift grid ── */}
+                    <div style={{ flex:1, overflowY:'auto', padding:'10px 12px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px', alignContent:'start' }}>
+                        {gifts.length === 0 ? (
+                            <div style={{ gridColumn:'1/-1', textAlign:'center', padding:'40px', color:'#4b5563', fontSize:'12px' }}>
+                                {activeTab === 'inventory' ? (lang==='ar'?'لا توجد هدايا في الإنفنتري':'No gifts in inventory') : (lang==='ar'?'لا توجد هدايا':'No gifts available')}
+                            </div>
+                        ) : gifts.map(gift => {
+                            const tag = getGiftTag(gift);
+                            const rKey = getGiftRarity(gift.cost || 0);
+                            const rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
+                            const vipRequired = gift.vipMinLevel || 0;
+                            const isVIPLocked = gift.type === 'gifts_vip' && vipLevel < vipRequired;
+                            const isFamLocked = gift.type === 'gifts_family' && (!currentUser?.familyId || userFamilyLevel < (gift.familyMinLevel || 0));
+                            const isSelected = selectedGift?.id === gift.id;
+                            const canAfford = gift.fromInventory ? true : (currency >= (gift.cost || 0));
+                            const expiryStr = gift.fromInventory && gift.daysLeft != null ? (lang==='ar' ? `${gift.daysLeft} ي` : `${gift.daysLeft}d`) : null;
+
+                            return (
+                                <button key={gift.id}
+                                    onClick={() => {
+                                        if (isVIPLocked || isFamLocked) return;
+                                        setSelectedGift(gift);
+                                        setQty(1);
                                     }}
-                                >{tab.label}</button>
-                            ))}
-                        </div>
-                        {/* Gifts grid — 5 columns, scrollable */}
-                        <div style={{display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'5px', maxHeight:'260px', overflowY:'auto'}}>
-                            {allGifts.map(gift => {
-                                const isVIPGift   = gift.type === 'gifts_vip';
-                                const vipRequired = gift.vipMinLevel || 0;
-                                const isVIPLocked = isVIPGift && vipLevel < vipRequired;
-                                const canAfford   = currency >= gift.cost;
-                                const glowType    = gift.vipGlowType;
-                                const rKey        = getGiftRarity(gift.cost);
-                                const rarity      = RARITY_CONFIG[rKey];
-                                const vipCfg      = vipRequired > 0 ? VIP_CONFIG[vipRequired - 1] : null;
-                                const vipColor    = vipCfg ? vipCfg.nameColor : '#7c3aed';
-                                return (
-                                    <button key={gift.id}
-                                        onClick={() => { if (!isVIPLocked) { setSelectedGift(gift); setShowPreview(true); } }}
-                                        disabled={!canAfford && !isVIPLocked}
-                                        className={glowType && !isVIPLocked ? `glow-${glowType}` : ''}
-                                        style={{
-                                            display:'flex', flexDirection:'column', alignItems:'center',
-                                            padding:'5px 3px', borderRadius:'8px', cursor: isVIPLocked ? 'default' : 'pointer',
-                                            border: isVIPGift ? `1.5px solid ${vipColor}77` : `1.5px solid ${canAfford ? rarity.border : 'rgba(255,255,255,0.05)'}`,
-                                            background: isVIPGift ? `linear-gradient(135deg,${vipColor}11,rgba(15,15,26,0.97))` : (canAfford ? rarity.bg : 'transparent'),
-                                            opacity: (!canAfford && !isVIPLocked) ? 0.35 : isVIPLocked ? 0.6 : 1,
-                                            position:'relative', transition:'transform 0.12s',
-                                        }}
-                                        onMouseEnter={e => { if(!isVIPLocked) e.currentTarget.style.transform='scale(1.07)'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}
-                                    >
-                                        {/* VIP badge */}
-                                        {isVIPGift && (
-                                            <span style={{
-                                                position:'absolute', top:'2px', right:'2px',
-                                                fontSize:'6px', fontWeight:900, background:vipColor, color:'#000',
-                                                padding:'1px 3px', borderRadius:'3px', lineHeight:1.2
-                                            }}>VIP{vipRequired}</span>
-                                        )}
-                                        {/* Event/Limited tags */}
-                                        {gift.isEvent && !isVIPGift && <span style={{position:'absolute',top:'2px',left:'2px',fontSize:'7px',color:'#a78bfa'}}>⚡</span>}
-                                        {gift.limitedTime && !isVIPGift && <span style={{position:'absolute',top:'2px',left:'2px',fontSize:'7px',color:'#f97316'}}>⏳</span>}
-                                        <span style={{fontSize:'20px', lineHeight:1}}>{gift.emoji}</span>
-                                        <span style={{fontSize:'7px', fontWeight:700, color:'#fbbf24', marginTop:'2px'}}>{gift.cost >= 1000 ? `${(gift.cost/1000).toFixed(gift.cost%1000===0?0:1)}k` : gift.cost}</span>
-                                        {/* VIP lock overlay */}
-                                        {isVIPLocked && (
-                                            <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.6)',borderRadius:'7px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'1px'}}>
-                                                <span style={{fontSize:'10px'}}>🔒</span>
-                                                <span style={{fontSize:'6px',color:vipColor,fontWeight:800}}>VIP{vipRequired}</span>
+                                    style={{
+                                        display:'flex', flexDirection:'column', alignItems:'center',
+                                        padding:'0 0 8px', borderRadius:'12px', cursor: (isVIPLocked||isFamLocked) ? 'default' : 'pointer',
+                                        border: isSelected ? '2px solid #00f2ff' : `1px solid ${canAfford && !isVIPLocked ? rarity.border : 'rgba(255,255,255,0.07)'}`,
+                                        background: isSelected ? 'rgba(0,242,255,0.08)' : (canAfford && !isVIPLocked ? rarity.bg : 'rgba(255,255,255,0.03)'),
+                                        opacity: (isVIPLocked || isFamLocked || (!canAfford && !gift.fromInventory)) ? 0.45 : 1,
+                                        position:'relative', overflow:'hidden',
+                                        transition:'transform 0.12s, border 0.12s',
+                                        boxShadow: isSelected ? '0 0 12px rgba(0,242,255,0.3)' : 'none',
+                                    }}
+                                    onMouseEnter={e => { if (!isVIPLocked && !isFamLocked) e.currentTarget.style.transform='scale(1.05)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}
+                                >
+                                    {/* Tag badge */}
+                                    {tag && (
+                                        <div style={{ position:'absolute', top:'4px', left:'4px', fontSize:'7px', fontWeight:800, color:'white', background:tag.bg, borderRadius:'6px', padding:'1px 5px', zIndex:2, lineHeight:1.4 }}>
+                                            {tag.label}
+                                        </div>
+                                    )}
+                                    {/* Expiry tag for inventory */}
+                                    {expiryStr && (
+                                        <div style={{ position:'absolute', top:'4px', right:'4px', fontSize:'7px', fontWeight:800, color:'#f97316', background:'rgba(249,115,22,0.2)', borderRadius:'4px', padding:'1px 4px', zIndex:2 }}>
+                                            ⏰ {expiryStr}
+                                        </div>
+                                    )}
+                                    {/* Gift image / emoji */}
+                                    <div style={{ width:'100%', paddingTop:'100%', position:'relative', borderRadius:'10px 10px 0 0', overflow:'hidden', background:'rgba(255,255,255,0.03)' }}>
+                                        <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                            {gift.imageUrl
+                                                ? <img src={gift.imageUrl} alt="" style={{ width:'72%', height:'72%', objectFit:'contain' }} />
+                                                : <span style={{ fontSize:'28px', lineHeight:1 }}>{gift.emoji || '🎁'}</span>
+                                            }
+                                        </div>
+                                        {/* Lock overlay */}
+                                        {(isVIPLocked || isFamLocked) && (
+                                            <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.65)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px' }}>
+                                                <span style={{ fontSize:'14px' }}>🔒</span>
+                                                <span style={{ fontSize:'7px', color: isVIPLocked ? '#f59e0b' : '#10b981', fontWeight:800 }}>
+                                                    {isVIPLocked ? `VIP${vipRequired}+` : `Lv.${gift.familyMinLevel}+`}
+                                                </span>
                                             </div>
                                         )}
-                                    </button>
-                                );
-                            })}
+                                    </div>
+                                    {/* Name */}
+                                    <div style={{ fontSize:'9px', fontWeight:700, color:'white', marginTop:'4px', textAlign:'center', lineHeight:1.3, padding:'0 3px', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:1, WebkitBoxOrient:'vertical', width:'100%' }}>
+                                        {lang==='ar' ? (gift.name_ar || gift.name_en) : gift.name_en}
+                                    </div>
+                                    {/* Price */}
+                                    {!gift.fromInventory && (
+                                        <div style={{ fontSize:'8px', fontWeight:800, color: canAfford ? '#facc15' : '#6b7280', marginTop:'2px', display:'flex', alignItems:'center', gap:'2px' }}>
+                                            <span>🧠</span>
+                                            <span>{(gift.cost || 0).toLocaleString()}</span>
+                                        </div>
+                                    )}
+                                    {gift.fromInventory && (
+                                        <div style={{ fontSize:'8px', color:'#10b981', fontWeight:800, marginTop:'2px' }}>
+                                            ×{gift.qty || 1}
+                                        </div>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* ── Bottom bar ── */}
+                    <div style={{
+                        display:'flex', alignItems:'center', gap:'8px',
+                        padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.07)',
+                        background:'rgba(0,0,0,0.4)', flexShrink:0,
+                    }}>
+                        {/* Balance */}
+                        <div style={{ display:'flex', alignItems:'center', gap:'5px', fontSize:'12px', fontWeight:700, color:'#facc15', flex:1 }}>
+                            🧠 {currency.toLocaleString()}
                         </div>
+                        {/* Public toggle (cosmetic) */}
+                        <button style={{ padding:'7px 12px', borderRadius:'20px', background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.15)', color:'#d1d5db', fontSize:'11px', fontWeight:700, cursor:'pointer' }}>
+                            {lang==='ar'?'عام':'Public'}
+                        </button>
+                        {/* Qty selector */}
+                        <div style={{ position:'relative' }}>
+                            <select value={qty} onChange={e => setQty(Number(e.target.value))}
+                                style={{ padding:'7px 24px 7px 12px', borderRadius:'20px', background:'rgba(15,15,30,0.9)', border:'1px solid rgba(255,255,255,0.15)', color:'white', fontSize:'11px', fontWeight:700, cursor:'pointer', appearance:'none', WebkitAppearance:'none', outline:'none' }}>
+                                {[1,3,5,10,20,50,99].map(n => <option key={n} value={n}>{n}</option>)}
+                            </select>
+                            <span style={{ position:'absolute', right:'8px', top:'50%', transform:'translateY(-50%)', fontSize:'8px', color:'#9ca3af', pointerEvents:'none' }}>▼</span>
+                        </div>
+                        {/* Send button */}
+                        <button
+                            onClick={() => {
+                                if (!selectedGift) return;
+                                if (selectedGift.fromInventory) {
+                                    onSendGift(selectedGift, hasDirectTarget ? targetUser : null, qty);
+                                    onClose();
+                                } else {
+                                    const cost = (selectedGift.cost || 0) * qty;
+                                    if (currency < cost) return;
+                                    handleSend(selectedGift, qty);
+                                }
+                            }}
+                            disabled={!selectedGift}
+                            style={{
+                                padding:'9px 22px', borderRadius:'50px',
+                                background: selectedGift ? 'linear-gradient(135deg,#ec4899,#db2777)' : 'rgba(255,255,255,0.07)',
+                                border:'none', color: selectedGift ? 'white' : '#4b5563',
+                                fontSize:'13px', fontWeight:900, cursor: selectedGift ? 'pointer' : 'default',
+                                boxShadow: selectedGift ? '0 4px 14px rgba(236,72,153,0.45)' : 'none',
+                                transition:'all 0.2s',
+                            }}
+                        >
+                            {lang==='ar'?'إرسال':'Send'}
+                            {selectedGift && qty > 1 && ` ×${qty}`}
+                        </button>
                     </div>
                 </div>
             </div>
-            <GiftPreviewModal
-                show={showPreview}
-                onClose={() => setShowPreview(false)}
-                gift={selectedGift}
-                lang={lang}
-                onBuy={(gift, target, qty) => {
-                    const actualTarget = target || (hasDirectTarget ? targetUser : null);
-                    const sendQty = qty || 1;
-                    // ✅ Send all in one call
-                    onSendGift(gift, actualTarget, sendQty);
-                    setShowPreview(false);
-                    // ✅ Show combo overlay only for qty=1 direct sends AND gift allows multiply
-                    const allowsMulti = gift?.maxSendOptions !== null && gift?.maxSendOptions !== undefined;
-                    if (sendQty === 1 && actualTarget && actualTarget.uid !== 'self' && allowsMulti) {
-                        setComboOverlay({ gift, target: actualTarget });
-                    } else {
-                        // multi-qty, self-send, or null maxSendOptions → just close modal
-                        onClose();
-                    }
-                }}
-                currency={currency}
-                isSending={true}
-                directTarget={hasDirectTarget ? targetUser : null}
-                friendsData={friendsData}
-                user={{ uid: currentUser?.uid }}
-                currentUserData={currentUser}
-            />
-        </>
+        </PortalModal>
     );
 };
 
