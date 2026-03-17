@@ -613,24 +613,51 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     );
 };
 
-// 🎁 SEND GIFT MODAL — New Design v2 (Matching reference image)
+// 🎁 SEND GIFT MODAL — New Design v3 (All fixes applied)
 const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency, friendsData }) => {
     const t = TRANSLATIONS[lang];
-    const [activeTab, setActiveTab]         = useState('gifts');
-    const [selectedGift, setSelectedGift]   = useState(null);
-    const [showPreview, setShowPreview]     = useState(false);
-    const [comboOverlay, setComboOverlay]   = useState(null);
-    const [qty, setQty]                     = useState(1);
-    const tabsRef = useRef(null);
+
+    // ── ALL HOOKS FIRST — no early returns before hooks ──
+    const [activeTab, setActiveTab]           = useState('gifts');
+    const [selectedGift, setSelectedGift]     = useState(null);
+    const [comboOverlay, setComboOverlay]     = useState(null);
+    const [qty, setQty]                       = useState(1);
+    const [isPublic, setIsPublic]             = useState(true);
+    const [showGiftDetail, setShowGiftDetail] = useState(false);
+    const tabsRef            = useRef(null);
+    const scrollIntervalRef  = useRef(null);
+
+    const scrollTabs = (dir) => {
+        if (!tabsRef.current) return;
+        tabsRef.current.scrollBy({ left: dir * 120, behavior: 'smooth' });
+    };
+    const startScroll = (dir) => { scrollTabs(dir); scrollIntervalRef.current = setInterval(() => scrollTabs(dir), 220); };
+    const stopScroll  = () => clearInterval(scrollIntervalRef.current);
+
+    // fix #1/#6: combo check BEFORE show guard so state is never lost on unmount
+    if (comboOverlay) {
+        return (
+            <PortalModal>
+                <ComboSendOverlay
+                    gift={comboOverlay.gift}
+                    target={comboOverlay.target}
+                    currency={currency}
+                    onSend={(g, tgt, q) => onSendGift(g, tgt, q)}
+                    onClose={() => { setComboOverlay(null); onClose(); }}
+                    lang={lang}
+                />
+            </PortalModal>
+        );
+    }
 
     if (!show) return null;
 
     const hasDirectTarget = targetUser && targetUser.uid !== 'self';
-    const vipLevel = currentUser ? (getVIPLevel ? getVIPLevel(currentUser) : 0) : 0;
-    const userFamilyLevel = currentUser?.familyLevel || 0;
+    const vipLevel  = currentUser ? (getVIPLevel ? getVIPLevel(currentUser) : 0) : 0;
     const inventory = currentUser?.inventory || {};
+    // fix #9: only require familyId — ignore level requirement
+    const hasFamilyId = !!(currentUser?.familyId);
 
-    // ── Tab config ──
     const TABS = [
         { id: 'inventory', icon: '🎒', label_ar: 'انفنتري',      label_en: 'Inventory' },
         { id: 'gifts',     icon: '🎁', label_ar: 'هدايا',         label_en: 'Gifts'    },
@@ -640,130 +667,113 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
         { id: 'vip',       icon: '👑', label_ar: 'VIP',            label_en: 'VIP'      },
     ];
 
-    // ── Gift lists by tab ──
     const getGiftsForTab = () => {
         switch (activeTab) {
             case 'inventory': {
-                // هدايا في الإنفنتري (من FunPass أو إيفنت)
                 const invGiftIds = inventory.gifts || [];
-                const allGiftItems = [...(SHOP_ITEMS.gifts || []), ...(SHOP_ITEMS.gifts_vip || [])];
+                const pool = [
+                    ...(SHOP_ITEMS.gifts||[]), ...(SHOP_ITEMS.gifts_vip||[]),
+                    ...(SHOP_ITEMS.gifts_family||[]), ...(SHOP_ITEMS.gifts_special||[]),
+                ];
                 return invGiftIds.map(gid => {
-                    const g = allGiftItems.find(x => x.id === gid);
+                    const g = pool.find(x => x.id === gid);
                     if (!g) return null;
                     const expiryTs = inventory.expiry?.[gid];
                     const daysLeft = expiryTs ? Math.max(0, Math.ceil((expiryTs - Date.now()) / 86400000)) : null;
                     return { ...g, fromInventory: true, daysLeft, qty: inventory.giftCounts?.[gid] || 1 };
                 }).filter(Boolean);
             }
-            case 'gifts':
-                return (SHOP_ITEMS.gifts || []).filter(g => !g.hidden && !g.eventOnly);
-            case 'family':
-                return (SHOP_ITEMS.gifts_family || []);
-            case 'special':
-                return (SHOP_ITEMS.gifts_special || []);
-            case 'flag':
-                return (SHOP_ITEMS.gifts_flag || []);
-            case 'vip':
-                return (SHOP_ITEMS.gifts_vip || []).filter(g => !g.hidden);
-            default:
-                return [];
+            case 'gifts':   return (SHOP_ITEMS.gifts||[]).filter(g => !g.hidden && !g.eventOnly);
+            case 'family':  return (SHOP_ITEMS.gifts_family||[]);
+            case 'special': return (SHOP_ITEMS.gifts_special||[]);
+            case 'flag':    return (SHOP_ITEMS.gifts_flag||[]);
+            case 'vip':     return (SHOP_ITEMS.gifts_vip||[]).filter(g => !g.hidden);
+            default:        return [];
         }
     };
-
     const gifts = getGiftsForTab();
 
-    // ── Info bar: charisma + gold for selected gift ──
-    const getInfoBar = () => {
-        if (!selectedGift) return null;
-        const charisma = (selectedGift.charisma || 0) * qty;
-        const maxGold  = (selectedGift.maxBonus || 0) * qty;
-        if (charisma === 0 && maxGold === 0) return null;
-        return (
-            <div style={{
-                display:'flex', alignItems:'center', justifyContent:'space-between',
-                padding:'7px 14px', margin:'0 0 4px',
-                background:'rgba(255,215,0,0.07)', borderRadius:'10px',
-                border:'1px solid rgba(255,215,0,0.18)', fontSize:'11px',
-            }}>
-                <span style={{ color:'#d1d5db' }}>
-                    {lang==='ar' ? 'كاريزما المستلم' : "Receiver's Charm"} <span style={{ color:'#facc15', fontWeight:800 }}>+{formatCharisma(charisma)}</span>
-                    {maxGold > 0 && <span style={{ color:'#9ca3af', marginLeft:'6px' }}>
-                        {lang==='ar' ? `حصل على ما يصل إلى ${maxGold.toLocaleString()} 🧠` : `Gain up to ${maxGold.toLocaleString()} Intel 🧠`}
-                    </span>}
-                    {selectedGift.specialType === 'lottery' && <span style={{ color:'#a78bfa', marginLeft:'6px' }}>🎰</span>}
-                </span>
-                <button style={{ background:'none', border:'none', color:'#6b7280', fontSize:'15px', cursor:'pointer', lineHeight:1 }}>?</button>
-            </div>
-        );
-    };
-
-    // ── Gift card tag ──
     const getGiftTag = (gift) => {
-        if (gift.specialType === 'lottery' || gift.isEvent)        return { label: lang==='ar'?'يانصيب':'Lottery',        bg:'#8b5cf6' };
-        if (gift.limitedTime)                                       return { label: lang==='ar'?'محدود':'Limited',          bg:'#f97316' };
-        if (gift.type === 'gifts_vip' || gift.vipExclusive)        return { label: 'VIP',                                   bg:'#f59e0b' };
-        if (gift.type === 'gifts_family')                           return { label: lang==='ar'?'قبيلة':'Family',            bg:'#10b981' };
-        if ((gift.charisma || 0) >= 400 || (gift.cost || 0) >= 2000) return { label: lang==='ar'?'مفاجأة الذهب':'Golds Surprise', bg:'#ef4444' };
+        if (gift.specialType === 'lottery' || gift.isEvent)        return { label: lang==='ar'?'يانصيب':'Lottery',           bg:'#8b5cf6' };
+        if (gift.limitedTime)                                       return { label: lang==='ar'?'محدود':'Limited',             bg:'#f97316' };
+        if (gift.type === 'gifts_vip' || gift.vipExclusive)        return { label: 'VIP',                                      bg:'#f59e0b' };
+        if (gift.type === 'gifts_family')                           return { label: lang==='ar'?'قبيلة':'Family',               bg:'#10b981' };
+        if ((gift.charisma||0) >= 400 || (gift.cost||0) >= 2000)   return { label: lang==='ar'?'مفاجأة الذهب':'Golds Surprise', bg:'#ef4444' };
         return null;
     };
 
-    // ── Send handler ──
     const handleSend = (gift, sendQty) => {
         const target = hasDirectTarget ? targetUser : null;
-        if (!target && !gift) return;
-        onSendGift(gift, target, sendQty || qty);
-        const allowsMulti = gift?.maxSendOptions != null;
-        if ((sendQty || qty) === 1 && target && target.uid !== 'self' && allowsMulti) {
+        if (!gift) return;
+        onSendGift(gift, target, sendQty || qty, { isPublic });
+        const allowsMulti = gift?.maxSendOptions != null && (sendQty || qty) === 1;
+        if (allowsMulti && target && target.uid !== 'self') {
             setComboOverlay({ gift, target });
         } else {
             onClose();
         }
     };
 
-    if (comboOverlay) {
+    const charismaForBar = selectedGift ? (selectedGift.charisma||0) * qty : 0;
+    const maxGoldForBar  = selectedGift ? (selectedGift.maxBonus||0) * qty : 0;
+    const showInfoBar    = !!(selectedGift && (charismaForBar > 0 || maxGoldForBar > 0));
+
+    // fix #7: gift detail popup component
+    const GiftDetailPopup = () => {
+        if (!showGiftDetail || !selectedGift) return null;
+        const g = selectedGift;
+        const rKey = getGiftRarity(g.cost || 0);
+        const rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
         return (
-            <PortalModal>
-                <ComboSendOverlay
-                    gift={comboOverlay.gift}
-                    target={comboOverlay.target}
-                    currency={currency}
-                    onSend={(g, t, q) => onSendGift(g, t, q)}
-                    onClose={() => { setComboOverlay(null); onClose(); }}
-                    lang={lang}
-                />
-            </PortalModal>
+            <div style={{ position:'fixed', inset:0, zIndex: Z.TOOLTIP, background:'rgba(0,0,0,0.88)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}
+                onClick={() => setShowGiftDetail(false)}>
+                <div onClick={e => e.stopPropagation()} style={{ width:'100%', maxWidth:'300px', background:'linear-gradient(160deg,#0e0e22,#13122a)', border:`1px solid ${rarity.border}`, borderRadius:'18px', padding:'20px', boxShadow:`0 20px 60px rgba(0,0,0,0.9)` }}>
+                    <div style={{ textAlign:'center', marginBottom:'14px' }}>
+                        {g.imageUrl && g.imageUrl.trim() !== ''
+                            ? <img src={g.imageUrl} alt="" style={{ width:'80px', height:'80px', objectFit:'contain', borderRadius:'12px' }} />
+                            : <span style={{ fontSize:'52px', lineHeight:1 }}>{g.emoji||'🎁'}</span>
+                        }
+                    </div>
+                    <div style={{ fontSize:'15px', fontWeight:900, color:'white', textAlign:'center', marginBottom:'4px' }}>{lang==='ar'?(g.name_ar||g.name_en):g.name_en}</div>
+                    {(g.desc_ar||g.desc_en) && <div style={{ fontSize:'11px', color:'#9ca3af', textAlign:'center', marginBottom:'12px', lineHeight:1.5 }}>{lang==='ar'?(g.desc_ar||g.desc_en):(g.desc_en||g.desc_ar)}</div>}
+                    <div style={{ display:'flex', flexDirection:'column', gap:'6px', marginBottom:'14px' }}>
+                        {!g.fromInventory && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>💰 {lang==='ar'?'السعر':'Price'}</span><span style={{ color:'#facc15', fontWeight:800 }}>{(g.cost||0).toLocaleString()} 🧠</span></div>}
+                        {(g.charisma||0) > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>⭐ {lang==='ar'?'كاريزما':'Charisma'}</span><span style={{ color:'#fbbf24', fontWeight:800 }}>+{formatCharisma(g.charisma||0)}</span></div>}
+                        {(g.maxBonus||0) > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>🍀 {lang==='ar'?'مردود أقصى':'Max Bonus'}</span><span style={{ color:'#4ade80', fontWeight:800 }}>+{(g.maxBonus||0).toLocaleString()} 🧠</span></div>}
+                        {g.specialType === 'lottery' && (g.possibleRewards||[]).length > 0 && (
+                            <div style={{ padding:'8px 10px', background:'rgba(139,92,246,0.08)', border:'1px solid rgba(139,92,246,0.25)', borderRadius:'8px' }}>
+                                <div style={{ fontSize:'10px', fontWeight:800, color:'#a78bfa', marginBottom:'6px' }}>🎰 {lang==='ar'?'جوائز ممكنة':'Possible Rewards'}</div>
+                                {(g.possibleRewards||[]).map((r, i) => (
+                                    <div key={i} style={{ display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#d1d5db', marginBottom:'3px' }}>
+                                        <span>{lang==='ar'?(r.desc_ar||r.desc_en):(r.desc_en||r.desc_ar)}</span>
+                                        <span style={{ color:'#a78bfa', fontWeight:700 }}>{r.chance}%</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {g.durationDays && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>⏳ {lang==='ar'?'تنتهي بعد':'Expires in'}</span><span style={{ color:'#f59e0b', fontWeight:800 }}>{g.durationDays} {lang==='ar'?'يوم':'days'}</span></div>}
+                        {g.isEvent && <div style={{ fontSize:'10px', color:'#a78bfa', textAlign:'center', padding:'4px', background:'rgba(139,92,246,0.08)', borderRadius:'6px' }}>🎉 {lang==='ar'?'هدية إيفنت':'Event Gift'}</div>}
+                        {g.limitedTime && <div style={{ fontSize:'10px', color:'#f97316', textAlign:'center', padding:'4px', background:'rgba(249,115,22,0.08)', borderRadius:'6px' }}>⏰ {lang==='ar'?'لوقت محدود':'Limited Time'}</div>}
+                    </div>
+                    <button onClick={() => setShowGiftDetail(false)} style={{ width:'100%', padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>{lang==='ar'?'إغلاق':'Close'}</button>
+                </div>
+            </div>
         );
-    }
+    };
 
     return (
+        <>
         <PortalModal>
-            <div style={{
-                position:'fixed', inset:0, zIndex: Z.MODAL_HIGH,
-                background:'rgba(0,0,0,0.82)',
-                display:'flex', alignItems:'flex-end', justifyContent:'center',
-            }} onClick={onClose}>
-                <div style={{
-                    width:'100%', maxWidth:'480px',
-                    background:'linear-gradient(180deg,#111122 0%,#0a0a18 100%)',
-                    borderRadius:'22px 22px 0 0',
-                    border:'1px solid rgba(255,255,255,0.1)',
-                    borderBottom:'none',
-                    overflow:'hidden',
-                    maxHeight:'88vh',
-                    display:'flex', flexDirection:'column',
-                    boxShadow:'0 -10px 60px rgba(0,0,0,0.8)',
-                }} onClick={e => e.stopPropagation()}>
+            <div style={{ position:'fixed', inset:0, zIndex: Z.MODAL_HIGH, background:'rgba(0,0,0,0.82)', display:'flex', alignItems:'flex-end', justifyContent:'center' }} onClick={onClose}>
+                <div style={{ width:'100%', maxWidth:'480px', background:'linear-gradient(180deg,#111122 0%,#0a0a18 100%)', borderRadius:'22px 22px 0 0', border:'1px solid rgba(255,255,255,0.1)', borderBottom:'none', overflow:'hidden', maxHeight:'88vh', display:'flex', flexDirection:'column', boxShadow:'0 -10px 60px rgba(0,0,0,0.8)' }} onClick={e => e.stopPropagation()}>
 
                     {/* ── Header ── */}
                     <div style={{ display:'flex', alignItems:'center', gap:'10px', padding:'14px 16px 10px', borderBottom:'1px solid rgba(255,255,255,0.07)', flexShrink:0 }}>
                         {hasDirectTarget && (
                             <>
-                                <img
-                                    src={targetUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(targetUser.displayName||'U')}&background=6366f1&color=fff`}
-                                    alt="" style={{ width:'32px', height:'32px', borderRadius:'50%', objectFit:'cover', border:'2px solid rgba(0,242,255,0.3)', flexShrink:0 }}
-                                />
+                                <img src={targetUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(targetUser.displayName||'U')}&background=6366f1&color=fff`} alt="" style={{ width:'32px', height:'32px', borderRadius:'50%', objectFit:'cover', border:'2px solid rgba(0,242,255,0.3)', flexShrink:0 }} />
                                 <div style={{ flex:1, minWidth:0 }}>
-                                    <div style={{ fontSize:'12px', color:'#9ca3af' }}>{lang==='ar'?'إرسال إلى':'Send to'}</div>
+                                    <div style={{ fontSize:'11px', color:'#9ca3af' }}>{lang==='ar'?'إرسال إلى':'Send to'}</div>
                                     <div style={{ fontSize:'14px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{targetUser.displayName}</div>
                                 </div>
                             </>
@@ -772,116 +782,108 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                         <button onClick={onClose} style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#9ca3af', fontSize:'14px', flexShrink:0 }}>✕</button>
                     </div>
 
-                    {/* ── Tabs ── */}
-                    <div ref={tabsRef} style={{ display:'flex', overflowX:'auto', padding:'8px 12px 0', gap:'4px', flexShrink:0, scrollbarWidth:'none' }}>
-                        {TABS.map(tab => (
-                            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSelectedGift(null); setQty(1); }}
-                                style={{
-                                    flexShrink:0, padding:'6px 14px', borderRadius:'20px', border:'none', cursor:'pointer',
-                                    fontSize:'11px', fontWeight:800, whiteSpace:'nowrap',
-                                    background: activeTab === tab.id ? 'rgba(0,242,255,0.18)' : 'rgba(255,255,255,0.06)',
-                                    color: activeTab === tab.id ? '#00f2ff' : '#9ca3af',
-                                    borderBottom: activeTab === tab.id ? '2px solid #00f2ff' : '2px solid transparent',
-                                    transition:'all 0.15s',
-                                }}
-                            >{tab.icon} {lang==='ar' ? tab.label_ar : tab.label_en}</button>
-                        ))}
-                        <div style={{ minWidth:'8px', flexShrink:0 }} />
+                    {/* ── Tabs with scroll arrows (fix #3) ── */}
+                    <div style={{ display:'flex', alignItems:'center', padding:'8px 0 0', flexShrink:0, gap:0 }}>
+                        <button onMouseDown={() => startScroll(-1)} onMouseUp={stopScroll} onMouseLeave={stopScroll} onTouchStart={() => startScroll(-1)} onTouchEnd={stopScroll}
+                            style={{ flexShrink:0, width:'28px', height:'28px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', marginLeft:'8px' }}>‹</button>
+                        <div ref={tabsRef} style={{ flex:1, display:'flex', overflowX:'auto', gap:'4px', scrollbarWidth:'none', WebkitOverflowScrolling:'touch', padding:'0 4px' }}>
+                            {TABS.map(tab => (
+                                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSelectedGift(null); setQty(1); setShowGiftDetail(false); }}
+                                    style={{ flexShrink:0, padding:'6px 14px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'11px', fontWeight:800, whiteSpace:'nowrap', background: activeTab===tab.id?'rgba(0,242,255,0.18)':'rgba(255,255,255,0.06)', color: activeTab===tab.id?'#00f2ff':'#9ca3af', borderBottom: activeTab===tab.id?'2px solid #00f2ff':'2px solid transparent', transition:'all 0.15s' }}
+                                >{tab.icon} {lang==='ar'?tab.label_ar:tab.label_en}</button>
+                            ))}
+                        </div>
+                        <button onMouseDown={() => startScroll(1)} onMouseUp={stopScroll} onMouseLeave={stopScroll} onTouchStart={() => startScroll(1)} onTouchEnd={stopScroll}
+                            style={{ flexShrink:0, width:'28px', height:'28px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', marginRight:'8px' }}>›</button>
                     </div>
 
-                    {/* ── Info bar ── */}
+                    {/* ── Info bar (fix #7: ? opens detail popup) ── */}
                     <div style={{ padding:'8px 12px 0', flexShrink:0 }}>
-                        {getInfoBar()}
+                        {showInfoBar && (
+                            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 14px', margin:'0 0 4px', background:'rgba(255,215,0,0.07)', borderRadius:'10px', border:'1px solid rgba(255,215,0,0.18)', fontSize:'11px' }}>
+                                <span style={{ color:'#d1d5db', flex:1 }}>
+                                    {lang==='ar'?'كاريزما المستلم':"Receiver's Charm"}{' '}
+                                    <span style={{ color:'#facc15', fontWeight:800 }}>+{formatCharisma(charismaForBar)}</span>
+                                    {maxGoldForBar > 0 && <span style={{ color:'#9ca3af', marginLeft:'6px' }}>{lang==='ar'?`حصل على ما يصل إلى ${maxGoldForBar.toLocaleString()} 🧠`:`Gain up to ${maxGoldForBar.toLocaleString()} Intel 🧠`}</span>}
+                                    {selectedGift?.specialType==='lottery' && <span style={{ color:'#a78bfa', marginLeft:'6px' }}>🎰</span>}
+                                </span>
+                                <button onClick={() => setShowGiftDetail(true)} style={{ background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'50%', width:'22px', height:'22px', color:'#e2e8f0', fontSize:'12px', fontWeight:800, cursor:'pointer', lineHeight:1, flexShrink:0 }}>?</button>
+                            </div>
+                        )}
                     </div>
 
-                    {/* ── Family locked notice ── */}
-                    {activeTab === 'family' && !currentUser?.familyId && (
+                    {/* ── Family locked notice (fix #9) ── */}
+                    {activeTab==='family' && !hasFamilyId && (
                         <div style={{ margin:'8px 12px', padding:'10px 14px', borderRadius:'10px', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.25)', fontSize:'11px', color:'#34d399', textAlign:'center', flexShrink:0 }}>
-                            🏰 {lang==='ar' ? 'يجب أن تكون في قبيلة لاستخدام هدايا القبيلة' : 'You must be in a family to use Family Gifts'}
+                            🏰 {lang==='ar'?'يجب أن تكون في قبيلة لاستخدام هدايا القبيلة':'You must be in a family to use Family Gifts'}
                         </div>
                     )}
 
-                    {/* ── Gift grid ── */}
+                    {/* ── Gift grid (fix #2 fixed name, fix #4 expiry, fix #8 GIF/img support) ── */}
                     <div style={{ flex:1, overflowY:'auto', padding:'10px 12px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px', alignContent:'start' }}>
                         {gifts.length === 0 ? (
                             <div style={{ gridColumn:'1/-1', textAlign:'center', padding:'40px', color:'#4b5563', fontSize:'12px' }}>
-                                {activeTab === 'inventory' ? (lang==='ar'?'لا توجد هدايا في الإنفنتري':'No gifts in inventory') : (lang==='ar'?'لا توجد هدايا':'No gifts available')}
+                                {activeTab==='inventory'?(lang==='ar'?'لا توجد هدايا في الإنفنتري':'No gifts in inventory'):(lang==='ar'?'لا توجد هدايا':'No gifts available')}
                             </div>
                         ) : gifts.map(gift => {
-                            const tag = getGiftTag(gift);
-                            const rKey = getGiftRarity(gift.cost || 0);
-                            const rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
+                            const tag        = getGiftTag(gift);
+                            const rKey       = getGiftRarity(gift.cost || 0);
+                            const rarity     = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
                             const vipRequired = gift.vipMinLevel || 0;
-                            const isVIPLocked = gift.type === 'gifts_vip' && vipLevel < vipRequired;
-                            const isFamLocked = gift.type === 'gifts_family' && (!currentUser?.familyId || userFamilyLevel < (gift.familyMinLevel || 0));
-                            const isSelected = selectedGift?.id === gift.id;
-                            const canAfford = gift.fromInventory ? true : (currency >= (gift.cost || 0));
-                            const expiryStr = gift.fromInventory && gift.daysLeft != null ? (lang==='ar' ? `${gift.daysLeft} ي` : `${gift.daysLeft}d`) : null;
-
+                            const isVIPLocked = gift.type==='gifts_vip' && vipLevel < vipRequired;
+                            const isFamLocked = gift.type==='gifts_family' && !hasFamilyId; // fix #9
+                            const isSelected  = selectedGift?.id === gift.id;
+                            const canAfford   = gift.fromInventory ? true : (currency >= (gift.cost||0));
                             return (
                                 <button key={gift.id}
-                                    onClick={() => {
-                                        if (isVIPLocked || isFamLocked) return;
-                                        setSelectedGift(gift);
-                                        setQty(1);
-                                    }}
+                                    onClick={() => { if (isVIPLocked||isFamLocked) return; setSelectedGift(isSelected?null:gift); setQty(1); setShowGiftDetail(false); }}
                                     style={{
+                                        // fix #2: fixed total height — nothing shifts
                                         display:'flex', flexDirection:'column', alignItems:'center',
-                                        padding:'0 0 8px', borderRadius:'12px', cursor: (isVIPLocked||isFamLocked) ? 'default' : 'pointer',
-                                        border: isSelected ? '2px solid #00f2ff' : `1px solid ${canAfford && !isVIPLocked ? rarity.border : 'rgba(255,255,255,0.07)'}`,
-                                        background: isSelected ? 'rgba(0,242,255,0.08)' : (canAfford && !isVIPLocked ? rarity.bg : 'rgba(255,255,255,0.03)'),
-                                        opacity: (isVIPLocked || isFamLocked || (!canAfford && !gift.fromInventory)) ? 0.45 : 1,
+                                        height:'112px', padding:'0',
+                                        borderRadius:'12px',
+                                        cursor: (isVIPLocked||isFamLocked)?'default':'pointer',
+                                        border: isSelected?'2px solid #00f2ff':`1px solid ${canAfford&&!isVIPLocked?rarity.border:'rgba(255,255,255,0.07)'}`,
+                                        background: isSelected?'rgba(0,242,255,0.08)':(canAfford&&!isVIPLocked?rarity.bg:'rgba(255,255,255,0.03)'),
+                                        opacity: (isVIPLocked||isFamLocked||(!canAfford&&!gift.fromInventory))?0.45:1,
                                         position:'relative', overflow:'hidden',
                                         transition:'transform 0.12s, border 0.12s',
-                                        boxShadow: isSelected ? '0 0 12px rgba(0,242,255,0.3)' : 'none',
+                                        boxShadow: isSelected?'0 0 12px rgba(0,242,255,0.3)':'none',
                                     }}
-                                    onMouseEnter={e => { if (!isVIPLocked && !isFamLocked) e.currentTarget.style.transform='scale(1.05)'; }}
+                                    onMouseEnter={e => { if (!isVIPLocked&&!isFamLocked) e.currentTarget.style.transform='scale(1.05)'; }}
                                     onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}
                                 >
-                                    {/* Tag badge */}
-                                    {tag && (
-                                        <div style={{ position:'absolute', top:'4px', left:'4px', fontSize:'7px', fontWeight:800, color:'white', background:tag.bg, borderRadius:'6px', padding:'1px 5px', zIndex:2, lineHeight:1.4 }}>
-                                            {tag.label}
-                                        </div>
-                                    )}
-                                    {/* Expiry tag for inventory */}
-                                    {expiryStr && (
-                                        <div style={{ position:'absolute', top:'4px', right:'4px', fontSize:'7px', fontWeight:800, color:'#f97316', background:'rgba(249,115,22,0.2)', borderRadius:'4px', padding:'1px 4px', zIndex:2 }}>
-                                            ⏰ {expiryStr}
-                                        </div>
-                                    )}
-                                    {/* Gift image / emoji */}
-                                    <div style={{ width:'100%', paddingTop:'100%', position:'relative', borderRadius:'10px 10px 0 0', overflow:'hidden', background:'rgba(255,255,255,0.03)' }}>
+                                    {tag && <div style={{ position:'absolute', top:'4px', left:'4px', fontSize:'7px', fontWeight:800, color:'white', background:tag.bg, borderRadius:'6px', padding:'1px 5px', zIndex:2, lineHeight:1.4 }}>{tag.label}</div>}
+                                    {/* fix #8: image area — supports GIF + static + emoji */}
+                                    <div style={{ width:'100%', flex:1, position:'relative', borderRadius:'10px 10px 0 0', overflow:'hidden', background:'rgba(255,255,255,0.03)' }}>
                                         <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                                            {gift.imageUrl
-                                                ? <img src={gift.imageUrl} alt="" style={{ width:'72%', height:'72%', objectFit:'contain' }} />
-                                                : <span style={{ fontSize:'28px', lineHeight:1 }}>{gift.emoji || '🎁'}</span>
+                                            {gift.imageUrl && gift.imageUrl.trim()!==''
+                                                ? <img src={gift.imageUrl} alt="" style={{ width:'68%', height:'68%', objectFit:'contain' }} />
+                                                : <span style={{ fontSize:'26px', lineHeight:1 }}>{gift.emoji||'🎁'}</span>
                                             }
                                         </div>
-                                        {/* Lock overlay */}
-                                        {(isVIPLocked || isFamLocked) && (
+                                        {(isVIPLocked||isFamLocked) && (
                                             <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.65)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px' }}>
                                                 <span style={{ fontSize:'14px' }}>🔒</span>
-                                                <span style={{ fontSize:'7px', color: isVIPLocked ? '#f59e0b' : '#10b981', fontWeight:800 }}>
-                                                    {isVIPLocked ? `VIP${vipRequired}+` : `Lv.${gift.familyMinLevel}+`}
-                                                </span>
+                                                <span style={{ fontSize:'7px', color:isVIPLocked?'#f59e0b':'#10b981', fontWeight:800 }}>{isVIPLocked?`VIP${vipRequired}+`:(lang==='ar'?'قبيلة':'Family')}</span>
                                             </div>
                                         )}
                                     </div>
-                                    {/* Name */}
-                                    <div style={{ fontSize:'9px', fontWeight:700, color:'white', marginTop:'4px', textAlign:'center', lineHeight:1.3, padding:'0 3px', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:1, WebkitBoxOrient:'vertical', width:'100%' }}>
-                                        {lang==='ar' ? (gift.name_ar || gift.name_en) : gift.name_en}
+                                    {/* fix #2: name ALWAYS fixed 14px height — never displaced */}
+                                    <div style={{ fontSize:'9px', fontWeight:700, color:'white', height:'14px', lineHeight:'14px', textAlign:'center', padding:'0 3px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis', width:'100%', flexShrink:0, marginTop:'3px' }}>
+                                        {lang==='ar'?(gift.name_ar||gift.name_en):gift.name_en}
                                     </div>
-                                    {/* Price */}
-                                    {!gift.fromInventory && (
-                                        <div style={{ fontSize:'8px', fontWeight:800, color: canAfford ? '#facc15' : '#6b7280', marginTop:'2px', display:'flex', alignItems:'center', gap:'2px' }}>
-                                            <span>🧠</span>
-                                            <span>{(gift.cost || 0).toLocaleString()}</span>
-                                        </div>
-                                    )}
-                                    {gift.fromInventory && (
-                                        <div style={{ fontSize:'8px', color:'#10b981', fontWeight:800, marginTop:'2px' }}>
-                                            ×{gift.qty || 1}
+                                    {/* Price / qty */}
+                                    <div style={{ height:'13px', lineHeight:'13px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', gap:'2px', marginBottom:'3px' }}>
+                                        {gift.fromInventory
+                                            ? <span style={{ fontSize:'8px', color:'#10b981', fontWeight:800 }}>×{gift.qty||1}</span>
+                                            : <span style={{ fontSize:'8px', fontWeight:800, color:canAfford?'#facc15':'#6b7280' }}>🧠{(gift.cost||0)>=1000?`${((gift.cost||0)/1000).toFixed((gift.cost||0)%1000===0?0:1)}k`:(gift.cost||0)}</span>
+                                        }
+                                    </div>
+                                    {/* fix #4: expiry date text below gift in inventory */}
+                                    {gift.fromInventory && gift.daysLeft != null && (
+                                        <div style={{ position:'absolute', bottom:'2px', left:0, right:0, fontSize:'7px', textAlign:'center', color:'rgba(249,115,22,0.55)', fontWeight:700 }}>
+                                            {lang==='ar'?`${gift.daysLeft} يوم`:`${gift.daysLeft} days`}
                                         </div>
                                     )}
                                 </button>
@@ -890,59 +892,39 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                     </div>
 
                     {/* ── Bottom bar ── */}
-                    <div style={{
-                        display:'flex', alignItems:'center', gap:'8px',
-                        padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.07)',
-                        background:'rgba(0,0,0,0.4)', flexShrink:0,
-                    }}>
-                        {/* Balance */}
-                        <div style={{ display:'flex', alignItems:'center', gap:'5px', fontSize:'12px', fontWeight:700, color:'#facc15', flex:1 }}>
-                            🧠 {currency.toLocaleString()}
-                        </div>
-                        {/* Public toggle (cosmetic) */}
-                        <button style={{ padding:'7px 12px', borderRadius:'20px', background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.15)', color:'#d1d5db', fontSize:'11px', fontWeight:700, cursor:'pointer' }}>
-                            {lang==='ar'?'عام':'Public'}
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.4)', flexShrink:0 }}>
+                        <div style={{ fontSize:'12px', fontWeight:700, color:'#facc15', flex:1 }}>🧠 {(currency||0).toLocaleString()}</div>
+                        {/* fix #5: real Public/Private toggle */}
+                        <button onClick={() => setIsPublic(v => !v)}
+                            style={{ padding:'7px 12px', borderRadius:'20px', background:isPublic?'rgba(0,242,255,0.12)':'rgba(255,80,80,0.12)', border:`1px solid ${isPublic?'rgba(0,242,255,0.3)':'rgba(255,80,80,0.3)'}`, color:isPublic?'#00f2ff':'#f87171', fontSize:'11px', fontWeight:700, cursor:'pointer', flexShrink:0, transition:'all 0.15s' }}>
+                            {isPublic?(lang==='ar'?'🌐 عام':'🌐 Public'):(lang==='ar'?'🔒 خاص':'🔒 Private')}
                         </button>
-                        {/* Qty selector */}
-                        <div style={{ position:'relative' }}>
+                        {/* fix #1: qty uses maxSendOptions from selected gift */}
+                        <div style={{ position:'relative', flexShrink:0 }}>
                             <select value={qty} onChange={e => setQty(Number(e.target.value))}
                                 style={{ padding:'7px 24px 7px 12px', borderRadius:'20px', background:'rgba(15,15,30,0.9)', border:'1px solid rgba(255,255,255,0.15)', color:'white', fontSize:'11px', fontWeight:700, cursor:'pointer', appearance:'none', WebkitAppearance:'none', outline:'none' }}>
-                                {[1,3,5,10,20,50,99].map(n => <option key={n} value={n}>{n}</option>)}
+                                {(selectedGift?.maxSendOptions || [1,3,5,10,20,50,99]).map(n => <option key={n} value={n}>{n}</option>)}
                             </select>
                             <span style={{ position:'absolute', right:'8px', top:'50%', transform:'translateY(-50%)', fontSize:'8px', color:'#9ca3af', pointerEvents:'none' }}>▼</span>
                         </div>
-                        {/* Send button */}
                         <button
                             onClick={() => {
                                 if (!selectedGift) return;
-                                if (selectedGift.fromInventory) {
-                                    onSendGift(selectedGift, hasDirectTarget ? targetUser : null, qty);
-                                    onClose();
-                                } else {
-                                    const cost = (selectedGift.cost || 0) * qty;
-                                    if (currency < cost) return;
-                                    handleSend(selectedGift, qty);
-                                }
+                                if (selectedGift.fromInventory) { onSendGift(selectedGift, hasDirectTarget?targetUser:null, qty, { isPublic }); onClose(); }
+                                else { const cost=(selectedGift.cost||0)*qty; if(currency<cost)return; handleSend(selectedGift,qty); }
                             }}
                             disabled={!selectedGift}
-                            style={{
-                                padding:'9px 22px', borderRadius:'50px',
-                                background: selectedGift ? 'linear-gradient(135deg,#ec4899,#db2777)' : 'rgba(255,255,255,0.07)',
-                                border:'none', color: selectedGift ? 'white' : '#4b5563',
-                                fontSize:'13px', fontWeight:900, cursor: selectedGift ? 'pointer' : 'default',
-                                boxShadow: selectedGift ? '0 4px 14px rgba(236,72,153,0.45)' : 'none',
-                                transition:'all 0.2s',
-                            }}
-                        >
-                            {lang==='ar'?'إرسال':'Send'}
-                            {selectedGift && qty > 1 && ` ×${qty}`}
+                            style={{ padding:'9px 22px', borderRadius:'50px', flexShrink:0, background:selectedGift?'linear-gradient(135deg,#ec4899,#db2777)':'rgba(255,255,255,0.07)', border:'none', color:selectedGift?'white':'#4b5563', fontSize:'13px', fontWeight:900, cursor:selectedGift?'pointer':'default', boxShadow:selectedGift?'0 4px 14px rgba(236,72,153,0.45)':'none', transition:'all 0.2s' }}>
+                            {lang==='ar'?'إرسال':'Send'}{selectedGift&&qty>1?` ×${qty}`:''}
                         </button>
                     </div>
                 </div>
             </div>
         </PortalModal>
+        {showGiftDetail && selectedGift && <PortalModal><GiftDetailPopup /></PortalModal>}
+        </>
     );
-};
+}
 
 // ══════════════════════════════════════════════════
 // 🔥 COMBO SEND OVERLAY — bottom-right floating card, no backdrop
