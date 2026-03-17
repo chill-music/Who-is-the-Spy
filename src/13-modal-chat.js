@@ -76,6 +76,20 @@ const PrivateChatModal = ({
     const [blockedByTarget, setBlockedByTarget] = useState(false);
     const [friendTyping, setFriendTyping]   = useState(false);
     const [uploadingImg, setUploadingImg]   = useState(false);
+    // ── 3-dot menu (header) ──
+    const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+    // ── Delete chat confirm ──
+    const [showDeleteChatConfirm, setShowDeleteChatConfirm] = useState(false);
+    const [deletingChat, setDeletingChat]   = useState(false);
+    // ── Report with DM modal ──
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportStep, setReportStep]       = useState('reason'); // 'reason' | 'dm' | 'done'
+    const [reportReason, setReportReason]   = useState('');
+    const [reportDMMsg, setReportDMMsg]     = useState(null); // selected message for evidence
+    const [submittingReport, setSubmittingReport] = useState(false);
+    // ── Message edit/delete ──
+    const [editingMsgId, setEditingMsgId]   = useState(null);
+    const [editMsgText, setEditMsgText]     = useState('');
 
     const messagesEndRef  = useRef(null);
     const inputRef        = useRef(null);
@@ -242,6 +256,114 @@ const PrivateChatModal = ({
         setShowGiftModal(false);
     };
 
+    // ── حذف الشات ──
+    const handleDeleteChat = async () => {
+        if (!chatId || deletingChat) return;
+        setDeletingChat(true);
+        try {
+            // حذف كل الرسائل
+            const msgsSnap = await chatsCollection.doc(chatId).collection('messages').limit(500).get();
+            const batch = db.batch();
+            msgsSnap.docs.forEach(d => batch.delete(d.ref));
+            await batch.commit().catch(() => {});
+            // حذف الـ chat doc
+            await chatsCollection.doc(chatId).delete().catch(() => {});
+            setShowDeleteChatConfirm(false);
+            onClose();
+        } catch (e) { console.error('Delete chat error:', e); }
+        setDeletingChat(false);
+    };
+
+    // ── حظر المستخدم ──
+    const handleBlock = async () => {
+        if (!user || !friend) return;
+        try {
+            await usersCollection.doc(user.uid).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayUnion(friend.uid)
+            });
+            setIsBlocked(true);
+            setShowHeaderMenu(false);
+        } catch (e) { console.error('Block error:', e); }
+    };
+
+    // ── إلغاء الحظر ──
+    const handleUnblock = async () => {
+        if (!user || !friend) return;
+        try {
+            await usersCollection.doc(user.uid).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayRemove(friend.uid)
+            });
+            setIsBlocked(false);
+            setShowHeaderMenu(false);
+        } catch (e) { console.error('Unblock error:', e); }
+    };
+
+    // ── تعديل رسالة ──
+    const handleEditMessage = async (msgId, newText) => {
+        if (!newText.trim() || !chatId) return;
+        try {
+            await chatsCollection.doc(chatId).collection('messages').doc(msgId).update({
+                text: newText.trim(),
+                editedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                isEdited: true,
+            });
+            setEditingMsgId(null);
+            setEditMsgText('');
+        } catch (e) { console.error('Edit message error:', e); }
+    };
+
+    // ── حذف رسالة ──
+    const handleDeleteMessage = async (msgId) => {
+        if (!chatId) return;
+        try {
+            // استبدال الرسالة بـ "تم حذف هذه الرسالة"
+            await chatsCollection.doc(chatId).collection('messages').doc(msgId).update({
+                text: lang === 'ar' ? '🗑️ تم حذف هذه الرسالة' : '🗑️ This message was deleted',
+                isDeleted: true,
+                deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                imageData: firebase.firestore.FieldValue.delete(),
+                type: 'deleted',
+            });
+        } catch (e) { console.error('Delete message error:', e); }
+    };
+
+    // ── إرسال بلاغ مع DM كدليل ──
+    const handleSubmitReport = async () => {
+        if (!reportReason.trim() || !user || !friend) return;
+        setSubmittingReport(true);
+        try {
+            await reportsCollection.add({
+                reporterUID:   user.uid,
+                reporterName:  currentUser?.displayName || 'User',
+                reportedUID:   friend.uid,
+                reportedName:  friend.displayName || 'User',
+                reason:        reportReason.trim(),
+                evidence: reportDMMsg ? {
+                    msgId:   reportDMMsg.id,
+                    text:    reportDMMsg.text,
+                    sender:  reportDMMsg.senderName,
+                    time:    reportDMMsg.timestamp,
+                } : null,
+                type:          'user',
+                resolved:      false,
+                createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            // إشعار للمستخدم بإرسال البلاغ
+            await botChatsCollection.add({
+                botId: 'detective_bot',
+                toUserId: user.uid,
+                type: 'report_submitted',
+                message: lang === 'ar'
+                    ? `🕵️ تم استلام بلاغك ضد "${friend.displayName || 'المستخدم'}".\nسيقوم فريق الإدارة بمراجعة البلاغ والتحقيق فيه.\n\nشكراً لمساعدتنا في الحفاظ على سلامة المجتمع.`
+                    : `🕵️ Your report against "${friend.displayName || 'user'}" has been received.\nOur moderation team will review and investigate.\n\nThank you for helping keep the community safe.`,
+                read: false,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            }).catch(() => {});
+            setReportStep('done');
+        } catch (e) { console.error('Report error:', e); }
+        setSubmittingReport(false);
+    };
+
     if (!show || !friend) return null;
 
     // ── Online status ──
@@ -342,6 +464,7 @@ const PrivateChatModal = ({
                     border: '1px solid rgba(167,139,250,0.22)',
                   }}>☁️ {lang === 'ar' ? 'محفوظ' : 'Saved'}</div>
                 )}
+                {/* Gift button */}
                 <button
                   onClick={() => setShowGiftModal(true)}
                   disabled={isBlocked || blockedByTarget}
@@ -352,8 +475,86 @@ const PrivateChatModal = ({
                     opacity: (isBlocked || blockedByTarget) ? 0.4 : 1,
                   }}
                 >🎁</button>
+
+                {/* ── 3-dot menu ── */}
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => setShowHeaderMenu(v => !v)}
+                    style={{
+                      background: showHeaderMenu ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.09)',
+                      borderRadius: '8px', width: '30px', height: '30px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', color: '#9ca3af', fontSize: '16px',
+                    }}
+                  >⋮</button>
+
+                  {showHeaderMenu && (
+                    <div style={{
+                      position: 'absolute', top: '36px', right: 0,
+                      background: 'linear-gradient(160deg,#0e0e22,#13122a)',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: '12px', padding: '6px',
+                      zIndex: Z.TOOLTIP,
+                      minWidth: '170px',
+                      boxShadow: '0 14px 40px rgba(0,0,0,0.8)',
+                    }}>
+                      {/* حذف الشات */}
+                      <button
+                        onClick={() => { setShowHeaderMenu(false); setShowDeleteChatConfirm(true); }}
+                        style={{
+                          width: '100%', padding: '9px 12px', borderRadius: '8px',
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: '9px',
+                          fontSize: '12px', fontWeight: 700, color: '#f87171',
+                          textAlign: lang === 'ar' ? 'right' : 'left',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                      >
+                        🗑️ {lang === 'ar' ? 'حذف المحادثة' : 'Delete Chat'}
+                      </button>
+
+                      {/* حظر / إلغاء حظر */}
+                      <button
+                        onClick={() => { isBlocked ? handleUnblock() : handleBlock(); }}
+                        style={{
+                          width: '100%', padding: '9px 12px', borderRadius: '8px',
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: '9px',
+                          fontSize: '12px', fontWeight: 700,
+                          color: isBlocked ? '#4ade80' : '#f59e0b',
+                          textAlign: lang === 'ar' ? 'right' : 'left',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = isBlocked ? 'rgba(74,222,128,0.08)' : 'rgba(245,158,11,0.08)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                      >
+                        {isBlocked
+                          ? `✅ ${lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}`
+                          : `🚫 ${lang === 'ar' ? 'حظر المستخدم' : 'Block User'}`}
+                      </button>
+
+                      {/* بلاغ */}
+                      <button
+                        onClick={() => { setShowHeaderMenu(false); setReportStep('reason'); setReportReason(''); setReportDMMsg(null); setShowReportModal(true); }}
+                        style={{
+                          width: '100%', padding: '9px 12px', borderRadius: '8px',
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: '9px',
+                          fontSize: '12px', fontWeight: 700, color: '#9ca3af',
+                          textAlign: lang === 'ar' ? 'right' : 'left',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                      >
+                        🚨 {lang === 'ar' ? 'إبلاغ عن المستخدم' : 'Report User'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <button
-                  onClick={onClose}
+                  onClick={() => { setShowHeaderMenu(false); onClose(); }}
                   style={{
                     background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)',
                     borderRadius: '8px', width: '30px', height: '30px',
@@ -453,7 +654,18 @@ const PrivateChatModal = ({
                       )}
 
                       {/* Bubble */}
-                      {isGift ? (
+                      {msg.isDeleted ? (
+                        <div style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          border: '1px solid rgba(255,255,255,0.06)',
+                          borderRadius: isMine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                          padding: '7px 11px',
+                          fontSize: '11px', color: '#4b5563',
+                          fontStyle: 'italic',
+                        }}>
+                          🗑️ {lang === 'ar' ? 'تم حذف هذه الرسالة' : 'This message was deleted'}
+                        </div>
+                      ) : isGift ? (
                         <div style={{
                           background: isMine
                             ? 'linear-gradient(135deg,rgba(255,215,0,0.16),rgba(255,136,0,0.10))'
@@ -479,7 +691,7 @@ const PrivateChatModal = ({
                         <div
                           onClick={() => {
                             const w = window.open();
-                            w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);
+                            w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);
                           }}
                           style={{
                             borderRadius: isMine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
@@ -490,6 +702,30 @@ const PrivateChatModal = ({
                         >
                           <img src={msg.imageData} alt="📷"
                             style={{ display: 'block', maxWidth: '200px', maxHeight: '200px', objectFit: 'cover' }} />
+                        </div>
+                      ) : editingMsgId === msg.id ? (
+                        /* ── Edit input ── */
+                        <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                          <input
+                            autoFocus
+                            value={editMsgText}
+                            onChange={e => setEditMsgText(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') handleEditMessage(msg.id, editMsgText);
+                              if (e.key === 'Escape') { setEditingMsgId(null); setEditMsgText(''); }
+                            }}
+                            style={{
+                              flex: 1, padding: '7px 10px',
+                              background: 'rgba(0,242,255,0.08)',
+                              border: '1px solid rgba(0,242,255,0.3)',
+                              borderRadius: '10px', color: 'white',
+                              fontSize: '13px', outline: 'none',
+                            }}
+                          />
+                          <button onClick={() => handleEditMessage(msg.id, editMsgText)}
+                            style={{ background: 'rgba(0,242,255,0.2)', border: '1px solid rgba(0,242,255,0.4)', borderRadius: '8px', padding: '5px 8px', color: '#00f2ff', cursor: 'pointer', fontSize: '12px', fontWeight: 800 }}>✓</button>
+                          <button onClick={() => { setEditingMsgId(null); setEditMsgText(''); }}
+                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '5px 8px', color: '#9ca3af', cursor: 'pointer', fontSize: '12px' }}>✕</button>
                         </div>
                       ) : (
                         <div style={{
@@ -508,15 +744,81 @@ const PrivateChatModal = ({
                         </div>
                       )}
 
-                      {/* Timestamp */}
-                      <div style={{
-                        fontSize: '9px', color: '#374151',
-                        paddingLeft: isMine ? 0 : '3px',
-                        paddingRight: isMine ? '3px' : 0,
-                      }}>
-                        {_fmtChatTs(msg.timestamp)}
-                        {isMine && <span style={{ marginLeft: '3px', color: '#374151' }}>✓</span>}
-                      </div>
+                      {/* Timestamp + edited + pen icon */}
+                      {!msg.isDeleted && (
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: '4px',
+                          justifyContent: isMine ? 'flex-end' : 'flex-start',
+                          paddingLeft: isMine ? 0 : '3px',
+                          paddingRight: isMine ? '3px' : 0,
+                        }}>
+                          <div style={{ fontSize: '9px', color: '#374151' }}>
+                            {_fmtChatTs(msg.timestamp)}
+                            {msg.isEdited && <span style={{ marginLeft: '3px', color: '#4b5563', fontStyle: 'italic' }}>{lang === 'ar' ? '(معدّل)' : '(edited)'}</span>}
+                            {isMine && <span style={{ marginLeft: '3px', color: '#374151' }}>✓</span>}
+                          </div>
+                          {/* ✏️ قلم التعديل/الحذف — لرسائل المستخدم الحالي فقط وغير المحذوفة وليست هدايا */}
+                          {isMine && !isGift && !isImage && msg.type !== 'deleted' && (
+                            <div style={{ position: 'relative', display: 'inline-flex' }}>
+                              <button
+                                onClick={() => {
+                                  if (editingMsgId === msg.id) { setEditingMsgId(null); setEditMsgText(''); }
+                                  else { setEditingMsgId(msg.id); setEditMsgText(msg.text || ''); }
+                                }}
+                                title={lang === 'ar' ? 'تعديل أو حذف' : 'Edit or delete'}
+                                style={{
+                                  background: 'none', border: 'none', cursor: 'pointer',
+                                  fontSize: '10px', color: '#4b5563', padding: '1px 2px',
+                                  lineHeight: 1, opacity: 0.6,
+                                  transition: 'opacity 0.15s',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                                onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
+                              >✏️</button>
+                              {/* Mini menu: edit + delete */}
+                              {editingMsgId === msg.id && (
+                                <div style={{
+                                  position: 'absolute', bottom: '20px',
+                                  right: isMine ? 0 : 'auto',
+                                  left: isMine ? 'auto' : 0,
+                                  background: '#0e1020',
+                                  border: '1px solid rgba(255,255,255,0.1)',
+                                  borderRadius: '10px', padding: '5px',
+                                  zIndex: Z.TOOLTIP,
+                                  boxShadow: '0 8px 24px rgba(0,0,0,0.7)',
+                                  display: 'flex', flexDirection: 'column', gap: '3px',
+                                  minWidth: '120px',
+                                }}>
+                                  <button onClick={() => { setEditMsgText(msg.text || ''); }}
+                                    style={{ padding: '6px 10px', borderRadius: '7px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', color: '#00f2ff', fontWeight: 700, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,242,255,0.08)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                                  >✏️ {lang === 'ar' ? 'تعديل' : 'Edit'}</button>
+                                  <button onClick={() => { setEditingMsgId(null); handleDeleteMessage(msg.id); }}
+                                    style={{ padding: '6px 10px', borderRadius: '7px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', color: '#f87171', fontWeight: 700, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                                  >🗑️ {lang === 'ar' ? 'حذف' : 'Delete'}</button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {/* ── DM evidence select (while report modal open) ── */}
+                          {showReportModal && reportStep === 'dm' && !isMine && !isGift && !isImage && (
+                            <button
+                              onClick={() => setReportDMMsg(reportDMMsg?.id === msg.id ? null : msg)}
+                              title={lang === 'ar' ? 'اختر كدليل' : 'Select as evidence'}
+                              style={{
+                                background: reportDMMsg?.id === msg.id ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.05)',
+                                border: reportDMMsg?.id === msg.id ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '6px', padding: '2px 6px',
+                                fontSize: '10px', color: reportDMMsg?.id === msg.id ? '#f87171' : '#9ca3af',
+                                cursor: 'pointer', fontWeight: 700,
+                              }}
+                            >{reportDMMsg?.id === msg.id ? '✓' : lang === 'ar' ? 'اختر' : 'Select'}</button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -692,6 +994,176 @@ const PrivateChatModal = ({
             currency={currency || 0}
             friendsData={friendsData}
           />
+        )}
+
+        {/* ── Delete Chat Confirm Modal ── */}
+        {showDeleteChatConfirm && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: Z.OVERLAY,
+            background: 'rgba(0,0,0,0.85)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px',
+          }} onClick={() => setShowDeleteChatConfirm(false)}>
+            <div style={{
+              background: 'linear-gradient(135deg,#1a0808,#0f0505)',
+              border: '2px solid rgba(239,68,68,0.45)',
+              borderRadius: '18px', padding: '24px',
+              maxWidth: '300px', width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 0 40px rgba(239,68,68,0.2)',
+            }} onClick={e => e.stopPropagation()}>
+              <div style={{ fontSize: '40px', marginBottom: '10px' }}>🗑️</div>
+              <div style={{ fontSize: '15px', fontWeight: 900, color: '#f87171', marginBottom: '8px' }}>
+                {lang === 'ar' ? 'حذف المحادثة' : 'Delete Chat'}
+              </div>
+              <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '20px', lineHeight: 1.6 }}>
+                {lang === 'ar'
+                  ? 'سيتم حذف كل الرسائل نهائياً. هل أنت متأكد؟'
+                  : 'All messages will be permanently deleted. Are you sure?'}
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={() => setShowDeleteChatConfirm(false)}
+                  style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                  {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                </button>
+                <button onClick={handleDeleteChat} disabled={deletingChat}
+                  style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'linear-gradient(135deg,#dc2626,#991b1b)', border: 'none', color: 'white', fontSize: '13px', fontWeight: 800, cursor: deletingChat ? 'wait' : 'pointer', opacity: deletingChat ? 0.7 : 1 }}>
+                  {deletingChat ? '⏳' : `🗑️ ${lang === 'ar' ? 'حذف' : 'Delete'}`}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Report Modal ── */}
+        {showReportModal && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: Z.OVERLAY,
+            background: 'rgba(0,0,0,0.88)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '16px',
+          }} onClick={() => { if (reportStep !== 'done') setShowReportModal(false); }}>
+            <div style={{
+              background: 'linear-gradient(160deg,#0d0d1f,#0a0a18)',
+              border: '1px solid rgba(239,68,68,0.3)',
+              borderRadius: '20px', padding: '24px',
+              maxWidth: '340px', width: '100%',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.9)',
+            }} onClick={e => e.stopPropagation()}>
+
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+                <span style={{ fontSize: '22px' }}>🚨</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 900, color: '#f87171' }}>
+                    {lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#6b7280' }}>{friend?.displayName}</div>
+                </div>
+                {reportStep !== 'done' && (
+                  <button onClick={() => setShowReportModal(false)}
+                    style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+                )}
+              </div>
+
+              {/* Step: reason */}
+              {reportStep === 'reason' && (
+                <>
+                  <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '10px' }}>
+                    {lang === 'ar' ? 'سبب البلاغ:' : 'Reason for report:'}
+                  </div>
+                  {[
+                    { en: 'Harassment / Bullying', ar: 'مضايقة / تنمر' },
+                    { en: 'Inappropriate content', ar: 'محتوى غير لائق' },
+                    { en: 'Spam / Advertising', ar: 'سبام / إعلانات' },
+                    { en: 'Fake account', ar: 'حساب مزيف' },
+                    { en: 'Other', ar: 'أخرى' },
+                  ].map(r => (
+                    <button key={r.en} onClick={() => setReportReason(lang === 'ar' ? r.ar : r.en)}
+                      style={{
+                        width: '100%', padding: '9px 13px', marginBottom: '5px', borderRadius: '9px',
+                        background: reportReason === (lang === 'ar' ? r.ar : r.en) ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.04)',
+                        border: reportReason === (lang === 'ar' ? r.ar : r.en) ? '1px solid rgba(239,68,68,0.45)' : '1px solid rgba(255,255,255,0.08)',
+                        color: reportReason === (lang === 'ar' ? r.ar : r.en) ? '#f87171' : '#d1d5db',
+                        fontSize: '12px', fontWeight: 600, cursor: 'pointer', textAlign: 'left',
+                      }}>
+                      {lang === 'ar' ? r.ar : r.en}
+                    </button>
+                  ))}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                    <button onClick={() => setShowReportModal(false)}
+                      style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                      {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                    </button>
+                    <button onClick={() => setReportStep('dm')} disabled={!reportReason}
+                      style={{ flex: 1, padding: '10px', borderRadius: '10px', background: reportReason ? 'linear-gradient(135deg,rgba(239,68,68,0.3),rgba(185,28,28,0.2))' : 'rgba(255,255,255,0.03)', border: reportReason ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.06)', color: reportReason ? '#f87171' : '#374151', fontSize: '12px', fontWeight: 700, cursor: reportReason ? 'pointer' : 'not-allowed' }}>
+                      {lang === 'ar' ? 'التالي →' : 'Next →'}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Step: DM evidence */}
+              {reportStep === 'dm' && (
+                <>
+                  <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '8px' }}>
+                    {lang === 'ar' ? 'أضف دليلاً من الرسائل (اختياري):' : 'Add message evidence (optional):'}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '12px', lineHeight: 1.5 }}>
+                    {lang === 'ar'
+                      ? 'أغلق هذه النافذة واضغط على "اختر" بجانب الرسالة التي تريد إرفاقها كدليل، ثم عد هنا.'
+                      : 'Close this dialog and tap "Select" next to the message you want as evidence, then come back.'}
+                  </div>
+                  {reportDMMsg && (
+                    <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '10px', marginBottom: '12px', fontSize: '12px', color: '#fca5a5' }}>
+                      📎 {lang === 'ar' ? 'دليل مرفق:' : 'Evidence attached:'} "{reportDMMsg.text?.slice(0, 60)}{reportDMMsg.text?.length > 60 ? '...' : ''}"
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => setReportStep('reason')}
+                      style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                      ← {lang === 'ar' ? 'رجوع' : 'Back'}
+                    </button>
+                    <button onClick={handleSubmitReport} disabled={submittingReport}
+                      style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'linear-gradient(135deg,rgba(239,68,68,0.35),rgba(185,28,28,0.25))', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171', fontSize: '12px', fontWeight: 800, cursor: submittingReport ? 'wait' : 'pointer', opacity: submittingReport ? 0.7 : 1 }}>
+                      {submittingReport ? '⏳' : `🚨 ${lang === 'ar' ? 'إرسال البلاغ' : 'Submit Report'}`}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Step: done */}
+              {reportStep === 'done' && (
+                <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#4ade80', marginBottom: '8px' }}>
+                    {lang === 'ar' ? 'تم إرسال البلاغ' : 'Report Submitted'}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '20px', lineHeight: 1.6 }}>
+                    {lang === 'ar'
+                      ? 'شكراً لمساعدتنا. سيتم مراجعة البلاغ قريباً وستصلك رسالة من المحقق.'
+                      : 'Thank you. Your report will be reviewed soon and you will receive a message from The Detective.'}
+                  </div>
+                  <button onClick={() => setShowReportModal(false)}
+                    style={{ padding: '10px 28px', borderRadius: '10px', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                    {lang === 'ar' ? 'إغلاق' : 'Close'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Click outside to close header menu */}
+        {showHeaderMenu && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: Z.MODAL - 1 }}
+            onClick={() => setShowHeaderMenu(false)} />
+        )}
+
+        {/* Click outside to close edit menu */}
+        {editingMsgId && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: Z.MODAL - 2 }}
+            onClick={() => { setEditingMsgId(null); setEditMsgText(''); }} />
         )}
 
         {/* Typing animation keyframes */}
