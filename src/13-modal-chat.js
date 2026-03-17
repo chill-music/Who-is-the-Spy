@@ -1125,42 +1125,18 @@ const PrivateChatModal = ({
                   ? `url(${miniProfile.bannerUrl}) center/cover no-repeat`
                   : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)',
               }}>
-                {/* dark overlay */}
                 <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.25) 0%,rgba(13,13,31,0.72) 100%)' }} />
 
-                {/* Top-right: badges + 3-dot */}
-                <div style={{ position:'absolute', top:'10px', right:'10px', zIndex:3, display:'flex', alignItems:'center', gap:'6px' }}>
-                  {/* Top 3 badges */}
-                  {(miniProfile.topBadges || []).map((badge, i) => (
-                    <div key={i} title={badge.title_en || badge.name_en || ''} style={{
-                      width:'28px', height:'28px', borderRadius:'8px',
-                      background:'rgba(0,0,0,0.55)',
-                      border:'1px solid rgba(255,255,255,0.18)',
-                      display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:'15px',
-                    }}>{badge.icon || '🏅'}</div>
-                  ))}
-                  {/* 3-dot menu */}
+                {/* 3-dot menu top-right only */}
+                <div style={{ position:'absolute', top:'10px', right:'10px', zIndex:3 }}>
                   <div style={{ position:'relative' }}>
                     <button
                       onClick={e => { e.stopPropagation(); setShowMiniMenu(v => !v); }}
-                      style={{
-                        background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.18)',
-                        borderRadius:'50%', width:'30px', height:'30px',
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                        cursor:'pointer', color:'white', fontSize:'17px', fontWeight:900, lineHeight:1,
-                      }}
+                      style={{ background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.18)', borderRadius:'50%', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white', fontSize:'17px', fontWeight:900, lineHeight:1 }}
                     >⋮</button>
                     {showMiniMenu && (
-                      <div style={{
-                        position:'absolute', top:'34px', right:0,
-                        background:'linear-gradient(160deg,#0e0e22,#13122a)',
-                        border:'1px solid rgba(255,255,255,0.13)',
-                        borderRadius:'12px', padding:'5px',
-                        minWidth:'160px',
-                        boxShadow:'0 10px 30px rgba(0,0,0,0.9)',
-                        zIndex:5,
-                      }} onClick={e => e.stopPropagation()}>
+                      <div style={{ position:'absolute', top:'34px', right:0, background:'linear-gradient(160deg,#0e0e22,#13122a)', border:'1px solid rgba(255,255,255,0.13)', borderRadius:'12px', padding:'5px', minWidth:'160px', boxShadow:'0 10px 30px rgba(0,0,0,0.9)', zIndex:5 }}
+                        onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => { setMiniProfile(null); setShowMiniMenu(false); setReportStep('reason'); setReportReason(''); setReportDMMsg(null); setShowReportModal(true); }}
                           style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#9ca3af', textAlign:'left' }}
@@ -1181,18 +1157,35 @@ const PrivateChatModal = ({
                 </div>
               </div>
 
+              {/* ── Badges row — below banner ── */}
+              {(miniProfile.topBadges || []).length > 0 && (
+                <div style={{ display:'flex', gap:'6px', padding:'8px 16px 0', justifyContent:'flex-start' }}>
+                  {(miniProfile.topBadges || []).map((badge, i) => (
+                    <div key={i} title={badge.title_en || badge.name_en || ''} style={{
+                      width:'32px', height:'32px', borderRadius:'10px',
+                      background:'rgba(255,255,255,0.06)',
+                      border:'1px solid rgba(255,255,255,0.15)',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize:'17px',
+                    }}>
+                      {badge.imageUrl
+                        ? <img src={badge.imageUrl} alt="" style={{ width:'22px', height:'22px', objectFit:'contain' }} />
+                        : (badge.icon || '🏅')
+                      }
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* ── Profile section ── */}
-              <div style={{ padding:'0 16px 20px', position:'relative' }}>
+              <div style={{ padding: (miniProfile.topBadges||[]).length > 0 ? '6px 16px 20px' : '0 16px 20px', position:'relative' }}>
                 {/* Avatar + info row */}
-                <div style={{ display:'flex', alignItems:'flex-end', gap:'12px', marginTop:'-36px', marginBottom:'14px' }}>
-                  {/* Avatar */}
-                  <div style={{
-                    width:'72px', height:'72px', borderRadius:'50%',
-                    border:'3px solid #0d0d1f',
-                    overflow:'hidden', background:'#1a1a2e',
-                    boxShadow:'0 4px 16px rgba(0,0,0,0.6)',
-                    flexShrink:0, zIndex:2,
-                  }}>
+                <div style={{ display:'flex', alignItems:'flex-end', gap:'12px', marginTop: (miniProfile.topBadges||[]).length > 0 ? '-48px' : '-36px', marginBottom:'14px' }}>
+                  {/* Avatar — click opens full profile */}
+                  <div
+                    onClick={() => { setMiniProfile(null); setShowMiniMenu(false); if (onOpenProfile) onOpenProfile(miniProfile.uid); }}
+                    style={{ width:'72px', height:'72px', borderRadius:'50%', border:'3px solid #0d0d1f', overflow:'hidden', background:'#1a1a2e', boxShadow:'0 4px 16px rgba(0,0,0,0.6)', flexShrink:0, zIndex:2, cursor: onOpenProfile ? 'pointer' : 'default' }}
+                  >
                     {miniProfile.photo
                       ? <img src={miniProfile.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                       : <div style={{ width:'100%', height:'100%', background:'linear-gradient(135deg,#4f46e5,#7c3aed)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'28px' }}>😎</div>
@@ -1200,9 +1193,12 @@ const PrivateChatModal = ({
                   </div>
                   {/* Text info */}
                   <div style={{ flex:1, paddingBottom:'4px', minWidth:0 }}>
-                    {/* Name + gender */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px' }}>
-                      <span style={{ fontSize:'16px', fontWeight:900, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{miniProfile.name}</span>
+                    {/* Name + gender — click opens full profile */}
+                    <div
+                      onClick={() => { setMiniProfile(null); setShowMiniMenu(false); if (onOpenProfile) onOpenProfile(miniProfile.uid); }}
+                      style={{ display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px', cursor: onOpenProfile ? 'pointer' : 'default' }}
+                    >
+                      <span style={{ fontSize:'16px', fontWeight:900, color: onOpenProfile ? '#00f2ff' : 'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: onOpenProfile ? 'underline dotted rgba(0,242,255,0.4)' : 'none' }}>{miniProfile.name}</span>
                       {miniProfile.gender && <span style={{ fontSize:'13px', flexShrink:0 }}>{miniProfile.gender==='male'?'♂️':'♀️'}</span>}
                     </div>
                     {/* Charisma rank + family sign */}
