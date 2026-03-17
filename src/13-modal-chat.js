@@ -95,6 +95,8 @@ const PrivateChatModal = ({
     const inputRef        = useRef(null);
     const fileInputRef    = useRef(null);
     const typingTimerRef  = useRef(null);
+    // ── @ Mention (في البرايفت شات — الطرف الثاني فقط) ──
+    const [showMentionSuggestion, setShowMentionSuggestion] = useState(false);
 
     // VIP level helpers
     const myVipLevel     = useMemo(() => { try { return getVIPLevel ? (getVIPLevel(currentUser) || 0) : 0; } catch { return 0; } }, [currentUser]);
@@ -740,7 +742,11 @@ const PrivateChatModal = ({
                           fontSize: '13px', color: 'white',
                           lineHeight: 1.45, wordBreak: 'break-word',
                         }}>
-                          {msg.text}
+                          {msg.text?.split(/(@\w[\w\s]*?)(?=\s|$)/g).map((part, pi) =>
+                            part.startsWith('@')
+                              ? <span key={pi} style={{color:'#00f2ff', fontWeight:700}}>{part}</span>
+                              : part
+                          )}
                         </div>
                       )}
 
@@ -936,9 +942,25 @@ const PrivateChatModal = ({
                     type="text"
                     placeholder={t.typeMessage || (lang === 'ar' ? 'اكتب رسالة...' : 'Type a message...')}
                     value={newMsg}
-                    onChange={e => { setNewMsg(e.target.value); handleTypingChange(); }}
-                    onKeyPress={e => { if (e.key === 'Enter' && !e.shiftKey) handleSend(); }}
-                    onBlur={clearTypingStatus}
+                    onChange={e => {
+                        const val = e.target.value;
+                        setNewMsg(val);
+                        handleTypingChange();
+                        // detect @ at end → suggest friend name
+                        const lastAt = val.lastIndexOf('@');
+                        if (lastAt !== -1) {
+                            const after = val.slice(lastAt + 1);
+                            if (!after.includes(' ') && friend?.displayName?.toLowerCase().includes(after.toLowerCase())) {
+                                setShowMentionSuggestion(true);
+                            } else {
+                                setShowMentionSuggestion(false);
+                            }
+                        } else {
+                            setShowMentionSuggestion(false);
+                        }
+                    }}
+                    onKeyPress={e => { if (e.key === 'Enter' && !e.shiftKey) { setShowMentionSuggestion(false); handleSend(); } }}
+                    onBlur={() => { clearTypingStatus(); setTimeout(() => setShowMentionSuggestion(false), 200); }}
                     style={{
                       flex: 1, padding: '8px 11px',
                       background: 'rgba(255,255,255,0.06)',
@@ -949,6 +971,37 @@ const PrivateChatModal = ({
                     }}
                     onFocus={e => e.target.style.borderColor = 'rgba(0,242,255,0.3)'}
                   />
+
+                  {/* @ Mention suggestion */}
+                  {showMentionSuggestion && friend && (
+                    <div style={{
+                      position: 'absolute', bottom: 'calc(100% + 4px)', left: '50px', right: '50px',
+                      background: '#0e1020', border: '1px solid rgba(0,242,255,0.2)',
+                      borderRadius: '10px', overflow: 'hidden', zIndex: Z.TOOLTIP,
+                      boxShadow: '0 -8px 24px rgba(0,0,0,0.7)',
+                    }}>
+                      <div
+                        onClick={() => {
+                          const lastAt = newMsg.lastIndexOf('@');
+                          setNewMsg(newMsg.slice(0, lastAt) + '@' + friend.displayName + ' ');
+                          setShowMentionSuggestion(false);
+                          inputRef.current?.focus();
+                        }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '8px',
+                          padding: '10px 14px', cursor: 'pointer',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,242,255,0.08)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <img
+                          src={friend.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(friend.displayName||'U')}&background=6366f1&color=fff&size=40`}
+                          alt="" style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }}
+                        />
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#00f2ff' }}>@{friend.displayName}</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Send button — ONLY lights up when there's text */}
                   <button
