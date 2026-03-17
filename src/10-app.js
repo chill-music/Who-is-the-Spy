@@ -1,3251 +1,3454 @@
-function App() {
-    const [lang, setLang] = useState(() => localStorage.getItem('pro_spy_lang') || 'en');
-
-    const [user, setUser] = useState(null);
-    const [userData, setUserData] = useState(null);
-    const [authLoading, setAuthLoading] = useState(true);
-    const [room, setRoom] = useState(null);
-    const [roomId, setRoomId] = useState('');
-    const [inputCode, setInputCode] = useState('');
-    const [nickname, setNickname] = useState(() => localStorage.getItem('pro_spy_nick') || '');
-    const [loading, setLoading] = useState(false);
-    const [turnTimer, setTurnTimer] = useState(30);
-    const [votingTimer, setVotingTimer] = useState(30);
-    const [wordSelTimer, setWordSelTimer] = useState(30);
-    const [showSetupModal, setShowSetupModal] = useState(false);
-    const [setupMode, setSetupMode] = useState('normal');
-    const [isPrivate, setIsPrivate] = useState(false);
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [activeView, setActiveView] = useState('lobby');
-    const [showDropdown, setShowDropdown] = useState(false);
-    const [joinError, setJoinError] = useState('');
-    const [alertMessage, setAlertMessage] = useState(null);
-    const [leaderboardData, setLeaderboardData] = useState([]);
-    const [charismaLeaderboard, setCharismaLeaderboard] = useState([]);
-    const [familyLeaderboard, setFamilyLeaderboard] = useState([]);
-    const [leaderboardTab, setLeaderboardTab] = useState('wins');
-    const [friendsData, setFriendsData] = useState([]);
-    const [addFriendId, setAddFriendId] = useState('');
-    const [friendSearchMsg, setFriendSearchMsg] = useState('');
-    const [friendRequests, setFriendRequests] = useState([]);
-    const [showMyAccount, setShowMyAccount] = useState(false);
-    const [showUserProfile, setShowUserProfile] = useState(false);
-    const [targetProfileUID, setTargetProfileUID] = useState(null);
-    const [chatsMeta, setChatsMeta] = useState({});
-    const [totalUnread, setTotalUnread] = useState(0);
-    const [openChatId, setOpenChatId] = useState(null);
-    const [showBrowseRooms, setShowBrowseRooms] = useState(false);
-    const [copied, setCopied] = useState(false);
-    const [notification, setNotification] = useState(null);
-    const [showTutorial, setShowTutorial] = useState(false);
-    const [showSummary, setShowSummary] = useState(false);
-    const [showShop, setShowShop] = useState(false);
-    const [showInventory, setShowInventory] = useState(false);
-    const [showPrivateChat, setShowPrivateChat] = useState(false);
-    const [showSelfChat, setShowSelfChat] = useState(false);
-    const [showFunPass, setShowFunPass] = useState(false);
-    const [chatFriend, setChatFriend] = useState(null);
-    const [showLoginAlert, setShowLoginAlert] = useState(false);
-    const [guestData, setGuestData] = useState(null);
-    const [showLoginRewards, setShowLoginRewards] = useState(false);
-    const [sessionClaimedToday, setSessionClaimedToday] = useState(false); // Track if claimed in this session
-    const [showOnboarding, setShowOnboarding] = useState(false);
-    const [onboardingGoogleUser, setOnboardingGoogleUser] = useState(null);
-    const [pendingNewUserRef, setPendingNewUserRef] = useState(null);
-    const [showLobbyPassword, setShowLobbyPassword] = useState(false);
-    const [showNotifications, setShowNotifications] = useState(false);
-    const [notifications, setNotifications] = useState([]);
-    const [unreadNotifications, setUnreadNotifications] = useState(0);
-    const notificationBellRef = useRef(null);
-    // 🛡️ Prevents double-write to game_history when onSnapshot fires multiple times
-    const historyWrittenRooms = useRef(new Set());
-    const [showSettings, setShowSettings] = useState(false);
-    const [soundMuted, setSoundMuted] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
-    const [showAdminPanel, setShowAdminPanel] = useState(false);
-    const [showFriendsMoments, setShowFriendsMoments] = useState(false);
-    const [showFamilyModal, setShowFamilyModal] = useState(false);
-    const [viewFamilyId, setViewFamilyId] = useState(null); // for viewing external families
-    const [userFamily, setUserFamily] = useState(null);
-    const [showFamilyChat, setShowFamilyChat] = useState(false);
-
-    // ── 💍 COUPLES SYSTEM STATE ──
-    const [coupleData, setCoupleData]                   = useState(null); // my active couple doc
-    const [partnerData, setPartnerData]                 = useState(null); // partner's user doc
-    const [showCoupleCard, setShowCoupleCard]           = useState(false);
-    const [showProposalModal, setShowProposalModal]     = useState(false);
-    const [proposalRing, setProposalRing]               = useState(null);
-    const [incomingProposal, setIncomingProposal]       = useState(null); // pending couple doc for me
-    const [incomingProposalFrom, setIncomingProposalFrom] = useState(null); // proposer data
-    const [showIncomingProposal, setShowIncomingProposal] = useState(false);
-    const [showWeddingHall, setShowWeddingHall]         = useState(false);
-
-    // ── 🤝 BFF SYSTEM STATE ──
-    const [showBFFModal, setShowBFFModal]               = useState(false);
-    const [bffInitialTab, setBffInitialTab]             = useState('relationships');
-    const [bffUnreadCount, setBffUnreadCount]           = useState(0);
-
-    // ── 🤖 BOT CHATS STATE ──
-    const [showDetectiveBot, setShowDetectiveBot]       = useState(false);
-    const [showLoveBot, setShowLoveBot]                 = useState(false);
-    const [detectiveBotUnread, setDetectiveBotUnread]   = useState(0);
-    const [loveBotUnread, setLoveBotUnread]             = useState(0);
-
-    // ── 👤 GUEST AVATAR MENU ──
-    const [showGuestMenu, setShowGuestMenu]             = useState(false);
-
-    // ── 💬 GAME ROOM CHAT STATE ──
-    const [gameChatInput, setGameChatInput]             = useState('');
-    const [showGameChat, setShowGameChat]               = useState(true);
-    const gameChatRef                                   = useRef(null);
-
-    // Close guest menu when clicking outside
-    useEffect(() => {
-        if (!showGuestMenu) return;
-        const handler = (e) => setShowGuestMenu(false);
-        document.addEventListener('click', handler);
-        return () => document.removeEventListener('click', handler);
-    }, [showGuestMenu]);
-
-    // Click outside handler for notification dropdown
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (showNotifications && notificationBellRef.current && !notificationBellRef.current.contains(e.target)) {
-                const dropdown = document.querySelector('.notification-dropdown');
-                if (dropdown && !dropdown.contains(e.target)) {
-                    setShowNotifications(false);
-                }
-            }
-        };
-        if (showNotifications) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [showNotifications]);
-
-    const t = TRANSLATIONS[lang];
-    const isLoggedIn = useMemo(() => user && !user.isAnonymous, [user]);
-    const isGuest = useMemo(() => guestData !== null, [guestData]);
-    const isNotLoggedIn = useMemo(() => user === null && guestData === null, [user, guestData]);
-    const currentUID = useMemo(() => { if (user && !user.isAnonymous) return user.uid; if (guestData) return guestData.uid; return null; }, [user, guestData]);
-    const currentUserData = useMemo(() => { if (isLoggedIn) return userData; if (isGuest) return guestData; return null; }, [isLoggedIn, userData, isGuest, guestData]);
-
-    // ── Listen to current user's family ──
-    useEffect(() => {
-        if (!currentUID || !isLoggedIn) { setUserFamily(null); return; }
-        const unsub = familiesCollection
-            .where('members', 'array-contains', currentUID)
-            .limit(1)
-            .onSnapshot(snap => {
-                if (!snap.empty) {
-                    const doc = snap.docs[0];
-                    setUserFamily({ id: doc.id, ...doc.data() });
-                } else {
-                    setUserFamily(null);
-                }
-            }, () => {});
-        return () => unsub();
-    }, [currentUID, isLoggedIn]);
-
-    // ── 🤖 Bot chat unread listeners ──
-    useEffect(() => {
-        if (!currentUID || !isLoggedIn) return;
-        // Single-field query only — filter client-side to avoid composite index
-        const unsub1 = botChatsCollection
-            .where('toUserId', '==', currentUID)
-            .onSnapshot(snap => {
-                const docs = snap.docs.map(d => d.data());
-                setDetectiveBotUnread(docs.filter(d => d.botId === 'detective_bot' && !d.read).length);
-                setLoveBotUnread(docs.filter(d => d.botId === 'love_bot' && !d.read).length);
-            }, () => {});
-        const unsub2 = bffCollection
-            .where('uid2', '==', currentUID)
-            .onSnapshot(snap => {
-                setBffUnreadCount(snap.docs.filter(d => d.data().status === 'pending').length);
-            }, () => {});
-        return () => { unsub1(); unsub2(); };
-    }, [currentUID, isLoggedIn]);
-
-    // ── 💍 Listen to couple doc (accepted or pending for me) ──
-    useEffect(() => {
-        if (!currentUID || !isLoggedIn) { setCoupleData(null); setPartnerData(null); return; }
-        // Listen to any couple doc where I am uid1 or uid2 and status is accepted/pending
-        const unsub1 = couplesCollection
-            .where('uid1', '==', currentUID)
-            .where('status', 'in', ['pending','accepted'])
-            .limit(1)
-            .onSnapshot(async snap => {
-                if (!snap.empty) {
-                    const doc = { id: snap.docs[0].id, ...snap.docs[0].data() };
-                    if (doc.status === 'accepted') {
-                        setCoupleData(doc);
-                        // load partner
-                        const pd = await usersCollection.doc(doc.uid2).get();
-                        if (pd.exists) setPartnerData({ id: pd.id, ...pd.data() });
-                        setIncomingProposal(null); setShowIncomingProposal(false);
-                    }
-                    // if pending and I'm the proposer — nothing special needed
-                } else {
-                    // Doc removed — clear couple state for uid1 side
-                    setCoupleData(prev => (prev?.uid1 === currentUID ? null : prev));
-                    setPartnerData(prev => (prev?.uid1 === currentUID ? null : prev));
-                }
-            }, () => {});
-        const unsub2 = couplesCollection
-            .where('uid2', '==', currentUID)
-            .where('status', 'in', ['pending','accepted'])
-            .limit(1)
-            .onSnapshot(async snap => {
-                if (!snap.empty) {
-                    const doc = { id: snap.docs[0].id, ...snap.docs[0].data() };
-                    if (doc.status === 'accepted') {
-                        setCoupleData(doc);
-                        const pd = await usersCollection.doc(doc.uid1).get();
-                        if (pd.exists) setPartnerData({ id: pd.id, ...pd.data() });
-                        setIncomingProposal(null); setShowIncomingProposal(false);
-                    } else if (doc.status === 'pending' && doc.uid2 === currentUID) {
-                        // Someone proposed to me!
-                        setIncomingProposal(doc);
-                        const fd = await usersCollection.doc(doc.uid1).get();
-                        if (fd.exists) setIncomingProposalFrom({ id: fd.id, ...fd.data() });
-                        setShowIncomingProposal(true);
-                    }
-                } else {
-                    // Doc was removed — clear couple state for uid2 side
-                    setCoupleData(prev => (prev?.uid2 === currentUID ? null : prev));
-                    setPartnerData(prev => (prev?.uid2 === currentUID ? null : prev));
-                    setIncomingProposal(null); setShowIncomingProposal(false);
-                }
-            }, () => {});
-        return () => { unsub1(); unsub2(); };
-    }, [currentUID, isLoggedIn]);
-
-    // Saves achievement IDs as simple strings in userData.achievements[]
-    const unlockAchievement = useCallback(async (badgeId) => {
-        if (!isLoggedIn || !user) return;
-        try {
-            const achievement = ACHIEVEMENTS.find(a => a.id === badgeId);
-            if (!achievement) return;
-            const currentAchs = userData?.achievements || [];
-            // Already unlocked - skip
-            if (currentAchs.includes(badgeId)) return;
-            await usersCollection.doc(user.uid).update({
-                achievements: firebase.firestore.FieldValue.arrayUnion(badgeId)
-            });
-        } catch (error) {
-            console.error('Achievement unlock error:', error);
-        }
-    }, [isLoggedIn, user, userData]);
-
-    // Check all achievements against current user data and unlock any earned ones
-    const checkAndUnlockAchievements = useCallback(async (latestUserData) => {
-        if (!isLoggedIn || !user || !latestUserData) return;
-        const data = latestUserData;
-        const currentAchs = Array.isArray(data.achievements) ? data.achievements : [];
-        const stats = data.stats || {};
-        const gamesPlayed = (stats.wins || 0) + (stats.losses || 0);
-
-        const getValue = (type) => {
-            switch (type) {
-                case 'wins':           return stats.wins || 0;
-                case 'losses':         return stats.losses || 0;
-                case 'games_played':   return gamesPlayed;
-                case 'spy_wins':       return stats.spy_wins || 0;
-                case 'agent_wins':     return stats.agent_wins || 0;
-                case 'win_streak':     return stats.win_streak || 0;
-                case 'gifts_received': return data.giftsReceived || 0;
-                case 'gifts_sent':     return data.giftsSent || 0;
-                case 'charisma':       return data.charisma || 0;
-                case 'friends':        return (data.friends || []).length;
-                case 'login_streak':   return data.loginRewards?.streak || 0;
-                case 'total_logins':   return data.loginRewards?.totalClaims || 0;
-                default:               return 0;
-            }
-        };
-
-        const toUnlock = [];
-        for (const ach of ACHIEVEMENTS) {
-            if (currentAchs.includes(ach.id)) continue; // already unlocked
-            const current = getValue(ach.condition.type);
-            if (current >= ach.condition.value) {
-                toUnlock.push(ach.id);
-            }
-        }
-
-        if (toUnlock.length > 0) {
-            try {
-                // Add all at once
-                await usersCollection.doc(user.uid).update({
-                    achievements: firebase.firestore.FieldValue.arrayUnion(...toUnlock)
-                });
-            } catch (e) {
-                console.error('Batch achievement error:', e);
-                // Fallback: unlock one by one
-                for (const id of toUnlock) {
-                    try { await unlockAchievement(id); } catch {}
-                }
-            }
-        }
-    }, [isLoggedIn, user, userData, unlockAchievement]);
-
-    const incrementMissionProgress = useCallback(async (key, amount = 1) => {
-        if (!isLoggedIn || !user) return;
-        try {
-            const today = new Date().toDateString();
-            const now = new Date();
-            const startOfYear = new Date(now.getFullYear(), 0, 1);
-            const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
-            const weekStr = `${now.getFullYear()}-W${weekNum}`;
-
-            // Reset daily if needed
-            const dailyProgress = userData?.missionProgress?.daily || {};
-            const weeklyProgress = userData?.missionProgress?.weekly || {};
-
-            const updates = {};
-
-            // Reset daily counters if day changed
-            if (dailyProgress.resetDate !== today) {
-                updates['missionProgress.daily.resetDate'] = today;
-                updates['missionProgress.daily.gamesPlayed']    = 0;
-                updates['missionProgress.daily.gamesWon']       = 0;
-                updates['missionProgress.daily.spyGames']       = 0;
-                updates['missionProgress.daily.giftsSent']      = 0;
-                updates['missionProgress.daily.friendsAdded']   = 0;
-                updates['missionProgress.daily.momentsPosted']  = 0;
-                updates['missionProgress.daily.commentsPosted'] = 0;
-                // After reset, set the specific key to amount
-                updates[`missionProgress.daily.${key}`] = amount;
-            } else {
-                updates[`missionProgress.daily.${key}`] = firebase.firestore.FieldValue.increment(amount);
-            }
-
-            // Reset weekly counters if week changed
-            if (weeklyProgress.resetWeek !== weekStr) {
-                updates['missionProgress.weekly.resetWeek']       = weekStr;
-                updates['missionProgress.weekly.gamesPlayed']     = 0;
-                updates['missionProgress.weekly.gamesWon']        = 0;
-                updates['missionProgress.weekly.giftsSent']       = 0;
-                updates['missionProgress.weekly.momentsPosted']   = 0;
-                updates['missionProgress.weekly.friendsAdded']    = 0;
-                updates[`missionProgress.weekly.${key}`] = amount;
-            } else {
-                updates[`missionProgress.weekly.${key}`] = firebase.firestore.FieldValue.increment(amount);
-            }
-
-            await usersCollection.doc(user.uid).update(updates);
-        } catch (error) {
-            console.error('Mission increment error:', error);
-        }
-    }, [isLoggedIn, user, userData]);
-
-    const updateLastActive = async () => {
-        if (!isLoggedIn || !user) return;
-        try {
-            await usersCollection.doc(user.uid).update({
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        } catch (error) {
-            console.error('LastActive update error:', error);
-        }
-    };
-
-    const purchaseFunPass = async () => {
-        if (!isLoggedIn || !user || !userData) return;
-        const FUN_PASS_PRICE = 2000;
-        if (userData.currency < FUN_PASS_PRICE) {
-            setNotification(lang === 'ar' ? '❌ إنتل غير كافٍ' : '❌ Not enough Intel');
-            return false;
-        }
-        try {
-            await usersCollection.doc(user.uid).update({
-                [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true,
-                [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: firebase.firestore.FieldValue.serverTimestamp(),
-                'currency': firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE)
-            });
-            setNotification(lang === 'ar' ? '✅ تم الشراء!' : '✅ Purchased!');
-            return true;
-        } catch (error) {
-            setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
-            return false;
-        }
-    };
-
-    const claimLoginReward = async (day) => {
-        if (!isLoggedIn || !user) return;
-        try {
-            const rewardData = LOGIN_REWARDS_CONFIG.dailyRewards.find(r => r.day === day);
-            await usersCollection.doc(user.uid).update({
-                'loginRewards.currentDay': day,
-                'loginRewards.lastClaimDate': firebase.firestore.FieldValue.serverTimestamp(),
-                'loginRewards.claimedDays': firebase.firestore.FieldValue.arrayUnion(day),
-                'currency': firebase.firestore.FieldValue.increment(rewardData?.reward || 100)
-            });
-            setNotification(`✅ +${rewardData?.reward} ${lang === 'ar' ? 'تم الاستلام!' : 'Claimed!'}`);
-        } catch (error) {
-            setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
-        }
-    };
-
-    const claimDailyTask = async (boxId, reward) => {
-        if (!isLoggedIn || !user) return;
-        try {
-            const updates = {};
-            updates[`dailyTasks.boxes.${boxId - 1}.status`] = 'claimed';
-            updates[`dailyTasks.boxes.${boxId - 1}.claimedAt`] = firebase.firestore.FieldValue.serverTimestamp();
-
-            if (reward.type === 'currency') {
-                updates['currency'] = firebase.firestore.FieldValue.increment(reward.amount);
-            }
-
-            await usersCollection.doc(user.uid).update(updates);
-            setNotification(`✅ +${reward.amount} ${lang === 'ar' ? 'تم الاستلام!' : 'Claimed!'}`);
-        } catch (error) {
-            setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
-        }
-    };
-
-    // Background Animation
-    useEffect(() => {
-        const canvas = document.getElementById('bg-canvas'); if (!canvas) return;
-        const ctx = canvas.getContext('2d'); let width, height, particles = []; let mouse = { x: null, y: null };
-        const resize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; };
-        const handleMouseMove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
-        window.addEventListener('resize', resize); window.addEventListener('mousemove', handleMouseMove); resize();
-        class Particle { constructor() { this.x = Math.random() * width; this.y = Math.random() * height; this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5; this.size = Math.random() * 2; }
-            update() { this.x += this.vx; this.y += this.vy; if (this.x < 0 || this.x > width) this.vx *= -1; if (this.y < 0 || this.y > height) this.vy *= -1; if (mouse.x != null) { let dx = mouse.x - this.x; let dy = mouse.y - this.y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 150) { const force = (150 - dist) / 150; this.x -= dx * force * 0.02; this.y -= dy * force * 0.02; } } }
-            draw() { ctx.fillStyle = 'rgba(0, 242, 255, 0.5)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } }
-        for(let i=0; i<40; i++) particles.push(new Particle());
-        let animId; const animate = () => { ctx.clearRect(0, 0, width, height); ctx.strokeStyle = 'rgba(112, 0, 255, 0.1)'; ctx.lineWidth = 1;
-            for (let i = 0; i < particles.length; i++) { particles[i].update(); particles[i].draw(); for (let j = i; j < particles.length; j++) { let dx = particles[i].x - particles[j].x; let dy = particles[i].y - particles[j].y; let dist = Math.sqrt(dx*dx + dy*dy); if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke(); } } }
-            animId = requestAnimationFrame(animate); }; animate();
-        return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', handleMouseMove); };
-    }, []);
-
-    // ── Global: open family by ID from ranking ──
-    useEffect(() => {
-        const handler = (e) => {
-            const fid = e.detail?.familyId;
-            if (fid) { setViewFamilyId(fid); setShowFamilyModal(true); }
-        };
-        window.addEventListener('openFamilyById', handler);
-        return () => window.removeEventListener('openFamilyById', handler);
-    }, []);
-
-    // Auth State Listener
-    useEffect(() => {
-        setAuthLoading(true);
-        const unsubAuth = auth.onAuthStateChanged(async (u) => {
-            if (u && !u.isAnonymous) {
-                setUser(u); setGuestData(null);
-                const userRef = usersCollection.doc(u.uid);
-                const doc = await userRef.get();
-                if (!doc.exists) {
-                    // New user - show onboarding modal
-                    setOnboardingGoogleUser(u);
-                    setPendingNewUserRef(userRef);
-                    setAuthLoading(false);
-                    setShowOnboarding(true);
-                } else {
-                    const existingData = doc.data();
-                    setUserData(existingData);
-                    if (existingData.displayName) setNickname(existingData.displayName);
-                    // ✅ Load saved language from Firestore
-                    if (existingData.lang && (existingData.lang === 'ar' || existingData.lang === 'en')) {
-                        setLang(existingData.lang);
-                        localStorage.setItem('pro_spy_lang', existingData.lang);
-                    }
-
-                    if (checkLoginRewardsCycle(existingData)) {
-                        await userRef.update({ 'loginRewards.currentDay': 0, 'loginRewards.streak': 0, 'loginRewards.cycleMonth': getCurrentCycleMonth() });
-                    }
-                    const unsubSnap = userRef.onSnapshot(snap => {
-                        if (snap.exists) {
-                            const d = snap.data();
-                            setUserData(d);
-                            if (d.displayName) setNickname(d.displayName);
-                        }
-                    });
-                    setAuthLoading(false);
-                    return () => unsubSnap();
-                }
-            } else { setUser(null); setUserData(null); }
-            setAuthLoading(false);
-        });
-        return unsubAuth;
-    }, []);
-
-    // ✅ Auto-check achievements whenever relevant stats change (e.g. manual Firestore update)
-    useEffect(() => {
-        if (!isLoggedIn || !user || !userData) return;
-        checkAndUnlockAchievements(userData);
-    }, [
-        userData?.stats?.wins,
-        userData?.stats?.losses,
-        userData?.stats?.spy_wins,
-        userData?.stats?.agent_wins,
-        userData?.stats?.win_streak,
-        userData?.giftsReceived,
-        userData?.giftsSent,
-        userData?.charisma,
-        userData?.friends?.length,
-        userData?.loginRewards?.streak,
-        userData?.loginRewards?.totalClaims,
-    ]);
-
-    // ✅ VIP Expiry Check — يتحقق كل دقيقة إذا انتهت صلاحية الـ VIP
-    useEffect(() => {
-        if (!user || !isLoggedIn || !userData) return;
-        const checkVIPExpiry = async () => {
-            const vip = userData?.vip;
-            if (!vip?.isActive) return; // not active, nothing to do
-            const expiresAt = vip.expiresAt?.toDate?.();
-            if (!expiresAt) return;
-            if (new Date() < expiresAt) return; // still valid
-
-            // VIP expired — remove benefits but keep level/xp/customId
-            const levelCfg = VIP_CONFIG.find(v => v.level === getVIPLevelFromXP(vip.xp || 0));
-            const vipItems = levelCfg?.vipItems || [];
-
-            const updates = {
-                'vip.isActive': false,
-            };
-
-            // ✅ Remove vipItems from inventory (keep customId forever)
-            const inv = userData?.inventory || {};
-            for (const item of vipItems) {
-                if (item.type === 'frames') {
-                    const arr = (inv.frames || []).filter(id => id !== item.id);
-                    updates['inventory.frames'] = arr;
-                }
-                if (item.type === 'badges') {
-                    const arr = (inv.badges || []).filter(id => id !== item.id);
-                    updates['inventory.badges'] = arr;
-                }
-                if (item.type === 'titles') {
-                    const arr = (inv.titles || []).filter(id => id !== item.id);
-                    updates['inventory.titles'] = arr;
-                }
-            }
-
-            try { await usersCollection.doc(user.uid).update(updates); } catch(e) {}
-        };
-        checkVIPExpiry();
-        const interval = setInterval(checkVIPExpiry, 60000);
-        return () => clearInterval(interval);
-    }, [userData?.vip?.isActive, userData?.vip?.expiresAt, user, isLoggedIn]);
-    useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && isLoggedIn) setShowTutorial(true); }, [isLoggedIn]);
-    useEffect(() => {
-        if (!user || isGuest) return;
-
-        // Set online immediately on login
-        usersCollection.doc(user.uid).update({
-            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-            onlineStatus: 'online'
-        }).catch(() => {});
-
-        // Heartbeat every 3 minutes
-        const interval = setInterval(() => {
-            usersCollection.doc(user.uid).update({
-                lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-                onlineStatus: 'online'
-            }).catch(() => {});
-        }, 180000);
-
-        // Set offline immediately when page closes
-        const handleOffline = () => {
-            try {
-                navigator.sendBeacon && navigator.sendBeacon(
-                    `https://firestore.googleapis.com/v1/projects/who-is-the-spy-919b9/databases/(default)/documents/users/${user.uid}`,
-                    JSON.stringify({ fields: { onlineStatus: { stringValue: 'offline' } } })
-                );
-            } catch(e) {}
-            // Also try direct update (works when tab not fully closed)
-            usersCollection.doc(user.uid).update({ onlineStatus: 'offline' }).catch(() => {});
-        };
-
-        // Set "away" when page hidden (user switched tab)
-        const handleVisibility = () => {
-            if (document.visibilityState === 'hidden') {
-                usersCollection.doc(user.uid).update({
-                    onlineStatus: 'away',
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                }).catch(() => {});
-            } else {
-                usersCollection.doc(user.uid).update({
-                    onlineStatus: 'online',
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                }).catch(() => {});
-            }
-        };
-
-        window.addEventListener('beforeunload', handleOffline);
-        document.addEventListener('visibilitychange', handleVisibility);
-
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener('beforeunload', handleOffline);
-            document.removeEventListener('visibilitychange', handleVisibility);
-            // Set offline on component unmount (logout)
-            usersCollection.doc(user.uid).update({ onlineStatus: 'offline' }).catch(() => {});
-        };
-    }, [user, isGuest]);
-
-    useEffect(() => {
-        if (!isLoggedIn || !user || !userData) return;
-
-        // Initialize session start time if not set today
-        const sessionStart = userData.dailyTasks?.sessionStartTime?.toDate?.();
-        const today = new Date().toDateString();
-        const sessionDay = sessionStart ? sessionStart.toDateString() : null;
-
-        if (sessionDay !== today) {
-            // New day - reset boxes and set session start
-            usersCollection.doc(user.uid).update({
-                'dailyTasks.sessionStartTime': firebase.firestore.FieldValue.serverTimestamp(),
-                'dailyTasks.boxes': Array(8).fill(null).map(() => ({ status: 'unclaimed' }))
-            }).catch(() => {});
-        }
-    }, [isLoggedIn, user?.uid, userData?.uid]);
-
-    useEffect(() => {
-        if (isLoggedIn && userData && !sessionClaimedToday) {
-            const loginData = userData.loginRewards || { currentDay: 0, lastClaimDate: null };
-            const lcd = loginData.lastClaimDate;
-            let lastClaimDate = null;
-            if (lcd?.toDate) lastClaimDate = lcd.toDate();
-            else if (lcd instanceof Date) lastClaimDate = lcd;
-            else if (lcd) { const d = new Date(lcd); if (!isNaN(d.getTime())) lastClaimDate = d; }
-            const todayStr = new Date().toDateString();
-            const lastClaimStr = lastClaimDate ? lastClaimDate.toDateString() : null;
-            const canClaim = lastClaimStr !== todayStr;
-            if (canClaim && loginData.currentDay < 30) setShowLoginRewards(true);
-        }
-    }, [isLoggedIn, userData?.loginRewards?.lastClaimDate, sessionClaimedToday]);
-
-    // Notifications Listener — deferred after userData is ready
-    useEffect(() => {
-        if (!user || !isLoggedIn || !userData) return;
-        let previousCount = -1;
-        const unsub = notificationsCollection.where('toUserId', '==', user.uid).limit(50).onSnapshot(snap => {
-            let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            notifs.sort((a, b) => { const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0; const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0; return timeB - timeA; });
-            const newUnread = notifs.filter(n => !n.read).length;
-            if (previousCount !== -1 && newUnread > previousCount) { playNotificationSound(); if (notificationBellRef.current) { notificationBellRef.current.classList.add('ringing'); setTimeout(() => notificationBellRef.current?.classList.remove('ringing'), 500); } }
-            previousCount = newUnread;
-            setNotifications(notifs);
-            setUnreadNotifications(newUnread);
-        }, error => { });
-        return () => unsub();
-    }, [user, isLoggedIn, userData?.uid]);
-
-    // Room Listener
-    useEffect(() => {
-        if (!roomId) return;
-        const unsub = roomsCollection.doc(roomId).onSnapshot(async doc => {
-            if (doc.exists) {
-                const data = doc.data();
-                setRoom(data);
-
-                // 🛡️ Guard: only write history ONCE per room per session
-                const alreadyWritten = historyWrittenRooms.current.has(roomId);
-
-                if (data.status?.includes('finished') && !data.summaryShown && !alreadyWritten) {
-                    // Mark immediately in memory — prevents any subsequent snapshot from re-entering
-                    historyWrittenRooms.current.add(roomId);
-
-                    setShowSummary(true);
-                    historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() });
-                    roomsCollection.doc(roomId).update({ summaryShown: true });
-
-                    // ✅ Update stats, missions, achievements when game ends
-                    if (isLoggedIn && user) {
-                        try {
-                            const me = data.players?.find(p => p.uid === user.uid);
-                            if (me) {
-                                const isSpy = me.role === 'spy' || me.role === 'mrwhite';
-                                const isInformant = me.role === 'informant';
-                                const spyCaught = data.status === 'finished_spy_caught';
-                                const spyEscaped = data.status === 'finished_spy_wins' || data.status === 'finished_spy_escaped';
-                                const mrwhiteWon = data.status === 'finished_mrwhite_win' || data.status === 'finished_mrwhite_wins';
-                                const agentsWon = spyCaught;
-
-                                let iWon = false;
-                                if (isSpy && (spyEscaped || mrwhiteWon)) iWon = true;
-                                if (isInformant && (spyEscaped || mrwhiteWon)) iWon = true;
-                                if (!isSpy && !isInformant && agentsWon) iWon = true;
-
-                                const vipXpMult = getVIPXPMultiplier(userData);
-                                const partnerInRoom = coupleData && data.players?.some(p => p.uid === (coupleData.uid1 === user.uid ? coupleData.uid2 : coupleData.uid1));
-                                const coupleBonus = partnerInRoom ? 1.10 : 1.0;
-                                const gameXP = Math.round((iWon ? 20 : 5) * vipXpMult * coupleBonus);
-                                const statUpdates = {
-                                    'stats.losses': firebase.firestore.FieldValue.increment(iWon ? 0 : 1),
-                                    'stats.wins':   firebase.firestore.FieldValue.increment(iWon ? 1 : 0),
-                                    'stats.xp':     firebase.firestore.FieldValue.increment(gameXP),
-                                };
-                                if (isSpy && iWon) statUpdates['stats.spy_wins']   = firebase.firestore.FieldValue.increment(1);
-                                if (!isSpy && iWon) statUpdates['stats.agent_wins'] = firebase.firestore.FieldValue.increment(1);
-                                statUpdates['stats.win_streak'] = iWon
-                                    ? firebase.firestore.FieldValue.increment(1)
-                                    : 0;
-
-                                await usersCollection.doc(user.uid).update(statUpdates);
-                                await incrementMissionProgress('gamesPlayed', 1);
-                                if (iWon) await incrementMissionProgress('gamesWon', 1);
-                                if (isSpy) await incrementMissionProgress('spyGames', 1);
-
-                                const updatedDoc = await usersCollection.doc(user.uid).get();
-                                if (updatedDoc.exists) await checkAndUnlockAchievements(updatedDoc.data());
-                            }
-                        } catch (e) { console.error('Game end stats error:', e); }
-                    }
-                }
-            } else {
-                setRoom(null);
-                setRoomId('');
-            }
-        });
-        return unsub;
-    }, [roomId, isLoggedIn, user, incrementMissionProgress, checkAndUnlockAchievements]);
-
-    // Leaderboard - Real-time
-    useEffect(() => { if (activeView === 'leaderboard' || activeView === 'ranking') { const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id)); setLeaderboardData(data); }, error => { usersCollection.limit(100).get().then(snap => { let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id)); data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0)); setLeaderboardData(data); }); }); return unsub; } }, [activeView]);
-
-    // Charisma Leaderboard - Real-time
-    useEffect(() => {
-        if ((activeView === 'leaderboard' || activeView === 'ranking') && leaderboardTab === 'charisma') {
-            const unsub = usersCollection.orderBy('charisma', 'desc').limit(100).onSnapshot(snap => {
-                let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id));
-                setCharismaLeaderboard(data);
-            }, error => {
-                usersCollection.limit(100).get().then(snap => {
-                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.isAnonymous).filter(d => !getUserRole(d, d.id));
-                    data.sort((a, b) => (b.charisma || 0) - (a.charisma || 0));
-                    setCharismaLeaderboard(data);
-                });
-            });
-            return unsub;
-        }
-    }, [activeView, leaderboardTab]);
-
-    // Family Leaderboard — by activeness
-    useEffect(() => {
-        if ((activeView === 'leaderboard' || activeView === 'ranking') && leaderboardTab === 'family') {
-            const familiesCol = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('families');
-            familiesCol.orderBy('activeness', 'desc').limit(50).get()
-                .then(snap => setFamilyLeaderboard(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
-                .catch(() => {
-                    familiesCol.limit(50).get().then(snap => {
-                        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        data.sort((a, b) => (b.activeness || 0) - (a.activeness || 0));
-                        setFamilyLeaderboard(data);
-                    }).catch(() => {});
-                });
-        }
-    }, [activeView, leaderboardTab]);
-
-    // ✅ FIXED: Friends - Real-time with online status
-    // ✅ REALTIME friends - always active (not just when tab is open)
-    useEffect(() => {
-        if (userData && user && isLoggedIn) {
-            if (userData.friends?.length > 0) {
-                const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).onSnapshot(snap => {
-                    const friends = snap.docs.map(d => {
-                        const data = d.data();
-                        const lastActive = data.lastActive?.toDate?.() || new Date(0);
-                        const timeSinceActive = Date.now() - lastActive.getTime();
-                        const dbStatus = data.onlineStatus;
-
-                        // ✅ Real-time status: use both DB onlineStatus field AND lastActive timestamp
-                        let onlineStatus = 'offline';
-                        if (dbStatus === 'online' && timeSinceActive < 600000) { // DB says online + seen < 10min
-                            onlineStatus = 'online';
-                        } else if (dbStatus === 'away' || (dbStatus === 'online' && timeSinceActive < 1800000)) {
-                            onlineStatus = 'away'; // DB says away OR online but not seen for 10-30min
-                        } else if (timeSinceActive < 300000) {
-                            onlineStatus = 'online'; // seen < 5min regardless of DB
-                        }
-
-                        return { id: d.id, ...data, isOnline: onlineStatus === 'online', onlineStatus };
-                    });
-                    setFriendsData(friends);
-                });
-                return unsub;
-            } else { setFriendsData([]); }
-        }
-    }, [userData?.friends, user, isLoggedIn]);
-
-    // Friend Requests - Real-time
-    useEffect(() => { if (userData && user && isLoggedIn) { if (userData.friendRequests?.length > 0) { const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).onSnapshot(snap => { setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); return unsub; } else { setFriendRequests([]); } } }, [userData?.friendRequests, user, isLoggedIn]);
-
-    // Chats Meta - Real-time
-    useEffect(() => { if (!user || !isLoggedIn) return; const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => { let total = 0; const meta = {}; snap.docs.forEach(doc => { const d = doc.data(); meta[doc.id] = d; const myUnread = d.unread?.[user.uid] || 0; total += myUnread; }); setChatsMeta(meta); setTotalUnread(total); }); return unsub; }, [user, isLoggedIn]);
-
-    // Timers
-    useEffect(() => { if (room?.status === 'discussing' && room?.turnEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000)); setTurnTimer(remaining); if (remaining <= 0) { handleSkipTurn(true); clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setTurnTimer(30); }, [room?.status, room?.turnEndTime]);
-    useEffect(() => { if (room?.status === 'voting' && room?.votingEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.votingEndTime - Date.now()) / 1000)); setVotingTimer(remaining); if (remaining <= 0) { clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setVotingTimer(30); }, [room?.status, room?.votingEndTime]);
-    useEffect(() => { if (room?.status === 'word_selection' && room?.wordSelEndTime) { const interval = setInterval(() => { const remaining = Math.max(0, Math.floor((room.wordSelEndTime - Date.now()) / 1000)); setWordSelTimer(remaining); if (remaining <= 0) { clearInterval(interval); } }, 1000); return () => clearInterval(interval); } else setWordSelTimer(30); }, [room?.status, room?.wordSelEndTime]);
-
-    // ── Auto-resolve word votes (admin only) ──
-    useEffect(() => {
-        if (!room || room.status !== 'word_selection' || currentUID !== room.admin) return;
-        const activePlayers = room.players.filter(p => p.status === 'active');
-        // Only agents and informants vote; spy and mrwhite are excluded
-        const voters = activePlayers.filter(p => p.role !== 'spy' && p.role !== 'mrwhite');
-        if (voters.length === 0) return;
-        const allVoted = voters.every(p => room.wordVotes?.[p.uid]);
-        if (!allVoted) return;
-        // Count votes & pick majority word
-        const voteCounts = {};
-        voters.forEach(p => {
-            const w = room.wordVotes[p.uid];
-            if (w) voteCounts[w] = (voteCounts[w] || 0) + 1;
-        });
-        const chosenWord = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
-        if (!chosenWord) return;
-        roomsCollection.doc(roomId).update({
-            chosenWord, status: 'discussing',
-            wordSelEndTime: null, turnEndTime: Date.now() + 30000,
-        }).catch(() => {});
-    }, [room?.wordVotes, room?.status, currentUID, room?.admin, room?.players, roomId]);
-
-    // ── Auto-resolve final votes (admin only) ──
-    useEffect(() => {
-        if (!room || room.status !== 'voting' || currentUID !== room.admin) return;
-        const activePlayers = room.players.filter(p => p.status === 'active');
-        const allVoted = activePlayers.length > 0 && activePlayers.every(p => room.votes?.[p.uid]);
-        if (!allVoted) return;
-        // Tally votes
-        const voteCounts = {};
-        Object.values(room.votes).forEach(v => { voteCounts[v] = (voteCounts[v] || 0) + 1; });
-        const maxVotes = Math.max(...Object.values(voteCounts));
-        const topVoted = Object.entries(voteCounts).filter(([, count]) => count === maxVotes);
-        if (topVoted.length > 1) {
-            // Tie → spy escapes
-            roomsCollection.doc(roomId).update({ status: 'finished_spy_escaped', votingEndTime: null }).catch(() => {});
-            return;
-        }
-        const ejectedUID = topVoted[0][0];
-        const ejectedPlayer = activePlayers.find(p => p.uid === ejectedUID);
-        const ejectedRole = ejectedPlayer?.role;
-        const sysMsg = { sender: 'system', name: 'SYSTEM', text: `🚨 ${ejectedPlayer?.name || ejectedUID} was ejected!`, time: Date.now() };
-        if (ejectedRole === 'spy') {
-            roomsCollection.doc(roomId).update({ status: 'spy_guessing', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) }).catch(() => {});
-        } else if (ejectedRole === 'mrwhite') {
-            roomsCollection.doc(roomId).update({ status: 'mrwhite_guessing', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) }).catch(() => {});
-        } else {
-            // Innocent ejected
-            roomsCollection.doc(roomId).update({ status: 'finished_spy_escaped', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) }).catch(() => {});
-        }
-    }, [room?.votes, room?.status, currentUID, room?.admin, room?.players, roomId]);
-
-    // ── Bot automation (owner only) ──
-    useEffect(() => {
-        if (!room || currentUID !== OWNER_UID) return;
-        const bots = room.players.filter(p => p.isBot && p.status === 'active');
-        if (bots.length === 0) return;
-        // Bot word voting
-        if (room.status === 'word_selection') {
-            const words = room.scenario?.words_en || [];
-            if (words.length === 0) return;
-            bots.forEach(bot => {
-                if (!room.wordVotes?.[bot.uid] && bot.role !== 'spy' && bot.role !== 'mrwhite') {
-                    const w = words[Math.floor(Math.random() * words.length)];
-                    const upd = {}; upd[`wordVotes.${bot.uid}`] = w;
-                    setTimeout(() => roomsCollection.doc(roomId).update(upd).catch(() => {}), 1500 + Math.random() * 2000);
-                }
-            });
-        }
-        // Bot turn in discussion - auto skip with optional chat
-        if (room.status === 'discussing' && room.currentTurnUID) {
-            const currentBot = bots.find(b => b.uid === room.currentTurnUID);
-            if (currentBot) {
-                const delay = 2000 + Math.random() * 3000;
-                const shouldChat = Math.random() > 0.4;
-                const msgs = lang === 'ar' ? ['هممم، مثير للاهتمام...', 'لدي شكوكي.', 'دعونا نفكر بعناية.', 'نقطة جيدة.', 'أراقب الجميع.', 'شيء ما غريب.', 'موافق.', 'لست متأكداً من ذلك.'] : ['Hmm, interesting...', 'I have my suspicions.', 'Let\'s think carefully.', 'That\'s a good point.', 'I\'m watching everyone.', 'Something seems off.', 'Agreed.', 'Not sure about that.'];
-                const timer = setTimeout(async () => {
-                    if (shouldChat) {
-                        const msg = msgs[Math.floor(Math.random() * msgs.length)];
-                        const chatMsg = { sender: currentBot.uid, name: currentBot.name, text: msg, time: Date.now(), isBot: true };
-                        await roomsCollection.doc(roomId).update({ messages: firebase.firestore.FieldValue.arrayUnion(chatMsg) }).catch(() => {});
-                    }
-                    await nextTurn();
-                }, delay);
-                return () => clearTimeout(timer);
-            }
-        }
-        // Bot final voting
-        if (room.status === 'voting') {
-            const humanPlayers = room.players.filter(p => p.status === 'active' && !p.isBot);
-            bots.forEach(bot => {
-                if (!room.votes?.[bot.uid] && humanPlayers.length > 0) {
-                    const target = humanPlayers[Math.floor(Math.random() * humanPlayers.length)];
-                    const upd = {}; upd[`votes.${bot.uid}`] = target.uid;
-                    setTimeout(() => roomsCollection.doc(roomId).update(upd).catch(() => {}), 2000 + Math.random() * 3000);
-                }
-            });
-        }
-    }, [room?.currentTurnUID, room?.status, room?.wordVotes, room?.votes, currentUID, roomId, lang]);
-
-    // Auth Functions
-    const handleGoogleLogin = useCallback(async () => { const provider = new firebase.auth.GoogleAuthProvider(); try { await auth.signInWithPopup(provider); setShowDropdown(false); } catch (e) { } }, []);
-    const handleLogout = useCallback(async () => { if (user) await auth.signOut(); setShowDropdown(false); setNickname(''); setGuestData(null); localStorage.removeItem('pro_spy_guest_uid'); localStorage.removeItem('pro_spy_nick'); }, [user]);
-
-    // Onboarding Complete Handler
-    const handleOnboardingComplete = useCallback(async ({ displayName, gender, country, photoURL }) => {
-        if (!onboardingGoogleUser || !pendingNewUserRef) return;
-        const u = onboardingGoogleUser;
-        const finalPhoto = photoURL || u.photoURL || null;
-        const newUserData = {
-            uid: u.uid,
-            email: u.email || null,
-            displayName: displayName,
-            photoURL: finalPhoto,
-            gender: gender,
-            country: country ? { code: country.code, flag: country.flag, name_ar: country.name_ar, name_en: country.name_en } : null,
-            customId: Math.floor(100000000 + Math.random() * 900000000).toString(),
-            stats: { wins: 0, losses: 0, xp: 0 },
-            achievements: [],
-            friends: [],
-            friendRequests: [],
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            lastChangedName: null,
-            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-            isAnonymous: false,
-            currency: 100,
-            inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] },
-            equipped: { badges: [] },
-            charisma: 0,
-            bannerURL: null,
-            loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: getCurrentCycleMonth() },
-        };
-        await pendingNewUserRef.set(newUserData);
-        setUserData(newUserData);
-        setNickname(displayName);
-        setUser(u);
-        setGuestData(null);
-        setShowOnboarding(false);
-        setOnboardingGoogleUser(null);
-        setPendingNewUserRef(null);
-        // Start listening to user doc
-        pendingNewUserRef.onSnapshot(snap => {
-            if (snap.exists) { setUserData(snap.data()); if (snap.data().displayName) setNickname(snap.data().displayName); }
-        });
-        playSound('success');
-        setNotification(lang === 'ar' ? '🎉 مرحباً بك!' : '🎉 Welcome aboard!');
-    }, [onboardingGoogleUser, pendingNewUserRef, lang]);
-
-    // Guest System
-    useEffect(() => {
-        const initGuest = async () => {
-            if (authLoading) return; if (user && !user.isAnonymous) return;
-            const savedGuestUID = localStorage.getItem('pro_spy_guest_uid');
-            if (savedGuestUID) { try { const doc = await guestsCollection.doc(savedGuestUID).get(); if (doc.exists) { setGuestData({ id: doc.id, ...doc.data() }); if (doc.data().displayName) setNickname(doc.data().displayName); return; } } catch (e) { } }
-            const savedNick = localStorage.getItem('pro_spy_nick');
-            const guestNick = savedNick || ('Player_' + Math.random().toString(36).substring(2, 6));
-            const guestUID = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-            const newGuestData = { uid: guestUID, displayName: guestNick, photoURL: null, customId: Math.floor(100000 + Math.random() * 900000).toString(), stats: { wins: 0, losses: 0, xp: 0 }, currency: 0, charisma: 0, equipped: { badges: [] }, inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] }, isAnonymous: true, isGuest: true, createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastActive: firebase.firestore.FieldValue.serverTimestamp() };
-            try { await guestsCollection.doc(guestUID).set(newGuestData); setGuestData(newGuestData); setNickname(guestNick); localStorage.setItem('pro_spy_guest_uid', guestUID); localStorage.setItem('pro_spy_nick', guestNick); } catch (e) { }
-        };
-        initGuest();
-    }, [authLoading, user]);
-
-    useEffect(() => { if (!guestData?.uid) return; const unsub = guestsCollection.doc(guestData.uid).onSnapshot(snap => { if (snap.exists) setGuestData({ id: snap.id, ...snap.data() }); }); return unsub; }, [guestData?.uid]);
-
-    const getDefaultPhoto = useCallback((uData, name) => uData?.photoURL || `https://ui-avatars.com/api/?name=${name || 'Guest'}&background=random`, []);
-
-    // Notification Functions
-    const createNotification = useCallback(async (toUserId, type, message, fromUserId, fromName, giftData = null) => { try { await notificationsCollection.add({ toUserId, fromUserId, fromName, type, message, giftData, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false }); } catch (e) { } }, []);
-    const markNotificationRead = useCallback(async (notifId) => { try { await notificationsCollection.doc(notifId).update({ read: true }); } catch (e) { } }, []);
-    const clearAllNotifications = useCallback(async () => { try { const batch = db.batch(); notifications.forEach(n => { batch.delete(notificationsCollection.doc(n.id)); }); await batch.commit(); setNotifications([]); setUnreadNotifications(0); } catch (e) { } }, [notifications]);
-    const handleNotificationClick = useCallback((notif) => {
-        if (notif.type === 'friend_request') { setActiveView('friends'); }
-        else if (notif.type === 'gift') { setNotification(notif.message); }
-        else if (notif.type === 'couple_proposal') { setActiveView('discover'); }
-        else if (notif.type === 'couple_accepted') { setShowCoupleCard(true); }
-        else if (notif.type === 'message') { if (notif.fromUserId && notif.fromName) { const friend = { uid: notif.fromUserId, displayName: notif.fromName, photoURL: notif.fromPhoto }; setChatFriend(friend); setShowPrivateChat(true); } }
-    }, []);
-
-    // 💍 Couple proposal send handler
-    const handleSendProposal = useCallback(async ({ toUID, toData, giftId, message }) => {
-        if (!user || !isLoggedIn || !proposalRing) return;
-        await sendProposal({
-            fromUID: user.uid,
-            toUID,
-            fromData: userData,
-            ringId: proposalRing.id,
-            giftId,
-            message,
-            onNotification: setNotification,
-            lang,
-        });
-    }, [user, isLoggedIn, userData, proposalRing, lang]);
-
-    // 💍 Accept incoming proposal
-    const handleAcceptProposal = useCallback(async (coupleDoc) => {
-        await acceptProposal({
-            coupleDocId: coupleDoc.id,
-            uid1: coupleDoc.uid1,
-            uid2: coupleDoc.uid2,
-            onNotification: setNotification,
-            lang,
-        });
-        setShowIncomingProposal(false);
-    }, [lang]);
-
-    // 💍 Decline incoming proposal
-    const handleDeclineProposal = useCallback(async (coupleDoc) => {
-        const ring = RINGS_DATA.find(r => r.id === coupleDoc.ringId);
-        const gift = PROPOSAL_GIFTS.find(g => g.id === coupleDoc.giftId);
-        await declineProposal({
-            coupleDocId: coupleDoc.id,
-            fromUID: coupleDoc.uid1,
-            toUID: coupleDoc.uid2,
-            ringCost: ring?.cost || 0,
-            giftCost: gift?.cost || 0,
-            onNotification: setNotification,
-            lang,
-        });
-        setShowIncomingProposal(false);
-    }, [lang]);
-
-    // Claim Login Reward
-    const handleClaimLoginReward = useCallback(async (day) => {
-        if (!user || !isLoggedIn) return;
-        // Safety: re-read current day from Firestore to avoid stale data
-        const freshDoc = await usersCollection.doc(user.uid).get();
-        const freshData = freshDoc.data();
-        const freshLoginData = freshData?.loginRewards || {};
-        const freshDay = freshLoginData.currentDay || 0;
-        // The next day to claim must match what we expect
-        const expectedNextDay = freshDay + 1;
-        if (day !== expectedNextDay) {
-            day = expectedNextDay; // Fix stale day
-        }
-        const reward = LOGIN_REWARDS[day - 1];
-        if (!reward) return;
-        try {
-            const userRef = usersCollection.doc(user.uid);
-            const userDoc = await userRef.get();
-            const userData = userDoc.data();
-            const inventory = userData?.inventory || { frames: [], titles: [], badges: [], gifts: [] };
-            const updates = {};
-
-            switch (reward.type) {
-                case 'currency':
-                    updates.currency = firebase.firestore.FieldValue.increment(reward.amount);
-                    setNotification(`${lang === 'ar' ? 'حصلت على' : 'You received'} +${reward.amount} 🧠!`);
-                    break;
-                case 'frame':
-                    if (!inventory.frames?.includes(reward.itemId)) { updates['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId); setNotification(`${lang === 'ar' ? '🎉 حصلت على إطار!' : '🎉 You received a frame!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`); }
-                    else { updates.currency = firebase.firestore.FieldValue.increment(500); setNotification(`${lang === 'ar' ? 'الإطار مملوك! +500 إنتل' : 'Frame owned! +500 Intel'}! 🧠`); }
-                    break;
-                case 'badge':
-                    if (!inventory.badges?.includes(reward.itemId)) { updates['inventory.badges'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId); setNotification(`${lang === 'ar' ? '🎉 حصلت على شارة!' : '🎉 You received a badge!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`); }
-                    else { updates.currency = firebase.firestore.FieldValue.increment(500); setNotification(`${lang === 'ar' ? 'الشارة مملوكة! +500 إنتل' : 'Badge owned! +500 Intel'}! 🧠`); }
-                    break;
-                case 'title':
-                    if (!inventory.titles?.includes(reward.itemId)) { updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId); setNotification(`${lang === 'ar' ? '🎉 حصلت على لقب!' : '🎉 You received a title!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`); }
-                    else { updates.currency = firebase.firestore.FieldValue.increment(500); setNotification(`${lang === 'ar' ? 'اللقب مملوك! +500 إنتل' : 'Title owned! +500 Intel'}! 🧠`); }
-                    break;
-            }
-            updates['loginRewards.currentDay'] = day;
-            updates['loginRewards.lastClaimDate'] = firebase.firestore.FieldValue.serverTimestamp();
-            updates['loginRewards.streak'] = firebase.firestore.FieldValue.increment(1);
-            updates['loginRewards.totalClaims'] = firebase.firestore.FieldValue.increment(1);
-            updates['loginRewards.cycleMonth'] = getCurrentCycleMonth();
-            await userRef.update(updates);
-            playRewardSound();
-            setShowLoginRewards(false);
-            setSessionClaimedToday(true); // Mark as claimed for this session
-        } catch (error) { setNotification(lang === 'ar' ? 'حدث خطأ!' : 'An error occurred!'); }
-    }, [user, isLoggedIn, lang]);
-
-    // Room Functions
-    const handleCreateGame = useCallback(async () => {
-        if (!nickname.trim()) return;
-        if (isPrivate && !password.trim()) { setAlertMessage(t.privateRoomError); return; }
-        playSound('click'); setLoading(true);
-        const uid = currentUID; const tempUserData = currentUserData;
-        if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; }
-        const id = Math.random().toString(36).substring(2, 7).toUpperCase();
-        await roomsCollection.doc(id).set({ id, admin: uid, status: 'waiting', players: [{ uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {}, vip: tempUserData?.vip || {} }], scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null, currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode, isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null, summaryShown: false });
-        setRoomId(id); setLoading(false); setShowSetupModal(false); setActiveView('lobby');
-        navigator.clipboard.writeText(id); setCopied(true); setTimeout(() => setCopied(false), 2000);
-    }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, getDefaultPhoto]);
-
-    const handleJoinGame = useCallback(async (id, pwd) => {
-        if (!id || id.trim() === "") { setJoinError(t.enterCodeError); return; }
-        if (!nickname.trim()) return;
-        playSound('click'); setLoading(true); setJoinError('');
-        const uid = currentUID; const tempUserData = currentUserData;
-        if (!uid) { setLoading(false); setAlertMessage(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; }
-        const ref = roomsCollection.doc(id.toUpperCase());
-        const snap = await ref.get();
-        if (snap.exists) {
-            const data = snap.data();
-            if(data.isPrivate && data.password !== pwd) { setJoinError(lang === 'ar' ? 'كلمة السر غير صحيحة' : "Incorrect Password"); setLoading(false); return; }
-            const exists = data.players.find(p => p.uid === uid);
-            if (!exists) { await ref.update({ players: [...data.players, { uid: uid, name: nickname, status: 'active', photo: getDefaultPhoto(tempUserData, nickname), role: null, equipped: tempUserData?.equipped || {}, vip: tempUserData?.vip || {} }] }); }
-            setRoomId(id.toUpperCase()); setActiveView('lobby'); setShowBrowseRooms(false);
-        } else { setJoinError(lang === 'ar' ? 'الغرفة غير موجودة' : "Room not found"); }
-        setLoading(false);
-    }, [nickname, currentUID, currentUserData, t, lang, getDefaultPhoto]);
-
-    const handleLeaveRoom = useCallback(async () => {
-        if (!room || !currentUID) return;
-        playSound('click');
-        const isAdmin = room.admin === currentUID;
-        if (isAdmin) { await roomsCollection.doc(roomId).delete(); } else { await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== currentUID) }); }
-        setRoom(null); setRoomId(''); setShowSummary(false);
-    }, [room, currentUID, roomId]);
-
-    // Game Logic Functions
-    const startGame = useCallback(async () => {
-        if (room.admin !== currentUID) return;
-        playSound('success');
-        const activePlayers = room.players.filter(p => p.status === 'active');
-        const playerCount = activePlayers.length;
-        if (room.mode === 'advanced' && playerCount < 6) { setAlertMessage("Advanced mode requires 6+ players!"); return; }
-        if (playerCount < 3) { setAlertMessage(t.needPlayers); return; }
-        if (playerCount > 10) { setAlertMessage("Max 10 players."); return; }
-        const used = room.usedLocations || [];
-        const avail = SCENARIOS.filter(s => !used.includes(s.loc_en));
-        const scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))];
-        const spy = activePlayers[Math.floor(Math.random() * activePlayers.length)];
-        let roles = {};
-        let mrwhiteId = null;
-        let informantId = null;
-        if (room.mode === 'advanced') {
-            roles[spy.uid] = 'spy';
-            let remaining = activePlayers.filter(p => p.uid !== spy.uid);
-            if (remaining.length > 0) {
-                const mrWhite = remaining[Math.floor(Math.random() * remaining.length)];
-                roles[mrWhite.uid] = 'mrwhite';
-                mrwhiteId = mrWhite.uid;
-                remaining = remaining.filter(p => p.uid !== mrWhite.uid);
-            }
-            if (remaining.length > 0) {
-                const informant = remaining[Math.floor(Math.random() * remaining.length)];
-                roles[informant.uid] = 'informant';
-                informantId = informant.uid;
-            }
-            activePlayers.forEach(p => { if (!roles[p.uid]) roles[p.uid] = 'agent'; });
-        } else {
-            activePlayers.forEach(p => roles[p.uid] = p.uid === spy.uid ? 'spy' : 'agent');
-        }
-        let potentialStarters = activePlayers.filter(p => roles[p.uid] !== 'spy');
-        if (potentialStarters.length === 0) potentialStarters = activePlayers;
-        const firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)];
-        await roomsCollection.doc(roomId).update({
-            status: 'word_selection',
-            scenario,
-            spyId: spy.uid,
-            mrwhiteId,
-            informantId,
-            currentTurnUID: firstPlayer.uid,
-            turnEndTime: null,
-            currentRound: 1,
-            players: room.players.map(p => ({ ...p, vote: null, role: roles[p.uid] || 'agent' })),
-            usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en),
-            messages: [],
-            votes: {},
-            wordVotes: {},
-            chosenWord: null,
-            wordSelEndTime: Date.now() + 45000,
-            votingRequest: null,
-            ejectedUID: null,
-            startedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }, [room, currentUID, roomId, t]);
-    const submitWordVote = useCallback(async (word) => {
-        if (!currentUID || !room || room.status !== 'word_selection') return;
-        // Spy and MrWhite don't vote for words - compute role inline
-        const myPlayer = room?.players?.find(p => p.uid === currentUID);
-        if (myPlayer?.role === 'spy' || myPlayer?.role === 'mrwhite') return;
-        playSound('click');
-        const voteUpdate = {};
-        voteUpdate[`wordVotes.${currentUID}`] = word;
-        await roomsCollection.doc(roomId).update(voteUpdate);
-    }, [currentUID, room, roomId]);
-    const handleSkipTurn = useCallback(async (forced = false) => { if (!room) return; if (!forced && room.currentTurnUID !== currentUID) return; if (forced && room.status !== 'discussing') return; nextTurn(); }, [room, currentUID]);
-    const nextTurn = useCallback(async () => { if (!room) return; const activePlayers = room.players.filter(p => p.status === 'active'); const currentIndex = activePlayers.findIndex(p => p.uid === room.currentTurnUID); const nextIndex = (currentIndex + 1) % activePlayers.length; await roomsCollection.doc(roomId).update({ currentTurnUID: activePlayers[nextIndex].uid, turnEndTime: Date.now() + 30000 }); }, [room, roomId]);
-    const requestVoting = useCallback(async () => { if (!room || room.status !== 'discussing') return; playSound('click'); if (room.admin === currentUID) { await triggerVoting(); return; } await roomsCollection.doc(roomId).update({ votingRequest: { requestedBy: currentUID, votes: { [currentUID]: true } } }); }, [room, currentUID, roomId]);
-    const agreeToVote = useCallback(async () => { if (!room || !room.votingRequest) return; playSound('click'); const currentVotes = room.votingRequest.votes || {}; const newVotes = { ...currentVotes, [currentUID]: true }; const activePlayers = room.players.filter(p => p.status === 'active'); if (currentUID === room.admin) { await triggerVoting(); return; } const agreeCount = Object.values(newVotes).filter(v => v === true).length; const majorityCount = Math.floor(activePlayers.length / 2) + 1; if (agreeCount >= majorityCount) { await triggerVoting(); } else { await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); } }, [room, currentUID, roomId]);
-    const declineVote = useCallback(async () => { if (!room || !room.votingRequest) return; playSound('click'); const currentVotes = room.votingRequest.votes || {}; const newVotes = { ...currentVotes, [currentUID]: false }; const activePlayers = room.players.filter(p => p.status === 'active'); const declineCount = Object.values(newVotes).filter(v => v === false).length; const majorityCount = Math.floor(activePlayers.length / 2) + 1; if (declineCount >= majorityCount) { await roomsCollection.doc(roomId).update({ votingRequest: null }); } else { await roomsCollection.doc(roomId).update({ "votingRequest.votes": newVotes }); } }, [room, currentUID, roomId]);
-    const triggerVoting = useCallback(async () => { playSound('click'); const sysMsg = { sender: 'system', name: 'SYSTEM', text: t.votingStarted, time: Date.now() }; await roomsCollection.doc(roomId).update({ status: 'voting', currentTurnUID: null, turnEndTime: null, votingEndTime: Date.now() + 30000, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg), votingRequest: null }); }, [roomId, t]);
-    const submitVote = useCallback(async (targetUID) => { if (!targetUID || !currentUID || (room.votes && room.votes[currentUID])) return; playSound('click'); const voteUpdate = {}; voteUpdate[`votes.${currentUID}`] = targetUID; await roomsCollection.doc(roomId).update(voteUpdate); }, [room, currentUID, roomId]);
-    const resetGame = useCallback(async () => {
-        playSound('click');
-        await roomsCollection.doc(roomId).update({
-            status: 'waiting', scenario: null, spyId: null, mrwhiteId: null, informantId: null,
-            currentTurnUID: null, currentRound: 0, votes: {}, messages: [], votingEndTime: null,
-            turnEndTime: null, ejectedUID: null,
-            players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo, role: null, equipped: p.equipped || {}, vip: p.vip || {}, isBot: p.isBot || false, botUID: p.botUID || null })),
-            wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null,
-            startedAt: null, finishedAt: null, summaryShown: false
-        });
-        setShowSummary(false);
-    }, [room, roomId]);
-
-    // ── 💬 SEND GAME CHAT MESSAGE ──
-    const sendGameMessage = useCallback(async () => {
-        const text = gameChatInput.trim();
-        if (!text || !room || !currentUID) return;
-        const senderName = room.players.find(p => p.uid === currentUID)?.name || nickname || 'Player';
-        const msg = {
-            sender: currentUID,
-            name: senderName,
-            text,
-            time: Date.now(),
-        };
-        setGameChatInput('');
-        await roomsCollection.doc(roomId).update({
-            messages: firebase.firestore.FieldValue.arrayUnion(msg)
-        });
-    }, [gameChatInput, room, currentUID, roomId, nickname]);
-
-    // Auto-scroll chat to bottom when new messages arrive
-    useEffect(() => {
-        if (gameChatRef.current) {
-            gameChatRef.current.scrollTop = gameChatRef.current.scrollHeight;
-        }
-    }, [room?.messages?.length]);
-
-    // ── Spy guesses the chosen WORD when caught ──
-    const submitSpyWordGuess = useCallback(async (guessedWord) => {
-        if (!room || room.status !== 'spy_guessing') return;
-        if (currentUID !== room.ejectedUID && currentUID !== room.spyId) return;
-        playSound('click');
-        const correct = guessedWord.trim().toLowerCase() === (room.chosenWord || '').trim().toLowerCase();
-        const sysMsg = { sender: 'system', name: 'SYSTEM', text: correct ? '🎯 Spy guessed correctly!' : '❌ Wrong guess!', time: Date.now() };
-        await roomsCollection.doc(roomId).update({
-            status: correct ? 'finished_spy_escaped' : 'finished_spy_caught',
-            spyGuessWord: guessedWord,
-            messages: firebase.firestore.FieldValue.arrayUnion(sysMsg)
-        });
-    }, [room, currentUID, roomId]);
-
-    // ── MrWhite guesses the LOCATION when caught ──
-    const submitMrWhiteLocationGuess = useCallback(async (guessedLocation) => {
-        if (!room || room.status !== 'mrwhite_guessing') return;
-        if (currentUID !== room.ejectedUID && currentUID !== room.mrwhiteId) return;
-        playSound('click');
-        const locEn = (room.scenario?.loc_en || '').toLowerCase();
-        const locAr = (room.scenario?.loc_ar || '').toLowerCase();
-        const guess = guessedLocation.trim().toLowerCase();
-        const correct = guess === locEn || guess === locAr || locEn.includes(guess) || locAr.includes(guess);
-        const sysMsg = { sender: 'system', name: 'SYSTEM', text: correct ? '🎯 Mr. White guessed correctly!' : '❌ Wrong guess!', time: Date.now() };
-        await roomsCollection.doc(roomId).update({
-            status: correct ? 'finished_mrwhite_wins' : 'finished_spy_caught',
-            mrwhiteGuessLocation: guessedLocation,
-            messages: firebase.firestore.FieldValue.arrayUnion(sysMsg)
-        });
-    }, [room, currentUID, roomId]);
-
-    // ── Spy voluntarily declares and goes to guessing phase ──
-    const spyVoluntaryDeclare = useCallback(async () => {
-        if (!room || room.status !== 'discussing') return;
-        const myPlayer = room?.players?.find(p => p.uid === currentUID);
-        if (myPlayer?.role !== 'spy') return;
-        playSound('click');
-        const sysMsg = { sender: 'system', name: 'SYSTEM', text: '🕵️ Spy revealed themselves!', time: Date.now() };
-        await roomsCollection.doc(roomId).update({
-            status: 'spy_guessing',
-            ejectedUID: currentUID,
-            messages: firebase.firestore.FieldValue.arrayUnion(sysMsg),
-            votingEndTime: null, turnEndTime: null
-        });
-    }, [room, currentUID, roomId]);
-
-    // ── BOT SYSTEM (Owner only) ──
-    const BOT_NAMES = ['Shadow', 'Ghost', 'Cipher', 'Viper', 'Nova', 'Hex', 'Raven', 'Storm', 'Blaze', 'Frost', 'Echo', 'Spectre'];
-    const BOT_PHOTOS = ['🤖', '👾', '🦾', '🎭', '🕶️', '🦿'];
-    const BOT_CHAT_MSGS_EN = ['Hmm, interesting...', 'I have my suspicions.', 'Let\'s think carefully.', 'That\'s a good point.', 'I\'m watching everyone.', 'Something seems off.', 'My instinct says...', 'Agreed.', 'Not sure about that.', 'Fascinating.'];
-    const BOT_CHAT_MSGS_AR = ['هممم، مثير للاهتمام...', 'لدي شكوكي.', 'دعونا نفكر بعناية.', 'نقطة جيدة.', 'أراقب الجميع.', 'شيء ما غريب.', 'حدسي يقول...', 'موافق.', 'لست متأكداً.', 'رائع.'];
-
-    const addBotToRoom = useCallback(async () => {
-        if (!room || currentUID !== OWNER_UID) return;
-        const bots = room.players.filter(p => p.isBot);
-        if (bots.length >= 5) { setAlertMessage('Max 5 bots allowed!'); return; }
-        if (room.players.length >= 10) { setAlertMessage('Room is full!'); return; }
-        const botName = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)] + '_' + Math.floor(Math.random() * 99);
-        const botUID = 'bot_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-        const newBot = { uid: botUID, name: botName, status: 'active', photo: null, role: null, equipped: {}, vip: {}, isBot: true, botUID };
-        await roomsCollection.doc(roomId).update({ players: firebase.firestore.FieldValue.arrayUnion(newBot) });
-        playSound('success');
-    }, [room, currentUID, roomId]);
-
-    const removeBotFromRoom = useCallback(async (botUID) => {
-        if (!room || currentUID !== OWNER_UID) return;
-        await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== botUID) });
-        playSound('click');
-    }, [room, currentUID, roomId]);
-
-    // Friend Functions
-    const openProfile = useCallback((uid) => { if(!uid) return; setTargetProfileUID(uid); setShowUserProfile(true); }, []);
-    const openPrivateChat = useCallback((friend) => { setChatFriend(friend); setShowPrivateChat(true); if (user) { const cId = [user.uid, friend.uid].sort().join('_'); setOpenChatId(cId); chatsCollection.doc(cId).update({ [`unread.${user.uid}`]: 0 }).catch(() => {}); } }, [user]);
-    const closePrivateChat = useCallback(() => { setShowPrivateChat(false); setChatFriend(null); setOpenChatId(null); }, []);
-    const handleSendRequest = useCallback(async (targetUid) => { if (!targetUid || !isLoggedIn) return; if (userData.friends?.includes(targetUid)) return; if (userData.friendRequests?.includes(targetUid)) return; await usersCollection.doc(targetUid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) }); await createNotification(targetUid, 'friend_request', `${userData.displayName} ${t.friendRequest}`, user.uid, userData.displayName); }, [userData, user, isLoggedIn, t, createNotification]);
-    const handleAddFriendById = useCallback(async () => {
-        if (!addFriendId.trim() || !isLoggedIn) return;
-        setFriendSearchMsg('');
-        try {
-            const userQuery = await usersCollection.where('customId', '==', addFriendId.trim()).get();
-            if (userQuery.empty) { setFriendSearchMsg(t.friendNotFound); return; }
-            const targetUid = userQuery.docs[0].id;
-            if (targetUid === user.uid) { setFriendSearchMsg(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself'); return; }
-            if (userData.friends?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'صديق بالفعل' : 'Already a friend'); return; }
-            if (userData.friendRequests?.includes(targetUid)) { setFriendSearchMsg(lang === 'ar' ? 'لديك طلب من هذا المستخدم' : 'You have a request from this user'); return; }
-            await handleSendRequest(targetUid);
-            setFriendSearchMsg(t.requestSent);
-            setAddFriendId('');
-        } catch (e) { console.error('addFriend error:', e); setFriendSearchMsg(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
-    }, [addFriendId, isLoggedIn, userData, user, t, lang, handleSendRequest]);
-    const handleAcceptRequest = useCallback(async (fromUid) => {
-        if (!user || !isLoggedIn) return;
-        await usersCollection.doc(user.uid).update({ friends: firebase.firestore.FieldValue.arrayUnion(fromUid), friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) });
-        await usersCollection.doc(fromUid).update({ friends: firebase.firestore.FieldValue.arrayUnion(user.uid) });
-        await createNotification(fromUid, 'friend_request_accepted', `${userData.displayName} ${lang === 'ar' ? 'قبل طلب صداقتك!' : 'accepted your friend request!'}`, user.uid, userData.displayName);
-        setNotification(t.friendAdded);
-        // ✅ Mission + Achievement
-        await incrementMissionProgress('friendsAdded', 1);
-        const updDoc = await usersCollection.doc(user.uid).get();
-        if (updDoc.exists) await checkAndUnlockAchievements(updDoc.data());
-    }, [user, isLoggedIn, t, userData, createNotification, lang]);
-    const handleRejectRequest = useCallback(async (fromUid) => { if (!user || !isLoggedIn) return; await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); }, [user, isLoggedIn]);
-
-    // 🎁 GIFT FUNCTIONS — BATCHED (one write per step, parallel logs)
-    const handleSendGiftToUser = useCallback(async (gift, targetUser, qty = 1, fromInventory = false) => {
-        if (!user || !isLoggedIn) return;
-        const currency = userData?.currency || 0;
-        const totalCost = fromInventory ? 0 : gift.cost * qty;
-
-        // ✅ Currency check
-        if (!fromInventory && currency < totalCost) {
-            setNotification(lang === 'ar' ? '❌ رصيدك غير كافي' : '❌ Insufficient balance');
-            return;
-        }
-
-        // ✅ Inventory: deduct ONE item (qty ignored for inventory sends)
-        if (fromInventory) {
-            const giftCounts = userData?.inventory?.giftCounts || {};
-            const currentCount = giftCounts[gift.id] || 0;
-            if (currentCount <= 0) {
-                setNotification(lang === 'ar' ? '❌ ليس لديك هذه الهدية في المخزون' : '❌ Gift not in inventory');
-                return;
-            }
-            const newCount = currentCount - 1;
-            const invUpdates = { [`inventory.giftCounts.${gift.id}`]: newCount };
-            if (newCount <= 0) invUpdates['inventory.gifts'] = firebase.firestore.FieldValue.arrayRemove(gift.id);
-            try { await usersCollection.doc(user.uid).update(invUpdates); } catch(e) {}
-        }
-
-        const isSelfSend = !targetUser || targetUser.uid === 'self' || targetUser.uid === user.uid;
-        const giftName = lang === 'ar' ? gift.name_ar : gift.name_en;
-
-        // ✅ Pre-calculate bonuses for each send
-        const bonuses = [];
-        let totalBonus = 0;
-        for (let i = 0; i < qty; i++) {
-            const b = Math.floor(
-                (gift.minBonus || 1) +
-                Math.random() * ((gift.maxBonus || Math.floor(gift.cost * 0.1)) - (gift.minBonus || 1))
-            );
-            bonuses.push(b);
-            totalBonus += b;
-        }
-        const totalCharisma = gift.charisma * qty;
-
-        try {
-            // ═══ STEP 1: Deduct sender (ONE write) ═══
-            const senderUpdate = {
-                currency:   firebase.firestore.FieldValue.increment(-totalCost),
-                giftsSent:  firebase.firestore.FieldValue.increment(qty),
-            };
-            if (hasVIP(userData)) {
-                senderUpdate['vip.xp'] = firebase.firestore.FieldValue.increment(getGiftVIPXP(gift) * qty);
-            }
-            await usersCollection.doc(user.uid).update(senderUpdate);
-
-            // ═══ STEP 2: Credit receiver (ONE write) ═══
-            const receiverUpdates = {
-                charisma:      firebase.firestore.FieldValue.increment(totalCharisma),
-                currency:      firebase.firestore.FieldValue.increment(totalBonus),
-                giftsReceived: firebase.firestore.FieldValue.increment(qty),
-            };
-            if (isSelfSend) {
-                // self-send: merge receiver update into same doc
-                await usersCollection.doc(user.uid).update(receiverUpdates);
-            } else {
-                await usersCollection.doc(targetUser.uid).update(receiverUpdates);
-            }
-
-            // ═══ STEP 3: Parallel log writes ═══
-            const parallelOps = [];
-
-            // Gift logs (one per qty)
-            for (let i = 0; i < qty; i++) {
-                parallelOps.push(giftsLogCollection.add({
-                    senderId:     user.uid,
-                    senderName:   userData?.displayName || 'User',
-                    senderPhoto:  userData?.photoURL || null,
-                    receiverId:   isSelfSend ? user.uid : targetUser.uid,
-                    receiverName: isSelfSend ? (userData?.displayName || 'User') : (targetUser.displayName || 'User'),
-                    giftId:       gift.id,
-                    giftName,
-                    giftNameEn:   gift.name_en,
-                    giftNameAr:   gift.name_ar,
-                    giftEmoji:    gift.emoji,
-                    giftImageUrl: gift.imageUrl || '',
-                    charisma:     gift.charisma,
-                    bonus:        bonuses[i],
-                    cost:         gift.cost,
-                    timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
-                }));
-            }
-
-            // Chat message
-            const chatMsgBase = {
-                senderId:      user.uid,
-                senderName:    userData?.displayName || 'User',
-                senderPhoto:   userData?.photoURL || null,
-                senderVipLevel: getVIPLevel(userData) || 0,
-                type:          'gift',
-                giftId:        gift.id,
-                giftName,
-                giftNameEn:    gift.name_en,
-                giftNameAr:    gift.name_ar,
-                giftEmoji:     gift.emoji,
-                giftImageUrl:  gift.imageUrl || '',
-                giftCharisma:  totalCharisma,
-                giftBonus:     totalBonus,
-                giftCost:      totalCost,
-                giftQty:       qty,
-                text:          `🎁 ${qty > 1 ? `×${qty} ` : ''}${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji}`,
-                timestamp:     firebase.firestore.FieldValue.serverTimestamp(),
-            };
-
-            if (isSelfSend) {
-                const selfChatId  = `${user.uid}_self`;
-                const selfChatRef = chatsCollection.doc(selfChatId);
-                parallelOps.push(selfChatRef.set({
-                    participants: [user.uid, user.uid],
-                    type:         'self',
-                    lastMessage:  `🎁 ${giftName}${qty > 1 ? ` ×${qty}` : ''}`,
-                    lastAt:       firebase.firestore.FieldValue.serverTimestamp(),
-                }, { merge: true }));
-                parallelOps.push(selfChatRef.collection('messages').add(chatMsgBase));
-            } else {
-                const chatId = [user.uid, targetUser.uid].sort().join('_');
-                parallelOps.push(chatsCollection.doc(chatId).collection('messages').add(chatMsgBase));
-                parallelOps.push(chatsCollection.doc(chatId).set({
-                    members:                    [user.uid, targetUser.uid],
-                    lastMessage:                `🎁 ${giftName}${qty > 1 ? ` ×${qty}` : ''}`,
-                    timestamp:                  firebase.firestore.FieldValue.serverTimestamp(),
-                    [`unread.${targetUser.uid}`]: firebase.firestore.FieldValue.increment(1),
-                }, { merge: true }));
-                // Notification
-                parallelOps.push(createNotification(
-                    targetUser.uid,
-                    'gift',
-                    `${userData?.displayName || 'User'} ${t.sentAGift}: ${gift.emoji}${qty > 1 ? ` ×${qty}` : ''} (+${formatCharisma(totalCharisma)} ⭐, +${totalBonus} 🧠)`,
-                    user.uid,
-                    userData?.displayName || 'User',
-                    { giftId: gift.id, giftEmoji: gift.emoji, giftName, charisma: totalCharisma, bonus: totalBonus, qty },
-                ));
-            }
-
-            // Mission progress
-            parallelOps.push(incrementMissionProgress('giftsSent', qty));
-
-            // ═══ STEP 4: Run all parallel ops ═══
-            await Promise.all(parallelOps);
-
-            // ── BFF gift points update (non-blocking, best-effort) ──
-            if (!isSelfSend && typeof updateBFFGiftPoints === 'function') {
-                updateBFFGiftPoints(user.uid, targetUser.uid, totalCharisma).catch(() => {});
-            }
-
-            // ✅ FIX: Guard Ranking — write charisma gift amount to guard_log
-            // This populates the Guard Ranking on the receiver's profile
-            if (!isSelfSend && typeof guardLogCollection !== 'undefined') {
-                guardLogCollection.add({
-                    receiverId:   targetUser.uid,
-                    senderId:     user.uid,
-                    senderName:   userData?.displayName || 'User',
-                    senderPhoto:  userData?.photoURL || null,
-                    amount:       totalCharisma,
-                    charisma:     totalCharisma,
-                    giftId:       gift.id,
-                    qty,
-                    timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
-                }).catch(() => {});
-            }
-
-            // ✅ Notification toast
-            setNotification(qty > 1 ? `🎁 ${t.giftSent} ×${qty}!` : `🎁 ${t.giftSent}!`);
-
-            // ✅ Achievements check
-            const updDoc = await usersCollection.doc(user.uid).get();
-            if (updDoc.exists) await checkAndUnlockAchievements(updDoc.data());
-
-        } catch(error) {
-            console.error('Gift send error:', error);
-            setNotification(lang === 'ar' ? '❌ خطأ في الإرسال، حاول مرة أخرى' : '❌ Send error, try again');
-        }
-    }, [userData, user, t, createNotification, lang, incrementMissionProgress, checkAndUnlockAchievements, isLoggedIn]);
-
-    // Shop Functions
-    const handlePurchase = useCallback(async (item, targetUser = null, qty = 1) => {
-        if (!user || !isLoggedIn) { setShowLoginAlert(true); return; }
-        const currency = userData?.currency || 0;
-        if (currency < item.cost) { setNotification(t.purchaseFail); return; }
-        const inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
-
-        // ✅ VIP Gift Lock — حد أدنى من مستوى VIP
-        if (item.vipMinLevel && item.vipMinLevel > 0) {
-            const userVipLevel = getVIPLevel(userData);
-            if (userVipLevel < item.vipMinLevel) {
-                setNotification(lang === 'ar'
-                    ? `🔒 يتطلب VIP ${item.vipMinLevel} على الأقل`
-                    : `🔒 Requires VIP ${item.vipMinLevel}+`
-                );
-                return;
-            }
-        }
-
-        if (item.type === 'gifts' || item.type === 'gifts_vip') {
-            // ✅ If targetUser is specified (send to friend) → direct send
-            if (targetUser && targetUser.uid !== 'self' && targetUser.uid !== user?.uid) {
-                await handleSendGiftToUser(item, targetUser, qty || 1);
-                return;
-            }
-            // Buying for self → add to inventory with quantity counter
-            const giftCounts = userData?.inventory?.giftCounts || {};
-            const currentCount = giftCounts[item.id] || 0;
-            try {
-                const updateData = {
-                    currency: firebase.firestore.FieldValue.increment(-item.cost),
-                    'inventory.gifts': firebase.firestore.FieldValue.arrayUnion(item.id),
-                    [`inventory.giftCounts.${item.id}`]: currentCount + 1,
-                };
-                // ✅ FIX 4: Store expiry timestamp for timed gifts (durationDays)
-                if (item.durationDays && item.durationDays > 0) {
-                    const expiresAt = Date.now() + item.durationDays * 86400000;
-                    // Only set expiry if not already set (first purchase) or extend it
-                    const existingExpiry = userData?.inventory?.expiry?.[item.id];
-                    if (!existingExpiry || existingExpiry < Date.now()) {
-                        updateData[`inventory.expiry.${item.id}`] = expiresAt;
-                    }
-                }
-                await usersCollection.doc(user.uid).update(updateData);
-                playSound('success');
-                const giftName = lang === 'ar' ? item.name_ar : item.name_en;
-                const timerMsg = item.durationDays
-                    ? (lang === 'ar' ? ` (⏳ ${item.durationDays} أيام)` : ` (⏳ ${item.durationDays} days)`)
-                    : '';
-                setNotification(`🎁 ${giftName}${timerMsg} ${lang === 'ar' ? 'أُضيفت للمخزون!' : 'added to inventory!'}`);
-            } catch (e) { setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
-            return;
-        }
-
-        // ✅ BFF Token purchase — stackable in inventory
-        if (item.cardType !== undefined) {
-            try {
-                await usersCollection.doc(user.uid).update({
-                    currency: firebase.firestore.FieldValue.increment(-item.cost),
-                    'inventory.bff_tokens': firebase.firestore.FieldValue.arrayUnion(item.id),
-                });
-                playSound('success');
-                const tokenName = lang === 'ar' ? item.name_ar : item.name_en;
-                setNotification(`🤝 ${tokenName} ${lang === 'ar' ? 'أُضيف للمخزون!' : 'added to inventory!'}`);
-            } catch (e) { setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
-            return;
-        }
-
-        if (inventory[item.type]?.includes(item.id)) { setNotification(t.alreadyOwned); return; }
-        try {
-            const newInventory = { ...inventory, [item.type]: [...(inventory[item.type] || []), item.id] };
-            await usersCollection.doc(user.uid).update({ currency: currency - item.cost, inventory: newInventory });
-            playSound('success');
-            setNotification(t.purchaseSuccess);
-        } catch (error) { }
-    }, [user, userData, isLoggedIn, t, lang, handleSendGiftToUser]);
-
-    // 👑 شراء VIP من الشوب
-    const handleBuyVIP = useCallback(async () => {
-        if (!user || !isLoggedIn) { setShowLoginAlert(true); return; }
-        const VIP_SHOP_COST = 50000;
-        const VIP_SHOP_XP   = 5000;   // XP الممنوحة فقط عند أول شراء
-        const currency = userData?.currency || 0;
-        if (currency < VIP_SHOP_COST) {
-            setNotification(lang === 'ar' ? `❌ تحتاج ${VIP_SHOP_COST.toLocaleString()} 🧠` : `❌ Need ${VIP_SHOP_COST.toLocaleString()} 🧠`);
-            return;
-        }
-        try {
-            // ✅ هل هذه أول مرة يشتري فيها VIP؟ (XP يُعطى مرة واحدة فقط)
-            const isFirstPurchase = !userData?.vip?.xp || userData.vip.xp === 0;
-
-            // ✅ تمديد من تاريخ الانتهاء الحالي لو لسه نشط، غير كده من اليوم
-            const now = new Date();
-            const currentExpiry = userData?.vip?.expiresAt?.toDate ? userData.vip.expiresAt.toDate() : null;
-            const baseDate = (userData?.vip?.isActive && currentExpiry && currentExpiry > now)
-                ? new Date(currentExpiry.getTime())
-                : new Date(now.getTime());
-            baseDate.setDate(baseDate.getDate() + 30);
-
-            const updates = {
-                currency:            firebase.firestore.FieldValue.increment(-VIP_SHOP_COST),
-                'vip.isActive':      true,
-                'vip.expiresAt':     firebase.firestore.Timestamp.fromDate(baseDate),
-                'vip.purchasedAt':   firebase.firestore.FieldValue.serverTimestamp(),
-            };
-
-            if (isFirstPurchase) {
-                // ✅ أول شراء: أضف XP وafItems الـ VIP 1
-                updates['vip.xp'] = firebase.firestore.FieldValue.increment(VIP_SHOP_XP);
-                const newLevel   = getVIPLevelFromXP(VIP_SHOP_XP);
-                const levelCfg   = VIP_CONFIG.find(v => v.level === newLevel);
-                const vipItems   = levelCfg?.vipItems || [];
-                for (const item of vipItems) {
-                    if (item.type === 'frames')  updates['inventory.frames']  = firebase.firestore.FieldValue.arrayUnion(item.id);
-                    if (item.type === 'badges')  updates['inventory.badges']  = firebase.firestore.FieldValue.arrayUnion(item.id);
-                    if (item.type === 'titles')  updates['inventory.titles']  = firebase.firestore.FieldValue.arrayUnion(item.id);
-                }
-            }
-            // ❌ تجديد: بدون XP — فقط تمديد الأيام
-
-            await usersCollection.doc(user.uid).update(updates);
-            playSound('success');
-            if (isFirstPurchase) {
-                setNotification(lang === 'ar'
-                    ? `👑 تم شراء VIP! +${VIP_SHOP_XP.toLocaleString()} XP — صالح 30 يوم`
-                    : `👑 VIP Purchased! +${VIP_SHOP_XP.toLocaleString()} XP — Valid 30 days`
-                );
-            } else {
-                setNotification(lang === 'ar'
-                    ? `👑 تم تجديد VIP! +30 يوم إضافية`
-                    : `👑 VIP Renewed! +30 days added`
-                );
-            }
-        } catch(e) {
-            setNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
-        }
-    }, [user, userData, isLoggedIn, lang]);
-
-    const handleEquip = useCallback(async (item) => {
-        if (!user || !isLoggedIn) return;
-        try {
-            const equipped = userData?.equipped || { badges: [] };
-            if (item.type === 'badges') {
-                let currentBadges = equipped.badges || []; if (!Array.isArray(currentBadges)) currentBadges = currentBadges ? [currentBadges] : [];
-                if (currentBadges.length >= MAX_BADGES) { setNotification(lang === 'ar' ? `الحد الأقصى ${MAX_BADGES} شارات` : `Maximum ${MAX_BADGES} badges`); return; }
-                if (!currentBadges.includes(item.id)) currentBadges.push(item.id);
-                await usersCollection.doc(user.uid).update({ equipped: { ...equipped, badges: currentBadges } });
-            } else { await usersCollection.doc(user.uid).update({ equipped: { ...equipped, [item.type]: item.id } }); }
-            playSound('click'); setNotification(lang === 'ar' ? 'تم التزيين!' : 'Equipped!');
-        } catch (error) { }
-    }, [user, userData, isLoggedIn, lang]);
-
-    const handleUnequip = useCallback(async (type, itemId) => {
-        if (!user || !isLoggedIn) return;
-        try {
-            const equipped = userData?.equipped || { badges: [] };
-            if (type === 'badges') {
-                let currentBadges = equipped.badges || []; if (!Array.isArray(currentBadges)) currentBadges = currentBadges ? [currentBadges] : [];
-                currentBadges = currentBadges.filter(id => id !== itemId);
-                await usersCollection.doc(user.uid).update({ equipped: { ...equipped, badges: currentBadges } });
-            } else {
-                const newEquipped = { ...equipped }; delete newEquipped[type];
-                await usersCollection.doc(user.uid).update({ equipped: newEquipped });
-            }
-            playSound('click'); setNotification(lang === 'ar' ? 'تمت الإزالة!' : 'Unequipped!');
-        } catch (error) { }
-    }, [user, userData, isLoggedIn, lang]);
-
-    // Computed Values
-    const isMyTurn = useMemo(() => room?.currentTurnUID === currentUID, [room?.currentTurnUID, currentUID]);
-    const me = useMemo(() => room?.players?.find(p => p.uid === currentUID), [room?.players, currentUID]);
-    const myRole = me?.role;
-    const isSpectator = me?.status === 'spectator' || me?.status === 'ghost';
-    const hasVoted = room?.votes?.[currentUID];
-    const hasVotedWord = room?.wordVotes?.[currentUID];
-    const voteReq = room?.votingRequest;
-    const hasIAgreed = voteReq?.votes?.[currentUID] === true;
-    const hasIDeclined = voteReq?.votes?.[currentUID] === false;
-    const totalFriendsUnread = useMemo(() => totalUnread + (friendRequests?.length || 0), [totalUnread, friendRequests]);
-    const handleCopy = useCallback(() => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 2000); }, [roomId]);
-    const requireLogin = useCallback(() => { setShowLoginAlert(true); }, []);
-
-    // RENDER
-    if (authLoading) {
-        return (
-            <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(160deg,#060612,#0a0a1e)',flexDirection:'column',gap:'16px'}}>
-                <div style={{fontSize:'48px',animation:'gw-float 2s ease-in-out infinite'}}>🕵️</div>
-                <div style={{
-                    width:'40px',height:'40px',borderRadius:'50%',
-                    border:'3px solid rgba(0,242,255,0.15)',
-                    borderTop:'3px solid #00f2ff',
-                    animation:'spin 0.8s linear infinite'
-                }}/>
-                <style>{`@keyframes spin{to{transform:rotate(360deg)}}@keyframes gw-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
-            </div>
-        );
+// ════════════════════════════════════════════════════════
+// 📸 FRIENDS MOMENTS MODAL
+// 🏠 FAMILY SYSTEM — Complete Clan/Family System V2
+// File: 19-family.js
+// ════════════════════════════════════════════════════════
+
+// ── Firestore Collections ──
+const familiesCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('families');
+
+// ════════════════════════════════════════════════════════
+// ⚙️  FAMILY CONFIG — Levels, Sign Levels, Tasks
+// ════════════════════════════════════════════════════════
+const FAMILY_CREATE_COST = 500;
+
+const FAMILY_LEVEL_CONFIG = [
+    { level:1,  xp:0,      name_en:'Rookie',        name_ar:'مبتدئة',       color:'#4ade80', maxMembers:20,  icon:'🌱' },
+    { level:2,  xp:500,    name_en:'Rising',         name_ar:'صاعدة',        color:'#22d3ee', maxMembers:25,  icon:'⬆️' },
+    { level:3,  xp:1500,   name_en:'Established',    name_ar:'راسخة',        color:'#60a5fa', maxMembers:30,  icon:'🏕️' },
+    { level:4,  xp:3500,   name_en:'Warriors',       name_ar:'محاربون',      color:'#fbbf24', maxMembers:40,  icon:'⚔️' },
+    { level:5,  xp:7000,   name_en:'Guardians',      name_ar:'حراس',         color:'#f97316', maxMembers:50,  icon:'🛡️' },
+    { level:6,  xp:13000,  name_en:'Elite',          name_ar:'نخبة',         color:'#a78bfa', maxMembers:60,  icon:'💎' },
+    { level:7,  xp:22000,  name_en:'Champions',      name_ar:'أبطال',        color:'#ffd700', maxMembers:80,  icon:'🏆' },
+    { level:8,  xp:35000,  name_en:'Legends',        name_ar:'أساطير',       color:'#ef4444', maxMembers:100, icon:'🔥' },
+    { level:9,  xp:55000,  name_en:'Dynasty',        name_ar:'سلالة',        color:'#818cf8', maxMembers:120, icon:'👑' },
+    { level:10, xp:80000,  name_en:'GOAT',           name_ar:'الأعظم',       color:'#00d4ff', maxMembers:160, icon:'🌌' },
+];
+
+// ════ FAMILY SIGN LEVELS — Based on Weekly Activeness ════
+// These thresholds mirror FAMILY_SIGN_IMAGES in 01-config.js
+const FAMILY_SIGN_LEVELS = [
+    { level:1, threshold:1000,   name_ar:'ساين المستوى 1',  name_en:'Sign Level 1',  color:'#6b7280', glow:'rgba(107,114,128,0.3)', defaultIcon:'🏠', bg:'rgba(107,114,128,0.15)' },
+    { level:2, threshold:10000,  name_ar:'ساين المستوى 2',  name_en:'Sign Level 2',  color:'#22d3ee', glow:'rgba(34,211,238,0.4)',  defaultIcon:'⚔️', bg:'rgba(34,211,238,0.15)' },
+    { level:3, threshold:30000,  name_ar:'ساين المستوى 3',  name_en:'Sign Level 3',  color:'#fbbf24', glow:'rgba(251,191,36,0.4)',  defaultIcon:'🛡️', bg:'rgba(251,191,36,0.15)' },
+    { level:4, threshold:100000, name_ar:'ساين المستوى 4',  name_en:'Sign Level 4',  color:'#f97316', glow:'rgba(249,115,22,0.55)', defaultIcon:'👑', bg:'rgba(249,115,22,0.15)',  hasGlow:true },
+    { level:5, threshold:300000, name_ar:'ساين المستوى 5',  name_en:'Sign Level 5',  color:'#ef4444', glow:'rgba(239,68,68,0.65)',  defaultIcon:'🌟', bg:'rgba(239,68,68,0.15)',   hasGlow:true },
+];
+
+// Get sign image URL from config (FAMILY_SIGN_IMAGES defined in 01-config.js)
+const getFamilySignImage = (level) => {
+    if (typeof FAMILY_SIGN_IMAGES === 'undefined') return null;
+    const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === level);
+    return cfg?.imageURL || null;
+};
+
+// Use WEEKLY activeness to determine sign level
+const getFamilySignLevelData = (weeklyActiveness = 0) => {
+    let cfg = null; // start with no sign
+    for (let i = FAMILY_SIGN_LEVELS.length - 1; i >= 0; i--) {
+        if (weeklyActiveness >= FAMILY_SIGN_LEVELS[i].threshold) { cfg = FAMILY_SIGN_LEVELS[i]; break; }
     }
-
-    // 🚫 BANNED USER SCREEN
-    if (isLoggedIn && userData && isBannedUser(userData)) {
-        return (
-            <div style={{
-                minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
-                background:'linear-gradient(160deg,#1a0005,#0a000a,#060612)', flexDirection:'column',
-                gap:'0', padding:'24px', textAlign:'center',
-            }}>
-                <canvas id="bg-canvas" style={{position:'fixed',top:0,left:0,width:'100%',height:'100%',zIndex:0,opacity:0.3}}/>
-                <div style={{ position:'relative', zIndex:1, maxWidth:'380px', width:'100%' }}>
-                    {/* Red glow circle */}
-                    <div style={{
-                        width:'100px', height:'100px', borderRadius:'50%', margin:'0 auto 20px',
-                        background:'rgba(220,0,0,0.15)', border:'3px solid rgba(239,68,68,0.6)',
-                        display:'flex', alignItems:'center', justifyContent:'center', fontSize:'48px',
-                        boxShadow:'0 0 40px rgba(220,0,0,0.3), 0 0 80px rgba(220,0,0,0.1)',
-                        animation:'ban-pulse 2s ease-in-out infinite',
-                    }}>🚫</div>
-                    <style>{`@keyframes ban-pulse{0%,100%{box-shadow:0 0 40px rgba(220,0,0,0.3),0 0 80px rgba(220,0,0,0.1)}50%{box-shadow:0 0 60px rgba(220,0,0,0.5),0 0 120px rgba(220,0,0,0.2)}}`}</style>
-                    <h1 style={{ fontSize:'22px', fontWeight:900, color:'#f87171', marginBottom:'8px', letterSpacing:'0.5px' }}>
-                        {lang === 'ar' ? '🔒 حسابك موقوف' : '🔒 Account Suspended'}
-                    </h1>
-                    <p style={{ fontSize:'13px', color:'#9ca3af', marginBottom:'20px', lineHeight:1.6 }}>
-                        {lang === 'ar'
-                            ? 'تم إيقاف حسابك من قِبَل الإدارة. لا يمكنك الدخول إلى اللعبة خلال هذه الفترة.'
-                            : 'Your account has been suspended by the admin. You cannot access the game during this period.'}
-                    </p>
-                    {/* Ban details card */}
-                    <div style={{
-                        background:'linear-gradient(135deg,rgba(220,0,0,0.12),rgba(0,0,0,0.4))',
-                        border:'1px solid rgba(239,68,68,0.35)', borderRadius:'14px', padding:'16px 18px',
-                        textAlign: lang==='ar'?'right':'left', marginBottom:'20px',
-                    }}>
-                        {userData?.ban?.reason && (
-                            <div style={{ marginBottom:'8px' }}>
-                                <span style={{ fontSize:'10px', color:'#6b7280', fontWeight:700, display:'block', marginBottom:'2px' }}>
-                                    {lang === 'ar' ? 'سبب الإيقاف' : 'REASON'}
-                                </span>
-                                <span style={{ fontSize:'13px', color:'#fca5a5', fontWeight:700 }}>{userData.ban.reason}</span>
-                            </div>
-                        )}
-                        <div>
-                            <span style={{ fontSize:'10px', color:'#6b7280', fontWeight:700, display:'block', marginBottom:'2px' }}>
-                                {lang === 'ar' ? 'ينتهي الإيقاف' : 'SUSPENSION ENDS'}
-                            </span>
-                            <span style={{ fontSize:'13px', color: userData?.ban?.expiresAt ? '#fbbf24' : '#f87171', fontWeight:900 }}>
-                                {formatBanExpiry(userData, lang)}
-                            </span>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => auth.signOut()}
-                        style={{
-                            padding:'11px 28px', borderRadius:'12px', fontSize:'13px', fontWeight:800, cursor:'pointer',
-                            background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.15)',
-                            color:'#9ca3af', letterSpacing:'0.3px',
-                        }}
-                    >
-                        {lang === 'ar' ? 'تسجيل الخروج' : 'Sign Out'}
-                    </button>
-                </div>
-            </div>
-        );
+    if (!cfg) return null; // no sign earned yet
+    return { ...cfg, imageURL: getFamilySignImage(cfg.level) };
+};
+const getFamilySignProgress = (weeklyActiveness = 0) => {
+    const cur = getFamilySignLevelData(weeklyActiveness);
+    if (!cur) {
+        const first = FAMILY_SIGN_LEVELS[0];
+        return Math.min(99, Math.round((weeklyActiveness / first.threshold) * 100));
     }
+    const next = FAMILY_SIGN_LEVELS.find(s => s.level === cur.level + 1);
+    if (!next) return 100;
+    return Math.min(100, Math.round(((weeklyActiveness - cur.threshold) / (next.threshold - cur.threshold)) * 100));
+};
 
+const getFamilyLevel = (xp = 0) => {
+    let cfg = FAMILY_LEVEL_CONFIG[0];
+    for (let i = FAMILY_LEVEL_CONFIG.length - 1; i >= 0; i--) {
+        if (xp >= FAMILY_LEVEL_CONFIG[i].xp) { cfg = FAMILY_LEVEL_CONFIG[i]; break; }
+    }
+    return cfg;
+};
+const getFamilyLevelProgress = (xp = 0) => {
+    const cur = getFamilyLevel(xp);
+    const next = FAMILY_LEVEL_CONFIG.find(c => c.level === cur.level + 1);
+    if (!next) return 100;
+    return Math.min(100, Math.round(((xp - cur.xp) / (next.xp - cur.xp)) * 100));
+};
+
+// ════ UPDATED TASKS — Triple Currency: Intel + XP + Family Coins ════
+const FAMILY_TASKS_CONFIG = [
+    { id:'ft1', icon:'🎮', title_en:'Play 5 Games',        title_ar:'العب 5 ألعاب',        sub_en:'Play 5 spy games this week',      sub_ar:'العب 5 ألعاب جاسوس هذا الأسبوع', target:5,   daily:false, reward:{ intel:50,  xp:200,  coins:5,  icon:'🏅' } },
+    { id:'ft2', icon:'🏆', title_en:'Win 3 Games',         title_ar:'اكسب 3 ألعاب',        sub_en:'Win 3 games to earn rewards',     sub_ar:'اكسب 3 ألعاب للحصول على المكافآت', target:3,  daily:false, reward:{ intel:100, xp:400,  coins:10, icon:'🏅' } },
+    { id:'ft3', icon:'💰', title_en:'Donate 500 Intel',    title_ar:'تبرع بـ 500 إنتل',     sub_en:'Donate 500 Intel to family fund', sub_ar:'تبرع بـ 500 إنتل لصندوق العائلة', target:500, daily:false, reward:{ intel:80,  xp:300,  coins:8,  icon:'🏅' } },
+    { id:'ft4', icon:'📅', title_en:'Daily Check-in',      title_ar:'تسجيل الحضور',         sub_en:'Check in to the family today',    sub_ar:'سجّل حضورك في العائلة اليوم',     target:1,   daily:true,  reward:{ intel:30,  xp:100,  coins:3,  icon:'🏅' } },
+    { id:'ft5', icon:'🎁', title_en:'Send 3 Gifts',        title_ar:'أرسل 3 هدايا',         sub_en:'Send 3 gifts to any players',     sub_ar:'أرسل 3 هدايا لأي لاعبين',        target:3,   daily:false, reward:{ intel:120, xp:500,  coins:12, icon:'🏅' } },
+    { id:'ft6', icon:'💬', title_en:'Chat (10 messages)',  title_ar:'الشات (10 رسائل)',      sub_en:'Send 10 messages in family chat', sub_ar:'أرسل 10 رسائل في شات العائلة',   target:10,  daily:false, reward:{ intel:60,  xp:250,  coins:6,  icon:'🏅' } },
+    { id:'ft7', icon:'❤️', title_en:'Daily Like Mission',  title_ar:'مهمة الإعجاب اليومي',  sub_en:'Like 3 clanmates profiles/posts', sub_ar:'أعجب بـ 3 منشورات/بروفايلات أعضاء', target:3, daily:true,  reward:{ intel:40,  xp:150,  coins:4,  icon:'🏅' } },
+];
+
+const ACTIVENESS_MILESTONES = [
+    { threshold:8000,   reward:200,  icon:'🎁' },
+    { threshold:24000,  reward:500,  icon:'🎁' },
+    { threshold:60000,  reward:1000, icon:'💎' },
+    { threshold:120000, reward:2000, icon:'💎' },
+    { threshold:280000, reward:5000, icon:'👑' },
+];
+
+// ── Role Config ──
+const FAMILY_ROLE_CONFIG = {
+    owner:     { label_en:'Owner',  label_ar:'المالك', color:'#ffd700', bg:'rgba(255,215,0,0.18)',    border:'rgba(255,215,0,0.45)',    icon:'👑' },
+    admin:     { label_en:'Admin',  label_ar:'أدمن',   color:'#ef4444', bg:'rgba(239,68,68,0.18)',    border:'rgba(239,68,68,0.45)',    icon:'🛡️' },
+    moderator: { label_en:'Mod',    label_ar:'مشرف',   color:'#3b82f6', bg:'rgba(59,130,246,0.18)',   border:'rgba(59,130,246,0.45)',   icon:'🔰' },
+    member:    { label_en:'Member', label_ar:'عضو',    color:'#6b7280', bg:'rgba(107,114,128,0.12)',  border:'rgba(107,114,128,0.3)',   icon:'👤' },
+};
+const getFamilyRole = (family, uid) => {
+    if (!family || !uid) return 'member';
+    if (family.createdBy === uid) return 'owner';
+    const roles = family.memberRoles || {};
+    return roles[uid] || 'member';
+};
+const canManageFamily = (family, uid) => {
+    const role = getFamilyRole(family, uid);
+    return role === 'owner' || role === 'admin';
+};
+
+// ── Emblem Options ──
+const FAMILY_EMBLEMS = ['🏠','⚔️','🛡️','🔥','🌊','⚡','🌙','🌟','💎','👑','🐉','🦁','🐺','🦅','🦋','🌹','🏹','🎯','🌈','💫'];
+
+// ── Helpers ──
+const fmtFamilyNum = (n = 0) => {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+};
+const fmtFamilyTime = (ts, lang) => {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+    const diff = Date.now() - d.getTime();
+    if (diff < 60000) return lang === 'ar' ? 'الآن' : 'now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}${lang === 'ar' ? 'د' : 'm'}`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}${lang === 'ar' ? 'س' : 'h'}`;
+    return `${Math.floor(diff / 86400000)}${lang === 'ar' ? 'ي' : 'd'}`;
+};
+
+// ── Components ──
+const FamilyRoleBadge = ({ role, lang, small = false }) => {
+    const cfg = FAMILY_ROLE_CONFIG[role] || FAMILY_ROLE_CONFIG.member;
     return (
-        <div className="app-shell" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-            {/* Background blobs */}
-            <div className="bg-blobs">
-                <div className="bg-blob-item bg-blob-1"></div>
-                <div className="bg-blob-item bg-blob-2"></div>
-                <div className="bg-blob-item bg-blob-3"></div>
-            </div>
-            <NotificationToast message={notification} onClose={() => setNotification(null)} />
+        <span style={{
+            display:'inline-flex', alignItems:'center', gap:'2px',
+            padding: small ? '1px 5px' : '2px 7px',
+            borderRadius:'5px', fontSize: small ? '9px' : '10px',
+            fontWeight:800, fontStyle:'italic',
+            background:cfg.bg, border:`1px solid ${cfg.border}`, color:cfg.color,
+            letterSpacing:'0.3px', whiteSpace:'nowrap', flexShrink:0,
+        }}>
+            {cfg.icon} {lang === 'ar' ? cfg.label_ar : cfg.label_en}
+        </span>
+    );
+};
 
-            {showOnboarding && (
-                <OnboardingModal
-                    show={showOnboarding}
-                    googleUser={onboardingGoogleUser}
-                    onComplete={handleOnboardingComplete}
-                    lang={lang}
-                />
-            )}
+// Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
+const FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = null, signLevel = 1 }) => {
+    const imgSrc = imageURL || (typeof getFamilySignImage === 'function' ? getFamilySignImage(signLevel) : null);
+    // استخدم hasGlow من بيانات المستوى نفسه
+    const signLevelData = typeof FAMILY_SIGN_LEVELS !== 'undefined'
+        ? FAMILY_SIGN_LEVELS.find(s => s.level === signLevel)
+        : null;
+    const hasGlow = signLevelData?.hasGlow || signLevel >= 4;
+    const glowColor = signLevelData?.glow || `${color}88`;
+    const displayTag = tag || 'FAM';
 
+    // لو في صورة: تظهر مع التاج مكتوب فوقها
+    if (imgSrc) {
+        const imgW = small
+            ? 28 + (displayTag.length * 4)   // small: 3→40  4→44  5→48
+            : 44 + (displayTag.length * 6);   // normal: 3→62 4→68  5→74
+        const imgH = Math.round(imgW * 0.55);
+        const fontSize = small
+            ? (displayTag.length <= 3 ? 8 : displayTag.length === 4 ? 7 : 6)
+            : (displayTag.length <= 3 ? 11 : displayTag.length === 4 ? 10 : 9);
 
-            {showLoginAlert && !isLoggedIn && (
-                <div className="modal-overlay" onClick={() => setShowLoginAlert(false)}>
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
-                        <div className="modal-header"><h2 className="modal-title">{t.loginRequired}</h2><ModalCloseBtn onClose={() => setShowLoginAlert(false)} /></div>
-                        <div className="modal-body text-center">
-                            <div className="text-4xl mb-4">🔐</div>
-                            <p className="text-sm text-gray-300 mb-4">{t.guestDesc}</p>
-                            <button onClick={() => { setShowLoginAlert(false); handleGoogleLogin(); }} className="btn-google w-full py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2"><img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />{t.loginGoogle}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
-            <LoginRewards show={showLoginRewards} onClose={() => setShowLoginRewards(false)} userData={userData} onClaim={handleClaimLoginReward} lang={lang} onOpenInventory={() => { setShowLoginRewards(false); setShowInventory(true); }} />
-
-            {showSummary && room && (
-                <div className="modal-overlay" onClick={() => setShowSummary(false)}>
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><h2 className="modal-title">{t.summaryTitle}</h2><ModalCloseBtn onClose={() => setShowSummary(false)} /></div>
-                        <div className="modal-body text-center">
-                            <div className="text-4xl mb-3">{room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'}</div>
-                            <h2 className="text-xl font-bold mb-3">{room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin}</h2>
-                            {room.chosenWord && <div className="text-xs text-cyan-400 mb-3">🔑 {t.selectedWord}: <strong>{room.chosenWord}</strong></div>}
-                            <div style={{background:'rgba(255,255,255,0.04)',borderRadius:'10px',padding:'10px',marginBottom:'8px',textAlign:'left'}}>
-                                <div className="text-xs font-bold text-gray-300 mb-2">📋 {t.rolesRevealTitle}</div>
-                                {room.players.filter(p => p.role).map(p => (
-                                    <div key={p.uid} className="flex items-center justify-between gap-2 mb-1" style={{fontSize:'11px'}}>
-                                        <span className="text-gray-300 truncate">{p.name}{p.uid===currentUID?' (You)':''}</span>
-                                        <span style={{color:p.role==='spy'?'#ef4444':p.role==='mrwhite'?'#8b5cf6':p.role==='informant'?'#a78bfa':'#10b981',fontWeight:700,flexShrink:0}}>
-                                            {p.role==='spy'?'🕵️ '+t.statusSpy:p.role==='mrwhite'?'👻 '+t.statusMrWhite:p.role==='informant'?'👁️ '+t.statusInformant:'🤵 '+t.statusAgent}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="modal-footer">{room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2">{t.playAgain}</button>)}<button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm">{t.leaveRoom}</button></div>
-                    </div>
-                </div>
-            )}
-
-            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} onOpenInventory={() => { setShowShop(false); setShowInventory(true); }} currentUID={currentUID} onPropose={(ring) => { setProposalRing(ring); setShowShop(false); setShowProposalModal(true); }} coupleData={coupleData} onOpenCoupleCard={() => { setShowShop(false); setShowCoupleCard(true); }} />
-            <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} coupleData={coupleData} onOpenCoupleCard={() => { setShowInventory(false); setShowCoupleCard(true); }} onPropose={(ring) => { setProposalRing(ring); setShowInventory(false); setShowProposalModal(true); }} />
-            <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} onSetLang={(nl) => { setLang(nl); localStorage.setItem('pro_spy_lang', nl); if(user) usersCollection.doc(user.uid).update({lang:nl}).catch(()=>{}); }} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} onOpenAdminPanel={() => setShowAdminPanel(true)} />
-
-            {/* 💒 Wedding Hall Modal */}
-            <WeddingHallModal
-                show={showWeddingHall}
-                onClose={() => setShowWeddingHall(false)}
-                lang={lang}
-                currentUID={currentUID}
-                currentUserData={userData}
-                coupleData={coupleData}
-                partnerData={partnerData}
-                onOpenPropose={() => { setShowWeddingHall(false); setShowShop(true); }}
-                onOpenCoupleCard={() => { setShowWeddingHall(false); setShowCoupleCard(true); }}
-                onDivorce={() => {}}
-                onNotification={setNotification}
-            />
-
-            {/* 💍 Proposal Modal */}
-            <ProposalModal
-                show={showProposalModal}
-                onClose={() => setShowProposalModal(false)}
-                ring={proposalRing}
-                currentUserData={userData}
-                currentUID={currentUID}
-                lang={lang}
-                onSend={handleSendProposal}
-                friendsData={friendsData}
-            />
-
-            {/* 💑 Couple Card Modal */}
-            <CoupleCardModal
-                show={showCoupleCard}
-                onClose={() => setShowCoupleCard(false)}
-                coupleDoc={coupleData}
-                currentUID={currentUID}
-                selfData={userData}
-                partnerData={partnerData}
-                lang={lang}
-                onNotification={setNotification}
-                currentUserData={userData}
-                onOpenProfile={(uid) => { setShowCoupleCard(false); setTargetProfileUID(uid); setShowUserProfile(true); }}
-            />
-
-            {/* 💌 Incoming Proposal Modal */}
-            <IncomingProposalModal
-                show={showIncomingProposal}
-                coupleDoc={incomingProposal}
-                fromData={incomingProposalFrom}
-                currentUID={currentUID}
-                lang={lang}
-                onAccept={handleAcceptProposal}
-                onDecline={handleDeclineProposal}
-            />
-
-            {/* 🛡️ Admin Panel */}
-            <AdminPanel
-                show={showAdminPanel}
-                onClose={() => setShowAdminPanel(false)}
-                currentUser={user}
-                currentUserData={userData}
-                lang={lang}
-                onOpenProfile={(uid) => { setShowAdminPanel(false); openProfile(uid); }}
-            />
-
-            {/* 📸 Friends Moments Modal */}
-            {showFriendsMoments && (
-                <FriendsMomentsModal
-                    show={showFriendsMoments}
-                    onClose={() => setShowFriendsMoments(false)}
-                    currentUser={user}
-                    currentUserData={currentUserData}
-                    currentUID={currentUID}
-                    friendsData={friendsData}
-                    lang={lang}
-                    onOpenProfile={(uid) => { setShowFriendsMoments(false); openProfile(uid); }}
-                />
-            )}
-
-            {/* 🏠 Family Modal */}
-            {showFamilyModal && (
-                <FamilyModal
-                    show={showFamilyModal}
-                    onClose={() => { setShowFamilyModal(false); setViewFamilyId(null); }}
-                    currentUser={user}
-                    currentUserData={currentUserData}
-                    currentUID={currentUID}
-                    lang={lang}
-                    isLoggedIn={isLoggedIn}
-                    onNotification={setNotification}
-                    viewFamilyId={viewFamilyId}
-                    onSendGift={handleSendGiftToUser}
-                    userData={currentUserData}
-                />
-            )}
-
-            {/* Family Chat (from friends list) */}
-            {showFamilyChat && userFamily && (
-                <FamilyChatModal
-                    show={showFamilyChat}
-                    onClose={() => setShowFamilyChat(false)}
-                    familyId={userFamily.id}
-                    familyData={userFamily}
-                    currentUID={currentUID}
-                    currentUserData={currentUserData}
-                    lang={lang}
-                    onOpenFamily={() => { setShowFamilyChat(false); setShowFamilyModal(true); }}
-                    onSendGift={handleSendGiftToUser}
-                    userData={currentUserData}
-                />
-            )}
-
-            {/* 🤝 BFF Modal */}
-            {showBFFModal && (
-                <BFFModal
-                    show={showBFFModal}
-                    onClose={() => setShowBFFModal(false)}
-                    lang={lang}
-                    currentUID={currentUID}
-                    currentUserData={currentUserData}
-                    onNotification={setNotification}
-                    friendsData={friendsData}
-                    coupleData={coupleData}
-                    couplePartnerData={partnerData}
-                />
-            )}
-
-            {/* 🕵️ Detective Bot Chat */}
-            {showDetectiveBot && (
-                <BotChatModal
-                    show={showDetectiveBot}
-                    onClose={() => setShowDetectiveBot(false)}
-                    botId="detective_bot"
-                    currentUID={currentUID}
-                    currentUserData={currentUserData}
-                    lang={lang}
-                />
-            )}
-
-            {/* 💌 Love Bot Chat */}
-            {showLoveBot && (
-                <BotChatModal
-                    show={showLoveBot}
-                    onClose={() => setShowLoveBot(false)}
-                    botId="love_bot"
-                    currentUID={currentUID}
-                    currentUserData={currentUserData}
-                    lang={lang}
-                    onOpenWeddingHall={(tab) => { setShowLoveBot(false); setShowWeddingHall(true); }}
-                    onOpenBFFModal={(tab) => { setShowLoveBot(false); setShowBFFModal(true); setBffInitialTab(tab || 'requests'); }}
-                />
-            )}
-
-            {showMyAccount && currentUID && (
-                <ProfileV11
-                    show={showMyAccount}
-                    onClose={() => setShowMyAccount(false)}
-                    targetUID={currentUID}
-                    lang={lang}
-                    currentUserUID={currentUID}
-                    onSendFriendRequest={handleSendRequest}
-                    onSendGift={handleSendGiftToUser}
-                    userData={currentUserData}
-                    currentUserFriends={userData?.friends}
-                    currentUserFriendRequests={userData?.friendRequests}
-                    friendsData={friendsData}
-                    isOwnProfileOverride={true}
-                    onOpenSettings={() => { setShowMyAccount(false); setShowSettings(true); }}
-                    onOpenShop={() => { setShowMyAccount(false); setShowShop(true); }}
-                    onOpenInventory={() => { setShowMyAccount(false); setShowInventory(true); }}
-                    onLogout={handleLogout}
-                    onLoginGoogle={() => { setShowMyAccount(false); handleGoogleLogin(); }}
-                    isLoggedIn={isLoggedIn}
-                    isGuest={isGuest}
-                    sessionClaimedToday={sessionClaimedToday}
-                    onOpenLoginRewards={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}
-                    currency={currentUserData?.currency || 0}
-                    onOpenProfile={(uid) => { setShowMyAccount(false); openProfile(uid); }}
-                    onOpenMarriage={() => { setShowMyAccount(false); setShowWeddingHall(true); }}
-                    onOpenFamily={(fid) => { setShowMyAccount(false); setViewFamilyId(fid || null); setShowFamilyModal(true); }}
-                    onOpenBFFModal={() => { setShowMyAccount(false); setShowBFFModal(true); }}
-                    onNotification={setNotification}
-                    onOpenChat={(target) => {
-                        setShowMyAccount(false);
-                        if (target === 'self') {
-                            setShowSelfChat(true);
-                        } else {
-                            openPrivateChat(target);
-                        }
+        return (
+            <span style={{
+                position:'relative',
+                display:'inline-flex', alignItems:'center', justifyContent:'center',
+                flexShrink:0,
+                width:`${imgW}px`, height:`${imgH}px`,
+                filter: hasGlow
+                    ? `drop-shadow(0 0 6px ${color}dd) drop-shadow(0 0 14px ${color}88) drop-shadow(0 0 22px ${color}44)`
+                    : 'none',
+                transition:'all 0.2s',
+            }}>
+                {/* الصورة الخلفية */}
+                <img
+                    src={imgSrc}
+                    alt=""
+                    style={{
+                        position:'absolute', inset:0,
+                        width:'100%', height:'100%',
+                        objectFit:'contain',
+                        display:'block',
                     }}
                 />
-            )}
+                {/* التاج فوق الصورة */}
+                <span style={{
+                    position:'relative', zIndex:1,
+                    fontSize:`${fontSize}px`,
+                    fontWeight:900,
+                    fontStyle:'italic',
+                    letterSpacing:'1.5px',
+                    color:'#fff',
+                    marginTop:'2px',
+                    textShadow:`
+                        0 0 6px rgba(0,0,0,0.9),
+                        0 0 12px rgba(0,0,0,0.7),
+                        1px 1px 0 rgba(0,0,0,0.8),
+                        -1px -1px 0 rgba(0,0,0,0.8),
+                        1px -1px 0 rgba(0,0,0,0.8),
+                        -1px 1px 0 rgba(0,0,0,0.8),
+                        0 0 16px ${color}cc
+                    `,
+                    userSelect:'none',
+                    lineHeight:1,
+                }}>
+                    {displayTag}
+                </span>
+            </span>
+        );
+    }
 
-            <ProfileV11
-                show={showUserProfile}
-                onClose={() => setShowUserProfile(false)}
-                targetUID={targetProfileUID}
-                lang={lang}
-                currentUserUID={currentUID}
-                onSendFriendRequest={handleSendRequest}
-                onSendGift={handleSendGiftToUser}
-                userData={currentUserData}
-                currentUserFriends={userData?.friends}
-                currentUserFriendRequests={userData?.friendRequests}
-                friendsData={friendsData}
-                isGuest={isGuest}
-                currentViewerData={userData}
-                onOpenProfile={(uid) => { setTargetProfileUID(uid); setShowUserProfile(true); }}
-                onOpenFamily={(fid) => { setShowUserProfile(false); setViewFamilyId(fid || null); setShowFamilyModal(true); }}
-                onNotification={setNotification}
-                onOpenChat={(friendData) => {
-                    openPrivateChat(friendData);
-                    setShowUserProfile(false);
-                }}
-            />
-            <BrowseRoomsModal show={showBrowseRooms} onClose={() => setShowBrowseRooms(false)} onJoin={handleJoinGame} nickname={nickname} currentUID={currentUID} currentUserData={currentUserData} lang={lang} />
+    // لو ما في صورة: badge نصي عادي
+    return (
+        <span style={{
+            display:'inline-flex', alignItems:'center', gap:'3px',
+            padding: small ? '1px 5px' : '2px 8px',
+            borderRadius:'5px', fontSize: small ? '8px' : '10px',
+            fontWeight:800, fontStyle:'italic',
+            background:`${color}20`, border:`1px solid ${color}55`,
+            color:color, letterSpacing:'0.5px', whiteSpace:'nowrap', flexShrink:0,
+            boxShadow: hasGlow ? `0 0 10px ${color}55, 0 0 20px ${color}33` : 'none',
+        }}>
+            {displayTag}
+        </span>
+    );
+};
 
-            {showPrivateChat && chatFriend && user && (
-                <PrivateChatModal
-                    show={showPrivateChat}
-                    onClose={closePrivateChat}
-                    friend={chatFriend}
-                    currentUser={currentUserData}
-                    user={user}
-                    lang={lang}
-                    onSendNotification={createNotification}
-                    onSendGift={handleSendGiftToUser}
-                    currency={userData?.currency || 0}
-                    friendsData={friendsData}
-                    onOpenProfile={openProfile}
-                />
-            )}
+// ════════════════════════════════════════════════════════
+// 📸 FRIENDS MOMENTS MODAL
+// ════════════════════════════════════════════════════════
+const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, currentUID, friendsData, lang, onOpenProfile }) => {
+    const [moments, setMoments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedMoment, setSelectedMoment] = useState(null);
+    const [commentText, setCommentText] = useState('');
+    const [submittingComment, setSubmittingComment] = useState(false);
+    const [likingId, setLikingId] = useState(null);
+    const [showBell, setShowBell] = useState(false);
+    const [bellNotifs, setBellNotifs] = useState([]);
+    const [showCreatePost, setShowCreatePost] = useState(false);
+    const [createText, setCreateText] = useState('');
+    const [createImage, setCreateImage] = useState(null);
+    const [createImageFile, setCreateImageFile] = useState(null);
+    const [creating, setCreating] = useState(false);
+    const fileRef = useRef(null);
 
-            {showSelfChat && user && (
-                <SelfChatModal
-                    show={showSelfChat}
-                    onClose={() => setShowSelfChat(false)}
-                    currentUser={currentUserData}
-                    userData={currentUserData}
-                    lang={lang}
-                    currency={userData?.currency || 0}
-                />
-            )}
+    useEffect(() => {
+        if (!show || !currentUID) return;
+        setLoading(true);
+        const friendUIDs = (friendsData || []).map(f => f.id || f.uid).filter(Boolean);
+        if (friendUIDs.length === 0) { setMoments([]); setLoading(false); return; }
+        const chunks = [];
+        for (let i = 0; i < friendUIDs.length; i += 10) chunks.push(friendUIDs.slice(i, i + 10));
+        Promise.all(chunks.map(chunk =>
+            momentsCollection.where('authorUID', 'in', chunk).limit(30).get()
+                .catch(() => ({ docs: [] }))
+        )).then(results => {
+            const all = [];
+            results.forEach(snap => snap.docs && snap.docs.forEach(d => all.push({ id: d.id, ...d.data() })));
+            all.sort((a, b) => {
+                const aT = a.createdAt?.toMillis?.() || (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
+                const bT = b.createdAt?.toMillis?.() || (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
+                return bT - aT;
+            });
+            setMoments(all.slice(0, 60));
+            setLoading(false);
+        }).catch(() => { setMoments([]); setLoading(false); });
+    }, [show, currentUID, JSON.stringify((friendsData || []).map(f => f.id || f.uid).filter(Boolean).sort())]);
 
-            {showFunPass && (
-                <FunPassModal
-                    show={showFunPass}
-                    onClose={() => setShowFunPass(false)}
-                    userData={userData || currentUserData}
-                    user={user}
-                    lang={lang}
-                    onNotification={setNotification}
-                    onOpenInventory={() => { setShowFunPass(false); setShowInventory(true); }}
-                />
-            )}
+    // Real-time update for selected moment
+    useEffect(() => {
+        if (!selectedMoment?.id) return;
+        const unsub = momentsCollection.doc(selectedMoment.id).onSnapshot(snap => {
+            if (snap.exists) {
+                const updated = { id: snap.id, ...snap.data() };
+                setSelectedMoment(updated);
+                setMoments(prev => prev.map(m => m.id === updated.id ? updated : m));
+            }
+        }, () => {});
+        return () => unsub();
+    }, [selectedMoment?.id]);
 
-            {alertMessage && (<div className="alert-modal" onClick={() => setAlertMessage(null)}><div className="modal-content animate-pop" onClick={e => e.stopPropagation()}><div className="modal-header"><span></span><ModalCloseBtn onClose={() => setAlertMessage(null)} /></div><div className="modal-body text-center"><div className="text-2xl mb-2">🚫</div><p className="font-bold mb-4">{alertMessage}</p><button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button></div></div></div>)}
+    const handleLike = async (moment, e) => {
+        e?.stopPropagation();
+        if (!currentUID || likingId === moment.id) return;
+        setLikingId(moment.id);
+        try {
+            const likes = moment.likes || [];
+            const alreadyLiked = likes.includes(currentUID);
+            await momentsCollection.doc(moment.id).update({
+                likes: alreadyLiked
+                    ? firebase.firestore.FieldValue.arrayRemove(currentUID)
+                    : firebase.firestore.FieldValue.arrayUnion(currentUID)
+            });
+            setMoments(prev => prev.map(m => m.id === moment.id ? {
+                ...m,
+                likes: alreadyLiked ? likes.filter(id => id !== currentUID) : [...likes, currentUID]
+            } : m));
+            if (selectedMoment?.id === moment.id) {
+                setSelectedMoment(prev => ({
+                    ...prev,
+                    likes: alreadyLiked ? likes.filter(id => id !== currentUID) : [...likes, currentUID]
+                }));
+            }
+        } catch(e) {}
+        setLikingId(null);
+    };
 
-            {showSetupModal && (
-                <div className="modal-overlay" onClick={()=>setShowSetupModal(false)}>
-                    <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><h2 className="modal-title">{t.create}</h2><ModalCloseBtn onClose={() => setShowSetupModal(false)} /></div>
-                        <div className="modal-body">
-                            <div className="space-y-3">
-                                <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className="input-dark w-full p-2 rounded font-bold text-sm" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} /></div>
-                                <div className="flex gap-2"><button onClick={() => setSetupMode('normal')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'normal' ? 'btn-neon' : 'btn-ghost'}`}>{t.normalMode}</button><button onClick={() => setSetupMode('advanced')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'advanced' ? 'btn-neon' : 'btn-ghost'}`}>{t.advancedMode}</button></div>
-                                <p className="text-[10px] text-gray-400 text-center">{setupMode === 'normal' ? t.modeNormalDesc : t.modeAdvDesc}</p>
-                                <div className="flex items-center gap-2"><input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} id="privateCheck" /><label htmlFor="privateCheck" className="text-xs">{t.privateRoom}</label></div>
-                                {isPrivate && (<div className="relative"><input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t.password} className="input-dark w-full p-2 pr-10 rounded text-sm" /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? '🙈' : '👁️'}</button></div>)}
+    const handleComment = async () => {
+        if (!commentText.trim() || !selectedMoment?.id || !currentUID || submittingComment) return;
+        setSubmittingComment(true);
+        try {
+            const newComment = {
+                authorUID: currentUID,
+                authorName: currentUserData?.displayName || 'User',
+                authorPhoto: currentUserData?.photoURL || null,
+                text: commentText.trim(),
+                createdAt: new Date().toISOString(),
+            };
+            await momentsCollection.doc(selectedMoment.id).update({
+                comments: firebase.firestore.FieldValue.arrayUnion(newComment)
+            });
+            setCommentText('');
+        } catch(e) {}
+        setSubmittingComment(false);
+    };
+
+    const fmtMomentTime = (ts) => {
+        if (!ts) return '';
+        const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+        const diff = Date.now() - d.getTime();
+        if (diff < 60000) return lang === 'ar' ? 'الآن' : 'now';
+        if (diff < 3600000) return `${Math.floor(diff / 60000)}${lang === 'ar' ? 'د' : 'm'}`;
+        if (diff < 86400000) return `${Math.floor(diff / 3600000)}${lang === 'ar' ? 'س' : 'h'}`;
+        return `${Math.floor(diff / 86400000)}${lang === 'ar' ? 'ي' : 'd'}`;
+    };
+
+    // Load bell notifications (moment likes/comments for current user)
+    useEffect(() => {
+        if (!show || !currentUID || !showBell) return;
+        (notificationsCollection || db.collection('artifacts').doc(typeof appId !== 'undefined' ? appId : 'pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('notifications'))
+            .where('recipientUID', '==', currentUID)
+            .where('type', 'in', ['moment_like', 'moment_comment'])
+            .orderBy('createdAt', 'desc')
+            .limit(20)
+            .get()
+            .then(snap => setBellNotifs(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
+            .catch(() => {});
+    }, [show, currentUID, showBell]);
+
+    const handleCreateMoment = async () => {
+        if (creating || (!createText.trim() && !createImageFile)) return;
+        setCreating(true);
+        try {
+            let mediaUrl = null;
+            if (createImageFile) {
+                const ref = firebase.storage().ref(`moments/${currentUID}/${Date.now()}_${createImageFile.name}`);
+                await ref.put(createImageFile);
+                mediaUrl = await ref.getDownloadURL();
+            }
+            await momentsCollection.add({
+                authorUID: currentUID,
+                authorName: currentUserData?.displayName || 'User',
+                authorPhoto: currentUserData?.photoURL || null,
+                type: mediaUrl ? 'image' : 'text',
+                content: createText.trim(),
+                mediaUrl: mediaUrl || null,
+                likes: [],
+                comments: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            setCreateText(''); setCreateImage(null); setCreateImageFile(null); setShowCreatePost(false);
+        } catch(e) {}
+        setCreating(false);
+    };
+
+    if (!show) return null;
+
+    return (
+        <PortalModal>
+            <div className="modal-overlay" onClick={onClose} style={{ zIndex: Z.MODAL_HIGH }}>
+                <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
+                    background:'linear-gradient(180deg,#0f0f1e,#0a0a14)', border:'1px solid rgba(0,242,255,0.2)',
+                    borderRadius:'18px', width:'100%', maxWidth:'440px', maxHeight:'90vh',
+                    display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 20px 60px rgba(0,0,0,0.9)'
+                }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                            <span style={{fontSize:'18px'}}>📸</span>
+                            <div>
+                                <div style={{fontSize:'14px',fontWeight:800,color:'white'}}>{lang==='ar'?'مومنت الأصدقاء':'Friends Moments'}</div>
+                                <div style={{fontSize:'10px',color:'#6b7280'}}>{moments.length} {lang==='ar'?'لحظة':'moments'}</div>
                             </div>
                         </div>
-                        <div className="modal-footer"><button onClick={handleCreateGame} disabled={loading || !nickname.trim()} className="btn-neon w-full py-2 rounded-lg text-sm font-bold">{loading ? t.loading : t.create}</button></div>
+                        <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
+                            {/* Bell — moment notifications */}
+                            {currentUID && (
+                                <div style={{position:'relative'}}>
+                                    <button onClick={() => setShowBell(v => !v)}
+                                        style={{width:'30px', height:'30px', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)', background: showBell ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)', color: bellNotifs.some(n=>!n.read) ? '#fbbf24' : '#6b7280', fontSize:'15px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}
+                                    >🔔</button>
+                                    {bellNotifs.some(n => !n.read) && (
+                                        <div style={{position:'absolute', top:'-3px', right:'-3px', width:'8px', height:'8px', borderRadius:'50%', background:'#ef4444', border:'1.5px solid #0f0f1e'}} />
+                                    )}
+                                </div>
+                            )}
+                            {/* Camera — add moment */}
+                            {currentUID && currentUser && !currentUser.isGuest && (
+                                <button onClick={() => setShowCreatePost(v => !v)}
+                                    style={{width:'30px', height:'30px', borderRadius:'8px', border:'1px solid rgba(0,242,255,0.3)', background: showCreatePost ? 'rgba(0,242,255,0.15)' : 'rgba(0,242,255,0.07)', color:'#00f2ff', fontSize:'15px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}
+                                >📷</button>
+                            )}
+                            {/* Hidden file input */}
+                            <input type="file" ref={fileRef} accept="image/*" style={{display:'none'}} onChange={e => {
+                                const f = e.target.files[0];
+                                if (!f) return;
+                                setCreateImageFile(f);
+                                setCreateImage(URL.createObjectURL(f));
+                            }} />
+                            <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer'}}>✕</button>
+                        </div>
                     </div>
-                </div>
-            )}
 
-            {/* ── NEW HEADER ── */}
-            <header className="new-header">
-                <div className="new-logo">PRO SPY</div>
-                <div className="new-header-right">
-                    {/* 🧠 Intel (currency) pill — always visible when logged in */}
-                    {(isLoggedIn || isGuest) && currentUserData && (
-                        <div
-                            onClick={() => setShowShop(true)}
-                            style={{
-                                display:'flex', alignItems:'center', gap:'4px',
-                                padding:'4px 10px', borderRadius:'20px', cursor:'pointer',
-                                background:'linear-gradient(135deg,rgba(0,242,255,0.12),rgba(112,0,255,0.10))',
-                                border:'1px solid rgba(0,242,255,0.25)',
-                                boxShadow:'0 0 8px rgba(0,242,255,0.12)',
-                                transition:'all 0.2s',
-                            }}
-                            title={lang==='ar'?'رصيدك':'Your Intel'}
-                        >
-                            <span style={{fontSize:'14px'}}>🧠</span>
-                            <span style={{fontSize:'12px',fontWeight:900,color:'#00f2ff',letterSpacing:'0.3px'}}>
-                                {(currentUserData?.currency||0) >= 1000
-                                    ? `${((currentUserData.currency)/1000).toFixed(1)}K`
-                                    : (currentUserData?.currency||0)
-                                }
-                            </span>
-                        </div>
-                    )}
-                    {/* Login Rewards */}
-                    {isLoggedIn && (
-                        <button className="new-hbtn" onClick={() => { if(!sessionClaimedToday) setShowLoginRewards(true); }}
-                            title={lang==='ar'?'مكافآت الدخول':'Login Rewards'}
-                            style={{position:'relative', opacity: sessionClaimedToday ? 0.5 : 1}}>
-                            🎁
-                            {!sessionClaimedToday && <span style={{position:'absolute',top:'-3px',right:'-3px',width:'8px',height:'8px',background:'#f97316',borderRadius:'50%',border:'1.5px solid var(--bg-main)'}}></span>}
-                        </button>
-                    )}
-                    {/* Notifications */}
-                    {isLoggedIn && (
-                        <div className="new-notif-center notification-center" ref={notificationBellRef}>
-                            <div className="new-notif-bell notification-bell" onClick={() => setShowNotifications(!showNotifications)}>
-                                🔔{unreadNotifications > 0 && <span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>}
-                            </div>
-                            <NotificationDropdown show={showNotifications} onClose={() => setShowNotifications(false)} notifications={notifications} onMarkRead={markNotificationRead} onClearAll={clearAllNotifications} onNotificationClick={handleNotificationClick} lang={lang} />
-                        </div>
-                    )}
-                    {/* Shop */}
-                    {isLoggedIn && (
-                        <div className="new-hbtn" onClick={() => setShowShop(true)} title={t.shop}>🛒</div>
-                    )}
-                    {/* Avatar — opens profile (logged-in) or guest menu */}
-                    <div style={{position:'relative'}}>
-                        <div className="new-avatar-btn"
-                            onClick={() => {
-                                if (isLoggedIn) { setShowMyAccount(true); }
-                                else if (isGuest) { setShowMyAccount(true); }
-                                else { handleGoogleLogin(); }
-                            }}
-                            title={lang==='ar'?'ملفي الشخصي':'My Profile'}>
-                            {(isLoggedIn || isGuest) && (currentUserData?.photoURL || currentUserData?.photo)
-                                ? <img src={currentUserData.photoURL || currentUserData.photo} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} alt="" />
-                                : <span style={{fontSize:'16px'}}>😎</span>
+                    {/* Bell dropdown */}
+                    {showBell && (
+                        <div style={{padding:'10px 14px', borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(0,0,0,0.35)', maxHeight:'180px', overflowY:'auto'}}>
+                            <div style={{fontSize:'10px', fontWeight:800, color:'#fbbf24', marginBottom:'6px'}}>🔔 {lang==='ar'?'إشعارات اللحظات':'Moments Alerts'}</div>
+                            {bellNotifs.length === 0
+                                ? <div style={{fontSize:'10px', color:'#4b5563', textAlign:'center', padding:'6px 0'}}>{lang==='ar'?'لا إشعارات':'No alerts yet'}</div>
+                                : bellNotifs.map(n => (
+                                    <div key={n.id} style={{display:'flex', alignItems:'center', gap:'7px', padding:'5px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                                        {n.senderPhoto
+                                            ? <img src={n.senderPhoto} alt="" style={{width:'22px', height:'22px', borderRadius:'50%', objectFit:'cover'}} />
+                                            : <div style={{width:'22px', height:'22px', borderRadius:'50%', background:'#374151', fontSize:'9px', display:'flex', alignItems:'center', justifyContent:'center'}}>👤</div>
+                                        }
+                                        <div style={{flex:1, fontSize:'10px', color:n.read?'#6b7280':'#e2e8f0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                                            <span style={{fontWeight:700, color:'#00f2ff'}}>{n.senderName}</span>
+                                            {' '}{n.type==='moment_like'?(lang==='ar'?'أعجب بلحظتك':'liked your moment'):(lang==='ar'?'علّق على لحظتك':'commented on your moment')}
+                                        </div>
+                                        {!n.read && <div style={{width:'6px', height:'6px', borderRadius:'50%', background:'#ef4444', flexShrink:0}} />}
+                                    </div>
+                                ))
                             }
                         </div>
-
-                    </div>
-                </div>
-            </header>
-
-            {/* ── NEW PAGE CONTENT ── */}
-            <div className="new-page-content">
-
-            {/* ── LOBBY / LEADERBOARD / FRIENDS / EXPLORE views ── */}
-            {!room && (
-                <>
-                    {/* ══ LOBBY / RANKING TABS ══ */}
-                    {(activeView === 'lobby' || activeView === 'ranking') && (
-                        <div style={{
-                            display:'flex', gap:'4px', padding:'10px 16px 0', marginBottom:'2px',
-                            borderBottom:'1px solid rgba(255,255,255,0.06)',
-                        }}>
-                            <button
-                                onClick={() => setActiveView('lobby')}
-                                style={{
-                                    flex:1, padding:'9px 0', borderRadius:'10px 10px 0 0', border:'none',
-                                    background: activeView==='lobby' ? 'rgba(0,242,255,0.1)' : 'rgba(255,255,255,0.03)',
-                                    color: activeView==='lobby' ? '#00f2ff' : '#6b7280',
-                                    borderBottom: activeView==='lobby' ? '2px solid #00f2ff' : '2px solid transparent',
-                                    fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.2s',
-                                }}
-                            >🏠 {lang==='ar' ? 'اللوبي' : 'Lobby'}</button>
-                            <button
-                                onClick={() => setActiveView('ranking')}
-                                style={{
-                                    flex:1, padding:'9px 0', borderRadius:'10px 10px 0 0', border:'none',
-                                    background: activeView==='ranking' ? 'rgba(255,215,0,0.1)' : 'rgba(255,255,255,0.03)',
-                                    color: activeView==='ranking' ? '#ffd700' : '#6b7280',
-                                    borderBottom: activeView==='ranking' ? '2px solid #ffd700' : '2px solid transparent',
-                                    fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.2s',
-                                }}
-                            >📊 {lang==='ar' ? 'رانكينج' : 'Ranking'}</button>
-                        </div>
                     )}
 
-                    {/* ══ LOBBY VIEW ══ */}
-                    {activeView === 'lobby' && (
-                        <div style={{paddingBottom:'8px'}}>
-                            {/* Stats Strip */}
-                            {(isLoggedIn || isGuest) && currentUserData && (
-                                <>
-                                    <div className="sec-head-new">
-                                        <span className="sec-title-new">{lang==='ar' ? `مرحباً، ${currentUserData.displayName || currentUserData.name || ''}` : `Hi, ${currentUserData.displayName || currentUserData.name || ''}`} 👋</span>
-                                        <button className="sec-action-new" onClick={() => setShowMyAccount(true)}>{lang==='ar'?'ملفي':'Profile'}</button>
-                                    </div>
-                                    <div className="stats-strip-new">
-                                        <div className="stat-pill-new"><span>🏆</span><span className="sval">{currentUserData?.stats?.wins || 0}</span><span>{lang==='ar'?'انتصار':t.wins}</span></div>
-                                        <div className="stat-pill-new" style={{cursor:'pointer'}} onClick={() => setShowMyAccount(true)}>
-                                            {(() => {
-                                                const ch = currentUserData?.charisma || 0;
-                                                const { currentLevel } = getCharismaLevel(ch);
-                                                return currentLevel?.iconUrl
-                                                    ? <img src={currentLevel.iconUrl} alt="" style={{width:'18px',height:'18px',objectFit:'contain', filter: currentLevel.hasGlow?`drop-shadow(0 0 4px ${currentLevel.color})`:'none'}} />
-                                                    : <span style={{color: currentLevel?.color||'#ffd700'}}>⭐</span>;
-                                            })()}
-                                            <span className="sval gold">{((currentUserData?.charisma||0)>=1000?((currentUserData.charisma/1000).toFixed(1)+'K'):(currentUserData?.charisma||0))}</span>
-                                            <span>{lang==='ar'?'كاريزما':'Charisma'}</span>
-                                        </div>
-                                        <div className="stat-pill-new"><span>🔥</span><span className="sval green">{currentUserData?.loginRewards?.streak || 0}</span><span>Streak</span></div>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Fun Pass Promo */}
-                            <div className="fp-promo-new" onClick={() => { if(isLoggedIn) setShowFunPass(true); else requireLogin(); }}>
-                                <div className="fp-promo-emoji">🎟️</div>
-                                <div className="fp-promo-body">
-                                    <div className="fp-promo-title">{lang==='ar'?'Fun Pass — الموسم الجديد!':'Fun Pass — New Season!'}</div>
-                                    <div className="fp-promo-sub">{lang==='ar'?'أكمل المهام واكسب مكافآت حصرية':'Complete tasks and earn exclusive rewards'}</div>
-                                </div>
-                                <div className="fp-promo-arr">→</div>
+                    {/* Create moment panel */}
+                    {showCreatePost && currentUID && (
+                        <div style={{padding:'12px 14px', borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(0,242,255,0.04)'}}>
+                            <div style={{fontSize:'11px', fontWeight:700, color:'#00f2ff', marginBottom:'8px'}}>
+                                {lang==='ar'?'📷 أضف لحظة جديدة':'📷 Add a New Moment'}
                             </div>
-
-                            {/* Lobby Hero */}
-                            <div className="sec-head-new"><span className="sec-title-new">{lang==='ar'?'العب دلوقتي':t.tabLobby}</span></div>
-                            <div className="lobby-hero-new">
-                                <div className="hero-label-new">{lang==='ar'?'ابدأ أو انضم لأوضة':t.codePlaceholder}</div>
-                                <div className="hero-title-new">{lang==='ar'?'أنت الجاسوس؟':'Are You the Spy?'}</div>
-                                {isGuest && <GuestBanner lang={lang} />}
-                                <div className="hero-input-row">
-                                    <input className="hero-input" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} />
-                                    <button className="hero-btn-primary" onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()}>+ {t.create}</button>
-
-                                </div>
-                                <div className="hero-join-row">
-                                    <input className="hero-input hero-code-input" style={{flex:1}} value={inputCode} onChange={e => setInputCode(e.target.value.toUpperCase())} placeholder={t.codePlaceholder} maxLength={6} />
-                                    <button className="hero-btn-primary" onClick={() => handleJoinGame(inputCode, '')} disabled={loading || !inputCode.trim() || !nickname.trim()}>{loading ? '...' : t.join}</button>
-                                </div>
-                                {joinError && <p style={{fontSize:'11px',color:'#ff4d4d',textAlign:'center',marginTop:'6px'}}>{joinError}</p>}
-                            </div>
-
-                            {/* Active Rooms */}
-                            <div className="sec-head-new">
-                                <span className="sec-title-new">🟢 {lang==='ar'?'الأوض المفتوحة':'Open Rooms'}</span>
-                                <button className="sec-action-new" onClick={() => setShowBrowseRooms(true)}>{lang==='ar'?'الكل':'All'}</button>
-                            </div>
-                            <div className="rooms-scroll-new">
-                                <div className="room-card-new" onClick={() => setShowBrowseRooms(true)}>
-                                    <div className="rc-mode">🕵️</div>
-                                    <div className="rc-name">{lang==='ar'?'تصفّح الأوض':'Browse Rooms'}</div>
-                                    <div className="rc-info" style={{color:'var(--primary)',marginTop:'6px',fontSize:'11px'}}>→ {lang==='ar'?'عرض الكل':'View all'}</div>
-                                </div>
-                                <div className="room-card-new" onClick={() => setShowSetupModal(true)} style={{border:'1px dashed rgba(0,242,255,0.3)'}}>
-                                    <div className="rc-mode">➕</div>
-                                    <div className="rc-name">{t.create}</div>
-                                    <div className="rc-info" style={{marginTop:'6px',fontSize:'10px',color:'var(--text-muted)'}}>{lang==='ar'?'أوضة جديدة':'New room'}</div>
-                                </div>
-                            </div>
-
-                            {/* Daily Tasks */}
-                            {isLoggedIn && userData && (
-                                <>
-                                    <div className="sec-head-new">
-                                        <span className="sec-title-new">📦 {lang==='ar'?'مهام اليوم':'Daily Tasks'}</span>
-                                    </div>
-                                    <div style={{margin:'0 16px', padding:'16px', background:'linear-gradient(135deg,rgba(0,242,255,0.05),rgba(112,0,255,0.04))', borderRadius:'14px', border:'1px solid rgba(0,242,255,0.12)'}}>
-                                        <DailyTasksComponent
-                                            userData={userData}
-                                            user={user}
-                                            lang={lang}
-                                            onClaim={() => {}}
-                                            onNotification={setNotification}
-                                        />
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    {/* ══ RANKING VIEW ══ */}
-                    {activeView === 'ranking' && (
-                        <div style={{paddingBottom:'8px'}}>
-                            {/* Tabs */}
-                            <div className="lb-tabs-new" style={{margin:'12px 16px 0'}}>
-                                <button className={`lb-tab-new ${leaderboardTab==='wins'?'active':''}`} onClick={() => setLeaderboardTab('wins')}>🏆 {t.wins}</button>
-                                <button className={`lb-tab-new ${leaderboardTab==='charisma'?'active':''}`} onClick={() => setLeaderboardTab('charisma')}>⭐ {t.charismaRank}</button>
-                                <button className={`lb-tab-new ${leaderboardTab==='family'?'active':''}`} onClick={() => setLeaderboardTab('family')}>🏠 {lang==='ar'?'عائلة':'Family'}</button>
-                            </div>
-                            {/* Family Rank */}
-                            {leaderboardTab === 'family' && (() => {
-                                const data = familyLeaderboard;
-                                const top3 = data.slice(0, 3);
-                                const rest = data.slice(3);
-                                return (
-                                    <>
-                                        {top3.length > 0 && (
-                                            <div className="podium-new">
-                                                {[
-                                                    top3[1] ? {p:top3[1], cls:'ps-2', medal:'🥈'} : null,
-                                                    top3[0] ? {p:top3[0], cls:'ps-1', medal:'👑', crown:true} : null,
-                                                    top3[2] ? {p:top3[2], cls:'ps-3', medal:'🥉'} : null,
-                                                ].filter(Boolean).map((slot, i) => (
-                                                    <div key={i} className={`podium-slot-new ${slot.cls}`}>
-                                                        {slot.crown && <div style={{fontSize:'18px',marginBottom:'2px'}}>👑</div>}
-                                                        <div className="p-avatar-new">
-                                                            {slot.p.photoURL
-                                                                ? <img src={slot.p.photoURL} alt="" />
-                                                                : <span style={{fontSize:'22px'}}>{slot.p.emblem || '🏠'}</span>}
-                                                        </div>
-                                                        <div className="p-name-new">{slot.p.name || slot.p.tag}</div>
-                                                        <div className="p-score-new">{(slot.p.activeness || 0).toLocaleString()}</div>
-                                                        <div className="p-stand-new">{slot.medal}</div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <div className="lb-list-new">
-                                            {rest.map((fam, i) => (
-                                                <div key={fam.id} className="lb-row-new" style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)'}}>
-                                                    <div className="lb-num-new">#{i+4}</div>
-                                                    <div className="lb-av-new">
-                                                        {fam.photoURL ? <img src={fam.photoURL} alt="" /> : <span style={{fontSize:'18px'}}>{fam.emblem||'🏠'}</span>}
-                                                    </div>
-                                                    <div className="lb-info-new" style={{flex:1}}>
-                                                        <div className="lb-name-new">{fam.name}</div>
-                                                        <div className="lb-sub-new">{fam.tag} · {fam.memberCount||0} {lang==='ar'?'عضو':'members'}</div>
-                                                    </div>
-                                                    <div style={{fontSize:'12px',fontWeight:800,color:'#f97316'}}>{(fam.activeness||0).toLocaleString()} ⚡</div>
-                                                </div>
-                                            ))}
-                                            {data.length === 0 && <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>🏠 {lang==='ar'?'لا توجد عائلات بعد':'No families yet'}</div>}
-                                        </div>
-                                    </>
-                                );
-                            })()}
-                            {/* Podium + List for wins/charisma */}
-                            {leaderboardTab !== 'family' && (() => {
-                                const data = leaderboardTab === 'charisma' ? charismaLeaderboard : leaderboardData;
-                                const top3 = data.slice(0,3);
-                                const rest = data.slice(3);
-                                const getVal = (p) => leaderboardTab === 'charisma' ? (p.charisma || 0) : (p.stats?.wins || 0);
-                                const fmt = (v) => v >= 1000 ? (v/1000).toFixed(1)+'K' : v;
-                                const getAvatar = (p) => p.photoURL || p.photo || null;
-                                const getEmoji = (i) => ['😎','🦊','🐺'][i] || '👤';
-                                const slots = top3.length >= 3
-                                    ? [{p:top3[1],cls:'ps-2',medal:'🥈'},{p:top3[0],cls:'ps-1',medal:'👑',crown:true},{p:top3[2],cls:'ps-3',medal:'🥉'}]
-                                    : top3.map((p,i)=>[{cls:'ps-1',medal:'👑',crown:true},{cls:'ps-2',medal:'🥈'},{cls:'ps-3',medal:'🥉'}][i] ? {...[{cls:'ps-1',medal:'👑',crown:true},{cls:'ps-2',medal:'🥈'},{cls:'ps-3',medal:'🥉'}][i], p} : null).filter(Boolean);
-                                return (
-                                    <>
-                                        {top3.length > 0 && (
-                                            <div className="podium-new">
-                                                {slots.map((slot,i) => slot && (
-                                                    <div key={i} className={`podium-slot-new ${slot.cls}`} onClick={() => openProfile(slot.p.id)}>
-                                                        {slot.crown && <div style={{fontSize:'18px',marginBottom:'2px'}}>👑</div>}
-                                                        <div className="p-avatar-new">
-                                                            {getAvatar(slot.p) ? <img src={getAvatar(slot.p)} alt="" /> : <span>{getEmoji(top3.indexOf(slot.p))}</span>}
-                                                        </div>
-                                                        <div className="p-name-new">{slot.p.displayName || slot.p.name}</div>
-                                                        <div className="p-score-new">{fmt(getVal(slot.p))}</div>
-                                                        <div className="p-stand-new">{slot.medal}</div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <div className="lb-list-new">
-                                            {rest.map((player,i) => {
-                                                const rank = i + 4;
-                                                const isMe = player.id === currentUID;
-                                                return (
-                                                    <div key={player.id} className={`lb-row-new ${isMe?'me-row':''}`} onClick={() => openProfile(player.id)}>
-                                                        <div className="lb-num-new">#{rank}</div>
-                                                        <div className="lb-av-new">
-                                                            {getAvatar(player) ? <img src={getAvatar(player)} alt="" /> : <span>{getEmoji(rank-1)}</span>}
-                                                        </div>
-                                                        <div className="lb-info-new">
-                                                            <div className="lb-name-new">{player.displayName || player.name}{isMe && <span className="lb-me-tag">{lang==='ar'?'أنت':'You'}</span>}</div>
-                                                            <div className="lb-sub-new">{player.stats?.wins||0} {t.wins} · {Math.round((player.stats?.wins||0)/Math.max(1,(player.stats?.wins||0)+(player.stats?.losses||0))*100)}% {lang==='ar'?'فوز':'wr'}</div>
-                                                        </div>
-                                                        <div className={`lb-val-new ${leaderboardTab==='charisma'?'gold':''}`}>{fmt(getVal(player))}</div>
-                                                    </div>
-                                                );
-                                            })}
-                                            {data.length === 0 && <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>🏆 {lang==='ar'?'لا توجد بيانات بعد':'No data yet'}</div>}
-                                        </div>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                    )}
-
-                    {/* ══ CHAT / شات VIEW (Friends) ══ */}
-                    {activeView === 'chat' && (
-                        <div style={{paddingBottom:'8px'}}>
-                            {/* ── Guest gate — must log in to use friends/groups ── */}
-                            {isGuest && !isLoggedIn && (
-                                <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'48px 24px',gap:'16px',textAlign:'center'}}>
-                                    <div style={{fontSize:'48px'}}>🔐</div>
-                                    <div style={{fontSize:'16px',fontWeight:800,color:'#e5e7eb'}}>{lang==='ar'?'سجّل دخولك أولاً':'Login Required'}</div>
-                                    <div style={{fontSize:'12px',color:'#6b7280',maxWidth:'240px'}}>{lang==='ar'?'سجّل الدخول بجوجل للوصول للأصدقاء والجروبات':'Sign in with Google to access friends & groups'}</div>
-                                    <button onClick={handleGoogleLogin} style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 24px',borderRadius:'14px',background:'linear-gradient(135deg,#4285f4,#1a73e8)',border:'none',color:'#fff',fontWeight:800,fontSize:'14px',cursor:'pointer',boxShadow:'0 4px 16px rgba(66,133,244,0.4)'}}>
-                                        <span style={{fontSize:'18px'}}>🔑</span> {lang==='ar'?'تسجيل الدخول بجوجل':'Sign in with Google'}
-                                    </button>
+                            {createImage && (
+                                <div style={{marginBottom:'8px', position:'relative', display:'inline-block'}}>
+                                    <img src={createImage} alt="" style={{height:'80px', borderRadius:'8px', objectFit:'cover'}} />
+                                    <button onClick={() => { setCreateImage(null); setCreateImageFile(null); }}
+                                        style={{position:'absolute', top:'-4px', right:'-4px', width:'18px', height:'18px', borderRadius:'50%', background:'#ef4444', color:'white', border:'none', fontSize:'10px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>✕</button>
                                 </div>
                             )}
-                            {/* ── Chat Tabs: Friends / Groups (only for logged-in) ── */}
-                            {(!isGuest || isLoggedIn) && (<>
-                            <div style={{display:'flex',gap:'4px',padding:'10px 16px 0',borderBottom:'1px solid rgba(255,255,255,0.06)',marginBottom:'10px'}}>
-                                <button id="chat-tab-friends" onClick={() => { document.getElementById('chat-section-friends').style.display='block'; document.getElementById('chat-section-groups').style.display='none'; document.getElementById('chat-tab-friends').style.color='#00f2ff'; document.getElementById('chat-tab-friends').style.borderBottom='2px solid #00f2ff'; document.getElementById('chat-tab-groups').style.color='#6b7280'; document.getElementById('chat-tab-groups').style.borderBottom='2px solid transparent'; }} style={{flex:1,padding:'8px 0',borderRadius:'10px 10px 0 0',border:'none',cursor:'pointer',fontSize:'12px',fontWeight:700,background:'transparent',color:'#00f2ff',borderBottom:'2px solid #00f2ff',transition:'all 0.2s'}}>
-                                    👥 {lang==='ar'?'الأصدقاء':t.tabFriends}
-                                    {friendRequests.length > 0 && <span style={{marginLeft:'4px',fontSize:'9px',background:'var(--accent)',color:'#fff',borderRadius:'10px',padding:'1px 5px',fontWeight:700}}>{friendRequests.length}</span>}
-                                </button>
-                                <button id="chat-tab-groups" onClick={() => { document.getElementById('chat-section-friends').style.display='none'; document.getElementById('chat-section-groups').style.display='block'; document.getElementById('chat-tab-groups').style.color='#a78bfa'; document.getElementById('chat-tab-groups').style.borderBottom='2px solid #a78bfa'; document.getElementById('chat-tab-friends').style.color='#6b7280'; document.getElementById('chat-tab-friends').style.borderBottom='2px solid transparent'; }} style={{flex:1,padding:'8px 0',borderRadius:'10px 10px 0 0',border:'none',cursor:'pointer',fontSize:'12px',fontWeight:700,background:'transparent',color:'#6b7280',borderBottom:'2px solid transparent',transition:'all 0.2s'}}>
-                                    👨‍👩‍👧 {lang==='ar'?'الجروبات':'Groups'}
-                                </button>
-                            </div>
-
-                            {/* ── Friends Section ── */}
-                            <div id="chat-section-friends">
-                            {/* Add Friend */}
-                            <div style={{margin:'0 16px 10px',display:'flex',gap:'8px'}}>
-                                <input type="text" className="hero-input" style={{flex:1,padding:'9px 13px',fontSize:'12px'}} value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} />
-                                <button onClick={handleAddFriendById} disabled={!addFriendId.trim()} className="hero-btn-primary" style={{padding:'9px 14px',fontSize:'12px'}}>+ {lang==='ar'?'أضف':'Add'}</button>
-                            </div>
-                            {friendSearchMsg && <p style={{fontSize:'11px',textAlign:'center',padding:'0 16px 8px',color:friendSearchMsg.includes('تم')||friendSearchMsg.includes('Sent')?'#4ade80':'#ff4d4d'}}>{friendSearchMsg}</p>}
-
-                            {/* ── Official Bot Chats ── */}
-                            {isLoggedIn && (
-                                <div style={{margin:'0 16px 10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'12px',overflow:'hidden'}}>
-                                    <div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',padding:'6px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>🤖 {lang==='ar'?'قنوات رسمية':'Official Channels'}</div>
-                                    {/* Detective Bot */}
-                                    <div onClick={()=>setShowDetectiveBot(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderTop:'1px solid rgba(255,255,255,0.04)',cursor:'pointer',background:detectiveBotUnread>0?'rgba(0,212,255,0.05)':'transparent'}} className="me-friend-row">
-                                        <div style={{position:'relative',flexShrink:0}}>
-                                            <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(0,212,255,0.25),rgba(0,212,255,0.1))',border:'1.5px solid rgba(0,212,255,0.4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',overflow:'hidden'}}>
-                                                {BOT_CHATS_CONFIG[0]?.photoURL?<img src={BOT_CHATS_CONFIG[0].photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:'🕵️'}
-                                            </div>
-                                            {detectiveBotUnread>0&&<div style={{position:'absolute',top:'-2px',right:'-2px',width:'10px',height:'10px',borderRadius:'50%',background:'#ef4444',border:'1.5px solid var(--bg-main)',boxShadow:'0 0 6px rgba(239,68,68,0.8)'}}/>}
-                                        </div>
-                                        <div style={{flex:1,minWidth:0}}>
-                                            <div style={{display:'flex',alignItems:'center',gap:'5px'}}>
-                                                <span style={{fontSize:'13px',fontWeight:detectiveBotUnread>0?800:600,color:detectiveBotUnread>0?'#e2e8f0':'#9ca3af'}}>{lang==='ar'?'المحقق':'The Detective'}</span>
-                                                <span style={{fontSize:'8px',fontWeight:900,background:'#00d4ff',color:'#000',padding:'1px 4px',borderRadius:'3px'}}>OFFICIAL</span>
-                                            </div>
-                                            <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'البلاغات والردود':'Reports & Responses'}</div>
-                                        </div>
-                                    </div>
-                                    {/* Love Bot */}
-                                    <div onClick={()=>setShowLoveBot(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderTop:'1px solid rgba(255,255,255,0.04)',cursor:'pointer',background:loveBotUnread>0?'rgba(249,168,212,0.05)':'transparent'}} className="me-friend-row">
-                                        <div style={{position:'relative',flexShrink:0}}>
-                                            <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(249,168,212,0.25),rgba(249,168,212,0.1))',border:'1.5px solid rgba(249,168,212,0.4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',overflow:'hidden'}}>
-                                                {BOT_CHATS_CONFIG[1]?.photoURL?<img src={BOT_CHATS_CONFIG[1].photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:'💌'}
-                                            </div>
-                                            {(loveBotUnread>0||bffUnreadCount>0)&&<div style={{position:'absolute',top:'-2px',right:'-2px',width:'10px',height:'10px',borderRadius:'50%',background:'#ec4899',border:'1.5px solid var(--bg-main)',boxShadow:'0 0 6px rgba(236,72,153,0.8)'}}/>}
-                                        </div>
-                                        <div style={{flex:1,minWidth:0}}>
-                                            <div style={{display:'flex',alignItems:'center',gap:'5px'}}>
-                                                <span style={{fontSize:'13px',fontWeight:loveBotUnread>0||bffUnreadCount>0?800:600,color:loveBotUnread>0||bffUnreadCount>0?'#e2e8f0':'#9ca3af'}}>{lang==='ar'?'دواء بوت':'Dawa Bot'}</span>
-                                                <span style={{fontSize:'8px',fontWeight:900,background:'#f9a8d4',color:'#000',padding:'1px 4px',borderRadius:'3px'}}>OFFICIAL</span>
-                                            </div>
-                                            <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'إشعارات الزواج و BFF':'Wedding & BFF Notifications'}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Friend Requests */}
-                            {friendRequests.length > 0 && (
-                                <div style={{margin:'0 16px 10px',background:'rgba(255,215,0,0.05)',border:'1px solid rgba(255,215,0,0.15)',borderRadius:'12px',overflow:'hidden'}}>
-                                    <div style={{fontSize:'10px',fontWeight:700,color:'var(--gold)',padding:'8px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>⏳ {lang==='ar'?'طلبات صداقة':'Friend Requests'} ({friendRequests.length})</div>
-                                    {friendRequests.map(req => (
-                                        <div key={req.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 14px',borderTop:'1px solid rgba(255,255,255,0.04)'}}>
-                                            <div style={{flex:1,minWidth:0}}><PlayerNameTag player={req} lang={lang} size="sm" /></div>
-                                            <button onClick={() => handleAcceptRequest(req.id)} style={{padding:'4px 10px',borderRadius:'8px',background:'#00ff88',color:'#000',fontSize:'11px',fontWeight:700,border:'none',cursor:'pointer'}}>{t.accept} ✓</button>
-                                            <button onClick={() => handleRejectRequest(req.id)} style={{padding:'4px 8px',borderRadius:'8px',background:'rgba(255,255,255,0.07)',color:'var(--text-muted)',fontSize:'11px',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>✕</button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Friends List */}
-                            <div style={{margin:'0 16px',background:'var(--new-card)',border:'1px solid var(--new-border)',borderRadius:'var(--radius-lg)',overflow:'hidden'}}>
-                                {isLoggedIn && currentUserData && (
-                                    <div onClick={() => setShowSelfChat(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer'}} className="me-friend-row">
-                                        <div style={{flex:1,minWidth:0}}><PlayerNameTag player={currentUserData} lang={lang} size="sm" /></div>
-                                        <div style={{fontSize:'9px',fontWeight:700,color:'var(--primary)',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',borderRadius:'6px',padding:'2px 7px',flexShrink:0}}>💬 {lang==='ar'?'شاتي':'My Chat'}</div>
-                                    </div>
-                                )}
-                                {/* ── Family Chat Entry ── */}
-                                {isLoggedIn && userFamily && (() => {
-                                    const signLevel = userFamily.activeness || 0;
-                                    const signData = typeof getFamilySignLevelData === 'function' ? getFamilySignLevelData(signLevel) : null;
-                                    const readAt = userFamily.chatReadBy?.[currentUID];
-                                    const lastChatAt = userFamily.lastChatAt;
-                                    const hasUnread = lastChatAt && readAt
-                                        ? (lastChatAt.toDate ? lastChatAt.toDate() : new Date(lastChatAt.seconds*1000)) > (readAt.toDate ? readAt.toDate() : new Date(readAt.seconds*1000)) && userFamily.lastChatSenderId !== currentUID
-                                        : !!lastChatAt && userFamily.lastChatSenderId !== currentUID;
-                                    return (
-                                        <div onClick={()=>setShowFamilyChat(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer',background:hasUnread?'linear-gradient(135deg,rgba(255,136,0,0.06),rgba(255,80,0,0.04))':'transparent'}} className="me-friend-row">
-                                            <div style={{position:'relative',flexShrink:0}}>
-                                                <div style={{width:'36px',height:'36px',borderRadius:'50%',overflow:'hidden',background:'linear-gradient(135deg,rgba(255,136,0,0.2),rgba(255,80,0,0.1))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',border:'1.5px solid rgba(255,136,0,0.3)'}}>
-                                                    {userFamily.photoURL ? <img src={userFamily.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : (userFamily.emblem||'🏠')}
-                                                </div>
-                                                {hasUnread && <div style={{position:'absolute',top:'-2px',right:'-2px',width:'10px',height:'10px',borderRadius:'50%',background:'#f97316',border:'1.5px solid var(--bg-main)',boxShadow:'0 0 6px rgba(249,115,22,0.8)'}}/>}
-                                            </div>
-                                            <div style={{flex:1,minWidth:0}}>
-                                                <div style={{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}}>
-                                                    <span style={{fontSize:'13px',fontWeight:hasUnread?800:600,color:hasUnread?'#f97316':'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'120px'}}>{userFamily.name}</span>
-                                                    {signData && <span style={{fontSize:'9px',fontWeight:800,color:signData.color,background:`${signData.color}20`,border:`1px solid ${signData.color}44`,borderRadius:'4px',padding:'1px 5px'}}>{userFamily.tag||'FAM'}</span>}
-                                                </div>
-                                                <div style={{fontSize:'11px',color:'#6b7280',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{userFamily.lastChatMessage||(lang==='ar'?'شات العائلة':'Family Chat')}</div>
-                                            </div>
-                                            <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
-                                                <div style={{fontSize:'9px',fontWeight:700,color:'#f97316',background:'rgba(255,136,0,0.1)',border:'1px solid rgba(255,136,0,0.25)',borderRadius:'6px',padding:'2px 7px',cursor:'pointer'}} onClick={(e)=>{e.stopPropagation();setShowFamilyModal(true);}}>🏠 {lang==='ar'?'عائلة':'Family'}</div>
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
-                                {friendsData.length === 0 ? (
-                                    <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>👥 {t.noFriends}</div>
-                                ) : (() => {
-                                    const online = friendsData.filter(f => f.onlineStatus === 'online');
-                                    const away = friendsData.filter(f => f.onlineStatus === 'away');
-                                    const offline = friendsData.filter(f => !f.onlineStatus || f.onlineStatus === 'offline');
-                                    const statusColor = (f) => f.onlineStatus==='online' ? '#4ade80' : f.onlineStatus==='away' ? '#facc15' : '#6b7280';
-                                    const renderFriend = (friend) => {
-                                        const fVipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(friend) || 0) : 0;
-                                        const fVipCfg = fVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(fVipLevel-1, VIP_CONFIG.length-1)] : null;
-                                        const fEquipped = friend.equipped || {};
-                                        const fBadgeIds = (fEquipped.badges || []).slice(0, 3);
-                                        const fTitleId = fEquipped.titles || null;
-                                        const fTitleItem = fTitleId && typeof SHOP_ITEMS !== 'undefined' ? SHOP_ITEMS.titles?.find(t => t.id === fTitleId) : null;
-                                        const sc = statusColor(friend);
-                                        return (
-                                            <div key={friend.id} onClick={() => openProfile(friend.id)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer'}} className="me-friend-row">
-                                                {/* Avatar with status dot */}
-                                                <div style={{position:'relative',flexShrink:0}}>
-                                                    <div style={{
-                                                        width:'38px', height:'38px', borderRadius:'50%', overflow:'hidden',
-                                                        border: fVipCfg ? `2px solid ${fVipCfg.nameColor}` : '2px solid rgba(255,255,255,0.1)',
-                                                        boxShadow: fVipCfg ? `0 0 8px ${fVipCfg.nameColor}44` : 'none',
-                                                    }}>
-                                                        {friend.photoURL
-                                                            ? <img src={friend.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                                            : <div style={{width:'100%',height:'100%',background:'rgba(255,255,255,0.06)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',color:'#6b7280',fontWeight:700}}>{(friend.displayName||'U')[0].toUpperCase()}</div>
-                                                        }
-                                                    </div>
-                                                    {/* Online status dot */}
-                                                    <div style={{position:'absolute',bottom:'0px',right:'0px',width:'9px',height:'9px',borderRadius:'50%',background:sc,border:'1.5px solid #0a0a14'}}/>
-                                                </div>
-                                                {/* Info */}
-                                                <div style={{flex:1,minWidth:0}}>
-                                                    {/* Row 1: name + VIP badge */}
-                                                    <div style={{display:'flex',alignItems:'center',gap:'4px',flexWrap:'nowrap',marginBottom: (fBadgeIds.length>0||fTitleItem) ? '2px' : '0'}}>
-                                                        <span style={{
-                                                            fontSize:'13px', fontWeight:700,
-                                                            color: fVipCfg ? fVipCfg.nameColor : '#e2e8f0',
-                                                            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'130px',
-                                                            textShadow: fVipCfg ? `0 0 8px ${fVipCfg.nameColor}55` : 'none',
-                                                        }}>{friend.displayName || friend.name || '—'}</span>
-                                                        {fVipLevel > 0 && fVipCfg && (
-                                                            <span style={{fontSize:'7px',fontWeight:900,background:fVipCfg.nameColor,color:'#000',padding:'1px 3px',borderRadius:'2px',flexShrink:0}}>VIP{fVipLevel}</span>
-                                                        )}
-                                                        {/* Staff role badge */}
-                                                        {friend.staffRole?.role && typeof StaffRoleBadge !== 'undefined' && (
-                                                            <StaffRoleBadge userData={friend} uid={friend.id} lang={lang} size="sm" />
-                                                        )}
-                                                    </div>
-                                                    {/* Row 2: Badges (max 3) */}
-                                                    {fBadgeIds.length > 0 && typeof SHOP_ITEMS !== 'undefined' && (
-                                                        <div style={{display:'flex',alignItems:'center',gap:'2px',marginBottom:'2px'}}>
-                                                            {fBadgeIds.map((bid, idx) => {
-                                                                const b = SHOP_ITEMS.badges?.find(b => b.id === bid);
-                                                                if (!b) return null;
-                                                                return b.imageUrl && b.imageUrl.trim() !== '' ? (
-                                                                    <img key={idx} src={b.imageUrl} alt="" style={{width:'13px',height:'13px',objectFit:'contain'}}/>
-                                                                ) : (
-                                                                    <span key={idx} style={{fontSize:'11px',lineHeight:1}}>{b.preview}</span>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
-                                                    {/* Row 3: Title */}
-                                                    {fTitleItem && (
-                                                        <div style={{display:'flex',alignItems:'center',gap:'2px'}}>
-                                                            {fTitleItem.imageUrl && fTitleItem.imageUrl.trim() !== '' ? (
-                                                                <img src={fTitleItem.imageUrl} alt="" style={{maxWidth:'70px',maxHeight:'12px',objectFit:'contain'}}/>
-                                                            ) : (
-                                                                <span style={{fontSize:'9px',color:'#a78bfa',lineHeight:1,whiteSpace:'nowrap'}}>🌐 {lang==='ar'?fTitleItem.name_ar:fTitleItem.name_en}</span>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {/* Chat button */}
-                                                <button onClick={(e)=>{e.stopPropagation();openPrivateChat(friend);}} className="btn-ghost" style={{padding:'5px 8px',borderRadius:'8px',fontSize:'12px',flexShrink:0}}>💬</button>
-                                            </div>
-                                        );
-                                    };
-                                    return (<>
-                                        {online.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#4ade80',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block'}}/>{t.online} ({online.length})</div>{online.map(renderFriend)}</>)}
-                                        {away.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#facc15',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#facc15',display:'inline-block'}}/>{lang==='ar'?'بعيد':'Away'} ({away.length})</div>{away.map(renderFriend)}</>)}
-                                        {offline.length > 0 && (<><div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#6b7280',display:'inline-block'}}/>{t.offline} ({offline.length})</div>{offline.map(renderFriend)}</>)}
-                                    </>);
-                                })()}
-                            </div>
-                            </div>{/* end friends section */}
-
-                            {/* ── Groups Section ── */}
-                            <div id="chat-section-groups" style={{display:'none'}}>
-                                <GroupsSection
-                                    currentUser={user}
-                                    currentUserData={currentUserData}
-                                    currentUID={currentUID}
-                                    friendsData={friendsData}
-                                    lang={lang}
-                                    onNotification={setNotification}
-                                    isLoggedIn={isLoggedIn}
-                                    onOpenProfile={openProfile}
+                            <div style={{display:'flex', gap:'6px'}}>
+                                <input value={createText} onChange={e => setCreateText(e.target.value)}
+                                    placeholder={lang==='ar'?'اكتب شيئاً...':'Write something...'}
+                                    style={{flex:1, padding:'7px 10px', borderRadius:'8px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'12px', outline:'none', direction:lang==='ar'?'rtl':'ltr'}}
                                 />
-                            </div>
-                        </>)}
-                        </div>
-                    )}
-
-                    {/* ══ DISCOVER / اكتشف VIEW ══ */}
-                    {activeView === 'discover' && (
-                        <div style={{paddingBottom:'8px'}}>
-                            <div className="sec-head-new" style={{paddingTop:'14px'}}>
-                                <span className="sec-title-new">🔥 {lang==='ar'?'اكتشف':'Discover'}</span>
-                            </div>
-
-                            {/* Moments — wide banner card */}
-                            <div className="discover-card-cs" style={{'--dc-color':'rgba(0,242,255,0.08)','--dc-border':'rgba(0,242,255,0.18)',cursor:'pointer'}} onClick={()=>setShowFriendsMoments(true)}>
-                                <div className="dc-left">
-                                    <div className="dc-icon" style={{background:'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.15))', fontSize:'22px'}}>📸</div>
-                                </div>
-                                <div className="dc-body">
-                                    <div className="dc-title">{lang==='ar'?'مومنت الأصدقاء':'Friends Moments'}</div>
-                                    <div className="dc-desc">{lang==='ar'?'شارك لحظاتك مع أصدقائك':'Share moments with friends'}</div>
-                                </div>
-                                <div style={{fontSize:'16px',color:'#00f2ff',flexShrink:0}}>›</div>
-                            </div>
-
-                            {/* Square grid — Couples + Family */}
-                            <div className="discover-grid" style={{gridTemplateColumns:'repeat(2,1fr)'}}>
-
-                                {/* Couples square */}
-                                <div
-                                    className="discover-sq"
-                                    style={{
-                                        '--dsq-bg':'linear-gradient(145deg,rgba(236,72,153,0.12),rgba(168,85,247,0.08))',
-                                        '--dsq-border':'rgba(236,72,153,0.3)',
-                                        padding:'18px 12px',
-                                    }}
-                                    onClick={() => {
-                                        if (!isLoggedIn) { setShowLoginAlert(true); return; }
-                                        setShowWeddingHall(true);
-                                    }}
-                                >
-                                    {coupleData && <div className="dsq-dot" style={{background:'#ec4899'}}/>}
-                                    <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(236,72,153,0.25),rgba(168,85,247,0.2))'}}>
-                                        {coupleData && partnerData?.photoURL
-                                            ? <img src={partnerData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'14px'}}/>
-                                            : '💍'
-                                        }
-                                    </div>
-                                    <div className="dsq-label">{lang==='ar'?'الكابلز':'Couples'}</div>
-                                    {coupleData && partnerData && (
-                                        <div style={{fontSize:'9px',color:'#f9a8d4',textAlign:'center',fontWeight:600,maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                                            {partnerData.displayName}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Family square */}
-                                <div
-                                    className="discover-sq"
-                                    style={{
-                                        '--dsq-bg':'linear-gradient(145deg,rgba(255,136,0,0.1),rgba(255,80,0,0.06))',
-                                        '--dsq-border':'rgba(255,136,0,0.28)',
-                                        padding:'18px 12px',
-                                    }}
-                                    onClick={()=>setShowFamilyModal(true)}
-                                >
-                                    {userFamily && <div className="dsq-dot" style={{background:'#f97316'}}/>}
-                                    <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(255,136,0,0.22),rgba(255,80,0,0.12))'}}>
-                                        {userFamily?.photoURL
-                                            ? <img src={userFamily.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'14px'}}/>
-                                            : (userFamily?.emblem || '🏠')
-                                        }
-                                    </div>
-                                    <div className="dsq-label">{lang==='ar'?'العائلة':'Family'}</div>
-                                    {userFamily && (
-                                        <div style={{fontSize:'9px',color:'#fb923c',textAlign:'center',fontWeight:600,maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                                            {userFamily.name}
-                                        </div>
-                                    )}
-                                </div>
-
+                                <button onClick={() => fileRef.current?.click()} style={{width:'32px', height:'32px', borderRadius:'8px', border:'1px solid rgba(0,242,255,0.3)', background:'rgba(0,242,255,0.08)', color:'#00f2ff', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>🖼️</button>
+                                <button onClick={handleCreateMoment} disabled={creating || (!createText.trim() && !createImageFile)}
+                                    style={{width:'32px', height:'32px', borderRadius:'8px', border:'none', background: creating||(!createText.trim()&&!createImageFile)?'rgba(255,255,255,0.07)':'linear-gradient(135deg,#7000ff,#00f2ff)', color:'white', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                                    {creating ? '⏳' : '➤'}
+                                </button>
                             </div>
                         </div>
                     )}
-
-                    {/* ══ ME / أنا VIEW ══ */}
-                    {activeView === 'me' && (
-                        <div style={{paddingBottom:'8px'}}>
-
-                            {/* ── Profile Hero Card ── */}
-                            {(isLoggedIn || isGuest) && currentUserData ? (
-                                <div className="me-hero-card" onClick={() => setShowMyAccount(true)}>
-                                    <div className="me-hero-avatar">
-                                        {currentUserData.photoURL || currentUserData.photo
-                                            ? <img src={currentUserData.photoURL || currentUserData.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} />
-                                            : <span style={{fontSize:'36px'}}>😎</span>
-                                        }
-                                    </div>
-                                    <div className="me-hero-info">
-                                        <div className="me-hero-name">{currentUserData.displayName || currentUserData.name || (lang==='ar'?'مستخدم':'User')}</div>
-                                        <div className="me-hero-id">{currentUserData?.customId ? `#${currentUserData.customId}` : `ID: ${currentUID?.slice(0,8)||'—'}`}</div>
-                                        <div className="me-hero-stats-row">
-                                            <span>🏆 {currentUserData?.stats?.wins || 0}</span>
-                                            <span>⭐ {(currentUserData?.charisma||0)>=1000?((currentUserData.charisma/1000).toFixed(1)+'K'):(currentUserData?.charisma||0)}</span>
-                                            <span>🧠 {(currentUserData?.currency||0)>=1000?((currentUserData.currency/1000).toFixed(1)+'K'):(currentUserData?.currency||0)}</span>
-                                        </div>
-                                    </div>
-                                    <div style={{fontSize:'16px',color:'var(--text-muted)',flexShrink:0}}>›</div>
-                                </div>
-                            ) : (
-                                <div className="me-hero-card" onClick={() => handleGoogleLogin()}>
-                                    <div className="me-hero-avatar" style={{background:'rgba(255,255,255,0.06)'}}>
-                                        <span style={{fontSize:'28px'}}>🔐</span>
-                                    </div>
-                                    <div className="me-hero-info">
-                                        <div className="me-hero-name">{lang==='ar'?'سجّل دخول':'Sign In'}</div>
-                                        <div className="me-hero-id">{lang==='ar'?'للاستمتاع بكل الميزات':'Unlock all features'}</div>
-                                    </div>
-                                    <div style={{fontSize:'16px',color:'var(--primary)',flexShrink:0}}>›</div>
-                                </div>
-                            )}
-
-                            {/* ── Guest login banner in Me view ── */}
-                            {isGuest && !isLoggedIn && (
-                                <div style={{margin:'10px 16px 4px',padding:'14px 16px',borderRadius:'16px',background:'linear-gradient(135deg,rgba(66,133,244,0.13),rgba(26,115,232,0.08))',border:'1px solid rgba(66,133,244,0.28)',display:'flex',alignItems:'center',gap:'12px'}}>
-                                    <span style={{fontSize:'28px',flexShrink:0}}>🔑</span>
-                                    <div style={{flex:1,minWidth:0}}>
-                                        <div style={{fontSize:'13px',fontWeight:800,color:'#e5e7eb',marginBottom:'2px'}}>{lang==='ar'?'سجّل دخولك بجوجل':'Sign in with Google'}</div>
-                                        <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'احفظ تقدمك واستمتع بكل الميزات':'Save progress & unlock all features'}</div>
-                                    </div>
-                                    <button onClick={handleGoogleLogin} style={{flexShrink:0,padding:'8px 14px',borderRadius:'10px',background:'linear-gradient(135deg,#4285f4,#1a73e8)',border:'none',color:'#fff',fontWeight:800,fontSize:'12px',cursor:'pointer',whiteSpace:'nowrap'}}>
-                                        {lang==='ar'?'دخول':'Login'}
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* ── Quick Actions Grid ── */}
-                            <div className="sec-head-new" style={{paddingTop:'14px'}}>
-                                <span className="sec-title-new">{lang==='ar'?'الإعدادات والأدوات':'Settings & Tools'}</span>
+                    <div style={{flex:1,overflowY:'auto',padding:'12px'}}>
+                        {loading ? <div style={{textAlign:'center',padding:'40px',color:'#6b7280'}}>⏳</div>
+                        : moments.length === 0 ? (
+                            <div style={{textAlign:'center',padding:'40px'}}>
+                                <div style={{fontSize:'40px',marginBottom:'12px'}}>📭</div>
+                                <div style={{fontSize:'13px',color:'#6b7280'}}>{lang==='ar'?'لا مومنتات من أصدقائك بعد':'No moments from friends yet'}</div>
+                                <div style={{fontSize:'11px',color:'#4b5563',marginTop:'6px'}}>{lang==='ar'?'أضف أصدقاء لتشاهد لحظاتهم':'Add friends to see their moments'}</div>
                             </div>
-                            <div className="me-actions-grid">
-                                {/* Inventory */}
-                                {isLoggedIn && (
-                                    <div className="me-action-card" onClick={() => setShowInventory(true)}>
-                                        <div className="me-action-icon" style={{background:'rgba(112,0,255,0.15)'}}>📦</div>
-                                        <div className="me-action-label">{lang==='ar'?'حقيبتي':t.inventory}</div>
-                                    </div>
-                                )}
-                                {/* Shop */}
-                                {isLoggedIn && (
-                                    <div className="me-action-card" onClick={() => setShowShop(true)}>
-                                        <div className="me-action-icon" style={{background:'rgba(255,215,0,0.12)'}}>🛒</div>
-                                        <div className="me-action-label">{lang==='ar'?'المتجر':t.shop}</div>
-                                    </div>
-                                )}
-                                {/* Settings */}
-                                <div className="me-action-card" onClick={() => setShowSettings(true)}>
-                                    <div className="me-action-icon" style={{background:'rgba(255,255,255,0.07)'}}>⚙️</div>
-                                    <div className="me-action-label">{lang==='ar'?'الإعدادات':t.settings||'Settings'}</div>
-                                </div>
-                            </div>
-
-                            {/* ── Logout ── */}
-                            {(isLoggedIn || isGuest) && (
-                                <div style={{margin:'14px 16px 0'}}>
-                                    <button onClick={handleLogout} style={{width:'100%',padding:'12px',borderRadius:'12px',background:'rgba(255,0,85,0.1)',border:'1px solid rgba(255,0,85,0.25)',color:'#ff4d6d',fontSize:'13px',fontWeight:700,cursor:'pointer',transition:'.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
-                                        🚪 {lang==='ar'?'تسجيل الخروج':t.logout||'Sign Out'}
-                                    </button>
-                                </div>
-                            )}
-                            {!isLoggedIn && !isGuest && (
-                                <div style={{margin:'14px 16px 0'}}>
-                                    <button onClick={handleGoogleLogin} style={{width:'100%',padding:'12px',borderRadius:'12px',background:'linear-gradient(135deg,var(--primary),var(--secondary))',border:'none',color:'#000',fontSize:'13px',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
-                                        🔑 {lang==='ar'?'تسجيل الدخول بجوجل':t.loginGoogle}
-                                    </button>
-                                </div>
-                            )}
-                            <div style={{height:'8px'}}></div>
-                        </div>
-                    )}
-                </>
-            )}
-
-            {/* ── ROOM VIEW ── */}
-            {room && (
-                <div className="new-room-content">
-                    <div className="glass-panel rounded-lg p-2 mb-2 flex items-center justify-between">
-                        <div className="lobby-code-container">
-                            <button onClick={handleCopy} className={`lobby-code-btn ${copied ? 'copied' : ''}`}><span className="font-mono">{roomId}</span><span>{copied ? '✓' : '📋'}</span></button>
-                            {copied && <span className="text-[10px] text-green-400 ml-1">{t.codeCopied}</span>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {room.isPrivate && (<button onClick={() => setShowLobbyPassword(!showLobbyPassword)} className="lobby-password-toggle">{showLobbyPassword ? '🙈' : '👁️'}</button>)}
-                            {room.isPrivate && showLobbyPassword && <span className="text-xs text-yellow-400 font-mono">{room.password}</span>}
-                            <div className="text-xs text-gray-400">{t.roundsFormat(room.currentRound || 0, 3)}</div>
-                        </div>
-                    </div>
-
-                    {room.status === 'waiting' && (
-                        <div className="card-container">
-                            <h3 className="text-sm font-bold mb-3 text-center">{t.lobbyTitle}</h3>
-                            <div className="flex flex-col gap-2 mb-4">{room.players.map(p => (<div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10" onClick={() => !p.isBot && openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name + (p.isBot?' 🤖':'')}} lang={lang} size="sm" /></div>{p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded flex-shrink-0">HOST</span>}{p.isBot && currentUID === OWNER_UID && <button onClick={e=>{e.stopPropagation();removeBotFromRoom(p.uid);}} style={{background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',borderRadius:'5px',padding:'2px 6px',fontSize:'10px',cursor:'pointer',flexShrink:0}}>{t.removeBot}</button>}</div>))}</div>
-                            {/* Bot Manager - Owner Only */}
-                            {currentUID === OWNER_UID && (
-                                <div style={{background:'rgba(0,242,255,0.04)',border:'1px solid rgba(0,242,255,0.15)',borderRadius:'8px',padding:'8px 10px',marginBottom:'10px'}}>
-                                    <div style={{fontSize:'11px',fontWeight:700,color:'#00f2ff',marginBottom:'6px'}}>{t.botManager} {room.players.filter(p=>p.isBot).length > 0 && <span style={{background:'rgba(0,242,255,0.15)',borderRadius:'10px',padding:'1px 7px',fontSize:'10px'}}>{t.botsCount(room.players.filter(p=>p.isBot).length)}</span>}</div>
-                                    <div style={{fontSize:'10px',color:'#9ca3af',marginBottom:'6px'}}>{lang==='ar'?'أضف بوتات للتجربة (مرئية للجميع كلاعبين)':'Add bots for testing (visible to all as players)'}</div>
-                                    <button onClick={addBotToRoom} disabled={room.players.filter(p=>p.isBot).length>=5||room.players.length>=10} style={{background:'rgba(0,242,255,0.12)',border:'1px solid rgba(0,242,255,0.3)',color:'#00f2ff',borderRadius:'7px',padding:'5px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',opacity:room.players.filter(p=>p.isBot).length>=5||room.players.length>=10?0.4:1}}>
-                                        {t.addBot}
-                                    </button>
-                                </div>
-                            )}
-                            <div className="flex gap-2">{room.admin === currentUID ? (<button onClick={startGame} className="btn-neon flex-1 py-2 rounded-lg text-sm font-bold">{t.start}</button>) : (<p className="text-xs text-gray-400 text-center flex-1">{t.waiting}</p>)}<button onClick={handleLeaveRoom} className="btn-danger px-4 py-2 rounded-lg text-sm">{t.leaveRoom}</button></div>
-                        </div>
-                    )}
-
-                    {room.status === 'word_selection' && !isSpectator && (
-                        <div className="card-container">
-                            {(myRole === 'spy') ? (
-                                <div className="identity-square identity-spy" style={{margin:'0 0 8px'}}>
-                                    <div className="text-4xl mb-2">🕵️</div>
-                                    <div className="text-lg font-bold">{t.statusSpy}</div>
-                                    <div className="text-xs text-yellow-300 mt-1">{lang==='ar'?'أنت الجاسوس — لا تحتاج للتصويت على الكلمة':'You are the spy — no word vote needed'}</div>
-                                    <div className="text-xs text-gray-300 mt-2 opacity-70">{lang==='ar'?'الموقع: ':'Location: '}<span className="text-yellow-400 font-bold">{lang==='ar'?room.scenario?.loc_ar:room.scenario?.loc_en}</span></div>
-                                    <div className="text-xs text-cyan-300 mt-1 opacity-80">{t.spyKnowsLocation}</div>
-                                </div>
-                            ) : (myRole === 'mrwhite') ? (
-                                <div className="identity-square identity-mrwhite" style={{margin:'0 0 8px'}}>
-                                    <div className="text-4xl mb-2">👻</div>
-                                    <div className="text-lg font-bold">{t.statusMrWhite}</div>
-                                    <div className="text-xs text-gray-300 mt-1">{lang==='ar'?'لا تعرف الموقع ولا الكلمة — استمع بعناية!':'You know neither location nor word — listen carefully!'}</div>
-                                    <div className="text-xs text-purple-300 mt-2">{t.myWordNotAvailable}</div>
-                                </div>
-                            ) : (
-                                <>
-                                    <h3 className="text-sm font-bold mb-2 text-center">{t.wordSelectionTitle}</h3>
-                                    <p className="text-xs text-gray-400 text-center mb-3">{t.wordSelectionDesc}</p>
-                                    <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {wordSelTimer}s</div>
-                                    {myRole === 'informant' && room.spyId && (
-                                        <div style={{background:'rgba(168,85,247,0.12)',border:'1px solid rgba(168,85,247,0.3)',borderRadius:'8px',padding:'8px 12px',marginBottom:'10px',textAlign:'center'}}>
-                                            <div className="text-xs font-bold text-purple-300">{t.informantRevealTitle}</div>
-                                            <div className="text-xs text-gray-300 mt-1">{t.informantSpyIs} <span className="text-red-400 font-bold">{room.players.find(p=>p.uid===room.spyId)?.name || '?'}</span></div>
-                                        </div>
-                                    )}
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {(lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en)?.map((word, i) => (
-                                            <button key={i} onClick={() => submitWordVote(word)} className={`word-vote-card ${hasVotedWord === word ? 'selected' : ''}`}>
-                                                <span className="font-bold">{word}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {hasVotedWord && <div className="text-xs text-center text-green-400 mt-2">✓ {lang==='ar'?'صوّتت على:':'You voted for:'} <strong>{hasVotedWord}</strong> — {lang==='ar'?'في انتظار الآخرين...':'waiting for others...'}</div>}
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    {room.status === 'discussing' && (
-                        <div className="flex flex-col gap-2">
-                            <div className="card-container"><div className="flex flex-col gap-2">{room.players.filter(p => p.status === 'active').map(p => (<div key={p.uid} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer bg-white/5 ${room.currentTurnUID === p.uid ? 'border border-primary bg-primary/5' : ''} ${p.uid === currentUID ? 'border border-primary/50' : ''}`} onClick={() => openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>{room.currentTurnUID === p.uid && <span className="text-[8px] text-primary flex-shrink-0">🎙 {lang==='ar'?'يتكلم':'Speaking'}</span>}</div>))}</div></div>
-                            {!isSpectator && me && (
-                                <div className={`identity-square identity-${myRole === 'spy' ? 'spy' : myRole === 'mrwhite' ? 'mrwhite' : myRole === 'informant' ? 'informant' : 'agent'}`}>
-                                    <div className="text-4xl mb-2">{myRole === 'spy' ? '🕵️' : myRole === 'mrwhite' ? '👻' : myRole === 'informant' ? '👁️' : '🤵'}</div>
-                                    <div className="text-lg font-bold">{myRole === 'spy' ? t.statusSpy : myRole === 'mrwhite' ? t.statusMrWhite : myRole === 'informant' ? t.statusInformant : t.statusAgent}</div>
-                                    {myRole === 'spy' && (<div className="text-xs text-yellow-300 mt-1">{lang==='ar'?'الموقع: ':'Location: '}<span className="font-bold">{lang === 'ar' ? room.scenario?.loc_ar : room.scenario?.loc_en}</span></div>)}
-                                    {myRole !== 'spy' && room.chosenWord && (<div className="text-xs text-cyan-300 mt-1">{t.selectedWord}: <span className="font-bold">{room.chosenWord}</span></div>)}
-                                    {myRole === 'mrwhite' && (<div className="text-xs text-purple-300 mt-1 opacity-80">{lang==='ar'?'لا تعرف الكلمة — استمع بعناية!':'No keyword — listen carefully!'}</div>)}
-                                    {myRole === 'informant' && room.spyId && (
-                                        <div style={{marginTop:'8px',padding:'6px 10px',background:'rgba(168,85,247,0.18)',borderRadius:'6px',border:'1px solid rgba(168,85,247,0.3)'}}>
-                                            <div className="text-xs text-purple-300 font-bold">{t.informantRevealTitle}</div>
-                                            <div className="text-xs text-red-400 mt-1">{t.informantSpyIs} <span className="font-bold">{room.players.find(p=>p.uid===room.spyId)?.name || '?'}</span></div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            <div className="card-container">
-                                <div className="flex items-center justify-between mb-2"><div className="timer-bar-container"><div className="timer-bar-fill" style={{ width: `${(turnTimer / 30) * 100}%` }}></div></div><span className="text-xs text-gray-400">{turnTimer}s</span></div>
-                                <div className="flex gap-2">
-                                    {isMyTurn && (<button onClick={() => handleSkipTurn()} className="btn-ghost flex-1 py-2 rounded-lg text-xs">{t.skip}</button>)}
-                                    <button onClick={requestVoting} className="btn-vote flex-1 py-2 rounded-lg text-xs font-bold">{t.vote}</button>
-                                    {myRole === 'spy' && (
-                                        <button onClick={spyVoluntaryDeclare} style={{background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.4)',color:'#ef4444',borderRadius:'8px',padding:'0 10px',fontSize:'11px',fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}} title={t.spyDeclareDesc}>
-                                            {t.spyDeclare}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {room.status === 'voting' && (
-                        <div className="card-container">
-                            <h3 className="text-sm font-bold mb-2 text-center">{t.vote}</h3>
-                            <div className="text-center text-xs text-yellow-400 mb-3">⏱️ {votingTimer}s</div>
-                            <div className="flex flex-col gap-2 mb-4">
-                                {room.players.filter(p => p.status === 'active').map(p => {
-                                    const voteCount = Object.values(room.votes || {}).filter(v => v === p.uid).length;
+                        ) : (
+                            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+                                {moments.map(moment => {
+                                    const likes = moment.likes || [];
+                                    const isLiked = likes.includes(currentUID);
+                                    const commentsCount = moment.comments?.length || 0;
                                     return (
-                                        <button key={p.uid} onClick={() => submitVote(p.uid)} disabled={!!hasVoted} className={`flex items-center gap-2 p-2 rounded-lg w-full text-left bg-white/5 hover:bg-white/10 border ${hasVoted === p.uid ? 'border-primary bg-primary/10' : 'border-transparent'}`}>
-                                            <div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>
-                                            {voteCount > 0 && <span style={{background:'rgba(255,68,68,0.2)',color:'#ef4444',borderRadius:'10px',padding:'1px 7px',fontSize:'11px',fontWeight:700,flexShrink:0}}>🗳 {voteCount}</span>}
-                                        </button>
+                                        <div key={moment.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'14px',overflow:'hidden'}}>
+                                            {/* Author row */}
+                                            <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px 8px'}}>
+                                                <div style={{width:'32px',height:'32px',borderRadius:'50%',overflow:'hidden',flexShrink:0,background:'rgba(255,255,255,0.1)'}}>
+                                                    {moment.authorPhoto?<img src={moment.authorPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>😎</div>}
+                                                </div>
+                                                <div style={{flex:1,minWidth:0}}>
+                                                    <div style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{moment.authorName}</div>
+                                                    <div style={{fontSize:'10px',color:'#6b7280'}}>{fmtMomentTime(moment.createdAt)}</div>
+                                                </div>
+                                                {onOpenProfile&&<button onClick={e=>{e.stopPropagation();onOpenProfile(moment.authorUID);}} style={{background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.2)',borderRadius:'6px',padding:'3px 8px',color:'#00f2ff',fontSize:'10px',cursor:'pointer'}}>👤</button>}
+                                            </div>
+                                            {/* Image */}
+                                            {moment.type==='image'&&moment.mediaUrl&&<div style={{maxHeight:'260px',overflow:'hidden',cursor:'pointer'}} onClick={()=>setSelectedMoment(moment)}><img src={moment.mediaUrl} alt="" style={{width:'100%',objectFit:'cover',display:'block'}}/></div>}
+                                            {/* Content */}
+                                            {moment.content&&<div style={{padding:'8px 12px',fontSize:'12px',color:'#d1d5db',lineHeight:1.5,cursor:'pointer'}} onClick={()=>setSelectedMoment(moment)}>{moment.content}</div>}
+                                            {/* Actions */}
+                                            <div style={{padding:'8px 12px',borderTop:'1px solid rgba(255,255,255,0.05)',display:'flex',alignItems:'center',gap:'14px'}}>
+                                                <button onClick={(e)=>handleLike(moment,e)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',color:isLiked?'#f87171':'#6b7280',fontSize:'12px',fontWeight:isLiked?700:400,padding:'3px 0',transition:'color 0.2s'}}>
+                                                    {isLiked ? '❤️' : '🤍'} <span>{likes.length}</span>
+                                                </button>
+                                                <button onClick={()=>setSelectedMoment(moment)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',color:'#6b7280',fontSize:'12px',padding:'3px 0'}}>
+                                                    💬 <span>{commentsCount}</span>
+                                                </button>
+                                            </div>
+                                        </div>
                                     );
                                 })}
                             </div>
-                            <div className="text-xs text-center text-gray-400">{lang==='ar'?`صوّت ${Object.keys(room.votes||{}).length} من ${room.players.filter(p=>p.status==='active').length}`:`${Object.keys(room.votes||{}).length}/${room.players.filter(p=>p.status==='active').length} voted`}</div>
-                        </div>
-                    )}
+                        )}
+                    </div>
+                </div>
 
-                    {/* ── Spy Guessing Phase ── */}
-                    {room.status === 'spy_guessing' && (() => {
-                        const isGuesser = currentUID === room.ejectedUID || currentUID === room.spyId;
-                        const words = lang === 'ar' ? room.scenario?.words_ar : room.scenario?.words_en;
-                        return (
-                            <div className="card-container text-center">
-                                <div className="text-4xl mb-3">🕵️</div>
-                                <h2 className="text-base font-bold mb-1" style={{color:'#ef4444'}}>{t.spyGuessTitle}</h2>
-                                <p className="text-xs text-gray-400 mb-4">{t.spyGuessDesc}</p>
-                                <div className="text-xs text-gray-400 mb-2">{lang==='ar'?'الموقع:':'Location:'} <span className="text-yellow-400 font-bold">{lang==='ar'?room.scenario?.loc_ar:room.scenario?.loc_en}</span></div>
-                                {isGuesser ? (
-                                    <>
-                                        <p className="text-xs text-cyan-300 mb-3">{lang==='ar'?'اختر كلمة السر الصحيحة:':'Pick the correct keyword:'}</p>
-                                        <div className="grid grid-cols-2 gap-2 mb-3">
-                                            {words?.map((word, i) => (
-                                                <button key={i} onClick={() => submitSpyWordGuess(word)} className="word-vote-card" style={{border:'1px solid rgba(239,68,68,0.3)'}}>
-                                                    <span className="font-bold">{word}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="text-sm text-yellow-400 py-4 animate-pulse">{lang==='ar'?'الجاسوس يختار...':'Spy is choosing...'}</div>
-                                )}
+                {/* ── Detail / Comment Modal ── */}
+                {selectedMoment && (
+                    <div className="modal-overlay" onClick={()=>{setSelectedMoment(null);setCommentText('');}} style={{zIndex:Z.MODAL_HIGH+1}}>
+                        <div className="animate-pop" onClick={e=>e.stopPropagation()} style={{
+                            background:'linear-gradient(180deg,#0d0d1f,#08080f)',
+                            border:'1px solid rgba(255,255,255,0.1)',borderRadius:'16px',
+                            maxWidth:'420px',width:'95%',overflow:'hidden',maxHeight:'88vh',
+                            display:'flex',flexDirection:'column'
+                        }}>
+                            {/* Header */}
+                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 14px',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
+                                <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                    <div style={{width:'28px',height:'28px',borderRadius:'50%',overflow:'hidden',background:'rgba(255,255,255,0.1)'}}>
+                                        {selectedMoment.authorPhoto?<img src={selectedMoment.authorPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'14px',lineHeight:'28px',display:'block',textAlign:'center'}}>😎</span>}
+                                    </div>
+                                    <div>
+                                        <div style={{fontSize:'12px',fontWeight:700,color:'white'}}>{selectedMoment.authorName}</div>
+                                        <div style={{fontSize:'10px',color:'#6b7280'}}>{fmtMomentTime(selectedMoment.createdAt)}</div>
+                                    </div>
+                                </div>
+                                <button onClick={()=>{setSelectedMoment(null);setCommentText('');}} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'18px',cursor:'pointer'}}>✕</button>
                             </div>
-                        );
-                    })()}
-
-                    {/* ── Mr. White Guessing Phase ── */}
-                    {room.status === 'mrwhite_guessing' && (() => {
-                        const isGuesser = currentUID === room.ejectedUID || currentUID === room.mrwhiteId;
-                        const allLocations = SCENARIOS.map(s => lang==='ar' ? s.loc_ar : s.loc_en);
-                        return (
-                            <div className="card-container text-center">
-                                <div className="text-4xl mb-3">👻</div>
-                                <h2 className="text-base font-bold mb-1" style={{color:'#8b5cf6'}}>{t.mrWhiteGuessTitle}</h2>
-                                <p className="text-xs text-gray-400 mb-4">{t.mrWhiteGuessDesc}</p>
-                                {isGuesser ? (
-                                    <>
-                                        <p className="text-xs text-purple-300 mb-3">{lang==='ar'?'اختر الموقع الصحيح:':'Pick the correct location:'}</p>
-                                        <div className="flex flex-col gap-2 mb-3" style={{maxHeight:'220px',overflowY:'auto'}}>
-                                            {SCENARIOS.map((s, i) => (
-                                                <button key={i} onClick={() => submitMrWhiteLocationGuess(lang==='ar'?s.loc_ar:s.loc_en)} className="word-vote-card" style={{border:'1px solid rgba(139,92,246,0.3)'}}>
-                                                    <span className="font-bold">{lang==='ar'?s.loc_ar:s.loc_en}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="text-sm text-purple-400 py-4 animate-pulse">{lang==='ar'?'السيد الأبيض يختار...':'Mr. White is choosing...'}</div>
-                                )}
-                            </div>
-                        );
-                    })()}
-
-                    {/* ── Game Over ── */}
-                    {(room.status === 'finished_spy_caught' || room.status === 'finished_spy_wins' || room.status === 'finished_spy_escaped' || room.status === 'finished_mrwhite_wins') && (
-                        <div className="card-container text-center">
-                            <div className="text-4xl mb-3">
-                                {room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'}
-                            </div>
-                            <h2 className="text-xl font-bold mb-1">
-                                {room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin}
-                            </h2>
-                            {room.ejectedUID && (
-                                <div className="text-xs text-gray-400 mb-3">{lang==='ar'?'تم طرد:':'Ejected:'} <span className="text-red-400 font-bold">{room.players.find(p=>p.uid===room.ejectedUID)?.name || room.ejectedUID}</span></div>
-                            )}
-                            {/* Roles revealed */}
-                            <div style={{background:'rgba(255,255,255,0.04)',borderRadius:'10px',padding:'10px',marginBottom:'12px'}}>
-                                <div className="text-xs font-bold text-gray-300 mb-2">📋 {t.rolesRevealTitle}</div>
-                                <div className="flex flex-col gap-1">
-                                    {room.players.filter(p => p.role).map(p => (
-                                        <div key={p.uid} className="flex items-center justify-between gap-2" style={{fontSize:'11px'}}>
-                                            <span className="text-gray-300 truncate">{p.name}</span>
-                                            <span style={{color: p.role==='spy'?'#ef4444':p.role==='mrwhite'?'#8b5cf6':p.role==='informant'?'#a78bfa':'#10b981', fontWeight:700, flexShrink:0}}>
-                                                {p.role==='spy'?('🕵️ '+t.statusSpy):p.role==='mrwhite'?('👻 '+t.statusMrWhite):p.role==='informant'?('👁️ '+t.statusInformant):('🤵 '+t.statusAgent)}
-                                            </span>
+                            {/* Content */}
+                            <div style={{overflowY:'auto',flex:1}}>
+                                {selectedMoment.type==='image'&&selectedMoment.mediaUrl&&<img src={selectedMoment.mediaUrl} alt="" style={{width:'100%',display:'block'}}/>}
+                                {selectedMoment.content&&<div style={{padding:'12px 14px',fontSize:'13px',color:'#e2e8f0',lineHeight:1.6}}>{selectedMoment.content}</div>}
+                                {/* Like / counts */}
+                                <div style={{padding:'8px 14px',display:'flex',alignItems:'center',gap:'16px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                                    <button onClick={(e)=>handleLike(selectedMoment,e)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'5px',color:(selectedMoment.likes||[]).includes(currentUID)?'#f87171':'#6b7280',fontSize:'13px',fontWeight:(selectedMoment.likes||[]).includes(currentUID)?700:400,padding:'4px 0'}}>
+                                        {(selectedMoment.likes||[]).includes(currentUID) ? '❤️' : '🤍'} {(selectedMoment.likes||[]).length}
+                                    </button>
+                                    <span style={{fontSize:'13px',color:'#6b7280'}}>💬 {selectedMoment.comments?.length||0}</span>
+                                </div>
+                                {/* Comments */}
+                                <div style={{padding:'10px 14px',display:'flex',flexDirection:'column',gap:'10px'}}>
+                                    {(selectedMoment.comments||[]).length===0 && (
+                                        <div style={{textAlign:'center',padding:'16px',color:'#4b5563',fontSize:'11px'}}>{lang==='ar'?'لا تعليقات بعد':'No comments yet'}</div>
+                                    )}
+                                    {(selectedMoment.comments||[]).map((c,i)=>(
+                                        <div key={i} style={{display:'flex',gap:'8px',alignItems:'flex-start'}}>
+                                            <div style={{width:'26px',height:'26px',borderRadius:'50%',overflow:'hidden',flexShrink:0,background:'rgba(255,255,255,0.08)'}}>
+                                                {c.authorPhoto?<img src={c.authorPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'12px',lineHeight:'26px',display:'block',textAlign:'center'}}>😎</span>}
+                                            </div>
+                                            <div style={{flex:1,background:'rgba(255,255,255,0.05)',borderRadius:'10px',padding:'7px 10px'}}>
+                                                <div style={{fontSize:'10px',fontWeight:700,color:'#a78bfa',marginBottom:'2px'}}>{c.authorName}</div>
+                                                <div style={{fontSize:'12px',color:'#d1d5db',lineHeight:1.5}}>{c.text}</div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
-                                {room.chosenWord && <div className="text-xs text-cyan-400 mt-2">🔑 {t.selectedWord}: <strong>{room.chosenWord}</strong></div>}
                             </div>
-                            {room.admin === currentUID && (<button onClick={resetGame} className="btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2">{t.playAgain}</button>)}
-                            <button onClick={handleLeaveRoom} className="btn-ghost w-full py-2 rounded-lg text-sm">{t.leaveRoom}</button>
+                            {/* Comment Input */}
+                            {currentUID && (
+                                <div style={{display:'flex',gap:'8px',padding:'10px 12px',borderTop:'1px solid rgba(255,255,255,0.07)',flexShrink:0,background:'rgba(0,0,0,0.3)'}}>
+                                    <input
+                                        value={commentText}
+                                        onChange={e=>setCommentText(e.target.value)}
+                                        onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),handleComment())}
+                                        placeholder={lang==='ar'?'اكتب تعليقاً...':'Write a comment...'}
+                                        style={{flex:1,padding:'9px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'12px',outline:'none'}}
+                                    />
+                                    <button onClick={handleComment} disabled={!commentText.trim()||submittingComment} style={{width:'36px',height:'36px',borderRadius:'10px',border:'none',cursor:'pointer',background:commentText.trim()?'linear-gradient(135deg,#7000ff,#00f2ff)':'rgba(255,255,255,0.07)',color:commentText.trim()?'white':'#4b5563',fontSize:'15px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                        {submittingComment ? '⏳' : '➤'}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </PortalModal>
+    );
+};
+
+// ════════════════════════════════════════════════════════
+// 🏆 FAMILY RANKING MODAL
+// ════════════════════════════════════════════════════════
+const FamilyRankingModal = ({ show, onClose, lang, currentFamilyId }) => {
+    const [rankings, setRankings] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!show) return;
+        setLoading(true);
+        familiesCollection.orderBy('xp', 'desc').limit(50).get().then(snap => {
+            setRankings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            setLoading(false);
+        }).catch(() => setLoading(false));
+    }, [show]);
+
+    if (!show) return null;
+
+    return (
+        <PortalModal>
+            <div className="modal-overlay" onClick={onClose} style={{ zIndex: Z.MODAL_HIGH + 1 }}>
+                <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
+                    background:'linear-gradient(180deg,#0d0d1f,#08080f)',
+                    border:'1px solid rgba(255,215,0,0.2)', borderRadius:'18px',
+                    width:'100%', maxWidth:'420px', maxHeight:'85vh',
+                    display:'flex', flexDirection:'column', overflow:'hidden',
+                }}>
+                    <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+                        <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                            <span style={{fontSize:'20px'}}>🏆</span>
+                            <div style={{fontSize:'14px', fontWeight:800, color:'white'}}>{lang==='ar'?'ترتيب العائلات':'Family Rankings'}</div>
+                        </div>
+                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer'}}>✕</button>
+                    </div>
+                    <div style={{flex:1, overflowY:'auto', padding:'12px'}}>
+                        {loading ? <div style={{textAlign:'center',padding:'40px',color:'#6b7280'}}>⏳</div> :
+                        rankings.map((fam, i) => {
+                            const fl = getFamilyLevel(fam.xp || 0);
+                            const sign = getFamilySignLevelData(fam.activeness || 0);
+                            const isMine = fam.id === currentFamilyId;
+                            return (
+                                <div key={fam.id} style={{
+                                    display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px',
+                                    borderRadius:'12px', marginBottom:'6px',
+                                    background: isMine ? 'rgba(0,242,255,0.08)' : i < 3 ? 'rgba(255,215,0,0.04)' : 'rgba(255,255,255,0.03)',
+                                    border: isMine ? '1px solid rgba(0,242,255,0.3)' : i === 0 ? '1px solid rgba(255,215,0,0.2)' : '1px solid rgba(255,255,255,0.06)',
+                                }}>
+                                    <div style={{width:'26px', textAlign:'center', fontSize:i < 3 ? '16px' : '11px', color:i===0?'#ffd700':i===1?'#9ca3af':i===2?'#cd7f32':'#4b5563', fontWeight:800, flexShrink:0}}>
+                                        {i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`}
+                                    </div>
+                                    <div style={{width:'38px', height:'38px', borderRadius:'12px', background:`${fl.color}15`, border:`1px solid ${fl.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', flexShrink:0}}>
+                                        {fam.photoURL ? <img src={fam.photoURL} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'10px'}} alt=""/> : (fam.emblem || '🏠')}
+                                    </div>
+                                    <div style={{flex:1, minWidth:0}}>
+                                        <div style={{display:'flex', alignItems:'center', gap:'5px', flexWrap:'wrap'}}>
+                                            <span style={{fontSize:'13px', fontWeight:800, color:isMine?'#00f2ff':'white', fontStyle:'italic'}}>{fam.name}</span>
+                                            <FamilySignBadge tag={fam.tag} color={sign.color} small signLevel={sign.level} />
+                                        </div>
+                                        <div style={{fontSize:'10px', color:'#6b7280', marginTop:'2px'}}>
+                                            <span style={{color:fl.color}}>{fl.icon} Lv.{fl.level}</span>
+                                            <span style={{marginLeft:'8px'}}>👥 {fam.members?.length||0}</span>
+                                            <span style={{marginLeft:'8px'}}>✨ {fmtFamilyNum(fam.xp||0)} XP</span>
+                                        </div>
+                                    </div>
+                                    {isMine && <span style={{fontSize:'10px', color:'#00f2ff', fontWeight:800}}>★</span>}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        </PortalModal>
+    );
+};
+
+// ════════════════════════════════════════════════════════
+// 💬 FAMILY CHAT MODAL — Standalone chat accessible from Chat tab
+// ════════════════════════════════════════════════════════
+const CHAT_EMOJIS_FAM = ['😀','😂','❤️','👍','🔥','⭐','💎','🎁','🎉','😎','🤩','💪','✨','🙏','😊','👑','💖','🥳','🏆','🎯','😍','🤣','😭','😱','🫡','💯','🌹','🎮','🕵️','🏅'];
+
+const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily, onSendGift, userData, onNotification }) => {
+    const [messages, setMessages] = React.useState([]);
+    const [chatInput, setChatInput] = React.useState('');
+    const [sendingMsg, setSendingMsg] = React.useState(false);
+    const [showEmoji, setShowEmoji] = React.useState(false);
+    const [prevMsgCount, setPrevMsgCount] = React.useState(0);
+    const chatEndRef = React.useRef(null);
+    const imgInputRef = React.useRef(null);
+    const chatInputRef = React.useRef(null);
+    // ── Gift modal ──
+    const [giftTarget, setGiftTarget] = React.useState(null); // null = self, { uid, displayName, photoURL }
+    const [showChatGiftModal, setShowChatGiftModal] = React.useState(false);
+    // ── Mini profile popup ──
+    const [miniProfile, setMiniProfile] = React.useState(null); // { uid, name, photo, customId }
+    // ── @ Mention ──
+    const [mentionSearch, setMentionSearch] = React.useState('');
+    const [showMentionList, setShowMentionList] = React.useState(false);
+    const [familyMembers, setFamilyMembers] = React.useState([]);
+
+    // جلب أعضاء العائلة للمنشن
+    React.useEffect(() => {
+        if (!show || !familyId) return;
+        const unsub = familiesCollection.doc(familyId).onSnapshot(snap => {
+            if (!snap.exists) return;
+            const memberIds = snap.data().members || [];
+            if (memberIds.length === 0) return;
+            // جلب بيانات الأعضاء
+            usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', memberIds.slice(0,10))
+                .get().then(s => setFamilyMembers(s.docs.map(d => ({ id: d.id, ...d.data() }))))
+                .catch(() => {});
+        }, () => {});
+        return () => unsub();
+    }, [show, familyId]);
+
+    React.useEffect(() => {
+        if (!show || !familyId) return;
+        const unsub = familiesCollection.doc(familyId).collection('messages')
+            .orderBy('timestamp', 'desc').limit(80)
+            .onSnapshot(snap => {
+                const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+                // صوت + نوتيفيكيشن لما تيجي رسالة جديدة
+                if (prevMsgCount > 0 && msgs.length > prevMsgCount) {
+                    const newest = msgs[msgs.length - 1];
+                    if (newest && newest.senderId !== currentUID) {
+                        try { playNotificationSound(); } catch(e) {}
+                        if (onNotification) {
+                            const senderName = newest.senderName || (lang==='ar'?'عضو':'Member');
+                            const preview = newest.type === 'image' ? '📷' : (newest.text || '').slice(0, 40);
+                            onNotification(`💬 ${senderName}: ${preview}`);
+                        }
+                    }
+                }
+                setPrevMsgCount(msgs.length);
+                setMessages(msgs);
+            }, () => {});
+        return () => unsub();
+    }, [show, familyId, prevMsgCount, currentUID]);
+
+    React.useEffect(() => {
+        if (show) setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 120);
+    }, [messages.length, show]);
+
+    var canManageFamilyChat = familyData ? canManageFamily(familyData, currentUID) : false;
+
+    // ── معالجة @ Mention ──
+    const handleInputChange = function(e) {
+        const val = e.target.value;
+        setChatInput(val);
+        const lastAt = val.lastIndexOf('@');
+        if (lastAt !== -1) {
+            const after = val.slice(lastAt + 1);
+            if (!after.includes(' ')) {
+                setMentionSearch(after.toLowerCase());
+                setShowMentionList(true);
+                return;
+            }
+        }
+        setShowMentionList(false);
+    };
+
+    const selectMention = function(member) {
+        const lastAt = chatInput.lastIndexOf('@');
+        const newVal = chatInput.slice(0, lastAt) + '@' + member.displayName + ' ';
+        setChatInput(newVal);
+        setShowMentionList(false);
+        setTimeout(function() { chatInputRef.current && chatInputRef.current.focus(); }, 50);
+    };
+
+    const mentionMembers = familyMembers
+        .filter(function(m) { return m.id !== currentUID; })
+        .filter(function(m) { return !mentionSearch || (m.displayName || '').toLowerCase().includes(mentionSearch); });
+
+    const sendMessage = async (text, type, extra) => {
+        type = type || 'text';
+        extra = extra || {};
+        if ((!text || !text.trim()) && type === 'text') return;
+        if (!familyId || !currentUID || sendingMsg) return;
+        setSendingMsg(true);
+        setShowMentionList(false);
+        try {
+            var msgText = (text || '').trim();
+            var isAnnouncementCmd = canManageFamilyChat && type === 'text' && msgText.toLowerCase().startsWith('announcement ');
+            var finalType = isAnnouncementCmd ? 'announcement' : type;
+            var finalText = isAnnouncementCmd ? msgText.slice('announcement '.length).trim() : msgText;
+            if (isAnnouncementCmd && finalText) {
+                await familiesCollection.doc(familyId).update({
+                    announcement: finalText,
+                    announcementBy: currentUserData?.displayName || 'Admin',
+                }).catch(function() {});
+            }
+            await familiesCollection.doc(familyId).collection('messages').add({
+                senderId: currentUID,
+                senderName: currentUserData?.displayName || 'Member',
+                senderPhoto: currentUserData?.photoURL || null,
+                text: finalText,
+                type: finalType,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                ...extra,
+            });
+            if (type === 'text') setChatInput('');
+            await familiesCollection.doc(familyId).update({
+                lastChatMessage: finalText || (type === 'image' ? '📷' : ''),
+                lastChatSenderId: currentUID,
+                lastChatAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastChatAtMs: Date.now(),
+                ['chatReadBy.' + currentUID]: firebase.firestore.FieldValue.serverTimestamp(),
+            }).catch(function() {});
+        } catch (e) { console.error('FamilyChatModal sendMessage error:', e); }
+        setSendingMsg(false);
+    };
+
+    const handleImageUpload = function(e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            var img = new Image();
+            img.onload = function() {
+                var canvas = document.createElement('canvas');
+                var MAX = 800;
+                var w = img.width, h = img.height;
+                if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+                else { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                var base64 = canvas.toDataURL('image/jpeg', 0.7);
+                sendMessage('', 'image', { imageUrl: base64 });
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    var fmtTime = function(ts) {
+        if (!ts) return '';
+        var d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+        var diff = Date.now() - d.getTime();
+        if (diff < 60000) return lang === 'ar' ? 'الآن' : 'now';
+        if (diff < 3600000) return Math.floor(diff/60000) + (lang==='ar'?'د':'m');
+        if (diff < 86400000) return Math.floor(diff/3600000) + (lang==='ar'?'س':'h');
+        return Math.floor(diff/86400000) + (lang==='ar'?'ي':'d');
+    };
+
+    // ── render mention text with highlight ──
+    const renderMsgText = function(text) {
+        if (!text) return '';
+        const parts = text.split(/(@\w[\w\s]*?)(?=\s|$)/g);
+        return parts.map(function(part, i) {
+            if (part.startsWith('@')) return React.createElement('span', { key: i, style: { color: '#00f2ff', fontWeight: 700 } }, part);
+            return part;
+        });
+    };
+
+    if (!show) return null;
+
+    var signData = (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0) : null) || { level:0, color:'#4b5563', glow:'rgba(75,85,99,0.3)', defaultIcon:'🏠' };
+    var fLvl = familyData ? getFamilyLevel(familyData.xp || 0) : null;
+
+    return React.createElement(PortalModal, null,
+        React.createElement('div', {
+            style: { position:'fixed', inset:0, zIndex: Z.MODAL, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', padding:'12px' },
+            onClick: onClose
+        },
+        React.createElement('div', {
+            style: { position:'relative', display:'flex', flexDirection:'column', width:'100%', maxWidth:'480px', height:'88vh', maxHeight:'700px', background:'linear-gradient(180deg,#0d0d1f 0%,#08080f 100%)', border:'1px solid rgba(0,242,255,0.15)', borderRadius:'20px', overflow:'hidden', boxShadow:'0 28px 70px rgba(0,0,0,0.95)' },
+            onClick: function(e) { e.stopPropagation(); }
+        },
+            // Header
+            React.createElement('div', {
+                style: { display:'flex', alignItems:'center', gap:'10px', padding:'12px 16px', borderBottom:'1px solid rgba(255,255,255,0.08)', background:'rgba(0,0,0,0.4)', flexShrink:0 }
+            },
+                React.createElement('button', { onClick: onClose, style: { background:'none', border:'none', color:'#00f2ff', fontSize:'20px', cursor:'pointer', padding:'0 4px' } }, '‹'),
+                React.createElement('div', {
+                    onClick: function() { onOpenFamily && onOpenFamily(); },
+                    style: { width:'40px', height:'40px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'linear-gradient(135deg,' + signData.color + '22,rgba(0,0,0,0.3))', border:'2px solid ' + signData.color + '55', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', cursor: onOpenFamily ? 'pointer' : 'default' }
+                }, familyData && familyData.photoURL ? React.createElement('img', { src: familyData.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}}) : (familyData && familyData.emblem) || '🏠'),
+                React.createElement('div', {
+                    onClick: function() { onOpenFamily && onOpenFamily(); },
+                    style: { flex:1, minWidth:0, cursor: onOpenFamily ? 'pointer' : 'default' }
+                },
+                    React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' } },
+                        React.createElement('span', { style: { fontSize:'14px', fontWeight:800, color: onOpenFamily ? '#00f2ff' : 'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: onOpenFamily ? 'underline dotted rgba(0,242,255,0.4)' : 'none' } }, (familyData && familyData.name) || (lang==='ar'?'شات العائلة':'Family Chat')),
+                        familyData && signData.level > 0 && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: familyData.signImageURL })
+                    ),
+                    React.createElement('div', { style: { fontSize:'10px', color:'#6b7280' } },
+                        ((familyData && familyData.members && familyData.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members'),
+                        fLvl && React.createElement('span', { style: { color: fLvl.color, marginLeft:'4px' } }, fLvl.icon + ' Lv.' + fLvl.level)
+                    )
+                )
+            ),
+            // Pinned Announcement Bar
+            familyData && familyData.announcement && React.createElement('div', {
+                style: { flexShrink:0, margin:'8px 10px 4px', padding:'9px 14px', borderRadius:'12px', background:'linear-gradient(135deg,rgba(255,165,0,0.18),rgba(255,80,0,0.12))', border:'1px solid rgba(255,165,0,0.45)', boxShadow:'0 0 16px rgba(255,140,0,0.2)', position:'relative', overflow:'hidden' }
+            },
+                React.createElement('div', { style: { position:'absolute', left:0, top:0, bottom:0, width:'4px', background:'linear-gradient(180deg,#ffd700,#ff8800)', borderRadius:'12px 0 0 12px' } }),
+                React.createElement('div', { style: { display:'flex', alignItems:'flex-start', gap:'8px', paddingLeft:'6px' } },
+                    React.createElement('span', { style: { fontSize:'16px', lineHeight:1, flexShrink:0 } }, '📢'),
+                    React.createElement('div', { style: { flex:1, minWidth:0 } },
+                        React.createElement('div', { style: { fontSize:'9px', fontWeight:800, color:'#fbbf24', letterSpacing:'1px', marginBottom:'3px', textTransform:'uppercase' } },
+                            (lang==='ar'?'إعلان من الإدارة':'ANNOUNCEMENT') + (familyData.announcementBy ? ' · ' + familyData.announcementBy : '')
+                        ),
+                        React.createElement('div', { style: { fontSize:'12px', color:'#fde68a', lineHeight:1.5, fontWeight:600, wordBreak:'break-word' } }, familyData.announcement)
+                    )
+                )
+            ),
+            // ── Mini Profile Popup ──
+            miniProfile && React.createElement('div', {
+                style: { position:'absolute', inset:0, zIndex:20, background:'rgba(0,0,0,0.65)', display:'flex', alignItems:'center', justifyContent:'center' },
+                onClick: function() { setMiniProfile(null); }
+            },
+                React.createElement('div', {
+                    style: { background:'linear-gradient(160deg,#0e0e22,#13122a)', border:'1px solid rgba(0,242,255,0.25)', borderRadius:'18px', padding:'20px', width:'220px', boxShadow:'0 20px 50px rgba(0,0,0,0.9)', textAlign:'center' },
+                    onClick: function(e) { e.stopPropagation(); }
+                },
+                    React.createElement('div', { style: { width:'60px', height:'60px', borderRadius:'50%', overflow:'hidden', margin:'0 auto 10px', border:'2px solid rgba(0,242,255,0.35)' } },
+                        miniProfile.photo
+                            ? React.createElement('img', { src: miniProfile.photo, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'} })
+                            : React.createElement('div', { style:{width:'100%',height:'100%',background:'rgba(255,255,255,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px'} }, '😎')
+                    ),
+                    React.createElement('div', { style: { fontSize:'14px', fontWeight:800, color:'white', marginBottom:'3px' } }, miniProfile.name),
+                    miniProfile.customId && React.createElement('div', { style: { fontSize:'11px', color:'#6b7280', marginBottom:'14px' } }, '🪪 #' + miniProfile.customId),
+                    miniProfile.uid !== currentUID && onSendGift
+                        ? React.createElement('button', {
+                            onClick: function() {
+                                setMiniProfile(null);
+                                setGiftTarget({ uid: miniProfile.uid, displayName: miniProfile.name, photoURL: miniProfile.photo });
+                                setShowChatGiftModal(true);
+                            },
+                            style: { width:'100%', padding:'10px', borderRadius:'10px', background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15))', border:'1px solid rgba(255,215,0,0.4)', color:'#fbbf24', fontSize:'13px', fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px' }
+                          }, '🎁 ' + (lang==='ar'?'أرسل هدية':'Send Gift'))
+                        : miniProfile.uid === currentUID && React.createElement('div', { style: { fontSize:'11px', color:'#6b7280' } }, lang==='ar'?'هذا أنت':'This is you')
+                )
+            ),
+            // Messages
+            React.createElement('div', {
+                style: { flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px', minHeight:0 }
+            },
+                messages.length === 0 && React.createElement('div', {
+                    style: { textAlign:'center', padding:'40px 20px', color:'#4b5563' }
+                },
+                    React.createElement('div', { style: { fontSize:'36px', marginBottom:'10px' } }, '💬'),
+                    React.createElement('div', { style: { fontSize:'12px' } }, lang==='ar'?'كن أول من يتحدث!':'Be the first to chat!')
+                ),
+                messages.map(function(msg) {
+                    var isMe = msg.senderId === currentUID;
+                    var isSystem = msg.senderId === 'system' || msg.type === 'system';
+                    var isDonation = msg.type === 'donation';
+                    if (isSystem) return React.createElement('div', { key: msg.id, style: { textAlign:'center', padding:'4px 12px' } },
+                        React.createElement('span', { style: { fontSize:'10px', color:'#6b7280', background:'rgba(255,255,255,0.04)', padding:'3px 10px', borderRadius:'20px' } }, msg.text)
+                    );
+                    if (isDonation) return React.createElement('div', { key: msg.id, style: { display:'flex', justifyContent:'center', padding:'4px 0' } },
+                        React.createElement('div', { style: { background:'linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,140,0,0.1))', border:'1px solid rgba(255,215,0,0.3)', borderRadius:'12px', padding:'8px 14px', maxWidth:'90%', textAlign:'center' } },
+                            React.createElement('div', { style: { fontSize:'12px', color:'#ffd700', fontWeight:800 } }, msg.text),
+                            React.createElement('div', { style: { fontSize:'10px', color:'#6b7280', marginTop:'2px' } }, fmtTime(msg.timestamp))
+                        )
+                    );
+                    var isAnnouncement = msg.type === 'announcement';
+                    if (isAnnouncement) return React.createElement('div', { key: msg.id, style: { display:'flex', justifyContent:'center', padding:'6px 0' } },
+                        React.createElement('div', {
+                            style: { width:'100%', background:'linear-gradient(135deg,rgba(255,165,0,0.2),rgba(255,80,0,0.12))', border:'1.5px solid rgba(255,165,0,0.5)', borderRadius:'14px', padding:'10px 14px', position:'relative', overflow:'hidden', boxShadow:'0 0 18px rgba(255,140,0,0.18)' }
+                        },
+                            React.createElement('div', { style: { position:'absolute', left:0, top:0, bottom:0, width:'4px', background:'linear-gradient(180deg,#ffd700,#ff8800)', borderRadius:'14px 0 0 14px' } }),
+                            React.createElement('div', { style: { paddingLeft:'8px' } },
+                                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', marginBottom:'5px' } },
+                                    React.createElement('span', { style: { fontSize:'16px' } }, '📢'),
+                                    React.createElement('span', { style: { fontSize:'10px', fontWeight:900, color:'#fbbf24', letterSpacing:'1px', textTransform:'uppercase' } }, lang==='ar'?'إعلان رسمي':'OFFICIAL ANNOUNCEMENT'),
+                                    React.createElement('span', { style: { marginLeft:'auto', fontSize:'9px', color:'#6b7280' } }, fmtTime(msg.timestamp))
+                                ),
+                                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px' } },
+                                    msg.senderPhoto
+                                        ? React.createElement('img', { src: msg.senderPhoto, alt:'', style:{width:'18px',height:'18px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid rgba(255,215,0,0.5)'} })
+                                        : React.createElement('div', { style:{width:'18px',height:'18px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'9px'}}, '👤'),
+                                    React.createElement('span', { style: { fontSize:'10px', fontWeight:700, color:'#fde68a' } }, msg.senderName)
+                                ),
+                                React.createElement('div', { style: { fontSize:'13px', color:'#fef3c7', lineHeight:1.6, fontWeight:600, wordBreak:'break-word' } }, msg.text)
+                            )
+                        )
+                    );
+                    return React.createElement('div', { key: msg.id, style: { display:'flex', flexDirection: isMe?'row-reverse':'row', gap:'8px', alignItems:'flex-end' } },
+                        // صورة المرسل — قابلة للضغط
+                        !isMe && React.createElement('div', {
+                            onClick: function() { setMiniProfile({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null }); },
+                            style: { width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer' }
+                        },
+                            msg.senderPhoto
+                                ? React.createElement('img', { src: msg.senderPhoto, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}})
+                                : React.createElement('div', { style:{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}, '😎')
+                        ),
+                        React.createElement('div', { style: { maxWidth:'72%' } },
+                            // اسم المرسل — قابل للضغط
+                            !isMe && React.createElement('div', {
+                                onClick: function() { setMiniProfile({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null }); },
+                                style: { fontSize:'10px', color:'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft:'4px', cursor:'pointer' },
+                                onMouseEnter: function(e) { e.currentTarget.style.color='#00f2ff'; },
+                                onMouseLeave: function(e) { e.currentTarget.style.color='#9ca3af'; }
+                            }, msg.senderName),
+                            msg.type === 'image' && msg.imageUrl
+                                ? React.createElement('img', { src: msg.imageUrl, alt:'', style:{ maxWidth:'220px', maxHeight:'200px', borderRadius:'12px', display:'block', objectFit:'cover' }})
+                                : React.createElement('div', {
+                                    style: { padding:'8px 12px', borderRadius: isMe?'14px 4px 14px 14px':'4px 14px 14px 14px', background: isMe?'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.2))':'rgba(255,255,255,0.07)', border: isMe?'1px solid rgba(0,242,255,0.3)':'1px solid rgba(255,255,255,0.08)', fontSize:'12px', color:'#e2e8f0', lineHeight:1.5, wordBreak:'break-word' }
+                                  }, renderMsgText(msg.text)),
+                            React.createElement('div', { style: { fontSize:'9px', color:'#4b5563', marginTop:'2px', textAlign: isMe?'right':'left', paddingLeft:'4px', paddingRight:'4px' } }, fmtTime(msg.timestamp))
+                        )
+                    );
+                }),
+                React.createElement('div', { ref: chatEndRef })
+            ),
+            // Emoji picker
+            showEmoji && React.createElement('div', {
+                style: { padding:'8px 12px', borderTop:'1px solid rgba(255,255,255,0.06)', background:'rgba(0,0,0,0.5)', flexWrap:'wrap', display:'flex', gap:'4px', flexShrink:0 }
+            },
+                CHAT_EMOJIS_FAM.map(function(e) {
+                    return React.createElement('button', {
+                        key: e,
+                        onClick: function() { setChatInput(function(p) { return p + e; }); setShowEmoji(false); },
+                        style: { background:'none', border:'none', fontSize:'20px', cursor:'pointer', padding:'3px', borderRadius:'6px', lineHeight:1 }
+                    }, e);
+                })
+            ),
+            // ── @ Mention list ──
+            showMentionList && mentionMembers.length > 0 && React.createElement('div', {
+                style: { background:'#0e1020', border:'1px solid rgba(0,242,255,0.2)', borderRadius:'12px', margin:'0 8px 4px', overflow:'hidden', maxHeight:'160px', overflowY:'auto', flexShrink:0 }
+            },
+                mentionMembers.map(function(m) {
+                    return React.createElement('div', {
+                        key: m.id,
+                        onClick: function() { selectMention(m); },
+                        style: { display:'flex', alignItems:'center', gap:'8px', padding:'8px 12px', cursor:'pointer', transition:'background 0.12s' },
+                        onMouseEnter: function(e) { e.currentTarget.style.background='rgba(0,242,255,0.08)'; },
+                        onMouseLeave: function(e) { e.currentTarget.style.background='transparent'; }
+                    },
+                        React.createElement('div', { style: { width:'24px', height:'24px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.08)' } },
+                            m.photoURL
+                                ? React.createElement('img', { src: m.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'} })
+                                : React.createElement('span', { style:{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',fontSize:'12px'}}, '😎')
+                        ),
+                        React.createElement('span', { style: { fontSize:'12px', fontWeight:700, color:'white' } }, '@' + m.displayName)
+                    );
+                })
+            ),
+            // Input bar
+            React.createElement('div', {
+                style: { padding:'10px 12px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.3)', display:'flex', gap:'8px', alignItems:'center', flexShrink:0 }
+            },
+                React.createElement('input', { ref: imgInputRef, type:'file', accept:'image/*', style:{display:'none'}, onChange: handleImageUpload }),
+                React.createElement('button', {
+                    onClick: function() { if (imgInputRef.current) imgInputRef.current.click(); },
+                    style: { width:'36px', height:'36px', borderRadius:'10px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }
+                }, '📷'),
+                React.createElement('button', {
+                    onClick: function() { setShowEmoji(function(p) { return !p; }); },
+                    style: { width:'36px', height:'36px', borderRadius:'10px', background: showEmoji?'rgba(0,242,255,0.15)':'rgba(255,255,255,0.06)', border: '1px solid ' + (showEmoji?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.1)'), color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }
+                }, '😊'),
+                // زر الهدايا
+                onSendGift && React.createElement('button', {
+                    onClick: function() { setGiftTarget(userData || currentUserData); setShowChatGiftModal(true); },
+                    title: lang==='ar'?'أرسل هدية لعضو':'Send gift to a member',
+                    style: { width:'36px', height:'36px', borderRadius:'10px', background:'rgba(255,215,0,0.1)', border:'1px solid rgba(255,215,0,0.22)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }
+                }, '🎁'),
+                React.createElement('input', {
+                    ref: chatInputRef,
+                    value: chatInput,
+                    onChange: handleInputChange,
+                    onKeyDown: function(e) {
+                        if (e.key === 'Escape') setShowMentionList(false);
+                        if (e.key === 'Enter' && !e.shiftKey && !showMentionList) { e.preventDefault(); sendMessage(chatInput); }
+                    },
+                    maxLength: 400,
+                    style: { flex:1, padding:'9px 12px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'13px', outline:'none' },
+                    placeholder: lang==='ar'?'اكتب رسالة... أو @ للمنشن':'Type a message... or @ to mention'
+                }),
+                React.createElement('button', {
+                    onClick: function() { sendMessage(chatInput); },
+                    disabled: !chatInput.trim() || sendingMsg,
+                    style: { width:'40px', height:'40px', borderRadius:'12px', border:'none', flexShrink:0, background: chatInput.trim()?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color: chatInput.trim()?'white':'#6b7280', fontSize:'18px', cursor: chatInput.trim()?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center' }
+                }, sendingMsg ? '⏳' : '➤')
+            ),
+            // Gift modal
+            showChatGiftModal && onSendGift && React.createElement(SendGiftModal, {
+                show: showChatGiftModal,
+                onClose: function() { setShowChatGiftModal(false); setGiftTarget(null); },
+                targetUser: giftTarget,
+                currentUser: userData || currentUserData,
+                lang: lang,
+                onSendGift: async function(gift, target, qty) {
+                    if (target && target.uid) {
+                        const targetDoc = target.uid === currentUID
+                            ? { uid: target.uid, ...target }
+                            : await usersCollection.doc(target.uid).get().then(d => d.exists ? { uid: target.uid, ...d.data() } : target).catch(() => target);
+                        await onSendGift(gift, targetDoc, qty || 1);
+                    }
+                    setShowChatGiftModal(false);
+                    setGiftTarget(null);
+                },
+                currency: (userData || currentUserData)?.currency || 0,
+                friendsData: familyMembers.filter(function(m) { return m.id !== currentUID; }).map(function(m) { return Object.assign({}, m, { uid: m.id }); }),
+            })
+        )
+        )
+    );
+};
+
+
+// ════════════════════════════════════════════════════════
+// 🏠 FAMILY CHAT ITEM — Shows in Chat section when user has a family
+// ════════════════════════════════════════════════════════
+const FamilyChatItem = ({ familyId, currentUID, currentUserData, lang, onOpenChat }) => {
+    const [family, setFamily] = React.useState(null);
+    const [hasUnread, setHasUnread] = React.useState(false);
+
+    React.useEffect(() => {
+        if (!familyId) return;
+        var unsub = familiesCollection.doc(familyId).onSnapshot(function(snap) {
+            if (snap.exists) {
+                var d = Object.assign({ id: snap.id }, snap.data());
+                setFamily(d);
+                var lastAtMs = d.lastChatAtMs || (d.lastChatAt && d.lastChatAt.toMillis && d.lastChatAt.toMillis()) || 0;
+                var readAtRaw = d.chatReadBy && d.chatReadBy[currentUID];
+                var readAtMs = readAtRaw && readAtRaw.toMillis ? readAtRaw.toMillis() : (readAtRaw && readAtRaw.seconds ? readAtRaw.seconds * 1000 : 0);
+                setHasUnread(lastAtMs > readAtMs && d.lastChatSenderId !== currentUID && lastAtMs > 0);
+            }
+        }, function() {});
+        return function() { unsub(); };
+    }, [familyId, currentUID]);
+
+    if (!family) return null;
+
+    var signData = getFamilySignLevelData(family.weeklyActiveness || 0) || { level:0, color:'#4b5563', glow:'rgba(75,85,99,0.3)', defaultIcon:'🏠' };
+    var fLvl = getFamilyLevel(family.xp || 0);
+    var lastTime = family.lastChatAt ? fmtFamilyTime(family.lastChatAt, lang) : '';
+
+    return React.createElement('div', {
+        onClick: function() { onOpenChat(family); },
+        style: { display:'flex', alignItems:'center', gap:'12px', padding:'12px 16px', cursor:'pointer', background: hasUnread?'linear-gradient(135deg,rgba(255,136,0,0.1),rgba(255,80,0,0.05))':'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.05)', transition:'background 0.2s' }
+    },
+        React.createElement('div', { style: { position:'relative', flexShrink:0 } },
+            React.createElement('div', {
+                style: { width:'46px', height:'46px', borderRadius:'50%', overflow:'hidden', background:'linear-gradient(135deg,' + signData.color + '22,rgba(0,0,0,0.3))', border:'2px solid ' + signData.color + '55', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px' }
+            }, family.photoURL ? React.createElement('img', { src: family.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}}) : family.emblem || '🏠'),
+            hasUnread && React.createElement('div', { style: { position:'absolute', top:'-2px', right:'-2px', width:'14px', height:'14px', borderRadius:'50%', background:'#f97316', border:'2px solid var(--bg-main)', boxShadow:'0 0 6px rgba(249,115,22,0.8)' }})
+        ),
+        React.createElement('div', { style: { flex:1, minWidth:0 } },
+            React.createElement('div', { style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'3px' } },
+                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'5px', flex:1, minWidth:0, flexWrap:'wrap' } },
+                    React.createElement('span', { style: { fontSize:'13px', fontWeight: hasUnread?800:600, color: hasUnread?'#e2e8f0':'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } }, family.name),
+                    signData.level > 0 && React.createElement(FamilySignBadge, { tag: family.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: family.signImageURL })
+                ),
+                React.createElement('span', { style: { fontSize:'9px', color:'#6b7280', flexShrink:0, marginLeft:'6px' } }, lastTime)
+            ),
+            React.createElement('div', { style: { fontSize:'11px', color: hasUnread?'#d1d5db':'#6b7280', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } },
+                '🏠 ' + (family.lastChatMessage || (lang==='ar'?'شات العائلة':'Family Chat'))
+            ),
+            React.createElement('div', { style: { fontSize:'9px', color: fLvl.color, marginTop:'2px' } },
+                fLvl.icon + ' Lv.' + fLvl.level + ' · ' + ((family.members && family.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members')
+            )
+        ),
+        React.createElement('div', { style: { fontSize:'16px', color:'#f97316', flexShrink:0 } }, '›')
+    );
+};
+
+// ════════════════════════════════════════════════════════
+// 🏆 FAMILY RANKING INLINE — Used in ranking tab
+// ════════════════════════════════════════════════════════
+const FamilyRankingInline = ({ lang, currentFamilyId, onOpenFamily }) => {
+    const [rankings, setRankings] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        setLoading(true);
+        familiesCollection.orderBy('xp', 'desc').limit(50).get().then(snap => {
+            setRankings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            setLoading(false);
+        }).catch(() => setLoading(false));
+    }, []);
+
+    if (loading) return <div style={{textAlign:'center',padding:'40px',color:'#6b7280'}}>⏳</div>;
+
+    return (
+        <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+            {rankings.map((fam, i) => {
+                const fl = getFamilyLevel(fam.xp || 0);
+                const sign = getFamilySignLevelData(fam.weeklyActiveness || 0);
+                const signColor = sign?.color || '#6b7280';
+                const signLevel = sign?.level || 0;
+                const isMine = fam.id === currentFamilyId;
+                const medals = ['🥇','🥈','🥉'];
+                return (
+                    <div key={fam.id}
+                        onClick={() => onOpenFamily && onOpenFamily(fam.id)}
+                        style={{
+                            display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px',
+                            borderRadius:'12px',
+                            background: isMine ? 'rgba(0,242,255,0.08)' : i < 3 ? 'rgba(255,215,0,0.04)' : 'rgba(255,255,255,0.03)',
+                            border: isMine ? '1px solid rgba(0,242,255,0.3)' : i === 0 ? '1px solid rgba(255,215,0,0.2)' : '1px solid rgba(255,255,255,0.06)',
+                            cursor: onOpenFamily ? 'pointer' : 'default',
+                            transition: 'all 0.15s',
+                        }}
+                        onMouseEnter={e => { if (onOpenFamily) e.currentTarget.style.background = isMine ? 'rgba(0,242,255,0.14)' : 'rgba(255,255,255,0.06)'; }}
+                        onMouseLeave={e => { if (onOpenFamily) e.currentTarget.style.background = isMine ? 'rgba(0,242,255,0.08)' : i < 3 ? 'rgba(255,215,0,0.04)' : 'rgba(255,255,255,0.03)'; }}
+                    >
+                        <div style={{width:'24px', textAlign:'center', fontSize:'14px', flexShrink:0}}>
+                            {i < 3 ? medals[i] : <span style={{fontSize:'11px',color:'#4b5563',fontWeight:800}}>#{i+1}</span>}
+                        </div>
+                        <div style={{width:'38px', height:'38px', borderRadius:'50%', overflow:'hidden', border:`2px solid ${signColor}55`, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', flexShrink:0}}>
+                            {fam.photoURL ? <img src={fam.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : fam.emblem || '🏠'}
+                        </div>
+                        <div style={{flex:1, minWidth:0}}>
+                            <div style={{display:'flex', alignItems:'center', gap:'5px', flexWrap:'wrap'}}>
+                                <span style={{fontSize:'12px', fontWeight:800, color: isMine?'#00f2ff':'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'110px'}}>{fam.name}</span>
+                                {sign && <FamilySignBadge tag={fam.tag} color={signColor} small signLevel={signLevel} />}
+                            </div>
+                            <div style={{fontSize:'10px', color:'#6b7280', marginTop:'1px'}}>
+                                {fl.icon} Lv.{fl.level} · 👥 {(fam.members||[]).length}
+                            </div>
+                        </div>
+                        <div style={{textAlign:'right', flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'2px'}}>
+                            <div style={{fontSize:'12px', fontWeight:900, color:'#fbbf24'}}>{fmtFamilyNum(fam.xp||0)} XP</div>
+                            {sign && <div style={{fontSize:'9px', color: signColor, fontWeight:700}}>{lang==='ar'?sign.name_ar:sign.name_en}</div>}
+                            {onOpenFamily && <div style={{fontSize:'9px', color:'#4b5563'}}>›</div>}
+                        </div>
+                    </div>
+                );
+            })}
+            {rankings.length === 0 && <div style={{textAlign:'center',padding:'30px',color:'#4b5563',fontSize:'12px'}}>{lang==='ar'?'لا يوجد ترتيب بعد':'No rankings yet'}</div>}
+        </div>
+    );
+};
+
+// ════════════════════════════════════════════════════════
+// 🏠 FAMILY MODAL — Main Component V2
+// ════════════════════════════════════════════════════════
+const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification, viewFamilyId, onSendGift, userData }) => {
+    const [activeTab, setActiveTab] = useState('profile');
+    const [family, setFamily] = useState(null);
+    const [loadingFamily, setLoadingFamily] = useState(true);
+    const [familyMembers, setFamilyMembers] = useState([]);
+    const [newsLog, setNewsLog] = useState([]);
+    const [donationSort, setDonationSort] = useState('intel');
+    const [memberSearch, setMemberSearch] = useState('');
+    // Gear menu state for member management
+    const [gearMenuUid, setGearMenuUid] = useState(null); // uid of member whose gear is open
+    // Tag editing state
+    const [editTag, setEditTag] = useState('');
+    const [savingTag, setSavingTag] = useState(false);
+    const [joinRequesterProfiles, setJoinRequesterProfiles] = useState([]);
+    // ── Delete family confirm ──
+    const [showDeleteFamilyConfirm, setShowDeleteFamilyConfirm] = useState(false);
+    const [deletingFamily, setDeletingFamily] = useState(false);
+    // ── Gift modal in chat ──
+    const [showFamilyChatGift, setShowFamilyChatGift] = useState(false);
+    // ── Mini profile popup in chat ──
+    const [miniProfileMember, setMiniProfileMember] = useState(null); // { uid, name, photo, customId }
+    const [miniProfileGiftSending, setMiniProfileGiftSending] = useState(false);
+    // ── Mention @ in chat ──
+    const [mentionSearch, setMentionSearch] = useState(''); // query بعد @
+    const [showMentionList, setShowMentionList] = useState(false);
+    const chatInputRef = useRef(null);
+
+    // Chat state
+    const [chatMessages, setChatMessages] = useState([]);
+    const [chatInput, setChatInput] = useState('');
+    const [sendingMsg, setSendingMsg] = useState(false);
+    const chatEndRef = useRef(null);
+
+    // Donate state
+    const [donateAmount, setDonateAmount] = useState('');
+    const [donating, setDonating] = useState(false);
+    const [showDonatePanel, setShowDonatePanel] = useState(false);
+
+    // Header dots menu
+    // header menu state removed (three-dot removed; ranking is now a tab)
+
+    // Create/Join state
+    const [view, setView] = useState('home');
+    const [tribeName, setFamilyName] = useState('');
+    const [tribeTag, setFamilyTag] = useState('');
+    const [tribeDesc, setFamilyDesc] = useState('');
+    const [tribeEmblem, setFamilyEmblem] = useState('🏠');
+    const [creating, setCreating] = useState(false);
+    const [joinSearch, setJoinSearch] = useState('');
+    const [joinResults, setJoinResults] = useState([]);
+    const [searching, setSearching] = useState(false);
+    const [joining, setJoining] = useState(false);
+
+    // Manage tab state
+    const [editAnnouncement, setEditAnnouncement] = useState('');
+    const [editName, setEditName] = useState('');
+    const [editDesc, setEditDesc] = useState('');
+    const [savingAnn, setSavingAnn] = useState(false);
+    const [savingInfo, setSavingInfo] = useState(false);
+    const [joinMode, setJoinMode] = useState('open'); // 'open' | 'approval'
+    const photoFileRef = useRef(null);
+    const signImageFileRef = useRef(null);
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [uploadingSign, setUploadingSign] = useState(false);
+
+    // ── Load family (real-time) ── supports viewFamilyId for viewing external families
+    useEffect(() => {
+        if (!show) { setLoadingFamily(false); return; }
+        setLoadingFamily(true);
+        // If viewFamilyId passed (from profile badge click), load that family in read-only mode
+        const fid = viewFamilyId || currentUserData?.familyId;
+        if (!fid) { setFamily(null); setLoadingFamily(false); return; }
+        const unsub = familiesCollection.doc(fid).onSnapshot(snap => {
+            if (snap.exists) {
+                const d = { id: snap.id, ...snap.data() };
+                setFamily(d);
+                setEditAnnouncement(d.announcement || '');
+                setEditName(d.name || '');
+                setEditDesc(d.description || '');
+                setJoinMode(d.joinMode || 'open');
+                setEditTag(d.tag || '');
+            } else {
+                setFamily(null);
+                if (!viewFamilyId) {
+                    usersCollection.doc(currentUID).update({ familyId: null, familyName: null, familyTag: null }).catch(() => {});
+                }
+            }
+            setLoadingFamily(false);
+        }, () => setLoadingFamily(false));
+        return () => unsub();
+    }, [show, currentUID, currentUserData?.familyId, viewFamilyId]);
+
+    // ── Load chat messages (real-time) ──
+    useEffect(() => {
+        if (!family?.id || activeTab !== 'chat') return;
+        const unsub = familiesCollection.doc(family.id).collection('messages')
+            .orderBy('timestamp', 'desc').limit(60)
+            .onSnapshot(snap => {
+                const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+                setChatMessages(msgs);
+            }, () => {});
+        return () => unsub();
+    }, [family?.id, activeTab]);
+
+    // Auto-scroll chat
+    useEffect(() => {
+        if (activeTab === 'chat') {
+            setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+        }
+    }, [chatMessages.length, activeTab]);
+
+    // ── Load member profiles ──
+    useEffect(() => {
+        if (!family?.members?.length) { setFamilyMembers([]); return; }
+        const uids = family.members.slice(0, 30);
+        const chunks = [];
+        for (let i = 0; i < uids.length; i += 10) chunks.push(uids.slice(i, i + 10));
+        Promise.all(chunks.map(chunk =>
+            usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get().catch(() => ({ docs: [] }))
+        )).then(results => {
+            const members = [];
+            results.forEach(snap => snap.docs.forEach(d => members.push({ id: d.id, ...d.data() })));
+            setFamilyMembers(members);
+        }).catch(() => {});
+    }, [family?.members?.join(',')]);
+
+    // ── Load news ──
+    useEffect(() => {
+        if (!family?.id || activeTab !== 'news') return;
+        const unsub = familiesCollection.doc(family.id).collection('news')
+            .orderBy('createdAt', 'desc').limit(30)
+            .onSnapshot(snap => setNewsLog(snap.docs.map(d => ({ id: d.id, ...d.data() }))), () => {});
+        return () => unsub();
+    }, [family?.id, activeTab]);
+
+    // ── Load join requester profiles ──
+    useEffect(() => {
+        const reqs = family?.joinRequests || [];
+        if (!reqs.length || activeTab !== 'manage') { setJoinRequesterProfiles([]); return; }
+        const chunks = [];
+        for (let i = 0; i < reqs.length; i += 10) chunks.push(reqs.slice(i, i + 10));
+        Promise.all(chunks.map(chunk =>
+            usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get().catch(() => ({ docs: [] }))
+        )).then(results => {
+            const ps = [];
+            results.forEach(snap => snap.docs.forEach(d => ps.push({ id: d.id, ...d.data() })));
+            setJoinRequesterProfiles(ps);
+        }).catch(() => {});
+    }, [family?.joinRequests?.join(','), activeTab]);
+
+    if (!show) return null;
+
+    // ─────────────────────────────────────────────
+    // HELPERS & ACTIONS
+    // ─────────────────────────────────────────────
+    const postNews = async (familyId, type, text, amount = 0) => {
+        try {
+            await familiesCollection.doc(familyId).collection('news').add({
+                type, text, amount,
+                actorUID: currentUID,
+                actorName: currentUserData?.displayName || 'Member',
+                actorPhoto: currentUserData?.photoURL || null,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+        } catch (e) {}
+    };
+
+    const postChatMessage = async (familyId, text, type = 'text', extra = {}) => {
+        try {
+            await familiesCollection.doc(familyId).collection('messages').add({
+                senderId: currentUID,
+                senderName: currentUserData?.displayName || 'Member',
+                senderPhoto: currentUserData?.photoURL || null,
+                text, type,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                ...extra,
+            });
+        } catch (e) {}
+    };
+
+    const postSystemMessage = async (familyId, text) => {
+        try {
+            await familiesCollection.doc(familyId).collection('messages').add({
+                senderId: 'system',
+                senderName: 'SYSTEM',
+                text, type: 'system',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+        } catch (e) {}
+    };
+
+    // Update user's sign fields when joining/sign changes
+    const syncUserFamilySign = async (familyId, familyData) => {
+        try {
+            const weeklyAct = familyData.weeklyActiveness || 0;
+            const signD = getFamilySignLevelData(weeklyAct);
+            await usersCollection.doc(currentUID).update({
+                familySignLevel: signD?.level || null,
+                familySignColor: signD?.color || null,
+                familySignImageURL: familyData.signImageURL || null,
+            });
+        } catch (e) {}
+    };
+
+    const createFamily = async () => {
+        if (!tribeName.trim() || !tribeTag.trim() || creating || !currentUID) return;
+        if ((currentUserData?.currency || 0) < FAMILY_CREATE_COST) {
+            onNotification(lang === 'ar' ? `❌ تحتاج ${FAMILY_CREATE_COST} إنتل` : `❌ Need ${FAMILY_CREATE_COST} Intel`);
+            return;
+        }
+        const cleanTag = tribeTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+        if (cleanTag.length < 3) { onNotification(lang === 'ar' ? '❌ الوسم 3 أحرف على الأقل' : '❌ Tag: min 3 chars'); return; }
+        const cleanName = tribeName.trim().slice(0, 10);
+        setCreating(true);
+        try {
+            const tagCheck = await familiesCollection.where('tag', '==', cleanTag).get();
+            if (!tagCheck.empty) { onNotification(lang === 'ar' ? '❌ هذا الوسم مستخدم' : '❌ Tag already taken'); setCreating(false); return; }
+            const ref = await familiesCollection.add({
+                name: cleanName, tag: cleanTag, description: tribeDesc.trim(),
+                emblem: tribeEmblem, announcement: '',
+                photoURL: null, signImageURL: null,
+                createdBy: currentUID,
+                leaderName: currentUserData?.displayName || 'Leader',
+                leaderPhoto: currentUserData?.photoURL || null,
+                members: [currentUID],
+                memberRoles: { [currentUID]: 'owner' },
+                memberDonations: { [currentUID]: { weekly: 0, total: 0, weeklyIntel: 0, totalIntel: 0 } },
+                level: 1, xp: 0,
+                activeness: 0, weeklyActiveness: 0,
+                treasury: 0,
+                activenessClaimedMilestones: [],
+                taskProgress: {},
+                joinRequests: [], joinMode: 'open', weeklyRank: null,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastActivity: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            await usersCollection.doc(currentUID).update({
+                currency: firebase.firestore.FieldValue.increment(-FAMILY_CREATE_COST),
+                familyId: ref.id, familyName: cleanName, familyTag: cleanTag,
+                // No sign on creation — earned through weekly activeness
+                familySignLevel: null, familySignColor: null, familySignImageURL: null,
+            });
+            await postSystemMessage(ref.id, lang === 'ar' ? `🏠 تم إنشاء العائلة! مرحباً ${currentUserData?.displayName}` : `🏠 Family created! Welcome ${currentUserData?.displayName}`);
+            onNotification(lang === 'ar' ? '🏠 تم إنشاء العائلة!' : '🏠 Family created!');
+            setFamilyName(''); setFamilyTag(''); setFamilyDesc('');
+        } catch (e) { console.error(e); onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+        setCreating(false);
+    };
+
+    const joinFamily = async (familyId) => {
+        if (!currentUID || joining) return;
+        setJoining(true);
+        try {
+            const snap = await familiesCollection.doc(familyId).get();
+            if (!snap.exists) { onNotification(lang === 'ar' ? '❌ العائلة غير موجودة' : '❌ Family not found'); setJoining(false); return; }
+            const fd = snap.data();
+            const lvl = getFamilyLevel(fd.xp || 0);
+            if ((fd.members || []).length >= lvl.maxMembers) { onNotification(lang === 'ar' ? '❌ العائلة ممتلئة' : '❌ Family is full'); setJoining(false); return; }
+
+            // If approval required, add to joinRequests
+            if (fd.joinMode === 'approval') {
+                await familiesCollection.doc(familyId).update({
+                    joinRequests: firebase.firestore.FieldValue.arrayUnion(currentUID)
+                });
+                onNotification(lang === 'ar' ? '✅ تم إرسال طلب الانضمام' : '✅ Join request sent');
+                setJoining(false);
+                return;
+            }
+
+            await familiesCollection.doc(familyId).update({
+                members: firebase.firestore.FieldValue.arrayUnion(currentUID),
+                xp: firebase.firestore.FieldValue.increment(10),
+                [`memberRoles.${currentUID}`]: 'member',
+                [`memberDonations.${currentUID}`]: { weekly: 0, total: 0, weeklyIntel: 0, totalIntel: 0 },
+                lastActivity: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            await usersCollection.doc(currentUID).update({
+                familyId, familyName: fd.name, familyTag: fd.tag,
+                familySignLevel: getFamilySignLevelData(fd.weeklyActiveness || 0)?.level || null,
+                familySignColor: getFamilySignLevelData(fd.weeklyActiveness || 0)?.color || null,
+                familySignImageURL: fd.signImageURL || null,
+            });
+            // Post chat message AFTER joining
+            await postSystemMessage(familyId, lang === 'ar' ? `🎉 ${currentUserData?.displayName} انضم للعائلة!` : `🎉 ${currentUserData?.displayName} joined the family!`);
+            await postNews(familyId, 'join', lang === 'ar' ? `🎉 ${currentUserData?.displayName} انضم للعائلة!` : `🎉 ${currentUserData?.displayName} joined the family!`);
+            onNotification(lang === 'ar' ? '✅ انضممت للعائلة!' : '✅ Joined family!');
+        } catch (e) { console.error(e); onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+        setJoining(false);
+    };
+
+    const leaveFamily = async () => {
+        if (!family?.id || !currentUID) return;
+        const role = getFamilyRole(family, currentUID);
+        const isLastLeader = role === 'owner' && (family.members || []).length > 1;
+        if (isLastLeader) { onNotification(lang === 'ar' ? '❌ عيّن قائداً آخر أولاً' : '❌ Assign another leader first'); return; }
+        try {
+            if ((family.members || []).length <= 1) {
+                await familiesCollection.doc(family.id).delete();
+            } else {
+                const updRoles = { ...family.memberRoles }; delete updRoles[currentUID];
+                const updDons = { ...family.memberDonations }; delete updDons[currentUID];
+                await familiesCollection.doc(family.id).update({
+                    members: firebase.firestore.FieldValue.arrayRemove(currentUID),
+                    memberRoles: updRoles, memberDonations: updDons,
+                });
+                await postSystemMessage(family.id, lang === 'ar' ? `👋 ${currentUserData?.displayName} غادر العائلة` : `👋 ${currentUserData?.displayName} left the family`);
+                await postNews(family.id, 'leave', lang === 'ar' ? `${currentUserData?.displayName} غادر العائلة` : `${currentUserData?.displayName} left the family`);
+            }
+            await usersCollection.doc(currentUID).update({
+                familyId: null, familyName: null, familyTag: null,
+                familySignLevel: null, familySignColor: null, familySignImageURL: null,
+            });
+            setFamily(null); setView('home'); setActiveTab('profile');
+            onNotification(lang === 'ar' ? '👋 تركت العائلة' : '👋 Left family');
+        } catch (e) { onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+    };
+
+    // ── حذف العائلة (المالك فقط) ──
+    const handleDeleteFamily = async () => {
+        if (!family?.id || getFamilyRole(family, currentUID) !== 'owner') return;
+        setDeletingFamily(true);
+        try {
+            // حذف كل الأعضاء من بيانات المستخدمين
+            const memberIds = family.members || [];
+            const batch = db.batch();
+            memberIds.forEach(uid => {
+                const ref = usersCollection.doc(uid);
+                batch.update(ref, {
+                    familyId: null, familyName: null, familyTag: null,
+                    familySignLevel: null, familySignColor: null, familySignImageURL: null,
+                });
+            });
+            await batch.commit().catch(() => {});
+            // حذف العائلة نفسها
+            await familiesCollection.doc(family.id).delete();
+            setFamily(null);
+            setView('home');
+            setActiveTab('profile');
+            setShowDeleteFamilyConfirm(false);
+            onNotification(lang === 'ar' ? '🗑️ تم حذف العائلة بنجاح' : '🗑️ Family deleted successfully');
+            onClose();
+        } catch (e) {
+            onNotification(lang === 'ar' ? '❌ خطأ في الحذف' : '❌ Delete error');
+        }
+        setDeletingFamily(false);
+    };
+
+    const handleDonate = async () => {
+        const amount = parseInt(donateAmount);
+        if (!amount || amount <= 0 || !family?.id || donating) return;
+        if ((currentUserData?.currency || 0) < amount) {
+            onNotification(lang === 'ar' ? '❌ رصيدك غير كافٍ' : '❌ Insufficient Intel');
+            return;
+        }
+        setDonating(true);
+        try {
+            const don = family.memberDonations?.[currentUID] || { weekly: 0, total: 0, weeklyIntel: 0, totalIntel: 0 };
+
+            // ── Mission ft3: Donate 500 Intel (per-user) ──
+            const ft3Key = `ft3_${currentUID}`;
+            const ft3Prog = family.taskProgress?.[ft3Key] || { current: 0, claimed: false };
+            const newFt3 = ft3Prog.claimed ? ft3Prog.current : Math.min(500, (ft3Prog.current || 0) + amount);
+
+            await familiesCollection.doc(family.id).update({
+                treasury: firebase.firestore.FieldValue.increment(amount),
+                xp: firebase.firestore.FieldValue.increment(Math.floor(amount / 10)),
+                activeness: firebase.firestore.FieldValue.increment(amount),
+                weeklyActiveness: firebase.firestore.FieldValue.increment(amount),
+                [`memberDonations.${currentUID}.weekly`]: (don.weekly || 0) + amount,
+                [`memberDonations.${currentUID}.total`]: (don.total || 0) + amount,
+                [`memberDonations.${currentUID}.weeklyIntel`]: (don.weeklyIntel || 0) + amount,
+                [`memberDonations.${currentUID}.totalIntel`]: (don.totalIntel || 0) + amount,
+                ...(ft3Prog.claimed ? {} : { [`taskProgress.${ft3Key}.current`]: newFt3 }),
+                lastActivity: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            await usersCollection.doc(currentUID).update({
+                currency: firebase.firestore.FieldValue.increment(-amount),
+            });
+            // Post donation in family chat
+            await familiesCollection.doc(family.id).collection('messages').add({
+                senderId: currentUID,
+                senderName: currentUserData?.displayName || 'Member',
+                senderPhoto: currentUserData?.photoURL || null,
+                type: 'donation',
+                amount,
+                text: lang === 'ar' ? `💰 ${currentUserData?.displayName} تبرع بـ ${fmtFamilyNum(amount)} إنتل 🧠` : `💰 ${currentUserData?.displayName} donated ${fmtFamilyNum(amount)} Intel 🧠`,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            await postNews(family.id, 'donation', lang === 'ar' ? `${currentUserData?.displayName} تبرع بـ ${fmtFamilyNum(amount)} إنتل` : `${currentUserData?.displayName} donated ${fmtFamilyNum(amount)} Intel`, amount);
+            onNotification(`✅ +${fmtFamilyNum(amount)} 🧠 ${lang === 'ar' ? 'تم التبرع!' : 'Donated!'}`);
+            setDonateAmount('');
+            setShowDonatePanel(false);
+        } catch (e) { onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+        setDonating(false);
+    };
+
+    const sendChatMessage = async () => {
+        if (!chatInput.trim() || sendingMsg || !family?.id) return;
+        setSendingMsg(true);
+        const text = chatInput.trim();
+        setChatInput('');
+
+        // ── Check if it's an Announcement (owner/admin only) ──
+        const isAnnouncement = /^Announcement\b/i.test(text) && canManage;
+
+        try {
+            const msgData = {
+                senderId: currentUID,
+                senderName: currentUserData?.displayName || 'Member',
+                senderPhoto: currentUserData?.photoURL || null,
+                senderRole: myRole || 'member',
+                type: isAnnouncement ? 'announcement' : 'text',
+                text,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            };
+            await familiesCollection.doc(family.id).collection('messages').add(msgData);
+
+            // لو إعلان → نحفظه في بيانات العائلة كمان
+            if (isAnnouncement) {
+                await familiesCollection.doc(family.id).update({
+                    announcement: text,
+                    announcementAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    announcementBy: currentUserData?.displayName || 'Leader',
+                });
+            }
+
+            // ── Mission ft6: Chat 10 messages (per-user) ──
+            const userChatProg = family.taskProgress?.[`ft6_${currentUID}`] || { current: 0, claimed: false };
+            if (!userChatProg.claimed) {
+                await familiesCollection.doc(family.id).update({
+                    [`taskProgress.ft6_${currentUID}.current`]: Math.min(10, (userChatProg.current || 0) + 1),
+                    activeness: firebase.firestore.FieldValue.increment(5),
+                    weeklyActiveness: firebase.firestore.FieldValue.increment(5),
+                });
+            }
+        } catch (e) {}
+        setSendingMsg(false);
+    };
+
+    const handleJoinRequest = async (uid, accept) => {
+        if (!family?.id) return;
+        try {
+            const updates = { joinRequests: firebase.firestore.FieldValue.arrayRemove(uid) };
+            if (accept) {
+                updates[`memberRoles.${uid}`] = 'member';
+                updates[`memberDonations.${uid}`] = { weekly: 0, total: 0, weeklyIntel: 0, totalIntel: 0 };
+                updates.members = firebase.firestore.FieldValue.arrayUnion(uid);
+                updates.xp = firebase.firestore.FieldValue.increment(5);
+                await familiesCollection.doc(family.id).update(updates);
+                const fd = await familiesCollection.doc(family.id).get();
+                await usersCollection.doc(uid).update({
+                    familyId: family.id, familyName: family.name, familyTag: family.tag,
+                    familySignLevel: getFamilySignLevelData(fd.data()?.weeklyActiveness || 0)?.level || null,
+                    familySignColor: getFamilySignLevelData(fd.data()?.weeklyActiveness || 0)?.color || null,
+                    familySignImageURL: fd.data()?.signImageURL || null,
+                });
+                const p = joinRequesterProfiles.find(m => m.id === uid);
+                await postSystemMessage(family.id, `🎉 ${p?.displayName || 'Member'} ${lang === 'ar' ? 'انضم للعائلة!' : 'joined the family!'}`);
+                await postNews(family.id, 'join', `🎉 ${p?.displayName || 'Member'} ${lang === 'ar' ? 'انضم للعائلة!' : 'joined the family!'}`);
+                onNotification(lang === 'ar' ? '✅ تم القبول' : '✅ Accepted');
+            } else {
+                await familiesCollection.doc(family.id).update(updates);
+                onNotification(lang === 'ar' ? '❌ تم الرفض' : '❌ Rejected');
+            }
+        } catch (e) {}
+    };
+
+    const kickMember = async (uid) => {
+        if (!family?.id || uid === family.createdBy) return;
+        try {
+            const updRoles = { ...family.memberRoles }; delete updRoles[uid];
+            const updDons = { ...family.memberDonations }; delete updDons[uid];
+            await familiesCollection.doc(family.id).update({
+                members: firebase.firestore.FieldValue.arrayRemove(uid),
+                memberRoles: updRoles, memberDonations: updDons,
+            });
+            await usersCollection.doc(uid).update({
+                familyId: null, familyName: null, familyTag: null,
+                familySignLevel: null, familySignColor: null, familySignImageURL: null,
+            });
+            const m = familyMembers.find(fm => fm.id === uid);
+            await postSystemMessage(family.id, `${m?.displayName || 'Member'} ${lang === 'ar' ? 'تم طرده' : 'was kicked'}`);
+            await postNews(family.id, 'leave', `${m?.displayName || 'Member'} ${lang === 'ar' ? 'تم طرده' : 'was kicked'}`);
+            onNotification(lang === 'ar' ? '✅ تم الطرد' : '✅ Kicked');
+        } catch (e) {}
+    };
+
+    const setMemberRole = async (uid, newRole) => {
+        if (!family?.id || uid === family.createdBy) return;
+        const myRole = getFamilyRole(family, currentUID);
+        // Only owner can set admin; owner+admin can set moderator
+        if (newRole === 'admin' && myRole !== 'owner') return;
+        if (newRole === 'member' && myRole !== 'owner' && getFamilyRole(family, uid) === 'admin') return;
+        try {
+            await familiesCollection.doc(family.id).update({
+                [`memberRoles.${uid}`]: newRole,
+            });
+            const m = familyMembers.find(fm => fm.id === uid);
+            const roleName = { admin: lang==='ar'?'أدمن':'Admin', moderator: lang==='ar'?'مشرف':'Mod', member: lang==='ar'?'عضو':'Member' }[newRole] || newRole;
+            await postSystemMessage(family.id, `${m?.displayName || 'Member'} → ${roleName}`);
+            onNotification(lang==='ar'?`✅ تم تعيين ${roleName}`:`✅ Set as ${roleName}`);
+        } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+        setGearMenuUid(null);
+    };
+
+    const saveTag = async () => {
+        if (!family?.id || !canManageFamily(family, currentUID)) return;
+        const clean = editTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+        if (clean.length < 3) { onNotification(lang==='ar'?'❌ الوسم 3 أحرف على الأقل':'❌ Tag: min 3 chars'); return; }
+        setSavingTag(true);
+        try {
+            const tagCheck = await familiesCollection.where('tag', '==', clean).get();
+            const alreadyMine = tagCheck.docs.some(d => d.id === family.id);
+            if (!tagCheck.empty && !alreadyMine) { onNotification(lang==='ar'?'❌ هذا الوسم مستخدم':'❌ Tag already taken'); setSavingTag(false); return; }
+            await familiesCollection.doc(family.id).update({ tag: clean });
+            for (const uid of (family.members || [])) {
+                await usersCollection.doc(uid).update({ familyTag: clean }).catch(() => {});
+            }
+            onNotification(lang==='ar'?'✅ تم تغيير الوسم':'✅ Tag updated');
+        } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+        setSavingTag(false);
+    };
+
+    const claimActiveMilestone = async (idx) => {
+        if (!family?.id || !canManageFamily(family, currentUID)) return;
+        try {
+            await familiesCollection.doc(family.id).update({
+                activenessClaimedMilestones: firebase.firestore.FieldValue.arrayUnion(idx),
+                treasury: firebase.firestore.FieldValue.increment(ACTIVENESS_MILESTONES[idx].reward),
+            });
+            onNotification(`✅ +${ACTIVENESS_MILESTONES[idx].reward} 🧠 ${lang === 'ar' ? 'للخزينة!' : 'to treasury!'}`);
+        } catch (e) {}
+    };
+
+    const saveAnnouncement = async () => {
+        if (!family?.id || !canManageFamily(family, currentUID)) return;
+        setSavingAnn(true);
+        try {
+            await familiesCollection.doc(family.id).update({ announcement: editAnnouncement });
+            onNotification(lang === 'ar' ? '✅ تم الحفظ' : '✅ Saved');
+        } catch (e) {}
+        setSavingAnn(false);
+    };
+
+    const saveInfo = async () => {
+        if (!family?.id || !canManageFamily(family, currentUID)) return;
+        if (!editName.trim()) return;
+        setSavingInfo(true);
+        try {
+            await familiesCollection.doc(family.id).update({
+                name: editName.trim(),
+                description: editDesc.trim(),
+                joinMode: joinMode,
+            });
+            // Update familyName in user docs of all members
+            for (const uid of (family.members || [])) {
+                await usersCollection.doc(uid).update({ familyName: editName.trim() }).catch(() => {});
+            }
+            onNotification(lang === 'ar' ? '✅ تم الحفظ' : '✅ Saved');
+        } catch (e) {}
+        setSavingInfo(false);
+    };
+
+    const handlePhotoUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file || !family?.id || !canManageFamily(family, currentUID)) return;
+        setUploadingPhoto(true);
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+            const img = new Image();
+            img.onload = async () => {
+                const canvas = document.createElement('canvas');
+                const SIZE = 200;
+                canvas.width = SIZE; canvas.height = SIZE;
+                const ctx = canvas.getContext('2d');
+                const scale = Math.max(SIZE / img.width, SIZE / img.height);
+                const sw = img.width * scale, sh = img.height * scale;
+                ctx.drawImage(img, (SIZE - sw) / 2, (SIZE - sh) / 2, sw, sh);
+                const base64 = canvas.toDataURL('image/jpeg', 0.7);
+                try {
+                    await familiesCollection.doc(family.id).update({ photoURL: base64 });
+                    onNotification(lang === 'ar' ? '✅ تم تحديث صورة العائلة' : '✅ Family photo updated');
+                } catch (err) {}
+                setUploadingPhoto(false);
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleSignImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file || !family?.id || !canManageFamily(family, currentUID)) return;
+        setUploadingSign(true);
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+            const img = new Image();
+            img.onload = async () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 120; canvas.height = 40;
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, 120, 40);
+                const scale = Math.min(120 / img.width, 40 / img.height);
+                const dw = img.width * scale, dh = img.height * scale;
+                ctx.drawImage(img, (120 - dw) / 2, (40 - dh) / 2, dw, dh);
+                const base64 = canvas.toDataURL('image/png', 0.8);
+                try {
+                    await familiesCollection.doc(family.id).update({ signImageURL: base64 });
+                    // Update all member user docs
+                    for (const uid of (family.members || [])) {
+                        await usersCollection.doc(uid).update({ familySignImageURL: base64 }).catch(() => {});
+                    }
+                    onNotification(lang === 'ar' ? '✅ تم تحديث صورة الشارة' : '✅ Sign image updated');
+                } catch (err) {}
+                setUploadingSign(false);
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const searchFamilies = async () => {
+        if (!joinSearch.trim() || searching) return;
+        setSearching(true);
+        try {
+            const q = joinSearch.trim().toUpperCase();
+            const snap = await familiesCollection.where('tag', '==', q).limit(5).get();
+            if (snap.empty) {
+                const snap2 = await familiesCollection.where('name', '>=', joinSearch.trim()).where('name', '<=', joinSearch.trim() + '\uf8ff').limit(5).get();
+                setJoinResults(snap2.docs.map(d => ({ id: d.id, ...d.data() })));
+            } else {
+                setJoinResults(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            }
+        } catch (e) { setJoinResults([]); }
+        setSearching(false);
+    };
+
+    // ─────────────────────────────────────────────
+    // STYLES
+    // ─────────────────────────────────────────────
+    const S = {
+        modal: { background:'linear-gradient(180deg,#0d0d1f,#08080f)', border:'1px solid rgba(0,242,255,0.15)', borderRadius:'20px', width:'100%', maxWidth:'460px', height:'92vh', maxHeight:'800px', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 24px 80px rgba(0,0,0,0.95)' },
+        header: { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', borderBottom:'1px solid rgba(255,255,255,0.08)', flexShrink:0, background:'rgba(0,0,0,0.3)', position:'relative' },
+        tabBar: { display:'flex', borderBottom:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.2)', flexShrink:0, overflowX:'auto', scrollbarWidth:'none' },
+        card: { background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'14px', padding:'14px' },
+        sectionTitle: { fontSize:'11px', fontWeight:800, color:'#00f2ff', textTransform:'uppercase', letterSpacing:'1px', paddingLeft:'10px', borderLeft:'3px solid #00f2ff', marginBottom:'12px' },
+        input: { width:'100%', padding:'10px 13px', borderRadius:'10px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', color:'white', fontSize:'13px', outline:'none', boxSizing:'border-box' },
+        btn: { padding:'10px 18px', borderRadius:'10px', border:'none', fontWeight:800, fontSize:'12px', cursor:'pointer' },
+        divider: { height:'1px', background:'rgba(255,255,255,0.06)', margin:'8px 0' },
+    };
+
+    // هل المستخدم بيشوف قبيلة من الخارج (مش عضو فيها)؟
+    const isExternalView = !!(viewFamilyId && (!currentUserData?.familyId || currentUserData?.familyId !== viewFamilyId));
+    const isMemberOfThisFamily = family ? (family.members || []).includes(currentUID) : false;
+    const isReadOnly = isExternalView && !isMemberOfThisFamily;
+
+    const TABS = isReadOnly ? [
+        { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
+        { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
+        { id:'news',     label_en:'News',    label_ar:'أخبار',    icon:'📰' },
+    ] : [
+        { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
+        { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
+        { id:'tasks',    label_en:'Tasks',   label_ar:'مهام',     icon:'🎯' },
+        { id:'shop',     label_en:'Shop',    label_ar:'المتجر',   icon:'🏅' },
+        { id:'news',     label_en:'News',    label_ar:'أخبار',    icon:'📰' },
+        { id:'manage',   label_en:'Manage',  label_ar:'إدارة',    icon:'⚙️' },
+    ];
+
+    const fLvl = family ? getFamilyLevel(family.xp || 0) : null;
+    const fProg = family ? getFamilyLevelProgress(family.xp || 0) : 0;
+    const myRole = family ? getFamilyRole(family, currentUID) : null;
+    const canManage = family ? canManageFamily(family, currentUID) : false;
+    const weeklyAct = family ? (family.weeklyActiveness || 0) : 0;
+    // signData can be null if no weekly activeness yet — use a safe fallback
+    const SIGN_FALLBACK = { level: 0, color: '#4b5563', glow: 'rgba(75,85,99,0.3)', defaultIcon: '🏠', bg: 'rgba(75,85,99,0.1)', name_ar: 'بدون ساين', name_en: 'No Sign', threshold: 0 };
+    const signData = (family ? getFamilySignLevelData(weeklyAct) : null) || SIGN_FALLBACK;
+    const signProg = family ? getFamilySignProgress(weeklyAct) : 0;
+
+    // ─────────────────────────────────────────────
+    // TAB: PROFILE
+    // ─────────────────────────────────────────────
+    const renderProfile = () => {
+        if (!family || !fLvl) return null;
+        const claimed = family.activenessClaimedMilestones || [];
+        const weeklyAct = family.weeklyActiveness || 0;
+        const treasury = family.treasury || 0;
+        const ownerMember = familyMembers.find(m => m.id === family.createdBy);
+
+        return (
+            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'12px'}}>
+
+                {/* ── OFFICIAL ANNOUNCEMENT — at top for visibility ── */}
+                {family.announcement && (
+                    <div style={{
+                        background:'linear-gradient(135deg,rgba(20,10,0,0.95),rgba(30,15,0,0.95))',
+                        border:'2px solid rgba(255,165,0,0.8)',
+                        boxShadow:'0 0 28px rgba(255,140,0,0.25), inset 0 0 20px rgba(255,140,0,0.05)',
+                        borderRadius:'14px',
+                        position:'relative',
+                        padding:'14px 14px 14px 22px',
+                    }}>
+                        {/* left glow bar */}
+                        <div style={{position:'absolute',left:0,top:0,bottom:0,width:'5px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'14px 0 0 14px'}}/>
+                        {/* Header row */}
+                        <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+                            <span style={{fontSize:'20px',flexShrink:0}}>📢</span>
+                            <div style={{flex:1}}>
+                                <div style={{fontSize:'10px', fontWeight:900, color:'#ffd700', letterSpacing:'1.5px', textTransform:'uppercase'}}>
+                                    {lang==='ar'?'إعلان رسمي':'OFFICIAL ANNOUNCEMENT'}
+                                </div>
+                                {family.announcementBy && (
+                                    <div style={{fontSize:'9px',color:'rgba(255,255,255,0.5)',marginTop:'1px'}}>
+                                        {lang==='ar'?'بواسطة:':'By:'} {family.announcementBy}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        {/* Announcement text — always fully visible */}
+                        <div style={{
+                            fontSize:'13px',
+                            color:'#ffffff',
+                            lineHeight:1.7,
+                            fontWeight:500,
+                            wordBreak:'break-word',
+                            whiteSpace:'pre-wrap',
+                            paddingTop:'4px',
+                            borderTop:'1px solid rgba(255,165,0,0.25)',
+                        }}>{family.announcement}</div>
+                    </div>
+                )}
+
+                {/* ── Family Hero ── */}
+                <div style={{...S.card, background:`linear-gradient(135deg,rgba(0,242,255,0.06),rgba(112,0,255,0.06))`, border:`1px solid rgba(0,242,255,0.15)`, padding:'14px'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:'14px'}}>
+                        {/* Photo/Avatar */}
+                        <div style={{position:'relative', flexShrink:0}}>
+                            <div style={{width:'72px', height:'72px', borderRadius:'50%', border:`3px solid ${fLvl.color}`, overflow:'hidden', boxShadow:`0 0 16px ${fLvl.color}44`, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'32px'}}>
+                                {family.photoURL
+                                    ? <img src={family.photoURL} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>
+                                    : family.emblem || '🏠'
+                                }
+                            </div>
+                            <div style={{position:'absolute', bottom:'-4px', left:'50%', transform:'translateX(-50%)', background:fLvl.color, color:'#000', fontSize:'9px', fontWeight:900, padding:'1px 7px', borderRadius:'10px', whiteSpace:'nowrap'}}>
+                                LV.{fLvl.level}
+                            </div>
+                        </div>
+                        <div style={{flex:1, minWidth:0}}>
+                            <div style={{display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'4px'}}>
+                                <span style={{fontSize:'18px', fontWeight:900, color:'white', fontStyle:'italic', letterSpacing:'-0.5px'}}>{family.name}</span>
+                                {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} signLevel={signData.level} imageURL={family.signImageURL} />}
+                            </div>
+                            <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'4px'}}>ID · {family.id?.slice(-6).toUpperCase()}</div>
+                            <div style={{display:'flex', gap:'8px', flexWrap:'wrap', alignItems:'center'}}>
+                                <span style={{fontSize:'10px', fontWeight:700, color:fLvl.color}}>{fLvl.icon} {lang==='ar'?fLvl.name_ar:fLvl.name_en}</span>
+                                <span style={{fontSize:'10px', color:'#6b7280'}}>👥 {family.members?.length||0}/{fLvl.maxMembers}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* XP Progress */}
+                    <div style={{marginTop:'12px'}}>
+                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#6b7280', marginBottom:'4px'}}>
+                            <span>XP: {fmtFamilyNum(family.xp||0)}</span>
+                            <span>{fProg}%</span>
+                            {FAMILY_LEVEL_CONFIG.find(c=>c.level===fLvl.level+1) && <span>{lang==='ar'?'التالي':'Next'}: {fmtFamilyNum(FAMILY_LEVEL_CONFIG.find(c=>c.level===fLvl.level+1).xp)}</span>}
+                        </div>
+                        <div style={{height:'5px', borderRadius:'3px', background:'rgba(255,255,255,0.08)', overflow:'hidden'}}>
+                            <div style={{height:'100%', borderRadius:'3px', width:`${fProg}%`, background:`linear-gradient(90deg,${fLvl.color},${fLvl.color}88)`, transition:'width 0.6s ease'}} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Treasury & Stats ── */}
+                <div style={{display:'flex', gap:'8px'}}>
+                    <div style={{flex:1, ...S.card, background:'rgba(255,215,0,0.06)', border:'1px solid rgba(255,215,0,0.2)', textAlign:'center', padding:'10px'}}>
+                        <div style={{fontSize:'10px', color:'#9ca3af', marginBottom:'3px'}}>🧠 {lang==='ar'?'خزينة العائلة':'Treasury'}</div>
+                        <div style={{fontSize:'16px', fontWeight:900, color:'#ffd700', fontStyle:'italic'}}>{fmtFamilyNum(treasury)}</div>
+                    </div>
+                    <div style={{flex:1, ...S.card, background:'rgba(0,242,255,0.04)', border:'1px solid rgba(0,242,255,0.15)', textAlign:'center', padding:'10px'}}>
+                        <div style={{fontSize:'10px', color:'#9ca3af', marginBottom:'3px'}}>⚡ {lang==='ar'?'النشاط الأسبوعي':'Weekly Activity'}</div>
+                        <div style={{fontSize:'16px', fontWeight:900, color:'#00f2ff', fontStyle:'italic'}}>{fmtFamilyNum(weeklyAct)}</div>
+                    </div>
+                </div>
+
+                {/* ── Donate Button ── */}
+                <div style={S.card}>
+                    <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: showDonatePanel ? '10px' : '0'}}>
+                        <div style={{fontSize:'12px', fontWeight:700, color:'white'}}>💰 {lang==='ar'?'التبرع للعائلة':'Donate to Family'}</div>
+                        <button onClick={()=>setShowDonatePanel(!showDonatePanel)} style={{...S.btn, padding:'6px 14px', fontSize:'11px', background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15))', border:'1px solid rgba(255,215,0,0.3)', color:'#fbbf24'}}>
+                            {showDonatePanel ? (lang==='ar'?'إغلاق':'Close') : (lang==='ar'?'تبرع':'Donate')}
+                        </button>
+                    </div>
+                    {showDonatePanel && (
+                        <div style={{display:'flex', gap:'8px'}}>
+                            <input type="number" value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} style={{...S.input, flex:1}} placeholder={lang==='ar'?'الكمية (إنتل)':'Amount (Intel)'} min="1" />
+                            <button onClick={handleDonate} disabled={donating||!donateAmount} style={{...S.btn, flexShrink:0, padding:'10px 16px', background:donateAmount&&!donating?'linear-gradient(135deg,#ffd700,#f97316)':'rgba(255,255,255,0.06)', color:donateAmount?'#000':'#4b5563', cursor:donateAmount?'pointer':'not-allowed'}}>
+                                {donating?'⏳':'🧠'}
+                            </button>
                         </div>
                     )}
+                    <div style={{fontSize:'10px', color:'#4b5563', marginTop:'6px'}}>
+                        {lang==='ar'?`رصيدك: ${fmtFamilyNum(currentUserData?.currency||0)} 🧠`:`Your balance: ${fmtFamilyNum(currentUserData?.currency||0)} 🧠`}
+                    </div>
+                </div>
 
-                    {/* ══════════════════════════════════════════════════════
-                        💬 GAME ROOM CHAT — يظهر في كل مراحل اللعبة
-                    ══════════════════════════════════════════════════════ */}
-                    {room.status !== 'waiting' && (
-                        <div style={{
-                            marginTop: '8px',
-                            background: 'rgba(255,255,255,0.03)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '12px',
-                            overflow: 'hidden',
-                        }}>
-                            {/* Chat Header */}
-                            <div
-                                onClick={() => setShowGameChat(v => !v)}
-                                style={{
-                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                    padding: '8px 12px', cursor: 'pointer',
-                                    background: showGameChat ? 'rgba(0,242,255,0.05)' : 'rgba(255,255,255,0.02)',
-                                    borderBottom: showGameChat ? '1px solid rgba(255,255,255,0.07)' : 'none',
-                                    userSelect: 'none',
-                                }}
-                            >
-                                <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                                    <span style={{fontSize:'13px'}}>💬</span>
-                                    <span style={{fontSize:'11px',fontWeight:700,color:'rgba(255,255,255,0.7)'}}>
-                                        {lang==='ar' ? 'شات الغرفة' : 'Room Chat'}
-                                    </span>
-                                    {(room.messages||[]).filter(m => m.sender !== 'system').length > 0 && (
-                                        <span style={{
-                                            background:'rgba(0,242,255,0.2)', color:'#00f2ff',
-                                            borderRadius:'20px', padding:'1px 7px', fontSize:'9px', fontWeight:700,
-                                        }}>
-                                            {(room.messages||[]).filter(m => m.sender !== 'system').length}
-                                        </span>
+                {/* ── Activeness Milestones ── */}
+                <div style={S.card}>
+                    <div style={S.sectionTitle}>🎁 {lang==='ar'?'مكافآت النشاط':'Activeness Rewards'}</div>
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                        {ACTIVENESS_MILESTONES.map((ms, idx) => {
+                            const isClaimed = claimed.includes(idx);
+                            const isReached = (family.activeness || 0) >= ms.threshold;
+                            return (
+                                <div key={idx} style={{display:'flex', alignItems:'center', gap:'10px', padding:'8px 10px', borderRadius:'10px', background: isClaimed?'rgba(16,185,129,0.08)':isReached?'rgba(0,242,255,0.06)':'rgba(255,255,255,0.03)', border:`1px solid ${isClaimed?'rgba(16,185,129,0.25)':isReached?'rgba(0,242,255,0.2)':'rgba(255,255,255,0.06)'}`}}>
+                                    <span style={{fontSize:'16px'}}>{ms.icon}</span>
+                                    <div style={{flex:1}}>
+                                        <div style={{fontSize:'11px', fontWeight:700, color:isClaimed?'#10b981':isReached?'#00f2ff':'#6b7280'}}>{fmtFamilyNum(ms.threshold)} {lang==='ar'?'نشاط':'activeness'}</div>
+                                        <div style={{fontSize:'10px', color:'#fbbf24', fontWeight:700}}>+{fmtFamilyNum(ms.reward)} 🧠</div>
+                                    </div>
+                                    {canManage && (
+                                        <button disabled={isClaimed||!isReached} onClick={()=>claimActiveMilestone(idx)}
+                                            style={{...S.btn, padding:'5px 12px', fontSize:'10px', background:isClaimed?'rgba(16,185,129,0.15)':isReached?'rgba(0,242,255,0.2)':'rgba(255,255,255,0.04)', color:isClaimed?'#10b981':isReached?'#00f2ff':'#4b5563', cursor:isReached&&!isClaimed?'pointer':'not-allowed', border:'none'}}>
+                                            {isClaimed?'✅':(lang==='ar'?'اجمع':'Claim')}
+                                        </button>
                                     )}
                                 </div>
-                                <span style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',transition:'transform 0.2s',display:'inline-block',transform:showGameChat?'rotate(180deg)':'rotate(0deg)'}}>▼</span>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* ── Announcement moved to top of page for visibility ── */}
+
+                <div style={{height:'12px'}} />
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────
+    // TAB: CHAT
+    // ─────────────────────────────────────────────
+    const renderChat = () => {
+        if (!family) return null;
+
+        const pinnedAnnouncement = family.announcement || null;
+        const announcementBy = family.announcementBy || '';
+
+        // ── معالجة تغيير input مع دعم الـ @ ──
+        const handleChatInputChange = (e) => {
+            const val = e.target.value;
+            setChatInput(val);
+            // detect @ mention
+            const lastAt = val.lastIndexOf('@');
+            if (lastAt !== -1) {
+                const after = val.slice(lastAt + 1);
+                if (!after.includes(' ')) {
+                    setMentionSearch(after.toLowerCase());
+                    setShowMentionList(true);
+                    return;
+                }
+            }
+            setShowMentionList(false);
+        };
+
+        // ── اختيار mention ──
+        const selectMention = (member) => {
+            const lastAt = chatInput.lastIndexOf('@');
+            const newVal = chatInput.slice(0, lastAt) + '@' + member.displayName + ' ';
+            setChatInput(newVal);
+            setShowMentionList(false);
+            setTimeout(() => chatInputRef.current?.focus(), 50);
+        };
+
+        // ── أعضاء العائلة المُصفّاة للمنشن ──
+        const mentionMembers = familyMembers
+            .filter(m => m.id !== currentUID)
+            .filter(m => !mentionSearch || m.displayName?.toLowerCase().includes(mentionSearch));
+
+        return (
+            <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0, position:'relative'}}>
+
+                {/* ── Pinned Announcement Bar ── */}
+                {pinnedAnnouncement && (
+                    <div style={{
+                        flexShrink:0, margin:'8px 10px 4px', padding:'10px 14px',
+                        borderRadius:'12px', background:'linear-gradient(135deg,rgba(255,165,0,0.18),rgba(255,80,0,0.12))',
+                        border:'1px solid rgba(255,165,0,0.45)', boxShadow:'0 0 16px rgba(255,140,0,0.2)',
+                        position:'relative', overflow:'hidden',
+                    }}>
+                        <div style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'12px 0 0 12px'}}/>
+                        <div style={{display:'flex',alignItems:'flex-start',gap:'8px',paddingLeft:'6px'}}>
+                            <span style={{fontSize:'18px',lineHeight:1,flexShrink:0}}>📢</span>
+                            <div style={{flex:1,minWidth:0}}>
+                                <div style={{fontSize:'9px',fontWeight:800,color:'#fbbf24',letterSpacing:'1px',marginBottom:'3px',textTransform:'uppercase'}}>
+                                    {lang==='ar'?'إعلان من الإدارة':'ANNOUNCEMENT'}
+                                    {announcementBy ? ` · ${announcementBy}` : ''}
+                                </div>
+                                <div style={{fontSize:'12px',color:'#fde68a',lineHeight:1.5,fontWeight:600,wordBreak:'break-word'}}>
+                                    {pinnedAnnouncement}
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                )}
 
-                            {showGameChat && (
-                                <>
-                                    {/* Messages list */}
-                                    <div
-                                        ref={gameChatRef}
-                                        style={{
-                                            maxHeight: '180px',
-                                            overflowY: 'auto',
-                                            padding: '8px 10px',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '5px',
-                                        }}
-                                    >
-                                        {(!room.messages || room.messages.length === 0) && (
-                                            <div style={{textAlign:'center',color:'rgba(255,255,255,0.2)',fontSize:'11px',padding:'12px 0'}}>
-                                                {lang==='ar' ? '... ابدأ المحادثة' : 'No messages yet...'}
-                                            </div>
-                                        )}
-                                        {(room.messages || []).map((msg, i) => {
-                                            const isSystem = msg.sender === 'system';
-                                            const isMe = msg.sender === currentUID;
-                                            const isBot = msg.isBot;
-                                            return (
-                                                <div key={i} style={{
-                                                    display: 'flex',
-                                                    flexDirection: isMe ? 'row-reverse' : 'row',
-                                                    alignItems: 'flex-end',
-                                                    gap: '5px',
-                                                }}>
-                                                    {isSystem ? (
-                                                        <div style={{
-                                                            width:'100%', textAlign:'center',
-                                                            fontSize:'10px', color:'rgba(255,215,0,0.7)',
-                                                            background:'rgba(255,215,0,0.06)',
-                                                            borderRadius:'8px', padding:'4px 8px',
-                                                            fontStyle:'italic',
-                                                        }}>
-                                                            {msg.text}
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            {/* Avatar */}
-                                                            {!isMe && (
-                                                                <div style={{
-                                                                    width:'22px', height:'22px', borderRadius:'50%',
-                                                                    background: isBot ? 'rgba(124,58,237,0.4)' : 'rgba(0,242,255,0.15)',
-                                                                    display:'flex', alignItems:'center', justifyContent:'center',
-                                                                    fontSize:'11px', flexShrink:0,
-                                                                    border: isBot ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(0,242,255,0.2)',
-                                                                }}>
-                                                                    {isBot ? '🤖' : (msg.name?.[0]?.toUpperCase() || '?')}
-                                                                </div>
-                                                            )}
-                                                            <div style={{maxWidth:'72%'}}>
-                                                                {!isMe && (
-                                                                    <div style={{
-                                                                        fontSize:'9px', fontWeight:700,
-                                                                        color: isBot ? '#a78bfa' : 'rgba(0,242,255,0.7)',
-                                                                        marginBottom:'2px',
-                                                                        paddingLeft:'2px',
-                                                                    }}>
-                                                                        {msg.name}
-                                                                    </div>
-                                                                )}
-                                                                <div style={{
-                                                                    background: isMe
-                                                                        ? 'linear-gradient(135deg,rgba(0,242,255,0.25),rgba(112,0,255,0.2))'
-                                                                        : isBot
-                                                                            ? 'rgba(124,58,237,0.15)'
-                                                                            : 'rgba(255,255,255,0.07)',
-                                                                    border: isMe
-                                                                        ? '1px solid rgba(0,242,255,0.3)'
-                                                                        : 'none',
-                                                                    borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                                                                    padding: '6px 10px',
-                                                                    fontSize: '12px',
-                                                                    color: 'rgba(255,255,255,0.88)',
-                                                                    lineHeight: '1.4',
-                                                                    wordBreak: 'break-word',
-                                                                }}>
-                                                                    {msg.text}
-                                                                </div>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
+                {/* ── Mini Profile Popup ── */}
+                {miniProfileMember && (
+                    <div style={{
+                        position:'absolute', inset:0, zIndex:10,
+                        background:'rgba(0,0,0,0.6)',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                    }} onClick={() => setMiniProfileMember(null)}>
+                        <div style={{
+                            background:'linear-gradient(160deg,#0e0e22,#13122a)',
+                            border:'1px solid rgba(0,242,255,0.25)', borderRadius:'18px',
+                            padding:'20px', width:'240px',
+                            boxShadow:'0 20px 50px rgba(0,0,0,0.9)',
+                            textAlign:'center',
+                        }} onClick={e => e.stopPropagation()}>
+                            {/* صورة + اسم */}
+                            <div style={{width:'64px',height:'64px',borderRadius:'50%',overflow:'hidden',margin:'0 auto 10px',border:'2px solid rgba(0,242,255,0.35)'}}>
+                                {miniProfileMember.photo
+                                    ? <img src={miniProfileMember.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                    : <div style={{width:'100%',height:'100%',background:'rgba(255,255,255,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px'}}>😎</div>
+                                }
+                            </div>
+                            <div style={{fontSize:'14px',fontWeight:800,color:'white',marginBottom:'4px'}}>{miniProfileMember.name}</div>
+                            {miniProfileMember.customId && (
+                                <div style={{fontSize:'11px',color:'#6b7280',marginBottom:'14px'}}>
+                                    🪪 #{miniProfileMember.customId}
+                                </div>
+                            )}
+                            {/* زر إرسال هدية */}
+                            {onSendGift && miniProfileMember.uid !== currentUID && (
+                                <button
+                                    disabled={miniProfileGiftSending}
+                                    onClick={() => {
+                                        // افتح gift modal مع تحديد هذا العضو كـ target
+                                        setMiniProfileMember(null);
+                                        setShowFamilyChatGift({ targetUID: miniProfileMember.uid, targetName: miniProfileMember.name, targetPhoto: miniProfileMember.photo });
+                                    }}
+                                    style={{
+                                        width:'100%', padding:'10px', borderRadius:'10px',
+                                        background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15))',
+                                        border:'1px solid rgba(255,215,0,0.4)',
+                                        color:'#fbbf24', fontSize:'13px', fontWeight:800, cursor:'pointer',
+                                        display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
+                                    }}
+                                >🎁 {lang==='ar'?'أرسل هدية':'Send Gift'}</button>
+                            )}
+                            {miniProfileMember.uid === currentUID && (
+                                <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'هذا أنت':'This is you'}</div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Messages */}
+                <div style={{flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px'}}>
+                    {chatMessages.length === 0 && !pinnedAnnouncement && (
+                        <div style={{textAlign:'center', padding:'40px 20px', color:'#4b5563'}}>
+                            <div style={{fontSize:'36px', marginBottom:'10px'}}>💬</div>
+                            <div style={{fontSize:'12px'}}>{lang==='ar'?'كن أول من يتحدث!':'Be the first to chat!'}</div>
+                        </div>
+                    )}
+                    {chatMessages.map(msg => {
+                        const isMe = msg.senderId === currentUID;
+                        const isSystem = msg.senderId === 'system' || msg.type === 'system';
+                        const isDonation = msg.type === 'donation';
+                        const isAnnouncement = msg.type === 'announcement';
+
+                        if (isSystem) return (
+                            <div key={msg.id} style={{textAlign:'center', padding:'4px 12px'}}>
+                                <span style={{fontSize:'10px', color:'#6b7280', background:'rgba(255,255,255,0.04)', padding:'3px 10px', borderRadius:'20px'}}>{msg.text}</span>
+                            </div>
+                        );
+
+                        if (isDonation) return (
+                            <div key={msg.id} style={{display:'flex', justifyContent:'center', padding:'4px 0'}}>
+                                <div style={{background:'linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,140,0,0.1))', border:'1px solid rgba(255,215,0,0.3)', borderRadius:'12px', padding:'8px 14px', maxWidth:'90%', textAlign:'center'}}>
+                                    <div style={{fontSize:'12px', color:'#ffd700', fontWeight:800}}>{msg.text}</div>
+                                    <div style={{fontSize:'10px', color:'#6b7280', marginTop:'2px'}}>{fmtFamilyTime(msg.timestamp, lang)}</div>
+                                </div>
+                            </div>
+                        );
+
+                        if (isAnnouncement) return (
+                            <div key={msg.id} style={{display:'flex', justifyContent:'center', padding:'6px 0'}}>
+                                <div style={{width:'100%', background:'linear-gradient(135deg,rgba(255,165,0,0.2),rgba(255,80,0,0.12))', border:'1.5px solid rgba(255,165,0,0.5)', borderRadius:'14px', padding:'10px 14px', position:'relative', overflow:'hidden', boxShadow:'0 0 18px rgba(255,140,0,0.18)'}}>
+                                    <div style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'14px 0 0 14px'}}/>
+                                    <div style={{paddingLeft:'8px'}}>
+                                        <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'5px'}}>
+                                            <span style={{fontSize:'16px'}}>📢</span>
+                                            <span style={{fontSize:'10px',fontWeight:900,color:'#fbbf24',letterSpacing:'1px',textTransform:'uppercase'}}>{lang==='ar'?'إعلان رسمي':'OFFICIAL ANNOUNCEMENT'}</span>
+                                            <span style={{marginLeft:'auto',fontSize:'9px',color:'#6b7280'}}>{fmtFamilyTime(msg.timestamp, lang)}</span>
+                                        </div>
+                                        <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'6px'}}>
+                                            {msg.senderPhoto
+                                                ? <img src={msg.senderPhoto} alt="" style={{width:'20px',height:'20px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid rgba(255,215,0,0.5)'}}/>
+                                                : <div style={{width:'20px',height:'20px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px'}}>👤</div>
+                                            }
+                                            <span style={{fontSize:'10px',fontWeight:700,color:'#fde68a'}}>{msg.senderName}</span>
+                                            <FamilyRoleBadge role={msg.senderRole||'owner'} lang={lang} small />
+                                        </div>
+                                        <div style={{fontSize:'13px',color:'#fef3c7',lineHeight:1.6,fontWeight:600,wordBreak:'break-word'}}>{msg.text}</div>
                                     </div>
+                                </div>
+                            </div>
+                        );
 
-                                    {/* Input */}
-                                    {!isSpectator && (
-                                        <div style={{
-                                            display: 'flex', gap: '6px',
-                                            padding: '8px 10px',
-                                            borderTop: '1px solid rgba(255,255,255,0.06)',
-                                            background: 'rgba(0,0,0,0.2)',
-                                        }}>
-                                            <input
-                                                value={gameChatInput}
-                                                onChange={e => setGameChatInput(e.target.value)}
-                                                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendGameMessage(); } }}
-                                                placeholder={lang==='ar' ? 'اكتب رسالة...' : 'Type a message...'}
-                                                maxLength={200}
-                                                style={{
-                                                    flex: 1,
-                                                    background: 'rgba(255,255,255,0.06)',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                    borderRadius: '10px',
-                                                    padding: '7px 12px',
-                                                    color: 'white',
-                                                    fontSize: '12px',
-                                                    outline: 'none',
-                                                    minWidth: 0,
-                                                }}
-                                            />
-                                            <button
-                                                onClick={sendGameMessage}
-                                                disabled={!gameChatInput.trim()}
-                                                style={{
-                                                    padding: '7px 14px',
-                                                    borderRadius: '10px',
-                                                    background: gameChatInput.trim()
-                                                        ? 'linear-gradient(135deg,rgba(0,242,255,0.3),rgba(112,0,255,0.25))'
-                                                        : 'rgba(255,255,255,0.05)',
-                                                    border: gameChatInput.trim()
-                                                        ? '1px solid rgba(0,242,255,0.4)'
-                                                        : '1px solid rgba(255,255,255,0.08)',
-                                                    color: gameChatInput.trim() ? '#00f2ff' : 'rgba(255,255,255,0.25)',
-                                                    fontSize: '13px',
-                                                    fontWeight: 700,
-                                                    cursor: gameChatInput.trim() ? 'pointer' : 'not-allowed',
-                                                    flexShrink: 0,
-                                                    transition: 'all 0.2s',
-                                                }}
-                                            >
-                                                {lang==='ar' ? '↑' : '↑'}
-                                            </button>
+                        return (
+                            <div key={msg.id} style={{display:'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap:'8px', alignItems:'flex-end'}}>
+                                {/* صورة المرسل — قابلة للضغط لفتح ميني بروفايل */}
+                                {!isMe && (
+                                    <div
+                                        style={{width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer'}}
+                                        onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
+                                    >
+                                        {msg.senderPhoto
+                                            ? <img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                            : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>😎</div>
+                                        }
+                                    </div>
+                                )}
+                                <div style={{maxWidth:'72%'}}>
+                                    {/* اسم المرسل — قابل للضغط لفتح ميني بروفايل */}
+                                    {!isMe && (
+                                        <div
+                                            style={{fontSize:'10px', color:'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft:'4px', cursor:'pointer'}}
+                                            onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
+                                            onMouseEnter={e => e.currentTarget.style.color='#00f2ff'}
+                                            onMouseLeave={e => e.currentTarget.style.color='#9ca3af'}
+                                        >{msg.senderName}</div>
+                                    )}
+                                    <div style={{
+                                        padding:'8px 12px', borderRadius: isMe ? '14px 4px 14px 14px' : '4px 14px 14px 14px',
+                                        background: isMe ? 'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.2))' : 'rgba(255,255,255,0.07)',
+                                        border: isMe ? '1px solid rgba(0,242,255,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                                        fontSize:'12px', color:'#e2e8f0', lineHeight:1.5,
+                                        wordBreak:'break-word',
+                                    }}>
+                                        {/* عرض المنشن بلون مميز */}
+                                        {msg.text?.split(/(@\w[\w\s]*?)(?=\s|$)/g).map((part, pi) =>
+                                            part.startsWith('@')
+                                                ? <span key={pi} style={{color:'#00f2ff', fontWeight:700}}>{part}</span>
+                                                : part
+                                        )}
+                                    </div>
+                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'2px', textAlign: isMe ? 'right' : 'left', paddingLeft:'4px', paddingRight:'4px'}}>
+                                        {fmtFamilyTime(msg.timestamp, lang)}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    <div ref={chatEndRef} />
+                </div>
+
+                {/* ── قائمة الـ @ Mention ── */}
+                {showMentionList && mentionMembers.length > 0 && (
+                    <div style={{
+                        position:'absolute', bottom:'60px', left:'10px', right:'10px',
+                        background:'#0e1020', border:'1px solid rgba(0,242,255,0.2)',
+                        borderRadius:'12px', overflow:'hidden', zIndex:20,
+                        boxShadow:'0 -10px 30px rgba(0,0,0,0.7)',
+                        maxHeight:'180px', overflowY:'auto',
+                    }}>
+                        {mentionMembers.map(m => (
+                            <div key={m.id}
+                                onClick={() => selectMention(m)}
+                                style={{display:'flex', alignItems:'center', gap:'8px', padding:'9px 12px', cursor:'pointer', transition:'background 0.12s'}}
+                                onMouseEnter={e => e.currentTarget.style.background='rgba(0,242,255,0.08)'}
+                                onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                            >
+                                <div style={{width:'26px',height:'26px',borderRadius:'50%',overflow:'hidden',flexShrink:0,background:'rgba(255,255,255,0.08)'}}>
+                                    {m.photoURL ? <img src={m.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <span style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',fontSize:'13px'}}>😎</span>}
+                                </div>
+                                <span style={{fontSize:'12px',fontWeight:700,color:'white'}}>@{m.displayName}</span>
+                                <FamilyRoleBadge role={getFamilyRole(family, m.id)} lang={lang} small />
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Input bar */}
+                <div style={{padding:'10px 12px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.3)', display:'flex', gap:'8px', alignItems:'center', flexShrink:0}}>
+                    {/* زر الهدايا — لو ضغطت بدون تحديد عضو = إرسال لنفسك */}
+                    {onSendGift && (
+                        <button
+                            onClick={() => setShowFamilyChatGift(true)}
+                            title={lang==='ar'?'أرسل هدية لعضو':'Send gift to member'}
+                            style={{
+                                width:'38px', height:'38px', borderRadius:'10px', flexShrink:0,
+                                background:'rgba(255,215,0,0.1)', border:'1px solid rgba(255,215,0,0.22)',
+                                fontSize:'17px', cursor:'pointer',
+                                display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s',
+                            }}
+                            onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,215,0,0.2)';}}
+                            onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,215,0,0.1)';}}
+                        >🎁</button>
+                    )}
+                    <input
+                        ref={chatInputRef}
+                        value={chatInput}
+                        onChange={handleChatInputChange}
+                        onKeyDown={e => {
+                            if (e.key === 'Escape') { setShowMentionList(false); }
+                            if (e.key === 'Enter' && !e.shiftKey && !showMentionList) sendChatMessage();
+                        }}
+                        maxLength={300}
+                        style={{...S.input, flex:1, padding:'9px 12px', fontSize:'12px'}}
+                        placeholder={canManage
+                            ? (lang==='ar'?'اكتب رسالة... أو @ للمنشن':'Type a message... @ to mention')
+                            : (lang==='ar'?'اكتب رسالة... أو @ للمنشن':'Type a message... @ to mention')
+                        }
+                    />
+                    <button onClick={sendChatMessage} disabled={!chatInput.trim()||sendingMsg}
+                        style={{width:'38px', height:'38px', borderRadius:'10px', border:'none', flexShrink:0, background:chatInput.trim()?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color:chatInput.trim()?'white':'#4b5563', fontSize:'16px', cursor:chatInput.trim()?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                        {sendingMsg ? '⏳' : '➤'}
+                    </button>
+                </div>
+
+                {/* Gift modal للشات — مع دعم الإرسال لنفسك أو لعضو محدد */}
+                {showFamilyChatGift && onSendGift && (
+                    <SendGiftModal
+                        show={!!showFamilyChatGift}
+                        onClose={() => setShowFamilyChatGift(false)}
+                        targetUser={
+                            typeof showFamilyChatGift === 'object' && showFamilyChatGift.targetUID
+                                ? { uid: showFamilyChatGift.targetUID, displayName: showFamilyChatGift.targetName, photoURL: showFamilyChatGift.targetPhoto }
+                                : (userData || currentUserData) // إرسال لنفسك
+                        }
+                        currentUser={userData || currentUserData}
+                        lang={lang}
+                        onSendGift={async (gift, target, qty) => {
+                            if (target && target.uid) {
+                                // لو المستهدف هو نفس المستخدم الحالي — إرسال للنفس
+                                if (target.uid === currentUID) {
+                                    await onSendGift(gift, target, qty || 1);
+                                } else {
+                                    // إرسال لعضو محدد
+                                    const targetDoc = await usersCollection.doc(target.uid).get().catch(()=>null);
+                                    if (targetDoc && targetDoc.exists) {
+                                        await onSendGift(gift, { uid: target.uid, ...targetDoc.data() }, qty || 1);
+                                    }
+                                }
+                            }
+                            setShowFamilyChatGift(false);
+                        }}
+                        currency={(userData || currentUserData)?.currency || 0}
+                        friendsData={familyMembers.filter(m => m.id !== currentUID).map(m => ({ ...m, uid: m.id }))}
+                    />
+                )}
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────
+    // TAB: MEMBERS
+    // ─────────────────────────────────────────────
+    const renderMembers = () => {
+        if (!family) return null;
+        const donations = family.memberDonations || {};
+        const actData   = family.memberActiveness || {};
+        const myRole = getFamilyRole(family, currentUID);
+        const canManage = myRole === 'owner' || myRole === 'admin';
+
+        const sorted = [...familyMembers].sort((a, b) => {
+            const aD = donations[a.id] || {};
+            const bD = donations[b.id] || {};
+            let aV, bV;
+            if (donationSort === 'intel') {
+                aV = aD.totalIntel || aD.total || 0;
+                bV = bD.totalIntel || bD.total || 0;
+            } else {
+                aV = (actData[a.id]?.weekly || 0);
+                bV = (actData[b.id]?.weekly || 0);
+            }
+            const aOwner = getFamilyRole(family, a.id) === 'owner' ? 1 : 0;
+            const bOwner = getFamilyRole(family, b.id) === 'owner' ? 1 : 0;
+            if (aOwner !== bOwner) return bOwner - aOwner;
+            return bV - aV;
+        }).filter(m => !memberSearch || m.displayName?.toLowerCase().includes(memberSearch.toLowerCase()));
+
+        return (
+            <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0}}>
+                {/* Header */}
+                <div style={{padding:'10px 14px', borderBottom:'1px solid rgba(255,255,255,0.06)', flexShrink:0}}>
+                    {/* Search + member count */}
+                    <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}}>
+                        <div style={{flex:1, display:'flex', alignItems:'center', gap:'6px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'5px 10px'}}>
+                            <span style={{fontSize:'13px'}}>🔍</span>
+                            <input value={memberSearch} onChange={e=>setMemberSearch(e.target.value)}
+                                style={{flex:1, background:'transparent', border:'none', outline:'none', color:'white', fontSize:'11px'}}
+                                placeholder={lang==='ar'?'بحث...':'Search...'} />
+                        </div>
+                        <span style={{fontSize:'10px', color:'#6b7280', fontWeight:700, flexShrink:0}}>
+                            {family.members?.length||0}/{getFamilyLevel(family.xp||0).maxMembers}
+                        </span>
+                    </div>
+                    {/* Tab buttons */}
+                    <div style={{display:'flex', gap:'6px'}}>
+                        <button onClick={()=>setDonationSort('intel')} style={{flex:1, padding:'5px', borderRadius:'8px', border:`1px solid ${donationSort==='intel'?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.07)'}`, background:donationSort==='intel'?'rgba(0,242,255,0.1)':'transparent', color:donationSort==='intel'?'#00f2ff':'#6b7280', fontSize:'10px', fontWeight:donationSort==='intel'?800:500, cursor:'pointer'}}>
+                            🧠 {lang==='ar'?'التبرعات':'Donations'}
+                        </button>
+                        <button onClick={()=>setDonationSort('activity')} style={{flex:1, padding:'5px', borderRadius:'8px', border:`1px solid ${donationSort==='activity'?'rgba(251,191,36,0.4)':'rgba(255,255,255,0.07)'}`, background:donationSort==='activity'?'rgba(251,191,36,0.1)':'transparent', color:donationSort==='activity'?'#fbbf24':'#6b7280', fontSize:'10px', fontWeight:donationSort==='activity'?800:500, cursor:'pointer'}}>
+                            ⚡ {lang==='ar'?'الاكتيفيتي':'Activity'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* List */}
+                <div style={{flex:1, overflowY:'auto'}} onClick={()=>gearMenuUid&&setGearMenuUid(null)}>
+                    {sorted.map((m, i) => {
+                        const role = getFamilyRole(family, m.id);
+                        const rCfg = FAMILY_ROLE_CONFIG[role];
+                        const don  = donations[m.id] || {};
+                        const act  = actData[m.id]   || {};
+
+                        // donation tab values
+                        const weeklyDon = don.weeklyIntel || don.weekly || 0;
+                        const totalDon  = don.totalIntel  || don.total  || 0;
+                        // activity tab values
+                        const weeklyAct = act.weekly || 0;
+                        const totalAct  = act.total  || 0;
+
+                        const isTop3 = i < 3;
+                        const topColors = ['rgba(255,215,0,0.06)','rgba(192,192,192,0.04)','rgba(205,127,50,0.04)'];
+                        const isGearOpen = gearMenuUid === m.id;
+
+                        // Can current user manage this member?
+                        const targetRole = getFamilyRole(family, m.id);
+                        const canKick = canManage && m.id !== currentUID && targetRole !== 'owner' && !(myRole === 'admin' && targetRole === 'admin');
+                        const canSetAdmin = myRole === 'owner' && m.id !== currentUID && targetRole !== 'owner';
+                        const canSetMod = canManage && m.id !== currentUID && targetRole !== 'owner' && !(myRole === 'admin' && targetRole === 'admin');
+                        const showGear = canKick || canSetAdmin || canSetMod;
+
+                        return (
+                            <div key={m.id} style={{position:'relative', display:'flex', alignItems:'center', padding:'10px 14px', borderBottom:'1px solid rgba(255,255,255,0.04)', background:isTop3?topColors[i]:'transparent'}}>
+                                {/* Rank */}
+                                <div style={{width:'20px', textAlign:'center', fontSize:'11px', color:i===0?'#ffd700':i===1?'#9ca3af':i===2?'#fb923c':'#4b5563', fontWeight:800, marginRight:'8px', flexShrink:0}}>
+                                    {i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`}
+                                </div>
+                                {/* Avatar */}
+                                <div style={{position:'relative', flexShrink:0, marginRight:'10px'}}>
+                                    <div style={{width:'40px', height:'40px', borderRadius:'50%', border:`2px solid ${rCfg.color}66`, overflow:'hidden', background:'rgba(255,255,255,0.08)'}}>
+                                        {m.photoURL ? <img src={m.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>😎</div>}
+                                    </div>
+                                    {role==='owner' && <div style={{position:'absolute', top:'-4px', right:'-4px', fontSize:'10px'}}>👑</div>}
+                                </div>
+                                {/* Name + role */}
+                                <div style={{flex:1, minWidth:0}}>
+                                    <div style={{display:'flex', alignItems:'center', gap:'5px', marginBottom:'2px'}}>
+                                        <span style={{fontSize:'12px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'90px'}}>{m.displayName}</span>
+                                        {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />}
+                                    </div>
+                                    <FamilyRoleBadge role={role} lang={lang} small />
+                                </div>
+                                {/* Stats */}
+                                <div style={{textAlign:'right', flexShrink:0, marginRight: showGear ? '6px' : '0'}}>
+                                    {donationSort === 'intel' ? (
+                                        <div style={{display:'flex', flexDirection:'column', gap:'2px', alignItems:'flex-end'}}>
+                                            <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                                                <span style={{fontSize:'8px', color:'#6b7280'}}>W</span>
+                                                <span style={{fontSize:'11px', fontWeight:800, color:'#00f2ff'}}>{fmtFamilyNum(weeklyDon)}🧠</span>
+                                            </div>
+                                            <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                                                <span style={{fontSize:'8px', color:'#6b7280'}}>T</span>
+                                                <span style={{fontSize:'11px', fontWeight:800, color:'#fbbf24'}}>{fmtFamilyNum(totalDon)}🧠</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{display:'flex', flexDirection:'column', gap:'2px', alignItems:'flex-end'}}>
+                                            <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                                                <span style={{fontSize:'8px', color:'#6b7280'}}>W</span>
+                                                <span style={{fontSize:'11px', fontWeight:800, color:'#fbbf24'}}>⚡{fmtFamilyNum(weeklyAct)}</span>
+                                            </div>
+                                            <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                                                <span style={{fontSize:'8px', color:'#6b7280'}}>T</span>
+                                                <span style={{fontSize:'11px', fontWeight:800, color:'#a78bfa'}}>∑{fmtFamilyNum(totalAct)}</span>
+                                            </div>
                                         </div>
                                     )}
+                                </div>
+                                {/* Gear button */}
+                                {showGear && (
+                                    <div style={{position:'relative', flexShrink:0}}>
+                                        <button
+                                            onClick={e=>{ e.stopPropagation(); setGearMenuUid(isGearOpen ? null : m.id); }}
+                                            style={{width:'28px', height:'28px', borderRadius:'8px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1}}
+                                        >⚙️</button>
+                                        {/* Gear dropdown */}
+                                        {isGearOpen && (
+                                            <div onClick={e=>e.stopPropagation()} style={{position:'absolute', top:'32px', right:0, zIndex:50, background:'#0f1628', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'12px', padding:'6px', minWidth:'140px', boxShadow:'0 8px 32px rgba(0,0,0,0.6)'}}>
+                                                {/* Role options */}
+                                                {canSetAdmin && targetRole !== 'admin' && (
+                                                    <button onClick={()=>setMemberRole(m.id,'admin')} style={{width:'100%', padding:'7px 10px', borderRadius:'8px', background:'transparent', border:'none', color:'#ef4444', fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'right', display:'flex', alignItems:'center', gap:'6px'}}
+                                                        onMouseEnter={e=>e.currentTarget.style.background='rgba(239,68,68,0.1)'}
+                                                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                                        🛡️ {lang==='ar'?'ترقية لأدمن':'Set Admin'}
+                                                    </button>
+                                                )}
+                                                {canSetMod && targetRole !== 'moderator' && (
+                                                    <button onClick={()=>setMemberRole(m.id,'moderator')} style={{width:'100%', padding:'7px 10px', borderRadius:'8px', background:'transparent', border:'none', color:'#3b82f6', fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'right', display:'flex', alignItems:'center', gap:'6px'}}
+                                                        onMouseEnter={e=>e.currentTarget.style.background='rgba(59,130,246,0.1)'}
+                                                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                                        🔰 {lang==='ar'?'ترقية لمشرف':'Set Mod'}
+                                                    </button>
+                                                )}
+                                                {(targetRole === 'admin' || targetRole === 'moderator') && canSetAdmin && (
+                                                    <button onClick={()=>setMemberRole(m.id,'member')} style={{width:'100%', padding:'7px 10px', borderRadius:'8px', background:'transparent', border:'none', color:'#6b7280', fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'right', display:'flex', alignItems:'center', gap:'6px'}}
+                                                        onMouseEnter={e=>e.currentTarget.style.background='rgba(107,114,128,0.1)'}
+                                                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                                        👤 {lang==='ar'?'تخفيض لعضو':'Set Member'}
+                                                    </button>
+                                                )}
+                                                {/* Divider */}
+                                                {canKick && <div style={{height:'1px', background:'rgba(255,255,255,0.07)', margin:'4px 0'}}/>}
+                                                {canKick && (
+                                                    <button onClick={()=>{ kickMember(m.id); setGearMenuUid(null); }} style={{width:'100%', padding:'7px 10px', borderRadius:'8px', background:'transparent', border:'none', color:'#f87171', fontSize:'11px', fontWeight:700, cursor:'pointer', textAlign:'right', display:'flex', alignItems:'center', gap:'6px'}}
+                                                        onMouseEnter={e=>e.currentTarget.style.background='rgba(239,68,68,0.1)'}
+                                                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                                        🚫 {lang==='ar'?'طرد من القبيلة':'Kick'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                    {sorted.length === 0 && <div style={{textAlign:'center', padding:'30px', color:'#4b5563', fontSize:'12px'}}>{lang==='ar'?'لا أعضاء':'No members found'}</div>}
+                </div>
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────
+    // TAB: TASKS
+    // ─────────────────────────────────────────────
+    const renderTasks = () => {
+        if (!family) return null;
+        const taskProgress = family.taskProgress || {};
+
+        // ── دالة Claim للمهمة ──
+        const claimTask = async (task) => {
+            const key = `${task.id}_${currentUID}`;
+            const prog = taskProgress[key] || { current: 0, claimed: false };
+            const isDone = prog.current >= task.target;
+            if (!isDone || prog.claimed || !family?.id) return;
+            try {
+                const r = task.reward;
+                await familiesCollection.doc(family.id).update({
+                    [`taskProgress.${key}.claimed`]: true,
+                    xp:          firebase.firestore.FieldValue.increment(r.xp || 0),
+                    activeness:  firebase.firestore.FieldValue.increment((r.xp || 0) * 2),
+                    weeklyActiveness: firebase.firestore.FieldValue.increment((r.xp || 0) * 2),
+                    familyCoins: firebase.firestore.FieldValue.increment(r.coins || 0),
+                });
+                await usersCollection.doc(currentUID).update({
+                    currency: firebase.firestore.FieldValue.increment(r.intel || r.amount || 0),
+                });
+                onNotification(`✅ +${r.intel||r.amount||0}🧠 +${r.xp||0}XP +${r.coins||0}${FAMILY_COINS_SYMBOL}`);
+            } catch(e) {}
+        };
+
+        // ── دالة Daily Check-in (ft4) ──
+        const handleCheckIn = async () => {
+            if (!family?.id || !currentUID) return;
+            const key = `ft4_${currentUID}`;
+            const prog = taskProgress[key] || { current: 0, claimed: false, lastCheckIn: null };
+            const today = new Date().toDateString();
+            const lastCheck = prog.lastCheckIn;
+            if (lastCheck === today) {
+                onNotification(lang === 'ar' ? '✅ سجّلت حضورك اليوم!' : '✅ Already checked in today!');
+                return;
+            }
+            try {
+                await familiesCollection.doc(family.id).update({
+                    [`taskProgress.${key}.current`]: 1,
+                    [`taskProgress.${key}.lastCheckIn`]: today,
+                    [`taskProgress.${key}.claimed`]: false,
+                    activeness: firebase.firestore.FieldValue.increment(50),
+                    weeklyActiveness: firebase.firestore.FieldValue.increment(50),
+                });
+                onNotification(lang === 'ar' ? '✅ تم تسجيل الحضور!' : '✅ Checked in!');
+            } catch(e) {}
+        };
+
+        return (
+            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'10px'}}>
+                <div style={{...S.card, background:'rgba(0,242,255,0.04)', border:'1px solid rgba(0,242,255,0.15)', padding:'10px 14px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                    <div>
+                        <div style={{fontSize:'10px', color:'#6b7280'}}>🧠 {lang==='ar'?'خزينة العائلة':'Family Treasury'}</div>
+                        <div style={{fontSize:'18px', fontWeight:900, color:'#00f2ff', fontStyle:'italic'}}>{fmtFamilyNum(family.treasury||0)}</div>
+                    </div>
+                    <div style={{textAlign:'right'}}>
+                        <div style={{fontSize:'10px', color:'#6b7280'}}>⚡ {lang==='ar'?'نشاطي':'My activity'}</div>
+                        <div style={{fontSize:'14px', fontWeight:800, color:'#fbbf24'}}>{fmtFamilyNum((family.memberDonations?.[currentUID]?.totalIntel || family.memberDonations?.[currentUID]?.total) || 0)}</div>
+                    </div>
+                </div>
+
+                {/* ── تعليمة المهام ── */}
+                <div style={{fontSize:'10px', color:'#6b7280', textAlign:'center', padding:'4px', background:'rgba(255,255,255,0.03)', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.06)'}}>
+                    {lang==='ar'
+                        ? '📌 المهام شخصية — كل عضو يكمّل مهامه بشكل منفصل'
+                        : '📌 Tasks are personal — each member tracks their own progress'}
+                </div>
+
+                {FAMILY_TASKS_CONFIG.map(task => {
+                    const key = `${task.id}_${currentUID}`;
+                    const prog = taskProgress[key] || { current: 0, claimed: false };
+
+                    // Daily task reset logic
+                    const today = new Date().toDateString();
+                    const isDaily = task.daily;
+                    const isDailyDone = isDaily && prog.lastCheckIn === today && prog.current >= task.target;
+                    const effectiveProg = isDaily && prog.lastCheckIn !== today ? { current: 0, claimed: false } : prog;
+
+                    const pct = Math.min(100, Math.round((effectiveProg.current / task.target) * 100));
+                    const isDone = effectiveProg.current >= task.target;
+                    const isClaimed = effectiveProg.claimed;
+
+                    // ft4 special check-in state
+                    const isFt4 = task.id === 'ft4';
+                    const alreadyCheckedIn = isFt4 && prog.lastCheckIn === today;
+
+                    return (
+                        <div key={task.id} style={{...S.card, border:`1px solid ${isClaimed?'rgba(16,185,129,0.25)':isDone?'rgba(0,242,255,0.2)':'rgba(255,255,255,0.07)'}`}}>
+                            <div style={{display:'flex', alignItems:'flex-start', gap:'10px'}}>
+                                <div style={{width:'42px', height:'42px', borderRadius:'12px', background:isClaimed?'rgba(16,185,129,0.15)':isDone?'rgba(0,242,255,0.12)':'rgba(255,255,255,0.05)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', flexShrink:0, border:`1px solid ${isClaimed?'rgba(16,185,129,0.3)':isDone?'rgba(0,242,255,0.3)':'rgba(255,255,255,0.08)'}`}}>
+                                    {isClaimed ? '✅' : isDone ? '🎯' : task.icon}
+                                </div>
+                                <div style={{flex:1, minWidth:0}}>
+                                    <div style={{display:'flex', alignItems:'center', gap:'5px', marginBottom:'2px'}}>
+                                        <div style={{fontSize:'12px', fontWeight:700, color:isClaimed?'#10b981':isDone?'#00f2ff':'#e2e8f0'}}>
+                                            {lang==='ar' ? task.title_ar : task.title_en}
+                                        </div>
+                                        {isDaily && (
+                                            <span style={{fontSize:'8px', fontWeight:800, color:'#f97316', background:'rgba(249,115,22,0.15)', border:'1px solid rgba(249,115,22,0.3)', padding:'1px 5px', borderRadius:'6px'}}>
+                                                {lang==='ar'?'يومي':'DAILY'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'6px'}}>{lang==='ar' ? task.sub_ar : task.sub_en}</div>
+                                    {!isClaimed && (
+                                        <div>
+                                            <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#4b5563', marginBottom:'3px'}}>
+                                                <span>{effectiveProg.current}/{task.target}</span>
+                                                <span>{pct}%</span>
+                                            </div>
+                                            <div style={{height:'4px', borderRadius:'2px', background:'rgba(255,255,255,0.07)', overflow:'hidden'}}>
+                                                <div style={{height:'100%', borderRadius:'2px', width:`${pct}%`, background:isDone?'linear-gradient(90deg,#00f2ff,#7000ff)':'linear-gradient(90deg,#6b7280,#9ca3af)', transition:'width 0.5s'}} />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'6px', flexShrink:0}}>
+                                    <div style={{fontSize:'10px', fontWeight:800, color:'#fbbf24'}}>
+                                        +{task.reward.intel||task.reward.amount||0}🧠
+                                    </div>
+                                    <div style={{fontSize:'9px', fontWeight:700, color:'#00f2ff'}}>
+                                        +{task.reward.xp||0} XP
+                                    </div>
+                                    <div style={{fontSize:'9px', fontWeight:700, color:'#a78bfa'}}>
+                                        +{task.reward.coins||0}{FAMILY_COINS_SYMBOL}
+                                    </div>
+                                    {/* ft4 check-in button */}
+                                    {isFt4 ? (
+                                        <button
+                                            onClick={alreadyCheckedIn ? () => {} : handleCheckIn}
+                                            style={{...S.btn, padding:'5px 10px', fontSize:'10px',
+                                                background: isClaimed?'rgba(16,185,129,0.15)':alreadyCheckedIn&&!isClaimed?'linear-gradient(135deg,#00f2ff,#7000ff)':isDone?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(249,115,22,0.2)',
+                                                color: isClaimed?'#10b981':alreadyCheckedIn||isDone?'white':'#f97316',
+                                                cursor: isClaimed?'not-allowed':'pointer',
+                                                border: isClaimed?'none':alreadyCheckedIn||isDone?'none':'1px solid rgba(249,115,22,0.4)',
+                                            }}>
+                                            {isClaimed?(lang==='ar'?'تم':'Done'):alreadyCheckedIn?(lang==='ar'?'اجمع':'Claim'):(lang==='ar'?'تسجيل':'Check-in')}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            disabled={isClaimed || !isDone}
+                                            onClick={() => claimTask(task)}
+                                            style={{...S.btn, padding:'5px 12px', fontSize:'11px', background:isClaimed?'rgba(16,185,129,0.15)':isDone?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color:isClaimed?'#10b981':isDone?'white':'#4b5563', cursor:isDone&&!isClaimed?'pointer':'not-allowed', border:'none'}}>
+                                            {isClaimed ? (lang==='ar'?'تم':'Done') : isDone ? (lang==='ar'?'اجمع':'Claim') : (lang==='ar'?'ابدأ':'Go')}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+                <div style={{height:'12px'}} />
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────
+    // TAB: FAMILY SHOP (Family Coins only)
+    // ─────────────────────────────────────────────
+    const renderShop = () => {
+        if (!family) return null;
+        const coins = family.familyCoins || 0;
+        const purchases = family.shopPurchases || {};
+        const RARITY_COLORS = { rare:'#60a5fa', epic:'#a78bfa', legendary:'#ffd700' };
+
+        const handleBuy = async (item) => {
+            if (!currentUID || !family?.id) return;
+            if (coins < item.cost) {
+                onNotification(lang==='ar' ? `❌ تحتاج ${item.cost}${FAMILY_COINS_SYMBOL}` : `❌ Need ${item.cost}${FAMILY_COINS_SYMBOL}`);
+                return;
+            }
+            try {
+                const key = `${currentUID}_${item.id}`;
+                if (purchases[key]) {
+                    onNotification(lang==='ar' ? '✅ اشتريت هذا بالفعل' : '✅ Already purchased'); return;
+                }
+                await familiesCollection.doc(family.id).update({
+                    familyCoins: firebase.firestore.FieldValue.increment(-item.cost),
+                    [`shopPurchases.${key}`]: true,
+                });
+                // Grant to user inventory based on type
+                const inventoryKey = item.type === 'badge' ? 'inventory.badges' : item.type === 'title' ? 'inventory.titles' : null;
+                if (inventoryKey) {
+                    await usersCollection.doc(currentUID).update({
+                        [inventoryKey]: firebase.firestore.FieldValue.arrayUnion(item.id),
+                    });
+                }
+                onNotification(`✅ ${lang==='ar'?'تم الشراء!':'Purchased!'} ${item.emoji}`);
+            } catch(e) {
+                onNotification(lang==='ar' ? '❌ خطأ في الشراء' : '❌ Purchase error');
+            }
+        };
+
+        return (
+            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'12px'}}>
+                {/* Coins Header */}
+                <div style={{...S.card, background:'linear-gradient(135deg,rgba(167,139,250,0.1),rgba(112,0,255,0.08))', border:'1px solid rgba(167,139,250,0.3)', padding:'12px 16px', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+                    <div>
+                        <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'2px'}}>{lang==='ar'?'💰 عملات العائلة':'💰 Family Coins'}</div>
+                        <div style={{fontSize:'24px', fontWeight:900, color:'#a78bfa', fontStyle:'italic'}}>{coins} {FAMILY_COINS_SYMBOL}</div>
+                    </div>
+                    <div style={{textAlign:'right'}}>
+                        <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'2px'}}>{lang==='ar'?'اجمعها من المهام':'Earn from Tasks'}</div>
+                        <div style={{fontSize:'11px', color:'#a78bfa', fontWeight:700}}>🎯 {lang==='ar'?'مهمة = عملات':'Tasks = Coins'}</div>
+                    </div>
+                </div>
+
+                <div style={S.sectionTitle}>🏅 {lang==='ar'?'المتجر الحصري':'Exclusive Store'}</div>
+
+                {/* Shop Items Grid */}
+                <div style={{display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:'10px'}}>
+                    {(typeof FAMILY_SHOP_ITEMS !== 'undefined' ? FAMILY_SHOP_ITEMS : []).map(item => {
+                        const key = `${currentUID}_${item.id}`;
+                        const owned = purchases[key];
+                        const canAfford = coins >= item.cost;
+                        const rColor = RARITY_COLORS[item.rarity] || '#9ca3af';
+                        return (
+                            <div key={item.id} style={{
+                                ...S.card,
+                                padding:'14px 12px',
+                                border:`1px solid ${owned?'rgba(16,185,129,0.4)':canAfford?rColor+'44':'rgba(255,255,255,0.07)'}`,
+                                background: owned?'rgba(16,185,129,0.06)':canAfford?`${rColor}08`:'rgba(255,255,255,0.02)',
+                                display:'flex', flexDirection:'column', alignItems:'center', gap:'8px',
+                                transition:'all 0.2s', position:'relative',
+                            }}>
+                                {/* Rarity badge */}
+                                <div style={{position:'absolute', top:'6px', right:'6px', fontSize:'8px', fontWeight:800, color:rColor, background:`${rColor}20`, padding:'1px 5px', borderRadius:'4px', textTransform:'uppercase'}}>{item.rarity}</div>
+                                <div style={{fontSize:'32px', lineHeight:1, filter: owned?'none':`drop-shadow(0 0 6px ${rColor}88)`}}>{item.emoji}</div>
+                                <div style={{textAlign:'center'}}>
+                                    <div style={{fontSize:'11px', fontWeight:800, color: owned?'#10b981':canAfford?'white':'#6b7280', marginBottom:'2px'}}>
+                                        {lang==='ar' ? item.name_ar : item.name_en}
+                                    </div>
+                                    <div style={{fontSize:'9px', color:'#6b7280', lineHeight:1.3, marginBottom:'4px'}}>
+                                        {lang==='ar' ? item.desc_ar : item.desc_en}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => !owned && handleBuy(item)}
+                                    disabled={owned || !canAfford}
+                                    style={{
+                                        padding:'6px 14px', borderRadius:'8px', border:'none', fontSize:'11px', fontWeight:800, cursor: owned||!canAfford?'not-allowed':'pointer',
+                                        background: owned?'rgba(16,185,129,0.2)':canAfford?`linear-gradient(135deg,${rColor},${rColor}cc)`:'rgba(255,255,255,0.05)',
+                                        color: owned?'#10b981':canAfford?'white':'#4b5563',
+                                        width:'100%',
+                                    }}>
+                                    {owned ? `✅ ${lang==='ar'?'مشتري':'Owned'}` : `${item.cost}${FAMILY_COINS_SYMBOL}`}
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+                <div style={{height:'12px'}} />
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────
+    // TAB: RANKING (dedicated tab)
+    // ─────────────────────────────────────────────
+    const renderRankingTab = () => {
+        const openFamilyById = (fid) => {
+            if (!fid) return;
+            // لو القبيلة دي قبيلتي افتح المودال على profile
+            if (fid === family?.id) { setActiveTab('profile'); return; }
+            // غير كده افتحها كـ viewFamilyId — نستخدم callback من الـ parent
+            if (typeof window !== 'undefined') {
+                // نعمل مودال مؤقت بـ viewFamilyId
+                const evt = new CustomEvent('openFamilyById', { detail: { familyId: fid } });
+                window.dispatchEvent(evt);
+            }
+        };
+        return (
+            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'10px'}}>
+                <div style={S.sectionTitle}>🏆 {lang==='ar'?'ترتيب العائلات':'Family Rankings'}</div>
+                <FamilyRankingInline lang={lang} currentFamilyId={family?.id} onOpenFamily={openFamilyById} />
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────
+    // TAB: NEWS
+    // ─────────────────────────────────────────────
+    const renderNews = () => {
+        const newsTypeIcon = { join:'🎉', leave:'👋', donation:'💰', level_up:'⬆️', task_complete:'✅', milestone:'🎁' };
+        return (
+            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'6px'}}>
+                <div style={S.sectionTitle}>📰 {lang==='ar'?'أخبار العائلة':'Family News'}</div>
+                {newsLog.length === 0 ? (
+                    <div style={{textAlign:'center', padding:'40px', color:'#4b5563'}}>
+                        <div style={{fontSize:'32px', marginBottom:'10px'}}>📭</div>
+                        <div style={{fontSize:'12px'}}>{lang==='ar'?'لا أخبار بعد':'No news yet'}</div>
+                    </div>
+                ) : newsLog.map(item => (
+                    <div key={item.id} style={{...S.card, padding:'10px 12px', display:'flex', alignItems:'center', gap:'10px'}}>
+                        <div style={{width:'34px', height:'34px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.08)'}}>
+                            {item.actorPhoto ? <img src={item.actorPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>{newsTypeIcon[item.type]||'📢'}</div>}
+                        </div>
+                        <div style={{flex:1, minWidth:0}}>
+                            <div style={{fontSize:'12px', color:'#d1d5db', lineHeight:1.4}}>{item.text}</div>
+                            {item.amount > 0 && <div style={{fontSize:'10px', color:'#ffd700', fontWeight:700, marginTop:'2px'}}>+{fmtFamilyNum(item.amount)} 🧠</div>}
+                        </div>
+                        <div style={{fontSize:'10px', color:'#4b5563', flexShrink:0}}>{fmtFamilyTime(item.createdAt, lang)}</div>
+                    </div>
+                ))}
+                <div style={{height:'12px'}} />
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────
+    // TAB: MANAGE
+    // ─────────────────────────────────────────────
+    const renderManage = () => {
+        const requests = family?.joinRequests || [];
+
+        return (
+            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'12px'}}>
+
+                {/* ── Non-admin notice ── */}
+                {!canManage && (
+                    <div style={{padding:'10px 14px', borderRadius:'10px', background:'rgba(107,114,128,0.1)', border:'1px solid rgba(107,114,128,0.2)', fontSize:'11px', color:'#9ca3af', textAlign:'center'}}>
+                        👀 {lang==='ar'?'يمكنك الاطلاع فقط · التعديل للمسؤولين':'View only · Editing is for admins'}
+                    </div>
+                )}
+
+                {/* ── Edit Family Info ── */}
+                <div style={S.card}>
+                    <div style={S.sectionTitle}>📝 {lang==='ar'?'معلومات العائلة':'Family Info'}</div>
+
+                    {/* Photo Upload */}
+                    <div style={{display:'flex', alignItems:'center', gap:'12px', marginBottom:'12px'}}>
+                        <div style={{width:'56px', height:'56px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.08)', border:`2px solid ${fLvl?.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'26px'}}>
+                            {family.photoURL ? <img src={family.photoURL} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/> : (family.emblem || '🏠')}
+                        </div>
+                        <div style={{flex:1}}>
+                            <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>🖼️ {lang==='ar'?'صورة العائلة':'Family Photo'}</div>
+                            {canManage && (
+                                <>
+                                    <input type="file" ref={photoFileRef} style={{display:'none'}} accept="image/*" onChange={handlePhotoUpload} />
+                                    <button onClick={()=>photoFileRef.current?.click()} disabled={uploadingPhoto} style={{...S.btn, padding:'6px 12px', fontSize:'11px', background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)', color:'#00f2ff'}}>
+                                        {uploadingPhoto ? '⏳' : (lang==='ar'?'📷 رفع صورة':'📷 Upload Photo')}
+                                    </button>
                                 </>
                             )}
                         </div>
+                    </div>
+
+                    <div style={{marginBottom:'8px'}}>
+                        <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>🏠 {lang==='ar'?'اسم العائلة':'Family Name'}</div>
+                        {canManage
+                            ? <input value={editName} onChange={e=>setEditName(e.target.value)} maxLength={10} style={S.input} />
+                            : <div style={{...S.input, color:'#d1d5db', cursor:'default'}}>{family.name}</div>
+                        }
+                    </div>
+                    <div style={{marginBottom:'8px'}}>
+                        <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>🏷️ {lang==='ar'?'وسم القبيلة (Tag)':'Family Tag'}</div>
+                        {canManage ? (
+                            <div style={{display:'flex', gap:'8px', alignItems:'center'}}>
+                                <input
+                                    value={editTag}
+                                    onChange={e=>setEditTag(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5))}
+                                    maxLength={5}
+                                    style={{...S.input, flex:1, letterSpacing:'3px', fontWeight:800, color:'#00f2ff', fontSize:'14px'}}
+                                    placeholder='TAG'
+                                />
+                                <button onClick={saveTag} disabled={savingTag || !editTag.trim()} style={{...S.btn, padding:'8px 14px', fontSize:'11px', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', flexShrink:0}}>
+                                    {savingTag ? '⏳' : (lang==='ar'?'حفظ':'Save')}
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{...S.input, color:'#00f2ff', cursor:'default', letterSpacing:'3px', fontWeight:800}}>{family.tag}</div>
+                        )}
+                        <div style={{fontSize:'9px', color:'#4b5563', marginTop:'3px'}}>
+                            {lang==='ar'?'3-5 أحرف إنجليزية أو أرقام':'3-5 English letters or numbers'}
+                        </div>
+                    </div>
+                    <div style={{marginBottom:'10px'}}>
+                        <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>📝 {lang==='ar'?'الوصف':'Description'}</div>
+                        {canManage
+                            ? <textarea value={editDesc} onChange={e=>setEditDesc(e.target.value)} maxLength={150} rows={2} style={{...S.input, resize:'none', lineHeight:1.5}} />
+                            : <div style={{...S.input, color:'#d1d5db', cursor:'default', minHeight:'48px', lineHeight:1.5}}>{family.description || '—'}</div>
+                        }
+                    </div>
+                    {/* Join mode */}
+                    <div style={{marginBottom:'10px'}}>
+                        <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>🚪 {lang==='ar'?'إعدادات الانضمام':'Join Settings'}</div>
+                        <div style={{display:'flex', gap:'6px'}}>
+                            {[['open', lang==='ar'?'🟢 مفتوح':'🟢 Open'], ['approval', lang==='ar'?'🔐 بموافقة':'🔐 Approval']].map(([mode, label]) => (
+                                <button key={mode} onClick={()=>canManage&&setJoinMode(mode)} style={{flex:1, padding:'7px', borderRadius:'8px', border:`1px solid ${joinMode===mode?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.1)'}`, background:joinMode===mode?'rgba(0,242,255,0.12)':'rgba(255,255,255,0.04)', color:joinMode===mode?'#00f2ff':'#6b7280', fontSize:'11px', fontWeight:joinMode===mode?800:500, cursor:canManage?'pointer':'default'}}>
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {canManage && (
+                        <button onClick={saveInfo} disabled={savingInfo} style={{...S.btn, width:'100%', padding:'9px', fontSize:'12px', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px'}}>
+                            {savingInfo ? '⏳' : `💾 ${lang==='ar'?'حفظ المعلومات':'Save Info'}`}
+                        </button>
                     )}
                 </div>
-            )}
 
-            </div>{/* end new-page-content */}
+                {/* ── Family Sign — Weekly Activeness System ── */}
+                <div style={S.card}>
+                    <div style={S.sectionTitle}>🏴 {lang==='ar'?'شارة القبيلة':'Family Sign'}</div>
 
-            {/* ── BOTTOM NAV (only when not in a room) ── */}
-            {!room && (
-                <nav className="bottom-nav-new" style={{gridTemplateColumns:'repeat(4,1fr)'}}>
-                    <div className={`nav-item-new ${activeView==='lobby'||activeView==='ranking'?'active':''}`} onClick={() => setActiveView('lobby')}>
-                        <div className="nav-icon-new">🏠</div>
-                        <div className="nav-label-new">{lang==='ar'?'اللوبي':t.tabLobby}</div>
-                    </div>
-                    <div className={`nav-item-new ${activeView==='chat'?'active':''}`} onClick={() => setActiveView('chat')}>
-                        <div className="nav-icon-new">💬</div>
-                        <div className="nav-label-new">{lang==='ar'?'شات':'Chat'}</div>
-                        {(totalFriendsUnread > 0 || friendRequests.length > 0) && <div className="nav-pip-new"></div>}
-                    </div>
-                    <div className={`nav-item-new ${activeView==='discover'?'active':''}`} onClick={() => setActiveView('discover')}>
-                        <div className="nav-icon-new">🔥</div>
-                        <div className="nav-label-new">{lang==='ar'?'اكتشف':'Discover'}</div>
-                    </div>
-                    <div className={`nav-item-new ${activeView==='me'?'active':''}`}
-                        onClick={() => setActiveView('me')}>
-                        <div className="nav-icon-new">
-                            {(isLoggedIn || isGuest) && (currentUserData?.photoURL || currentUserData?.photo)
-                                ? <img src={currentUserData.photoURL || currentUserData.photo} alt="" style={{width:'24px',height:'24px',objectFit:'cover',borderRadius:'50%',border:`2px solid ${activeView==='me'?'var(--primary)':'rgba(255,255,255,0.2)'}`}} />
-                                : '👤'
-                            }
+                    {/* Overview header */}
+                    <div style={{marginBottom:'12px'}}>
+                        <div style={{fontSize:'22px', fontWeight:900, color:'#00f2ff', marginBottom:'2px'}}>
+                            {fmtFamilyNum(family.weeklyActiveness || 0)}
                         </div>
-                        <div className="nav-label-new">{lang==='ar'?'أنا':'Me'}</div>
+                        <div style={{fontSize:'10px', color:'#6b7280'}}>
+                            {lang==='ar'
+                                ? 'النشاط الأسبوعي (يُصفَّر كل أحد 0:00 GMT+3)'
+                                : 'Weekly Activeness (Clears every Sunday at 0:00 GMT+3)'}
+                        </div>
                     </div>
-                </nav>
+
+                    {/* 5 sign levels */}
+                    <div style={{display:'flex', flexDirection:'column', gap:'8px', marginBottom:'14px'}}>
+                        {FAMILY_SIGN_LEVELS.map(sl => {
+                            const slImg = getFamilySignImage(sl.level);
+                            const wAct = family.weeklyActiveness || 0;
+                            const isEarned = wAct >= sl.threshold;
+                            const isCurrent = signData && signData.level === sl.level;
+                            const isNext = signData ? sl.level === signData.level + 1 : sl.level === 1;
+                            return (
+                                <div key={sl.level} style={{
+                                    display:'flex', alignItems:'center', gap:'10px',
+                                    padding:'10px 12px', borderRadius:'12px',
+                                    background: isCurrent
+                                        ? `linear-gradient(135deg,${sl.color}22,${sl.color}10)`
+                                        : isEarned ? `${sl.color}10` : 'rgba(255,255,255,0.03)',
+                                    border:`1px solid ${isCurrent ? sl.color+'66' : isEarned ? sl.color+'30' : 'rgba(255,255,255,0.07)'}`,
+                                    position:'relative', overflow:'hidden',
+                                }}>
+                                    {/* Sign image or placeholder */}
+                                    <div style={{
+                                        width:'44px', height:'44px', borderRadius:'10px', flexShrink:0, overflow:'hidden',
+                                        background: isEarned ? sl.bg : 'rgba(255,255,255,0.04)',
+                                        border:`1px solid ${isEarned ? sl.color+'44' : 'rgba(255,255,255,0.08)'}`,
+                                        display:'flex', alignItems:'center', justifyContent:'center',
+                                        filter: isEarned ? 'none' : 'grayscale(1) opacity(0.4)',
+                                    }}>
+                                        {slImg
+                                            ? <img src={slImg} style={{width:'100%',height:'100%',objectFit:'contain'}} alt=""/>
+                                            : <span style={{fontSize:'22px'}}>{sl.defaultIcon}</span>
+                                        }
+                                    </div>
+                                    <div style={{flex:1, minWidth:0}}>
+                                        <div style={{fontSize:'12px', fontWeight:800, color: isEarned ? sl.color : '#4b5563'}}>
+                                            {lang==='ar' ? sl.name_ar : sl.name_en}
+                                        </div>
+                                        <div style={{fontSize:'10px', color:'#6b7280', marginTop:'1px'}}>
+                                            {lang==='ar' ? 'النشاط المطلوب:' : 'Required Activeness:'}&nbsp;
+                                            <span style={{color: isEarned ? '#4ade80' : sl.color, fontWeight:700}}>
+                                                {sl.threshold.toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {/* Status badge */}
+                                    {isCurrent && (
+                                        <div style={{
+                                            fontSize:'9px', fontWeight:800, padding:'3px 8px', borderRadius:'20px',
+                                            background:`${sl.color}25`, color:sl.color, border:`1px solid ${sl.color}50`,
+                                            flexShrink:0,
+                                        }}>✓ {lang==='ar'?'الحالي':'Current'}</div>
+                                    )}
+                                    {isNext && !isEarned && (
+                                        <div style={{
+                                            fontSize:'9px', fontWeight:800, padding:'3px 8px', borderRadius:'20px',
+                                            background:'rgba(0,242,255,0.15)', color:'#00f2ff',
+                                            border:'1px solid rgba(0,242,255,0.4)', flexShrink:0,
+                                        }}>{lang==='ar'?'الأسبوع القادم':'Get next week'}</div>
+                                    )}
+                                    {isEarned && !isCurrent && (
+                                        <div style={{fontSize:'16px', flexShrink:0}}>✅</div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                </div>
+
+                {/* ── Announcement ── */}
+                <div style={S.card}>
+                    <div style={S.sectionTitle}>📢 {lang==='ar'?'الإعلان':'Announcement'}</div>
+                    {canManage ? (
+                        <>
+                            <textarea value={editAnnouncement} onChange={e=>setEditAnnouncement(e.target.value)} maxLength={300} rows={4}
+                                style={{...S.input, resize:'none', lineHeight:1.6, fontSize:'12px'}}
+                                placeholder={lang==='ar'?'اكتب إعلانك هنا...':'Write your announcement here...'} />
+                            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'8px'}}>
+                                <span style={{fontSize:'10px', color:'#4b5563'}}>{editAnnouncement.length}/300</span>
+                                <button onClick={saveAnnouncement} disabled={savingAnn} style={{...S.btn, background:'rgba(0,242,255,0.12)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', padding:'7px 16px', fontSize:'11px'}}>
+                                    {savingAnn ? '⏳' : (lang==='ar'?'💾 حفظ':'💾 Save')}
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div style={{fontSize:'12px', color:'#d1d5db', lineHeight:1.6, minHeight:'40px'}}>
+                            {family.announcement || <span style={{color:'#4b5563'}}>{lang==='ar'?'لا يوجد إعلان':'No announcement'}</span>}
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Join Requests ── */}
+                <div style={S.card}>
+                    <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px'}}>
+                        <div style={S.sectionTitle}>📩 {lang==='ar'?'طلبات الانضمام':'Join Requests'}</div>
+                        {requests.length > 0 && <span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'20px', background:'rgba(249,115,22,0.2)', border:'1px solid rgba(249,115,22,0.4)', color:'#fb923c', fontWeight:700}}>{requests.length}</span>}
+                    </div>
+                    {requests.length === 0 ? (
+                        <div style={{textAlign:'center', padding:'16px', color:'#4b5563', fontSize:'11px'}}>{lang==='ar'?'لا طلبات معلّقة':'No pending requests'}</div>
+                    ) : joinRequesterProfiles.map(p => (
+                        <div key={p.id} style={{display:'flex', alignItems:'center', gap:'10px', padding:'8px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                            <div style={{width:'36px', height:'36px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.08)'}}>
+                                {p.photoURL?<img src={p.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'18px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
+                            </div>
+                            <div style={{flex:1}}>
+                                <div style={{fontSize:'12px', fontWeight:700, color:'#e2e8f0'}}>{p.displayName}</div>
+                                <div style={{fontSize:'10px', color:'#6b7280'}}>🏆 {p.stats?.wins||0} &nbsp; ⭐ {p.charisma||0}</div>
+                            </div>
+                            {canManage ? (
+                                <div style={{display:'flex', gap:'6px'}}>
+                                    <button onClick={()=>handleJoinRequest(p.id, true)} style={{...S.btn, padding:'5px 10px', fontSize:'11px', background:'rgba(16,185,129,0.2)', border:'1px solid rgba(16,185,129,0.4)', color:'#10b981'}}>✓</button>
+                                    <button onClick={()=>handleJoinRequest(p.id, false)} style={{...S.btn, padding:'5px 10px', fontSize:'11px', background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.3)', color:'#f87171'}}>✕</button>
+                                </div>
+                            ) : (
+                                <span style={{fontSize:'10px', color:'#6b7280', fontStyle:'italic'}}>{lang==='ar'?'معلّق':'Pending'}</span>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                {/* ── Kick Members (owner only) ── */}
+                {myRole === 'owner' && (
+                    <div style={S.card}>
+                        <div style={S.sectionTitle}>⚡ {lang==='ar'?'طرد عضو':'Kick Member'}</div>
+                        <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                            {familyMembers.filter(m => m.id !== currentUID && m.id !== family.createdBy).map(m => (
+                                <div key={m.id} style={{display:'flex', alignItems:'center', gap:'10px', padding:'6px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                                    <div style={{width:'30px', height:'30px', borderRadius:'50%', overflow:'hidden', background:'rgba(255,255,255,0.08)', flexShrink:0}}>
+                                        {m.photoURL?<img src={m.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'14px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
+                                    </div>
+                                    <div style={{flex:1, fontSize:'12px', fontWeight:600, color:'#d1d5db'}}>{m.displayName}</div>
+                                    <FamilyRoleBadge role={getFamilyRole(family, m.id)} lang={lang} small />
+                                    <button onClick={()=>kickMember(m.id)} style={{...S.btn, padding:'4px 10px', fontSize:'10px', background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)', color:'#f87171'}}>
+                                        {lang==='ar'?'طرد':'Kick'}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Leave Family — always at bottom ── */}
+                <div style={{marginTop:'8px', paddingTop:'12px', borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+                    <button
+                        onClick={leaveFamily}
+                        style={{...S.btn, width:'100%', padding:'12px', background:'rgba(239,68,68,0.06)', border:'1px solid rgba(239,68,68,0.2)', color:'rgba(239,68,68,0.65)', fontSize:'12px', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', gap:'6px'}}>
+                        🚪 {lang==='ar'?'مغادرة العائلة':'Leave Family'}
+                    </button>
+                    <div style={{fontSize:'10px', color:'#4b5563', textAlign:'center', marginTop:'6px'}}>{lang==='ar'?'لا يمكن التراجع عن هذا القرار':'This action cannot be undone'}</div>
+                </div>
+
+                {/* ── Delete Family (Owner only) ── */}
+                {getFamilyRole(family, currentUID) === 'owner' && (
+                    <div style={{marginTop:'8px', paddingTop:'12px', borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+                        <button
+                            onClick={() => setShowDeleteFamilyConfirm(true)}
+                            style={{...S.btn, width:'100%', padding:'12px', background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.4)', color:'#ef4444', fontSize:'12px', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:'6px'}}>
+                            🗑️ {lang==='ar'?'حذف العائلة نهائياً':'Delete Family Permanently'}
+                        </button>
+                        <div style={{fontSize:'10px', color:'#6b7280', textAlign:'center', marginTop:'4px'}}>
+                            {lang==='ar'?'سيتم حذف العائلة وطرد جميع الأعضاء':'All members will be removed and family deleted'}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Delete Family Confirm Modal ── */}
+                {showDeleteFamilyConfirm && (
+                    <div style={{
+                        position:'fixed', inset:0, zIndex: Z.OVERLAY,
+                        background:'rgba(0,0,0,0.85)',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        padding:'20px',
+                    }} onClick={() => setShowDeleteFamilyConfirm(false)}>
+                        <div style={{
+                            background:'linear-gradient(135deg,#1a0808,#0f0505)',
+                            border:'2px solid rgba(239,68,68,0.5)',
+                            borderRadius:'20px', padding:'28px 24px',
+                            maxWidth:'320px', width:'100%',
+                            textAlign:'center',
+                            boxShadow:'0 0 50px rgba(239,68,68,0.3)',
+                        }} onClick={e => e.stopPropagation()}>
+                            <div style={{fontSize:'48px', marginBottom:'12px'}}>⚠️</div>
+                            <div style={{fontSize:'16px', fontWeight:900, color:'#ef4444', marginBottom:'8px'}}>
+                                {lang==='ar'?'حذف العائلة':'Delete Family'}
+                            </div>
+                            <div style={{fontSize:'12px', color:'#9ca3af', lineHeight:1.6, marginBottom:'6px'}}>
+                                {lang==='ar'
+                                    ? `هل أنت متأكد من حذف "${family?.name || ''}"؟ سيتم طرد جميع الأعضاء وحذف كل البيانات نهائياً.`
+                                    : `Are you sure you want to delete "${family?.name || ''}"? All members will be removed and all data will be permanently deleted.`
+                                }
+                            </div>
+                            <div style={{fontSize:'11px', color:'#ef4444', fontWeight:700, marginBottom:'20px', padding:'8px 12px', background:'rgba(239,68,68,0.08)', borderRadius:'8px', border:'1px solid rgba(239,68,68,0.2)'}}>
+                                {lang==='ar'?'⚠️ هذا الإجراء لا يمكن التراجع عنه':'⚠️ This action cannot be undone'}
+                            </div>
+                            <div style={{display:'flex', gap:'10px'}}>
+                                <button
+                                    onClick={() => setShowDeleteFamilyConfirm(false)}
+                                    style={{flex:1, padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', fontSize:'13px', fontWeight:700, cursor:'pointer'}}>
+                                    {lang==='ar'?'إلغاء':'Cancel'}
+                                </button>
+                                <button
+                                    onClick={handleDeleteFamily}
+                                    disabled={deletingFamily}
+                                    style={{flex:1, padding:'10px', borderRadius:'10px', background:'linear-gradient(135deg,#dc2626,#991b1b)', border:'1px solid rgba(239,68,68,0.5)', color:'white', fontSize:'13px', fontWeight:800, cursor:deletingFamily?'wait':'pointer', opacity:deletingFamily?0.7:1}}>
+                                    {deletingFamily ? '⏳...' : `🗑️ ${lang==='ar'?'تأكيد الحذف':'Confirm Delete'}`}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div style={{height:'12px'}} />
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────
+    // HOME / CREATE / JOIN VIEWS
+    // ─────────────────────────────────────────────
+    const renderHome = () => (
+        <div style={{flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:'12px'}}>
+            <div style={{textAlign:'center', padding:'20px 0 10px'}}>
+                <div style={{fontSize:'52px', marginBottom:'10px'}}>🏠</div>
+                <div style={{fontSize:'17px', fontWeight:900, color:'white', marginBottom:'6px', fontStyle:'italic'}}>{lang==='ar'?'عالم العائلات':'Family World'}</div>
+                <div style={{fontSize:'11px', color:'#6b7280'}}>{lang==='ar'?'أنشئ عائلتك أو انضم لعائلة وتنافس':'Create or join a family and compete'}</div>
+            </div>
+
+            {isLoggedIn ? (
+                <>
+                    <button onClick={()=>setView('create')} style={{padding:'16px', borderRadius:'14px', border:'1px solid rgba(0,242,255,0.25)', background:'linear-gradient(135deg,rgba(0,242,255,0.08),rgba(112,0,255,0.06))', color:'white', cursor:'pointer', display:'flex', alignItems:'center', gap:'14px', textAlign:'left', width:'100%'}}>
+                        <span style={{fontSize:'28px'}}>🏗️</span>
+                        <div>
+                            <div style={{fontSize:'14px', fontWeight:800, color:'#00f2ff', marginBottom:'2px'}}>{lang==='ar'?'إنشاء عائلة':'Create Family'}</div>
+                            <div style={{fontSize:'10px', color:'#6b7280'}}>{lang==='ar'?`التكلفة: ${FAMILY_CREATE_COST} إنتل 🧠`:`Cost: ${FAMILY_CREATE_COST} Intel 🧠`}</div>
+                        </div>
+                        <div style={{marginLeft:'auto', fontSize:'18px', color:'#6b7280'}}>›</div>
+                    </button>
+                    <button onClick={()=>setView('join')} style={{padding:'16px', borderRadius:'14px', border:'1px solid rgba(167,139,250,0.25)', background:'linear-gradient(135deg,rgba(167,139,250,0.08),rgba(112,0,255,0.06))', color:'white', cursor:'pointer', display:'flex', alignItems:'center', gap:'14px', textAlign:'left', width:'100%'}}>
+                        <span style={{fontSize:'28px'}}>🔍</span>
+                        <div>
+                            <div style={{fontSize:'14px', fontWeight:800, color:'#a78bfa', marginBottom:'2px'}}>{lang==='ar'?'البحث عن عائلة':'Find a Family'}</div>
+                            <div style={{fontSize:'10px', color:'#6b7280'}}>{lang==='ar'?'ابحث بالوسم أو الاسم':'Search by tag or name'}</div>
+                        </div>
+                        <div style={{marginLeft:'auto', fontSize:'18px', color:'#6b7280'}}>›</div>
+                    </button>
+                    <button onClick={()=>setShowRankingModal(true)} style={{padding:'14px 16px', borderRadius:'14px', border:'1px solid rgba(255,215,0,0.2)', background:'linear-gradient(135deg,rgba(255,215,0,0.06),rgba(255,140,0,0.04))', color:'white', cursor:'pointer', display:'flex', alignItems:'center', gap:'14px', textAlign:'left', width:'100%'}}>
+                        <span style={{fontSize:'28px'}}>🏆</span>
+                        <div>
+                            <div style={{fontSize:'13px', fontWeight:700, color:'#fbbf24', marginBottom:'2px'}}>{lang==='ar'?'ترتيب العائلات':'Family Rankings'}</div>
+                            <div style={{fontSize:'10px', color:'#6b7280'}}>{lang==='ar'?'شاهد أقوى العائلات':'See the top families'}</div>
+                        </div>
+                        <div style={{marginLeft:'auto', fontSize:'18px', color:'#6b7280'}}>›</div>
+                    </button>
+                </>
+            ) : (
+                <div style={{textAlign:'center', padding:'24px', color:'#6b7280', fontSize:'13px'}}>
+                    <div style={{fontSize:'32px', marginBottom:'8px'}}>🔐</div>
+                    {lang==='ar'?'سجّل دخول للانضمام':'Login to join families'}
+                </div>
             )}
         </div>
     );
-}
+
+    const renderCreate = () => (
+        <div style={{flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:'12px'}}>
+            <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px'}}>
+                <button onClick={()=>setView('home')} style={{background:'none', border:'none', color:'#00f2ff', fontSize:'20px', cursor:'pointer', padding:'0 4px'}}>‹</button>
+                <span style={{fontSize:'15px', fontWeight:800, color:'white'}}>🏗️ {lang==='ar'?'إنشاء عائلة':'Create Family'}</span>
+            </div>
+            {/* Emblem picker */}
+            <div>
+                <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'8px'}}>✨ {lang==='ar'?'شعار العائلة':'Family Emblem'}</div>
+                <div style={{display:'flex', flexWrap:'wrap', gap:'6px'}}>
+                    {FAMILY_EMBLEMS.map(e => (
+                        <button key={e} onClick={()=>setFamilyEmblem(e)} style={{width:'38px', height:'38px', borderRadius:'10px', border:tribeEmblem===e?`2px solid #00f2ff`:'1px solid rgba(255,255,255,0.1)', background:tribeEmblem===e?'rgba(0,242,255,0.15)':'rgba(255,255,255,0.04)', fontSize:'22px', cursor:'pointer'}}>
+                            {e}
+                        </button>
+                    ))}
+                </div>
+                <div style={{marginTop:'10px', display:'flex', alignItems:'center', gap:'10px', padding:'10px', borderRadius:'12px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)'}}>
+                    <div style={{width:'48px', height:'48px', borderRadius:'50%', border:`2px solid #00f2ff55`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'26px'}}>{tribeEmblem}</div>
+                    <div>
+                        <div style={{fontSize:'13px', fontWeight:800, color:'white', fontStyle:'italic'}}>{tribeName || (lang==='ar'?'اسم العائلة':'Family Name')}</div>
+                        {tribeTag && <FamilySignBadge tag={tribeTag} color='#00f2ff' small />}
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>🏠 {lang==='ar'?'اسم العائلة *':'Family Name *'}</div>
+                <input value={tribeName} onChange={e=>setFamilyName(e.target.value)} maxLength={10} style={S.input} placeholder={lang==='ar'?'اسم مميز...':'Unique name...'} />
+            </div>
+            <div>
+                <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>🏷️ {lang==='ar'?'وسم العائلة * (حروف وأرقام، حتى 6)':'Family Tag * (letters & numbers, max 6)'}</div>
+                <input value={tribeTag} onChange={e=>setFamilyTag(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5))} maxLength={5} style={{...S.input, letterSpacing:'3px', fontWeight:800, color:'#00f2ff', fontSize:'15px', border:'1px solid rgba(0,242,255,0.3)'}} placeholder='MYTAG' />
+                <div style={{fontSize:'10px', color:'#4b5563', marginTop:'4px'}}>{lang==='ar'?'مثال: CALM أو PRO1':'Example: CALM or PRO1'}</div>
+            </div>
+            <div>
+                <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>📝 {lang==='ar'?'الوصف (اختياري)':'Description (optional)'}</div>
+                <textarea value={tribeDesc} onChange={e=>setFamilyDesc(e.target.value)} maxLength={150} rows={3} style={{...S.input, resize:'none', lineHeight:1.5}} placeholder={lang==='ar'?'صف عائلتك...':'Describe your family...'} />
+            </div>
+            <div style={{padding:'10px 12px', borderRadius:'10px', background:'rgba(255,215,0,0.07)', border:'1px solid rgba(255,215,0,0.2)', fontSize:'11px', color:'#fbbf24'}}>
+                💡 {lang==='ar' ? `سيُخصم ${FAMILY_CREATE_COST} إنتل (رصيدك: ${currentUserData?.currency||0} 🧠)` : `${FAMILY_CREATE_COST} Intel will be deducted (Balance: ${currentUserData?.currency||0} 🧠)`}
+            </div>
+            <button onClick={createFamily} disabled={!tribeName.trim()||!tribeTag.trim()||creating} style={{...S.btn, width:'100%', padding:'13px', fontSize:'13px', background:tribeName.trim()&&tribeTag.trim()&&!creating?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color:tribeName.trim()&&tribeTag.trim()?'white':'#4b5563', cursor:tribeName.trim()&&tribeTag.trim()&&!creating?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}>
+                {creating?'⏳🏗️':`🏠 ${lang==='ar'?'إنشاء العائلة':'Create Family'}`}
+            </button>
+        </div>
+    );
+
+    const renderJoin = () => (
+        <div style={{flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:'12px'}}>
+            <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px'}}>
+                <button onClick={()=>{setView('home');setJoinResults([]);setJoinSearch('');}} style={{background:'none', border:'none', color:'#a78bfa', fontSize:'20px', cursor:'pointer', padding:'0 4px'}}>‹</button>
+                <span style={{fontSize:'15px', fontWeight:800, color:'white'}}>🔍 {lang==='ar'?'البحث عن عائلة':'Find Family'}</span>
+            </div>
+            <div style={{display:'flex', gap:'8px'}}>
+                <input value={joinSearch} onChange={e=>setJoinSearch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&searchFamilies()} style={S.input} placeholder={lang==='ar'?'ابحث بالوسم أو الاسم...':'Search by tag or name...'} />
+                <button onClick={searchFamilies} disabled={searching||!joinSearch.trim()} style={{...S.btn, flexShrink:0, padding:'10px 16px', background:joinSearch.trim()?'linear-gradient(135deg,#a78bfa,#7000ff)':'rgba(255,255,255,0.06)', color:joinSearch.trim()?'white':'#4b5563'}}>
+                    {searching?'⏳':'🔍'}
+                </button>
+            </div>
+            {joinResults.map(fam => {
+                const fl = getFamilyLevel(fam.xp || 0);
+                const fs = getFamilySignLevelData(fam.activeness || 0);
+                const isFull = (fam.members?.length||0) >= fl.maxMembers;
+                const isAlreadyIn = fam.members?.includes(currentUID);
+                const needsApproval = fam.joinMode === 'approval';
+                const alreadyRequested = fam.joinRequests?.includes(currentUID);
+                return (
+                    <div key={fam.id} style={{...S.card, display:'flex', alignItems:'center', gap:'12px', border:`1px solid ${fl.color}22`}}>
+                        <div style={{width:'48px', height:'48px', borderRadius:'14px', background:`${fl.color}15`, border:`1px solid ${fl.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'26px', flexShrink:0, overflow:'hidden'}}>
+                            {fam.photoURL ? <img src={fam.photoURL} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'12px'}} alt=""/> : (fam.emblem||'🏠')}
+                        </div>
+                        <div style={{flex:1, minWidth:0}}>
+                            <div style={{display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px', flexWrap:'wrap'}}>
+                                <span style={{fontSize:'14px', fontWeight:800, color:'white', fontStyle:'italic'}}>{fam.name}</span>
+                                <FamilySignBadge tag={fam.tag} color={fs.color} small signLevel={fs.level} />
+                            </div>
+                            <div style={{fontSize:'10px', color:'#6b7280', display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                                <span style={{color:fl.color, fontWeight:700}}>{fl.icon} Lv.{fl.level}</span>
+                                <span>👥 {fam.members?.length||0}/{fl.maxMembers}</span>
+                                {needsApproval && <span style={{color:'#fbbf24'}}>🔐</span>}
+                            </div>
+                            {fam.description&&<div style={{fontSize:'10px', color:'#4b5563', marginTop:'3px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{fam.description}</div>}
+                        </div>
+                        <button
+                            onClick={()=>!isAlreadyIn&&!isFull&&!alreadyRequested&&joinFamily(fam.id)}
+                            disabled={isFull||joining||isAlreadyIn||alreadyRequested}
+                            style={{...S.btn, padding:'7px 12px', fontSize:'11px', flexShrink:0,
+                                background:isAlreadyIn?'rgba(16,185,129,0.15)':alreadyRequested?'rgba(251,191,36,0.15)':isFull?'rgba(239,68,68,0.1)':'rgba(0,242,255,0.15)',
+                                border:`1px solid ${isAlreadyIn?'rgba(16,185,129,0.4)':alreadyRequested?'rgba(251,191,36,0.4)':isFull?'rgba(239,68,68,0.3)':'rgba(0,242,255,0.35)'}`,
+                                color:isAlreadyIn?'#10b981':alreadyRequested?'#fbbf24':isFull?'#f87171':'#00f2ff'}}>
+                            {isAlreadyIn?(lang==='ar'?'عضو':'Joined'):alreadyRequested?(lang==='ar'?'مرسل':'Sent'):isFull?(lang==='ar'?'ممتلئ':'Full'):(joining?'⏳':(needsApproval?(lang==='ar'?'طلب':'Request'):(lang==='ar'?'انضم':'Join')))}
+                        </button>
+                    </div>
+                );
+            })}
+            {joinResults.length===0&&joinSearch&&!searching&&<div style={{textAlign:'center', padding:'24px', color:'#4b5563', fontSize:'12px'}}>{lang==='ar'?'لا توجد نتائج':'No results found'}</div>}
+        </div>
+    );
+
+    // ─────────────────────────────────────────────
+    // MAIN RENDER
+    // ─────────────────────────────────────────────
+    return (
+        <>
+        <PortalModal>
+            <div className="modal-overlay" onClick={onClose} style={{zIndex: Z.MODAL_HIGH}}>
+                <div style={S.modal} onClick={e => e.stopPropagation()}>
+
+                    {/* ── Top Header ── */}
+                    <div style={S.header}>
+                        {family ? (
+                            <div style={{display:'flex', alignItems:'center', gap:'10px', flex:1, minWidth:0}}>
+                                <div style={{width:'34px', height:'34px', borderRadius:'50%', border:`2px solid ${fLvl?.color}55`, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', flexShrink:0}}>
+                                    {family.photoURL ? <img src={family.photoURL} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/> : (family.emblem||'🏠')}
+                                </div>
+                                <div style={{flex:1, minWidth:0}}>
+                                    <div style={{display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap'}}>
+                                        {/* ── اسم القبيلة clickable يفتح الصفحة الرئيسية ── */}
+                                        <span
+                                            onClick={() => setActiveTab('profile')}
+                                            style={{fontSize:'14px', fontWeight:900, color:'white', fontStyle:'italic', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'120px', cursor:'pointer', transition:'color 0.2s'}}
+                                            onMouseEnter={e => e.currentTarget.style.color='#00f2ff'}
+                                            onMouseLeave={e => e.currentTarget.style.color='white'}
+                                            title={lang==='ar'?'انتقل للصفحة الرئيسية':'Go to family home'}
+                                        >
+                                            {family.name}
+                                        </span>
+                                        {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />}
+                                    </div>
+                                    <div style={{fontSize:'9px', color:'#6b7280', display:'flex', alignItems:'center', gap:'6px'}}>
+                                        <span>{fLvl?.icon} {lang==='ar'?`المستوى ${fLvl?.level}`:`Lv.${fLvl?.level}`}</span>
+                                        <span>·</span>
+                                        <span>👥 {family.members?.length||0} {lang==='ar'?'عضو':'members'}</span>
+                                        {myRole && myRole !== 'owner' && <FamilyRoleBadge role={myRole} lang={lang} small />}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{display:'flex', alignItems:'center', gap:'8px', flex:1}}>
+                                <span style={{fontSize:'20px'}}>🏠</span>
+                                <span style={{fontSize:'15px', fontWeight:800, color:'white'}}>{lang==='ar'?'العائلة':'Family'}</span>
+                            </div>
+                        )}
+
+                        <div style={{display:'flex', alignItems:'center', gap:'6px', flexShrink:0}}>
+                            {/* Close */}
+                            <button onClick={onClose} style={{width:'30px', height:'30px', borderRadius:'8px', border:'none', background:'rgba(255,255,255,0.08)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>✕</button>
+                        </div>
+                    </div>
+
+                    {/* ── Tab Bar (only in family) ── */}
+                    {family && (
+                        <div style={S.tabBar}>
+                            {TABS.map(tab => (
+                                <button key={tab.id} onClick={()=>setActiveTab(tab.id)} style={{
+                                    flex:1, padding:'10px 4px 8px', fontSize:'10px', fontWeight:activeTab===tab.id?800:500,
+                                    color:activeTab===tab.id?'#00f2ff':'#6b7280', background:'transparent', border:'none',
+                                    borderBottom:`2px solid ${activeTab===tab.id?'#00f2ff':'transparent'}`,
+                                    cursor:'pointer', whiteSpace:'nowrap', transition:'all 0.2s',
+                                    minWidth:'50px', position:'relative',
+                                }}>
+                                    <div style={{fontSize:'14px', marginBottom:'1px'}}>{tab.icon}</div>
+                                    <div>{lang==='ar'?tab.label_ar:tab.label_en}</div>
+                                    {/* Unread badge for chat tab */}
+                                    {tab.id==='chat' && family?.announcement && activeTab!=='chat' && (
+                                        <span style={{position:'absolute', top:'4px', right:'6px', fontSize:'7px', background:'#f97316', color:'white', borderRadius:'50%', width:'14px', height:'14px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900}}>📢</span>
+                                    )}
+                                    {tab.id==='manage'&&(family?.joinRequests?.length>0)&&<span style={{position:'absolute', top:'4px', right:'6px', fontSize:'8px', background:'#f97316', color:'white', borderRadius:'50%', width:'14px', height:'14px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900}}>{family.joinRequests.length}</span>}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* ── Body ── */}
+                    <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0}}>
+                        {loadingFamily ? (
+                            <div style={{flex:1, display:'flex', alignItems:'center', justifyContent:'center', color:'#6b7280'}}>⏳</div>
+                        ) : !family ? (
+                            view==='home' ? renderHome() : view==='create' ? renderCreate() : renderJoin()
+                        ) : (
+                            <>
+                                {activeTab==='profile'  && renderProfile()}
+                                {activeTab==='members'  && renderMembers()}
+                                {activeTab==='chat'     && renderChat()}
+                                {activeTab==='tasks'    && renderTasks()}
+                                {activeTab==='shop'     && renderShop()}
+                                {activeTab==='ranking'  && renderRankingTab()}
+                                {activeTab==='news'     && renderNews()}
+                                {activeTab==='manage'   && renderManage()}
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </PortalModal>
+        </>
+    );
+};
