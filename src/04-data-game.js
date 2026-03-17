@@ -302,6 +302,101 @@ const SHOP_ITEMS = {
         { id: 'vgift_cosmic',      name_en: "Cosmic",      name_ar: "هدية الكون",     cost: 50000,  type: 'gifts_vip', charisma: 10000, vipXP: 500,  minBonus: 1, maxBonus: 250000, desc_ar: "قوة الكون المطلقة — حصري VIP 9",       desc_en: "Absolute cosmic power — VIP 9 only",     emoji: "🌠", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: 30, season: null, vipMinLevel: 9,  vipExclusive: true, vipGlowType: 'cosmic'  },
         // VIP 10 — Godlike ─────────────────────────────────────────────────
         { id: 'vgift_godlike',     name_en: "Godlike",     name_ar: "هدية الإله",     cost: 100000, type: 'gifts_vip', charisma: 20000, vipXP: 1000, minBonus: 1, maxBonus: 500000, desc_ar: "أعظم هدية على الإطلاق — حصري VIP 10", desc_en: "The greatest gift ever — VIP 10 only",   emoji: "⚡", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: 30, season: null, vipMinLevel: 10, vipExclusive: true, vipGlowType: 'godlike' },
+    ],
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 🏰 FAMILY GIFTS — 5 هدايا حصرية للأعضاء في قبيلة
+    // ════════════════════════════════════════════════════════════════════════
+    // familyMinLevel: الحد الأدنى لمستوى القبيلة المطلوب
+    // ════════════════════════════════════════════════════════════════════════
+    gifts_family: [
+        { id: 'fgift_emblem',   name_en: "Clan Emblem",   name_ar: "شعار القبيلة",  cost: 800,   type: 'gifts_family', charisma: 160,  vipXP: 8,   minBonus: 1, maxBonus: 4000,  desc_ar: "شعار قبيلتك الفخور",        desc_en: "Your clan's proud emblem",         emoji: "🏴", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: 30, season: null, maxSendOptions: [1,3,5,10], familyMinLevel: 1  },
+        { id: 'fgift_sword',    name_en: "Clan Sword",    name_ar: "سيف القبيلة",   cost: 1500,  type: 'gifts_family', charisma: 300,  vipXP: 15,  minBonus: 1, maxBonus: 7500,  desc_ar: "سيف المحاربين الأشداء",     desc_en: "The sword of mighty warriors",     emoji: "⚔️", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: 30, season: null, maxSendOptions: [1,3,5,10], familyMinLevel: 2  },
+        { id: 'fgift_shield',   name_en: "Guardian Shield",name_ar: "درع الحراسة", cost: 3000,  type: 'gifts_family', charisma: 600,  vipXP: 30,  minBonus: 1, maxBonus: 15000, desc_ar: "درع الحماية الفولاذي",      desc_en: "The steel guardian shield",        emoji: "🛡️", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: 30, season: null, maxSendOptions: [1,3,5,10], familyMinLevel: 4  },
+        { id: 'fgift_throne',   name_en: "Clan Throne",   name_ar: "عرش القبيلة",   cost: 6000,  type: 'gifts_family', charisma: 1200, vipXP: 60,  minBonus: 1, maxBonus: 30000, desc_ar: "عرش الملوك والأبطال",       desc_en: "The throne of kings and champions", emoji: "👑", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: 30, season: null, maxSendOptions: [1,3,5,10], familyMinLevel: 6  },
+        { id: 'fgift_legend',   name_en: "Clan Legend",   name_ar: "أسطورة القبيلة", cost: 12000, type: 'gifts_family', charisma: 2400, vipXP: 120, minBonus: 1, maxBonus: 60000, desc_ar: "أسطورة لا تُنسى في تاريخ القبيلة", desc_en: "A legend never forgotten in clan history", emoji: "🌟", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: 30, season: null, maxSendOptions: [1,3,5,10], familyMinLevel: 8  },
+    ],
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 🎰 SPECIAL GIFTS — هدايا سبيشيال بنظام اليانصيب
+    // ════════════════════════════════════════════════════════════════════════
+    // specialType: 'lottery' | 'limited' | 'event'
+    // possibleRewards: مصفوفة الجوائز الممكنة من اليانصيب
+    //   كل جائزة: { type: 'frame'|'badge'|'title'|'effect'|'currency', itemId?, amount?, durationDays?, chance }
+    // ════════════════════════════════════════════════════════════════════════
+    gifts_special: [
+        {
+            id: 'sgift_lucky_box', name_en: "Lucky Box",  name_ar: "صندوق الحظ",
+            cost: 300, type: 'gifts_special', charisma: 60, vipXP: 3, minBonus: 1, maxBonus: 1500,
+            desc_ar: "صندوق مجهول المحتوى — أفتحه وانتظر المفاجأة!",
+            desc_en: "Mystery box — open it and wait for the surprise!",
+            emoji: "🎁", imageUrl: "", hidden: false, isEvent: false, limitedTime: false, specialType: 'lottery',
+            durationDays: 30, maxSendOptions: [1,3,5,10],
+            possibleRewards: [
+                { chance: 50, type: 'currency', amount: 200,       desc_en: '200 Intel',      desc_ar: '200 إنتل' },
+                { chance: 25, type: 'currency', amount: 500,       desc_en: '500 Intel',      desc_ar: '500 إنتل' },
+                { chance: 15, type: 'badge',    itemId: 'fp_badge_speed', durationDays: 7,  desc_en: 'Speed Badge 7d', desc_ar: 'شارة السرعة 7 أيام' },
+                { chance: 8,  type: 'frame',    itemId: 'fp_frame_neon',  durationDays: 7,  desc_en: 'Neon Frame 7d',  desc_ar: 'إطار نيون 7 أيام' },
+                { chance: 2,  type: 'frame',    itemId: 'fp_frame_gold',  durationDays: 30, desc_en: 'Gold Frame 30d', desc_ar: 'إطار ذهبي 30 يوم' },
+            ]
+        },
+        {
+            id: 'sgift_mystery_star', name_en: "Mystery Star", name_ar: "نجمة الغموض",
+            cost: 800, type: 'gifts_special', charisma: 160, vipXP: 8, minBonus: 1, maxBonus: 4000,
+            desc_ar: "نجمة سحرية قد تمنحك إطاراً أو شارة نادرة",
+            desc_en: "A magic star that may grant you a rare frame or badge",
+            emoji: "⭐", imageUrl: "", hidden: false, isEvent: true, limitedTime: false, specialType: 'lottery',
+            durationDays: 30, maxSendOptions: [1,3,5,10],
+            possibleRewards: [
+                { chance: 40, type: 'currency', amount: 500,        desc_en: '500 Intel',       desc_ar: '500 إنتل' },
+                { chance: 25, type: 'badge',    itemId: 'fp_badge_diamond', durationDays: 14, desc_en: 'Diamond Badge 14d', desc_ar: 'شارة ألماس 14 يوم' },
+                { chance: 20, type: 'frame',    itemId: 'fp_frame_crystal', durationDays: 14, desc_en: 'Crystal Frame 14d', desc_ar: 'إطار كريستال 14 يوم' },
+                { chance: 10, type: 'frame',    itemId: 'fp_frame_inferno', durationDays: 14, desc_en: 'Inferno Frame 14d', desc_ar: 'إطار جهنم 14 يوم' },
+                { chance: 5,  type: 'frame',    itemId: 'fp_frame_mythic',  durationDays: 7,  desc_en: 'Mythic Frame 7d',   desc_ar: 'إطار خرافي 7 أيام' },
+            ]
+        },
+        {
+            id: 'sgift_rainbow_chest', name_en: "Rainbow Chest", name_ar: "صندوق قوس قزح",
+            cost: 2000, type: 'gifts_special', charisma: 400, vipXP: 20, minBonus: 1, maxBonus: 10000,
+            desc_ar: "صندوق الألوان السبعة — جوائز نادرة بانتظارك",
+            desc_en: "The seven-color chest — rare prizes await",
+            emoji: "🌈", imageUrl: "", hidden: false, isEvent: false, limitedTime: true, specialType: 'lottery',
+            durationDays: 30, maxSendOptions: [1,3,5,10],
+            possibleRewards: [
+                { chance: 30, type: 'currency',  amount: 1000,        desc_en: '1000 Intel',      desc_ar: '1000 إنتل' },
+                { chance: 25, type: 'badge',     itemId: 'fp_badge_galaxy', durationDays: 30, desc_en: 'Galaxy Badge 30d', desc_ar: 'شارة المجرة 30 يوم' },
+                { chance: 20, type: 'frame',     itemId: 'fp_frame_rainbow', durationDays: 30, desc_en: 'Rainbow Frame 30d', desc_ar: 'إطار قوس قزح 30 يوم' },
+                { chance: 15, type: 'frame',     itemId: 'fp_frame_void',   durationDays: 14, desc_en: 'Void Frame 14d',   desc_ar: 'إطار الفراغ 14 يوم' },
+                { chance: 8,  type: 'frame',     itemId: 'fp_frame_phoenix', durationDays: 30, desc_en: 'Phoenix Frame 30d', desc_ar: 'إطار الفينيكس 30 يوم' },
+                { chance: 2,  type: 'frame',     itemId: 'fp_frame_nova',    durationDays: 30, desc_en: 'Nova Frame 30d',   desc_ar: 'إطار النجم 30 يوم' },
+            ]
+        },
+    ],
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 🚩 FLAG GIFTS — هدايا الأعلام والدول
+    // ════════════════════════════════════════════════════════════════════════
+    gifts_flag: [
+        { id: 'flag_sa',  name_en: "Saudi Arabia",  name_ar: "السعودية",    cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇸🇦", imageUrl: "", hidden: false, countryCode: 'SA', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_ae',  name_en: "UAE",            name_ar: "الإمارات",    cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇦🇪", imageUrl: "", hidden: false, countryCode: 'AE', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_eg',  name_en: "Egypt",          name_ar: "مصر",         cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇪🇬", imageUrl: "", hidden: false, countryCode: 'EG', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_kw',  name_en: "Kuwait",         name_ar: "الكويت",      cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇰🇼", imageUrl: "", hidden: false, countryCode: 'KW', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_qa',  name_en: "Qatar",          name_ar: "قطر",         cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇶🇦", imageUrl: "", hidden: false, countryCode: 'QA', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_bh',  name_en: "Bahrain",        name_ar: "البحرين",     cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇧🇭", imageUrl: "", hidden: false, countryCode: 'BH', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_om',  name_en: "Oman",           name_ar: "عُمان",       cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇴🇲", imageUrl: "", hidden: false, countryCode: 'OM', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_jo',  name_en: "Jordan",         name_ar: "الأردن",      cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇯🇴", imageUrl: "", hidden: false, countryCode: 'JO', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_iq',  name_en: "Iraq",           name_ar: "العراق",      cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇮🇶", imageUrl: "", hidden: false, countryCode: 'IQ', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_ma',  name_en: "Morocco",        name_ar: "المغرب",      cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇲🇦", imageUrl: "", hidden: false, countryCode: 'MA', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_tn',  name_en: "Tunisia",        name_ar: "تونس",        cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇹🇳", imageUrl: "", hidden: false, countryCode: 'TN', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_ly',  name_en: "Libya",          name_ar: "ليبيا",       cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇱🇾", imageUrl: "", hidden: false, countryCode: 'LY', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_sy',  name_en: "Syria",          name_ar: "سوريا",       cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇸🇾", imageUrl: "", hidden: false, countryCode: 'SY', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_lb',  name_en: "Lebanon",        name_ar: "لبنان",       cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇱🇧", imageUrl: "", hidden: false, countryCode: 'LB', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_ps',  name_en: "Palestine",      name_ar: "فلسطين",      cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇵🇸", imageUrl: "", hidden: false, countryCode: 'PS', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_tr',  name_en: "Turkey",         name_ar: "تركيا",       cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇹🇷", imageUrl: "", hidden: false, countryCode: 'TR', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_us',  name_en: "USA",            name_ar: "أمريكا",      cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇺🇸", imageUrl: "", hidden: false, countryCode: 'US', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_gb',  name_en: "UK",             name_ar: "بريطانيا",    cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇬🇧", imageUrl: "", hidden: false, countryCode: 'GB', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_de',  name_en: "Germany",        name_ar: "ألمانيا",     cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇩🇪", imageUrl: "", hidden: false, countryCode: 'DE', durationDays: 30, maxSendOptions: [1,3,5,10] },
+        { id: 'flag_fr',  name_en: "France",         name_ar: "فرنسا",       cost: 50,  type: 'gifts_flag', charisma: 10, vipXP: 1, minBonus: 0, maxBonus: 0, emoji: "🇫🇷", imageUrl: "", hidden: false, countryCode: 'FR', durationDays: 30, maxSendOptions: [1,3,5,10] },
     ]
 };
 
