@@ -579,14 +579,14 @@ const PrivateChatModal = ({
                     gap: '6px',
                     marginBottom: isLastGroup ? '4px' : '1px',
                   }}>
-                    {/* Friend avatar */}
+                    {/* Friend avatar — click opens mini profile */}
                     {!isMine && (
                       <div style={{ width: '28px', flexShrink: 0, alignSelf: 'flex-end' }}>
                         {showAvatar ? (
                           <img
                             src={msg.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.senderName||'U')}&background=6366f1&color=fff&size=56`}
                             alt=""
-                            onClick={() => onOpenProfile && onOpenProfile(msg.senderId)}
+                            onClick={() => openMiniProfile(msg.senderId)}
                             style={{
                               width: '28px', height: '28px', borderRadius: '50%',
                               objectFit: 'cover', cursor: 'pointer',
