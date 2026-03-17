@@ -682,13 +682,15 @@ const FamilyRankingModal = ({ show, onClose, lang, currentFamilyId }) => {
 // ════════════════════════════════════════════════════════
 const CHAT_EMOJIS_FAM = ['😀','😂','❤️','👍','🔥','⭐','💎','🎁','🎉','😎','🤩','💪','✨','🙏','😊','👑','💖','🥳','🏆','🎯','😍','🤣','😭','😱','🫡','💯','🌹','🎮','🕵️','🏅'];
 
-const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily }) => {
+const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily, onSendGift, userData }) => {
     const [messages, setMessages] = React.useState([]);
     const [chatInput, setChatInput] = React.useState('');
     const [sendingMsg, setSendingMsg] = React.useState(false);
     const [showEmoji, setShowEmoji] = React.useState(false);
     const chatEndRef = React.useRef(null);
     const imgInputRef = React.useRef(null);
+    // ── Gift modal state ──
+    const [showChatGiftModal, setShowChatGiftModal] = React.useState(false);
 
     React.useEffect(() => {
         if (!show || !familyId) return;
@@ -922,6 +924,12 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     onClick: function() { setShowEmoji(function(p) { return !p; }); },
                     style: { width:'36px', height:'36px', borderRadius:'10px', background: showEmoji?'rgba(0,242,255,0.15)':'rgba(255,255,255,0.06)', border: '1px solid ' + (showEmoji?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.1)'), color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }
                 }, '😊'),
+                // ── زر الهدايا ──
+                onSendGift && React.createElement('button', {
+                    onClick: function() { setShowChatGiftModal(true); },
+                    title: lang==='ar'?'أرسل هدية':'Send gift',
+                    style: { width:'36px', height:'36px', borderRadius:'10px', background:'rgba(255,215,0,0.1)', border:'1px solid rgba(255,215,0,0.22)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }
+                }, '🎁'),
                 React.createElement('input', {
                     value: chatInput,
                     onChange: function(e) { setChatInput(e.target.value); },
@@ -937,7 +945,23 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     disabled: !chatInput.trim() || sendingMsg,
                     style: { width:'40px', height:'40px', borderRadius:'12px', border:'none', flexShrink:0, background: chatInput.trim()?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color: chatInput.trim()?'white':'#6b7280', fontSize:'18px', cursor: chatInput.trim()?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center' }
                 }, sendingMsg ? '⏳' : '➤')
-            )
+            ),
+            // ── Gift modal للـ FamilyChatModal ──
+            showChatGiftModal && onSendGift && React.createElement(SendGiftModal, {
+                show: showChatGiftModal,
+                onClose: function() { setShowChatGiftModal(false); },
+                targetUser: null,
+                currentUser: userData || currentUserData,
+                lang: lang,
+                onSendGift: async function(gift, target, qty) {
+                    if (target && target.uid) {
+                        await onSendGift(gift, target, qty || 1);
+                    }
+                    setShowChatGiftModal(false);
+                },
+                currency: (userData || currentUserData)?.currency || 0,
+                friendsData: [],
+            })
         ) // close inner content div
         ) // close overlay div
     );
@@ -1063,7 +1087,7 @@ const FamilyRankingInline = ({ lang, currentFamilyId }) => {
 // ════════════════════════════════════════════════════════
 // 🏠 FAMILY MODAL — Main Component V2
 // ════════════════════════════════════════════════════════
-const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification, viewFamilyId }) => {
+const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification, viewFamilyId, onSendGift, userData }) => {
     const [activeTab, setActiveTab] = useState('profile');
     const [family, setFamily] = useState(null);
     const [loadingFamily, setLoadingFamily] = useState(true);
@@ -1077,6 +1101,11 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const [editTag, setEditTag] = useState('');
     const [savingTag, setSavingTag] = useState(false);
     const [joinRequesterProfiles, setJoinRequesterProfiles] = useState([]);
+    // ── Delete family confirm ──
+    const [showDeleteFamilyConfirm, setShowDeleteFamilyConfirm] = useState(false);
+    const [deletingFamily, setDeletingFamily] = useState(false);
+    // ── Gift modal in chat ──
+    const [showFamilyChatGift, setShowFamilyChatGift] = useState(false);
 
     // Chat state
     const [chatMessages, setChatMessages] = useState([]);
@@ -1364,9 +1393,38 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 familySignLevel: null, familySignColor: null, familySignImageURL: null,
             });
             setFamily(null); setView('home'); setActiveTab('profile');
-            setShowHeaderMenu(false);
             onNotification(lang === 'ar' ? '👋 تركت العائلة' : '👋 Left family');
         } catch (e) { onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+    };
+
+    // ── حذف العائلة (المالك فقط) ──
+    const handleDeleteFamily = async () => {
+        if (!family?.id || getFamilyRole(family, currentUID) !== 'owner') return;
+        setDeletingFamily(true);
+        try {
+            // حذف كل الأعضاء من بيانات المستخدمين
+            const memberIds = family.members || [];
+            const batch = db.batch();
+            memberIds.forEach(uid => {
+                const ref = usersCollection.doc(uid);
+                batch.update(ref, {
+                    familyId: null, familyName: null, familyTag: null,
+                    familySignLevel: null, familySignColor: null, familySignImageURL: null,
+                });
+            });
+            await batch.commit().catch(() => {});
+            // حذف العائلة نفسها
+            await familiesCollection.doc(family.id).delete();
+            setFamily(null);
+            setView('home');
+            setActiveTab('profile');
+            setShowDeleteFamilyConfirm(false);
+            onNotification(lang === 'ar' ? '🗑️ تم حذف العائلة بنجاح' : '🗑️ Family deleted successfully');
+            onClose();
+        } catch (e) {
+            onNotification(lang === 'ar' ? '❌ خطأ في الحذف' : '❌ Delete error');
+        }
+        setDeletingFamily(false);
     };
 
     const handleDonate = async () => {
@@ -2001,6 +2059,22 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
                 {/* Input bar */}
                 <div style={{padding:'10px 12px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.3)', display:'flex', gap:'8px', alignItems:'center', flexShrink:0}}>
+                    {/* زر الهدايا */}
+                    {onSendGift && (
+                        <button
+                            onClick={() => setShowFamilyChatGift(true)}
+                            title={lang==='ar'?'أرسل هدية':'Send gift'}
+                            style={{
+                                width:'38px', height:'38px', borderRadius:'10px', flexShrink:0,
+                                background:'rgba(255,215,0,0.1)', border:'1px solid rgba(255,215,0,0.22)',
+                                fontSize:'17px', cursor:'pointer',
+                                display:'flex', alignItems:'center', justifyContent:'center',
+                                transition:'all 0.15s',
+                            }}
+                            onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,215,0,0.2)';}}
+                            onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,215,0,0.1)';}}
+                        >🎁</button>
+                    )}
                     <input
                         value={chatInput}
                         onChange={e => setChatInput(e.target.value)}
@@ -2017,6 +2091,37 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         {sendingMsg ? '⏳' : '➤'}
                     </button>
                 </div>
+
+                {/* Gift modal للشات */}
+                {showFamilyChatGift && onSendGift && (
+                    <SendGiftModal
+                        show={showFamilyChatGift}
+                        onClose={() => setShowFamilyChatGift(false)}
+                        targetUser={null}
+                        currentUser={userData || currentUserData}
+                        lang={lang}
+                        onSendGift={async (gift, target, qty) => {
+                            // إرسال هدية للعائلة (بث)
+                            const membersToGift = (family?.members || []).filter(uid => uid !== currentUID);
+                            if (membersToGift.length === 0) {
+                                onNotification(lang==='ar'?'لا يوجد أعضاء آخرين':'No other members');
+                                setShowFamilyChatGift(false);
+                                return;
+                            }
+                            // أرسل للعضو الأول فقط (أو استخدم target لو موجود)
+                            const targetUID = target?.uid || membersToGift[0];
+                            const targetDoc = await usersCollection.doc(targetUID).get().catch(()=>null);
+                            if (targetDoc && targetDoc.exists) {
+                                await onSendGift(gift, { uid: targetUID, ...targetDoc.data() }, qty || 1);
+                            }
+                            setShowFamilyChatGift(false);
+                        }}
+                        currency={(userData || currentUserData)?.currency || 0}
+                        friendsData={familyMembers.filter(m => m.id !== currentUID).map(m => ({ ...m, uid: m.id }))}
+                        showFamilyMembers={true}
+                        familyMembers={familyMembers.filter(m => m.id !== currentUID).map(m => ({ ...m, uid: m.id }))}
+                    />
+                )}
             </div>
         );
     };
@@ -2760,6 +2865,66 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </button>
                     <div style={{fontSize:'10px', color:'#4b5563', textAlign:'center', marginTop:'6px'}}>{lang==='ar'?'لا يمكن التراجع عن هذا القرار':'This action cannot be undone'}</div>
                 </div>
+
+                {/* ── Delete Family (Owner only) ── */}
+                {getFamilyRole(family, currentUID) === 'owner' && (
+                    <div style={{marginTop:'8px', paddingTop:'12px', borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+                        <button
+                            onClick={() => setShowDeleteFamilyConfirm(true)}
+                            style={{...S.btn, width:'100%', padding:'12px', background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.4)', color:'#ef4444', fontSize:'12px', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:'6px'}}>
+                            🗑️ {lang==='ar'?'حذف العائلة نهائياً':'Delete Family Permanently'}
+                        </button>
+                        <div style={{fontSize:'10px', color:'#6b7280', textAlign:'center', marginTop:'4px'}}>
+                            {lang==='ar'?'سيتم حذف العائلة وطرد جميع الأعضاء':'All members will be removed and family deleted'}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Delete Family Confirm Modal ── */}
+                {showDeleteFamilyConfirm && (
+                    <div style={{
+                        position:'fixed', inset:0, zIndex: Z.OVERLAY,
+                        background:'rgba(0,0,0,0.85)',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        padding:'20px',
+                    }} onClick={() => setShowDeleteFamilyConfirm(false)}>
+                        <div style={{
+                            background:'linear-gradient(135deg,#1a0808,#0f0505)',
+                            border:'2px solid rgba(239,68,68,0.5)',
+                            borderRadius:'20px', padding:'28px 24px',
+                            maxWidth:'320px', width:'100%',
+                            textAlign:'center',
+                            boxShadow:'0 0 50px rgba(239,68,68,0.3)',
+                        }} onClick={e => e.stopPropagation()}>
+                            <div style={{fontSize:'48px', marginBottom:'12px'}}>⚠️</div>
+                            <div style={{fontSize:'16px', fontWeight:900, color:'#ef4444', marginBottom:'8px'}}>
+                                {lang==='ar'?'حذف العائلة':'Delete Family'}
+                            </div>
+                            <div style={{fontSize:'12px', color:'#9ca3af', lineHeight:1.6, marginBottom:'6px'}}>
+                                {lang==='ar'
+                                    ? `هل أنت متأكد من حذف "${family?.name || ''}"؟ سيتم طرد جميع الأعضاء وحذف كل البيانات نهائياً.`
+                                    : `Are you sure you want to delete "${family?.name || ''}"? All members will be removed and all data will be permanently deleted.`
+                                }
+                            </div>
+                            <div style={{fontSize:'11px', color:'#ef4444', fontWeight:700, marginBottom:'20px', padding:'8px 12px', background:'rgba(239,68,68,0.08)', borderRadius:'8px', border:'1px solid rgba(239,68,68,0.2)'}}>
+                                {lang==='ar'?'⚠️ هذا الإجراء لا يمكن التراجع عنه':'⚠️ This action cannot be undone'}
+                            </div>
+                            <div style={{display:'flex', gap:'10px'}}>
+                                <button
+                                    onClick={() => setShowDeleteFamilyConfirm(false)}
+                                    style={{flex:1, padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', fontSize:'13px', fontWeight:700, cursor:'pointer'}}>
+                                    {lang==='ar'?'إلغاء':'Cancel'}
+                                </button>
+                                <button
+                                    onClick={handleDeleteFamily}
+                                    disabled={deletingFamily}
+                                    style={{flex:1, padding:'10px', borderRadius:'10px', background:'linear-gradient(135deg,#dc2626,#991b1b)', border:'1px solid rgba(239,68,68,0.5)', color:'white', fontSize:'13px', fontWeight:800, cursor:deletingFamily?'wait':'pointer', opacity:deletingFamily?0.7:1}}>
+                                    {deletingFamily ? '⏳...' : `🗑️ ${lang==='ar'?'تأكيد الحذف':'Confirm Delete'}`}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div style={{height:'12px'}} />
             </div>
