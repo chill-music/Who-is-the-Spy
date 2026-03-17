@@ -1904,6 +1904,8 @@ function App() {
                     isLoggedIn={isLoggedIn}
                     onNotification={setNotification}
                     viewFamilyId={viewFamilyId}
+                    onSendGift={handleSendGiftToUser}
+                    userData={currentUserData}
                 />
             )}
 
@@ -1918,6 +1920,8 @@ function App() {
                     currentUserData={currentUserData}
                     lang={lang}
                     onOpenFamily={() => { setShowFamilyChat(false); setShowFamilyModal(true); }}
+                    onSendGift={handleSendGiftToUser}
+                    userData={currentUserData}
                 />
             )}
 
