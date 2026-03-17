@@ -682,15 +682,39 @@ const FamilyRankingModal = ({ show, onClose, lang, currentFamilyId }) => {
 // ════════════════════════════════════════════════════════
 const CHAT_EMOJIS_FAM = ['😀','😂','❤️','👍','🔥','⭐','💎','🎁','🎉','😎','🤩','💪','✨','🙏','😊','👑','💖','🥳','🏆','🎯','😍','🤣','😭','😱','🫡','💯','🌹','🎮','🕵️','🏅'];
 
-const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily, onSendGift, userData }) => {
+const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily, onSendGift, userData, onNotification }) => {
     const [messages, setMessages] = React.useState([]);
     const [chatInput, setChatInput] = React.useState('');
     const [sendingMsg, setSendingMsg] = React.useState(false);
     const [showEmoji, setShowEmoji] = React.useState(false);
+    const [prevMsgCount, setPrevMsgCount] = React.useState(0);
     const chatEndRef = React.useRef(null);
     const imgInputRef = React.useRef(null);
-    // ── Gift modal state ──
+    const chatInputRef = React.useRef(null);
+    // ── Gift modal ──
+    const [giftTarget, setGiftTarget] = React.useState(null); // null = self, { uid, displayName, photoURL }
     const [showChatGiftModal, setShowChatGiftModal] = React.useState(false);
+    // ── Mini profile popup ──
+    const [miniProfile, setMiniProfile] = React.useState(null); // { uid, name, photo, customId }
+    // ── @ Mention ──
+    const [mentionSearch, setMentionSearch] = React.useState('');
+    const [showMentionList, setShowMentionList] = React.useState(false);
+    const [familyMembers, setFamilyMembers] = React.useState([]);
+
+    // جلب أعضاء العائلة للمنشن
+    React.useEffect(() => {
+        if (!show || !familyId) return;
+        const unsub = familiesCollection.doc(familyId).onSnapshot(snap => {
+            if (!snap.exists) return;
+            const memberIds = snap.data().members || [];
+            if (memberIds.length === 0) return;
+            // جلب بيانات الأعضاء
+            usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', memberIds.slice(0,10))
+                .get().then(s => setFamilyMembers(s.docs.map(d => ({ id: d.id, ...d.data() }))))
+                .catch(() => {});
+        }, () => {});
+        return () => unsub();
+    }, [show, familyId]);
 
     React.useEffect(() => {
         if (!show || !familyId) return;
@@ -698,10 +722,23 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
             .orderBy('timestamp', 'desc').limit(80)
             .onSnapshot(snap => {
                 const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+                // صوت + نوتيفيكيشن لما تيجي رسالة جديدة
+                if (prevMsgCount > 0 && msgs.length > prevMsgCount) {
+                    const newest = msgs[msgs.length - 1];
+                    if (newest && newest.senderId !== currentUID) {
+                        try { playNotificationSound(); } catch(e) {}
+                        if (onNotification) {
+                            const senderName = newest.senderName || (lang==='ar'?'عضو':'Member');
+                            const preview = newest.type === 'image' ? '📷' : (newest.text || '').slice(0, 40);
+                            onNotification(`💬 ${senderName}: ${preview}`);
+                        }
+                    }
+                }
+                setPrevMsgCount(msgs.length);
                 setMessages(msgs);
             }, () => {});
         return () => unsub();
-    }, [show, familyId]);
+    }, [show, familyId, prevMsgCount, currentUID]);
 
     React.useEffect(() => {
         if (show) setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 120);
@@ -709,27 +746,52 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
 
     var canManageFamilyChat = familyData ? canManageFamily(familyData, currentUID) : false;
 
+    // ── معالجة @ Mention ──
+    const handleInputChange = function(e) {
+        const val = e.target.value;
+        setChatInput(val);
+        const lastAt = val.lastIndexOf('@');
+        if (lastAt !== -1) {
+            const after = val.slice(lastAt + 1);
+            if (!after.includes(' ')) {
+                setMentionSearch(after.toLowerCase());
+                setShowMentionList(true);
+                return;
+            }
+        }
+        setShowMentionList(false);
+    };
+
+    const selectMention = function(member) {
+        const lastAt = chatInput.lastIndexOf('@');
+        const newVal = chatInput.slice(0, lastAt) + '@' + member.displayName + ' ';
+        setChatInput(newVal);
+        setShowMentionList(false);
+        setTimeout(function() { chatInputRef.current && chatInputRef.current.focus(); }, 50);
+    };
+
+    const mentionMembers = familyMembers
+        .filter(function(m) { return m.id !== currentUID; })
+        .filter(function(m) { return !mentionSearch || (m.displayName || '').toLowerCase().includes(mentionSearch); });
+
     const sendMessage = async (text, type, extra) => {
         type = type || 'text';
         extra = extra || {};
         if ((!text || !text.trim()) && type === 'text') return;
         if (!familyId || !currentUID || sendingMsg) return;
         setSendingMsg(true);
+        setShowMentionList(false);
         try {
-            // Check if it's an announcement command
             var msgText = (text || '').trim();
             var isAnnouncementCmd = canManageFamilyChat && type === 'text' && msgText.toLowerCase().startsWith('announcement ');
             var finalType = isAnnouncementCmd ? 'announcement' : type;
             var finalText = isAnnouncementCmd ? msgText.slice('announcement '.length).trim() : msgText;
-
             if (isAnnouncementCmd && finalText) {
-                // Update family announcement field too
                 await familiesCollection.doc(familyId).update({
                     announcement: finalText,
                     announcementBy: currentUserData?.displayName || 'Admin',
                 }).catch(function() {});
             }
-
             await familiesCollection.doc(familyId).collection('messages').add({
                 senderId: currentUID,
                 senderName: currentUserData?.displayName || 'Member',
@@ -784,6 +846,16 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
         return Math.floor(diff/86400000) + (lang==='ar'?'ي':'d');
     };
 
+    // ── render mention text with highlight ──
+    const renderMsgText = function(text) {
+        if (!text) return '';
+        const parts = text.split(/(@\w[\w\s]*?)(?=\s|$)/g);
+        return parts.map(function(part, i) {
+            if (part.startsWith('@')) return React.createElement('span', { key: i, style: { color: '#00f2ff', fontWeight: 700 } }, part);
+            return part;
+        });
+    };
+
     if (!show) return null;
 
     var signData = (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0) : null) || { level:0, color:'#4b5563', glow:'rgba(75,85,99,0.3)', defaultIcon:'🏠' };
@@ -804,11 +876,11 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
             },
                 React.createElement('button', { onClick: onClose, style: { background:'none', border:'none', color:'#00f2ff', fontSize:'20px', cursor:'pointer', padding:'0 4px' } }, '‹'),
                 React.createElement('div', {
-                    onClick: () => onOpenFamily && onOpenFamily(),
+                    onClick: function() { onOpenFamily && onOpenFamily(); },
                     style: { width:'40px', height:'40px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'linear-gradient(135deg,' + signData.color + '22,rgba(0,0,0,0.3))', border:'2px solid ' + signData.color + '55', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', cursor: onOpenFamily ? 'pointer' : 'default' }
                 }, familyData && familyData.photoURL ? React.createElement('img', { src: familyData.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}}) : (familyData && familyData.emblem) || '🏠'),
                 React.createElement('div', {
-                    onClick: () => onOpenFamily && onOpenFamily(),
+                    onClick: function() { onOpenFamily && onOpenFamily(); },
                     style: { flex:1, minWidth:0, cursor: onOpenFamily ? 'pointer' : 'default' }
                 },
                     React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' } },
@@ -836,6 +908,34 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     )
                 )
             ),
+            // ── Mini Profile Popup ──
+            miniProfile && React.createElement('div', {
+                style: { position:'absolute', inset:0, zIndex:20, background:'rgba(0,0,0,0.65)', display:'flex', alignItems:'center', justifyContent:'center' },
+                onClick: function() { setMiniProfile(null); }
+            },
+                React.createElement('div', {
+                    style: { background:'linear-gradient(160deg,#0e0e22,#13122a)', border:'1px solid rgba(0,242,255,0.25)', borderRadius:'18px', padding:'20px', width:'220px', boxShadow:'0 20px 50px rgba(0,0,0,0.9)', textAlign:'center' },
+                    onClick: function(e) { e.stopPropagation(); }
+                },
+                    React.createElement('div', { style: { width:'60px', height:'60px', borderRadius:'50%', overflow:'hidden', margin:'0 auto 10px', border:'2px solid rgba(0,242,255,0.35)' } },
+                        miniProfile.photo
+                            ? React.createElement('img', { src: miniProfile.photo, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'} })
+                            : React.createElement('div', { style:{width:'100%',height:'100%',background:'rgba(255,255,255,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px'} }, '😎')
+                    ),
+                    React.createElement('div', { style: { fontSize:'14px', fontWeight:800, color:'white', marginBottom:'3px' } }, miniProfile.name),
+                    miniProfile.customId && React.createElement('div', { style: { fontSize:'11px', color:'#6b7280', marginBottom:'14px' } }, '🪪 #' + miniProfile.customId),
+                    miniProfile.uid !== currentUID && onSendGift
+                        ? React.createElement('button', {
+                            onClick: function() {
+                                setMiniProfile(null);
+                                setGiftTarget({ uid: miniProfile.uid, displayName: miniProfile.name, photoURL: miniProfile.photo });
+                                setShowChatGiftModal(true);
+                            },
+                            style: { width:'100%', padding:'10px', borderRadius:'10px', background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15))', border:'1px solid rgba(255,215,0,0.4)', color:'#fbbf24', fontSize:'13px', fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px' }
+                          }, '🎁 ' + (lang==='ar'?'أرسل هدية':'Send Gift'))
+                        : miniProfile.uid === currentUID && React.createElement('div', { style: { fontSize:'11px', color:'#6b7280' } }, lang==='ar'?'هذا أنت':'This is you')
+                )
+            ),
             // Messages
             React.createElement('div', {
                 style: { flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px', minHeight:0 }
@@ -859,7 +959,6 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                             React.createElement('div', { style: { fontSize:'10px', color:'#6b7280', marginTop:'2px' } }, fmtTime(msg.timestamp))
                         )
                     );
-                    // ── Announcement message ──
                     var isAnnouncement = msg.type === 'announcement';
                     if (isAnnouncement) return React.createElement('div', { key: msg.id, style: { display:'flex', justifyContent:'center', padding:'6px 0' } },
                         React.createElement('div', {
@@ -883,18 +982,28 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                         )
                     );
                     return React.createElement('div', { key: msg.id, style: { display:'flex', flexDirection: isMe?'row-reverse':'row', gap:'8px', alignItems:'flex-end' } },
-                        !isMe && React.createElement('div', { style: { width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)' } },
+                        // صورة المرسل — قابلة للضغط
+                        !isMe && React.createElement('div', {
+                            onClick: function() { setMiniProfile({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null }); },
+                            style: { width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer' }
+                        },
                             msg.senderPhoto
                                 ? React.createElement('img', { src: msg.senderPhoto, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}})
                                 : React.createElement('div', { style:{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}, '😎')
                         ),
                         React.createElement('div', { style: { maxWidth:'72%' } },
-                            !isMe && React.createElement('div', { style: { fontSize:'10px', color:'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft:'4px' } }, msg.senderName),
+                            // اسم المرسل — قابل للضغط
+                            !isMe && React.createElement('div', {
+                                onClick: function() { setMiniProfile({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null }); },
+                                style: { fontSize:'10px', color:'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft:'4px', cursor:'pointer' },
+                                onMouseEnter: function(e) { e.currentTarget.style.color='#00f2ff'; },
+                                onMouseLeave: function(e) { e.currentTarget.style.color='#9ca3af'; }
+                            }, msg.senderName),
                             msg.type === 'image' && msg.imageUrl
                                 ? React.createElement('img', { src: msg.imageUrl, alt:'', style:{ maxWidth:'220px', maxHeight:'200px', borderRadius:'12px', display:'block', objectFit:'cover' }})
                                 : React.createElement('div', {
                                     style: { padding:'8px 12px', borderRadius: isMe?'14px 4px 14px 14px':'4px 14px 14px 14px', background: isMe?'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.2))':'rgba(255,255,255,0.07)', border: isMe?'1px solid rgba(0,242,255,0.3)':'1px solid rgba(255,255,255,0.08)', fontSize:'12px', color:'#e2e8f0', lineHeight:1.5, wordBreak:'break-word' }
-                                }, msg.text),
+                                  }, renderMsgText(msg.text)),
                             React.createElement('div', { style: { fontSize:'9px', color:'#4b5563', marginTop:'2px', textAlign: isMe?'right':'left', paddingLeft:'4px', paddingRight:'4px' } }, fmtTime(msg.timestamp))
                         )
                     );
@@ -913,6 +1022,27 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     }, e);
                 })
             ),
+            // ── @ Mention list ──
+            showMentionList && mentionMembers.length > 0 && React.createElement('div', {
+                style: { background:'#0e1020', border:'1px solid rgba(0,242,255,0.2)', borderRadius:'12px', margin:'0 8px 4px', overflow:'hidden', maxHeight:'160px', overflowY:'auto', flexShrink:0 }
+            },
+                mentionMembers.map(function(m) {
+                    return React.createElement('div', {
+                        key: m.id,
+                        onClick: function() { selectMention(m); },
+                        style: { display:'flex', alignItems:'center', gap:'8px', padding:'8px 12px', cursor:'pointer', transition:'background 0.12s' },
+                        onMouseEnter: function(e) { e.currentTarget.style.background='rgba(0,242,255,0.08)'; },
+                        onMouseLeave: function(e) { e.currentTarget.style.background='transparent'; }
+                    },
+                        React.createElement('div', { style: { width:'24px', height:'24px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.08)' } },
+                            m.photoURL
+                                ? React.createElement('img', { src: m.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'} })
+                                : React.createElement('span', { style:{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',fontSize:'12px'}}, '😎')
+                        ),
+                        React.createElement('span', { style: { fontSize:'12px', fontWeight:700, color:'white' } }, '@' + m.displayName)
+                    );
+                })
+            ),
             // Input bar
             React.createElement('div', {
                 style: { padding:'10px 12px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.3)', display:'flex', gap:'8px', alignItems:'center', flexShrink:0 }
@@ -926,21 +1056,23 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     onClick: function() { setShowEmoji(function(p) { return !p; }); },
                     style: { width:'36px', height:'36px', borderRadius:'10px', background: showEmoji?'rgba(0,242,255,0.15)':'rgba(255,255,255,0.06)', border: '1px solid ' + (showEmoji?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.1)'), color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }
                 }, '😊'),
-                // ── زر الهدايا ──
+                // زر الهدايا
                 onSendGift && React.createElement('button', {
-                    onClick: function() { setShowChatGiftModal(true); },
-                    title: lang==='ar'?'أرسل هدية':'Send gift',
+                    onClick: function() { setGiftTarget(userData || currentUserData); setShowChatGiftModal(true); },
+                    title: lang==='ar'?'أرسل هدية لعضو':'Send gift to a member',
                     style: { width:'36px', height:'36px', borderRadius:'10px', background:'rgba(255,215,0,0.1)', border:'1px solid rgba(255,215,0,0.22)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }
                 }, '🎁'),
                 React.createElement('input', {
+                    ref: chatInputRef,
                     value: chatInput,
-                    onChange: function(e) { setChatInput(e.target.value); },
-                    onKeyDown: function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput); } },
+                    onChange: handleInputChange,
+                    onKeyDown: function(e) {
+                        if (e.key === 'Escape') setShowMentionList(false);
+                        if (e.key === 'Enter' && !e.shiftKey && !showMentionList) { e.preventDefault(); sendMessage(chatInput); }
+                    },
                     maxLength: 400,
                     style: { flex:1, padding:'9px 12px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'13px', outline:'none' },
-                    placeholder: canManageFamilyChat
-                        ? (lang==='ar'?'اكتب رسالة... أو "Announcement نصك"':'Type a message... or "Announcement text"')
-                        : (lang==='ar'?'اكتب رسالة...':'Type a message...')
+                    placeholder: lang==='ar'?'اكتب رسالة... أو @ للمنشن':'Type a message... or @ to mention'
                 }),
                 React.createElement('button', {
                     onClick: function() { sendMessage(chatInput); },
@@ -948,26 +1080,31 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     style: { width:'40px', height:'40px', borderRadius:'12px', border:'none', flexShrink:0, background: chatInput.trim()?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color: chatInput.trim()?'white':'#6b7280', fontSize:'18px', cursor: chatInput.trim()?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center' }
                 }, sendingMsg ? '⏳' : '➤')
             ),
-            // ── Gift modal للـ FamilyChatModal ──
+            // Gift modal
             showChatGiftModal && onSendGift && React.createElement(SendGiftModal, {
                 show: showChatGiftModal,
-                onClose: function() { setShowChatGiftModal(false); },
-                targetUser: null,
+                onClose: function() { setShowChatGiftModal(false); setGiftTarget(null); },
+                targetUser: giftTarget,
                 currentUser: userData || currentUserData,
                 lang: lang,
                 onSendGift: async function(gift, target, qty) {
                     if (target && target.uid) {
-                        await onSendGift(gift, target, qty || 1);
+                        const targetDoc = target.uid === currentUID
+                            ? { uid: target.uid, ...target }
+                            : await usersCollection.doc(target.uid).get().then(d => d.exists ? { uid: target.uid, ...d.data() } : target).catch(() => target);
+                        await onSendGift(gift, targetDoc, qty || 1);
                     }
                     setShowChatGiftModal(false);
+                    setGiftTarget(null);
                 },
                 currency: (userData || currentUserData)?.currency || 0,
-                friendsData: [],
+                friendsData: familyMembers.filter(function(m) { return m.id !== currentUID; }).map(function(m) { return Object.assign({}, m, { uid: m.id }); }),
             })
-        ) // close inner content div
-        ) // close overlay div
+        )
+        )
     );
 };
+
 
 // ════════════════════════════════════════════════════════
 // 🏠 FAMILY CHAT ITEM — Shows in Chat section when user has a family
