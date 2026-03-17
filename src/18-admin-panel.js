@@ -1171,7 +1171,13 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, on
                                             currentUser={currentUser}
                                             currentUserData={currentUserData}
                                             lang={lang}
-                                            onDone={(msg) => { setBanningUID(null); resolveReport(report.id, report); onNotification(msg); }}
+                                            onDone={(msg) => {
+                                                // ✅ FIX: لا نستدعي resolveReport هنا لأن BanPanelInline
+                                                // تقوم بإرسال رسالة المحقق وتعليم البلاغ كـ resolved بنفسها
+                                                // استدعاء resolveReport هنا كان يسبب إرسال رسالتين للمستخدم
+                                                setBanningUID(null);
+                                                onNotification(msg);
+                                            }}
                                             onCancel={() => setBanningUID(null)}
                                         />
                                     )}
