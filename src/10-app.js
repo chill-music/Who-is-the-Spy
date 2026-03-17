@@ -91,6 +91,11 @@ function App() {
     const [detectiveBotUnread, setDetectiveBotUnread]   = useState(0);
     const [loveBotUnread, setLoveBotUnread]             = useState(0);
 
+    // ── 🆕 NEW: VIP Center, Help Center, Public Chat ──
+    const [showVIPCenter, setShowVIPCenter]             = useState(false);
+    const [showHelpCenter, setShowHelpCenter]           = useState(false);
+    const [showPublicChat, setShowPublicChat]           = useState(false);
+
     // ── 👤 GUEST AVATAR MENU ──
     const [showGuestMenu, setShowGuestMenu]             = useState(false);
 
@@ -1862,6 +1867,47 @@ function App() {
             <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} coupleData={coupleData} onOpenCoupleCard={() => { setShowInventory(false); setShowCoupleCard(true); }} onPropose={(ring) => { setProposalRing(ring); setShowInventory(false); setShowProposalModal(true); }} />
             <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} onSetLang={(nl) => { setLang(nl); localStorage.setItem('pro_spy_lang', nl); if(user) usersCollection.doc(user.uid).update({lang:nl}).catch(()=>{}); }} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} onOpenAdminPanel={() => setShowAdminPanel(true)} />
 
+            {/* 👑 VIP Center Modal */}
+            {showVIPCenter && (
+                <VIPCenterModal
+                    show={showVIPCenter}
+                    onClose={() => setShowVIPCenter(false)}
+                    userData={userData}
+                    user={user}
+                    lang={lang}
+                    onNotification={setNotification}
+                    onOpenShop={() => { setShowVIPCenter(false); setShowShop(true); }}
+                />
+            )}
+
+            {/* 💬 Help Center Modal */}
+            {showHelpCenter && (
+                <HelpCenterModal
+                    show={showHelpCenter}
+                    onClose={() => setShowHelpCenter(false)}
+                    user={user}
+                    userData={userData}
+                    lang={lang}
+                    onNotification={setNotification}
+                    isLoggedIn={isLoggedIn}
+                />
+            )}
+
+            {/* 🌍 Public Chat Modal */}
+            {showPublicChat && (
+                <PublicChatModal
+                    show={showPublicChat}
+                    onClose={() => setShowPublicChat(false)}
+                    currentUser={userData}
+                    user={user}
+                    lang={lang}
+                    onNotification={setNotification}
+                    isLoggedIn={isLoggedIn}
+                    onOpenProfile={(uid) => { setTargetProfileUID(uid); setShowUserProfile(true); }}
+                    currentUID={currentUID}
+                />
+            )}
+
             {/* 💒 Wedding Hall Modal */}
             <WeddingHallModal
                 show={showWeddingHall}
@@ -2236,6 +2282,23 @@ function App() {
                                     fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.2s',
                                 }}
                             >📊 {lang==='ar' ? 'رانكينج' : 'Ranking'}</button>
+                            {/* 🆕 Family shortcut in lobby header */}
+                            <button
+                                onClick={() => { setViewFamilyId(userFamily?.id || null); setShowFamilyModal(true); }}
+                                style={{
+                                    flex:1, padding:'9px 0', borderRadius:'10px 10px 0 0', border:'none',
+                                    background: 'rgba(255,255,255,0.03)',
+                                    color: userFamily ? '#f97316' : '#6b7280',
+                                    borderBottom: '2px solid transparent',
+                                    fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.2s',
+                                    display:'flex', alignItems:'center', justifyContent:'center', gap:'4px',
+                                }}
+                            >
+                                🏠 {lang==='ar' ? 'فاميلي' : 'Family'}
+                                {userFamily && (
+                                    <span style={{fontSize:'8px',padding:'1px 5px',borderRadius:'8px',background:'rgba(249,115,22,0.2)',border:'1px solid rgba(249,115,22,0.4)',color:'#f97316',fontWeight:800,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'50px'}}>{userFamily.name}</span>
+                                )}
+                            </button>
                         </div>
                     )}
 
@@ -2825,6 +2888,24 @@ function App() {
                                         <div className="me-action-label">{lang==='ar'?'المتجر':t.shop}</div>
                                     </div>
                                 )}
+                                {/* VIP Center */}
+                                {isLoggedIn && (
+                                    <div className="me-action-card" onClick={() => setShowVIPCenter(true)}
+                                        style={{background:'linear-gradient(135deg,rgba(255,215,0,0.08),rgba(255,140,0,0.05))',border:'1px solid rgba(255,215,0,0.2)'}}>
+                                        <div className="me-action-icon" style={{background:'rgba(255,215,0,0.15)'}}>👑</div>
+                                        <div className="me-action-label" style={{color:'#ffd700'}}>{lang==='ar'?'VIP سنتر':'VIP Center'}</div>
+                                    </div>
+                                )}
+                                {/* Help Center */}
+                                <div className="me-action-card" onClick={() => setShowHelpCenter(true)}>
+                                    <div className="me-action-icon" style={{background:'rgba(0,242,255,0.1)'}}>💬</div>
+                                    <div className="me-action-label">{lang==='ar'?'مركز المساعدة':'Help Center'}</div>
+                                </div>
+                                {/* Public Chat */}
+                                <div className="me-action-card" onClick={() => setShowPublicChat(true)}>
+                                    <div className="me-action-icon" style={{background:'rgba(74,222,128,0.1)'}}>🌍</div>
+                                    <div className="me-action-label">{lang==='ar'?'الشات العام':'Public Chat'}</div>
+                                </div>
                                 {/* Settings */}
                                 <div className="me-action-card" onClick={() => setShowSettings(true)}>
                                     <div className="me-action-icon" style={{background:'rgba(255,255,255,0.07)'}}>⚙️</div>
