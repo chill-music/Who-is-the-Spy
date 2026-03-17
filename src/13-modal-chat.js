@@ -336,6 +336,9 @@ const PrivateChatModal = ({
                         .sort((a, b) => (b.tier || 0) - (a.tier || 0))
                         .slice(0, 3)
                     : [];
+                // VIP info
+                const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
+                const vipCfg = vipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)] : null;
                 setMiniProfile({
                     uid,
                     name: d.displayName || 'User',
@@ -353,9 +356,15 @@ const PrivateChatModal = ({
                     gamesPlayed: total,
                     winRate,
                     topBadges,
+                    vipLevel,
+                    vipCfg,
+                    equippedFrame: d.equipped?.frames || null,
+                    coupleRingEmoji: d.coupleRingEmoji || null,
+                    coupleRingImageUrl: d.coupleRingImageUrl || null,
+                    loading: false,
                 });
             }
-        } catch(e) {}
+        } catch(e) { console.error('openMiniProfile error:', e); }
         setLoadingMiniProfile(false);
     };
 
@@ -601,18 +610,38 @@ const PrivateChatModal = ({
                 const isRedPacket = msg.type === 'red_packet';
                 const prevSender  = idx > 0 ? messages[idx - 1]?.senderId : null;
                 const nextSender  = idx < messages.length - 1 ? messages[idx + 1]?.senderId : null;
-                const showAvatar  = !isMine && prevSender !== msg.senderId;
-                const showName    = !isMine && prevSender !== msg.senderId;
+                // show avatar for BOTH mine and others — on first message of each group
+                const showAvatar  = prevSender !== msg.senderId;
+                const showName    = prevSender !== msg.senderId;
                 const isLastGroup = nextSender !== msg.senderId;
+                // Get VIP config for this message sender
+                const msgVipLevel = msg.senderVipLevel || 0;
+                const msgVipCfg = msgVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msgVipLevel-1, VIP_CONFIG.length-1)] : null;
 
                 // 🧧 Red Packet bubble
                 if(isRedPacket) return (
                   <div key={msg.id||idx} style={{display:'flex',flexDirection:isMine?'row-reverse':'row',alignItems:'flex-end',gap:'6px',marginBottom:isLastGroup?'4px':'1px'}}>
-                    {!isMine&&<div style={{width:'28px',flexShrink:0,alignSelf:'flex-end'}}>
-                      {showAvatar?<img src={msg.senderPhoto||`https://ui-avatars.com/api/?name=${encodeURIComponent(msg.senderName||'U')}&background=6366f1&color=fff&size=56`} alt="" style={{width:'28px',height:'28px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid rgba(0,242,255,0.15)'}}/>:<div style={{width:'28px'}}/>}
-                    </div>}
+                    {/* Avatar for both sides */}
+                    <div style={{width:'28px',flexShrink:0,alignSelf:'flex-end'}}>
+                      {showAvatar ? (
+                        <img
+                          src={isMine
+                            ? (currentUser?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.displayName||'U')}&background=6366f1&color=fff&size=56`)
+                            : (msg.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.senderName||'U')}&background=6366f1&color=fff&size=56`)}
+                          alt=""
+                          onClick={() => openMiniProfile(msg.senderId)}
+                          style={{width:'28px',height:'28px',borderRadius:'50%',objectFit:'cover',cursor:'pointer',border:msgVipCfg?`1.5px solid ${msgVipCfg.nameColor}`:'1.5px solid rgba(0,242,255,0.15)'}}
+                        />
+                      ) : <div style={{width:'28px'}}/>}
+                    </div>
                     <div style={{display:'flex',flexDirection:'column',alignItems:isMine?'flex-end':'flex-start',maxWidth:'72%',gap:'2px'}}>
-                      {showName&&<div style={{fontSize:'10px',fontWeight:700,color:'#00f2ff',paddingLeft:'4px'}}>{msg.senderName}</div>}
+                      {showName && (
+                        <div onClick={()=>openMiniProfile(msg.senderId)} style={{fontSize:'10px',fontWeight:700,color:isMine?'#00f2ff':'#a78bfa',paddingLeft:'4px',cursor:'pointer',display:'flex',alignItems:'center',gap:'3px'}}>
+                          {msgVipCfg&&<span style={{fontSize:'7px',fontWeight:900,background:msgVipCfg.nameColor,color:'#000',padding:'0 3px',borderRadius:'2px'}}>VIP{msgVipLevel}</span>}
+                          {isMine ? (currentUser?.displayName||msg.senderName||'You') : msg.senderName}
+                          {isMine&&<span style={{fontSize:'8px',color:'#4b5563'}}> ({lang==='ar'?'أنت':'you'})</span>}
+                        </div>
+                      )}
                       <button onClick={async()=>{
                         if(!msg.rpId||!user) return;
                         try {
@@ -650,23 +679,24 @@ const PrivateChatModal = ({
                     gap: '6px',
                     marginBottom: isLastGroup ? '4px' : '1px',
                   }}>
-                    {/* Friend avatar — click opens mini profile */}
-                    {!isMine && (
-                      <div style={{ width: '28px', flexShrink: 0, alignSelf: 'flex-end' }}>
-                        {showAvatar ? (
-                          <img
-                            src={msg.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.senderName||'U')}&background=6366f1&color=fff&size=56`}
-                            alt=""
-                            onClick={() => openMiniProfile(msg.senderId)}
-                            style={{
-                              width: '28px', height: '28px', borderRadius: '50%',
-                              objectFit: 'cover', cursor: 'pointer',
-                              border: '1.5px solid rgba(0,242,255,0.15)',
-                            }}
-                          />
-                        ) : <div style={{ width: '28px' }} />}
-                      </div>
-                    )}
+                    {/* Avatar — shown for BOTH sides */}
+                    <div style={{ width: '28px', flexShrink: 0, alignSelf: 'flex-end' }}>
+                      {showAvatar ? (
+                        <img
+                          src={isMine
+                            ? (currentUser?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.displayName||'U')}&background=6366f1&color=fff&size=56`)
+                            : (msg.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.senderName||'U')}&background=6366f1&color=fff&size=56`)}
+                          alt=""
+                          onClick={() => openMiniProfile(msg.senderId)}
+                          style={{
+                            width: '28px', height: '28px', borderRadius: '50%',
+                            objectFit: 'cover', cursor: 'pointer',
+                            border: msgVipCfg ? `1.5px solid ${msgVipCfg.nameColor}` : '1.5px solid rgba(0,242,255,0.15)',
+                            boxShadow: msgVipCfg ? `0 0 6px ${msgVipCfg.nameColor}55` : 'none',
+                          }}
+                        />
+                      ) : <div style={{ width: '28px' }} />}
+                    </div>
 
                     {/* Bubble column */}
                     <div style={{
@@ -674,14 +704,21 @@ const PrivateChatModal = ({
                       alignItems: isMine ? 'flex-end' : 'flex-start',
                       maxWidth: '72%', gap: '2px',
                     }}>
-                      {/* Sender name (first in group, received only) */}
+                      {/* Sender name — shown for BOTH, clickable to open mini profile */}
                       {showName && (
-                        <div style={{
-                          fontSize: '10px', fontWeight: 700, color: '#00f2ff',
-                          paddingLeft: '4px',
-                          display: 'flex', alignItems: 'center', gap: '4px',
-                        }}>
-                          {msg.senderName}
+                        <div
+                          onClick={() => openMiniProfile(msg.senderId)}
+                          style={{
+                            fontSize: '10px', fontWeight: 700,
+                            color: isMine ? '#00f2ff' : '#a78bfa',
+                            paddingLeft: isMine ? 0 : '4px',
+                            paddingRight: isMine ? '4px' : 0,
+                            display: 'flex', alignItems: 'center', gap: '4px',
+                            cursor: 'pointer',
+                          }}>
+                          {msgVipCfg && <span style={{fontSize:'7px',fontWeight:900,background:msgVipCfg.nameColor,color:'#000',padding:'0 3px',borderRadius:'2px',flexShrink:0}}>VIP{msgVipLevel}</span>}
+                          {isMine ? (currentUser?.displayName || msg.senderName || 'You') : msg.senderName}
+                          {isMine && <span style={{fontSize:'8px',color:'#4b5563',fontWeight:500}}> ({lang==='ar'?'أنت':'you'})</span>}
                           {msg.senderVipLevel > 0 && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && (
                             <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt=""
                               style={{ height: '13px', objectFit: 'contain' }} />
@@ -1241,7 +1278,7 @@ const PrivateChatModal = ({
               }}>
                 <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.25) 0%,rgba(13,13,31,0.72) 100%)' }} />
 
-                {/* 3-dot menu top-right only */}
+                {/* 3-dot menu top-right */}
                 <div style={{ position:'absolute', top:'10px', right:'10px', zIndex:3 }}>
                   <div style={{ position:'relative' }}>
                     <button
@@ -1252,9 +1289,19 @@ const PrivateChatModal = ({
                       <div style={{ position:'absolute', top:'34px', right:0, background:'linear-gradient(160deg,#0e0e22,#13122a)', border:'1px solid rgba(255,255,255,0.13)', borderRadius:'12px', padding:'5px', minWidth:'160px', boxShadow:'0 10px 30px rgba(0,0,0,0.9)', zIndex:5 }}
                         onClick={e => e.stopPropagation()}>
                         <button
-                          onClick={() => { setMiniProfile(null); setShowMiniMenu(false); setReportStep('reason'); setReportReason(''); setReportDMMsg(null); setShowReportModal(true); }}
-                          style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#9ca3af', textAlign:'left' }}
-                          onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.07)'}
+                          onClick={() => {
+                            setShowMiniMenu(false);
+                            setMiniProfile(null);
+                            // small delay so miniProfile closes first
+                            setTimeout(() => {
+                              setReportStep('reason');
+                              setReportReason('');
+                              setReportDMMsg(null);
+                              setShowReportModal(true);
+                            }, 50);
+                          }}
+                          style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#f87171', textAlign:'left' }}
+                          onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}
                           onMouseLeave={e => e.currentTarget.style.background='none'}
                         >🚨 {lang==='ar'?'إبلاغ':'Report'}</button>
                         {miniProfile.uid !== user?.uid && (
@@ -1265,15 +1312,30 @@ const PrivateChatModal = ({
                             onMouseLeave={e => e.currentTarget.style.background='none'}
                           >{isBlocked ? `✅ ${lang==='ar'?'إلغاء الحظر':'Unblock'}` : `🚫 ${lang==='ar'?'حظر':'Block'}`}</button>
                         )}
+                        <button
+                          onClick={() => { setShowMiniMenu(false); setMiniProfile(null); if(onOpenProfile) onOpenProfile(miniProfile.uid); }}
+                          style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#00f2ff', textAlign:'left' }}
+                          onMouseEnter={e => e.currentTarget.style.background='rgba(0,242,255,0.08)'}
+                          onMouseLeave={e => e.currentTarget.style.background='none'}
+                        >👤 {lang==='ar'?'فتح البروفايل':'Open Profile'}</button>
                       </div>
                     )}
                   </div>
                 </div>
+
+                {/* 💍 Couple ring — top right below 3-dot */}
+                {(miniProfile.coupleRingEmoji || miniProfile.coupleRingImageUrl) && (
+                  <div style={{ position:'absolute', top:'48px', right:'12px', zIndex:2 }}>
+                    {miniProfile.coupleRingImageUrl
+                      ? <img src={miniProfile.coupleRingImageUrl} alt="" style={{width:'28px',height:'28px',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}/>
+                      : <span style={{fontSize:'22px',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}>{miniProfile.coupleRingEmoji}</span>}
+                  </div>
+                )}
               </div>
 
-              {/* ── Badges row — below banner ── */}
+              {/* ── Badges row — RIGHT side ── */}
               {(miniProfile.topBadges || []).length > 0 && (
-                <div style={{ display:'flex', gap:'6px', padding:'8px 16px 0', justifyContent:'flex-start' }}>
+                <div style={{ display:'flex', gap:'6px', padding:'8px 16px 0', justifyContent:'flex-end' }}>
                   {(miniProfile.topBadges || []).map((badge, i) => (
                     <div key={i} title={badge.title_en || badge.name_en || ''} style={{
                       width:'32px', height:'32px', borderRadius:'10px',
@@ -1298,7 +1360,13 @@ const PrivateChatModal = ({
                   {/* Avatar — click opens full profile */}
                   <div
                     onClick={() => { setMiniProfile(null); setShowMiniMenu(false); if (onOpenProfile) onOpenProfile(miniProfile.uid); }}
-                    style={{ width:'72px', height:'72px', borderRadius:'50%', border:'3px solid #0d0d1f', overflow:'hidden', background:'#1a1a2e', boxShadow:'0 4px 16px rgba(0,0,0,0.6)', flexShrink:0, zIndex:2, cursor: onOpenProfile ? 'pointer' : 'default' }}
+                    style={{
+                      width:'72px', height:'72px', borderRadius:'50%',
+                      border: miniProfile.vipCfg ? `3px solid ${miniProfile.vipCfg.nameColor}` : '3px solid #0d0d1f',
+                      overflow:'hidden', background:'#1a1a2e',
+                      boxShadow: miniProfile.vipCfg ? `0 0 14px ${miniProfile.vipCfg.nameColor}88, 0 4px 16px rgba(0,0,0,0.6)` : '0 4px 16px rgba(0,0,0,0.6)',
+                      flexShrink:0, zIndex:2, cursor:'pointer', position:'relative',
+                    }}
                   >
                     {miniProfile.photo
                       ? <img src={miniProfile.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
@@ -1307,15 +1375,19 @@ const PrivateChatModal = ({
                   </div>
                   {/* Text info */}
                   <div style={{ flex:1, paddingBottom:'4px', minWidth:0 }}>
-                    {/* Name + gender — click opens full profile */}
+                    {/* Name row: Name + VIP badge + gender */}
                     <div
                       onClick={() => { setMiniProfile(null); setShowMiniMenu(false); if (onOpenProfile) onOpenProfile(miniProfile.uid); }}
-                      style={{ display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px', cursor: onOpenProfile ? 'pointer' : 'default' }}
+                      style={{ display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px', cursor:'pointer', flexWrap:'wrap' }}
                     >
-                      <span style={{ fontSize:'16px', fontWeight:900, color: onOpenProfile ? '#00f2ff' : 'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: onOpenProfile ? 'underline dotted rgba(0,242,255,0.4)' : 'none' }}>{miniProfile.name}</span>
+                      {/* VIP badge BEFORE gender, right after name */}
+                      {miniProfile.vipCfg && (
+                        <span style={{ fontSize:'8px', fontWeight:900, background:miniProfile.vipCfg.nameColor, color:'#000', padding:'1px 4px', borderRadius:'3px', flexShrink:0 }}>VIP{miniProfile.vipLevel}</span>
+                      )}
+                      <span style={{ fontSize:'16px', fontWeight:900, color:'#00f2ff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration:'underline dotted rgba(0,242,255,0.4)' }}>{miniProfile.name}</span>
                       {miniProfile.gender && <span style={{ fontSize:'13px', flexShrink:0 }}>{miniProfile.gender==='male'?'♂️':'♀️'}</span>}
                     </div>
-                    {/* Charisma rank + family sign */}
+                    {/* Charisma + family sign */}
                     <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'5px' }}>
                       {(() => {
                         if (typeof CHARISMA_LEVELS === 'undefined') return null;
@@ -1328,20 +1400,31 @@ const PrivateChatModal = ({
                           ? <img src={lvl.iconUrl} alt="" style={{ height:'22px', objectFit:'contain' }} />
                           : <span style={{ fontSize:'15px' }}>{lvl.icon}</span>;
                       })()}
-                      {miniProfile.familyTag && (
-                        typeof ProfileFamilySignBadge !== 'undefined'
-                          ? <ProfileFamilySignBadge
-                              userData={{
-                                familyTag: miniProfile.familyTag,
-                                familyName: miniProfile.familyName,
-                                familySignLevel: miniProfile.familySignLevel,
-                                familySignColor: miniProfile.familySignColor || '#00f2ff',
-                                familySignImageURL: miniProfile.familySignImageURL,
-                              }}
-                              lang={lang}
-                            />
-                          : <span style={{ fontSize:'10px', fontWeight:800, color:'#00f2ff', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', borderRadius:'6px', padding:'2px 8px' }}>{miniProfile.familyTag}</span>
-                      )}
+                      {/* Family Sign — show image with tag overlaid if image available */}
+                      {miniProfile.familyTag && (() => {
+                        const signLevel = miniProfile.familySignLevel;
+                        let signImgURL = miniProfile.familySignImageURL || null;
+                        if (!signImgURL && signLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined') {
+                          const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === signLevel);
+                          signImgURL = cfg?.imageURL || null;
+                        }
+                        if (signImgURL) {
+                          const imgW = 44 + ((miniProfile.familyTag.length || 3) * 6);
+                          const imgH = Math.round(imgW * 0.55);
+                          const fontSize = (miniProfile.familyTag.length||3) <= 3 ? 11 : (miniProfile.familyTag.length||3) === 4 ? 10 : 9;
+                          const signColor = miniProfile.familySignColor || '#00f2ff';
+                          const hasGlow = (signLevel||0) >= 4;
+                          return (
+                            <span style={{position:'relative',display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0,width:`${imgW}px`,height:`${imgH}px`,filter:hasGlow?`drop-shadow(0 0 6px ${signColor}cc)`:'none'}}>
+                              <img src={signImgURL} alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain'}}/>
+                              <span style={{position:'relative',zIndex:1,fontSize:`${fontSize}px`,fontWeight:900,fontStyle:'italic',letterSpacing:'1.5px',color:'#fff',textShadow:'0 0 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.7)'}}>{miniProfile.familyTag}</span>
+                            </span>
+                          );
+                        }
+                        return (
+                          <span style={{ fontSize:'10px', fontWeight:800, color:'#00f2ff', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', borderRadius:'6px', padding:'2px 8px' }}>{miniProfile.familyTag}</span>
+                        );
+                      })()}
                     </div>
                     {/* ID */}
                     {miniProfile.customId && (
@@ -1398,10 +1481,12 @@ const PrivateChatModal = ({
                       {lang==='ar'?'إرسال هدية':'Send Gift'}
                     </button>
                   )}
+                  {/* Self — show "You" + open full profile */}
                   {miniProfile.uid === user?.uid && (
-                    <div style={{ flex:1, padding:'11px', borderRadius:'50px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'#6b7280', fontSize:'13px', fontWeight:700, textAlign:'center' }}>
-                      {lang==='ar'?'أنت 👤':'You 👤'}
-                    </div>
+                    <button onClick={() => { setMiniProfile(null); setShowMiniMenu(false); if(onOpenProfile) onOpenProfile(miniProfile.uid); }}
+                      style={{ flex:1, padding:'11px', borderRadius:'50px', background:'rgba(0,242,255,0.08)', border:'1px solid rgba(0,242,255,0.25)', color:'#00f2ff', fontSize:'13px', fontWeight:700, cursor:'pointer', textAlign:'center' }}>
+                      👤 {lang==='ar'?'بروفايلي':'My Profile'}
+                    </button>
                   )}
                 </div>
               </div>
