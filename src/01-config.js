@@ -62,6 +62,91 @@ const vip10RequestsCollection   = db.collection('artifacts').doc(appId).collecti
 const vip10IdRequestsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('vip10_id_requests');
 const bffCollection             = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('bff_relationships');
 const botChatsCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('bot_chats');
+const redPacketsCollection      = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('red_packets');
+const publicChatCollection      = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('public_chat');
+const helpFaqCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('help_faq');
+const feedbackCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('feedback');
+
+// ════════════════════════════════════════════════════════
+// 🧧 RED PACKETS SYSTEM CONFIG
+// ════════════════════════════════════════════════════════
+const RED_PACKETS_CONFIG = [
+    {
+        id: 'rp_600',
+        amount: 600,
+        emoji: '🧧',
+        name_ar: 'مغلف 600',
+        name_en: 'Red Packet 600',
+        color: '#ef4444',
+        glow: 'rgba(239,68,68,0.6)',
+        bg: 'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(185,28,28,0.12))',
+        border: 'rgba(239,68,68,0.4)',
+        imageURL: null, // ← ضع رابط صورة المغلف هنا
+        maxClaims: 5,   // عدد الأشخاص اللي يقدروا يستلموا منه
+        desc_ar: 'مغلف أحمر صغير — يوزع على 5 أشخاص',
+        desc_en: 'Small red packet — shared among 5 people',
+    },
+    {
+        id: 'rp_1800',
+        amount: 1800,
+        emoji: '🧧',
+        name_ar: 'مغلف 1800',
+        name_en: 'Red Packet 1800',
+        color: '#f97316',
+        glow: 'rgba(249,115,22,0.6)',
+        bg: 'linear-gradient(135deg,rgba(249,115,22,0.18),rgba(194,65,12,0.12))',
+        border: 'rgba(249,115,22,0.4)',
+        imageURL: null,
+        maxClaims: 8,
+        desc_ar: 'مغلف أحمر متوسط — يوزع على 8 أشخاص',
+        desc_en: 'Medium red packet — shared among 8 people',
+    },
+    {
+        id: 'rp_3000',
+        amount: 3000,
+        emoji: '🧧',
+        name_ar: 'مغلف 3000',
+        name_en: 'Red Packet 3000',
+        color: '#fbbf24',
+        glow: 'rgba(251,191,36,0.6)',
+        bg: 'linear-gradient(135deg,rgba(251,191,36,0.18),rgba(180,83,9,0.12))',
+        border: 'rgba(251,191,36,0.4)',
+        imageURL: null,
+        maxClaims: 10,
+        desc_ar: 'مغلف ذهبي — يوزع على 10 أشخاص',
+        desc_en: 'Golden packet — shared among 10 people',
+    },
+    {
+        id: 'rp_10000',
+        amount: 10000,
+        emoji: '🧧',
+        name_ar: 'مغلف 10000',
+        name_en: 'Red Packet 10K',
+        color: '#a78bfa',
+        glow: 'rgba(167,139,250,0.7)',
+        bg: 'linear-gradient(135deg,rgba(167,139,250,0.18),rgba(109,40,217,0.12))',
+        border: 'rgba(167,139,250,0.4)',
+        imageURL: null,
+        maxClaims: 15,
+        desc_ar: 'مغلف ملكي — يوزع على 15 شخص',
+        desc_en: 'Royal packet — shared among 15 people',
+    },
+    {
+        id: 'rp_50000',
+        amount: 50000,
+        emoji: '🧧',
+        name_ar: 'مغلف 50000',
+        name_en: 'Red Packet 50K',
+        color: '#00f2ff',
+        glow: 'rgba(0,242,255,0.8)',
+        bg: 'linear-gradient(135deg,rgba(0,242,255,0.18),rgba(112,0,255,0.12))',
+        border: 'rgba(0,242,255,0.4)',
+        imageURL: null,
+        maxClaims: 20,
+        desc_ar: 'مغلف أسطوري — يوزع على 20 شخص',
+        desc_en: 'Legendary packet — shared among 20 people',
+    },
+];
 
 // ════════════════════════════════════════════════════════
 // 🤝 BFF SYSTEM CONFIG
