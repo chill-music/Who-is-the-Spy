@@ -695,11 +695,56 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     const [giftTarget, setGiftTarget] = React.useState(null); // null = self, { uid, displayName, photoURL }
     const [showChatGiftModal, setShowChatGiftModal] = React.useState(false);
     // ── Mini profile popup ──
-    const [miniProfile, setMiniProfile] = React.useState(null); // { uid, name, photo, customId }
+    const [miniProfile, setMiniProfile] = React.useState(null);
+    const [showMiniMenuFam, setShowMiniMenuFam] = React.useState(false);
     // ── @ Mention ──
     const [mentionSearch, setMentionSearch] = React.useState('');
     const [showMentionList, setShowMentionList] = React.useState(false);
     const [familyMembers, setFamilyMembers] = React.useState([]);
+
+    // ── فتح ميني بروفايل كامل ──
+    const openFamilyChatMiniProfile = async function(uid, basicData) {
+        if (!uid) return;
+        setShowMiniMenuFam(false);
+        setMiniProfile({ uid, name: (basicData && basicData.name) || '...', photo: (basicData && basicData.photo) || null, loading: true });
+        try {
+            const doc = await usersCollection.doc(uid).get();
+            if (doc.exists) {
+                const d = doc.data();
+                const stats = d.stats || {};
+                const wins = stats.wins || 0;
+                const losses = stats.losses || 0;
+                const total = wins + losses;
+                const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+                const unlockedBadgeIds = Array.isArray(d.achievements)
+                    ? d.achievements.map(function(a) { return typeof a === 'string' ? a : (a && a.id); }).filter(Boolean)
+                    : ((d.achievements && d.achievements.badges) || []).map(function(b) { return (b && b.id) || b; }).filter(Boolean);
+                const topBadges = typeof ACHIEVEMENTS !== 'undefined'
+                    ? ACHIEVEMENTS.filter(function(a) { return unlockedBadgeIds.includes(a.id); })
+                        .sort(function(a, b) { return (b.tier || 0) - (a.tier || 0); })
+                        .slice(0, 3)
+                    : [];
+                setMiniProfile({
+                    uid,
+                    name: d.displayName || 'User',
+                    photo: d.photoURL || null,
+                    customId: d.customId || null,
+                    bannerUrl: d.profileBanner || d.bannerUrl || null,
+                    gender: d.gender || null,
+                    isFriend: ((userData && userData.friends) || []).includes(uid),
+                    charisma: d.charisma || 0,
+                    familyTag: d.familyTag || null,
+                    familyName: d.familyName || null,
+                    familySignLevel: d.familySignLevel || null,
+                    familySignColor: d.familySignColor || null,
+                    familySignImageURL: d.familySignImageURL || null,
+                    gamesPlayed: total,
+                    winRate,
+                    topBadges,
+                });
+            }
+        } catch(e) {}
+    };
 
     // جلب أعضاء العائلة للمنشن
     React.useEffect(() => {
@@ -770,8 +815,8 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
         setTimeout(function() { chatInputRef.current && chatInputRef.current.focus(); }, 50);
     };
 
-    const mentionMembers = familyMembers
-        .filter(function(m) { return m.id !== currentUID; })
+    const selfMember = currentUserData ? [{ id: currentUID, displayName: currentUserData.displayName, photoURL: currentUserData.photoURL }] : [];
+    const mentionMembers = [...selfMember, ...familyMembers.filter(function(m) { return m.id !== currentUID; })]
         .filter(function(m) { return !mentionSearch || (m.displayName || '').toLowerCase().includes(mentionSearch); });
 
     const sendMessage = async (text, type, extra) => {
@@ -846,12 +891,25 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
         return Math.floor(diff/86400000) + (lang==='ar'?'ي':'d');
     };
 
-    // ── render mention text with highlight ──
+    // ── render mention text with highlight + click handler ──
     const renderMsgText = function(text) {
         if (!text) return '';
         const parts = text.split(/(@\w[\w\s]*?)(?=\s|$)/g);
         return parts.map(function(part, i) {
-            if (part.startsWith('@')) return React.createElement('span', { key: i, style: { color: '#00f2ff', fontWeight: 700 } }, part);
+            if (part.startsWith('@')) {
+                const mentionName = part.slice(1).trim().toLowerCase();
+                return React.createElement('span', {
+                    key: i,
+                    style: { color: '#00f2ff', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline dotted rgba(0,242,255,0.4)' },
+                    onClick: function(e) {
+                        e.stopPropagation();
+                        const allMbrs = [...familyMembers];
+                        if (currentUserData) allMbrs.push({ id: currentUID, displayName: currentUserData.displayName, photoURL: currentUserData.photoURL });
+                        const found = allMbrs.find(function(m) { return (m.displayName || '').toLowerCase() === mentionName; });
+                        if (found) openFamilyChatMiniProfile(found.id, { name: found.displayName, photo: found.photoURL });
+                    }
+                }, part);
+            }
             return part;
         });
     };
@@ -908,32 +966,132 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     )
                 )
             ),
-            // ── Mini Profile Popup ──
+            // ── Mini Profile Popup — New Design ──
             miniProfile && React.createElement('div', {
-                style: { position:'absolute', inset:0, zIndex:20, background:'rgba(0,0,0,0.65)', display:'flex', alignItems:'center', justifyContent:'center' },
-                onClick: function() { setMiniProfile(null); }
+                style: { position:'fixed', inset:0, zIndex: Z.OVERLAY, background:'rgba(0,0,0,0.78)', display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' },
+                onClick: function() { setMiniProfile(null); setShowMiniMenuFam(false); }
             },
                 React.createElement('div', {
-                    style: { background:'linear-gradient(160deg,#0e0e22,#13122a)', border:'1px solid rgba(0,242,255,0.25)', borderRadius:'18px', padding:'20px', width:'220px', boxShadow:'0 20px 50px rgba(0,0,0,0.9)', textAlign:'center' },
+                    style: { width:'100%', maxWidth:'320px', borderRadius:'22px', overflow:'hidden', background:'#0d0d1f', border:'1px solid rgba(255,255,255,0.1)', boxShadow:'0 28px 70px rgba(0,0,0,0.95)', position:'relative' },
                     onClick: function(e) { e.stopPropagation(); }
                 },
-                    React.createElement('div', { style: { width:'60px', height:'60px', borderRadius:'50%', overflow:'hidden', margin:'0 auto 10px', border:'2px solid rgba(0,242,255,0.35)' } },
-                        miniProfile.photo
-                            ? React.createElement('img', { src: miniProfile.photo, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'} })
-                            : React.createElement('div', { style:{width:'100%',height:'100%',background:'rgba(255,255,255,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px'} }, '😎')
+                    // Banner
+                    React.createElement('div', {
+                        style: { position:'relative', height:'130px', background: miniProfile.bannerUrl ? ('url(' + miniProfile.bannerUrl + ') center/cover no-repeat') : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)' }
+                    },
+                        React.createElement('div', { style: { position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.25) 0%,rgba(13,13,31,0.72) 100%)' } }),
+                        // Top-right: badges + 3-dot
+                        React.createElement('div', { style: { position:'absolute', top:'10px', right:'10px', zIndex:3, display:'flex', alignItems:'center', gap:'6px' } },
+                            (miniProfile.topBadges || []).map(function(badge, i) {
+                                return React.createElement('div', { key: i, title: badge.title_en || badge.name_en || '', style: { width:'28px', height:'28px', borderRadius:'8px', background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'15px' } }, badge.icon || '🏅');
+                            }),
+                            React.createElement('div', { style: { position:'relative' } },
+                                React.createElement('button', {
+                                    onClick: function(e) { e.stopPropagation(); setShowMiniMenuFam(function(v) { return !v; }); },
+                                    style: { background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.18)', borderRadius:'50%', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white', fontSize:'17px', fontWeight:900, lineHeight:1 }
+                                }, '⋮'),
+                                showMiniMenuFam && React.createElement('div', {
+                                    style: { position:'absolute', top:'34px', right:0, background:'linear-gradient(160deg,#0e0e22,#13122a)', border:'1px solid rgba(255,255,255,0.13)', borderRadius:'12px', padding:'5px', minWidth:'160px', boxShadow:'0 10px 30px rgba(0,0,0,0.9)', zIndex:5 },
+                                    onClick: function(e) { e.stopPropagation(); }
+                                },
+                                    React.createElement('button', {
+                                        onClick: function() { setMiniProfile(null); setShowMiniMenuFam(false); },
+                                        style: { width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#9ca3af', textAlign:'left' },
+                                        onMouseEnter: function(e) { e.currentTarget.style.background='rgba(255,255,255,0.07)'; },
+                                        onMouseLeave: function(e) { e.currentTarget.style.background='none'; }
+                                    }, '🚨 ' + (lang==='ar'?'إبلاغ':'Report'))
+                                )
+                            )
+                        )
                     ),
-                    React.createElement('div', { style: { fontSize:'14px', fontWeight:800, color:'white', marginBottom:'3px' } }, miniProfile.name),
-                    miniProfile.customId && React.createElement('div', { style: { fontSize:'11px', color:'#6b7280', marginBottom:'14px' } }, '🪪 #' + miniProfile.customId),
-                    miniProfile.uid !== currentUID && onSendGift
-                        ? React.createElement('button', {
-                            onClick: function() {
-                                setMiniProfile(null);
-                                setGiftTarget({ uid: miniProfile.uid, displayName: miniProfile.name, photoURL: miniProfile.photo });
-                                setShowChatGiftModal(true);
-                            },
-                            style: { width:'100%', padding:'10px', borderRadius:'10px', background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15))', border:'1px solid rgba(255,215,0,0.4)', color:'#fbbf24', fontSize:'13px', fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px' }
-                          }, '🎁 ' + (lang==='ar'?'أرسل هدية':'Send Gift'))
-                        : miniProfile.uid === currentUID && React.createElement('div', { style: { fontSize:'11px', color:'#6b7280' } }, lang==='ar'?'هذا أنت':'This is you')
+                    // Profile section
+                    React.createElement('div', { style: { padding:'0 16px 20px', position:'relative' } },
+                        // Avatar + info row
+                        React.createElement('div', { style: { display:'flex', alignItems:'flex-end', gap:'12px', marginTop:'-36px', marginBottom:'14px' } },
+                            // Avatar
+                            React.createElement('div', { style: { width:'72px', height:'72px', borderRadius:'50%', border:'3px solid #0d0d1f', overflow:'hidden', background:'#1a1a2e', boxShadow:'0 4px 16px rgba(0,0,0,0.6)', flexShrink:0, zIndex:2 } },
+                                miniProfile.photo
+                                    ? React.createElement('img', { src: miniProfile.photo, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'} })
+                                    : React.createElement('div', { style:{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px'} }, '😎')
+                            ),
+                            // Info
+                            React.createElement('div', { style: { flex:1, paddingBottom:'4px', minWidth:0 } },
+                                // Name + gender
+                                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px' } },
+                                    React.createElement('span', { style: { fontSize:'16px', fontWeight:900, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } }, miniProfile.name),
+                                    miniProfile.gender && React.createElement('span', { style: { fontSize:'13px', flexShrink:0 } }, miniProfile.gender==='male'?'♂️':'♀️')
+                                ),
+                                // Charisma + Family sign
+                                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'5px' } },
+                                    (function() {
+                                        if (typeof CHARISMA_LEVELS === 'undefined') return null;
+                                        var ch = miniProfile.charisma || 0;
+                                        var lvl = CHARISMA_LEVELS[0];
+                                        for (var ci = CHARISMA_LEVELS.length - 1; ci >= 0; ci--) {
+                                            if (ch >= CHARISMA_LEVELS[ci].threshold) { lvl = CHARISMA_LEVELS[ci]; break; }
+                                        }
+                                        return lvl.iconUrl
+                                            ? React.createElement('img', { src: lvl.iconUrl, alt:'', style: { height:'22px', objectFit:'contain' } })
+                                            : React.createElement('span', { style: { fontSize:'15px' } }, lvl.icon);
+                                    })(),
+                                    miniProfile.familyTag && React.createElement('span', {
+                                        style: { fontSize:'10px', fontWeight:800, color:'#00f2ff', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', borderRadius:'6px', padding:'2px 8px', whiteSpace:'nowrap' }
+                                    }, miniProfile.familyTag)
+                                ),
+                                // ID
+                                miniProfile.customId && React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'4px', fontSize:'11px', color:'#6b7280' } },
+                                    React.createElement('span', null, 'ID: ' + miniProfile.customId),
+                                    React.createElement('button', {
+                                        onClick: function() { navigator.clipboard && navigator.clipboard.writeText(miniProfile.customId); },
+                                        style: { background:'none', border:'none', cursor:'pointer', fontSize:'12px', color:'#4b5563', padding:'0 2px', lineHeight:1 }
+                                    }, '⎘')
+                                ),
+                                miniProfile.loading && React.createElement('div', { style: { fontSize:'11px', color:'#4b5563', fontStyle:'italic' } }, '⏳')
+                            )
+                        ),
+                        // Stats row
+                        React.createElement('div', { style: { display:'flex', borderTop:'1px solid rgba(255,255,255,0.07)', borderBottom:'1px solid rgba(255,255,255,0.07)', margin:'0 0 16px', padding:'12px 0' } },
+                            React.createElement('div', { style: { flex:1, textAlign:'center' } },
+                                React.createElement('div', { style: { fontSize:'22px', fontWeight:900, color:'white', lineHeight:1 } }, miniProfile.gamesPlayed != null ? miniProfile.gamesPlayed : 0),
+                                React.createElement('div', { style: { fontSize:'10px', color:'#6b7280', marginTop:'3px' } }, lang==='ar'?'مباريات':'Games')
+                            ),
+                            React.createElement('div', { style: { width:'1px', background:'rgba(255,255,255,0.08)', margin:'4px 0' } }),
+                            React.createElement('div', { style: { flex:1, textAlign:'center' } }, (function() {
+                                var rate = miniProfile.winRate != null ? miniProfile.winRate : 0;
+                                var col = rate >= 70 ? '#10b981' : rate >= 50 ? '#facc15' : '#f97316';
+                                return [
+                                    React.createElement('div', { key:'r', style: { fontSize:'22px', fontWeight:900, color:col, lineHeight:1 } }, rate + '%'),
+                                    React.createElement('div', { key:'l', style: { fontSize:'10px', color:'#6b7280', marginTop:'3px' } }, lang==='ar'?'نسبة الفوز':'Win Rate')
+                                ];
+                            })())
+                        ),
+                        // Action buttons
+                        React.createElement('div', { style: { display:'flex', gap:'10px' } },
+                            miniProfile.uid !== currentUID && !miniProfile.isFriend && React.createElement('button', {
+                                onClick: async function() {
+                                    try {
+                                        await usersCollection.doc(miniProfile.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(currentUID) });
+                                        setMiniProfile(function(p) { return Object.assign({}, p, { isFriend: true }); });
+                                    } catch(e) {}
+                                },
+                                style: { flex:1, padding:'11px', borderRadius:'50px', background:'linear-gradient(135deg,rgba(0,242,255,0.22),rgba(0,180,255,0.18))', border:'1px solid rgba(0,242,255,0.4)', color:'#00f2ff', fontSize:'13px', fontWeight:800, cursor:'pointer' }
+                            }, lang==='ar'?'إضافة':'Add'),
+                            miniProfile.uid !== currentUID && miniProfile.isFriend && React.createElement('div', {
+                                style: { flex:1, padding:'11px', borderRadius:'50px', background:'rgba(16,185,129,0.12)', border:'1px solid rgba(16,185,129,0.3)', color:'#10b981', fontSize:'13px', fontWeight:800, textAlign:'center' }
+                            }, '✅ ' + (lang==='ar'?'صديق':'Friends')),
+                            miniProfile.uid !== currentUID && onSendGift && React.createElement('button', {
+                                onClick: function() {
+                                    setMiniProfile(null); setShowMiniMenuFam(false);
+                                    setGiftTarget({ uid: miniProfile.uid, displayName: miniProfile.name, photoURL: miniProfile.photo });
+                                    setShowChatGiftModal(true);
+                                },
+                                style: { flex:1, padding:'11px', borderRadius:'50px', background:'linear-gradient(135deg,rgba(255,80,150,0.26),rgba(236,72,153,0.18))', border:'1px solid rgba(255,80,150,0.4)', color:'#f472b6', fontSize:'13px', fontWeight:800, cursor:'pointer' }
+                            }, lang==='ar'?'إرسال هدية':'Send Gift'),
+                            miniProfile.uid === currentUID && React.createElement('div', {
+                                style: { flex:1, padding:'11px', borderRadius:'50px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'#6b7280', fontSize:'13px', fontWeight:700, textAlign:'center' }
+                            }, lang==='ar'?'أنت 👤':'You 👤')
+                        )
+                    )
                 )
             ),
             // Messages
@@ -984,7 +1142,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     return React.createElement('div', { key: msg.id, style: { display:'flex', flexDirection: isMe?'row-reverse':'row', gap:'8px', alignItems:'flex-end' } },
                         // صورة المرسل — قابلة للضغط
                         !isMe && React.createElement('div', {
-                            onClick: function() { setMiniProfile({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null }); },
+                            onClick: function() { openFamilyChatMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }); },
                             style: { width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer' }
                         },
                             msg.senderPhoto
@@ -994,7 +1152,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                         React.createElement('div', { style: { maxWidth:'72%' } },
                             // اسم المرسل — قابل للضغط
                             !isMe && React.createElement('div', {
-                                onClick: function() { setMiniProfile({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null }); },
+                                onClick: function() { openFamilyChatMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }); },
                                 style: { fontSize:'10px', color:'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft:'4px', cursor:'pointer' },
                                 onMouseEnter: function(e) { e.currentTarget.style.color='#00f2ff'; },
                                 onMouseLeave: function(e) { e.currentTarget.style.color='#9ca3af'; }
@@ -1039,7 +1197,8 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                                 ? React.createElement('img', { src: m.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'} })
                                 : React.createElement('span', { style:{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',fontSize:'12px'}}, '😎')
                         ),
-                        React.createElement('span', { style: { fontSize:'12px', fontWeight:700, color:'white' } }, '@' + m.displayName)
+                        React.createElement('span', { style: { fontSize:'12px', fontWeight:700, color:'white' } }, '@' + m.displayName),
+                        m.id === currentUID && React.createElement('span', { style: { fontSize:'10px', color:'#6b7280' } }, lang==='ar'?'(أنت)':'(you)')
                     );
                 })
             ),
