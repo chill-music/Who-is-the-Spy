@@ -791,10 +791,12 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
 
     return React.createElement(PortalModal, null,
         React.createElement('div', {
-            style: { position:'fixed', inset:0, zIndex: Z.MODAL, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', padding:'12px' }
+            style: { position:'fixed', inset:0, zIndex: Z.MODAL, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', padding:'12px' },
+            onClick: onClose
         },
         React.createElement('div', {
-            style: { position:'relative', display:'flex', flexDirection:'column', width:'100%', maxWidth:'480px', height:'88vh', maxHeight:'700px', background:'linear-gradient(180deg,#0d0d1f 0%,#08080f 100%)', border:'1px solid rgba(0,242,255,0.15)', borderRadius:'20px', overflow:'hidden', boxShadow:'0 28px 70px rgba(0,0,0,0.95)' }
+            style: { position:'relative', display:'flex', flexDirection:'column', width:'100%', maxWidth:'480px', height:'88vh', maxHeight:'700px', background:'linear-gradient(180deg,#0d0d1f 0%,#08080f 100%)', border:'1px solid rgba(0,242,255,0.15)', borderRadius:'20px', overflow:'hidden', boxShadow:'0 28px 70px rgba(0,0,0,0.95)' },
+            onClick: function(e) { e.stopPropagation(); }
         },
             // Header
             React.createElement('div', {
@@ -1027,7 +1029,7 @@ const FamilyChatItem = ({ familyId, currentUID, currentUserData, lang, onOpenCha
 // ════════════════════════════════════════════════════════
 // 🏆 FAMILY RANKING INLINE — Used in ranking tab
 // ════════════════════════════════════════════════════════
-const FamilyRankingInline = ({ lang, currentFamilyId }) => {
+const FamilyRankingInline = ({ lang, currentFamilyId, onOpenFamily }) => {
     const [rankings, setRankings] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
 
@@ -1051,12 +1053,19 @@ const FamilyRankingInline = ({ lang, currentFamilyId }) => {
                 const isMine = fam.id === currentFamilyId;
                 const medals = ['🥇','🥈','🥉'];
                 return (
-                    <div key={fam.id} style={{
-                        display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px',
-                        borderRadius:'12px',
-                        background: isMine ? 'rgba(0,242,255,0.08)' : i < 3 ? 'rgba(255,215,0,0.04)' : 'rgba(255,255,255,0.03)',
-                        border: isMine ? '1px solid rgba(0,242,255,0.3)' : i === 0 ? '1px solid rgba(255,215,0,0.2)' : '1px solid rgba(255,255,255,0.06)',
-                    }}>
+                    <div key={fam.id}
+                        onClick={() => onOpenFamily && onOpenFamily(fam.id)}
+                        style={{
+                            display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px',
+                            borderRadius:'12px',
+                            background: isMine ? 'rgba(0,242,255,0.08)' : i < 3 ? 'rgba(255,215,0,0.04)' : 'rgba(255,255,255,0.03)',
+                            border: isMine ? '1px solid rgba(0,242,255,0.3)' : i === 0 ? '1px solid rgba(255,215,0,0.2)' : '1px solid rgba(255,255,255,0.06)',
+                            cursor: onOpenFamily ? 'pointer' : 'default',
+                            transition: 'all 0.15s',
+                        }}
+                        onMouseEnter={e => { if (onOpenFamily) e.currentTarget.style.background = isMine ? 'rgba(0,242,255,0.14)' : 'rgba(255,255,255,0.06)'; }}
+                        onMouseLeave={e => { if (onOpenFamily) e.currentTarget.style.background = isMine ? 'rgba(0,242,255,0.08)' : i < 3 ? 'rgba(255,215,0,0.04)' : 'rgba(255,255,255,0.03)'; }}
+                    >
                         <div style={{width:'24px', textAlign:'center', fontSize:'14px', flexShrink:0}}>
                             {i < 3 ? medals[i] : <span style={{fontSize:'11px',color:'#4b5563',fontWeight:800}}>#{i+1}</span>}
                         </div>
@@ -1072,9 +1081,10 @@ const FamilyRankingInline = ({ lang, currentFamilyId }) => {
                                 {fl.icon} Lv.{fl.level} · 👥 {(fam.members||[]).length}
                             </div>
                         </div>
-                        <div style={{textAlign:'right', flexShrink:0}}>
+                        <div style={{textAlign:'right', flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'2px'}}>
                             <div style={{fontSize:'12px', fontWeight:900, color:'#fbbf24'}}>{fmtFamilyNum(fam.xp||0)} XP</div>
                             {sign && <div style={{fontSize:'9px', color: signColor, fontWeight:700}}>{lang==='ar'?sign.name_ar:sign.name_en}</div>}
+                            {onOpenFamily && <div style={{fontSize:'9px', color:'#4b5563'}}>›</div>}
                         </div>
                     </div>
                 );
@@ -1106,6 +1116,13 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const [deletingFamily, setDeletingFamily] = useState(false);
     // ── Gift modal in chat ──
     const [showFamilyChatGift, setShowFamilyChatGift] = useState(false);
+    // ── Mini profile popup in chat ──
+    const [miniProfileMember, setMiniProfileMember] = useState(null); // { uid, name, photo, customId }
+    const [miniProfileGiftSending, setMiniProfileGiftSending] = useState(false);
+    // ── Mention @ in chat ──
+    const [mentionSearch, setMentionSearch] = useState(''); // query بعد @
+    const [showMentionList, setShowMentionList] = useState(false);
+    const chatInputRef = useRef(null);
 
     // Chat state
     const [chatMessages, setChatMessages] = useState([]);
@@ -1925,27 +1942,51 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const renderChat = () => {
         if (!family) return null;
 
-        // آخر إعلان من الرسائل أو من بيانات العائلة
         const pinnedAnnouncement = family.announcement || null;
         const announcementBy = family.announcementBy || '';
 
+        // ── معالجة تغيير input مع دعم الـ @ ──
+        const handleChatInputChange = (e) => {
+            const val = e.target.value;
+            setChatInput(val);
+            // detect @ mention
+            const lastAt = val.lastIndexOf('@');
+            if (lastAt !== -1) {
+                const after = val.slice(lastAt + 1);
+                if (!after.includes(' ')) {
+                    setMentionSearch(after.toLowerCase());
+                    setShowMentionList(true);
+                    return;
+                }
+            }
+            setShowMentionList(false);
+        };
+
+        // ── اختيار mention ──
+        const selectMention = (member) => {
+            const lastAt = chatInput.lastIndexOf('@');
+            const newVal = chatInput.slice(0, lastAt) + '@' + member.displayName + ' ';
+            setChatInput(newVal);
+            setShowMentionList(false);
+            setTimeout(() => chatInputRef.current?.focus(), 50);
+        };
+
+        // ── أعضاء العائلة المُصفّاة للمنشن ──
+        const mentionMembers = familyMembers
+            .filter(m => m.id !== currentUID)
+            .filter(m => !mentionSearch || m.displayName?.toLowerCase().includes(mentionSearch));
+
         return (
-            <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0}}>
+            <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0, position:'relative'}}>
 
                 {/* ── Pinned Announcement Bar ── */}
                 {pinnedAnnouncement && (
                     <div style={{
-                        flexShrink:0,
-                        margin:'8px 10px 4px',
-                        padding:'10px 14px',
-                        borderRadius:'12px',
-                        background:'linear-gradient(135deg,rgba(255,165,0,0.18),rgba(255,80,0,0.12))',
-                        border:'1px solid rgba(255,165,0,0.45)',
-                        boxShadow:'0 0 16px rgba(255,140,0,0.2)',
-                        position:'relative',
-                        overflow:'hidden',
+                        flexShrink:0, margin:'8px 10px 4px', padding:'10px 14px',
+                        borderRadius:'12px', background:'linear-gradient(135deg,rgba(255,165,0,0.18),rgba(255,80,0,0.12))',
+                        border:'1px solid rgba(255,165,0,0.45)', boxShadow:'0 0 16px rgba(255,140,0,0.2)',
+                        position:'relative', overflow:'hidden',
                     }}>
-                        {/* animated left bar */}
                         <div style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'12px 0 0 12px'}}/>
                         <div style={{display:'flex',alignItems:'flex-start',gap:'8px',paddingLeft:'6px'}}>
                             <span style={{fontSize:'18px',lineHeight:1,flexShrink:0}}>📢</span>
@@ -1958,6 +1999,58 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                     {pinnedAnnouncement}
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Mini Profile Popup ── */}
+                {miniProfileMember && (
+                    <div style={{
+                        position:'absolute', inset:0, zIndex:10,
+                        background:'rgba(0,0,0,0.6)',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                    }} onClick={() => setMiniProfileMember(null)}>
+                        <div style={{
+                            background:'linear-gradient(160deg,#0e0e22,#13122a)',
+                            border:'1px solid rgba(0,242,255,0.25)', borderRadius:'18px',
+                            padding:'20px', width:'240px',
+                            boxShadow:'0 20px 50px rgba(0,0,0,0.9)',
+                            textAlign:'center',
+                        }} onClick={e => e.stopPropagation()}>
+                            {/* صورة + اسم */}
+                            <div style={{width:'64px',height:'64px',borderRadius:'50%',overflow:'hidden',margin:'0 auto 10px',border:'2px solid rgba(0,242,255,0.35)'}}>
+                                {miniProfileMember.photo
+                                    ? <img src={miniProfileMember.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                    : <div style={{width:'100%',height:'100%',background:'rgba(255,255,255,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px'}}>😎</div>
+                                }
+                            </div>
+                            <div style={{fontSize:'14px',fontWeight:800,color:'white',marginBottom:'4px'}}>{miniProfileMember.name}</div>
+                            {miniProfileMember.customId && (
+                                <div style={{fontSize:'11px',color:'#6b7280',marginBottom:'14px'}}>
+                                    🪪 #{miniProfileMember.customId}
+                                </div>
+                            )}
+                            {/* زر إرسال هدية */}
+                            {onSendGift && miniProfileMember.uid !== currentUID && (
+                                <button
+                                    disabled={miniProfileGiftSending}
+                                    onClick={() => {
+                                        // افتح gift modal مع تحديد هذا العضو كـ target
+                                        setMiniProfileMember(null);
+                                        setShowFamilyChatGift({ targetUID: miniProfileMember.uid, targetName: miniProfileMember.name, targetPhoto: miniProfileMember.photo });
+                                    }}
+                                    style={{
+                                        width:'100%', padding:'10px', borderRadius:'10px',
+                                        background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15))',
+                                        border:'1px solid rgba(255,215,0,0.4)',
+                                        color:'#fbbf24', fontSize:'13px', fontWeight:800, cursor:'pointer',
+                                        display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
+                                    }}
+                                >🎁 {lang==='ar'?'أرسل هدية':'Send Gift'}</button>
+                            )}
+                            {miniProfileMember.uid === currentUID && (
+                                <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'هذا أنت':'This is you'}</div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -1991,17 +2084,9 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                             </div>
                         );
 
-                        // ── Announcement message — مميز داخل الشات ──
                         if (isAnnouncement) return (
                             <div key={msg.id} style={{display:'flex', justifyContent:'center', padding:'6px 0'}}>
-                                <div style={{
-                                    width:'100%',
-                                    background:'linear-gradient(135deg,rgba(255,165,0,0.2),rgba(255,80,0,0.12))',
-                                    border:'1.5px solid rgba(255,165,0,0.5)',
-                                    borderRadius:'14px', padding:'10px 14px',
-                                    position:'relative', overflow:'hidden',
-                                    boxShadow:'0 0 18px rgba(255,140,0,0.18)',
-                                }}>
+                                <div style={{width:'100%', background:'linear-gradient(135deg,rgba(255,165,0,0.2),rgba(255,80,0,0.12))', border:'1.5px solid rgba(255,165,0,0.5)', borderRadius:'14px', padding:'10px 14px', position:'relative', overflow:'hidden', boxShadow:'0 0 18px rgba(255,140,0,0.18)'}}>
                                     <div style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'14px 0 0 14px'}}/>
                                     <div style={{paddingLeft:'8px'}}>
                                         <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'5px'}}>
@@ -2009,7 +2094,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                             <span style={{fontSize:'10px',fontWeight:900,color:'#fbbf24',letterSpacing:'1px',textTransform:'uppercase'}}>{lang==='ar'?'إعلان رسمي':'OFFICIAL ANNOUNCEMENT'}</span>
                                             <span style={{marginLeft:'auto',fontSize:'9px',color:'#6b7280'}}>{fmtFamilyTime(msg.timestamp, lang)}</span>
                                         </div>
-                                        {/* sender info */}
                                         <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'6px'}}>
                                             {msg.senderPhoto
                                                 ? <img src={msg.senderPhoto} alt="" style={{width:'20px',height:'20px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid rgba(255,215,0,0.5)'}}/>
@@ -2018,9 +2102,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                             <span style={{fontSize:'10px',fontWeight:700,color:'#fde68a'}}>{msg.senderName}</span>
                                             <FamilyRoleBadge role={msg.senderRole||'owner'} lang={lang} small />
                                         </div>
-                                        <div style={{fontSize:'13px',color:'#fef3c7',lineHeight:1.6,fontWeight:600,wordBreak:'break-word'}}>
-                                            {msg.text}
-                                        </div>
+                                        <div style={{fontSize:'13px',color:'#fef3c7',lineHeight:1.6,fontWeight:600,wordBreak:'break-word'}}>{msg.text}</div>
                                     </div>
                                 </div>
                             </div>
@@ -2028,8 +2110,12 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
                         return (
                             <div key={msg.id} style={{display:'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap:'8px', alignItems:'flex-end'}}>
+                                {/* صورة المرسل — قابلة للضغط لفتح ميني بروفايل */}
                                 {!isMe && (
-                                    <div style={{width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)'}}>
+                                    <div
+                                        style={{width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer'}}
+                                        onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
+                                    >
                                         {msg.senderPhoto
                                             ? <img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
                                             : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>😎</div>
@@ -2037,7 +2123,15 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                     </div>
                                 )}
                                 <div style={{maxWidth:'72%'}}>
-                                    {!isMe && <div style={{fontSize:'10px', color:'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft:'4px'}}>{msg.senderName}</div>}
+                                    {/* اسم المرسل — قابل للضغط لفتح ميني بروفايل */}
+                                    {!isMe && (
+                                        <div
+                                            style={{fontSize:'10px', color:'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft:'4px', cursor:'pointer'}}
+                                            onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
+                                            onMouseEnter={e => e.currentTarget.style.color='#00f2ff'}
+                                            onMouseLeave={e => e.currentTarget.style.color='#9ca3af'}
+                                        >{msg.senderName}</div>
+                                    )}
                                     <div style={{
                                         padding:'8px 12px', borderRadius: isMe ? '14px 4px 14px 14px' : '4px 14px 14px 14px',
                                         background: isMe ? 'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.2))' : 'rgba(255,255,255,0.07)',
@@ -2045,7 +2139,12 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                         fontSize:'12px', color:'#e2e8f0', lineHeight:1.5,
                                         wordBreak:'break-word',
                                     }}>
-                                        {msg.text}
+                                        {/* عرض المنشن بلون مميز */}
+                                        {msg.text?.split(/(@\w[\w\s]*?)(?=\s|$)/g).map((part, pi) =>
+                                            part.startsWith('@')
+                                                ? <span key={pi} style={{color:'#00f2ff', fontWeight:700}}>{part}</span>
+                                                : part
+                                        )}
                                     </div>
                                     <div style={{fontSize:'9px', color:'#4b5563', marginTop:'2px', textAlign: isMe ? 'right' : 'left', paddingLeft:'4px', paddingRight:'4px'}}>
                                         {fmtFamilyTime(msg.timestamp, lang)}
@@ -2057,33 +2156,62 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     <div ref={chatEndRef} />
                 </div>
 
+                {/* ── قائمة الـ @ Mention ── */}
+                {showMentionList && mentionMembers.length > 0 && (
+                    <div style={{
+                        position:'absolute', bottom:'60px', left:'10px', right:'10px',
+                        background:'#0e1020', border:'1px solid rgba(0,242,255,0.2)',
+                        borderRadius:'12px', overflow:'hidden', zIndex:20,
+                        boxShadow:'0 -10px 30px rgba(0,0,0,0.7)',
+                        maxHeight:'180px', overflowY:'auto',
+                    }}>
+                        {mentionMembers.map(m => (
+                            <div key={m.id}
+                                onClick={() => selectMention(m)}
+                                style={{display:'flex', alignItems:'center', gap:'8px', padding:'9px 12px', cursor:'pointer', transition:'background 0.12s'}}
+                                onMouseEnter={e => e.currentTarget.style.background='rgba(0,242,255,0.08)'}
+                                onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                            >
+                                <div style={{width:'26px',height:'26px',borderRadius:'50%',overflow:'hidden',flexShrink:0,background:'rgba(255,255,255,0.08)'}}>
+                                    {m.photoURL ? <img src={m.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <span style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',fontSize:'13px'}}>😎</span>}
+                                </div>
+                                <span style={{fontSize:'12px',fontWeight:700,color:'white'}}>@{m.displayName}</span>
+                                <FamilyRoleBadge role={getFamilyRole(family, m.id)} lang={lang} small />
+                            </div>
+                        ))}
+                    </div>
+                )}
+
                 {/* Input bar */}
                 <div style={{padding:'10px 12px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.3)', display:'flex', gap:'8px', alignItems:'center', flexShrink:0}}>
-                    {/* زر الهدايا */}
+                    {/* زر الهدايا — لو ضغطت بدون تحديد عضو = إرسال لنفسك */}
                     {onSendGift && (
                         <button
                             onClick={() => setShowFamilyChatGift(true)}
-                            title={lang==='ar'?'أرسل هدية':'Send gift'}
+                            title={lang==='ar'?'أرسل هدية لعضو':'Send gift to member'}
                             style={{
                                 width:'38px', height:'38px', borderRadius:'10px', flexShrink:0,
                                 background:'rgba(255,215,0,0.1)', border:'1px solid rgba(255,215,0,0.22)',
                                 fontSize:'17px', cursor:'pointer',
-                                display:'flex', alignItems:'center', justifyContent:'center',
-                                transition:'all 0.15s',
+                                display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s',
                             }}
                             onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,215,0,0.2)';}}
                             onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,215,0,0.1)';}}
                         >🎁</button>
                     )}
                     <input
+                        ref={chatInputRef}
                         value={chatInput}
-                        onChange={e => setChatInput(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChatMessage()}
+                        onChange={handleChatInputChange}
+                        onKeyDown={e => {
+                            if (e.key === 'Escape') { setShowMentionList(false); }
+                            if (e.key === 'Enter' && !e.shiftKey && !showMentionList) sendChatMessage();
+                        }}
                         maxLength={300}
                         style={{...S.input, flex:1, padding:'9px 12px', fontSize:'12px'}}
                         placeholder={canManage
-                            ? (lang==='ar'?'اكتب رسالة... أو "Announcement نصك"':'Type a message... or "Announcement your text"')
-                            : (lang==='ar'?'اكتب رسالة...':'Type a message...')
+                            ? (lang==='ar'?'اكتب رسالة... أو @ للمنشن':'Type a message... @ to mention')
+                            : (lang==='ar'?'اكتب رسالة... أو @ للمنشن':'Type a message... @ to mention')
                         }
                     />
                     <button onClick={sendChatMessage} disabled={!chatInput.trim()||sendingMsg}
@@ -2092,34 +2220,35 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </button>
                 </div>
 
-                {/* Gift modal للشات */}
+                {/* Gift modal للشات — مع دعم الإرسال لنفسك أو لعضو محدد */}
                 {showFamilyChatGift && onSendGift && (
                     <SendGiftModal
-                        show={showFamilyChatGift}
+                        show={!!showFamilyChatGift}
                         onClose={() => setShowFamilyChatGift(false)}
-                        targetUser={null}
+                        targetUser={
+                            typeof showFamilyChatGift === 'object' && showFamilyChatGift.targetUID
+                                ? { uid: showFamilyChatGift.targetUID, displayName: showFamilyChatGift.targetName, photoURL: showFamilyChatGift.targetPhoto }
+                                : (userData || currentUserData) // إرسال لنفسك
+                        }
                         currentUser={userData || currentUserData}
                         lang={lang}
                         onSendGift={async (gift, target, qty) => {
-                            // إرسال هدية للعائلة (بث)
-                            const membersToGift = (family?.members || []).filter(uid => uid !== currentUID);
-                            if (membersToGift.length === 0) {
-                                onNotification(lang==='ar'?'لا يوجد أعضاء آخرين':'No other members');
-                                setShowFamilyChatGift(false);
-                                return;
-                            }
-                            // أرسل للعضو الأول فقط (أو استخدم target لو موجود)
-                            const targetUID = target?.uid || membersToGift[0];
-                            const targetDoc = await usersCollection.doc(targetUID).get().catch(()=>null);
-                            if (targetDoc && targetDoc.exists) {
-                                await onSendGift(gift, { uid: targetUID, ...targetDoc.data() }, qty || 1);
+                            if (target && target.uid) {
+                                // لو المستهدف هو نفس المستخدم الحالي — إرسال للنفس
+                                if (target.uid === currentUID) {
+                                    await onSendGift(gift, target, qty || 1);
+                                } else {
+                                    // إرسال لعضو محدد
+                                    const targetDoc = await usersCollection.doc(target.uid).get().catch(()=>null);
+                                    if (targetDoc && targetDoc.exists) {
+                                        await onSendGift(gift, { uid: target.uid, ...targetDoc.data() }, qty || 1);
+                                    }
+                                }
                             }
                             setShowFamilyChatGift(false);
                         }}
                         currency={(userData || currentUserData)?.currency || 0}
                         friendsData={familyMembers.filter(m => m.id !== currentUID).map(m => ({ ...m, uid: m.id }))}
-                        showFamilyMembers={true}
-                        familyMembers={familyMembers.filter(m => m.id !== currentUID).map(m => ({ ...m, uid: m.id }))}
                     />
                 )}
             </div>
@@ -2571,10 +2700,21 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     // TAB: RANKING (dedicated tab)
     // ─────────────────────────────────────────────
     const renderRankingTab = () => {
+        const openFamilyById = (fid) => {
+            if (!fid) return;
+            // لو القبيلة دي قبيلتي افتح المودال على profile
+            if (fid === family?.id) { setActiveTab('profile'); return; }
+            // غير كده افتحها كـ viewFamilyId — نستخدم callback من الـ parent
+            if (typeof window !== 'undefined') {
+                // نعمل مودال مؤقت بـ viewFamilyId
+                const evt = new CustomEvent('openFamilyById', { detail: { familyId: fid } });
+                window.dispatchEvent(evt);
+            }
+        };
         return (
             <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'10px'}}>
                 <div style={S.sectionTitle}>🏆 {lang==='ar'?'ترتيب العائلات':'Family Rankings'}</div>
-                <FamilyRankingInline lang={lang} currentFamilyId={family?.id} />
+                <FamilyRankingInline lang={lang} currentFamilyId={family?.id} onOpenFamily={openFamilyById} />
             </div>
         );
     };
