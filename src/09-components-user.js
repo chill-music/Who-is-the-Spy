@@ -1038,6 +1038,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
         const isAdm = activeGroup.admins?.includes(currentUID);
         const grpLvl = getGroupLevel(activeGroup.xp || 0);
         return (
+            <React.Fragment>
             <PortalModal>
                 {/* hidden inputs */}
                 <input ref={fileInputRef} type="file" accept="image/*" style={{display:'none'}} onChange={handleImageSelect} />
