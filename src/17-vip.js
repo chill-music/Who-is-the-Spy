@@ -28,7 +28,7 @@ const VIP_CHAT_TITLE_URLS = {
     7:  '',
     8:  '',
     9:  '',
-    10: '',
+    10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip10.png',
 };
 
 // 🔧 VIP MOMENT BACKGROUNDS — خلفية الـ Moments من ليفل 2 لـ 10
