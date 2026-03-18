@@ -2194,7 +2194,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const TABS = isReadOnly ? [
         { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
         { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
-        { id:'news',     label_en:'News',    label_ar:'أخبار',    icon:'📰' },
     ] : [
         { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
         { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
@@ -2320,7 +2319,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </div>
                 </div>
 
-                {/* ── Donate Button ── */}
+                {/* ── Donate Button — only for members ── */}
+                {!isReadOnly && (
                 <div style={S.card}>
                     <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: showDonatePanel ? '10px' : '0'}}>
                         <div style={{fontSize:'12px', fontWeight:700, color:'white'}}>💰 {lang==='ar'?'التبرع للعائلة':'Donate to Family'}</div>
@@ -2340,6 +2340,25 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         {lang==='ar'?`رصيدك: ${fmtFamilyNum(currentUserData?.currency||0)} 🧠`:`Your balance: ${fmtFamilyNum(currentUserData?.currency||0)} 🧠`}
                     </div>
                 </div>
+                )}
+
+                {/* ── Join Button — for non-members who are not in any family ── */}
+                {isReadOnly && !currentUserData?.familyId && family && (
+                <div style={{...S.card, background:'linear-gradient(135deg,rgba(0,242,255,0.07),rgba(112,0,255,0.05))', border:'1px solid rgba(0,242,255,0.2)', textAlign:'center', padding:'18px'}}>
+                    <div style={{fontSize:'32px', marginBottom:'8px'}}>🏠</div>
+                    <div style={{fontSize:'13px', fontWeight:800, color:'white', marginBottom:'4px'}}>
+                        {lang==='ar'?'انضم لهذه العائلة':'Join this Family'}
+                    </div>
+                    <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'14px', lineHeight:1.5}}>
+                        {lang==='ar'?'لست عضواً في أي عائلة — انضم الآن!':'You're not in any family — join now!'}
+                    </div>
+                    <button
+                        onClick={()=>setView('join')}
+                        style={{padding:'10px 28px', borderRadius:'12px', border:'none', background:'linear-gradient(135deg,#00f2ff,#7000ff)', color:'white', fontSize:'13px', fontWeight:800, cursor:'pointer', boxShadow:'0 4px 16px rgba(0,242,255,0.3)'}}>
+                        ➕ {lang==='ar'?'انضم الآن':'Join Now'}
+                    </button>
+                </div>
+                )}
 
                 {/* ── Activeness Milestones ── */}
                 <div style={S.card}>
