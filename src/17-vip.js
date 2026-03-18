@@ -5,16 +5,16 @@
 
 // 🔧 VIP BADGE IMAGES — ضع روابط صور البادجات هنا
 const VIP_BADGE_URLS = {
-    1:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip1.png',   // رابط بادج VIP 1
-    2:  '',   // رابط بادج VIP 2
-    3:  '',   // رابط بادج VIP 3
-    4:  '',   // رابط بادج VIP 4
-    5:  '',   // رابط بادج VIP 5
-    6:  '',   // رابط بادج VIP 6
-    7:  '',   // رابط بادج VIP 7
-    8:  '',   // رابط بادج VIP 8
-    9:  '',   // رابط بادج VIP 9
-    10: 'https://img1.picmix.com/output/pic/normal/4/2/2/9/7479224_ca7d2.gif',   // رابط بادج VIP 10
+    1:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip1.png',   // رابط بادج VIP 1
+    2:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip2.png',   // رابط بادج VIP 2
+    3:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip3.png',   // رابط بادج VIP 3
+    4:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip4.png',   // رابط بادج VIP 4
+    5:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip5.png',   // رابط بادج VIP 5
+    6:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip6.png',   // رابط بادج VIP 6
+    7:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip7.png',   // رابط بادج VIP 7
+    8:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip8.png',   // رابط بادج VIP 8
+    9:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip9.png',   // رابط بادج VIP 9
+    10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip10.png',   // رابط بادج VIP 10
 };
 
 // 🔧 VIP CHAT TITLE IMAGES — صور Title في الشات خلف اسم المستخدم
