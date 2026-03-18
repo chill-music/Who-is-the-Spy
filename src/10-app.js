@@ -1558,6 +1558,18 @@ function App() {
             }
         }
 
+        // 🧧 Red Packets purchase
+        if (item.type === 'red_packets') {
+            try {
+                await usersCollection.doc(user.uid).update({
+                    currency: firebase.firestore.FieldValue.increment(-item.cost),
+                    'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(item.id),
+                });
+                setNotification(lang === 'ar' ? '✅ تم شراء المغلف! موجود في حقيبتك' : '✅ Packet purchased! Check your inventory');
+            } catch(e) { setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+            return;
+        }
+
         if (item.type === 'gifts' || item.type === 'gifts_vip') {
             // ✅ If targetUser is specified (send to friend) → direct send
             if (targetUser && targetUser.uid !== 'self' && targetUser.uid !== user?.uid) {
@@ -2382,7 +2394,7 @@ function App() {
                                 <span className="sec-title-new">🌍 {lang==='ar'?'الشات العام':'Public Chat'}</span>
                                 <button className="sec-action-new" onClick={() => setShowPublicChat(true)}>{lang==='ar'?'فتح':'Open'}</button>
                             </div>
-                            <div style={{overflowX:'hidden',width:'100%',boxSizing:'border-box'}}>
+                            <div style={{overflowX:'hidden',width:'100%',boxSizing:'border-box',contain:'layout'}}>
                             <LobbyPublicChatBox
                                 currentUser={isLoggedIn ? userData : null}
                                 user={user}
@@ -2909,11 +2921,6 @@ function App() {
                                 <div className="me-action-card" onClick={() => setShowHelpCenter(true)}>
                                     <div className="me-action-icon" style={{background:'rgba(0,242,255,0.1)'}}>💬</div>
                                     <div className="me-action-label">{lang==='ar'?'مركز المساعدة':'Help Center'}</div>
-                                </div>
-                                {/* Public Chat */}
-                                <div className="me-action-card" onClick={() => setShowPublicChat(true)}>
-                                    <div className="me-action-icon" style={{background:'rgba(74,222,128,0.1)'}}>🌍</div>
-                                    <div className="me-action-label">{lang==='ar'?'الشات العام':'Public Chat'}</div>
                                 </div>
                                 {/* Settings */}
                                 <div className="me-action-card" onClick={() => setShowSettings(true)}>
