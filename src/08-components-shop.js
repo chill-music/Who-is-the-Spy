@@ -894,7 +894,13 @@ const ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets,
                         </div>
                         <button onClick={async()=>{
                             try {
-                                await redPacketsCollection.doc(sp.id).update({ status:'reclaimed' });
+                                // Mark as reclaimed so no one can claim it anymore
+                                await redPacketsCollection.doc(sp.id).update({
+                                    status:'reclaimed',
+                                    remaining: 0,
+                                    maxClaims: 0,
+                                    reclaimedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                });
                                 const uniqueId = (sp.configId||'rp_600') + '_' + Date.now();
                                 await usersCollection.doc(user.uid).update({
                                     'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId)
