@@ -999,8 +999,10 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
     const [messages, setMessages] = React.useState([]);
     const [msgText, setMsgText] = React.useState('');
     const [sending, setSending] = React.useState(false);
+    const [cooldown, setCooldown]   = React.useState(0); // seconds remaining
     const messagesEndRef = React.useRef(null);
     const inputRef = React.useRef(null);
+    const cooldownRef = React.useRef(null);
 
     const isFirstLoad = React.useRef(true);
     React.useEffect(() => {
@@ -1019,7 +1021,7 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
     }, []);
 
     const sendMsg = async () => {
-        if (!msgText.trim() || !user || !isLoggedIn || sending) return;
+        if (!msgText.trim() || !user || !isLoggedIn || sending || cooldown > 0) return;
         const text = msgText.trim(); setMsgText(''); setSending(true);
         try {
             const vipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(currentUser) || 0) : 0;
@@ -1034,6 +1036,15 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
                 senderBadges: (currentUser?.equipped?.badges || []).slice(0, 3),
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             });
+            // ── 5-second cooldown after each message ──
+            setCooldown(5);
+            if (cooldownRef.current) clearInterval(cooldownRef.current);
+            cooldownRef.current = setInterval(() => {
+                setCooldown(prev => {
+                    if (prev <= 1) { clearInterval(cooldownRef.current); return 0; }
+                    return prev - 1;
+                });
+            }, 1000);
         } catch(e) { setMsgText(text); }
         setSending(false);
     };
@@ -1101,8 +1112,10 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
                         onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),sendMsg())}
                         style={{flex:1,padding:'7px 8px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'12px',outline:'none',minWidth:0}}
                         placeholder={lang==='ar'?'اكتب...':'Write...'}/>
-                    <button onClick={sendMsg} disabled={!msgText.trim()||sending}
-                        style={{width:'34px',height:'34px',borderRadius:'10px',border:'none',background:msgText.trim()?'linear-gradient(135deg,#7000ff,#00f2ff)':'rgba(255,255,255,0.05)',color:msgText.trim()?'white':'#4b5563',fontSize:'14px',cursor:msgText.trim()?'pointer':'default',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>➤</button>
+                    <button onClick={sendMsg} disabled={!msgText.trim()||sending||cooldown>0}
+                        style={{width:'34px',height:'34px',borderRadius:'10px',border:'none',background:(msgText.trim()&&cooldown===0)?'linear-gradient(135deg,#7000ff,#00f2ff)':'rgba(255,255,255,0.05)',color:(msgText.trim()&&cooldown===0)?'white':'#4b5563',fontSize:cooldown>0?'10px':'14px',fontWeight:cooldown>0?900:400,cursor:(msgText.trim()&&cooldown===0)?'pointer':'default',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        {cooldown > 0 ? cooldown : '➤'}
+                    </button>
                     <button onClick={onOpenFull}
                         style={{width:'34px',height:'34px',borderRadius:'10px',border:'1px solid rgba(74,222,128,0.3)',background:'rgba(74,222,128,0.08)',color:'#4ade80',fontSize:'13px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}} title={lang==='ar'?'فتح كامل':'Open full'}>⛶</button>
                 </div>
