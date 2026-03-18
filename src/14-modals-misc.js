@@ -947,7 +947,7 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
     const visibleMsgs = messages.filter(m => m.type === 'text' || m.type === 'image' || m.type === 'red_packet');
 
     return (
-        <div style={{margin:'0 16px 16px',background:'linear-gradient(160deg,rgba(5,5,18,0.98),rgba(9,8,26,0.96))',border:'1px solid rgba(74,222,128,0.15)',borderRadius:'16px',overflow:'hidden'}}>
+        <div style={{margin:'0 8px 16px',background:'linear-gradient(160deg,rgba(5,5,18,0.98),rgba(9,8,26,0.96))',border:'1px solid rgba(74,222,128,0.15)',borderRadius:'16px',overflow:'hidden',boxSizing:'border-box',width:'calc(100% - 16px)'}}>
             {/* Messages */}
             <div style={{height:'180px',overflowY:'auto',padding:'10px 10px 4px',display:'flex',flexDirection:'column',gap:'4px'}}>
                 {visibleMsgs.length === 0 && (
@@ -971,7 +971,7 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
                                 style={{width:'24px',height:'24px',borderRadius:'50%',overflow:'hidden',flexShrink:0,cursor:'pointer',border:vipCfg?`1.5px solid ${vipCfg.nameColor}`:'1.5px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.08)'}}>
                                 {msg.senderPhoto ? <img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <span style={{fontSize:'11px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
                             </div>
-                            <div style={{maxWidth:'70%'}}>
+                            <div style={{maxWidth:'min(70%, calc(100vw - 70px))' }}>
                                 <div onClick={() => onOpenProfile && onOpenProfile(msg.senderId)}
                                     style={{display:'flex',alignItems:'center',gap:'3px',marginBottom:'1px',cursor:'pointer',justifyContent:isMe?'flex-end':'flex-start'}}>
                                     <span style={{fontSize:'8px',fontWeight:700,color:vipCfg?vipCfg.nameColor:'#a78bfa'}}>{msg.senderName}</span>
@@ -979,8 +979,8 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
                                     {msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'10px',objectFit:'contain'}}/>}
                                 </div>
                                 {msg.type === 'image' ? (
-                                    <div style={{borderRadius:'8px',overflow:'hidden',border:'1px solid rgba(255,255,255,0.08)',maxWidth:'120px'}}>
-                                        <img src={msg.imageData} alt="📷" style={{display:'block',maxWidth:'120px',maxHeight:'120px',objectFit:'cover'}}/>
+                                    <div style={{borderRadius:'8px',overflow:'hidden',border:'1px solid rgba(255,255,255,0.08)',maxWidth:'min(120px, calc(100vw - 90px))'}}>
+                                        <img src={msg.imageData} alt="📷" style={{display:'block',maxWidth:'min(120px, calc(100vw - 90px))',maxHeight:'120px',objectFit:'cover'}}/>
                                     </div>
                                 ) : (
                                     <div style={{padding:'6px 10px',borderRadius:isMe?'12px 4px 12px 12px':'4px 12px 12px 12px',background:isMe?'linear-gradient(135deg,rgba(112,0,255,0.35),rgba(0,242,255,0.15))':'rgba(255,255,255,0.07)',border:isMe?'1px solid rgba(0,242,255,0.15)':'1px solid rgba(255,255,255,0.08)',fontSize:'11px',color:'#e2e8f0',lineHeight:1.4,wordBreak:'break-word'}}>
@@ -996,11 +996,11 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
             </div>
             {/* Input */}
             {isLoggedIn ? (
-                <div style={{display:'flex',gap:'5px',padding:'7px 10px',borderTop:'1px solid rgba(255,255,255,0.06)',background:'rgba(0,0,0,0.3)'}}>
+                <div style={{display:'flex',gap:'4px',padding:'7px 8px',borderTop:'1px solid rgba(255,255,255,0.06)',background:'rgba(0,0,0,0.3)',boxSizing:'border-box',width:'100%'}}>
                     <input ref={inputRef} value={msgText} onChange={e=>setMsgText(e.target.value)}
                         onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),sendMsg())}
-                        style={{flex:1,padding:'7px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'12px',outline:'none'}}
-                        placeholder={lang==='ar'?'اكتب للعموم...':'Write publicly...'}/>
+                        style={{flex:1,padding:'7px 8px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'12px',outline:'none',minWidth:0}}
+                        placeholder={lang==='ar'?'اكتب...':'Write...'}/>
                     <button onClick={sendMsg} disabled={!msgText.trim()||sending}
                         style={{width:'34px',height:'34px',borderRadius:'10px',border:'none',background:msgText.trim()?'linear-gradient(135deg,#7000ff,#00f2ff)':'rgba(255,255,255,0.05)',color:msgText.trim()?'white':'#4b5563',fontSize:'14px',cursor:msgText.trim()?'pointer':'default',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>➤</button>
                     <button onClick={onOpenFull}
@@ -1023,13 +1023,13 @@ const VIPCenterModal = ({ show, onClose, userData, user, lang, onNotification, o
     if (!show) return null;
     return (
         <PortalModal>
-            <div style={{position:'fixed',inset:0,zIndex:Z.MODAL_HIGH,background:'rgba(0,0,0,0.88)',backdropFilter:'blur(6px)',display:'flex',alignItems:'center',justifyContent:'center'}} onClick={onClose}>
+            <div style={{position:'fixed',inset:0,zIndex:Z.MODAL_HIGH,background:'rgba(0,0,0,0.88)',backdropFilter:'blur(6px)',display:'flex',alignItems:'center',justifyContent:'center',padding:'8px'}} onClick={onClose}>
                 <div onClick={e=>e.stopPropagation()} style={{
-                    width:'100%',maxWidth:'440px',maxHeight:'92vh',
+                    width:'100%',maxWidth:'min(440px, calc(100vw - 16px))',maxHeight:'92vh',
                     background:'linear-gradient(160deg,rgba(8,6,20,0.99),rgba(14,10,32,0.99))',
                     border:'1px solid rgba(255,215,0,0.2)',borderRadius:'20px',overflow:'hidden',
                     display:'flex',flexDirection:'column',boxShadow:'0 28px 80px rgba(0,0,0,0.9),0 0 60px rgba(255,215,0,0.06)',
-                    margin:'0 12px',
+                    boxSizing:'border-box',
                 }}>
                     {/* Header */}
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(255,215,0,0.15)',background:'linear-gradient(135deg,rgba(255,215,0,0.08),rgba(255,140,0,0.04))',flexShrink:0}}>
@@ -1113,13 +1113,13 @@ const HelpCenterModal = ({ show, onClose, user, userData, lang, onNotification, 
 
     return (
         <PortalModal>
-            <div style={{position:'fixed',inset:0,zIndex:Z.MODAL_HIGH,background:'rgba(0,0,0,0.88)',backdropFilter:'blur(6px)',display:'flex',alignItems:'center',justifyContent:'center'}} onClick={onClose}>
+            <div style={{position:'fixed',inset:0,zIndex:Z.MODAL_HIGH,background:'rgba(0,0,0,0.88)',backdropFilter:'blur(6px)',display:'flex',alignItems:'center',justifyContent:'center',padding:'8px'}} onClick={onClose}>
                 <div onClick={e=>e.stopPropagation()} style={{
-                    width:'100%',maxWidth:'440px',maxHeight:'92vh',
+                    width:'100%',maxWidth:'min(440px, calc(100vw - 16px))',maxHeight:'92vh',
                     background:'linear-gradient(160deg,rgba(5,5,18,0.99),rgba(9,8,26,0.99))',
                     border:'1px solid rgba(0,242,255,0.15)',borderRadius:'20px',overflow:'hidden',
                     display:'flex',flexDirection:'column',boxShadow:'0 28px 80px rgba(0,0,0,0.9)',
-                    margin:'0 12px',
+                    boxSizing:'border-box',
                 }}>
                     {/* Header */}
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
@@ -1393,13 +1393,13 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
     return (
         <PortalModal>
             <input ref={fileInputRef} type="file" accept="image/*" style={{display:'none'}} onChange={handleImgUpload}/>
-            <div style={{position:'fixed',inset:0,zIndex:Z.MODAL_HIGH,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center'}} onClick={onClose}>
+            <div style={{position:'fixed',inset:0,zIndex:Z.MODAL_HIGH,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px'}} onClick={onClose}>
                 <div onClick={e=>e.stopPropagation()} style={{
-                    width:'100%',maxWidth:'480px',height:'92vh',maxHeight:'720px',
+                    width:'100%',maxWidth:'min(480px, calc(100vw - 8px))',height:'92vh',maxHeight:'720px',
                     background:'linear-gradient(160deg,rgba(5,5,18,0.99),rgba(9,8,26,0.99))',
-                    border:'1px solid rgba(74,222,128,0.15)',borderRadius:'20px',overflow:'hidden',
+                    border:'1px solid rgba(74,222,128,0.15)',borderRadius:'16px',overflow:'hidden',
                     display:'flex',flexDirection:'column',boxShadow:'0 28px 80px rgba(0,0,0,0.9)',
-                    margin:'0 12px',
+                    boxSizing:'border-box',
                 }}>
                     {/* Header */}
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0,background:'rgba(0,0,0,0.3)'}}>
@@ -1448,7 +1448,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                                             {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'13px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
                                         </div>
                                     )}
-                                    <div style={{maxWidth:'74%'}}>
+                                    <div style={{maxWidth:'min(74%, calc(100vw - 80px))'}}>
                                         {!isMe && (
                                             <div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'2px',paddingLeft:'4px',flexWrap:'wrap',cursor:'pointer'}} onClick={()=>onOpenProfile&&onOpenProfile(msg.senderId)}>
                                                 <span style={{fontSize:'9px',color:vipCfg?vipCfg.nameColor:'#a78bfa',fontWeight:700}}>{msg.senderName}</span>
@@ -1464,8 +1464,8 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                                                 <button onClick={()=>{setEditingMsgId(null);setEditText('');}} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'7px',padding:'5px 7px',color:'#9ca3af',cursor:'pointer',fontSize:'11px'}}>✕</button>
                                             </div>
                                         ) : isImg ? (
-                                            <div style={{borderRadius:isMe?'14px 14px 4px 14px':'14px 14px 14px 4px',overflow:'hidden',border:'1px solid rgba(255,255,255,0.09)',cursor:'pointer',maxWidth:'200px'}} onClick={()=>{const w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}>
-                                                <img src={msg.imageData} alt="📷" style={{display:'block',maxWidth:'200px',maxHeight:'200px',objectFit:'cover'}}/>
+                                            <div style={{borderRadius:isMe?'14px 14px 4px 14px':'14px 14px 14px 4px',overflow:'hidden',border:'1px solid rgba(255,255,255,0.09)',cursor:'pointer',maxWidth:'min(200px, calc(100vw - 80px))'}} onClick={()=>{const w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}>
+                                                <img src={msg.imageData} alt="📷" style={{display:'block',maxWidth:'min(200px, calc(100vw - 80px))',maxHeight:'200px',objectFit:'cover'}}/>
                                             </div>
                                         ) : (
                                             <div style={{padding:'8px 12px',borderRadius:isMe?'14px 4px 14px 14px':'4px 14px 14px 14px',background:isMe?'linear-gradient(135deg,rgba(112,0,255,0.4),rgba(0,242,255,0.18))':'rgba(255,255,255,0.07)',border:isMe?'1px solid rgba(0,242,255,0.18)':'1px solid rgba(255,255,255,0.08)',fontSize:'12px',color:'#e2e8f0',lineHeight:1.5,wordBreak:'break-word'}}>
@@ -1506,7 +1506,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                     {/* 🧧 Red Packet Send Modal */}
                     {showRPModal && (
                         <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.85)',zIndex:80,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end'}}>
-                            <div style={{width:'100%',background:'linear-gradient(160deg,#0e0e22,#13122a)',borderRadius:'20px 20px 0 0',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden',maxHeight:'75%'}}>
+                            <div style={{width:'100%',background:'linear-gradient(160deg,#0e0e22,#13122a)',borderRadius:'20px 20px 0 0',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden',maxHeight:'75%',boxSizing:'border-box'}}>
                                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
                                     <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444'}}>🧧 {lang==='ar'?'أرسل مغلف للعموم':'Send Public Red Packet'}</div>
                                     <button onClick={()=>setShowRPModal(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>✕</button>
@@ -1533,7 +1533,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
 
                     {/* Input Bar */}
                     {isLoggedIn ? (
-                        <div style={{display:'flex',gap:'6px',padding:'10px 12px',borderTop:'1px solid rgba(255,255,255,0.07)',flexShrink:0,background:'rgba(0,0,0,0.4)',position:'relative'}}>
+                        <div style={{display:'flex',gap:'5px',padding:'8px',borderTop:'1px solid rgba(255,255,255,0.07)',flexShrink:0,background:'rgba(0,0,0,0.4)',position:'relative',boxSizing:'border-box',width:'100%'}}>
                             {/* Emoji Picker */}
                             {showEmojiPicker && (
                                 <div style={{position:'absolute',bottom:'58px',left:0,right:0,background:'#0e1020',border:'1px solid rgba(255,255,255,0.09)',borderRadius:'14px 14px 0 0',padding:'10px',zIndex:10,boxShadow:'0 -14px 44px rgba(0,0,0,0.8)',maxHeight:'200px',overflowY:'auto'}}>
