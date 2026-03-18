@@ -2350,7 +2350,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         {lang==='ar'?'انضم لهذه العائلة':'Join this Family'}
                     </div>
                     <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'14px', lineHeight:1.5}}>
-                        {lang==='ar'?'لست عضواً في أي عائلة — انضم الآن!':'You're not in any family — join now!'}
+                        {lang==='ar'?'لست عضواً في أي عائلة — انضم الآن!':"You're not in any family — join now!"}
                     </div>
                     <button
                         onClick={()=>setView('join')}
