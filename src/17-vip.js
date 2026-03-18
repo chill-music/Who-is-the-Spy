@@ -979,6 +979,166 @@ const VIP10RequestForm = ({ user, lang, onNotification, userData }) => {
 };
 
 
+
+// ════ VIP BUY / RENEW SECTION (embedded in VIP Center) ════
+const VIPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [buying, setBuying] = useState(false);
+    const currency = userData?.currency || 0;
+    const hasVIP = typeof getVIPLevel === 'function' && getVIPLevel(userData) > 0;
+    const vipDaysLeft = (() => {
+        if (!userData?.vip?.expiresAt) return null;
+        const exp = userData.vip.expiresAt?.toDate ? userData.vip.expiresAt.toDate() : new Date(userData.vip.expiresAt.seconds * 1000);
+        const diff = Math.ceil((exp - Date.now()) / 86400000);
+        return Math.max(0, diff);
+    })();
+
+    const handleBuyVIP = async () => {
+        if (!user || currency < 50000 || buying) return;
+        setBuying(true);
+        try {
+            const now = new Date();
+            const expiresAt = hasVIP && vipDaysLeft > 0
+                ? new Date(now.getTime() + (vipDaysLeft + 30) * 86400000)
+                : new Date(now.getTime() + 30 * 86400000);
+            await usersCollection.doc(user.uid).update({
+                currency: firebase.firestore.FieldValue.increment(-50000),
+                'vip.active': true,
+                'vip.activatedAt': hasVIP ? (userData.vip.activatedAt || firebase.firestore.FieldValue.serverTimestamp()) : firebase.firestore.FieldValue.serverTimestamp(),
+                'vip.expiresAt': expiresAt,
+                'vip.xp': firebase.firestore.FieldValue.increment(hasVIP ? 0 : 5000),
+            });
+            onNotification && onNotification(lang === 'ar' ? '👑 تم تفعيل VIP! +30 يوم' : '👑 VIP Activated! +30 days');
+            setShowConfirm(false);
+        } catch(e) {
+            onNotification && onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
+        }
+        setBuying(false);
+    };
+
+    const canAfford = currency >= 50000;
+
+    // Renew mode: only show the renew button inline, no banners or feature pills
+    if (isRenew) return (
+        <div style={{ marginTop:'4px' }}>
+            {!showConfirm ? (
+                <button
+                    onClick={() => canAfford && setShowConfirm(true)}
+                    disabled={!canAfford}
+                    style={{
+                        width:'100%', padding:'11px', borderRadius:'11px', border:'none',
+                        background: canAfford ? 'linear-gradient(135deg,#5b21b6,#7c3aed,#a855f7)' : 'rgba(100,100,100,0.12)',
+                        color: canAfford ? '#fff' : '#4b5563',
+                        fontWeight:800, fontSize:'13px', cursor: canAfford ? 'pointer' : 'not-allowed',
+                        boxShadow: canAfford ? '0 4px 18px rgba(124,58,237,0.4)' : 'none',
+                        transition:'all 0.2s', position:'relative', overflow:'hidden',
+                    }}>
+                    {canAfford && <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)', animation:'shimmer 2s infinite' }}/>}
+                    <span style={{ position:'relative' }}>
+                        {canAfford
+                            ? `🔄 ${lang === 'ar' ? 'تجديد +30 يوم' : 'Renew +30 days'} — 50,000 🧠`
+                            : `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠`}
+                    </span>
+                </button>
+            ) : (
+                <div style={{ borderRadius:'12px', overflow:'hidden', border:'1px solid rgba(168,85,247,0.35)', background:'linear-gradient(135deg,#1a0533,#0d0d2b)', padding:'14px', textAlign:'center' }}>
+                    <div style={{ color:'#e9d5ff', fontWeight:800, fontSize:'14px', marginBottom:'4px' }}>🔄 {lang === 'ar' ? 'تجديد VIP؟' : 'Renew VIP?'}</div>
+                    <div style={{ color:'#fbbf24', fontWeight:900, fontSize:'16px', marginBottom:'12px' }}>50,000 🧠</div>
+                    <div style={{ display:'flex', gap:'8px', justifyContent:'center' }}>
+                        <button onClick={() => setShowConfirm(false)} style={{ padding:'7px 16px', borderRadius:'9px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#9ca3af', fontWeight:600, cursor:'pointer', fontSize:'12px' }}>
+                            {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                        </button>
+                        <button onClick={handleBuyVIP} disabled={buying} style={{ padding:'7px 20px', borderRadius:'9px', border:'none', background:'linear-gradient(135deg,#7c3aed,#a855f7)', color:'#fff', fontWeight:800, cursor:'pointer', fontSize:'12px' }}>
+                            {buying ? '⏳' : (lang === 'ar' ? 'تأكيد' : 'Confirm')}
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
+    return (
+        <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+            {/* Info banner */}
+            <div style={{
+                borderRadius:'12px', padding:'12px 14px',
+                background:'linear-gradient(135deg,rgba(124,58,237,0.14),rgba(168,85,247,0.08))',
+                border:'1px solid rgba(168,85,247,0.3)',
+                fontSize:'11px', color:'#c4b5fd', lineHeight:1.6, textAlign:'center',
+            }}>
+                🎁 {lang === 'ar'
+                    ? 'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر ارتفع مستواك!'
+                    : 'Every gift you send earns VIP XP — the more you give, the higher you level!'}
+            </div>
+
+            {/* Feature pills */}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px' }}>
+                {[
+                    { icon:'🎨', ar:'اسم ملون مميز',    en:'Colored VIP Name'    },
+                    { icon:'⚡', ar:'مضاعف XP ×1.2',   en:'1.2× XP Multiplier'  },
+                    { icon:'🏅', ar:'بادج VIP حصري',    en:'Exclusive VIP Badge' },
+                    { icon:'🎁', ar:'هدايا VIP مقفلة',  en:'Locked VIP Gifts'    },
+                ].map((f,i) => (
+                    <div key={i} style={{
+                        display:'flex', alignItems:'center', gap:'7px',
+                        fontSize:'10px', color:'#e9d5ff',
+                        background:'rgba(124,58,237,0.1)', border:'1px solid rgba(196,181,253,0.12)',
+                        borderRadius:'9px', padding:'7px 9px',
+                    }}>
+                        <span style={{ fontSize:'13px', flexShrink:0 }}>{f.icon}</span>
+                        <span style={{ fontWeight:600, lineHeight:1.3 }}>{lang === 'ar' ? f.ar : f.en}</span>
+                    </div>
+                ))}
+            </div>
+
+            {/* Balance */}
+            <div style={{ textAlign:'center', fontSize:'11px', color:'#6b7280' }}>
+                {lang === 'ar' ? 'رصيدك:' : 'Balance:'} <span style={{ color:'#fbbf24', fontWeight:700 }}>{currency.toLocaleString()} 🧠</span>
+            </div>
+
+            {/* Buy button */}
+            {!showConfirm ? (
+                <button
+                    onClick={() => canAfford && setShowConfirm(true)}
+                    disabled={!canAfford}
+                    style={{
+                        width:'100%', padding:'14px', borderRadius:'13px', border:'none',
+                        background: canAfford ? 'linear-gradient(135deg,#b91c1c,#ef4444,#f87171)' : 'rgba(100,100,100,0.12)',
+                        color: canAfford ? '#fff' : '#4b5563',
+                        fontWeight:900, fontSize:'15px', cursor: canAfford ? 'pointer' : 'not-allowed',
+                        boxShadow: canAfford ? '0 6px 24px rgba(239,68,68,0.4)' : 'none',
+                        transition:'all 0.2s', position:'relative', overflow:'hidden',
+                    }}>
+                    {canAfford && <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)', animation:'shimmer 2s infinite' }}/>}
+                    <span style={{ position:'relative' }}>
+                        {canAfford
+                            ? `👑 ${lang === 'ar' ? 'اشترِ VIP 1' : 'Buy VIP 1'} — 50,000 🧠`
+                            : `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠 (${lang === 'ar' ? 'لديك' : 'Have'}: ${currency.toLocaleString()})`}
+                    </span>
+                </button>
+            ) : (
+                <div style={{ borderRadius:'14px', overflow:'hidden', border:'1px solid rgba(168,85,247,0.35)', background:'linear-gradient(135deg,#1a0533,#0d0d2b)' }}>
+                    <div style={{ padding:'16px', textAlign:'center' }}>
+                        <div style={{ fontSize:'36px', marginBottom:'8px' }}>👑</div>
+                        <div style={{ color:'#e9d5ff', fontWeight:900, fontSize:'15px', marginBottom:'6px' }}>
+                            {lang === 'ar' ? 'تفعيل VIP؟' : 'Activate VIP?'}
+                        </div>
+                        <div style={{ color:'#fbbf24', fontWeight:900, fontSize:'18px', marginBottom:'14px' }}>50,000 🧠</div>
+                        <div style={{ display:'flex', gap:'10px', justifyContent:'center' }}>
+                            <button onClick={() => setShowConfirm(false)} style={{ padding:'9px 20px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#9ca3af', fontWeight:600, cursor:'pointer' }}>
+                                {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                            </button>
+                            <button onClick={handleBuyVIP} disabled={buying} style={{ padding:'9px 24px', borderRadius:'10px', border:'none', background:'linear-gradient(135deg,#7c3aed,#a855f7)', color:'#fff', fontWeight:800, cursor:'pointer', boxShadow:'0 0 20px rgba(168,85,247,0.45)', fontSize:'13px' }}>
+                                {buying ? '⏳' : (lang === 'ar' ? 'تأكيد' : 'Confirm')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 // ════ VIP CENTER SECTION (for Settings) ════
 const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
     const [showInfoModal, setShowInfoModal]       = useState(false);
@@ -1242,27 +1402,13 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                     </div>
                 </div>
                 ) : (
-                /* No VIP — CTA to shop */
-                <div style={{
-                    textAlign:'center', padding:'12px 10px',
-                    background:'rgba(112,0,255,0.08)',
-                    border:'1px solid rgba(112,0,255,0.25)',
-                    borderRadius:'10px'
-                }}>
-                    <div style={{ fontSize:'22px', marginBottom:'6px' }}>🛒</div>
-                    <div style={{ fontSize:'12px', color:'#c4b5fd', fontWeight:700, marginBottom:'4px' }}>
-                        {lang === 'ar' ? 'اذهب للشوب لشراء VIP' : 'Go to Shop to buy VIP'}
-                    </div>
-                    <div style={{ fontSize:'10px', color:'#6b7280' }}>
-                        {lang === 'ar'
-                            ? 'احصل على اسم ملون، بادج حصري، ومميزات أكثر!'
-                            : 'Get a colored name, exclusive badge, and more!'}
-                    </div>
-                </div>
+                /* No VIP — Buy section */
+                <VIPBuySection userData={userData} user={user} lang={lang} onNotification={onNotification} />
                 )}
 
-                {/* ── Tip: كل هدية تزيد XP ── (تظهر فقط لو عنده VIP) */}
+                {/* ── Tip + Renew — only for active VIP ── */}
                 {level > 0 && (
+                <>
                 <div style={{
                     fontSize:'10px', color:'#6b7280', textAlign:'center',
                     padding:'6px 10px', background:'rgba(255,255,255,0.03)',
@@ -1272,6 +1418,9 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                         ? 'أرسل هدايا لتحصل على VIP XP وترتفع لمستوى أعلى!'
                         : 'Send gifts to earn VIP XP and level up!'}
                 </div>
+                {/* Renew VIP button */}
+                <VIPBuySection userData={userData} user={user} lang={lang} onNotification={onNotification} isRenew={true} />
+                </>
                 )}
 
                 {/* ── Level perks if active ── */}
