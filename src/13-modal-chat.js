@@ -454,17 +454,17 @@ const PrivateChatModal = ({
         <input ref={fileInputRef} type="file" accept="image/*"
             style={{ display: 'none' }} onChange={handleImageSelect} />
 
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay" onClick={onClose} style={{padding:"4px"}}>
           <div onClick={e => e.stopPropagation()} style={{
             display: 'flex', flexDirection: 'column',
-            width: '100%', maxWidth: '420px',
-            height: '82vh', maxHeight: '680px',
+            width: '100%', maxWidth: 'min(420px, calc(100vw - 8px))',
+            height: '92vh', maxHeight: '680px',
             background: 'linear-gradient(160deg,rgba(5,5,18,0.99),rgba(9,8,26,0.99))',
             border: '1px solid rgba(255,255,255,0.09)',
             borderRadius: '20px',
             overflow: 'hidden',
             boxShadow: '0 28px 70px rgba(0,0,0,0.88), 0 0 30px rgba(0,242,255,0.06)',
-            margin: 'auto',
+            margin: 'auto', boxSizing: 'border-box',
           }}>
 
             {/* ══ HEADER ══ */}
@@ -770,11 +770,11 @@ const PrivateChatModal = ({
                             borderRadius: isMine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                             overflow: 'hidden',
                             border: `1px solid ${isMine ? 'rgba(0,242,255,0.18)' : 'rgba(255,255,255,0.09)'}`,
-                            cursor: 'pointer', maxWidth: '200px',
+                            cursor: 'pointer', maxWidth: 'min(200px, calc(100vw - 90px))',
                           }}
                         >
                           <img src={msg.imageData} alt="📷"
-                            style={{ display: 'block', maxWidth: '200px', maxHeight: '200px', objectFit: 'cover' }} />
+                            style={{ display: 'block', maxWidth: 'min(200px, calc(100vw - 90px))', maxHeight: '200px', objectFit: 'cover' }} />
                         </div>
                       ) : editingMsgId === msg.id ? (
                         /* ── Edit input ── */
@@ -960,7 +960,7 @@ const PrivateChatModal = ({
               )}
 
               {!(isBlocked || blockedByTarget) ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', boxSizing:'border-box', width:'100%', minWidth:0 }}>
 
                   {/* Emoji button */}
                   <button
@@ -1010,7 +1010,7 @@ const PrivateChatModal = ({
                   <input
                     ref={inputRef}
                     type="text"
-                    placeholder={t.typeMessage || (lang === 'ar' ? 'اكتب رسالة... أو @ للمنشن' : 'Type a message... @ to mention')}
+                    placeholder={t.typeMessage || (lang === 'ar' ? 'اكتب رسالة...' : 'Type a message...')}
                     value={newMsg}
                     onChange={e => {
                         const val = e.target.value;
@@ -1030,7 +1030,7 @@ const PrivateChatModal = ({
                     onKeyPress={e => { if (e.key === 'Enter' && !e.shiftKey) { setShowMentionSuggestion(false); handleSend(); } }}
                     onBlur={() => { clearTypingStatus(); setTimeout(() => setShowMentionSuggestion(false), 200); }}
                     style={{
-                      flex: 1, padding: '8px 11px',
+                      flex: 1, padding: '8px 10px', minWidth: 0,
                       background: 'rgba(255,255,255,0.06)',
                       border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: '10px',
@@ -1111,7 +1111,7 @@ const PrivateChatModal = ({
         {/* 🧧 DM Red Packet Modal */}
         {showDMRedPacket && (
           <div style={{position:'fixed',inset:0,zIndex:Z.TOOLTIP,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'flex-end',justifyContent:'center'}}>
-            <div style={{width:'100%',maxWidth:'440px',background:'linear-gradient(160deg,#0e0e22,#13122a)',borderRadius:'20px 20px 0 0',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden'}}>
+            <div style={{width:'100%',maxWidth:'min(440px, 100vw)',background:'linear-gradient(160deg,#0e0e22,#13122a)',borderRadius:'20px 20px 0 0',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
                 <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444'}}>🧧 {lang==='ar'?'أرسل مغلف أحمر':'Send Red Packet'}</div>
                 <button onClick={()=>setShowDMRedPacket(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>✕</button>
@@ -1261,7 +1261,7 @@ const PrivateChatModal = ({
             padding:'16px',
           }} onClick={() => { setMiniProfile(null); setShowMiniMenu(false); }}>
             <div style={{
-              width:'100%', maxWidth:'320px',
+              width:'100%', maxWidth:'min(320px, calc(100vw - 24px))',
               borderRadius:'22px', overflow:'hidden',
               background:'#0d0d1f',
               border:'1px solid rgba(255,255,255,0.1)',
