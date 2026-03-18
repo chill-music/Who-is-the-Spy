@@ -2027,6 +2027,7 @@ function App() {
                     onSendGift={handleSendGiftToUser}
                     userData={currentUserData}
                     onNotification={setNotification}
+                    onOpenProfile={(uid) => { setShowFamilyChat(false); setTimeout(() => { setTargetProfileUID(uid); setShowUserProfile(true); }, 80); }}
                 />
             )}
 
