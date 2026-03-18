@@ -619,7 +619,9 @@ const PrivateChatModal = ({
                 const msgVipCfg = msgVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msgVipLevel-1, VIP_CONFIG.length-1)] : null;
 
                 // 🧧 Red Packet bubble
-                if(isRedPacket) return (
+                if(isRedPacket) {
+                  const isClaimed = msg.claimedBy?.includes(user?.uid) || msg.rpStatus === 'exhausted';
+                  return (
                   <div key={msg.id||idx} style={{display:'flex',flexDirection:isMine?'row-reverse':'row',alignItems:'flex-end',gap:'6px',marginBottom:isLastGroup?'4px':'1px'}}>
                     {/* Avatar for both sides */}
                     <div style={{width:'28px',flexShrink:0,alignSelf:'flex-end'}}>
@@ -643,6 +645,7 @@ const PrivateChatModal = ({
                         </div>
                       )}
                       <button onClick={async()=>{
+                        if(isClaimed) return;
                         if(!msg.rpId||!user) return;
                         try {
                           const rpDoc = await redPacketsCollection.doc(msg.rpId).get();
@@ -661,23 +664,32 @@ const PrivateChatModal = ({
                           await usersCollection.doc(user.uid).update({currency:firebase.firestore.FieldValue.increment(claimAmt)});
                           alert((lang==='ar'?'🎉 استلمت ':'🎉 You got ')+claimAmt+' Intel!');
                         } catch(e){console.error(e);}
-                      }} style={{
+                      }} disabled={isClaimed} style={{
                         display:'flex',alignItems:'center',gap:'10px',padding:'12px 16px',borderRadius:'16px',
-                        background:'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(185,28,28,0.2))',
-                        border:'1px solid rgba(239,68,68,0.5)',cursor:'pointer',
-                        boxShadow:'0 4px 16px rgba(239,68,68,0.3)',textAlign:'left',
+                        background: isClaimed
+                          ? 'linear-gradient(135deg,rgba(75,85,99,0.3),rgba(55,65,81,0.25))'
+                          : 'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(185,28,28,0.2))',
+                        border: isClaimed ? '1px solid rgba(107,114,128,0.3)' : '1px solid rgba(239,68,68,0.5)',
+                        cursor: isClaimed ? 'default' : 'pointer',
+                        boxShadow: isClaimed ? 'none' : '0 4px 16px rgba(239,68,68,0.3)',
+                        textAlign:'left',
+                        opacity: isClaimed ? 0.55 : 1,
+                        transition:'all 0.2s',
                       }}>
-                        <div style={{fontSize:'32px',filter:'drop-shadow(0 0 8px rgba(239,68,68,0.7))'}}>🧧</div>
+                        <div style={{fontSize:'32px',filter: isClaimed ? 'grayscale(1) opacity(0.5)' : 'drop-shadow(0 0 8px rgba(239,68,68,0.7))'}}>🧧</div>
                         <div style={{flex:1}}>
-                          <div style={{fontSize:'12px',fontWeight:800,color:'#ffd700'}}>{lang==='ar'?'مغلف أحمر':'Red Packet'}</div>
-                          <div style={{fontSize:'10px',color:'#fca5a5',marginTop:'2px'}}>{msg.rpAmount?.toLocaleString()} 🧠</div>
-                          <div style={{fontSize:'9px',color:'rgba(252,165,165,0.7)',marginTop:'2px'}}>{lang==='ar'?'اضغط للاستلام':'Tap to claim'} 🎁</div>
+                          <div style={{fontSize:'12px',fontWeight:800,color: isClaimed ? '#6b7280' : '#ffd700'}}>{lang==='ar'?'مغلف أحمر':'Red Packet'}</div>
+                          <div style={{fontSize:'10px',color: isClaimed ? '#4b5563' : '#fca5a5',marginTop:'2px'}}>{msg.rpAmount?.toLocaleString()} 🧠</div>
+                          <div style={{fontSize:'9px',color: isClaimed ? '#374151' : 'rgba(252,165,165,0.7)',marginTop:'2px'}}>
+                            {isClaimed ? (lang==='ar'?'✅ تم الاستلام':'✅ Claimed') : (lang==='ar'?'اضغط للاستلام':'Tap to claim') + ' 🎁'}
+                          </div>
                         </div>
                       </button>
                       <div style={{fontSize:'9px',color:'#374151',marginTop:'2px',textAlign:isMine?'right':'left',paddingLeft:'4px',paddingRight:'4px'}}>{_fmtChatTs(msg.timestamp)}</div>
                     </div>
                   </div>
-                );
+                  );
+                }
 
                 return (
                   <div key={msg.id || idx} style={{
@@ -1260,7 +1272,7 @@ const PrivateChatModal = ({
           );
         })()}
 
-        {/* ── Mini Profile Modal — New Design ── */}
+        {/* ── Mini Profile Modal — Enhanced Design ── */}
         {miniProfile && (
           <div style={{
             position:'fixed', inset:0, zIndex: Z.OVERLAY,
@@ -1269,22 +1281,22 @@ const PrivateChatModal = ({
             padding:'16px',
           }} onClick={() => { setMiniProfile(null); setShowMiniMenu(false); }}>
             <div style={{
-              width:'100%', maxWidth:'min(320px, calc(100vw - 24px))',
-              borderRadius:'22px', overflow:'hidden',
+              width:'100%', maxWidth:'min(370px, calc(100vw - 20px))',
+              borderRadius:'24px', overflow:'hidden',
               background:'#0d0d1f',
               border:'1px solid rgba(255,255,255,0.1)',
               boxShadow:'0 28px 70px rgba(0,0,0,0.95)',
               position:'relative',
             }} onClick={e => e.stopPropagation()}>
 
-              {/* ── Banner ── */}
+              {/* ── Banner — full width ── */}
               <div style={{
-                position:'relative', height:'130px',
+                position:'relative', height:'140px',
                 background: miniProfile.bannerUrl
                   ? `url(${miniProfile.bannerUrl}) center/cover no-repeat`
                   : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)',
               }}>
-                <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.25) 0%,rgba(13,13,31,0.72) 100%)' }} />
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.18) 0%,rgba(13,13,31,0.65) 100%)' }} />
 
                 {/* 3-dot menu top-right */}
                 <div style={{ position:'absolute', top:'10px', right:'10px', zIndex:3 }}>
@@ -1393,23 +1405,37 @@ const PrivateChatModal = ({
                         <span style={{ fontSize:'8px', fontWeight:900, background:miniProfile.vipCfg.nameColor, color:'#000', padding:'1px 4px', borderRadius:'3px', flexShrink:0 }}>VIP{miniProfile.vipLevel}</span>
                       )}
                       <span style={{ fontSize:'16px', fontWeight:900, color:'#00f2ff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration:'underline dotted rgba(0,242,255,0.4)' }}>{miniProfile.name}</span>
-                      {miniProfile.gender && <span style={{ fontSize:'13px', flexShrink:0 }}>{miniProfile.gender==='male'?'♂️':'♀️'}</span>}
                     </div>
-                    {/* Charisma + family sign */}
+                    {/* Charisma level (photo+level like full profile) + gender + family sign */}
                     <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'5px' }}>
+                      {/* Gender */}
+                      {miniProfile.gender && (
+                        <span style={{ fontSize:'16px', lineHeight:1, flexShrink:0 }}>
+                          {miniProfile.gender === 'male' ? '♂️' : '♀️'}
+                        </span>
+                      )}
+                      {/* Charisma: photo icon + Lv. number — exactly like full profile */}
                       {(() => {
-                        if (typeof CHARISMA_LEVELS === 'undefined') return null;
-                        const ch = miniProfile.charisma || 0;
-                        let lvl = CHARISMA_LEVELS[0];
-                        for (let ci = CHARISMA_LEVELS.length - 1; ci >= 0; ci--) {
-                          if (ch >= CHARISMA_LEVELS[ci].threshold) { lvl = CHARISMA_LEVELS[ci]; break; }
-                        }
+                        if (typeof getCharismaLevel === 'undefined') return null;
+                        const { currentLevel: lvlData } = getCharismaLevel(miniProfile.charisma || 0);
+                        if (!lvlData) return null;
+                        const hasGlow = lvlData.hasGlow;
+                        const isDivine = lvlData.isDivine;
                         return (
-                          <div style={{display:'flex',alignItems:'center',gap:'4px'}}>
-                            {lvl.iconUrl
-                              ? <img src={lvl.iconUrl} alt="" style={{ height:'22px', objectFit:'contain', filter: lvl.hasGlow ? `drop-shadow(0 0 4px ${lvl.color})` : 'none' }} />
-                              : <span style={{ fontSize:'15px' }}>{lvl.icon}</span>}
-                            <span style={{fontSize:'10px',fontWeight:700,color:lvl.color||'#ffd700'}}>{lang==='ar'?(lvl.label_ar||lvl.name_ar||lvl.name_en):(lvl.name_en||lvl.label_en)}</span>
+                          <div style={{
+                            display:'flex', alignItems:'center', gap:'4px',
+                            padding:'3px 10px', borderRadius:'20px',
+                            background: isDivine ? 'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))' : hasGlow ? `${lvlData.color}18` : 'rgba(255,255,255,0.06)',
+                            border: isDivine ? '1px solid rgba(0,212,255,0.4)' : hasGlow ? `1px solid ${lvlData.color}55` : '1px solid rgba(255,255,255,0.1)',
+                            boxShadow: isDivine ? '0 0 10px rgba(0,212,255,0.25)' : hasGlow ? `0 0 8px ${lvlData.color}44` : 'none',
+                            flexShrink:0,
+                          }}>
+                            {lvlData.iconType === 'image' && lvlData.iconUrl
+                              ? <img src={lvlData.iconUrl} alt="" style={{ width:'16px', height:'16px', borderRadius: isDivine ? '50%' : '0', objectFit:'cover' }} />
+                              : <span style={{ fontSize:'13px' }}>{lvlData.icon}</span>}
+                            <span style={{ fontSize:'10px', fontWeight:800, color: isDivine ? '#00d4ff' : lvlData.color }}>
+                              Lv.{lvlData.level}
+                            </span>
                           </div>
                         );
                       })()}
