@@ -326,7 +326,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                         <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
                                             <div style={{fontSize:'12px',fontWeight:800,color:'#fbbf24'}}>{(rp.amount||0).toLocaleString()} 🧠</div>
                                             <button
-                                                onClick={() => onPurchase && onPurchase(rp)}
+                                                onClick={() => onPurchase && onPurchase({ ...rp, type: 'red_packets', cost: rp.amount })}
                                                 disabled={!canAfford}
                                                 style={{padding:'7px 14px',borderRadius:'10px',border:'none',cursor:canAfford?'pointer':'not-allowed',background:canAfford?`linear-gradient(135deg,${rp.color},${rp.color}88)`:'rgba(255,255,255,0.06)',color:canAfford?'#000':'#4b5563',fontSize:'11px',fontWeight:800,transition:'all 0.2s'}}>
                                                 🧧 {lang==='ar'?'شراء':'Buy'}
