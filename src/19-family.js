@@ -682,7 +682,7 @@ const FamilyRankingModal = ({ show, onClose, lang, currentFamilyId }) => {
 // ════════════════════════════════════════════════════════
 const CHAT_EMOJIS_FAM = ['😀','😂','❤️','👍','🔥','⭐','💎','🎁','🎉','😎','🤩','💪','✨','🙏','😊','👑','💖','🥳','🏆','🎯','😍','🤣','😭','😱','🫡','💯','🌹','🎮','🕵️','🏅'];
 
-const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily, onSendGift, userData, onNotification }) => {
+const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily, onSendGift, userData, onNotification, onOpenProfile }) => {
     const [messages, setMessages] = React.useState([]);
     const [chatInput, setChatInput] = React.useState('');
     const [sendingMsg, setSendingMsg] = React.useState(false);
@@ -707,7 +707,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     // ── فتح ميني بروفايل كامل (محسّن) ──
     // openFamilyChatMiniProfile → uses onOpenProfile (full profile modal)
     const openFamilyChatMiniProfile = function(uid, basicData) {
-        if (uid && onOpenProfile) onOpenProfile(uid);
+        if (uid && typeof onOpenProfile === 'function') onOpenProfile(uid);
     };
 
     // جلب أعضاء العائلة للمنشن
