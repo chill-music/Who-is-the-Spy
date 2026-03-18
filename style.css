@@ -1800,9 +1800,24 @@ body {
     transition: transform .15s;
     box-shadow: 0 4px 14px rgba(236,72,153,0.25);
     /* Responsive: prevent overflow on small screens */
-    max-width: calc(100vw - 140px);
+    max-width: calc(100vw - 100px);
     box-sizing: border-box;
     flex-shrink: 0;
+}
+@media (max-width: 480px) {
+    .profile-couple-badge {
+        right: 8px;
+        padding: 3px 8px 3px 4px;
+        gap: 4px;
+        bottom: -16px;
+    }
+}
+@media (max-width: 380px) {
+    .profile-couple-badge {
+        right: 4px;
+        padding: 2px 6px 2px 3px;
+        gap: 3px;
+    }
 }
 @media (max-width: 380px) {
     .header-actions {
@@ -1834,8 +1849,8 @@ body {
 }
 .profile-couple-badge:hover { transform: scale(1.05); }
 .profile-couple-badge .cb-avatar {
-    width: 28px;
-    height: 28px;
+    width: clamp(22px, 4vw, 28px);
+    height: clamp(22px, 4vw, 28px);
     border-radius: 50%;
     overflow: hidden;
     border: 2px solid rgba(236,72,153,0.6);
@@ -1843,18 +1858,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: clamp(11px, 2vw, 14px);
     flex-shrink: 0;
 }
 .profile-couple-badge .cb-ring {
-    font-size: 15px;
+    font-size: clamp(12px, 2.5vw, 15px);
     flex-shrink: 0;
 }
 .profile-couple-badge .cb-name {
-    font-size: 10px;
+    font-size: clamp(8px, 1.8vw, 10px);
     font-weight: 700;
     color: #f9a8d4;
-    max-width: 70px;
+    max-width: clamp(50px, 12vw, 70px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -4787,5 +4802,38 @@ body, #root, .main-wrapper {
     .help-tab-btn {
         -webkit-tap-highlight-color: rgba(0,242,255,0.1);
         touch-action: manipulation;
+    }
+}
+
+/* ════ Fix 1 & 10: Global Responsive Chat & Modal Fixes ════ */
+@media (max-width: 480px) {
+    /* All modals get full responsive behavior */
+    .modal-overlay {
+        padding: 4px !important;
+        align-items: flex-end !important;
+    }
+    /* Chat modals take full height on mobile */
+    .modal-overlay > div {
+        border-radius: 16px 16px 0 0 !important;
+        max-height: 95vh !important;
+    }
+    /* Ring badge at bottom of profile avatar - ensure it fits */
+    .profile-couple-badge {
+        right: 4px;
+        max-width: calc(100vw - 80px);
+    }
+    /* Input bars flex-wrap on tiny screens */
+    .chat-input-bar {
+        flex-wrap: nowrap;
+        min-width: 0;
+    }
+    .chat-input-bar input {
+        min-width: 0;
+        flex: 1;
+    }
+}
+@media (max-width: 360px) {
+    .profile-couple-badge .cb-name {
+        display: none;
     }
 }
