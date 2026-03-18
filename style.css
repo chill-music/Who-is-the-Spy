@@ -4475,3 +4475,317 @@ body {
     .lobby-hero-new { padding: 10px 14px; }
     .hero-title-new { font-size: 18px; margin-bottom: 8px; }
 }
+
+
+/* ════════════════════════════════════════════════════════
+   📱 RESPONSIVE FIXES — All New Components (v2)
+   Groups, Public Chat, VIP Center, Help Center,
+   Mini Profile, Red Packets, Settings Panels
+   ════════════════════════════════════════════════════════ */
+
+/* ── Global safety ── */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+body, #root, .main-wrapper {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* ── All PortalModal fixed overlays must have padding ──
+   so the inner card never touches screen edges          */
+.portal-overlay-safe {
+    padding: 8px !important;
+}
+
+/* ════ CHAT BUBBLES — safe max-widths on all screens ════ */
+.group-bubble-wrap,
+.private-bubble-wrap,
+.public-bubble-wrap {
+    max-width: min(72%, calc(100vw - 80px));
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+/* ════ INPUT BARS — prevent overflow ════ */
+.chat-input-bar {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+}
+.chat-input-bar input {
+    min-width: 0;
+    flex: 1;
+}
+.chat-input-bar button {
+    flex-shrink: 0;
+}
+
+/* ════ MODAL CONTAINERS ════ */
+.new-modal-body {
+    box-sizing: border-box;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* ════ GROUP CHAT SETTINGS PANEL ════ */
+.group-settings-scroll {
+    overflow-x: hidden;
+    width: 100%;
+}
+.group-member-avatar-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* ════ LOBBY PUBLIC CHAT BOX ════ */
+.lobby-public-chat-box {
+    margin: 0 8px 16px;
+    box-sizing: border-box;
+    width: calc(100% - 16px);
+    overflow: hidden;
+}
+.lobby-chat-messages {
+    overflow-x: hidden;
+}
+
+/* ════ FAQ ITEMS ════ */
+.faq-question-btn {
+    word-break: break-word;
+    text-align: left;
+}
+.faq-answer {
+    word-break: break-word;
+    line-height: 1.7;
+}
+
+/* ════ FEEDBACK FORM ════ */
+.feedback-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 90px;
+    resize: vertical;
+}
+
+/* ════ RED PACKET ITEMS ════ */
+.red-packet-btn {
+    box-sizing: border-box;
+    width: 100%;
+    text-align: left;
+}
+
+/* ════ ADMIN PANEL — FAQ & Feedback ════ */
+.admin-faq-form input,
+.admin-faq-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ════ MINI PROFILE CARD ════ */
+.mini-profile-banner {
+    width: 100%;
+    overflow: hidden;
+}
+.mini-profile-stats {
+    display: flex;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* ════════════ SMALL MOBILE ≤480px ════════════ */
+@media (max-width: 480px) {
+
+    /* All PortalModal dialogs — safe padding on overlay */
+    [style*="position:fixed"][style*="inset:0"],
+    [style*="position: fixed"][style*="inset: 0"] {
+        padding: 4px !important;
+    }
+
+    /* All new modals — calc-based max-width */
+    .vip-center-modal,
+    .help-center-modal,
+    .public-chat-modal,
+    .group-chat-container {
+        max-width: calc(100vw - 8px) !important;
+        margin: auto !important;
+    }
+
+    /* Mini profile */
+    .mini-profile-card {
+        max-width: calc(100vw - 16px) !important;
+    }
+
+    /* Lobby public chat box */
+    .lobby-public-chat-box {
+        margin: 0 6px 12px !important;
+        width: calc(100% - 12px) !important;
+    }
+
+    /* Chat input bars — tighter spacing */
+    .chat-input-bar {
+        padding: 7px 8px !important;
+        gap: 4px !important;
+    }
+
+    /* Emoji/image/redpacket buttons in input — keep visible */
+    .chat-toolbar-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 15px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Text input inside chat bars */
+    .chat-text-input {
+        min-width: 0 !important;
+        font-size: 13px !important;
+    }
+
+    /* Send button */
+    .chat-send-btn {
+        width: 32px !important;
+        height: 32px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Group settings panels */
+    .group-settings-main {
+        padding: 10px 12px !important;
+    }
+
+    /* Member avatar grid — tighter */
+    .group-member-avatar-grid {
+        gap: 6px !important;
+    }
+
+    /* Modal header padding */
+    .modal-header-row {
+        padding: 12px 14px !important;
+    }
+
+    /* FAQ items */
+    .faq-item {
+        margin-bottom: 6px !important;
+        border-radius: 12px !important;
+    }
+    .faq-question-btn {
+        padding: 10px 12px !important;
+    }
+
+    /* Red packet items */
+    .red-packet-btn {
+        padding: 10px 12px !important;
+        border-radius: 12px !important;
+    }
+    .red-packet-btn img.rp-image {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    /* Public chat message area */
+    .public-chat-messages {
+        padding: 8px !important;
+    }
+
+    /* Group chat message images */
+    .msg-image-preview {
+        max-width: min(180px, calc(100vw - 90px)) !important;
+    }
+
+    /* Ranking family rows — ensure Join badge visible */
+    .lb-row-new .join-badge {
+        font-size: 8px !important;
+        padding: 1px 5px !important;
+    }
+
+    /* Transfer ownership input */
+    .transfer-input {
+        font-size: 12px !important;
+        padding: 7px 10px !important;
+    }
+
+    /* Help center tabs */
+    .help-tab-btn {
+        font-size: 10px !important;
+        padding: 9px 4px !important;
+        gap: 2px !important;
+    }
+    .help-tab-btn span:last-child {
+        display: none !important; /* hide label, keep icon */
+    }
+
+    /* Admin FAQ form */
+    .admin-faq-form input,
+    .admin-faq-form textarea {
+        font-size: 12px !important;
+        padding: 7px 10px !important;
+    }
+
+    /* Feedback stars */
+    .feedback-star-btn {
+        font-size: 24px !important;
+    }
+
+    /* VIP center inside scroll */
+    .vip-center-scroll {
+        padding: 0 0 8px !important;
+    }
+}
+
+/* ════════════ ULTRA-SMALL ≤360px ════════════ */
+@media (max-width: 360px) {
+
+    /* Group chat header buttons */
+    .group-header-invite-btn {
+        padding: 4px 7px !important;
+        font-size: 10px !important;
+    }
+
+    /* Chat input shrink more */
+    .chat-input-bar {
+        gap: 3px !important;
+        padding: 6px !important;
+    }
+    .chat-toolbar-btn {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 13px !important;
+    }
+    .chat-send-btn {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    /* Mini profile banner shorter */
+    .mini-profile-banner {
+        height: 90px !important;
+    }
+
+    /* Lobby chat box smaller height */
+    .lobby-chat-messages-area {
+        height: 150px !important;
+    }
+
+    /* Red packet amounts — smaller text */
+    .rp-amount-text {
+        font-size: 11px !important;
+    }
+
+    /* Public chat modal */
+    .public-chat-modal {
+        max-width: calc(100vw - 4px) !important;
+        border-radius: 12px !important;
+    }
+}
+
+/* ════ Touch improvements ════ */
+@media (hover: none) {
+    .group-settings-row,
+    .faq-item,
+    .red-packet-btn,
+    .help-tab-btn {
+        -webkit-tap-highlight-color: rgba(0,242,255,0.1);
+        touch-action: manipulation;
+    }
+}
