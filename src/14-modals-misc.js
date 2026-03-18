@@ -1062,7 +1062,7 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
     return (
         <div style={{margin:'0 8px 16px',background:'linear-gradient(160deg,rgba(5,5,18,0.98),rgba(9,8,26,0.96))',border:'1px solid rgba(74,222,128,0.15)',borderRadius:'16px',overflow:'hidden',boxSizing:'border-box',width:'calc(100% - 16px)'}}>
             {/* Messages */}
-            <div style={{height:'180px',overflowY:'auto',padding:'10px 10px 4px',display:'flex',flexDirection:'column',gap:'4px'}}>
+            <div style={{height:'clamp(140px,25vw,200px)',overflowY:'auto',padding:'10px 10px 4px',display:'flex',flexDirection:'column',gap:'4px'}}>
                 {visibleMsgs.length === 0 && (
                     <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',color:'#4b5563',fontSize:'11px',flexDirection:'column',gap:'4px'}}>
                         <span style={{fontSize:'24px'}}>🌍</span>
@@ -1365,6 +1365,9 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
     const [showRPModal, setShowRPModal] = React.useState(false);
     const [sendingRP, setSendingRP] = React.useState(false);
     const [menuMsgId, setMenuMsgId] = React.useState(null);
+    // ── Mini Profile state ──
+    const [miniProfilePub, setMiniProfilePub] = React.useState(null);
+    const [miniMenuPub, setMiniMenuPub] = React.useState(false);
     const messagesEndRef = React.useRef(null);
     const inputRef = React.useRef(null);
     const fileInputRef = React.useRef(null);
@@ -1477,6 +1480,8 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
             const rpDoc = await redPacketsCollection.doc(rpId).get();
             if (!rpDoc.exists) return;
             const rp = rpDoc.data();
+            // ❌ المرسل لا يستطيع الاستلام من مغلفه في الشات العام
+            if (rp.senderId === user.uid) { onNotification(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet'); return; }
             if (rp.claimedBy?.includes(user.uid)) { onNotification(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed'); return; }
             if ((rp.claimedBy?.length||0) >= rp.maxClaims) { onNotification(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted'); return; }
             const perClaim = Math.floor(rp.amount / rp.maxClaims);
@@ -1503,6 +1508,42 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
         return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     };
 
+    // ── Open Mini Profile (instead of full profile) ──
+    const openMiniProfilePub = async (uid, basicData) => {
+        if (!uid) return;
+        setMiniMenuPub(false);
+        setMiniProfilePub({ uid, name: basicData?.name || '...', photo: basicData?.photo || null, loading: true });
+        try {
+            const doc = await usersCollection.doc(uid).get();
+            if (doc.exists) {
+                const d = doc.data();
+                const stats = d.stats || {};
+                const wins = stats.wins || 0; const losses = stats.losses || 0;
+                const total = wins + losses;
+                const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+                const unlockedBadgeIds = Array.isArray(d.achievements)
+                    ? d.achievements.map(a => typeof a === 'string' ? a : a?.id).filter(Boolean)
+                    : ((d.achievements?.badges) || []).map(b => (b?.id) || b).filter(Boolean);
+                const topBadges = typeof ACHIEVEMENTS !== 'undefined'
+                    ? ACHIEVEMENTS.filter(a => unlockedBadgeIds.includes(a.id)).sort((a,b) => (b.tier||0)-(a.tier||0)).slice(0,3) : [];
+                const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
+                const vipCfg = vipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)] : null;
+                const signImgURL = d.familySignImageURL || (d.familySignLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined' ? (FAMILY_SIGN_IMAGES.find(s => s.level === d.familySignLevel)?.imageURL || null) : null);
+                setMiniProfilePub({
+                    uid, name: d.displayName || 'User', photo: d.photoURL || null,
+                    customId: d.customId || null, bannerUrl: d.profileBanner || d.bannerUrl || null,
+                    gender: d.gender || null, charisma: d.charisma || 0,
+                    isFriend: user ? ((d.friends || []).includes(user.uid) || (currentUser?.friends || []).includes(uid)) : false,
+                    familyTag: d.familyTag || null, familySignLevel: d.familySignLevel || null,
+                    familySignColor: d.familySignColor || null, familySignImageURL: signImgURL,
+                    gamesPlayed: total, winRate, topBadges, vipLevel, vipCfg,
+                    coupleRingEmoji: d.coupleRingEmoji || null, coupleRingImageUrl: d.coupleRingImageUrl || null,
+                    loading: false,
+                });
+            }
+        } catch(e) {}
+    };
+
     if (!show) return null;
 
     return (
@@ -1510,11 +1551,13 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
             <input ref={fileInputRef} type="file" accept="image/*" style={{display:'none'}} onChange={handleImgUpload}/>
             <div style={{position:'fixed',inset:0,zIndex:Z.MODAL_HIGH,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px'}} onClick={onClose}>
                 <div onClick={e=>e.stopPropagation()} style={{
-                    width:'100%',maxWidth:'min(480px, calc(100vw - 8px))',height:'92vh',maxHeight:'720px',
+                    width:'100%',maxWidth:'min(480px, calc(100vw - 8px))',
+                    height:'min(92vh, 720px)',
+                    minHeight:'400px',
                     background:'linear-gradient(160deg,rgba(5,5,18,0.99),rgba(9,8,26,0.99))',
                     border:'1px solid rgba(74,222,128,0.15)',borderRadius:'16px',overflow:'hidden',
                     display:'flex',flexDirection:'column',boxShadow:'0 28px 80px rgba(0,0,0,0.9)',
-                    boxSizing:'border-box',
+                    boxSizing:'border-box', position:'relative',
                 }}>
                     {/* Header */}
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0,background:'rgba(0,0,0,0.3)'}}>
@@ -1529,7 +1572,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                     </div>
 
                     {/* Messages */}
-                    <div style={{flex:1,overflowY:'auto',padding:'10px',display:'flex',flexDirection:'column',gap:'4px'}}>
+                    <div style={{flex:1,overflowY:'auto',padding:'10px',display:'flex',flexDirection:'column',gap:'6px'}}>
                         {messages.map((msg,i) => {
                             if (msg.type === 'system' || msg.type === 'red_packet_announce') return (
                                 <div key={msg.id||i} style={{textAlign:'center',fontSize:'10px',color:'#6b7280',padding:'3px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'20px',alignSelf:'center',maxWidth:'90%'}}>{msg.text}</div>
@@ -1537,12 +1580,12 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                             if (msg.type === 'red_packet') {
                                 const isMe = msg.senderId === currentUID;
                                 return (
-                                    <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end'}}>
-                                        {!isMe && <div style={{width:'28px',height:'28px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:'pointer'}} onClick={()=>onOpenProfile&&onOpenProfile(msg.senderId)}>
+                                    <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'8px',alignItems:'flex-end'}}>
+                                        <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:'pointer',border:'2px solid rgba(239,68,68,0.4)'}} onClick={()=>openMiniProfilePub(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}>
                                             {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'14px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
-                                        </div>}
+                                        </div>
                                         <div>
-                                            {!isMe&&<div style={{fontSize:'9px',color:'#a78bfa',fontWeight:700,marginBottom:'3px',paddingLeft:'4px',cursor:'pointer'}} onClick={()=>onOpenProfile&&onOpenProfile(msg.senderId)}>{msg.senderName}</div>}
+                                            <div style={{fontSize:'10px',fontWeight:700,marginBottom:'3px',paddingLeft:isMe?0:'4px',paddingRight:isMe?'4px':0,textAlign:isMe?'right':'left',cursor:'pointer',color:'#fca5a5'}} onClick={()=>openMiniProfilePub(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}>{isMe?(lang==='ar'?'أنت':'You'):msg.senderName}</div>
                                             <RedPacketCard rpId={msg.rpId} rpAmount={msg.rpAmount} maxClaims={msg.maxClaims} senderId={msg.senderId} senderName={msg.senderName} currentUID={currentUID} user={user} currentUser={currentUser} lang={lang} onClaim={claimPublicRP} />
                                             <div style={{fontSize:'9px',color:'#374151',marginTop:'2px',textAlign:isMe?'right':'left',paddingLeft:'4px'}}>{fmtTs(msg.createdAt)}</div>
                                         </div>
@@ -1553,21 +1596,18 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                             const isImg = msg.type === 'image';
                             const vipCfg = msg.senderVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msg.senderVipLevel-1,VIP_CONFIG.length-1)] : null;
                             return (
-                                <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end'}}>
-                                    {/* Avatar */}
-                                    {!isMe && (
-                                        <div onClick={()=>onOpenProfile&&onOpenProfile(msg.senderId)} style={{width:'28px',height:'28px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:'pointer',border:vipCfg?`2px solid ${vipCfg.nameColor}`:'2px solid rgba(255,255,255,0.1)'}}>
-                                            {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'13px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
+                                <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'8px',alignItems:'flex-end'}}>
+                                    {/* Avatar — always shown for everyone */}
+                                    <div onClick={()=>openMiniProfilePub(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})} style={{width:'32px',height:'32px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:'pointer',border:vipCfg?`2px solid ${vipCfg.nameColor}`:'2px solid rgba(255,255,255,0.12)',boxShadow:vipCfg?`0 0 8px ${vipCfg.nameColor}55`:'none'}}>
+                                        {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'14px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
+                                    </div>
+                                    <div style={{maxWidth:'min(72%, calc(100vw - 80px))',minWidth:0}}>
+                                        {/* Name row — always shown */}
+                                        <div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'3px',paddingLeft:isMe?0:'2px',paddingRight:isMe?'2px':0,justifyContent:isMe?'flex-end':'flex-start',flexWrap:'wrap',cursor:'pointer'}} onClick={()=>openMiniProfilePub(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}>
+                                            <span style={{fontSize:'10px',color:isMe?'#00f2ff':vipCfg?vipCfg.nameColor:'#a78bfa',fontWeight:800}}>{isMe?(lang==='ar'?'أنت':'You'):msg.senderName}</span>
+                                            {vipCfg && <span style={{fontSize:'8px',fontWeight:900,background:vipCfg.nameColor,color:'#000',padding:'1px 4px',borderRadius:'3px'}}>VIP{msg.senderVipLevel}</span>}
+                                            {msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'13px',objectFit:'contain'}}/>}
                                         </div>
-                                    )}
-                                    <div style={{maxWidth:'min(74%, calc(100vw - 80px))'}}>
-                                        {!isMe && (
-                                            <div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'2px',paddingLeft:'4px',flexWrap:'wrap',cursor:'pointer'}} onClick={()=>onOpenProfile&&onOpenProfile(msg.senderId)}>
-                                                <span style={{fontSize:'9px',color:vipCfg?vipCfg.nameColor:'#a78bfa',fontWeight:700}}>{msg.senderName}</span>
-                                                {vipCfg && <span style={{fontSize:'7px',fontWeight:900,background:vipCfg.nameColor,color:'#000',padding:'1px 3px',borderRadius:'2px'}}>VIP{msg.senderVipLevel}</span>}
-                                                {msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'12px',objectFit:'contain'}}/>}
-                                            </div>
-                                        )}
                                         {editingMsgId === msg.id ? (
                                             <div style={{display:'flex',gap:'4px',alignItems:'center'}}>
                                                 <input autoFocus value={editText} onChange={e=>setEditText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')handleEditMsg(msg.id);if(e.key==='Escape'){setEditingMsgId(null);setEditText('');}}}
@@ -1576,8 +1616,8 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                                                 <button onClick={()=>{setEditingMsgId(null);setEditText('');}} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'7px',padding:'5px 7px',color:'#9ca3af',cursor:'pointer',fontSize:'11px'}}>✕</button>
                                             </div>
                                         ) : isImg ? (
-                                            <div style={{borderRadius:isMe?'14px 14px 4px 14px':'14px 14px 14px 4px',overflow:'hidden',border:'1px solid rgba(255,255,255,0.09)',cursor:'pointer',maxWidth:'min(200px, calc(100vw - 80px))'}} onClick={()=>{const w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}>
-                                                <img src={msg.imageData} alt="📷" style={{display:'block',maxWidth:'min(200px, calc(100vw - 80px))',maxHeight:'200px',objectFit:'cover'}}/>
+                                            <div style={{borderRadius:isMe?'14px 14px 4px 14px':'14px 14px 14px 4px',overflow:'hidden',border:'1px solid rgba(255,255,255,0.09)',cursor:'pointer',width:'min(240px, calc(100vw - 80px))'}} onClick={()=>{const w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}>
+                                                <img src={msg.imageData} alt="📷" style={{display:'block',width:'100%',maxHeight:'240px',objectFit:'cover'}}/>
                                             </div>
                                         ) : (
                                             <div style={{padding:'8px 12px',borderRadius:isMe?'14px 4px 14px 14px':'4px 14px 14px 14px',background:isMe?'linear-gradient(135deg,rgba(112,0,255,0.4),rgba(0,242,255,0.18))':'rgba(255,255,255,0.07)',border:isMe?'1px solid rgba(0,242,255,0.18)':'1px solid rgba(255,255,255,0.08)',fontSize:'12px',color:'#e2e8f0',lineHeight:1.5,wordBreak:'break-word'}}>
@@ -1615,28 +1655,110 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                         <div ref={messagesEndRef}/>
                     </div>
 
-                    {/* 🧧 Red Packet Send Modal */}
+                    {/* 🧧 Red Packet Send Modal — bottom sheet, closes on overlay click */}
                     {showRPModal && (
-                        <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.85)',zIndex:80,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end'}}>
-                            <div style={{width:'100%',background:'linear-gradient(160deg,#0e0e22,#13122a)',borderRadius:'20px 20px 0 0',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden',maxHeight:'75%',boxSizing:'border-box'}}>
-                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
-                                    <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444'}}>🧧 {lang==='ar'?'أرسل مغلف للعموم':'Send Public Red Packet'}</div>
+                        <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.7)',zIndex:80,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end'}}
+                            onClick={()=>setShowRPModal(false)}>
+                            <div style={{width:'100%',background:'linear-gradient(160deg,#0e0e22,#13122a)',borderRadius:'20px 20px 0 0',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden',maxHeight:'60%',boxSizing:'border-box'}}
+                                onClick={e=>e.stopPropagation()}>
+                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+                                    <div style={{fontSize:'13px',fontWeight:800,color:'#ef4444'}}>🧧 {lang==='ar'?'أرسل مغلف للعموم':'Send Public Red Packet'}</div>
                                     <button onClick={()=>setShowRPModal(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>✕</button>
                                 </div>
-                                <div style={{padding:'14px',overflowY:'auto'}}>
-                                    <div style={{fontSize:'11px',color:'#6b7280',marginBottom:'12px',textAlign:'center'}}>{lang==='ar'?'رصيدك':'Balance'}: <span style={{color:'#ffd700',fontWeight:700}}>{((currentUser?.currency)||0).toLocaleString()} 🧠</span></div>
-                                    <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                <div style={{padding:'12px',overflowY:'auto'}}>
+                                    <div style={{fontSize:'11px',color:'#6b7280',marginBottom:'10px',textAlign:'center'}}>{lang==='ar'?'رصيدك':'Balance'}: <span style={{color:'#ffd700',fontWeight:700}}>{((currentUser?.currency)||0).toLocaleString()} 🧠</span></div>
+                                    <div style={{display:'flex',flexDirection:'column',gap:'7px'}}>
                                         {(typeof RED_PACKETS_CONFIG!=='undefined'?RED_PACKETS_CONFIG:[]).map(rp=>(
                                             <button key={rp.id} onClick={()=>sendPublicRP(rp)} disabled={sendingRP||((currentUser?.currency)||0)<rp.amount}
-                                                style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 16px',borderRadius:'14px',background:rp.bg,border:`1px solid ${rp.border}`,cursor:((currentUser?.currency)||0)<rp.amount?'not-allowed':'pointer',opacity:((currentUser?.currency)||0)<rp.amount?0.4:1,textAlign:'left'}}>
-                                                {rp.imageURL?<img src={rp.imageURL} alt="" style={{width:'42px',height:'42px',objectFit:'contain'}}/>:<div style={{width:'42px',height:'42px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>🧧</div>}
+                                                style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderRadius:'12px',background:rp.bg,border:`1px solid ${rp.border}`,cursor:((currentUser?.currency)||0)<rp.amount?'not-allowed':'pointer',opacity:((currentUser?.currency)||0)<rp.amount?0.4:1,textAlign:'left'}}>
+                                                {rp.imageURL?<img src={rp.imageURL} alt="" style={{width:'36px',height:'36px',objectFit:'contain'}}/>:<div style={{width:'36px',height:'36px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>🧧</div>}
                                                 <div style={{flex:1}}>
-                                                    <div style={{fontSize:'13px',fontWeight:800,color:rp.color}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
-                                                    <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'2px'}}>{lang==='ar'?rp.desc_ar:rp.desc_en}</div>
+                                                    <div style={{fontSize:'12px',fontWeight:800,color:rp.color}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
+                                                    <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'1px'}}>{lang==='ar'?rp.desc_ar:rp.desc_en}</div>
                                                 </div>
-                                                <div style={{fontSize:'13px',fontWeight:800,color:rp.color}}>{rp.amount.toLocaleString()} 🧠</div>
+                                                <div style={{fontSize:'12px',fontWeight:800,color:rp.color}}>{rp.amount.toLocaleString()} 🧠</div>
                                             </button>
                                         ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Mini Profile Popup inside PublicChat (Fix 4 & 8: higher z-index, stays above chat) ── */}
+                    {miniProfilePub && (
+                        <div style={{position:'fixed',inset:0,zIndex:Z.MODAL_HIGH+10,background:'rgba(0,0,0,0.82)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}
+                            onClick={()=>{setMiniProfilePub(null);setMiniMenuPub(false);}}>
+                            <div style={{width:'100%',maxWidth:'min(370px, calc(100vw - 20px))',borderRadius:'24px',overflow:'hidden',background:'#0d0d1f',border:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 28px 70px rgba(0,0,0,0.95)',position:'relative'}}
+                                onClick={e=>e.stopPropagation()}>
+                                {/* Banner */}
+                                <div style={{position:'relative',height:'120px',background:miniProfilePub.bannerUrl?`url(${miniProfilePub.bannerUrl}) center/cover no-repeat`:'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)'}}>
+                                    <div style={{position:'absolute',inset:0,background:'linear-gradient(180deg,rgba(0,0,0,0.15) 0%,rgba(13,13,31,0.7) 100%)'}}/>
+                                    <div style={{position:'absolute',top:'10px',right:'10px',zIndex:3}}>
+                                        <button onClick={e=>{e.stopPropagation();setMiniMenuPub(v=>!v);}} style={{background:'rgba(0,0,0,0.55)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:'50%',width:'30px',height:'30px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'white',fontSize:'17px',fontWeight:900}}>⋮</button>
+                                        {miniMenuPub && (
+                                            <div style={{position:'absolute',top:'34px',right:0,background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'1px solid rgba(255,255,255,0.13)',borderRadius:'12px',padding:'5px',minWidth:'160px',boxShadow:'0 10px 30px rgba(0,0,0,0.9)',zIndex:5}} onClick={e=>e.stopPropagation()}>
+                                                <button onClick={()=>{setMiniMenuPub(false);setMiniProfilePub(null);if(onOpenProfile)onOpenProfile(miniProfilePub.uid);}} style={{width:'100%',padding:'9px 12px',borderRadius:'8px',background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'8px',fontSize:'12px',fontWeight:700,color:'#00f2ff',textAlign:'left'}} onMouseEnter={e=>e.currentTarget.style.background='rgba(0,242,255,0.08)'} onMouseLeave={e=>e.currentTarget.style.background='none'}>👤 {lang==='ar'?'فتح البروفايل':'Open Profile'}</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {(miniProfilePub.coupleRingEmoji||miniProfilePub.coupleRingImageUrl) && (
+                                        <div style={{position:'absolute',top:'48px',right:'12px',zIndex:2}}>
+                                            {miniProfilePub.coupleRingImageUrl?<img src={miniProfilePub.coupleRingImageUrl} alt="" style={{width:'28px',height:'28px',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}/>:<span style={{fontSize:'22px',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}>{miniProfilePub.coupleRingEmoji}</span>}
+                                        </div>
+                                    )}
+                                </div>
+                                {(miniProfilePub.topBadges||[]).length>0 && (
+                                    <div style={{display:'flex',gap:'6px',padding:'8px 16px 0',justifyContent:'flex-end'}}>
+                                        {(miniProfilePub.topBadges||[]).map((badge,i)=>(
+                                            <div key={i} style={{width:'26px',height:'26px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>
+                                                {badge.imageUrl?<img src={badge.imageUrl} alt="" style={{width:'18px',height:'18px',objectFit:'contain'}}/>:(badge.icon||'🏅')}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                <div style={{padding:(miniProfilePub.topBadges||[]).length>0?'6px 16px 20px':'0 16px 20px',position:'relative'}}>
+                                    <div style={{display:'flex',alignItems:'flex-end',gap:'12px',marginTop:(miniProfilePub.topBadges||[]).length>0?'-48px':'-36px',marginBottom:'14px'}}>
+                                        <div onClick={()=>{setMiniProfilePub(null);setMiniMenuPub(false);if(onOpenProfile)onOpenProfile(miniProfilePub.uid);}} style={{width:'72px',height:'72px',borderRadius:'50%',border:miniProfilePub.vipCfg?`3px solid ${miniProfilePub.vipCfg.nameColor}`:'3px solid #0d0d1f',overflow:'hidden',background:'#1a1a2e',boxShadow:miniProfilePub.vipCfg?`0 0 14px ${miniProfilePub.vipCfg.nameColor}88,0 4px 16px rgba(0,0,0,0.6)`:'0 4px 16px rgba(0,0,0,0.6)',flexShrink:0,zIndex:2,cursor:'pointer'}}>
+                                            {miniProfilePub.photo?<img src={miniProfilePub.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px'}}>😎</div>}
+                                        </div>
+                                        <div style={{flex:1,paddingBottom:'4px',minWidth:0}}>
+                                            <div onClick={()=>{setMiniProfilePub(null);setMiniMenuPub(false);if(onOpenProfile)onOpenProfile(miniProfilePub.uid);}} style={{display:'flex',alignItems:'center',gap:'5px',marginBottom:'5px',cursor:'pointer',flexWrap:'wrap'}}>
+                                                {miniProfilePub.vipCfg && <span style={{fontSize:'8px',fontWeight:900,background:miniProfilePub.vipCfg.nameColor,color:'#000',padding:'1px 4px',borderRadius:'3px'}}>{miniProfilePub.vipCfg.imageUrl?<img src={miniProfilePub.vipCfg.imageUrl} alt="" style={{height:'12px',objectFit:'contain',verticalAlign:'middle'}}/>:null}VIP{miniProfilePub.vipLevel}</span>}
+                                                <span style={{fontSize:'16px',fontWeight:900,color:'#00f2ff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{miniProfilePub.name}</span>
+                                                {miniProfilePub.gender && <span style={{fontSize:'14px'}}>{miniProfilePub.gender==='male'?'♂️':'♀️'}</span>}
+                                            </div>
+                                            {/* ID Row */}
+                                            {miniProfilePub.customId && (
+                                                <div style={{display:'flex',alignItems:'center',gap:'4px',fontSize:'11px',color:'#6b7280'}}>
+                                                    {miniProfilePub.vipCfg?.idBeforeImageUrl
+                                                        ? <><img src={miniProfilePub.vipCfg.idBeforeImageUrl} alt="" style={{height:'16px',objectFit:'contain'}}/><span>{miniProfilePub.customId}</span></>
+                                                        : <span>ID: {miniProfilePub.customId}</span>
+                                                    }
+                                                    <button onClick={()=>navigator.clipboard?.writeText(miniProfilePub.customId)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'12px',color:'#4b5563',padding:'0 2px',lineHeight:1}}>⎘</button>
+                                                </div>
+                                            )}
+                                            {miniProfilePub.loading && <div style={{fontSize:'11px',color:'#4b5563',fontStyle:'italic'}}>⏳</div>}
+                                        </div>
+                                    </div>
+                                    <div style={{display:'flex',borderTop:'1px solid rgba(255,255,255,0.07)',borderBottom:'1px solid rgba(255,255,255,0.07)',margin:'0 0 14px',padding:'10px 0'}}>
+                                        <div style={{flex:1,textAlign:'center'}}>
+                                            <div style={{fontSize:'20px',fontWeight:900,color:'white',lineHeight:1}}>{miniProfilePub.gamesPlayed??0}</div>
+                                            <div style={{fontSize:'10px',color:'#6b7280',marginTop:'3px'}}>{lang==='ar'?'مباريات':'Games'}</div>
+                                        </div>
+                                        <div style={{width:'1px',background:'rgba(255,255,255,0.08)',margin:'4px 0'}}/>
+                                        <div style={{flex:1,textAlign:'center'}}>
+                                            {(()=>{const r=miniProfilePub.winRate??0;const c=r>=70?'#10b981':r>=50?'#facc15':'#f97316';return<><div style={{fontSize:'20px',fontWeight:900,color:c,lineHeight:1}}>{r}%</div><div style={{fontSize:'10px',color:'#6b7280',marginTop:'3px'}}>{lang==='ar'?'نسبة الفوز':'Win Rate'}</div></>;})()}
+                                        </div>
+                                    </div>
+                                    <div style={{display:'flex',gap:'8px'}}>
+                                        {miniProfilePub.uid!==user?.uid && !miniProfilePub.isFriend && (
+                                            <button onClick={async()=>{try{await usersCollection.doc(miniProfilePub.uid).update({friendRequests:firebase.firestore.FieldValue.arrayUnion(user.uid)});setMiniProfilePub(p=>({...p,isFriend:true}));}catch(e){}}} style={{flex:1,padding:'10px',borderRadius:'50px',background:'linear-gradient(135deg,rgba(0,242,255,0.22),rgba(0,180,255,0.18))',border:'1px solid rgba(0,242,255,0.4)',color:'#00f2ff',fontSize:'12px',fontWeight:800,cursor:'pointer'}}>{lang==='ar'?'إضافة':'Add'}</button>
+                                        )}
+                                        {miniProfilePub.uid!==user?.uid && miniProfilePub.isFriend && (
+                                            <div style={{flex:1,padding:'10px',borderRadius:'50px',background:'rgba(16,185,129,0.12)',border:'1px solid rgba(16,185,129,0.3)',color:'#10b981',fontSize:'12px',fontWeight:800,textAlign:'center'}}>✅ {lang==='ar'?'صديق':'Friends'}</div>
+                                        )}
+                                        <button onClick={()=>{setMiniProfilePub(null);setMiniMenuPub(false);if(onOpenProfile)onOpenProfile(miniProfilePub.uid);}} style={{flex:1,padding:'10px',borderRadius:'50px',background:'rgba(0,242,255,0.08)',border:'1px solid rgba(0,242,255,0.25)',color:'#00f2ff',fontSize:'12px',fontWeight:700,cursor:'pointer',textAlign:'center'}}>👤 {lang==='ar'?'البروفايل':'Profile'}</button>
                                     </div>
                                 </div>
                             </div>
@@ -1660,7 +1782,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                             <button onClick={()=>fileInputRef.current?.click()} disabled={uploadingImg} style={{width:'36px',height:'36px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.05)',cursor:'pointer',fontSize:'15px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,opacity:uploadingImg?0.5:1}}>{uploadingImg?'⏳':'🖼️'}</button>
                             <button onClick={()=>setShowRPModal(true)} style={{width:'36px',height:'36px',borderRadius:'10px',border:'1px solid rgba(239,68,68,0.3)',background:'rgba(239,68,68,0.1)',cursor:'pointer',fontSize:'17px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}} title={lang==='ar'?'مغلف أحمر':'Red Packet'}>🧧</button>
                             <input ref={inputRef} value={msgText} onChange={e=>setMsgText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),sendMsg())}
-                                style={{flex:1,padding:'9px 14px',borderRadius:'12px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'13px',outline:'none'}}
+                                style={{flex:1,padding:'9px 12px',borderRadius:'12px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'white',fontSize:'13px',outline:'none',minWidth:0}}
                                 placeholder={lang==='ar'?'اكتب رسالة للعموم...':'Write a public message...'}/>
                             <button onClick={sendMsg} disabled={!msgText.trim()||sending} style={{width:'38px',height:'38px',borderRadius:'12px',border:'none',cursor:'pointer',flexShrink:0,background:msgText.trim()?'linear-gradient(135deg,#7000ff,#00f2ff)':'rgba(255,255,255,0.06)',color:msgText.trim()?'white':'#6b7280',fontSize:'16px',transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center'}}>➤</button>
                         </div>

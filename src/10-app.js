@@ -555,6 +555,47 @@ function App() {
         return () => clearInterval(interval);
     }, [userData?.vip?.isActive, userData?.vip?.expiresAt, user, isLoggedIn]);
     useEffect(() => { const tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); if(!tutorialDone && isLoggedIn) setShowTutorial(true); }, [isLoggedIn]);
+
+    // ✅ Fix 9: Inventory expiry checker — runs periodically to remove expired timed items
+    useEffect(() => {
+        if (!user || !isLoggedIn || !userData) return;
+        const checkInventoryExpiry = async () => {
+            const expiry = userData?.inventory?.expiry || {};
+            const now = Date.now();
+            const expired = Object.entries(expiry).filter(([id, ts]) => ts && ts < now).map(([id]) => id);
+            if (expired.length === 0) return;
+            const inv = userData?.inventory || {};
+            const updates = {};
+            for (const id of expired) {
+                // Remove from all possible inventory arrays
+                ['frames', 'badges', 'titles', 'effects', 'profileEffects', 'gifts'].forEach(type => {
+                    if (Array.isArray(inv[type]) && inv[type].includes(id)) {
+                        updates[`inventory.${type}`] = (inv[type] || []).filter(x => x !== id);
+                    }
+                });
+                // Also remove giftCounts if it's a gift
+                if (inv.giftCounts?.[id]) updates[`inventory.giftCounts.${id}`] = firebase.firestore.FieldValue.delete();
+                updates[`inventory.expiry.${id}`] = firebase.firestore.FieldValue.delete();
+                // Unequip if currently equipped
+                const equipped = userData?.equipped || {};
+                if (equipped.frames === id) updates['equipped.frames'] = firebase.firestore.FieldValue.delete();
+                if (equipped.effects === id) updates['equipped.effects'] = firebase.firestore.FieldValue.delete();
+                if (equipped.profileEffects === id) updates['equipped.profileEffects'] = firebase.firestore.FieldValue.delete();
+                if (Array.isArray(equipped.badges) && equipped.badges.includes(id)) {
+                    updates['equipped.badges'] = equipped.badges.filter(b => b !== id);
+                }
+                if (Array.isArray(equipped.titles) && equipped.titles.includes(id)) {
+                    updates['equipped.titles'] = equipped.titles.filter(t => t !== id);
+                }
+            }
+            if (Object.keys(updates).length > 0) {
+                try { await usersCollection.doc(user.uid).update(updates); } catch(e) {}
+            }
+        };
+        checkInventoryExpiry();
+        const interval = setInterval(checkInventoryExpiry, 60000);
+        return () => clearInterval(interval);
+    }, [userData?.inventory?.expiry, user, isLoggedIn]);
     useEffect(() => {
         if (!user || isGuest) return;
 
@@ -1619,13 +1660,41 @@ function App() {
             return;
         }
 
-        if (inventory[item.type]?.includes(item.id)) { setNotification(t.alreadyOwned); return; }
+        if (inventory[item.type]?.includes(item.id)) {
+            // If item already owned but has durationDays — extend/renew expiry
+            if (item.durationDays && item.durationDays > 0) {
+                try {
+                    const existingExpiry = userData?.inventory?.expiry?.[item.id];
+                    const baseTime = existingExpiry && existingExpiry > Date.now() ? existingExpiry : Date.now();
+                    const newExpiry = baseTime + item.durationDays * 86400000;
+                    await usersCollection.doc(user.uid).update({
+                        currency: firebase.firestore.FieldValue.increment(-item.cost),
+                        [`inventory.expiry.${item.id}`]: newExpiry,
+                    });
+                    playSound('success');
+                    const itemName = lang === 'ar' ? item.name_ar : item.name_en;
+                    setNotification(`✅ ${itemName} (⏳ +${item.durationDays} ${lang === 'ar' ? 'يوم' : 'days'})`);
+                } catch(e) { setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+                return;
+            }
+            setNotification(t.alreadyOwned);
+            return;
+        }
         try {
-            const newInventory = { ...inventory, [item.type]: [...(inventory[item.type] || []), item.id] };
-            await usersCollection.doc(user.uid).update({ currency: currency - item.cost, inventory: newInventory });
+            const updateData = {
+                currency: firebase.firestore.FieldValue.increment(-item.cost),
+                [`inventory.${item.type}`]: firebase.firestore.FieldValue.arrayUnion(item.id),
+            };
+            // ✅ Fix 9: durationDays for ALL item types (frames, badges, titles, effects, etc.)
+            if (item.durationDays && item.durationDays > 0) {
+                updateData[`inventory.expiry.${item.id}`] = Date.now() + item.durationDays * 86400000;
+            }
+            await usersCollection.doc(user.uid).update(updateData);
             playSound('success');
-            setNotification(t.purchaseSuccess);
-        } catch (error) { }
+            const itemName = lang === 'ar' ? item.name_ar : item.name_en;
+            const timerMsg = item.durationDays ? ` (⏳ ${item.durationDays} ${lang === 'ar' ? 'يوم' : 'days'})` : '';
+            setNotification(`${t.purchaseSuccess} ${itemName}${timerMsg}`);
+        } catch (error) { setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
     }, [user, userData, isLoggedIn, t, lang, handleSendGiftToUser]);
 
     // 👑 شراء VIP من الشوب

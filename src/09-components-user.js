@@ -928,6 +928,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
             const rpDoc = await redPacketsCollection.doc(rpId).get();
             if (!rpDoc.exists) { onNotification(lang==='ar'?'❌ المغلف غير موجود':'❌ Packet not found'); return; }
             const rp = rpDoc.data();
+            // ✅ Fix 2: في الجروب، المرسل يأخذ نسبة فقط مثل أي شخص آخر (لا يحق له أخذ الكل)
             if (rp.claimedBy?.includes(currentUID)) { onNotification(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed'); return; }
             if (rp.claimedBy?.length >= rp.maxClaims) { onNotification(lang==='ar'?'❌ المغلف نفد':'❌ Packet exhausted'); return; }
             if (rp.status !== 'active') { onNotification(lang==='ar'?'❌ المغلف منتهي':'❌ Packet expired'); return; }
@@ -955,10 +956,34 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
     };
 
-    // openGroupMiniProfile → delegates to onOpenProfile (the full profile modal)
-    const openGroupMiniProfile = (uid, basicData) => {
+    // openGroupMiniProfile → now opens a mini profile popup instead of the full profile
+    const openGroupMiniProfile = async (uid, basicData) => {
         if (!uid) return;
-        if (onOpenProfile) onOpenProfile(uid);
+        // Show basic data first while loading
+        setGroupMiniProfile({ uid, name: (basicData && basicData.name) || '...', photo: (basicData && basicData.photo) || null, loading: true });
+        try {
+            const doc = await usersCollection.doc(uid).get();
+            if (doc.exists) {
+                const d = doc.data();
+                const stats = d.stats || {};
+                const wins = stats.wins || 0; const losses = stats.losses || 0;
+                const total = wins + losses;
+                const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+                const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
+                const vipCfg = vipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)] : null;
+                const signImgURL = d.familySignImageURL || (d.familySignLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined' ? (FAMILY_SIGN_IMAGES.find(s => s.level === d.familySignLevel)?.imageURL || null) : null);
+                setGroupMiniProfile({
+                    uid, name: d.displayName || 'User', photo: d.photoURL || null,
+                    customId: d.customId || null, bannerUrl: d.profileBanner || d.bannerUrl || d.banner || null,
+                    gender: d.gender || null, charisma: d.charisma || 0,
+                    familyTag: d.familyTag || null, familySignLevel: d.familySignLevel || null,
+                    familySignColor: d.familySignColor || null, familySignImageURL: signImgURL,
+                    gamesPlayed: total, winRate, vipLevel, vipCfg,
+                    coupleRingEmoji: d.coupleRingEmoji || null, coupleRingImageUrl: d.coupleRingImageUrl || null,
+                    loading: false,
+                });
+            }
+        } catch(e) { setGroupMiniProfile(null); if (onOpenProfile) onOpenProfile(uid); }
     };
     React.useEffect(() => {
         if (!showDetails || !activeGroup) return;
@@ -1013,7 +1038,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                     <div style={{
                         display:'flex', flexDirection:'column',
                         width:'100%', maxWidth:'min(440px, calc(100vw - 8px))',
-                        height:'94vh', maxHeight:'700px',
+                        height:'min(94vh,700px)', minHeight:'400px',
                         background:'linear-gradient(160deg,rgba(5,5,18,0.99),rgba(9,8,26,0.99))',
                         border:'1px solid rgba(255,255,255,0.09)',
                         borderRadius:'16px', overflow:'hidden',
@@ -1488,29 +1513,87 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                             </div>
                         )}
 
-                        {/* ── RED PACKET MODAL ── */}
+                        {/* ── RED PACKET MODAL — closes on outside click ── */}
                         {showRedPacketModal && (
-                            <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.85)',zIndex:80,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',paddingBottom:'0'}}>
-                                <div style={{width:'100%',background:'linear-gradient(160deg,#0e0e22,#13122a)',borderRadius:'20px 20px 0 0',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden',maxHeight:'80%'}}>
-                                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
-                                        <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444'}}>🧧 {lang==='ar'?'أرسل مغلف أحمر':'Send Red Packet'}</div>
+                            <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.75)',zIndex:80,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end'}}
+                                onClick={()=>setShowRedPacketModal(false)}>
+                                <div style={{width:'100%',background:'linear-gradient(160deg,#0e0e22,#13122a)',borderRadius:'20px 20px 0 0',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden',maxHeight:'65%'}}
+                                    onClick={e=>e.stopPropagation()}>
+                                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+                                        <div style={{fontSize:'13px',fontWeight:800,color:'#ef4444'}}>🧧 {lang==='ar'?'أرسل مغلف أحمر':'Send Red Packet'}</div>
                                         <button onClick={()=>setShowRedPacketModal(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>✕</button>
                                     </div>
-                                    <div style={{padding:'14px',overflowY:'auto'}}>
-                                        <div style={{fontSize:'11px',color:'#6b7280',marginBottom:'12px',textAlign:'center'}}>{lang==='ar'?'رصيدك الحالي':'Your balance'}: <span style={{color:'#ffd700',fontWeight:700}}>{(currentUserData?.currency||0).toLocaleString()} 🧠</span></div>
-                                        <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                    <div style={{padding:'12px',overflowY:'auto'}}>
+                                        <div style={{fontSize:'11px',color:'#6b7280',marginBottom:'10px',textAlign:'center'}}>{lang==='ar'?'رصيدك الحالي':'Your balance'}: <span style={{color:'#ffd700',fontWeight:700}}>{(currentUserData?.currency||0).toLocaleString()} 🧠</span></div>
+                                        <div style={{display:'flex',flexDirection:'column',gap:'7px'}}>
                                             {(typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : []).map(rp=>(
                                                 <button key={rp.id} onClick={()=>sendGroupRedPacket(rp)} disabled={sendingRedPacket||(currentUserData?.currency||0)<rp.amount}
-                                                    style={{display:'flex',alignItems:'center',gap:'12px',padding:'13px 16px',borderRadius:'14px',background:rp.bg,border:`1px solid ${rp.border}`,cursor:(currentUserData?.currency||0)<rp.amount?'not-allowed':'pointer',opacity:(currentUserData?.currency||0)<rp.amount?0.4:1,textAlign:'left',transition:'all 0.2s'}}>
-                                                    {rp.imageURL?<img src={rp.imageURL} alt="" style={{width:'44px',height:'44px',objectFit:'contain'}}/>:<div style={{width:'44px',height:'44px',borderRadius:'12px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px'}}>🧧</div>}
+                                                    style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderRadius:'12px',background:rp.bg,border:`1px solid ${rp.border}`,cursor:(currentUserData?.currency||0)<rp.amount?'not-allowed':'pointer',opacity:(currentUserData?.currency||0)<rp.amount?0.4:1,textAlign:'left',transition:'all 0.2s'}}>
+                                                    {rp.imageURL?<img src={rp.imageURL} alt="" style={{width:'36px',height:'36px',objectFit:'contain'}}/>:<div style={{width:'36px',height:'36px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'}}>🧧</div>}
                                                     <div style={{flex:1}}>
-                                                        <div style={{fontSize:'13px',fontWeight:800,color:rp.color}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
-                                                        <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'2px'}}>{lang==='ar'?rp.desc_ar:rp.desc_en}</div>
+                                                        <div style={{fontSize:'12px',fontWeight:800,color:rp.color}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
+                                                        <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'1px'}}>{lang==='ar'?rp.desc_ar:rp.desc_en}</div>
                                                     </div>
-                                                    <div style={{fontSize:'14px',fontWeight:800,color:rp.color}}>{rp.amount.toLocaleString()} 🧠</div>
+                                                    <div style={{fontSize:'12px',fontWeight:800,color:rp.color}}>{rp.amount.toLocaleString()} 🧠</div>
                                                 </button>
                                             ))}
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── GROUP MINI PROFILE POPUP (Fix 4) ── */}
+                        {groupMiniProfile && (
+                            <div style={{position:'fixed',inset:0,zIndex:9999,background:'rgba(0,0,0,0.82)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}
+                                onClick={()=>{setGroupMiniProfile(null);setGroupMiniMenuOpen(false);}}>
+                                <div style={{width:'100%',maxWidth:'min(340px,calc(100vw-20px))',borderRadius:'24px',overflow:'hidden',background:'#0d0d1f',border:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 28px 70px rgba(0,0,0,0.95)',position:'relative'}}
+                                    onClick={e=>e.stopPropagation()}>
+                                    {/* Banner */}
+                                    <div style={{position:'relative',height:'100px',
+                                        background: groupMiniProfile.bannerUrl ? 'transparent' : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)',
+                                        backgroundImage: groupMiniProfile.bannerUrl ? `url(${groupMiniProfile.bannerUrl})` : undefined,
+                                        backgroundSize:'cover',backgroundPosition:'center',backgroundRepeat:'no-repeat'}}>
+                                        <div style={{position:'absolute',inset:0,background:'linear-gradient(180deg,rgba(0,0,0,0.1) 0%,rgba(13,13,31,0.7) 100%)'}}/>
+                                        <div style={{position:'absolute',top:'8px',right:'8px',zIndex:3}}>
+                                            <button onClick={()=>setGroupMiniMenuOpen(v=>!v)} style={{background:'rgba(0,0,0,0.55)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:'50%',width:'28px',height:'28px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'white',fontSize:'16px',fontWeight:900}}>⋮</button>
+                                            {groupMiniMenuOpen && (
+                                                <div style={{position:'absolute',top:'32px',right:0,background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'1px solid rgba(255,255,255,0.13)',borderRadius:'12px',padding:'5px',minWidth:'150px',boxShadow:'0 10px 30px rgba(0,0,0,0.9)',zIndex:5}} onClick={e=>e.stopPropagation()}>
+                                                    <button onClick={()=>{setGroupMiniMenuOpen(false);setGroupMiniProfile(null);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}} style={{width:'100%',padding:'8px 12px',borderRadius:'8px',background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'8px',fontSize:'12px',fontWeight:700,color:'#00f2ff',textAlign:'left'}} onMouseEnter={e=>e.currentTarget.style.background='rgba(0,242,255,0.08)'} onMouseLeave={e=>e.currentTarget.style.background='none'}>👤 {lang==='ar'?'فتح البروفايل':'Open Profile'}</button>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {(groupMiniProfile.coupleRingEmoji||groupMiniProfile.coupleRingImageUrl)&&(
+                                            <div style={{position:'absolute',top:'40px',right:'10px',zIndex:2}}>
+                                                {groupMiniProfile.coupleRingImageUrl?<img src={groupMiniProfile.coupleRingImageUrl} alt="" style={{width:'24px',height:'24px',objectFit:'contain',filter:'drop-shadow(0 0 5px rgba(255,80,150,0.7))'}}/>:<span style={{fontSize:'20px',filter:'drop-shadow(0 0 5px rgba(255,80,150,0.7))'}}>{groupMiniProfile.coupleRingEmoji}</span>}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div style={{padding:'0 14px 16px',position:'relative'}}>
+                                        <div style={{display:'flex',alignItems:'flex-end',gap:'10px',marginTop:'-32px',marginBottom:'12px'}}>
+                                            <div onClick={()=>{setGroupMiniProfile(null);setGroupMiniMenuOpen(false);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}} style={{width:'64px',height:'64px',borderRadius:'50%',border:groupMiniProfile.vipCfg?`3px solid ${groupMiniProfile.vipCfg.nameColor}`:'3px solid #0d0d1f',overflow:'hidden',background:'#1a1a2e',boxShadow:groupMiniProfile.vipCfg?`0 0 12px ${groupMiniProfile.vipCfg.nameColor}88,0 4px 14px rgba(0,0,0,0.6)`:'0 4px 14px rgba(0,0,0,0.6)',flexShrink:0,zIndex:2,cursor:'pointer'}}>
+                                                {groupMiniProfile.photo?<img src={groupMiniProfile.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>😎</div>}
+                                            </div>
+                                            <div style={{flex:1,paddingBottom:'4px',minWidth:0}}>
+                                                <div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'4px',flexWrap:'wrap',cursor:'pointer'}} onClick={()=>{setGroupMiniProfile(null);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}}>
+                                                    {groupMiniProfile.vipCfg&&<span style={{fontSize:'8px',fontWeight:900,background:groupMiniProfile.vipCfg.nameColor,color:'#000',padding:'1px 4px',borderRadius:'3px'}}>VIP{groupMiniProfile.vipLevel}</span>}
+                                                    <span style={{fontSize:'15px',fontWeight:900,color:'#00f2ff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{groupMiniProfile.name}</span>
+                                                    {groupMiniProfile.gender&&<span style={{fontSize:'14px'}}>{groupMiniProfile.gender==='male'?'♂️':'♀️'}</span>}
+                                                </div>
+                                                {groupMiniProfile.customId&&(
+                                                    <div style={{fontSize:'11px',color:'#6b7280',display:'flex',alignItems:'center',gap:'3px'}}>
+                                                        {groupMiniProfile.vipCfg?.idBeforeImageUrl?<><img src={groupMiniProfile.vipCfg.idBeforeImageUrl} alt="" style={{height:'14px',objectFit:'contain'}}/><span>{groupMiniProfile.customId}</span></>:<span>ID: {groupMiniProfile.customId}</span>}
+                                                    </div>
+                                                )}
+                                                {groupMiniProfile.loading&&<div style={{fontSize:'10px',color:'#4b5563',fontStyle:'italic'}}>⏳</div>}
+                                            </div>
+                                        </div>
+                                        <div style={{display:'flex',borderTop:'1px solid rgba(255,255,255,0.07)',borderBottom:'1px solid rgba(255,255,255,0.07)',margin:'0 0 12px',padding:'10px 0'}}>
+                                            <div style={{flex:1,textAlign:'center'}}><div style={{fontSize:'18px',fontWeight:900,color:'white'}}>{groupMiniProfile.gamesPlayed??0}</div><div style={{fontSize:'10px',color:'#6b7280',marginTop:'2px'}}>{lang==='ar'?'مباريات':'Games'}</div></div>
+                                            <div style={{width:'1px',background:'rgba(255,255,255,0.08)',margin:'4px 0'}}/>
+                                            <div style={{flex:1,textAlign:'center'}}>{(()=>{const r=groupMiniProfile.winRate??0;const c=r>=70?'#10b981':r>=50?'#facc15':'#f97316';return<><div style={{fontSize:'18px',fontWeight:900,color:c}}>{r}%</div><div style={{fontSize:'10px',color:'#6b7280',marginTop:'2px'}}>{lang==='ar'?'نسبة الفوز':'Win Rate'}</div></>;})()}</div>
+                                        </div>
+                                        <button onClick={()=>{setGroupMiniProfile(null);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}} style={{width:'100%',padding:'10px',borderRadius:'50px',background:'rgba(0,242,255,0.08)',border:'1px solid rgba(0,242,255,0.25)',color:'#00f2ff',fontSize:'12px',fontWeight:700,cursor:'pointer',textAlign:'center'}}>👤 {lang==='ar'?'فتح البروفايل':'Open Profile'}</button>
                                     </div>
                                 </div>
                             </div>

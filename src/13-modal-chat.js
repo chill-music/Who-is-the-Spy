@@ -339,12 +339,14 @@ const PrivateChatModal = ({
                 // VIP info
                 const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
                 const vipCfg = vipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)] : null;
+                // Family sign image
+                const signImgURL = d.familySignImageURL || (d.familySignLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined' ? (FAMILY_SIGN_IMAGES.find(s => s.level === d.familySignLevel)?.imageURL || null) : null);
                 setMiniProfile({
                     uid,
                     name: d.displayName || 'User',
                     photo: d.photoURL || null,
                     customId: d.customId || null,
-                    bannerUrl: d.profileBanner || d.bannerUrl || null,
+                    bannerUrl: d.profileBanner || d.bannerUrl || d.banner || d.profileBannerUrl || null,
                     gender: d.gender || null,
                     isFriend: (currentUser?.friends || []).includes(uid),
                     charisma: d.charisma || 0,
@@ -352,7 +354,7 @@ const PrivateChatModal = ({
                     familyName: d.familyName || null,
                     familySignLevel: d.familySignLevel || null,
                     familySignColor: d.familySignColor || null,
-                    familySignImageURL: d.familySignImageURL || null,
+                    familySignImageURL: signImgURL,
                     gamesPlayed: total,
                     winRate,
                     topBadges,
@@ -458,7 +460,8 @@ const PrivateChatModal = ({
           <div onClick={e => e.stopPropagation()} style={{
             display: 'flex', flexDirection: 'column',
             width: '100%', maxWidth: 'min(420px, calc(100vw - 8px))',
-            height: '92vh', maxHeight: '680px',
+            height: 'min(92vh, 680px)',
+            minHeight: '400px',
             background: 'linear-gradient(160deg,rgba(5,5,18,0.99),rgba(9,8,26,0.99))',
             border: '1px solid rgba(255,255,255,0.09)',
             borderRadius: '20px',
@@ -651,6 +654,8 @@ const PrivateChatModal = ({
                           const rpDoc = await redPacketsCollection.doc(msg.rpId).get();
                           if(!rpDoc.exists){return;}
                           const rp=rpDoc.data();
+                          // ❌ المرسل لا يستطيع استلام مغلفه في البرايفت
+                          if(rp.senderId===user.uid){alert(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet');return;}
                           if(rp.claimedBy?.includes(user.uid)){alert(lang==='ar'?'استلمته من قبل':'Already claimed');return;}
                           if((rp.claimedBy?.length||0)>=rp.maxClaims){alert(lang==='ar'?'المغلف نفد':'Packet exhausted');return;}
                           if(rp.status!=='active'){alert(lang==='ar'?'المغلف منتهي':'Packet expired');return;}
@@ -784,17 +789,18 @@ const PrivateChatModal = ({
                         <div
                           onClick={() => {
                             const w = window.open();
-                            w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);
+                            w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);
                           }}
                           style={{
                             borderRadius: isMine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                             overflow: 'hidden',
                             border: `1px solid ${isMine ? 'rgba(0,242,255,0.18)' : 'rgba(255,255,255,0.09)'}`,
-                            cursor: 'pointer', maxWidth: 'min(200px, calc(100vw - 90px))',
+                            cursor: 'pointer',
+                            width: 'min(260px, calc(100vw - 80px))',
                           }}
                         >
                           <img src={msg.imageData} alt="📷"
-                            style={{ display: 'block', maxWidth: 'min(200px, calc(100vw - 90px))', maxHeight: '200px', objectFit: 'cover' }} />
+                            style={{ display: 'block', width: '100%', maxHeight: '260px', objectFit: 'cover' }} />
                         </div>
                       ) : editingMsgId === msg.id ? (
                         /* ── Edit input ── */
@@ -1291,10 +1297,14 @@ const PrivateChatModal = ({
 
               {/* ── Banner — full width ── */}
               <div style={{
-                position:'relative', height:'140px',
+                position:'relative', height:'120px',
                 background: miniProfile.bannerUrl
-                  ? `url(${miniProfile.bannerUrl}) center/cover no-repeat`
+                  ? 'transparent'
                   : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)',
+                backgroundImage: miniProfile.bannerUrl ? `url(${miniProfile.bannerUrl})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
               }}>
                 <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.18) 0%,rgba(13,13,31,0.65) 100%)' }} />
 
@@ -1402,18 +1412,13 @@ const PrivateChatModal = ({
                     >
                       {/* VIP badge BEFORE gender, right after name */}
                       {miniProfile.vipCfg && (
-                        <span style={{ fontSize:'8px', fontWeight:900, background:miniProfile.vipCfg.nameColor, color:'#000', padding:'1px 4px', borderRadius:'3px', flexShrink:0 }}>VIP{miniProfile.vipLevel}</span>
-                      )}
-                      <span style={{ fontSize:'16px', fontWeight:900, color:'#00f2ff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration:'underline dotted rgba(0,242,255,0.4)' }}>{miniProfile.name}</span>
-                    </div>
-                    {/* Charisma level (photo+level like full profile) + gender + family sign */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'5px' }}>
-                      {/* Gender */}
-                      {miniProfile.gender && (
-                        <span style={{ fontSize:'16px', lineHeight:1, flexShrink:0 }}>
-                          {miniProfile.gender === 'male' ? '♂️' : '♀️'}
+                        <span style={{ fontSize:'8px', fontWeight:900, background:miniProfile.vipCfg.nameColor, color:'#000', padding:'1px 4px', borderRadius:'3px', flexShrink:0, display:'inline-flex', alignItems:'center', gap:'2px' }}>
+                          {miniProfile.vipCfg.badgeImageUrl && <img src={miniProfile.vipCfg.badgeImageUrl} alt="" style={{height:'10px',objectFit:'contain'}}/>}
+                          VIP{miniProfile.vipLevel}
                         </span>
                       )}
+                      <span style={{ fontSize:'16px', fontWeight:900, color:'#00f2ff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration:'underline dotted rgba(0,242,255,0.4)' }}>{miniProfile.name}</span>
+                      {miniProfile.gender && <span style={{ fontSize:'16px', lineHeight:1 }}>{miniProfile.gender === 'male' ? '♂️' : '♀️'}</span>}
                       {/* Charisma: photo icon + Lv. number — exactly like full profile */}
                       {(() => {
                         if (typeof getCharismaLevel === 'undefined') return null;
@@ -1468,7 +1473,10 @@ const PrivateChatModal = ({
                     {/* ID */}
                     {miniProfile.customId && (
                       <div style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'11px', color:'#6b7280' }}>
-                        <span>ID: {miniProfile.customId}</span>
+                        {miniProfile.vipCfg?.idBeforeImageUrl
+                          ? <><img src={miniProfile.vipCfg.idBeforeImageUrl} alt="" style={{height:'16px',objectFit:'contain',flexShrink:0}}/><span>{miniProfile.customId}</span></>
+                          : <span>ID: {miniProfile.customId}</span>
+                        }
                         <button onClick={() => navigator.clipboard?.writeText(miniProfile.customId)}
                           style={{ background:'none', border:'none', cursor:'pointer', fontSize:'12px', color:'#4b5563', padding:'0 2px', lineHeight:1 }}>⎘</button>
                       </div>
