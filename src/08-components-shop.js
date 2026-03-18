@@ -326,7 +326,16 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                         <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
                                             <div style={{fontSize:'12px',fontWeight:800,color:'#fbbf24'}}>{(rp.amount||0).toLocaleString()} 🧠</div>
                                             <button
-                                                onClick={() => onPurchase && onPurchase({ ...rp, type: 'red_packets', cost: rp.amount })}
+                                                onClick={async() => {
+                                                    if(!canAfford||!currentUID) return;
+                                                    const uniqueId = rp.id + '_' + Date.now();
+                                                    try {
+                                                        await usersCollection.doc(currentUID).update({
+                                                            currency: firebase.firestore.FieldValue.increment(-rp.amount),
+                                                            'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId)
+                                                        });
+                                                    } catch(e) { console.error('Buy RP error', e); }
+                                                }}
                                                 disabled={!canAfford}
                                                 style={{padding:'7px 14px',borderRadius:'10px',border:'none',cursor:canAfford?'pointer':'not-allowed',background:canAfford?`linear-gradient(135deg,${rp.color},${rp.color}88)`:'rgba(255,255,255,0.06)',color:canAfford?'#000':'#4b5563',fontSize:'11px',fontWeight:800,transition:'all 0.2s'}}>
                                                 🧧 {lang==='ar'?'شراء':'Buy'}
@@ -830,6 +839,78 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     );
 };
 
+
+// ─── Reclaim Sent Packets Component ───
+const ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets, loadingSent, setLoadingSent }) => {
+    const [loaded, setLoaded] = React.useState(false);
+
+    const loadSent = async () => {
+        if(!user || loadingSent) return;
+        setLoadingSent(true);
+        try {
+            const snap = await redPacketsCollection
+                .where('senderId','==',user.uid)
+                .where('status','==','active')
+                .limit(10)
+                .get();
+            const packets = snap.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(p => (p.claimedBy||[]).length === 0);
+            setSentPackets(packets);
+            setLoaded(true);
+        } catch(e) {}
+        setLoadingSent(false);
+    };
+
+    if (!loaded) return (
+        <button onClick={loadSent} disabled={loadingSent} style={{padding:'8px 14px',borderRadius:'10px',border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.06)',color:'#f87171',fontSize:'11px',fontWeight:700,cursor:'pointer',textAlign:'center',width:'100%'}}>
+            {loadingSent ? '⏳ ...' : `🔄 ${lang==='ar'?'عرض المغلفات المرسلة (استرداد)':'Show Sent Packets (Reclaim)'}`}
+        </button>
+    );
+
+    if (sentPackets.length === 0) return (
+        <div style={{textAlign:'center',fontSize:'10px',color:'#4b5563',padding:'6px'}}>
+            {lang==='ar'?'لا مغلفات مرسلة بانتظار الاستلام':'No sent packets awaiting claim'}
+        </div>
+    );
+
+    return (
+        <div style={{display:'flex',flexDirection:'column',gap:'6px',marginTop:'4px'}}>
+            <div style={{fontSize:'11px',fontWeight:700,color:'#f87171',marginBottom:'2px'}}>
+                🔄 {lang==='ar'?'مغلفات مرسلة — يمكنك استردادها':'Sent Packets — Reclaim if unclaimed'}
+            </div>
+            {sentPackets.map(sp => {
+                const RPC = typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
+                const cfg = RPC.find(r => r.id === sp.configId || sp.configId?.startsWith(r.id));
+                const color = cfg?.color || '#ef4444';
+                return (
+                    <div key={sp.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'12px',background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.2)'}}>
+                        <div style={{fontSize:'22px'}}>🧧</div>
+                        <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:'11px',fontWeight:700,color}}>{sp.amount?.toLocaleString()} 🧠</div>
+                            <div style={{fontSize:'9px',color:'#6b7280',marginTop:'1px'}}>
+                                {lang==='ar'?'لـ:':'To:'} {sp.targetType==='family'?(lang==='ar'?'شات القبيلة':'Family Chat'):sp.targetName||'DM'}
+                            </div>
+                        </div>
+                        <button onClick={async()=>{
+                            try {
+                                await redPacketsCollection.doc(sp.id).update({ status:'reclaimed' });
+                                const uniqueId = (sp.configId||'rp_600') + '_' + Date.now();
+                                await usersCollection.doc(user.uid).update({
+                                    'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId)
+                                });
+                                setSentPackets(prev => prev.filter(p => p.id !== sp.id));
+                            } catch(e){}
+                        }} style={{padding:'5px 12px',borderRadius:'8px',background:'linear-gradient(135deg,rgba(239,68,68,0.2),rgba(185,28,28,0.15))',border:'1px solid rgba(239,68,68,0.35)',color:'#f87171',fontSize:'10px',fontWeight:800,cursor:'pointer',flexShrink:0}}>
+                            ↩ {lang==='ar'?'استرداد':'Reclaim'}
+                        </button>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 // ═══════════════════════════════════════════════════════════════
 // 📦  INVENTORY MODAL — Premium Dark Collection Viewer
 // ═══════════════════════════════════════════════════════════════
@@ -837,7 +918,9 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab]       = useState('frames');
     const [rpSendTarget, setRpSendTarget] = useState(null); // 'self' | 'family' | friendUID
-    const [rpSendModal, setRpSendModal]   = useState(null); // the rp config to send
+    const [rpSendModal, setRpSendModal]   = useState(null); // { ...rpConfig, inventoryId }
+    const [sentPackets, setSentPackets]   = useState([]); // reclaim list
+    const [loadingSent, setLoadingSent]   = useState(false);
     const [selectedGift, setSelectedGift] = useState(null);
     const [showGiftPreview, setShowGiftPreview] = useState(false);
     // ✅ FIX 2: item details popup
@@ -1060,9 +1143,16 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                     {/* 🧧 Red Packets */}
                     {activeTab==='red_packets'&&(()=>{
                         const myPackets = (userData?.inventory?.red_packets || []);
+                        const RPC = typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
+                        // Support both old IDs (rp_600) and new unique IDs (rp_600_1234567890)
+                        const findRpConfig = (rpId) => RPC.find(r => rpId === r.id || rpId.startsWith(r.id + '_'));
+                        const myFamilyId = userData?.familyId || null;
                         return (
                             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-                                <div style={{fontSize:'11px',color:'#6b7280',textAlign:'center',marginBottom:'4px'}}>{lang==='ar'?'مغلفاتك الجاهزة للإرسال':'Your packets ready to send'}</div>
+                                <div style={{fontSize:'11px',color:'#6b7280',textAlign:'center',marginBottom:'4px'}}>
+                                    {lang==='ar'?'مغلفاتك الجاهزة للإرسال':'Your packets ready to send'}
+                                    <span style={{color:'#fbbf24',marginRight:'6px',marginLeft:'6px',fontWeight:700}}>{myPackets.length > 0 ? `(${myPackets.length})` : ''}</span>
+                                </div>
                                 {myPackets.length === 0 && (
                                     <div style={{textAlign:'center',padding:'32px',color:'#4b5563'}}>
                                         <div style={{fontSize:'32px',marginBottom:'8px'}}>🧧</div>
@@ -1070,7 +1160,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                     </div>
                                 )}
                                 {myPackets.map((rpId, idx) => {
-                                    const rp = (typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : []).find(r => r.id === rpId);
+                                    const rp = findRpConfig(rpId);
                                     if (!rp) return null;
                                     return (
                                         <div key={rpId+'-'+idx} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',background:rp.bg,border:`1px solid ${rp.border}`,boxSizing:'border-box'}}>
@@ -1081,38 +1171,92 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                 <div style={{fontSize:'12px',fontWeight:800,color:rp.color}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
                                                 <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'2px'}}>{rp.amount.toLocaleString()} 🧠 · {rp.maxClaims} {lang==='ar'?'استلام':'claims'}</div>
                                             </div>
-                                            <button onClick={() => setRpSendModal(rp)}
+                                            <button onClick={() => setRpSendModal({ ...rp, inventoryId: rpId })}
                                                 style={{padding:'7px 12px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,color:rp.color,fontSize:'11px',fontWeight:700,cursor:'pointer',flexShrink:0}}>
                                                 📤 {lang==='ar'?'إرسال':'Send'}
                                             </button>
                                         </div>
                                     );
                                 })}
+
+                                {/* ── Reclaim sent packets ── */}
+                                {user && (
+                                    <ReclaimSentPackets
+                                        user={user} userData={userData} lang={lang}
+                                        sentPackets={sentPackets} setSentPackets={setSentPackets}
+                                        loadingSent={loadingSent} setLoadingSent={setLoadingSent}
+                                    />
+                                )}
+
                                 {/* Send RP popup */}
                                 {rpSendModal && (
                                     <div style={{position:'fixed',inset:0,zIndex:Z.TOOLTIP,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
-                                        <div style={{background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'18px',padding:'20px',width:'100%',maxWidth:'320px'}} onClick={e=>e.stopPropagation()}>
+                                        <div style={{background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'18px',padding:'20px',width:'100%',maxWidth:'340px'}} onClick={e=>e.stopPropagation()}>
                                             <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444',marginBottom:'14px',textAlign:'center'}}>🧧 {lang==='ar'?'إرسال المغلف لمين؟':'Send Packet To?'}</div>
-                                            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                            <div style={{display:'flex',flexDirection:'column',gap:'8px',maxHeight:'60vh',overflowY:'auto'}}>
+                                                {/* Send to self */}
                                                 <button onClick={async()=>{
                                                     if(!user) return;
                                                     try {
-                                                        await usersCollection.doc(user.uid).update({ 'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.id), currency: firebase.firestore.FieldValue.increment(rpSendModal.amount) });
+                                                        await usersCollection.doc(user.uid).update({
+                                                            'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId),
+                                                            currency: firebase.firestore.FieldValue.increment(rpSendModal.amount)
+                                                        });
                                                         setRpSendModal(null);
                                                     } catch(e) {}
                                                 }} style={{padding:'11px',borderRadius:'12px',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',color:'#00f2ff',fontSize:'12px',fontWeight:700,cursor:'pointer'}}>
                                                     👤 {lang==='ar'?'أرسل لنفسي (استلم الرصيد)':'Send to myself (get coins)'}
                                                 </button>
+                                                {/* Send to family chat */}
+                                                {myFamilyId && (
+                                                    <button onClick={async()=>{
+                                                        if(!user||!myFamilyId) return;
+                                                        try {
+                                                            const famCol = typeof familiesCollection !== 'undefined'
+                                                                ? familiesCollection
+                                                                : db.collection('artifacts').doc(typeof appId!=='undefined'?appId:'prospy').collection('public').doc('data').collection('families');
+                                                            const rpRef = await redPacketsCollection.add({
+                                                                configId:rpSendModal.id, amount:rpSendModal.amount,
+                                                                senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
+                                                                targetType:'family', targetId:myFamilyId,
+                                                                claimedBy:[], maxClaims:rpSendModal.maxClaims||5,
+                                                                remaining:rpSendModal.amount, createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'active'
+                                                            });
+                                                            await usersCollection.doc(user.uid).update({'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId)});
+                                                            await famCol.doc(myFamilyId).collection('messages').add({
+                                                                type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount,
+                                                                rpConfigId:rpSendModal.id, maxClaims:rpSendModal.maxClaims||5,
+                                                                senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
+                                                                text:'🧧 '+rpSendModal.amount, timestamp:firebase.firestore.FieldValue.serverTimestamp()
+                                                            });
+                                                            setRpSendModal(null);
+                                                        } catch(e){ console.error('Family RP send error',e); }
+                                                    }} style={{padding:'11px',borderRadius:'12px',background:'rgba(251,191,36,0.1)',border:'1px solid rgba(251,191,36,0.3)',color:'#fbbf24',fontSize:'12px',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:'8px',justifyContent:'center'}}>
+                                                        🏠 {lang==='ar'?'أرسل لشات القبيلة':'Send to Family Chat'}
+                                                    </button>
+                                                )}
+                                                {/* Send to friends */}
                                                 {(friendsData||[]).slice(0,6).map(friend=>{
                                                     const fid = friend.id||friend.uid;
                                                     return (
                                                         <button key={fid} onClick={async()=>{
                                                             if(!user||!fid) return;
                                                             try {
-                                                                const rpRef = await redPacketsCollection.add({ configId:rpSendModal.id, amount:rpSendModal.amount, senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null, targetType:'dm', targetId:fid, targetName:friend.displayName||'User', claimedBy:[], maxClaims:1, remaining:rpSendModal.amount, createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'active' });
-                                                                await usersCollection.doc(user.uid).update({ 'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.id) });
+                                                                const rpRef = await redPacketsCollection.add({
+                                                                    configId:rpSendModal.id, amount:rpSendModal.amount,
+                                                                    senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
+                                                                    targetType:'dm', targetId:fid, targetName:friend.displayName||'User',
+                                                                    claimedBy:[], maxClaims:1, remaining:rpSendModal.amount,
+                                                                    createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'active'
+                                                                });
+                                                                await usersCollection.doc(user.uid).update({'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId)});
                                                                 const chatId = [user.uid, fid].sort().join('_');
-                                                                await chatsCollection.doc(chatId).collection('messages').add({ type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount, rpConfigId:rpSendModal.id, senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null, text:'🧧 '+rpSendModal.amount, timestamp:firebase.firestore.FieldValue.serverTimestamp(), maxClaims:1 });
+                                                                await chatsCollection.doc(chatId).collection('messages').add({
+                                                                    type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount,
+                                                                    rpConfigId:rpSendModal.id, senderId:user.uid,
+                                                                    senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
+                                                                    text:'🧧 '+rpSendModal.amount, timestamp:firebase.firestore.FieldValue.serverTimestamp(), maxClaims:1
+                                                                });
                                                                 setRpSendModal(null);
                                                             } catch(e) {}
                                                         }} style={{padding:'9px 12px',borderRadius:'12px',background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:'8px'}}>
