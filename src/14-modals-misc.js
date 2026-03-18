@@ -897,6 +897,80 @@ const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotif
 
 // 🎯 PROFILE V11 - NEW PREMIUM DESIGN COMPONENTS
 
+
+// ════════════════════════════════════════════════════════
+// 🧧 RED PACKET CARD — Tap once to see details, tap Claim to get funds
+//    Used in Public Chat, Family Chat, Group Chat
+// ════════════════════════════════════════════════════════
+const RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user, currentUser, lang, onClaim }) => {
+    const [showDetails, setShowDetails] = React.useState(false);
+    const [rpData, setRpData] = React.useState(null);
+    const [loading, setLoading] = React.useState(false);
+
+    const fetchDetails = async () => {
+        if (rpData) { setShowDetails(true); return; }
+        setLoading(true);
+        try {
+            const doc = await redPacketsCollection.doc(rpId).get();
+            if (doc.exists) setRpData(doc.data());
+        } catch(e) {}
+        setLoading(false);
+        setShowDetails(true);
+    };
+
+    const claimed = rpData?.claimedBy?.includes(user?.uid);
+    const exhausted = (rpData?.claimedBy?.length||0) >= (rpData?.maxClaims||maxClaims||1);
+    const remaining = rpData?.remaining ?? rpAmount;
+    const claimedCount = rpData?.claimedBy?.length || 0;
+
+    if (showDetails && rpData) return (
+        <div style={{background:'linear-gradient(135deg,rgba(239,68,68,0.15),rgba(185,28,28,0.1))',border:'1px solid rgba(239,68,68,0.4)',borderRadius:'16px',padding:'12px 14px',minWidth:'200px',maxWidth:'min(260px,calc(100vw-90px))'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+                <div style={{fontSize:'26px',filter:'drop-shadow(0 0 6px rgba(239,68,68,0.7))'}}>🧧</div>
+                <div>
+                    <div style={{fontSize:'12px',fontWeight:800,color:'#ffd700'}}>{lang==='ar'?'مغلف أحمر':'Red Packet'}</div>
+                    <div style={{fontSize:'10px',color:'#fca5a5'}}>{rpAmount?.toLocaleString()} 🧠 · {lang==='ar'?'من':'from'} {senderName}</div>
+                </div>
+                <button onClick={()=>setShowDetails(false)} style={{marginLeft:'auto',background:'none',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',lineHeight:1}}>✕</button>
+            </div>
+            {/* Progress bar */}
+            <div style={{marginBottom:'8px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:'9px',color:'#9ca3af',marginBottom:'3px'}}>
+                    <span>{lang==='ar'?'تم الاستلام':'Claimed'}: {claimedCount}/{rpData.maxClaims||maxClaims}</span>
+                    <span>{lang==='ar'?'متبقي':'Remaining'}: {remaining?.toLocaleString?.()} 🧠</span>
+                </div>
+                <div style={{height:'4px',borderRadius:'2px',background:'rgba(255,255,255,0.1)',overflow:'hidden'}}>
+                    <div style={{height:'100%',borderRadius:'2px',background:'linear-gradient(90deg,#ef4444,#fbbf24)',width:`${Math.min(100,((claimedCount/(rpData.maxClaims||maxClaims||1))*100))}%`}}/>
+                </div>
+            </div>
+            {!claimed && !exhausted && (
+                <button onClick={()=>{onClaim(rpId);setShowDetails(false);}} style={{width:'100%',padding:'8px',borderRadius:'10px',background:'linear-gradient(135deg,rgba(239,68,68,0.3),rgba(185,28,28,0.2))',border:'1px solid rgba(239,68,68,0.5)',color:'#ffd700',fontSize:'12px',fontWeight:800,cursor:'pointer'}}>
+                    🎁 {lang==='ar'?'استلم الآن':'Claim Now'}
+                </button>
+            )}
+            {claimed && <div style={{textAlign:'center',fontSize:'11px',color:'#4ade80',padding:'6px'}}>✅ {lang==='ar'?'استلمته':'Claimed'}</div>}
+            {exhausted && !claimed && <div style={{textAlign:'center',fontSize:'11px',color:'#6b7280',padding:'6px'}}>🔴 {lang==='ar'?'نفد المغلف':'Exhausted'}</div>}
+        </div>
+    );
+
+    return (
+        <button onClick={fetchDetails} style={{
+            display:'flex',alignItems:'center',gap:'10px',padding:'11px 15px',borderRadius:'16px',
+            background:'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(185,28,28,0.2))',
+            border:'1px solid rgba(239,68,68,0.5)',cursor:'pointer',
+            boxShadow:'0 4px 16px rgba(239,68,68,0.25)',textAlign:'left',
+            maxWidth:'min(260px,calc(100vw-90px))',
+        }}>
+            <div style={{fontSize:'30px',filter:'drop-shadow(0 0 8px rgba(239,68,68,0.7))'}}>{loading?'⏳':'🧧'}</div>
+            <div>
+                <div style={{fontSize:'12px',fontWeight:800,color:'#ffd700'}}>{lang==='ar'?'مغلف أحمر':'Red Packet'}</div>
+                <div style={{fontSize:'10px',color:'#fca5a5',marginTop:'2px'}}>{rpAmount?.toLocaleString()} 🧠 · {maxClaims} {lang==='ar'?'استلام':'claims'}</div>
+                <div style={{fontSize:'9px',color:'rgba(252,165,165,0.6)',marginTop:'2px'}}>{lang==='ar'?'اضغط للتفاصيل':'Tap for details'}</div>
+            </div>
+        </button>
+    );
+};
+
 // ════════════════════════════════════════════════════════
 // 🌍 LOBBY PUBLIC CHAT BOX — Inline in Lobby
 // ════════════════════════════════════════════════════════
@@ -907,13 +981,18 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
     const messagesEndRef = React.useRef(null);
     const inputRef = React.useRef(null);
 
+    const isFirstLoad = React.useRef(true);
     React.useEffect(() => {
         const unsub = publicChatCollection
             .orderBy('createdAt', 'asc')
             .limitToLast(30)
             .onSnapshot(snap => {
                 setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-                setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 80);
+                // Only auto-scroll after user has interacted (not on initial page load)
+                if (!isFirstLoad.current) {
+                    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 80);
+                }
+                isFirstLoad.current = false;
             }, () => {});
         return () => unsub();
     }, []);
@@ -1428,10 +1507,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                                         </div>}
                                         <div>
                                             {!isMe&&<div style={{fontSize:'9px',color:'#a78bfa',fontWeight:700,marginBottom:'3px',paddingLeft:'4px',cursor:'pointer'}} onClick={()=>onOpenProfile&&onOpenProfile(msg.senderId)}>{msg.senderName}</div>}
-                                            <button onClick={()=>claimPublicRP(msg.rpId)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 15px',borderRadius:'16px',background:'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(185,28,28,0.2))',border:'1px solid rgba(239,68,68,0.5)',cursor:'pointer',boxShadow:'0 4px 16px rgba(239,68,68,0.25)',textAlign:'left'}}>
-                                                <div style={{fontSize:'30px',filter:'drop-shadow(0 0 8px rgba(239,68,68,0.7))'}}>🧧</div>
-                                                <div><div style={{fontSize:'12px',fontWeight:800,color:'#ffd700'}}>{lang==='ar'?'مغلف أحمر':'Red Packet'}</div><div style={{fontSize:'10px',color:'#fca5a5',marginTop:'2px'}}>{msg.rpAmount?.toLocaleString()} 🧠 · {msg.maxClaims} {lang==='ar'?'استلام':'claims'}</div><div style={{fontSize:'9px',color:'rgba(252,165,165,0.6)',marginTop:'2px'}}>{lang==='ar'?'اضغط للاستلام':'Tap to claim'}</div></div>
-                                            </button>
+                                            <RedPacketCard rpId={msg.rpId} rpAmount={msg.rpAmount} maxClaims={msg.maxClaims} senderId={msg.senderId} senderName={msg.senderName} currentUID={currentUID} user={user} currentUser={currentUser} lang={lang} onClaim={claimPublicRP} />
                                             <div style={{fontSize:'9px',color:'#374151',marginTop:'2px',textAlign:isMe?'right':'left',paddingLeft:'4px'}}>{fmtTs(msg.createdAt)}</div>
                                         </div>
                                     </div>
