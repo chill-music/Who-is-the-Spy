@@ -66,7 +66,6 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 
     // 🎁 تاب الهدايا أُزيل من الشوب — الهدايا متاحة فقط من البروفايل والشاتات
     const tabs = [
-        { id: 'vip',            icon: '👑', label_ar: 'VIP',       label_en: 'VIP'     },
         { id: 'red_packets',    icon: '🧧', label_ar: 'مغلفات',   label_en: 'Packets' },
         { id: 'rings',          icon: '💍', label_ar: 'خواتم',     label_en: 'Rings'   },
         { id: 'bff_tokens',     icon: '🤝', label_ar: 'BFF',       label_en: 'BFF'     },
@@ -297,6 +296,40 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                     transition:'all 0.2s',
                                                 }}>
                                                 🤝 {lang==='ar'?'شراء':'Buy'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* ════ RED PACKETS BUY ════ */}
+                    {activeTab === 'red_packets' && (
+                        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                            <div style={{padding:'12px 14px',borderRadius:'14px',background:'linear-gradient(135deg,rgba(239,68,68,0.1),rgba(185,28,28,0.06))',border:'1px solid rgba(239,68,68,0.25)'}}>
+                                <div style={{fontSize:'13px',fontWeight:800,color:'#fca5a5',marginBottom:'4px'}}>🧧 {lang==='ar'?'مغلفات حمراء':'Red Packets'}</div>
+                                <div style={{fontSize:'11px',color:'#9ca3af',lineHeight:1.5}}>{lang==='ar'?'اشتر مغلفاً وأرسله لأصدقائك أو في الشات — يوزع الرصيد على المستلمين!':'Buy a packet and send it to friends or in chat — coins split among recipients!'}</div>
+                            </div>
+                            {(typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : []).map(rp => {
+                                const canAfford = (userData?.currency || 0) >= rp.amount;
+                                return (
+                                    <div key={rp.id} style={{display:'flex',alignItems:'center',gap:'14px',padding:'14px 16px',borderRadius:'16px',background:rp.bg,border:`1px solid ${rp.border}`}}>
+                                        {rp.imageURL
+                                            ? <img src={rp.imageURL} alt="" style={{width:'50px',height:'50px',objectFit:'contain',flexShrink:0}}/>
+                                            : <div style={{width:'50px',height:'50px',borderRadius:'14px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',flexShrink:0}}>🧧</div>}
+                                        <div style={{flex:1,minWidth:0}}>
+                                            <div style={{fontSize:'13px',fontWeight:800,color:rp.color,marginBottom:'2px'}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
+                                            <div style={{fontSize:'10px',color:'#9ca3af',marginBottom:'2px'}}>{lang==='ar'?rp.desc_ar:rp.desc_en}</div>
+                                            <div style={{fontSize:'10px',color:'#fbbf24',fontWeight:700}}>{(rp.amount||0).toLocaleString()} 🧠 · {rp.maxClaims} {lang==='ar'?'استلام':'claims'}</div>
+                                        </div>
+                                        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
+                                            <div style={{fontSize:'12px',fontWeight:800,color:'#fbbf24'}}>{(rp.amount||0).toLocaleString()} 🧠</div>
+                                            <button
+                                                onClick={() => onPurchase && onPurchase(rp)}
+                                                disabled={!canAfford}
+                                                style={{padding:'7px 14px',borderRadius:'10px',border:'none',cursor:canAfford?'pointer':'not-allowed',background:canAfford?`linear-gradient(135deg,${rp.color},${rp.color}88)`:'rgba(255,255,255,0.06)',color:canAfford?'#000':'#4b5563',fontSize:'11px',fontWeight:800,transition:'all 0.2s'}}>
+                                                🧧 {lang==='ar'?'شراء':'Buy'}
                                             </button>
                                         </div>
                                     </div>
@@ -547,7 +580,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                     )}
 
                     {/* ════ ITEMS GRID ════ */}
-                    {activeTab !== 'vip' && activeTab !== 'rings' && activeTab !== 'bff_tokens' && (
+                    {activeTab !== 'vip' && activeTab !== 'rings' && activeTab !== 'bff_tokens' && activeTab !== 'red_packets' && (
                         <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
 
                             {/* Gift filters */}
