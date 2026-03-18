@@ -648,10 +648,18 @@ const PrivateChatModal = ({
                           const rpDoc = await redPacketsCollection.doc(msg.rpId).get();
                           if(!rpDoc.exists){return;}
                           const rp=rpDoc.data();
-                          if(rp.claimedBy?.includes(user.uid)){return;}
-                          if(rp.claimedBy?.length>=rp.maxClaims){return;}
-                          await redPacketsCollection.doc(msg.rpId).update({claimedBy:firebase.firestore.FieldValue.arrayUnion(user.uid),status:'exhausted'});
-                          await usersCollection.doc(user.uid).update({currency:firebase.firestore.FieldValue.increment(rp.amount)});
+                          if(rp.claimedBy?.includes(user.uid)){alert(lang==='ar'?'استلمته من قبل':'Already claimed');return;}
+                          if((rp.claimedBy?.length||0)>=rp.maxClaims){alert(lang==='ar'?'المغلف نفد':'Packet exhausted');return;}
+                          if(rp.status!=='active'){alert(lang==='ar'?'المغلف منتهي':'Packet expired');return;}
+                          // DM packet: recipient gets full amount
+                          const claimAmt = rp.remaining || rp.amount;
+                          await redPacketsCollection.doc(msg.rpId).update({
+                            claimedBy:firebase.firestore.FieldValue.arrayUnion(user.uid),
+                            remaining:firebase.firestore.FieldValue.increment(-claimAmt),
+                            status:'exhausted',
+                          });
+                          await usersCollection.doc(user.uid).update({currency:firebase.firestore.FieldValue.increment(claimAmt)});
+                          alert((lang==='ar'?'🎉 استلمت ':'🎉 You got ')+claimAmt+' Intel!');
                         } catch(e){console.error(e);}
                       }} style={{
                         display:'flex',alignItems:'center',gap:'10px',padding:'12px 16px',borderRadius:'16px',
@@ -1338,14 +1346,14 @@ const PrivateChatModal = ({
                 <div style={{ display:'flex', gap:'6px', padding:'8px 16px 0', justifyContent:'flex-end' }}>
                   {(miniProfile.topBadges || []).map((badge, i) => (
                     <div key={i} title={badge.title_en || badge.name_en || ''} style={{
-                      width:'32px', height:'32px', borderRadius:'10px',
+                      width:'26px', height:'26px', borderRadius:'8px',
                       background:'rgba(255,255,255,0.06)',
-                      border:'1px solid rgba(255,255,255,0.15)',
+                      border:'1px solid rgba(255,255,255,0.12)',
                       display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:'17px',
+                      fontSize:'14px',
                     }}>
                       {badge.imageUrl
-                        ? <img src={badge.imageUrl} alt="" style={{ width:'22px', height:'22px', objectFit:'contain' }} />
+                        ? <img src={badge.imageUrl} alt="" style={{ width:'18px', height:'18px', objectFit:'contain' }} />
                         : (badge.icon || '🏅')
                       }
                     </div>
@@ -1396,9 +1404,14 @@ const PrivateChatModal = ({
                         for (let ci = CHARISMA_LEVELS.length - 1; ci >= 0; ci--) {
                           if (ch >= CHARISMA_LEVELS[ci].threshold) { lvl = CHARISMA_LEVELS[ci]; break; }
                         }
-                        return lvl.iconUrl
-                          ? <img src={lvl.iconUrl} alt="" style={{ height:'22px', objectFit:'contain' }} />
-                          : <span style={{ fontSize:'15px' }}>{lvl.icon}</span>;
+                        return (
+                          <div style={{display:'flex',alignItems:'center',gap:'4px'}}>
+                            {lvl.iconUrl
+                              ? <img src={lvl.iconUrl} alt="" style={{ height:'22px', objectFit:'contain', filter: lvl.hasGlow ? `drop-shadow(0 0 4px ${lvl.color})` : 'none' }} />
+                              : <span style={{ fontSize:'15px' }}>{lvl.icon}</span>}
+                            <span style={{fontSize:'10px',fontWeight:700,color:lvl.color||'#ffd700'}}>{lang==='ar'?(lvl.label_ar||lvl.name_ar||lvl.name_en):(lvl.name_en||lvl.label_en)}</span>
+                          </div>
+                        );
                       })()}
                       {/* Family Sign — show image with tag overlaid if image available */}
                       {miniProfile.familyTag && (() => {
