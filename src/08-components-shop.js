@@ -67,6 +67,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     // 🎁 تاب الهدايا أُزيل من الشوب — الهدايا متاحة فقط من البروفايل والشاتات
     const tabs = [
         { id: 'vip',            icon: '👑', label_ar: 'VIP',       label_en: 'VIP'     },
+        { id: 'red_packets',    icon: '🧧', label_ar: 'مغلفات',   label_en: 'Packets' },
         { id: 'rings',          icon: '💍', label_ar: 'خواتم',     label_en: 'Rings'   },
         { id: 'bff_tokens',     icon: '🤝', label_ar: 'BFF',       label_en: 'BFF'     },
         { id: 'frames',         icon: '🖼️', label_ar: 'إطارات',   label_en: 'Frames'  },
@@ -76,6 +77,9 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
     ];
 
     const getTabItems = (tab) => {
+        if (tab === 'red_packets') {
+            return typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
+        }
         if (tab === 'bff_tokens') {
             // Return BFF_TOKEN_ITEMS from config (not hidden ones)
             return typeof BFF_TOKEN_ITEMS !== 'undefined' ? BFF_TOKEN_ITEMS.filter(t => !t.hidden) : [];
@@ -799,6 +803,8 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData, user, coupleData, onOpenCoupleCard, onPropose }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab]       = useState('frames');
+    const [rpSendTarget, setRpSendTarget] = useState(null); // 'self' | 'family' | friendUID
+    const [rpSendModal, setRpSendModal]   = useState(null); // the rp config to send
     const [selectedGift, setSelectedGift] = useState(null);
     const [showGiftPreview, setShowGiftPreview] = useState(false);
     // ✅ FIX 2: item details popup
@@ -929,6 +935,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     };
 
     const TABS = [
+        {id:'red_packets',    icon:'🧧', label_ar:'مغلفاتي',  label_en:'Packets' },
         {id:'frames',         icon:'🖼️', label_ar:'إطارات',   label_en:'Frames'  },
         {id:'titles',         icon:'🏷️', label_ar:'ألقاب',    label_en:'Titles'  },
         {id:'badges',         icon:'🏅', label_ar:'شارات',     label_en:'Badges'  },
@@ -1016,6 +1023,79 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
 
                 {/* ══ BODY ══ */}
                 <div style={{flex:1,overflowY:'auto',padding:'12px',scrollbarWidth:'thin',scrollbarColor:'rgba(0,242,255,0.18) transparent'}}>
+
+                    {/* 🧧 Red Packets */}
+                    {activeTab==='red_packets'&&(()=>{
+                        const myPackets = (userData?.inventory?.red_packets || []);
+                        return (
+                            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                <div style={{fontSize:'11px',color:'#6b7280',textAlign:'center',marginBottom:'4px'}}>{lang==='ar'?'مغلفاتك الجاهزة للإرسال':'Your packets ready to send'}</div>
+                                {myPackets.length === 0 && (
+                                    <div style={{textAlign:'center',padding:'32px',color:'#4b5563'}}>
+                                        <div style={{fontSize:'32px',marginBottom:'8px'}}>🧧</div>
+                                        <div style={{fontSize:'12px'}}>{lang==='ar'?'لا مغلفات بعد — اشتري من المتجر':'No packets yet — buy from shop'}</div>
+                                    </div>
+                                )}
+                                {myPackets.map((rpId, idx) => {
+                                    const rp = (typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : []).find(r => r.id === rpId);
+                                    if (!rp) return null;
+                                    return (
+                                        <div key={rpId+'-'+idx} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',background:rp.bg,border:`1px solid ${rp.border}`,boxSizing:'border-box'}}>
+                                            {rp.imageURL
+                                                ? <img src={rp.imageURL} alt="" style={{width:'40px',height:'40px',objectFit:'contain',flexShrink:0}}/>
+                                                : <div style={{width:'40px',height:'40px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',flexShrink:0}}>🧧</div>}
+                                            <div style={{flex:1,minWidth:0}}>
+                                                <div style={{fontSize:'12px',fontWeight:800,color:rp.color}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
+                                                <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'2px'}}>{rp.amount.toLocaleString()} 🧠 · {rp.maxClaims} {lang==='ar'?'استلام':'claims'}</div>
+                                            </div>
+                                            <button onClick={() => setRpSendModal(rp)}
+                                                style={{padding:'7px 12px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,color:rp.color,fontSize:'11px',fontWeight:700,cursor:'pointer',flexShrink:0}}>
+                                                📤 {lang==='ar'?'إرسال':'Send'}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                                {/* Send RP popup */}
+                                {rpSendModal && (
+                                    <div style={{position:'fixed',inset:0,zIndex:Z.TOOLTIP,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
+                                        <div style={{background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'18px',padding:'20px',width:'100%',maxWidth:'320px'}} onClick={e=>e.stopPropagation()}>
+                                            <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444',marginBottom:'14px',textAlign:'center'}}>🧧 {lang==='ar'?'إرسال المغلف لمين؟':'Send Packet To?'}</div>
+                                            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                                <button onClick={async()=>{
+                                                    if(!user) return;
+                                                    try {
+                                                        await usersCollection.doc(user.uid).update({ 'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.id), currency: firebase.firestore.FieldValue.increment(rpSendModal.amount) });
+                                                        setRpSendModal(null);
+                                                    } catch(e) {}
+                                                }} style={{padding:'11px',borderRadius:'12px',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',color:'#00f2ff',fontSize:'12px',fontWeight:700,cursor:'pointer'}}>
+                                                    👤 {lang==='ar'?'أرسل لنفسي (استلم الرصيد)':'Send to myself (get coins)'}
+                                                </button>
+                                                {(friendsData||[]).slice(0,6).map(friend=>{
+                                                    const fid = friend.id||friend.uid;
+                                                    return (
+                                                        <button key={fid} onClick={async()=>{
+                                                            if(!user||!fid) return;
+                                                            try {
+                                                                const rpRef = await redPacketsCollection.add({ configId:rpSendModal.id, amount:rpSendModal.amount, senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null, targetType:'dm', targetId:fid, targetName:friend.displayName||'User', claimedBy:[], maxClaims:1, remaining:rpSendModal.amount, createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'active' });
+                                                                await usersCollection.doc(user.uid).update({ 'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.id) });
+                                                                const chatId = [user.uid, fid].sort().join('_');
+                                                                await chatsCollection.doc(chatId).collection('messages').add({ type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount, rpConfigId:rpSendModal.id, senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null, text:'🧧 '+rpSendModal.amount, timestamp:firebase.firestore.FieldValue.serverTimestamp(), maxClaims:1 });
+                                                                setRpSendModal(null);
+                                                            } catch(e) {}
+                                                        }} style={{padding:'9px 12px',borderRadius:'12px',background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:'8px'}}>
+                                                            {friend.photoURL&&<img src={friend.photoURL} alt="" style={{width:'22px',height:'22px',borderRadius:'50%',objectFit:'cover'}}/>}
+                                                            <span>{friend.displayName}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            <button onClick={()=>setRpSendModal(null)} style={{width:'100%',marginTop:'12px',padding:'9px',borderRadius:'10px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',cursor:'pointer'}}>✕ {lang==='ar'?'إلغاء':'Cancel'}</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
 
                     {/* Rings */}
                     {activeTab==='rings'&&(
