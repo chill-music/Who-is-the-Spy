@@ -2382,6 +2382,7 @@ function App() {
                                 <span className="sec-title-new">🌍 {lang==='ar'?'الشات العام':'Public Chat'}</span>
                                 <button className="sec-action-new" onClick={() => setShowPublicChat(true)}>{lang==='ar'?'فتح':'Open'}</button>
                             </div>
+                            <div style={{overflowX:'hidden',width:'100%',boxSizing:'border-box'}}>
                             <LobbyPublicChatBox
                                 currentUser={isLoggedIn ? userData : null}
                                 user={user}
@@ -2391,6 +2392,7 @@ function App() {
                                 currentUID={currentUID}
                                 onOpenFull={() => setShowPublicChat(true)}
                             />
+                            </div>
                         </div>
                     )}
 
