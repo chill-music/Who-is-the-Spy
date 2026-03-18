@@ -694,6 +694,8 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     // ── Gift modal ──
     const [giftTarget, setGiftTarget] = React.useState(null); // null = self, { uid, displayName, photoURL }
     const [showChatGiftModal, setShowChatGiftModal] = React.useState(false);
+    const [showFamRPModal, setShowFamRPModal] = React.useState(false);
+    const [sendingFamRP, setSendingFamRP] = React.useState(false);
     // ── Mini profile popup ──
     const [miniProfile, setMiniProfile] = React.useState(null);
     const [showMiniMenuFam, setShowMiniMenuFam] = React.useState(false);
@@ -702,7 +704,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     const [showMentionList, setShowMentionList] = React.useState(false);
     const [familyMembers, setFamilyMembers] = React.useState([]);
 
-    // ── فتح ميني بروفايل كامل ──
+    // ── فتح ميني بروفايل كامل (محسّن) ──
     const openFamilyChatMiniProfile = async function(uid, basicData) {
         if (!uid) return;
         setShowMiniMenuFam(false);
@@ -724,6 +726,13 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                         .sort(function(a, b) { return (b.tier || 0) - (a.tier || 0); })
                         .slice(0, 3)
                     : [];
+                const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
+                const vipCfg = vipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)] : null;
+                var signImgURL = d.familySignImageURL || null;
+                if (!signImgURL && d.familySignLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined') {
+                    var cfg = FAMILY_SIGN_IMAGES.find(function(s) { return s.level === d.familySignLevel; });
+                    signImgURL = (cfg && cfg.imageURL) || null;
+                }
                 setMiniProfile({
                     uid,
                     name: d.displayName || 'User',
@@ -737,13 +746,17 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     familyName: d.familyName || null,
                     familySignLevel: d.familySignLevel || null,
                     familySignColor: d.familySignColor || null,
-                    familySignImageURL: d.familySignImageURL || null,
+                    familySignImageURL: signImgURL,
                     gamesPlayed: total,
                     winRate,
                     topBadges,
+                    vipLevel, vipCfg,
+                    coupleRingEmoji: d.coupleRingEmoji || null,
+                    coupleRingImageUrl: d.coupleRingImageUrl || null,
+                    loading: false,
                 });
             }
-        } catch(e) {}
+        } catch(e) { console.error('openFamilyChatMiniProfile error:', e); }
     };
 
     // جلب أعضاء العائلة للمنشن
@@ -1033,8 +1046,9 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                                 // Name + gender — clickable opens full profile
                                 React.createElement('div', {
                                     onClick: function() { setMiniProfile(null); setShowMiniMenuFam(false); },
-                                    style: { display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px', cursor:'pointer' }
+                                    style: { display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px', cursor:'pointer', flexWrap:'wrap' }
                                 },
+                                    miniProfile.vipCfg && React.createElement('span', { style:{ fontSize:'8px', fontWeight:900, background:miniProfile.vipCfg.nameColor, color:'#000', padding:'1px 4px', borderRadius:'3px', flexShrink:0 } }, 'VIP'+miniProfile.vipLevel),
                                     React.createElement('span', { style: { fontSize:'16px', fontWeight:900, color:'#00f2ff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration:'underline dotted rgba(0,242,255,0.4)' } }, miniProfile.name),
                                     miniProfile.gender && React.createElement('span', { style: { fontSize:'13px', flexShrink:0 } }, miniProfile.gender==='male'?'♂️':'♀️')
                                 ),
@@ -1051,9 +1065,25 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                                             ? React.createElement('img', { src: lvl.iconUrl, alt:'', style: { height:'22px', objectFit:'contain' } })
                                             : React.createElement('span', { style: { fontSize:'15px' } }, lvl.icon);
                                     })(),
-                                    miniProfile.familyTag && React.createElement('span', {
-                                        style: { fontSize:'10px', fontWeight:800, color:'#00f2ff', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', borderRadius:'6px', padding:'2px 8px', whiteSpace:'nowrap' }
-                                    }, miniProfile.familyTag)
+                                    miniProfile.familyTag && (function() {
+                                        var signImgURL = miniProfile.familySignImageURL;
+                                        if (signImgURL) {
+                                            var tag = miniProfile.familyTag || '';
+                                            var imgW = 44 + (tag.length * 6); var imgH = Math.round(imgW * 0.55);
+                                            var fs = tag.length <= 3 ? 11 : tag.length === 4 ? 10 : 9;
+                                            var sc = miniProfile.familySignColor || '#00f2ff';
+                                            var hasGlow = (miniProfile.familySignLevel || 0) >= 4;
+                                            return React.createElement('span', {
+                                                style: { position:'relative', display:'inline-flex', alignItems:'center', justifyContent:'center', flexShrink:0, width:imgW+'px', height:imgH+'px', filter: hasGlow ? 'drop-shadow(0 0 6px '+sc+'cc)' : 'none' }
+                                            },
+                                                React.createElement('img', { src: signImgURL, alt:'', style:{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'contain' } }),
+                                                React.createElement('span', { style:{ position:'relative', zIndex:1, fontSize:fs+'px', fontWeight:900, fontStyle:'italic', letterSpacing:'1.5px', color:'#fff', textShadow:'0 0 6px rgba(0,0,0,0.9)' } }, tag)
+                                            );
+                                        }
+                                        return React.createElement('span', {
+                                            style: { fontSize:'10px', fontWeight:800, color:'#00f2ff', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', borderRadius:'6px', padding:'2px 8px', whiteSpace:'nowrap' }
+                                        }, miniProfile.familyTag);
+                                    })()
                                 ),
                                 // ID
                                 miniProfile.customId && React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'4px', fontSize:'11px', color:'#6b7280' } },
@@ -1125,6 +1155,37 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     var isMe = msg.senderId === currentUID;
                     var isSystem = msg.senderId === 'system' || msg.type === 'system';
                     var isDonation = msg.type === 'donation';
+                    // 🧧 Red Packet message in family chat
+                    if (msg.type === 'red_packet') return React.createElement('div', { key: msg.id, style:{ display:'flex', flexDirection: isMe?'row-reverse':'row', gap:'7px', alignItems:'flex-end' } },
+                        React.createElement('div', {
+                            onClick: function() { openFamilyChatMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }); },
+                            style: { width:'26px', height:'26px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer' }
+                        }, msg.senderPhoto ? React.createElement('img', { src:msg.senderPhoto, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'} }) : React.createElement('div', { style:{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px'} }, '😎')),
+                        React.createElement('div', { style:{ maxWidth:'min(220px,calc(100vw-90px))' } },
+                            !isMe && React.createElement('div', { style:{ fontSize:'9px', color:'#a78bfa', fontWeight:700, marginBottom:'3px', paddingLeft:'4px', cursor:'pointer' }, onClick: function(){ openFamilyChatMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto}); } }, msg.senderName),
+                            typeof RedPacketCard !== 'undefined' && React.createElement(RedPacketCard, {
+                                rpId: msg.rpId, rpAmount: msg.rpAmount, maxClaims: msg.maxClaims, senderName: msg.senderName,
+                                currentUID: currentUID, user: { uid: currentUID }, currentUser: userData||currentUserData, lang: lang,
+                                onClaim: async function(rpId) {
+                                    try {
+                                        var rpDoc = await redPacketsCollection.doc(rpId).get();
+                                        if (!rpDoc.exists) return;
+                                        var rp = rpDoc.data();
+                                        if (rp.claimedBy && rp.claimedBy.includes(currentUID)) { if(onNotification) onNotification(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed'); return; }
+                                        if ((rp.claimedBy&&rp.claimedBy.length||0)>=(rp.maxClaims||1)) { if(onNotification) onNotification(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted'); return; }
+                                        var perClaim = Math.floor(rp.amount/(rp.maxClaims||1));
+                                        var bonus = Math.floor(Math.random()*Math.floor(perClaim*0.5));
+                                        var claim = Math.min(perClaim+bonus, rp.remaining||rp.amount);
+                                        await redPacketsCollection.doc(rpId).update({ claimedBy:firebase.firestore.FieldValue.arrayUnion(currentUID), remaining:firebase.firestore.FieldValue.increment(-claim), status:((rp.claimedBy&&rp.claimedBy.length||0)+1>=(rp.maxClaims||1))?'exhausted':'active' });
+                                        await usersCollection.doc(currentUID).update({ currency:firebase.firestore.FieldValue.increment(claim) });
+                                        await familiesCollection.doc(familyId).collection('messages').add({ type:'system', text:(lang==='ar'?'🎉 '+((userData||currentUserData)?.displayName||'عضو')+' استلم '+claim+' 🧠 من مغلف '+rp.senderName:'🎉 '+((userData||currentUserData)?.displayName||'Member')+' claimed '+claim+' 🧠 from '+rp.senderName+"'s packet"), senderId:'system', timestamp:firebase.firestore.FieldValue.serverTimestamp() });
+                                        if(onNotification) onNotification(lang==='ar'?'🎉 استلمت '+claim+' Intel!':'🎉 Got '+claim+' Intel!');
+                                    } catch(e) { if(onNotification) onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+                                }
+                            }),
+                            React.createElement('div', { style:{ fontSize:'9px', color:'#374151', marginTop:'2px', textAlign: isMe?'right':'left', paddingLeft:'4px' } }, fmtTime(msg.timestamp))
+                        )
+                    );
                     if (isSystem) return React.createElement('div', { key: msg.id, style: { textAlign:'center', padding:'4px 12px' } },
                         React.createElement('span', { style: { fontSize:'10px', color:'#6b7280', background:'rgba(255,255,255,0.04)', padding:'3px 10px', borderRadius:'20px' } }, msg.text)
                     );
@@ -1255,6 +1316,70 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     disabled: !chatInput.trim() || sendingMsg,
                     style: { width:'40px', height:'40px', borderRadius:'12px', border:'none', flexShrink:0, background: chatInput.trim()?'linear-gradient(135deg,#00f2ff,#7000ff)':'rgba(255,255,255,0.06)', color: chatInput.trim()?'white':'#6b7280', fontSize:'18px', cursor: chatInput.trim()?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center' }
                 }, sendingMsg ? '⏳' : '➤')
+            ),
+            // 🧧 Red Packet Modal for Family Chat
+            showFamRPModal && React.createElement('div', {
+                style: { position:'fixed', inset:0, zIndex: Z.OVERLAY, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'flex-end', justifyContent:'center' }
+            },
+                React.createElement('div', {
+                    style: { width:'100%', maxWidth:'min(440px,100vw)', background:'linear-gradient(160deg,#0e0e22,#13122a)', borderRadius:'20px 20px 0 0', border:'1px solid rgba(255,255,255,0.1)', overflow:'hidden' }
+                },
+                    React.createElement('div', { style:{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.07)' } },
+                        React.createElement('div', { style:{ fontSize:'14px', fontWeight:800, color:'#ef4444' } }, '🧧 ' + (lang==='ar'?'مغلف أحمر للقبيلة':'Family Red Packet')),
+                        React.createElement('button', { onClick: function() { setShowFamRPModal(false); }, style:{ background:'none', border:'none', color:'#9ca3af', fontSize:'20px', cursor:'pointer' } }, '✕')
+                    ),
+                    React.createElement('div', { style:{ padding:'14px', overflowY:'auto', maxHeight:'60vh' } },
+                        React.createElement('div', { style:{ fontSize:'11px', color:'#6b7280', marginBottom:'12px', textAlign:'center' } },
+                            (lang==='ar'?'رصيدك:':'Balance:') + ' ',
+                            React.createElement('span', { style:{ color:'#ffd700', fontWeight:700 } }, ((userData||currentUserData)?.currency||0).toLocaleString() + ' 🧠')
+                        ),
+                        typeof RED_PACKETS_CONFIG !== 'undefined' && RED_PACKETS_CONFIG.map(function(rp) {
+                            var balance = (userData||currentUserData)?.currency||0;
+                            var canBuy = balance >= rp.amount;
+                            return React.createElement('button', {
+                                key: rp.id,
+                                disabled: sendingFamRP || !canBuy,
+                                onClick: async function() {
+                                    if (sendingFamRP || !canBuy) return;
+                                    setSendingFamRP(true);
+                                    try {
+                                        var sender = userData || currentUserData;
+                                        var rpRef = await redPacketsCollection.add({
+                                            configId:rp.id, amount:rp.amount,
+                                            senderId:currentUID, senderName:sender.displayName||'User', senderPhoto:sender.photoURL||null,
+                                            targetType:'family', targetId:familyId, targetName:(familyData&&familyData.name)||'Family',
+                                            claimedBy:[], maxClaims:rp.maxClaims, remaining:rp.amount,
+                                            createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'active',
+                                        });
+                                        await usersCollection.doc(currentUID).update({ currency:firebase.firestore.FieldValue.increment(-rp.amount) });
+                                        await familiesCollection.doc(familyId).collection('messages').add({
+                                            type:'red_packet', rpId:rpRef.id, rpAmount:rp.amount, rpConfigId:rp.id,
+                                            senderId:currentUID, senderName:sender.displayName||'User', senderPhoto:sender.photoURL||null,
+                                            text:'🧧 '+rp.amount, timestamp:firebase.firestore.FieldValue.serverTimestamp(), maxClaims:rp.maxClaims,
+                                        });
+                                        await publicChatCollection.add({
+                                            type:'red_packet_announce', senderId:currentUID, senderName:sender.displayName||'User',
+                                            amount:rp.amount, targetType:'family', targetName:(familyData&&familyData.name)||'Family',
+                                            text:(lang==='ar'?'🧧 '+(sender.displayName||'User')+' أرسل مغلف '+rp.amount+' في قبيلة '+((familyData&&familyData.name)||'Family'):'🧧 '+(sender.displayName||'User')+' sent a '+rp.amount+' packet in family '+((familyData&&familyData.name)||'Family')),
+                                            createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+                                        });
+                                        setShowFamRPModal(false);
+                                        if (onNotification) onNotification(lang==='ar'?'✅ تم إرسال المغلف!':'✅ Packet sent!');
+                                    } catch(e) { if (onNotification) onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+                                    setSendingFamRP(false);
+                                },
+                                style: { display:'flex', alignItems:'center', gap:'12px', padding:'12px 16px', borderRadius:'14px', background:rp.bg, border:'1px solid '+rp.border, cursor:canBuy?'pointer':'not-allowed', opacity:canBuy?1:0.4, textAlign:'left', width:'100%', marginBottom:'8px', boxSizing:'border-box' }
+                            },
+                                rp.imageURL ? React.createElement('img', { src:rp.imageURL, style:{width:'40px',height:'40px',objectFit:'contain'} }) : React.createElement('div', { style:{width:'40px',height:'40px',borderRadius:'10px',background:rp.color+'20',border:'1px solid '+rp.color+'44',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px'} }, '🧧'),
+                                React.createElement('div', { style:{ flex:1 } },
+                                    React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color:rp.color } }, lang==='ar'?rp.name_ar:rp.name_en),
+                                    React.createElement('div', { style:{ fontSize:'10px', color:'#9ca3af', marginTop:'2px' } }, lang==='ar'?rp.desc_ar:rp.desc_en)
+                                ),
+                                React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color:rp.color } }, rp.amount.toLocaleString() + ' 🧠')
+                            );
+                        })
+                    )
+                )
             ),
             // Gift modal
             showChatGiftModal && onSendGift && React.createElement(SendGiftModal, {
