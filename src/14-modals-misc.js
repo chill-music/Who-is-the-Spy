@@ -906,6 +906,19 @@ const RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user
     const [showDetails, setShowDetails] = React.useState(false);
     const [rpData, setRpData] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
+    const [selfClaimed, setSelfClaimed] = React.useState(false);
+
+    // Auto-load to detect claimed state without user tap
+    React.useEffect(() => {
+        if (!rpId) return;
+        redPacketsCollection.doc(rpId).get().then(doc => {
+            if (doc.exists) {
+                const d = doc.data();
+                setRpData(d);
+                if (d.claimedBy?.includes(user?.uid)) setSelfClaimed(true);
+            }
+        }).catch(()=>{});
+    }, [rpId, user?.uid]);
 
     const fetchDetails = async () => {
         if (rpData) { setShowDetails(true); return; }
@@ -918,7 +931,7 @@ const RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user
         setShowDetails(true);
     };
 
-    const claimed = rpData?.claimedBy?.includes(user?.uid);
+    const claimed = selfClaimed || rpData?.claimedBy?.includes(user?.uid);
     const exhausted = (rpData?.claimedBy?.length||0) >= (rpData?.maxClaims||maxClaims||1);
     const remaining = rpData?.remaining ?? rpAmount;
     const claimedCount = rpData?.claimedBy?.length || 0;
@@ -956,16 +969,24 @@ const RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user
     return (
         <button onClick={fetchDetails} style={{
             display:'flex',alignItems:'center',gap:'10px',padding:'11px 15px',borderRadius:'16px',
-            background:'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(185,28,28,0.2))',
-            border:'1px solid rgba(239,68,68,0.5)',cursor:'pointer',
-            boxShadow:'0 4px 16px rgba(239,68,68,0.25)',textAlign:'left',
+            background: claimed
+                ? 'linear-gradient(135deg,rgba(75,85,99,0.28),rgba(55,65,81,0.2))'
+                : 'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(185,28,28,0.2))',
+            border: claimed ? '1px solid rgba(107,114,128,0.3)' : '1px solid rgba(239,68,68,0.5)',
+            cursor:'pointer',
+            boxShadow: claimed ? 'none' : '0 4px 16px rgba(239,68,68,0.25)',
+            textAlign:'left',
             maxWidth:'min(260px,calc(100vw-90px))',
+            opacity: claimed ? 0.55 : 1,
+            transition:'all 0.25s',
         }}>
-            <div style={{fontSize:'30px',filter:'drop-shadow(0 0 8px rgba(239,68,68,0.7))'}}>{loading?'⏳':'🧧'}</div>
+            <div style={{fontSize:'30px',filter: claimed ? 'grayscale(1) opacity(0.5)' : 'drop-shadow(0 0 8px rgba(239,68,68,0.7))'}}>{loading?'⏳':'🧧'}</div>
             <div>
-                <div style={{fontSize:'12px',fontWeight:800,color:'#ffd700'}}>{lang==='ar'?'مغلف أحمر':'Red Packet'}</div>
-                <div style={{fontSize:'10px',color:'#fca5a5',marginTop:'2px'}}>{rpAmount?.toLocaleString()} 🧠 · {maxClaims} {lang==='ar'?'استلام':'claims'}</div>
-                <div style={{fontSize:'9px',color:'rgba(252,165,165,0.6)',marginTop:'2px'}}>{lang==='ar'?'اضغط للتفاصيل':'Tap for details'}</div>
+                <div style={{fontSize:'12px',fontWeight:800,color: claimed ? '#6b7280' : '#ffd700'}}>{lang==='ar'?'مغلف أحمر':'Red Packet'}</div>
+                <div style={{fontSize:'10px',color: claimed ? '#4b5563' : '#fca5a5',marginTop:'2px'}}>{rpAmount?.toLocaleString()} 🧠 · {maxClaims} {lang==='ar'?'استلام':'claims'}</div>
+                <div style={{fontSize:'9px',color: claimed ? '#374151' : 'rgba(252,165,165,0.6)',marginTop:'2px'}}>
+                    {claimed ? (lang==='ar'?'✅ تم الاستلام':'✅ Claimed') : (lang==='ar'?'اضغط للتفاصيل':'Tap for details')}
+                </div>
             </div>
         </button>
     );
