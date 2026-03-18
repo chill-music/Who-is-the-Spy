@@ -932,7 +932,8 @@ const RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user
     };
 
     const claimed = selfClaimed || rpData?.claimedBy?.includes(user?.uid);
-    const exhausted = (rpData?.claimedBy?.length||0) >= (rpData?.maxClaims||maxClaims||1);
+    const isReclaimed = rpData?.status === 'reclaimed';
+    const exhausted = isReclaimed || (rpData?.claimedBy?.length||0) >= (rpData?.maxClaims||maxClaims||1);
     const remaining = rpData?.remaining ?? rpAmount;
     const claimedCount = rpData?.claimedBy?.length || 0;
 
@@ -962,7 +963,8 @@ const RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user
                 </button>
             )}
             {claimed && <div style={{textAlign:'center',fontSize:'11px',color:'#4ade80',padding:'6px'}}>✅ {lang==='ar'?'استلمته':'Claimed'}</div>}
-            {exhausted && !claimed && <div style={{textAlign:'center',fontSize:'11px',color:'#6b7280',padding:'6px'}}>🔴 {lang==='ar'?'نفد المغلف':'Exhausted'}</div>}
+            {isReclaimed && !claimed && <div style={{textAlign:'center',fontSize:'11px',color:'#f87171',padding:'6px'}}>↩ {lang==='ar'?'تم استرداد المغلف':'Packet reclaimed'}</div>}
+            {exhausted && !claimed && !isReclaimed && <div style={{textAlign:'center',fontSize:'11px',color:'#6b7280',padding:'6px'}}>🔴 {lang==='ar'?'نفد المغلف':'Exhausted'}</div>}
         </div>
     );
 
