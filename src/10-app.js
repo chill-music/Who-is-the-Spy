@@ -1400,7 +1400,7 @@ function App() {
     const handleRejectRequest = useCallback(async (fromUid) => { if (!user || !isLoggedIn) return; await usersCollection.doc(user.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid) }); }, [user, isLoggedIn]);
 
     // 🎁 GIFT FUNCTIONS — BATCHED (one write per step, parallel logs)
-    const handleSendGiftToUser = useCallback(async (gift, targetUser, qty = 1, fromInventory = false) => {
+    const handleSendGiftToUser = useCallback(async (gift, targetUser, qty = 1, fromInventory = false, familyScopeId = null) => {
         if (!user || !isLoggedIn) return;
         const currency = userData?.currency || 0;
         const totalCost = fromInventory ? 0 : gift.cost * qty;
@@ -1542,6 +1542,17 @@ function App() {
 
             // Mission progress
             parallelOps.push(incrementMissionProgress('giftsSent', qty));
+
+            // Family Activeness Bonus (50% of total Charisma)
+            if (familyScopeId && totalCharisma > 0 && typeof familiesCollection !== 'undefined') {
+                const famBonus = Math.floor(totalCharisma * 0.5);
+                if (famBonus > 0) {
+                    parallelOps.push(familiesCollection.doc(familyScopeId).update({
+                        activeness: firebase.firestore.FieldValue.increment(famBonus),
+                        weeklyActiveness: firebase.firestore.FieldValue.increment(famBonus)
+                    }).catch(()=>{})); // Catch error silently so it doesn't break gift flow
+                }
+            }
 
             // ═══ STEP 4: Run all parallel ops ═══
             await Promise.all(parallelOps);
