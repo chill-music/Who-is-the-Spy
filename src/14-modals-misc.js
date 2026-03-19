@@ -1569,18 +1569,32 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                             const isMe = msg.senderId === currentUID;
                             const isImg = msg.type === 'image';
                             const vipCfg = getVIPConfig(msg.senderVipLevel);
+                            const nameColor = vipCfg ? vipCfg.nameColor : (isMe ? '#00f2ff' : '#a78bfa');
                             return (
                                 <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'8px',alignItems:'flex-end'}}>
-                                    {/* Avatar — always shown for everyone */}
-                                    <div onClick={()=>openMiniProfilePub(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})} style={{width:'32px',height:'32px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:'pointer',border:vipCfg?`2px solid ${vipCfg.nameColor}`:'2px solid rgba(255,255,255,0.12)',boxShadow:vipCfg?`0 0 8px ${vipCfg.nameColor}55`:'none'}}>
-                                        {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'14px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
+                                    {/* Avatar with frame */}
+                                    <div style={{position:'relative',width:'34px',height:'34px',flexShrink:0}}>
+                                        <div onClick={()=>openMiniProfilePub(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}
+                                            style={{width:'34px',height:'34px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',cursor:'pointer',border:vipCfg?`2px solid ${vipCfg.nameColor}`:'2px solid rgba(255,255,255,0.12)',boxShadow:vipCfg?`0 0 8px ${vipCfg.nameColor}55`:'none',position:'relative'}}>
+                                            {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'15px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
+                                            {msg.senderFrame && <img src={msg.senderFrame} alt="" onError={e=>e.target.style.display='none'} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}/>}
+                                        </div>
                                     </div>
                                     <div style={{maxWidth:'min(72%, calc(100vw - 80px))',minWidth:0}}>
-                                        {/* Name row — always shown */}
+                                        {/* Name row */}
                                         <div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'3px',paddingLeft:isMe?0:'2px',paddingRight:isMe?'2px':0,justifyContent:isMe?'flex-end':'flex-start',flexWrap:'wrap',cursor:'pointer'}} onClick={()=>openMiniProfilePub(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}>
-                                            <span style={{fontSize:'10px',color:isMe?'#00f2ff':vipCfg?vipCfg.nameColor:'#a78bfa',fontWeight:800}}>{isMe?(lang==='ar'?'أنت':'You'):msg.senderName}</span>
+                                            <span style={{fontSize:'10px',color:nameColor,fontWeight:800}}>{isMe?(lang==='ar'?'أنت':'You'):msg.senderName}</span>
                                             {vipCfg && <span style={{fontSize:'8px',fontWeight:900,background:vipCfg.nameColor,color:'#000',padding:'1px 4px',borderRadius:'3px'}}>VIP{msg.senderVipLevel}</span>}
                                             {msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'13px',objectFit:'contain'}}/>}
+                                            {/* Badges */}
+                                            {(msg.senderBadges||[]).slice(0,3).map((b,bi)=>{
+                                                if (!b) return null;
+                                                const badge = typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.find(a=>a.id===b) : null;
+                                                if (!badge) return null;
+                                                return badge.imageUrl
+                                                    ? <img key={bi} src={badge.imageUrl} alt="" onError={e=>e.target.style.display='none'} style={{width:'13px',height:'13px',objectFit:'contain',flexShrink:0}}/>
+                                                    : <span key={bi} style={{fontSize:'11px'}}>{badge.icon||'🏅'}</span>;
+                                            })}
                                         </div>
                                         {editingMsgId === msg.id ? (
                                             <div style={{display:'flex',gap:'4px',alignItems:'center'}}>
