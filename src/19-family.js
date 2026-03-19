@@ -10,19 +10,17 @@
 // ════════════════════════════════════════════════════════
 const FAMILY_CREATE_COST = 500;
 
-// ─── مستويات القبيلة — لا ترفع تلقائياً، تحتاج نشاط كلي + زر Upgrade من الأدمن ───
-// imageURL: ضع رابط صورة المستوى من لوحة التحكم (01-config.js) أو null
 const FAMILY_LEVEL_CONFIG = [
-    { level:1,  requiredActiveness:0,       name_en:'Rookie',     name_ar:'مبتدئة',   color:'#4ade80', maxMembers:20,  icon:'🌱', imageURL: typeof FAMILY_LEVEL_IMAGES!=='undefined'?FAMILY_LEVEL_IMAGES?.find(x=>x.level===1)?.imageURL||null:null },
-    { level:2,  requiredActiveness:5000,    name_en:'Rising',     name_ar:'صاعدة',    color:'#22d3ee', maxMembers:25,  icon:'⬆️', imageURL: typeof FAMILY_LEVEL_IMAGES!=='undefined'?FAMILY_LEVEL_IMAGES?.find(x=>x.level===2)?.imageURL||null:null },
-    { level:3,  requiredActiveness:20000,   name_en:'Established',name_ar:'راسخة',    color:'#60a5fa', maxMembers:30,  icon:'🏕️', imageURL: typeof FAMILY_LEVEL_IMAGES!=='undefined'?FAMILY_LEVEL_IMAGES?.find(x=>x.level===3)?.imageURL||null:null },
-    { level:4,  requiredActiveness:60000,   name_en:'Warriors',   name_ar:'محاربون',  color:'#fbbf24', maxMembers:40,  icon:'⚔️', imageURL: typeof FAMILY_LEVEL_IMAGES!=='undefined'?FAMILY_LEVEL_IMAGES?.find(x=>x.level===4)?.imageURL||null:null },
-    { level:5,  requiredActiveness:150000,  name_en:'Guardians',  name_ar:'حراس',     color:'#f97316', maxMembers:50,  icon:'🛡️', imageURL: typeof FAMILY_LEVEL_IMAGES!=='undefined'?FAMILY_LEVEL_IMAGES?.find(x=>x.level===5)?.imageURL||null:null },
-    { level:6,  requiredActiveness:350000,  name_en:'Elite',      name_ar:'نخبة',     color:'#a78bfa', maxMembers:60,  icon:'💎', imageURL: typeof FAMILY_LEVEL_IMAGES!=='undefined'?FAMILY_LEVEL_IMAGES?.find(x=>x.level===6)?.imageURL||null:null },
-    { level:7,  requiredActiveness:700000,  name_en:'Champions',  name_ar:'أبطال',    color:'#ffd700', maxMembers:80,  icon:'🏆', imageURL: typeof FAMILY_LEVEL_IMAGES!=='undefined'?FAMILY_LEVEL_IMAGES?.find(x=>x.level===7)?.imageURL||null:null },
-    { level:8,  requiredActiveness:1300000, name_en:'Legends',    name_ar:'أساطير',   color:'#ef4444', maxMembers:100, icon:'🔥', imageURL: typeof FAMILY_LEVEL_IMAGES!=='undefined'?FAMILY_LEVEL_IMAGES?.find(x=>x.level===8)?.imageURL||null:null },
-    { level:9,  requiredActiveness:2500000, name_en:'Dynasty',    name_ar:'سلالة',    color:'#818cf8', maxMembers:120, icon:'👑', imageURL: typeof FAMILY_LEVEL_IMAGES!=='undefined'?FAMILY_LEVEL_IMAGES?.find(x=>x.level===9)?.imageURL||null:null },
-    { level:10, requiredActiveness:5000000, name_en:'GOAT',       name_ar:'الأعظم',   color:'#00d4ff', maxMembers:160, icon:'🌌', imageURL: typeof FAMILY_LEVEL_IMAGES!=='undefined'?FAMILY_LEVEL_IMAGES?.find(x=>x.level===10)?.imageURL||null:null },
+    { level:1,  xp:0,      name_en:'Rookie',        name_ar:'مبتدئة',       color:'#4ade80', maxMembers:20,  icon:'🌱' },
+    { level:2,  xp:500,    name_en:'Rising',         name_ar:'صاعدة',        color:'#22d3ee', maxMembers:25,  icon:'⬆️' },
+    { level:3,  xp:1500,   name_en:'Established',    name_ar:'راسخة',        color:'#60a5fa', maxMembers:30,  icon:'🏕️' },
+    { level:4,  xp:3500,   name_en:'Warriors',       name_ar:'محاربون',      color:'#fbbf24', maxMembers:40,  icon:'⚔️' },
+    { level:5,  xp:7000,   name_en:'Guardians',      name_ar:'حراس',         color:'#f97316', maxMembers:50,  icon:'🛡️' },
+    { level:6,  xp:13000,  name_en:'Elite',          name_ar:'نخبة',         color:'#a78bfa', maxMembers:60,  icon:'💎' },
+    { level:7,  xp:22000,  name_en:'Champions',      name_ar:'أبطال',        color:'#ffd700', maxMembers:80,  icon:'🏆' },
+    { level:8,  xp:35000,  name_en:'Legends',        name_ar:'أساطير',       color:'#ef4444', maxMembers:100, icon:'🔥' },
+    { level:9,  xp:55000,  name_en:'Dynasty',        name_ar:'سلالة',        color:'#818cf8', maxMembers:120, icon:'👑' },
+    { level:10, xp:80000,  name_en:'GOAT',           name_ar:'الأعظم',       color:'#00d4ff', maxMembers:160, icon:'🌌' },
 ];
 
 // ════ FAMILY SIGN LEVELS — Based on Weekly Activeness ════
@@ -62,27 +60,18 @@ const getFamilySignProgress = (weeklyActiveness = 0) => {
     return Math.min(100, Math.round(((weeklyActiveness - cur.threshold) / (next.threshold - cur.threshold)) * 100));
 };
 
-// getFamilyLevel يعتمد الآن على level مخزون في بيانات العائلة، لا على xp
-const getFamilyLevel = (levelNum = 1) => {
-    const cfg = FAMILY_LEVEL_CONFIG.find(c => c.level === Math.max(1, Math.min(10, levelNum || 1)));
-    return cfg || FAMILY_LEVEL_CONFIG[0];
+const getFamilyLevel = (xp = 0) => {
+    let cfg = FAMILY_LEVEL_CONFIG[0];
+    for (let i = FAMILY_LEVEL_CONFIG.length - 1; i >= 0; i--) {
+        if (xp >= FAMILY_LEVEL_CONFIG[i].xp) { cfg = FAMILY_LEVEL_CONFIG[i]; break; }
+    }
+    return cfg;
 };
-const canUpgradeFamilyLevel = (family) => {
-    if (!family) return false;
-    const curLevel = family.level || 1;
-    if (curLevel >= 10) return false;
-    const nextCfg = FAMILY_LEVEL_CONFIG.find(c => c.level === curLevel + 1);
-    if (!nextCfg) return false;
-    return (family.activeness || 0) >= nextCfg.requiredActiveness;
-};
-const getFamilyLevelProgress = (family) => {
-    if (!family) return 0;
-    const curLevel = family.level || 1;
-    if (curLevel >= 10) return 100;
-    const nextCfg = FAMILY_LEVEL_CONFIG.find(c => c.level === curLevel + 1);
-    if (!nextCfg) return 100;
-    const act = family.activeness || 0;
-    return Math.min(100, Math.round((act / nextCfg.requiredActiveness) * 100));
+const getFamilyLevelProgress = (xp = 0) => {
+    const cur = getFamilyLevel(xp);
+    const next = FAMILY_LEVEL_CONFIG.find(c => c.level === cur.level + 1);
+    if (!next) return 100;
+    return Math.min(100, Math.round(((xp - cur.xp) / (next.xp - cur.xp)) * 100));
 };
 
 // ════ UPDATED TASKS — Triple Currency: Intel + XP + Family Coins ════
@@ -103,182 +92,6 @@ const ACTIVENESS_MILESTONES = [
     { threshold:120000, reward:2000, icon:'💎' },
     { threshold:280000, reward:5000, icon:'👑' },
 ];
-// ════════════════════════════════════════════════════════
-// 🎰 GACHA CONFIG — نظام الجاتشه
-// ════════════════════════════════════════════════════════
-// FAMILY_GACHA_IMAGE — ضع رابط صورة آلة الجاتشه في 01-config.js
-// مثال: const FAMILY_GACHA_IMAGE = { staticURL: '...', animatedURL: '...' };
-const GACHA_COST_PER_PULL = 200; // تكلفة كل سحبة
-
-const GACHA_REWARDS = [
-    // ──────── نادر جداً — حلقة الكاريزما ────────
-    { id:'g_charisma_ring', type:'charisma_ring',  rate:0.002, value:20000, icon:'💍',
-      name_ar:'حلقة الكاريزما الذهبية', name_en:'Gold Charisma Ring',
-      desc_ar:'+20000 كاريزما نادر جداً!', desc_en:'+20000 Charisma Ultra Rare!',
-      rarity:'legendary', color:'#ffd700',
-      imageURL: typeof GACHA_ITEM_IMAGES!=='undefined'&&GACHA_ITEM_IMAGES?.charisma_ring||null },
-
-    // ──────── أطارات ────────
-    { id:'g_frame_anim_week', type:'frame', rate:0.03, duration:7, animated:true, icon:'🖼️',
-      name_ar:'إطار متحرك — أسبوع', name_en:'Animated Frame — 1 Week',
-      desc_ar:'إطار بروفايل متحرك لأسبوع', desc_en:'Animated profile frame for 1 week',
-      rarity:'epic', color:'#a78bfa',
-      imageURL: typeof GACHA_ITEM_IMAGES!=='undefined'&&GACHA_ITEM_IMAGES?.frame_anim_week||null },
-    { id:'g_frame_anim_day', type:'frame', rate:0.05, duration:1, animated:true, icon:'🖼️',
-      name_ar:'إطار متحرك — يوم', name_en:'Animated Frame — 1 Day',
-      desc_ar:'إطار بروفايل متحرك ليوم واحد', desc_en:'Animated profile frame for 1 day',
-      rarity:'rare', color:'#60a5fa',
-      imageURL: typeof GACHA_ITEM_IMAGES!=='undefined'&&GACHA_ITEM_IMAGES?.frame_anim_day||null },
-    { id:'g_frame_static_week', type:'frame', rate:0.05, duration:7, animated:false, icon:'🖼️',
-      name_ar:'إطار — أسبوع', name_en:'Frame — 1 Week',
-      desc_ar:'إطار بروفايل لأسبوع', desc_en:'Profile frame for 1 week',
-      rarity:'rare', color:'#22d3ee',
-      imageURL: typeof GACHA_ITEM_IMAGES!=='undefined'&&GACHA_ITEM_IMAGES?.frame_static_week||null },
-    { id:'g_frame_static_day', type:'frame', rate:0.07, duration:1, animated:false, icon:'🖼️',
-      name_ar:'إطار — يوم', name_en:'Frame — 1 Day',
-      desc_ar:'إطار بروفايل ليوم واحد', desc_en:'Profile frame for 1 day',
-      rarity:'common', color:'#4ade80',
-      imageURL: typeof GACHA_ITEM_IMAGES!=='undefined'&&GACHA_ITEM_IMAGES?.frame_static_day||null },
-
-    // ──────── جوائز Intel ────────
-    { id:'g_intel_2000', type:'currency',  rate:0.02, value:2000, icon:'🧠',
-      name_ar:'2000 إنتل', name_en:'2000 Intel',
-      desc_ar:'نادر — 2000 عملة إنتل!', desc_en:'Rare — 2000 Intel!',
-      rarity:'epic', color:'#a78bfa', imageURL: null },
-    { id:'g_intel_520',  type:'currency',  rate:0.05, value:520,  icon:'🧠',
-      name_ar:'520 إنتل', name_en:'520 Intel',
-      rarity:'rare', color:'#60a5fa', imageURL: null },
-    { id:'g_intel_200',  type:'currency',  rate:0.12, value:200,  icon:'🧠',
-      name_ar:'200 إنتل', name_en:'200 Intel',
-      rarity:'uncommon', color:'#22d3ee', imageURL: null },
-    { id:'g_intel_120',  type:'currency',  rate:0.15, value:120,  icon:'🧠',
-      name_ar:'120 إنتل', name_en:'120 Intel',
-      rarity:'common', color:'#4ade80', imageURL: null },
-    { id:'g_intel_50',   type:'currency',  rate:0.20, value:50,   icon:'🧠',
-      name_ar:'50 إنتل', name_en:'50 Intel',
-      rarity:'common', color:'#6b7280', imageURL: null },
-
-    // ──────── صناديق القبيلة ────────
-    { id:'g_box_rare',     type:'family_chest', rate:0.01, chestType:'rare',     icon:'📦',
-      name_ar:'صندوق نادر', name_en:'Rare Chest',
-      rarity:'epic', color:'#a78bfa', imageURL: null },
-    { id:'g_box_advanced', type:'family_chest', rate:0.01, chestType:'advanced', icon:'📦',
-      name_ar:'صندوق متقدم', name_en:'Advanced Chest',
-      rarity:'rare', color:'#60a5fa', imageURL: null },
-    { id:'g_box_normal',   type:'family_chest', rate:0.01, chestType:'normal',   icon:'📦',
-      name_ar:'صندوق عادي', name_en:'Normal Chest',
-      rarity:'common', color:'#4ade80', imageURL: null },
-
-    // ──────── عملات القبيلة ────────
-    { id:'g_fc_1688', type:'family_coins', rate:0.01, value:1688, icon:'🪙',
-      name_ar:'1688 عملة قبيلة', name_en:'1688 Family Coins',
-      rarity:'legendary', color:'#ffd700', imageURL: null },
-    { id:'g_fc_88',   type:'family_coins', rate:0.04, value:88,   icon:'🪙',
-      name_ar:'88 عملة قبيلة', name_en:'88 Family Coins',
-      rarity:'epic', color:'#a78bfa', imageURL: null },
-    { id:'g_fc_50',   type:'family_coins', rate:0.08, value:50,   icon:'🪙',
-      name_ar:'50 عملة قبيلة', name_en:'50 Family Coins',
-      rarity:'rare', color:'#60a5fa', imageURL: null },
-    { id:'g_fc_30',   type:'family_coins', rate:0.10, value:30,   icon:'🪙',
-      name_ar:'30 عملة قبيلة', name_en:'30 Family Coins',
-      rarity:'common', color:'#4ade80', imageURL: null },
-
-    // ──────── عملات الموقع الرئيسي ────────
-    { id:'g_main_1688', type:'main_currency', rate:0.005, value:1688, icon:'💎',
-      name_ar:'1688 عملة', name_en:'1688 Currency',
-      rarity:'legendary', color:'#ffd700', imageURL: null },
-    { id:'g_main_555',  type:'main_currency', rate:0.02,  value:555,  icon:'💎',
-      name_ar:'555 عملة', name_en:'555 Currency',
-      rarity:'epic', color:'#a78bfa', imageURL: null },
-    { id:'g_main_30',   type:'main_currency', rate:0.10,  value:30,   icon:'💎',
-      name_ar:'30 عملة', name_en:'30 Currency',
-      rarity:'common', color:'#4ade80', imageURL: null },
-];
-
-// ════════════════════════════════════════════════════════
-// 📦 FAMILY CHEST CONFIG — صناديق القبيلة
-// ════════════════════════════════════════════════════════
-// imageURL: حط رابط صورة/صورة متحركة للصندوق (gif أو png مدعومان)
-const FAMILY_CHEST_CONFIG = [
-    {
-        type:'normal',
-        name_ar:'صندوق عادي',       name_en:'Normal Chest',
-        desc_ar:'صندوق متوسط الجودة', desc_en:'Standard quality chest',
-        color:'#4ade80', bg:'rgba(74,222,128,0.12)', border:'rgba(74,222,128,0.3)',
-        rarity:'common',
-        icon:'📦',
-        // imageURL: ضع هنا رابط الصورة من 01-config.js أو null
-        imageURL: typeof FAMILY_CHEST_IMAGES!=='undefined'&&FAMILY_CHEST_IMAGES?.normal||null,
-        rewards: [
-            { type:'currency',  value:30,   rate:0.35, label_ar:'30 إنتل',       label_en:'30 Intel'        },
-            { type:'currency',  value:555,  rate:0.05, label_ar:'555 إنتل',      label_en:'555 Intel'       },
-            { type:'currency',  value:1688, rate:0.01, label_ar:'1688 إنتل',     label_en:'1688 Intel'      },
-            { type:'family_coins', value:30,  rate:0.30, label_ar:'30 عملة قبيلة',  label_en:'30 Family Coins' },
-            { type:'family_coins', value:88,  rate:0.20, label_ar:'88 عملة قبيلة',  label_en:'88 Family Coins' },
-            { type:'family_coins', value:1688,rate:0.02, label_ar:'1688 عملة قبيلة',label_en:'1688 Family Coins'},
-            { type:'xp',        value:500,  rate:0.07, label_ar:'500 XP قبيلة',   label_en:'500 Family XP'   },
-        ],
-    },
-    {
-        type:'advanced',
-        name_ar:'صندوق متقدم',    name_en:'Advanced Chest',
-        desc_ar:'صندوق بمكافآت أفضل', desc_en:'Better rewards chest',
-        color:'#60a5fa', bg:'rgba(96,165,250,0.12)', border:'rgba(96,165,250,0.3)',
-        rarity:'rare',
-        icon:'🗃️',
-        imageURL: typeof FAMILY_CHEST_IMAGES!=='undefined'&&FAMILY_CHEST_IMAGES?.advanced||null,
-        rewards: [
-            { type:'currency',  value:120,  rate:0.30, label_ar:'120 إنتل',      label_en:'120 Intel'       },
-            { type:'currency',  value:1688, rate:0.05, label_ar:'1688 إنتل',     label_en:'1688 Intel'      },
-            { type:'family_coins', value:50,  rate:0.25, label_ar:'50 عملة قبيلة',  label_en:'50 Family Coins' },
-            { type:'family_coins', value:1688,rate:0.05, label_ar:'1688 عملة قبيلة',label_en:'1688 Family Coins'},
-            { type:'xp',        value:1000, rate:0.10, label_ar:'1000 XP قبيلة',  label_en:'1000 Family XP'  },
-            { type:'family_coins', value:88,  rate:0.25, label_ar:'88 عملة قبيلة',  label_en:'88 Family Coins' },
-        ],
-    },
-    {
-        type:'rare',
-        name_ar:'صندوق نادر',    name_en:'Rare Chest',
-        desc_ar:'صندوق بمكافآت نادرة جداً', desc_en:'Very rare rewards chest',
-        color:'#a78bfa', bg:'rgba(167,139,250,0.12)', border:'rgba(167,139,250,0.3)',
-        rarity:'epic',
-        icon:'💎',
-        imageURL: typeof FAMILY_CHEST_IMAGES!=='undefined'&&FAMILY_CHEST_IMAGES?.rare||null,
-        rewards: [
-            { type:'currency',  value:1688, rate:0.20, label_ar:'1688 إنتل',     label_en:'1688 Intel'      },
-            { type:'currency',  value:555,  rate:0.25, label_ar:'555 إنتل',      label_en:'555 Intel'       },
-            { type:'family_coins', value:1688,rate:0.15, label_ar:'1688 عملة قبيلة',label_en:'1688 Family Coins'},
-            { type:'family_coins', value:88,  rate:0.25, label_ar:'88 عملة قبيلة',  label_en:'88 Family Coins' },
-            { type:'xp',        value:2000, rate:0.15, label_ar:'2000 XP قبيلة',  label_en:'2000 Family XP'  },
-        ],
-    },
-];
-
-// Helper: سحب جائزة عشوائية من الجاتشه
-const gachaPull = () => {
-    const rand = Math.random();
-    let cumulative = 0;
-    for (const r of GACHA_REWARDS) {
-        cumulative += r.rate;
-        if (rand <= cumulative) return r;
-    }
-    return GACHA_REWARDS[GACHA_REWARDS.length - 1]; // fallback
-};
-
-// Helper: فتح صندوق والحصول على جائزة
-const openChest = (chestType) => {
-    const cfg = FAMILY_CHEST_CONFIG.find(c => c.type === chestType);
-    if (!cfg) return null;
-    const rand = Math.random();
-    let cumulative = 0;
-    for (const r of cfg.rewards) {
-        cumulative += r.rate;
-        if (rand <= cumulative) return { ...r, chestType, chestName_ar: cfg.name_ar, chestName_en: cfg.name_en };
-    }
-    return { ...cfg.rewards[cfg.rewards.length-1], chestType };
-};
-
-
 
 // ── Role Config ──
 const FAMILY_ROLE_CONFIG = {
@@ -865,8 +678,6 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
         if (show) setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 120);
     }, [messages.length, show]);
 
-    // ── alias: بعض الكود يستخدم family مباشرة بدل familyData ──
-    const family = familyData;
     var canManageFamilyChat = familyData ? canManageFamily(familyData, currentUID) : false;
 
     // ── معالجة @ Mention ──
@@ -995,7 +806,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     if (!show) return null;
 
     var signData = (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0) : null) || { level:0, color:'#4b5563', glow:'rgba(75,85,99,0.3)', defaultIcon:'🏠' };
-    var fLvl = familyData ? getFamilyLevel(familyData.level || 1) : null;
+    var fLvl = familyData ? getFamilyLevel(familyData.xp || 0) : null;
 
     return React.createElement(PortalModal, null,
         React.createElement('div', {
@@ -1363,7 +1174,7 @@ const FamilyRankingInline = ({ lang, currentFamilyId, onOpenFamily }) => {
     return (
         <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
             {rankings.map((fam, i) => {
-                const fl = getFamilyLevel(fam.level || 1);
+                const fl = getFamilyLevel(fam.xp || 0);
                 const sign = getFamilySignLevelData(fam.weeklyActiveness || 0);
                 const signColor = sign?.color || '#6b7280';
                 const signLevel = sign?.level || 0;
@@ -1531,17 +1342,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const signImageFileRef = useRef(null);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [uploadingSign, setUploadingSign] = useState(false);
-    // ── Gacha state ──
-    const [gachaResult, setGachaResult] = useState(null);
-    const [gachaPulling, setGachaPulling] = useState(false);
-    const [gachaShowAll, setGachaShowAll] = useState(false);
-    const [lastFreeGacha, setLastFreeGacha] = useState(null);
-    // ── Chest state ──
-    const [chestOpening, setChestOpening] = useState(null);
-    const [chestResult, setChestResult] = useState(null);
-    const [showChestDetail, setShowChestDetail] = useState(null); // chest config object
-    const [assignChestTarget, setAssignChestTarget] = useState(null); // { chestType, memberId }
-    const [showAssignChest, setShowAssignChest] = useState(false);
 
     // ── Load family (real-time) ── supports viewFamilyId for viewing external families
     useEffect(() => {
@@ -1734,7 +1534,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             const snap = await familiesCollection.doc(familyId).get();
             if (!snap.exists) { onNotification(lang === 'ar' ? '❌ العائلة غير موجودة' : '❌ Family not found'); setJoining(false); return; }
             const fd = snap.data();
-            const lvl = getFamilyLevel(fd.level || 1);
+            const lvl = getFamilyLevel(fd.xp || 0);
             if ((fd.members || []).length >= lvl.maxMembers) { onNotification(lang === 'ar' ? '❌ العائلة ممتلئة' : '❌ Family is full'); setJoining(false); return; }
 
             // If approval required, add to joinRequests
@@ -2124,7 +1924,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         tabBar: { display:'flex', borderBottom:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.2)', flexShrink:0, overflowX:'auto', scrollbarWidth:'none' },
         card: { background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'14px', padding:'14px' },
         sectionTitle: { fontSize:'11px', fontWeight:800, color:'#00f2ff', textTransform:'uppercase', letterSpacing:'1px', paddingLeft:'10px', borderLeft:'3px solid #00f2ff', marginBottom:'12px' },
-        input: { width:'100%', padding:'10px 13px', borderRadius:'10px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', color:'#e2e8f0', WebkitTextFillColor:'#e2e8f0', colorScheme:'dark', fontSize:'13px', outline:'none', boxSizing:'border-box' },
+        input: { width:'100%', padding:'10px 13px', borderRadius:'10px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', color:'white', fontSize:'13px', outline:'none', boxSizing:'border-box' },
         btn: { padding:'10px 18px', borderRadius:'10px', border:'none', fontWeight:800, fontSize:'12px', cursor:'pointer' },
         divider: { height:'1px', background:'rgba(255,255,255,0.06)', margin:'8px 0' },
     };
@@ -2141,21 +1941,13 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
         { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
         { id:'tasks',    label_en:'Tasks',   label_ar:'مهام',     icon:'🎯' },
-        { id:'chests',   label_en:'Chests',  label_ar:'صناديق',   icon:'📦' },
-        { id:'gacha',    label_en:'Gacha',   label_ar:'جاتشه',    icon:'🎰' },
         { id:'shop',     label_en:'Shop',    label_ar:'المتجر',   icon:'🏅' },
         { id:'news',     label_en:'News',    label_ar:'أخبار',    icon:'📰' },
         { id:'manage',   label_en:'Manage',  label_ar:'إدارة',    icon:'⚙️' },
     ];
 
-    const fLvl = (() => {
-        if (!family) return null;
-        const lvlCfg = getFamilyLevel(family.level || 1);
-        // override with per-family stored image if exists
-        const storedImg = family.levelImages?.[`lv${lvlCfg.level}`] || null;
-        return { ...lvlCfg, imageURL: storedImg || lvlCfg.imageURL };
-    })();
-    const fProg = family ? getFamilyLevelProgress(family) : 0;
+    const fLvl = family ? getFamilyLevel(family.xp || 0) : null;
+    const fProg = family ? getFamilyLevelProgress(family.xp || 0) : 0;
     const myRole = family ? getFamilyRole(family, currentUID) : null;
     const canManage = family ? canManageFamily(family, currentUID) : false;
     const weeklyAct = family ? (family.weeklyActiveness || 0) : 0;
@@ -2228,12 +2020,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                     : family.emblem || '🏠'
                                 }
                             </div>
-                            {/* Level badge — يدعم صورة المستوى */}
-                            <div style={{position:'absolute', bottom:'-6px', left:'50%', transform:'translateX(-50%)', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                                {fLvl.imageURL
-                                    ? <img src={fLvl.imageURL} style={{height:'22px', objectFit:'contain', filter:`drop-shadow(0 0 4px ${fLvl.color})`}} alt=""/>
-                                    : <div style={{background:fLvl.color, color:'#000', fontSize:'9px', fontWeight:900, padding:'2px 8px', borderRadius:'10px', whiteSpace:'nowrap', boxShadow:`0 0 8px ${fLvl.color}88`}}>LV.{fLvl.level}</div>
-                                }
+                            <div style={{position:'absolute', bottom:'-4px', left:'50%', transform:'translateX(-50%)', background:fLvl.color, color:'#000', fontSize:'9px', fontWeight:900, padding:'1px 7px', borderRadius:'10px', whiteSpace:'nowrap'}}>
+                                LV.{fLvl.level}
                             </div>
                         </div>
                         <div style={{flex:1, minWidth:0}}>
@@ -2249,42 +2037,16 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         </div>
                     </div>
 
-                    {/* Activeness-based Level Upgrade */}
+                    {/* XP Progress */}
                     <div style={{marginTop:'12px'}}>
-                        {(() => {
-                            const nextCfg = FAMILY_LEVEL_CONFIG.find(c => c.level === fLvl.level + 1);
-                            const totalAct = family.activeness || 0;
-                            const pct = fProg;
-                            const canUp = canUpgradeFamilyLevel(family) && canManage;
-                            return (
-                                <div>
-                                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#6b7280', marginBottom:'4px'}}>
-                                        <span>⚡ {fmtFamilyNum(totalAct)}</span>
-                                        <span>{pct}%</span>
-                                        {nextCfg && <span style={{color: canUp ? '#00f2ff' : '#4b5563'}}>{lang==='ar'?'مطلوب:':'Need:'} {fmtFamilyNum(nextCfg.requiredActiveness)}</span>}
-                                    </div>
-                                    <div style={{height:'6px', borderRadius:'3px', background:'rgba(255,255,255,0.08)', overflow:'hidden', marginBottom: canUp ? '10px' : '0'}}>
-                                        <div style={{height:'100%', borderRadius:'3px', width:`${pct}%`, background:canUp?`linear-gradient(90deg,#00f2ff,#7000ff)`:`linear-gradient(90deg,${fLvl.color},${fLvl.color}88)`, transition:'width 0.6s ease', boxShadow: canUp ? '0 0 8px #00f2ff88' : 'none'}} />
-                                    </div>
-                                    {canUp && (
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    const newLevel = (family.level || 1) + 1;
-                                                    const newCfg = FAMILY_LEVEL_CONFIG.find(c => c.level === newLevel);
-                                                    await familiesCollection.doc(family.id).update({ level: newLevel });
-                                                    await postSystemMessage(family.id, lang==='ar'?`🎉 القبيلة وصلت المستوى ${newLevel} — ${newCfg?.name_ar||''}!`:`🎉 Family reached Level ${newLevel} — ${newCfg?.name_en||''}!`);
-                                                    onNotification(lang==='ar'?`🎉 مبروك! المستوى ${newLevel}`:`🎉 Level Up! Lv.${newLevel}`);
-                                                } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
-                                            }}
-                                            style={{width:'100%', padding:'8px', borderRadius:'10px', border:'none', background:'linear-gradient(135deg,#00f2ff,#7000ff)', color:'white', fontSize:'12px', fontWeight:900, cursor:'pointer', letterSpacing:'0.5px', boxShadow:'0 0 16px rgba(0,242,255,0.4)', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px'}}
-                                        >
-                                            ⬆️ {lang==='ar'?`ترقية للمستوى ${(family.level||1)+1}!`:`Upgrade to Level ${(family.level||1)+1}!`}
-                                        </button>
-                                    )}
-                                </div>
-                            );
-                        })()}
+                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#6b7280', marginBottom:'4px'}}>
+                            <span>XP: {fmtFamilyNum(family.xp||0)}</span>
+                            <span>{fProg}%</span>
+                            {FAMILY_LEVEL_CONFIG.find(c=>c.level===fLvl.level+1) && <span>{lang==='ar'?'التالي':'Next'}: {fmtFamilyNum(FAMILY_LEVEL_CONFIG.find(c=>c.level===fLvl.level+1).xp)}</span>}
+                        </div>
+                        <div style={{height:'5px', borderRadius:'3px', background:'rgba(255,255,255,0.08)', overflow:'hidden'}}>
+                            <div style={{height:'100%', borderRadius:'3px', width:`${fProg}%`, background:`linear-gradient(90deg,${fLvl.color},${fLvl.color}88)`, transition:'width 0.6s ease'}} />
+                        </div>
                     </div>
                 </div>
 
@@ -2311,7 +2073,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </div>
                     {showDonatePanel && (
                         <div style={{display:'flex', gap:'8px'}}>
-                            <input type="number" value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} style={{...S.input, flex:1, color:'#e2e8f0', WebkitTextFillColor:'#e2e8f0', colorScheme:'dark'}} placeholder={lang==='ar'?'الكمية (إنتل)':'Amount (Intel)'} min="1" />
+                            <input type="number" value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} style={{...S.input, flex:1}} placeholder={lang==='ar'?'الكمية (إنتل)':'Amount (Intel)'} min="1" />
                             <button onClick={handleDonate} disabled={donating||!donateAmount} style={{...S.btn, flexShrink:0, padding:'10px 16px', background:donateAmount&&!donating?'linear-gradient(135deg,#ffd700,#f97316)':'rgba(255,255,255,0.06)', color:donateAmount?'#000':'#4b5563', cursor:donateAmount?'pointer':'not-allowed'}}>
                                 {donating?'⏳':'🧠'}
                             </button>
@@ -2705,7 +2467,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 placeholder={lang==='ar'?'بحث...':'Search...'} />
                         </div>
                         <span style={{fontSize:'10px', color:'#6b7280', fontWeight:700, flexShrink:0}}>
-                            {family.members?.length||0}/{getFamilyLevel(family.level || 1).maxMembers}
+                            {family.members?.length||0}/{getFamilyLevel(family.xp||0).maxMembers}
                         </span>
                     </div>
                     {/* Tab buttons */}
@@ -3162,384 +2924,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     // ─────────────────────────────────────────────
     // TAB: MANAGE
     // ─────────────────────────────────────────────
-    // ─────────────────────────────────────────────
-    // TAB: GACHA 🎰
-    // ─────────────────────────────────────────────
-    const renderGacha = () => {
-        if (!family) return null;
-        const balance = currentUserData?.currency || 0;
-        const today = new Date().toDateString();
-        const canFree = !lastFreeGacha || lastFreeGacha !== today;
-        const canPaid = balance >= GACHA_COST_PER_PULL;
-        const RARITY_COLORS = { legendary:'#ffd700', epic:'#a78bfa', rare:'#60a5fa', uncommon:'#22d3ee', common:'#4ade80' };
-
-        const doPull = async (free) => {
-            if (gachaPulling) return;
-            if (!free && !canPaid) { onNotification(lang==='ar'?`❌ تحتاج ${GACHA_COST_PER_PULL} إنتل`:`❌ Need ${GACHA_COST_PER_PULL} Intel`); return; }
-            if (free && !canFree) { onNotification(lang==='ar'?'✅ استخدمت السحبة المجانية اليوم':'✅ Free pull already used today'); return; }
-            setGachaPulling(true);
-            setGachaResult(null);
-            try {
-                const reward = gachaPull();
-                if (!free) {
-                    await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(-GACHA_COST_PER_PULL) });
-                } else {
-                    setLastFreeGacha(today);
-                }
-                // Apply reward
-                if (reward.type === 'currency') {
-                    await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(reward.value) });
-                } else if (reward.type === 'charisma_ring') {
-                    await usersCollection.doc(currentUID).update({ charisma: firebase.firestore.FieldValue.increment(reward.value) });
-                } else if (reward.type === 'family_coins') {
-                    await familiesCollection.doc(family.id).update({ familyCoins: firebase.firestore.FieldValue.increment(reward.value) });
-                } else if (reward.type === 'family_chest') {
-                    const chestKey = `chests.${reward.chestType}`;
-                    await usersCollection.doc(currentUID).update({ [chestKey]: firebase.firestore.FieldValue.increment(1) });
-                }
-                setGachaResult(reward);
-                // Log in family chat
-                const rName = lang==='ar' ? reward.name_ar : reward.name_en;
-                await familiesCollection.doc(family.id).collection('messages').add({
-                    type:'system',
-                    text:`🎰 ${currentUserData?.displayName || 'عضو'} ${lang==='ar'?'حصل على':'got'} ${reward.icon} ${rName} ${lang==='ar'?'من الجاتشه!':'from Gacha!'}`,
-                    senderId:'system', timestamp:firebase.firestore.FieldValue.serverTimestamp(),
-                }).catch(()=>{});
-            } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
-            setGachaPulling(false);
-        };
-
-        return (
-            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'12px'}}>
-                {/* Gacha Machine */}
-                <div style={{
-                    background:'linear-gradient(135deg,rgba(112,0,255,0.15),rgba(0,242,255,0.08))',
-                    border:'1px solid rgba(112,0,255,0.3)',
-                    borderRadius:'18px', padding:'20px',
-                    textAlign:'center', position:'relative', overflow:'hidden',
-                }}>
-                    <div style={{position:'absolute', inset:0, background:'radial-gradient(ellipse at 50% 0%, rgba(112,0,255,0.2) 0%, transparent 70%)', pointerEvents:'none'}}/>
-                    {/* Gacha image or fallback */}
-                    {typeof FAMILY_GACHA_IMAGE !== 'undefined' && FAMILY_GACHA_IMAGE?.animatedURL
-                        ? <img src={FAMILY_GACHA_IMAGE.animatedURL} style={{height:'120px', objectFit:'contain', marginBottom:'12px', filter:'drop-shadow(0 0 20px rgba(112,0,255,0.6))'}} alt="gacha"/>
-                        : <div style={{fontSize:'72px', marginBottom:'12px', filter:'drop-shadow(0 0 14px #7000ff88)'}}>🎰</div>
-                    }
-                    <div style={{fontSize:'16px', fontWeight:900, color:'white', marginBottom:'4px', fontStyle:'italic'}}>
-                        {lang==='ar'?'جاتشه القبيلة':'Clan Gacha'}
-                    </div>
-                    <div style={{fontSize:'10px', color:'#9ca3af', marginBottom:'16px'}}>
-                        {lang==='ar'?`رصيدك: ${balance.toLocaleString()} 🧠`:`Balance: ${balance.toLocaleString()} 🧠`}
-                    </div>
-                    {/* Buttons */}
-                    <div style={{display:'flex', gap:'10px', justifyContent:'center'}}>
-                        <button onClick={()=>doPull(true)} disabled={!canFree||gachaPulling} style={{
-                            padding:'10px 18px', borderRadius:'12px', border:`1px solid ${canFree?'rgba(74,222,128,0.5)':'rgba(255,255,255,0.1)'}`,
-                            background:canFree?'rgba(74,222,128,0.15)':'rgba(255,255,255,0.04)',
-                            color:canFree?'#4ade80':'#4b5563', fontSize:'12px', fontWeight:800, cursor:canFree?'pointer':'not-allowed',
-                        }}>
-                            {gachaPulling?'⏳':('🆓 ' + (lang==='ar'?'مجانية':'Free'))}
-                            <div style={{fontSize:'9px', opacity:0.7, marginTop:'2px'}}>{canFree?(lang==='ar'?'مرة يومياً':'Once daily'):(lang==='ar'?'استُخدمت':'Used')}</div>
-                        </button>
-                        <button onClick={()=>doPull(false)} disabled={!canPaid||gachaPulling} style={{
-                            padding:'10px 18px', borderRadius:'12px', border:`1px solid ${canPaid?'rgba(0,242,255,0.5)':'rgba(255,255,255,0.1)'}`,
-                            background:canPaid?'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.2))':'rgba(255,255,255,0.04)',
-                            color:canPaid?'#00f2ff':'#4b5563', fontSize:'12px', fontWeight:800, cursor:canPaid?'pointer':'not-allowed',
-                        }}>
-                            {gachaPulling?'⏳':(`💎 ${GACHA_COST_PER_PULL}`)}
-                            <div style={{fontSize:'9px', opacity:0.7, marginTop:'2px'}}>{lang==='ar'?'لكل سحبة':'Per pull'}</div>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Result popup */}
-                {gachaResult && (
-                    <div style={{
-                        background:`linear-gradient(135deg,${RARITY_COLORS[gachaResult.rarity]||'#4ade80'}22,rgba(0,0,0,0.6))`,
-                        border:`2px solid ${RARITY_COLORS[gachaResult.rarity]||'#4ade80'}88`,
-                        borderRadius:'16px', padding:'18px', textAlign:'center',
-                        boxShadow:`0 0 30px ${RARITY_COLORS[gachaResult.rarity]||'#4ade80'}44`,
-                    }}>
-                        {gachaResult.imageURL
-                            ? <img src={gachaResult.imageURL} style={{height:'80px', objectFit:'contain', marginBottom:'8px'}} alt=""/>
-                            : <div style={{fontSize:'48px', marginBottom:'8px'}}>{gachaResult.icon}</div>
-                        }
-                        <div style={{fontSize:'9px', fontWeight:800, color:RARITY_COLORS[gachaResult.rarity]||'#4ade80', textTransform:'uppercase', letterSpacing:'2px', marginBottom:'4px'}}>
-                            ✨ {gachaResult.rarity?.toUpperCase()} ✨
-                        </div>
-                        <div style={{fontSize:'14px', fontWeight:900, color:'white', marginBottom:'4px'}}>
-                            {lang==='ar'?gachaResult.name_ar:gachaResult.name_en}
-                        </div>
-                        {gachaResult.value && <div style={{fontSize:'12px', color:RARITY_COLORS[gachaResult.rarity]||'#4ade80', fontWeight:700}}>
-                            +{gachaResult.value} {gachaResult.type==='currency'?'🧠':gachaResult.type==='family_coins'?'🪙':''}
-                        </div>}
-                        <button onClick={()=>setGachaResult(null)} style={{marginTop:'10px', padding:'6px 16px', borderRadius:'8px', border:'none', background:'rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'11px', cursor:'pointer'}}>
-                            {lang==='ar'?'إغلاق':'Close'}
-                        </button>
-                    </div>
-                )}
-
-                {/* All rewards list toggle */}
-                <button onClick={()=>setGachaShowAll(v=>!v)} style={{
-                    display:'flex', alignItems:'center', justifyContent:'space-between',
-                    padding:'10px 14px', borderRadius:'12px',
-                    background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)',
-                    color:'#9ca3af', fontSize:'11px', cursor:'pointer', width:'100%',
-                }}>
-                    <span>📋 {lang==='ar'?'جميع الجوائز ونسب الفوز':'All Rewards & Drop Rates'}</span>
-                    <span>{gachaShowAll?'▲':'▼'}</span>
-                </button>
-
-                {gachaShowAll && (
-                    <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
-                        {GACHA_REWARDS.map(r => (
-                            <div key={r.id} style={{
-                                display:'flex', alignItems:'center', gap:'10px', padding:'8px 12px',
-                                borderRadius:'10px', background:`${RARITY_COLORS[r.rarity]||'#4ade80'}0a`,
-                                border:`1px solid ${RARITY_COLORS[r.rarity]||'#4ade80'}22`,
-                            }}>
-                                {r.imageURL
-                                    ? <img src={r.imageURL} style={{width:'28px', height:'28px', objectFit:'contain', borderRadius:'6px'}} alt=""/>
-                                    : <span style={{fontSize:'20px', width:'28px', textAlign:'center'}}>{r.icon}</span>
-                                }
-                                <div style={{flex:1, minWidth:0}}>
-                                    <div style={{fontSize:'11px', fontWeight:700, color:RARITY_COLORS[r.rarity]||'#4ade80', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
-                                        {lang==='ar'?r.name_ar:r.name_en}
-                                    </div>
-                                    <div style={{fontSize:'9px', color:'#6b7280'}}>{r.rarity?.toUpperCase()}</div>
-                                </div>
-                                <div style={{
-                                    fontSize:'10px', fontWeight:800, padding:'2px 7px', borderRadius:'6px',
-                                    background:`${RARITY_COLORS[r.rarity]||'#4ade80'}20`,
-                                    color:RARITY_COLORS[r.rarity]||'#4ade80', flexShrink:0,
-                                }}>{(r.rate * 100).toFixed(2)}%</div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-                <div style={{height:'12px'}}/>
-            </div>
-        );
-    };
-
-    // ─────────────────────────────────────────────
-    // TAB: CHESTS 📦
-    // ─────────────────────────────────────────────
-    const renderChests = () => {
-        if (!family) return null;
-        const userChests = currentUserData?.chests || {};
-        const inventoryChests = family.inventoryChests || {}; // صناديق في مخزن العائلة
-        const canManageChests = canManage;
-        const RARITY_COLORS = { legendary:'#ffd700', epic:'#a78bfa', rare:'#60a5fa', uncommon:'#22d3ee', common:'#4ade80' };
-
-        const doOpenChest = async (chestType) => {
-            const userOwned = userChests[chestType] || 0;
-            if (userOwned <= 0) { onNotification(lang==='ar'?'❌ لا يوجد لديك هذا الصندوق':'❌ You don't own this chest'); return; }
-            if (chestOpening) return;
-            setChestOpening(chestType);
-            setChestResult(null);
-            try {
-                const reward = openChest(chestType);
-                if (!reward) return;
-                // Deduct chest
-                await usersCollection.doc(currentUID).update({ [`chests.${chestType}`]: firebase.firestore.FieldValue.increment(-1) });
-                // Grant reward
-                if (reward.type === 'currency') {
-                    await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(reward.value) });
-                } else if (reward.type === 'family_coins') {
-                    await familiesCollection.doc(family.id).update({ familyCoins: firebase.firestore.FieldValue.increment(reward.value) });
-                } else if (reward.type === 'xp') {
-                    await familiesCollection.doc(family.id).update({
-                        xp: firebase.firestore.FieldValue.increment(reward.value),
-                        activeness: firebase.firestore.FieldValue.increment(reward.value),
-                    });
-                }
-                setChestResult({ ...reward, chestType });
-                const cfg = FAMILY_CHEST_CONFIG.find(c => c.type === chestType);
-                const rLabel = lang==='ar' ? reward.label_ar : reward.label_en;
-                await familiesCollection.doc(family.id).collection('messages').add({
-                    type:'system',
-                    text:`📦 ${currentUserData?.displayName} ${lang==='ar'?'فتح':'opened'} ${lang==='ar'?cfg?.name_ar:cfg?.name_en} ${lang==='ar'?'وحصل على':'and got'} ${rLabel}!`,
-                    senderId:'system', timestamp:firebase.firestore.FieldValue.serverTimestamp(),
-                }).catch(()=>{});
-            } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
-            setChestOpening(null);
-        };
-
-        const doAssignChest = async (chestType, targetUID, count) => {
-            if (!canManageChests) return;
-            try {
-                await usersCollection.doc(targetUID).update({ [`chests.${chestType}`]: firebase.firestore.FieldValue.increment(count) });
-                const targetM = familyMembers.find(m => m.id === targetUID);
-                const cfg = FAMILY_CHEST_CONFIG.find(c => c.type === chestType);
-                // Notify via family chat
-                await familiesCollection.doc(family.id).collection('messages').add({
-                    type:'system',
-                    text:`🎁 ${lang==='ar'?'الإدارة أرسلت':'Admin sent'} ${count} ${lang==='ar'?cfg?.name_ar:cfg?.name_en} ${lang==='ar'?'لـ':'to'} ${targetM?.displayName||'عضو'} 📦`,
-                    senderId:'system', timestamp:firebase.firestore.FieldValue.serverTimestamp(),
-                }).catch(()=>{});
-                onNotification(lang==='ar'?`✅ تم إرسال الصندوق`:`✅ Chest assigned`);
-                setShowAssignChest(false);
-                setAssignChestTarget(null);
-            } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
-        };
-
-        return (
-            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'12px'}}>
-
-                {/* ── صناديقي ── */}
-                <div style={{...S.card}}>
-                    <div style={S.sectionTitle}>📦 {lang==='ar'?'صناديقي':'My Chests'}</div>
-                    <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
-                        {FAMILY_CHEST_CONFIG.map(cfg => {
-                            const owned = userChests[cfg.type] || 0;
-                            const isOpening = chestOpening === cfg.type;
-                            return (
-                                <div key={cfg.type} style={{
-                                    display:'flex', alignItems:'center', gap:'12px', padding:'12px',
-                                    borderRadius:'14px',
-                                    background: owned>0 ? `${cfg.color}12` : 'rgba(255,255,255,0.03)',
-                                    border: `1px solid ${owned>0 ? cfg.color+'44' : 'rgba(255,255,255,0.07)'}`,
-                                    cursor: 'pointer',
-                                }} onClick={() => setShowChestDetail(showChestDetail?.type===cfg.type ? null : cfg)}>
-                                    {/* Chest image */}
-                                    <div style={{
-                                        width:'54px', height:'54px', borderRadius:'12px', flexShrink:0,
-                                        overflow:'hidden', background:cfg.bg,
-                                        border:`1px solid ${cfg.border}`,
-                                        display:'flex', alignItems:'center', justifyContent:'center',
-                                        filter: owned>0 ? `drop-shadow(0 0 6px ${cfg.color}88)` : 'grayscale(0.6)',
-                                    }}>
-                                        {cfg.imageURL
-                                            ? <img src={cfg.imageURL} style={{width:'100%', height:'100%', objectFit:'contain'}} alt=""/>
-                                            : <span style={{fontSize:'28px'}}>{cfg.icon}</span>
-                                        }
-                                    </div>
-                                    <div style={{flex:1, minWidth:0}}>
-                                        <div style={{fontSize:'13px', fontWeight:800, color: owned>0 ? cfg.color : '#6b7280', marginBottom:'2px'}}>
-                                            {lang==='ar'?cfg.name_ar:cfg.name_en}
-                                        </div>
-                                        <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'4px'}}>
-                                            {lang==='ar'?cfg.desc_ar:cfg.desc_en}
-                                        </div>
-                                        <div style={{fontSize:'10px', color:'#4b5563'}}>
-                                            {lang==='ar'?'انقر لرؤية المحتويات ▾':'Tap to see contents ▾'}
-                                        </div>
-                                    </div>
-                                    <div style={{flexShrink:0, textAlign:'right'}}>
-                                        <div style={{
-                                            fontSize:'20px', fontWeight:900, color: owned>0 ? cfg.color : '#4b5563',
-                                            background: owned>0 ? `${cfg.color}20` : 'rgba(255,255,255,0.04)',
-                                            border: `1px solid ${owned>0 ? cfg.color+'44' : 'rgba(255,255,255,0.06)'}`,
-                                            borderRadius:'10px', padding:'4px 10px', minWidth:'36px', textAlign:'center',
-                                        }}>{owned}</div>
-                                        {owned > 0 && (
-                                            <button
-                                                onClick={e=>{e.stopPropagation(); doOpenChest(cfg.type);}}
-                                                disabled={isOpening}
-                                                style={{
-                                                    marginTop:'6px', padding:'5px 10px', borderRadius:'8px',
-                                                    border:'none', background:isOpening?'rgba(255,255,255,0.06)':`linear-gradient(135deg,${cfg.color},${cfg.color}aa)`,
-                                                    color:'white', fontSize:'11px', fontWeight:800, cursor:'pointer', display:'block', width:'100%',
-                                                }}>
-                                                {isOpening?'⏳':(lang==='ar'?'فتح!':'Open!')}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* ── تفاصيل الصندوق — تظهر عند الضغط ── */}
-                {showChestDetail && (
-                    <div style={{...S.card, background:`${showChestDetail.color}0a`, border:`1px solid ${showChestDetail.color}33`}}>
-                        <div style={{fontSize:'12px', fontWeight:800, color:showChestDetail.color, marginBottom:'10px'}}>
-                            📋 {lang==='ar'?'محتويات':'Contents of'} {lang==='ar'?showChestDetail.name_ar:showChestDetail.name_en}
-                        </div>
-                        <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
-                            {showChestDetail.rewards.map((r,i)=>(
-                                <div key={i} style={{
-                                    display:'flex', alignItems:'center', justifyContent:'space-between',
-                                    padding:'7px 10px', borderRadius:'8px',
-                                    background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)',
-                                }}>
-                                    <div style={{fontSize:'12px', color:'#e2e8f0'}}>
-                                        {lang==='ar'?r.label_ar:r.label_en}
-                                    </div>
-                                    <div style={{
-                                        fontSize:'10px', fontWeight:800, padding:'2px 7px', borderRadius:'6px',
-                                        background:showChestDetail.bg, color:showChestDetail.color,
-                                    }}>{(r.rate*100).toFixed(0)}%</div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* ── نتيجة فتح الصندوق ── */}
-                {chestResult && (
-                    <div style={{
-                        background:'linear-gradient(135deg,rgba(0,242,255,0.1),rgba(112,0,255,0.1))',
-                        border:'2px solid rgba(0,242,255,0.5)',
-                        borderRadius:'16px', padding:'20px', textAlign:'center',
-                        boxShadow:'0 0 30px rgba(0,242,255,0.3)',
-                    }}>
-                        <div style={{fontSize:'40px', marginBottom:'8px'}}>🎊</div>
-                        <div style={{fontSize:'10px', fontWeight:800, color:'#00f2ff', letterSpacing:'2px', marginBottom:'6px'}}>
-                            {lang==='ar'?'مبروك! حصلت على:':'Congratulations! You got:'}
-                        </div>
-                        <div style={{fontSize:'16px', fontWeight:900, color:'white', marginBottom:'4px'}}>
-                            {lang==='ar'?chestResult.label_ar:chestResult.label_en}
-                        </div>
-                        <button onClick={()=>setChestResult(null)} style={{marginTop:'10px', padding:'6px 16px', borderRadius:'8px', border:'none', background:'rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'11px', cursor:'pointer'}}>
-                            {lang==='ar'?'إغلاق':'Close'}
-                        </button>
-                    </div>
-                )}
-
-                {/* ── إرسال صناديق لأعضاء (أدمن فقط) ── */}
-                {canManageChests && (
-                    <div style={S.card}>
-                        <div style={S.sectionTitle}>🎁 {lang==='ar'?'إرسال صندوق لعضو':'Assign Chest to Member'}</div>
-                        <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
-                            {FAMILY_CHEST_CONFIG.map(cfg => (
-                                <div key={cfg.type}>
-                                    <div style={{fontSize:'11px', fontWeight:700, color:cfg.color, marginBottom:'6px'}}>
-                                        {cfg.icon} {lang==='ar'?cfg.name_ar:cfg.name_en}
-                                    </div>
-                                    <div style={{display:'flex', flexDirection:'column', gap:'4px', maxHeight:'160px', overflowY:'auto'}}>
-                                        {familyMembers.filter(m=>m.id!==currentUID).map(m => (
-                                            <div key={m.id} style={{display:'flex', alignItems:'center', gap:'8px', padding:'6px 10px', borderRadius:'8px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)'}}>
-                                                <div style={{width:'26px', height:'26px', borderRadius:'50%', overflow:'hidden', background:'rgba(255,255,255,0.08)', flexShrink:0}}>
-                                                    {m.photoURL?<img src={m.photoURL} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>:<span style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',fontSize:'12px'}}>😎</span>}
-                                                </div>
-                                                <span style={{flex:1, fontSize:'11px', color:'#d1d5db', fontWeight:600}}>{m.displayName}</span>
-                                                <div style={{display:'flex', gap:'4px'}}>
-                                                    {[1,2,3].map(count => (
-                                                        <button key={count} onClick={()=>doAssignChest(cfg.type, m.id, count)} style={{
-                                                            padding:'3px 8px', borderRadius:'6px', border:`1px solid ${cfg.color}44`,
-                                                            background:`${cfg.color}15`, color:cfg.color,
-                                                            fontSize:'10px', fontWeight:800, cursor:'pointer',
-                                                        }}>×{count}</button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div style={{height:'1px', background:'rgba(255,255,255,0.05)', margin:'8px 0'}}/>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                <div style={{height:'12px'}}/>
-            </div>
-        );
-    };
-
-        const renderManage = () => {
+    const renderManage = () => {
         const requests = family?.joinRequests || [];
 
         return (
@@ -3606,7 +2991,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     <div style={{marginBottom:'10px'}}>
                         <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'4px'}}>📝 {lang==='ar'?'الوصف':'Description'}</div>
                         {canManage
-                            ? <textarea value={editDesc} onChange={e=>setEditDesc(e.target.value)} maxLength={150} rows={2} style={{...S.input, resize:'none', lineHeight:1.5, color:'#e2e8f0', WebkitTextFillColor:'#e2e8f0', colorScheme:'dark'}} />
+                            ? <textarea value={editDesc} onChange={e=>setEditDesc(e.target.value)} maxLength={150} rows={2} style={{...S.input, resize:'none', lineHeight:1.5}} />
                             : <div style={{...S.input, color:'#d1d5db', cursor:'default', minHeight:'48px', lineHeight:1.5}}>{family.description || '—'}</div>
                         }
                     </div>
@@ -3711,84 +3096,13 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
                 </div>
 
-                {/* ── صور مستويات القبيلة (أدمن فقط) ── */}
-                {canManage && (
-                    <div style={S.card}>
-                        <div style={S.sectionTitle}>🏆 {lang==='ar'?'صور مستويات القبيلة':'Family Level Images'}</div>
-                        <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'10px'}}>
-                            {lang==='ar'
-                                ? 'يمكنك رفع صورة لكل مستوى — تدعم GIF والصور العادية'
-                                : 'Upload an image for each level — supports GIF and static images'}
-                        </div>
-                        <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
-                            {FAMILY_LEVEL_CONFIG.map(cfg => {
-                                const currentImgKey = `levelImages.lv${cfg.level}`;
-                                const storedImg = family.levelImages?.[`lv${cfg.level}`] || cfg.imageURL || null;
-                                const [uploadingLvl, setUploadingLvl] = React.useState(false);
-                                return (
-                                    <div key={cfg.level} style={{
-                                        display:'flex', alignItems:'center', gap:'10px', padding:'10px',
-                                        borderRadius:'10px', background:`${cfg.color}08`,
-                                        border:`1px solid ${cfg.color}28`,
-                                    }}>
-                                        {/* Preview */}
-                                        <div style={{
-                                            width:'44px', height:'44px', borderRadius:'10px', flexShrink:0,
-                                            background:`${cfg.color}18`, border:`1px solid ${cfg.color}44`,
-                                            display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden',
-                                        }}>
-                                            {storedImg
-                                                ? <img src={storedImg} style={{width:'100%', height:'100%', objectFit:'contain'}} alt=""/>
-                                                : <span style={{fontSize:'22px'}}>{cfg.icon}</span>
-                                            }
-                                        </div>
-                                        <div style={{flex:1}}>
-                                            <div style={{fontSize:'11px', fontWeight:800, color:cfg.color}}>
-                                                {cfg.icon} Lv.{cfg.level} — {lang==='ar'?cfg.name_ar:cfg.name_en}
-                                            </div>
-                                            <div style={{fontSize:'9px', color:'#4b5563', marginTop:'2px'}}>
-                                                ⚡ {lang==='ar'?'يتطلب':'Requires'} {cfg.requiredActiveness.toLocaleString()} {lang==='ar'?'نشاط كلي':'total activeness'}
-                                            </div>
-                                        </div>
-                                        <div style={{flexShrink:0}}>
-                                            <input type="file" id={`lvl-img-${cfg.level}`} style={{display:'none'}} accept="image/*,image/gif"
-                                                onChange={async (e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (!file || !family?.id) return;
-                                                    setUploadingLvl(true);
-                                                    const reader = new FileReader();
-                                                    reader.onload = async (ev) => {
-                                                        try {
-                                                            await familiesCollection.doc(family.id).update({
-                                                                [`levelImages.lv${cfg.level}`]: ev.target.result
-                                                            });
-                                                            onNotification(lang==='ar'?`✅ صورة المستوى ${cfg.level} محدّثة`:`✅ Level ${cfg.level} image updated`);
-                                                        } catch(err) {}
-                                                        setUploadingLvl(false);
-                                                    };
-                                                    reader.readAsDataURL(file);
-                                                    e.target.value = '';
-                                                }}
-                                            />
-                                            <button onClick={()=>document.getElementById(`lvl-img-${cfg.level}`)?.click()} disabled={uploadingLvl}
-                                                style={{padding:'5px 10px', borderRadius:'7px', border:`1px solid ${cfg.color}44`, background:`${cfg.color}12`, color:cfg.color, fontSize:'10px', fontWeight:700, cursor:'pointer'}}>
-                                                {uploadingLvl?'⏳':'📷'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
                 {/* ── Announcement ── */}
                 <div style={S.card}>
                     <div style={S.sectionTitle}>📢 {lang==='ar'?'الإعلان':'Announcement'}</div>
                     {canManage ? (
                         <>
                             <textarea value={editAnnouncement} onChange={e=>setEditAnnouncement(e.target.value)} maxLength={300} rows={4}
-                                style={{...S.input, resize:'none', lineHeight:1.6, fontSize:'12px', color:'#e2e8f0', WebkitTextFillColor:'#e2e8f0', colorScheme:'dark'}}
+                                style={{...S.input, resize:'none', lineHeight:1.6, fontSize:'12px'}}
                                 placeholder={lang==='ar'?'اكتب إعلانك هنا...':'Write your announcement here...'} />
                             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'8px'}}>
                                 <span style={{fontSize:'10px', color:'#4b5563'}}>{editAnnouncement.length}/300</span>
@@ -4011,7 +3325,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             </div>
             <div>
                 <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>📝 {lang==='ar'?'الوصف (اختياري)':'Description (optional)'}</div>
-                <textarea value={tribeDesc} onChange={e=>setFamilyDesc(e.target.value)} maxLength={150} rows={3} style={{...S.input, resize:'none', lineHeight:1.5, color:'#e2e8f0', WebkitTextFillColor:'#e2e8f0', colorScheme:'dark'}} placeholder={lang==='ar'?'صف عائلتك...':'Describe your family...'} />
+                <textarea value={tribeDesc} onChange={e=>setFamilyDesc(e.target.value)} maxLength={150} rows={3} style={{...S.input, resize:'none', lineHeight:1.5}} placeholder={lang==='ar'?'صف عائلتك...':'Describe your family...'} />
             </div>
             <div style={{padding:'10px 12px', borderRadius:'10px', background:'rgba(255,215,0,0.07)', border:'1px solid rgba(255,215,0,0.2)', fontSize:'11px', color:'#fbbf24'}}>
                 💡 {lang==='ar' ? `سيُخصم ${FAMILY_CREATE_COST} إنتل (رصيدك: ${currentUserData?.currency||0} 🧠)` : `${FAMILY_CREATE_COST} Intel will be deducted (Balance: ${currentUserData?.currency||0} 🧠)`}
@@ -4035,7 +3349,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 </button>
             </div>
             {joinResults.map(fam => {
-                const fl = getFamilyLevel(fam.level || 1);
+                const fl = getFamilyLevel(fam.xp || 0);
                 const fs = getFamilySignLevelData(fam.activeness || 0);
                 const isFull = (fam.members?.length||0) >= fl.maxMembers;
                 const isAlreadyIn = fam.members?.includes(currentUID);
@@ -4160,8 +3474,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 {activeTab==='members'  && renderMembers()}
                                 {activeTab==='chat'     && renderChat()}
                                 {activeTab==='tasks'    && renderTasks()}
-                                {activeTab==='chests'   && renderChests()}
-                                {activeTab==='gacha'    && renderGacha()}
                                 {activeTab==='shop'     && renderShop()}
                                 {activeTab==='ranking'  && renderRankingTab()}
                                 {activeTab==='news'     && renderNews()}
