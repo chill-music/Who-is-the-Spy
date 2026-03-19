@@ -296,11 +296,50 @@ const MiniProfilePopup = ({
     zIndex       = Z.OVERLAY,
 }) => {
     const [showMenu, setShowMenu] = useState(false);
+    const [bannerErr, setBannerErr] = useState(false);
 
     if (!profile) return null;
 
-    const isSelf    = profile.uid === currentUID;
-    const hasMenu   = onReport || onBlock || onUnblock || onOpenProfile;
+    const isSelf  = profile.uid === currentUID;
+    const hasMenu = onReport || onBlock || onUnblock || onOpenProfile;
+
+    // ── helpers ──
+    const vipColor = profile.vipCfg?.nameColor || null;
+
+    // Charisma level
+    const charismaLevel = (() => {
+        if (typeof getCharismaLevel === 'undefined') return null;
+        const { currentLevel: lvl } = getCharismaLevel(profile.charisma || 0);
+        return lvl || null;
+    })();
+
+    // Family Sign
+    const familySignEl = (() => {
+        if (!profile.familyTag) return null;
+        const signImgURL = getFamilySignURL(profile);
+        const tag = profile.familyTag;
+        if (signImgURL) {
+            const imgW = 44 + (tag.length * 6);
+            const imgH = Math.round(imgW * 0.55);
+            const fs   = tag.length <= 3 ? 11 : tag.length === 4 ? 10 : 9;
+            const sc   = profile.familySignColor || '#00f2ff';
+            const hg   = (profile.familySignLevel || 0) >= 4;
+            return (
+                <span style={{ position:'relative', display:'inline-flex', alignItems:'center', justifyContent:'center', flexShrink:0, width:`${imgW}px`, height:`${imgH}px`, filter:hg?`drop-shadow(0 0 5px ${sc}cc)`:'none' }}>
+                    <img src={signImgURL} alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain'}}/>
+                    <span style={{position:'relative',zIndex:1,fontSize:`${fs}px`,fontWeight:900,fontStyle:'italic',letterSpacing:'1.5px',color:'#fff',textShadow:'0 0 6px rgba(0,0,0,0.9)'}}>{tag}</span>
+                </span>
+            );
+        }
+        return <span style={{fontSize:'10px',fontWeight:800,color:'#00f2ff',background:'rgba(0,242,255,0.15)',border:'1px solid rgba(0,242,255,0.3)',borderRadius:'6px',padding:'2px 8px'}}>{tag}</span>;
+    })();
+
+    // VIP name color
+    const nameStyle = vipColor
+        ? { background: `linear-gradient(90deg, ${vipColor}, #fff, ${vipColor})`, backgroundSize:'200%', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', fontWeight:900, fontSize:'17px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'170px', cursor:'pointer' }
+        : { fontSize:'17px', fontWeight:900, color:'#00f2ff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'170px', cursor:'pointer', textDecoration:'underline dotted rgba(0,242,255,0.4)' };
+
+    const hasBanner = profile.bannerUrl && !bannerErr;
 
     return (
         <PortalModal>
@@ -314,28 +353,34 @@ const MiniProfilePopup = ({
                     width:'100%', maxWidth:'min(370px, calc(100vw - 20px))',
                     borderRadius:'24px', overflow:'hidden',
                     background:'#0d0d1f',
-                    border:'1px solid rgba(255,255,255,0.1)',
-                    boxShadow:'0 28px 70px rgba(0,0,0,0.95)',
+                    border:`1px solid ${vipColor ? vipColor+'44' : 'rgba(255,255,255,0.1)'}`,
+                    boxShadow:`0 28px 70px rgba(0,0,0,0.95)${vipColor ? `, 0 0 30px ${vipColor}22` : ''}`,
                     position:'relative',
                 }} onClick={e => e.stopPropagation()}>
 
                     {/* ── Banner ── */}
                     <div style={{
-                        position:'relative', height:'120px',
-                        background: profile.bannerUrl ? 'transparent' : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)',
-                        backgroundImage: profile.bannerUrl ? `url(${profile.bannerUrl})` : undefined,
-                        backgroundSize:'cover', backgroundPosition:'center', backgroundRepeat:'no-repeat',
+                        position:'relative', height:'130px',
+                        background: hasBanner ? 'transparent' : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)',
                     }}>
-                        <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.18) 0%,rgba(13,13,31,0.65) 100%)' }} />
+                        {hasBanner && (
+                            <img
+                                src={profile.bannerUrl}
+                                alt=""
+                                onError={() => setBannerErr(true)}
+                                style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }}
+                            />
+                        )}
+                        <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.1) 0%,rgba(13,13,31,0.7) 100%)' }} />
 
-                        {/* ⋮ Menu */}
+                        {/* ⋮ Menu — top right */}
                         {hasMenu && (
                             <div style={{ position:'absolute', top:'10px', right:'10px', zIndex:3 }}>
                                 <div style={{ position:'relative' }}>
-                                    <button
-                                        onClick={e => { e.stopPropagation(); setShowMenu(v => !v); }}
-                                        style={{ background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.18)', borderRadius:'50%', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white', fontSize:'17px', fontWeight:900, lineHeight:1 }}
-                                    >⋮</button>
+                                    <button onClick={e => { e.stopPropagation(); setShowMenu(v => !v); }}
+                                        style={{ background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'50%', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white', fontSize:'17px', fontWeight:900, lineHeight:1 }}>
+                                        ⋮
+                                    </button>
                                     {showMenu && (
                                         <div style={{ position:'absolute', top:'34px', right:0, background:'linear-gradient(160deg,#0e0e22,#13122a)', border:'1px solid rgba(255,255,255,0.13)', borderRadius:'12px', padding:'5px', minWidth:'160px', boxShadow:'0 10px 30px rgba(0,0,0,0.9)', zIndex:5 }}
                                             onClick={e => e.stopPropagation()}>
@@ -369,9 +414,9 @@ const MiniProfilePopup = ({
                             </div>
                         )}
 
-                        {/* 💍 Couple ring */}
+                        {/* 💍 Couple ring — bottom right of banner */}
                         {(profile.coupleRingEmoji || profile.coupleRingImageUrl) && (
-                            <div style={{ position:'absolute', top:'48px', right:'12px', zIndex:2 }}>
+                            <div style={{ position:'absolute', bottom:'8px', right:'12px', zIndex:2 }}>
                                 {profile.coupleRingImageUrl
                                     ? <img src={profile.coupleRingImageUrl} alt="" style={{width:'28px',height:'28px',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}/>
                                     : <span style={{fontSize:'22px',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}>{profile.coupleRingEmoji}</span>}
@@ -379,90 +424,81 @@ const MiniProfilePopup = ({
                         )}
                     </div>
 
-                    {/* ── Top Badges (right side) ── */}
+                    {/* ── Badges — top right, overlapping banner ── */}
                     {(profile.topBadges || []).length > 0 && (
-                        <div style={{ display:'flex', gap:'6px', padding:'8px 16px 0', justifyContent:'flex-end' }}>
+                        <div style={{ position:'absolute', top:'100px', right:'12px', display:'flex', gap:'5px', zIndex:3 }}>
                             {(profile.topBadges || []).map((badge, i) => (
-                                <div key={i} title={badge.title_en || badge.name_en || ''} style={{ width:'26px', height:'26px', borderRadius:'8px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px' }}>
-                                    {badge.imageUrl ? <img src={badge.imageUrl} alt="" style={{width:'18px',height:'18px',objectFit:'contain'}}/> : (badge.icon || '🏅')}
+                                <div key={i} title={badge.title_en || badge.name_en || ''} style={{ width:'28px', height:'28px', borderRadius:'8px', background:'rgba(13,13,31,0.85)', border:'1px solid rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'15px', backdropFilter:'blur(6px)' }}>
+                                    {badge.imageUrl ? <img src={badge.imageUrl} alt="" style={{width:'20px',height:'20px',objectFit:'contain'}}/> : (badge.icon || '🏅')}
                                 </div>
                             ))}
                         </div>
                     )}
 
                     {/* ── Profile section ── */}
-                    <div style={{ padding:(profile.topBadges||[]).length > 0 ? '6px 16px 20px' : '0 16px 20px', position:'relative' }}>
-                        <div style={{ display:'flex', alignItems:'flex-end', gap:'12px', marginTop:(profile.topBadges||[]).length > 0 ? '-48px' : '-36px', marginBottom:'14px' }}>
+                    <div style={{ padding:'0 14px 16px', position:'relative' }}>
 
-                            {/* Avatar */}
+                        {/* Avatar row — lifts up over banner */}
+                        <div style={{ display:'flex', alignItems:'flex-end', gap:'12px', marginTop:'-36px', marginBottom:'10px' }}>
+
+                            {/* Avatar with frame */}
                             <div onClick={() => { onClose(); if(onOpenProfile) onOpenProfile(profile.uid); }}
-                                style={{ position:'relative', width:'72px', height:'72px', borderRadius:'50%', border: profile.vipCfg ? `3px solid ${profile.vipCfg.nameColor}` : '3px solid #0d0d1f', overflow:'hidden', background:'#1a1a2e', boxShadow: profile.vipCfg ? `0 0 14px ${profile.vipCfg.nameColor}88, 0 4px 16px rgba(0,0,0,0.6)` : '0 4px 16px rgba(0,0,0,0.6)', flexShrink:0, zIndex:2, cursor:'pointer' }}>
+                                style={{ position:'relative', width:'76px', height:'76px', borderRadius:'50%',
+                                    border: vipColor ? `3px solid ${vipColor}` : '3px solid #0d0d1f',
+                                    overflow:'hidden', background:'#1a1a2e',
+                                    boxShadow: vipColor ? `0 0 16px ${vipColor}88, 0 4px 16px rgba(0,0,0,0.7)` : '0 4px 16px rgba(0,0,0,0.7)',
+                                    flexShrink:0, zIndex:2, cursor:'pointer' }}>
                                 {profile.photo
                                     ? <img src={profile.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                    : <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px'}}>😎</div>}
-                                {/* Equipped Frame overlay */}
+                                    : <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'30px'}}>😎</div>}
                                 {profile.equippedFrame && (
-                                    <img src={profile.equippedFrame} alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}/>
+                                    <img
+                                        src={profile.equippedFrame}
+                                        alt=""
+                                        onError={e => { e.target.style.display='none'; }}
+                                        style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}
+                                    />
                                 )}
                             </div>
 
-                            {/* Name / info column */}
-                            <div style={{ flex:1, paddingBottom:'4px', minWidth:0 }}>
-                                <div onClick={() => { onClose(); if(onOpenProfile) onOpenProfile(profile.uid); }}
-                                    style={{ display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px', cursor:'pointer', flexWrap:'wrap' }}>
+                            {/* Name column — right of avatar */}
+                            <div style={{ flex:1, paddingBottom:'6px', minWidth:0 }}>
+
+                                {/* Row 1: VIP badge + Name + Gender */}
+                                <div style={{ display:'flex', alignItems:'center', gap:'5px', marginBottom:'4px', flexWrap:'wrap' }}
+                                    onClick={() => { onClose(); if(onOpenProfile) onOpenProfile(profile.uid); }}>
                                     {profile.vipCfg && (
-                                        <span style={{ fontSize:'8px', fontWeight:900, background:profile.vipCfg.nameColor, color:'#000', padding:'1px 4px', borderRadius:'3px', flexShrink:0, display:'inline-flex', alignItems:'center', gap:'2px' }}>
+                                        <span style={{ fontSize:'8px', fontWeight:900, background:vipColor, color:'#000', padding:'1px 4px', borderRadius:'3px', flexShrink:0, display:'inline-flex', alignItems:'center', gap:'2px', cursor:'pointer' }}>
                                             {profile.vipCfg.badgeImageUrl && <img src={profile.vipCfg.badgeImageUrl} alt="" style={{height:'10px',objectFit:'contain'}}/>}
                                             VIP{profile.vipLevel}
                                         </span>
                                     )}
-                                    <span style={{ fontSize:'16px', fontWeight:900, color:'#00f2ff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration:'underline dotted rgba(0,242,255,0.4)' }}>{profile.name}</span>
-                                    {profile.gender && <span style={{fontSize:'16px',lineHeight:1}}>{profile.gender==='male'?'♂️':'♀️'}</span>}
-
-                                    {/* Charisma level badge */}
-                                    {(() => {
-                                        if (typeof getCharismaLevel === 'undefined') return null;
-                                        const { currentLevel: lvlData } = getCharismaLevel(profile.charisma || 0);
-                                        if (!lvlData) return null;
-                                        const isDivine = lvlData.isDivine;
-                                        const hasGlow  = lvlData.hasGlow;
-                                        return (
-                                            <div style={{ display:'inline-flex', alignItems:'center', gap:'3px', borderRadius:'6px', padding:'2px 5px', background: isDivine?'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))':hasGlow?`${lvlData.color}18`:'rgba(255,255,255,0.06)', border: isDivine?'1px solid rgba(0,212,255,0.4)':hasGlow?`1px solid ${lvlData.color}55`:'1px solid rgba(255,255,255,0.1)', boxShadow: isDivine?'0 0 10px rgba(0,212,255,0.25)':hasGlow?`0 0 8px ${lvlData.color}44`:'none', flexShrink:0 }}>
-                                                {lvlData.iconType === 'image' && lvlData.iconUrl
-                                                    ? <img src={lvlData.iconUrl} alt="" style={{width:'16px',height:'16px',borderRadius:isDivine?'50%':'0',objectFit:'cover'}}/>
-                                                    : <span style={{fontSize:'13px'}}>{lvlData.icon}</span>}
-                                                <span style={{fontSize:'10px',fontWeight:800,color:isDivine?'#00d4ff':lvlData.color}}>Lv.{lvlData.level}</span>
-                                            </div>
-                                        );
-                                    })()}
+                                    <span style={nameStyle}>{profile.name}</span>
+                                    {profile.gender && <span style={{fontSize:'15px',lineHeight:1,flexShrink:0}}>{profile.gender==='male'?'♂️':'♀️'}</span>}
                                 </div>
 
-                                {/* Family Sign */}
-                                {profile.familyTag && (() => {
-                                    const signImgURL = getFamilySignURL(profile);
-                                    const tag = profile.familyTag;
-                                    if (signImgURL) {
-                                        const imgW = 44 + (tag.length * 6);
-                                        const imgH = Math.round(imgW * 0.55);
-                                        const fs   = tag.length <= 3 ? 11 : tag.length === 4 ? 10 : 9;
-                                        const sc   = profile.familySignColor || '#00f2ff';
-                                        const hg   = (profile.familySignLevel || 0) >= 4;
-                                        return (
-                                            <span style={{ position:'relative', display:'inline-flex', alignItems:'center', justifyContent:'center', flexShrink:0, width:`${imgW}px`, height:`${imgH}px`, filter:hg?`drop-shadow(0 0 6px ${sc}cc)`:'none', marginBottom:'4px' }}>
-                                                <img src={signImgURL} alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain'}}/>
-                                                <span style={{position:'relative',zIndex:1,fontSize:`${fs}px`,fontWeight:900,fontStyle:'italic',letterSpacing:'1.5px',color:'#fff',textShadow:'0 0 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.7)'}}>{tag}</span>
-                                            </span>
-                                        );
-                                    }
-                                    return <span style={{fontSize:'10px',fontWeight:800,color:'#00f2ff',background:'rgba(0,242,255,0.15)',border:'1px solid rgba(0,242,255,0.3)',borderRadius:'6px',padding:'2px 8px'}}>{tag}</span>;
-                                })()}
+                                {/* Row 2: Charisma level + Family Sign — side by side */}
+                                <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'4px' }}>
+                                    {charismaLevel && (
+                                        <div style={{ display:'inline-flex', alignItems:'center', gap:'3px', borderRadius:'6px', padding:'2px 5px',
+                                            background: charismaLevel.isDivine?'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))':charismaLevel.hasGlow?`${charismaLevel.color}18`:'rgba(255,255,255,0.06)',
+                                            border: charismaLevel.isDivine?'1px solid rgba(0,212,255,0.4)':charismaLevel.hasGlow?`1px solid ${charismaLevel.color}55`:'1px solid rgba(255,255,255,0.1)',
+                                            flexShrink:0 }}>
+                                            {charismaLevel.iconType === 'image' && charismaLevel.iconUrl
+                                                ? <img src={charismaLevel.iconUrl} alt="" style={{width:'14px',height:'14px',borderRadius:charismaLevel.isDivine?'50%':'0',objectFit:'cover'}}/>
+                                                : <span style={{fontSize:'12px'}}>{charismaLevel.icon}</span>}
+                                            <span style={{fontSize:'10px',fontWeight:800,color:charismaLevel.isDivine?'#00d4ff':charismaLevel.color}}>Lv.{charismaLevel.level}</span>
+                                        </div>
+                                    )}
+                                    {familySignEl}
+                                </div>
 
-                                {/* ID row */}
+                                {/* Row 3: ID */}
                                 {profile.customId && (
                                     <div style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'11px', color:'#6b7280' }}>
                                         {profile.vipCfg?.idBeforeImageUrl
-                                            ? <><img src={profile.vipCfg.idBeforeImageUrl} alt="" style={{height:'16px',objectFit:'contain',flexShrink:0}}/><span>{profile.customId}</span></>
-                                            : <span>ID: {profile.customId}</span>}
+                                            ? <><img src={profile.vipCfg.idBeforeImageUrl} alt="" style={{height:'14px',objectFit:'contain',flexShrink:0}}/><span>{profile.customId}</span></>
+                                            : <span>ID:{profile.customId}</span>}
                                         <button onClick={() => navigator.clipboard?.writeText(profile.customId)}
                                             style={{background:'none',border:'none',cursor:'pointer',fontSize:'12px',color:'#4b5563',padding:'0 2px',lineHeight:1}}>⎘</button>
                                     </div>
@@ -472,9 +508,9 @@ const MiniProfilePopup = ({
                         </div>
 
                         {/* Stats row */}
-                        <div style={{ display:'flex', borderTop:'1px solid rgba(255,255,255,0.07)', borderBottom:'1px solid rgba(255,255,255,0.07)', margin:'0 0 16px', padding:'12px 0' }}>
+                        <div style={{ display:'flex', borderTop:'1px solid rgba(255,255,255,0.07)', borderBottom:'1px solid rgba(255,255,255,0.07)', margin:'0 0 14px', padding:'10px 0' }}>
                             <div style={{flex:1,textAlign:'center'}}>
-                                <div style={{fontSize:'22px',fontWeight:900,color:'white',lineHeight:1}}>{profile.gamesPlayed ?? 0}</div>
+                                <div style={{fontSize:'20px',fontWeight:900,color:'white',lineHeight:1}}>{profile.gamesPlayed ?? 0}</div>
                                 <div style={{fontSize:'10px',color:'#6b7280',marginTop:'3px'}}>{lang==='ar'?'مباريات':'Games'}</div>
                             </div>
                             <div style={{width:'1px',background:'rgba(255,255,255,0.08)',margin:'4px 0'}}/>
@@ -483,7 +519,7 @@ const MiniProfilePopup = ({
                                     const r = profile.winRate ?? 0;
                                     const c = r >= 70 ? '#10b981' : r >= 50 ? '#facc15' : '#f97316';
                                     return <>
-                                        <div style={{fontSize:'22px',fontWeight:900,color:c,lineHeight:1}}>{r}%</div>
+                                        <div style={{fontSize:'20px',fontWeight:900,color:c,lineHeight:1}}>{r}%</div>
                                         <div style={{fontSize:'10px',color:'#6b7280',marginTop:'3px'}}>{lang==='ar'?'نسبة الفوز':'Win Rate'}</div>
                                     </>;
                                 })()}
@@ -524,4 +560,3 @@ const MiniProfilePopup = ({
         </PortalModal>
     );
 };
-
