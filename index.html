@@ -22,7 +22,6 @@
     <link rel="stylesheet" href="vip.css">
 </head>
 <body>
-    <canvas id="bg-canvas"></canvas>
     <div id="root"></div>
 
     <!-- Firebase -->
@@ -94,11 +93,11 @@
     <!-- 20 · Couples / Marriage System -->
     <script type="text/babel" data-presets="react" src="src/20-couples.js"></script>
 
-    <!-- 16 · Entry Point — render app -->
-    <script type="text/babel" data-presets="react" src="src/16-main.js"></script>
-
-    <!-- 21 · BFF System + Bot Chats -->
+    <!-- 21 · BFF System + Bot Chats — must load BEFORE 16-main renders -->
     <script type="text/babel" data-presets="react" src="src/21-bff.js"></script>
+
+    <!-- 16 · Entry Point — render app (always last) -->
+    <script type="text/babel" data-presets="react" src="src/16-main.js"></script>
 
 </body>
 </html>
