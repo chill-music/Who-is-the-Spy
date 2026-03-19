@@ -756,6 +756,9 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     frameUpdates[`inventory.expiry.${r.frameId}`] = expiresAt;
                 } else if (r.type === 'gift') {
                     giftUpdates[`inventory.giftCounts.${r.giftId}`] = firebase.firestore.FieldValue.increment(r.qty || 1);
+                    if (r.giftId !== 'gift_ring') {
+                        giftUpdates[`inventory.expiry.${r.giftId}`] = Date.now() + 30 * 86400000;
+                    }
                 }
             });
             
@@ -2015,6 +2018,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     // ── Gacha Roll (free once daily / paid 200 Intel per spin up to 50/day) ──
     const handleGachaRoll = async (mode = 'free') => {
         if (!family?.id || !currentUID || spinningGacha) return;
+        const currentGachaConfig = (family?.level >= 5) ? GACHA_CONFIG_PREMIUM : GACHA_CONFIG_BASIC;
         const today = new Date().toDateString();
 
         if (mode === 'free') {
@@ -2029,14 +2033,14 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             }
         } else {
             // Paid: 200 Intel from user wallet, max 50/day
-            if ((currentUserData?.currency || 0) < GACHA_CONFIG.paidCostPerSpin) {
-                onNotification(lang==='ar' ? `❌ تحتاج ${GACHA_CONFIG.paidCostPerSpin} إنتل` : `❌ Need ${GACHA_CONFIG.paidCostPerSpin} Intel`);
+            if ((currentUserData?.currency || 0) < currentGachaConfig.paidCostPerSpin) {
+                onNotification(lang==='ar' ? `❌ تحتاج ${currentGachaConfig.paidCostPerSpin} إنتل` : `❌ Need ${currentGachaConfig.paidCostPerSpin} Intel`);
                 return;
             }
             const paidKey = `gachaPaid_${today}`;
             const spinsToday = family.gachaPaidSpins?.[today] || 0;
-            if (spinsToday >= GACHA_CONFIG.maxPaidSpinsDaily) {
-                onNotification(lang==='ar' ? `❌ وصلت الحد اليومي (${GACHA_CONFIG.maxPaidSpinsDaily} سحبة)` : `❌ Daily limit reached (${GACHA_CONFIG.maxPaidSpinsDaily} spins)`);
+            if (spinsToday >= currentGachaConfig.maxPaidSpinsDaily) {
+                onNotification(lang==='ar' ? `❌ وصلت الحد اليومي (${currentGachaConfig.maxPaidSpinsDaily} سحبة)` : `❌ Daily limit reached (${currentGachaConfig.maxPaidSpinsDaily} spins)`);
                 return;
             }
         }
@@ -2045,10 +2049,10 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         setGachaResult(null);
         try {
             // Weighted random pick
-            const total = GACHA_CONFIG.rewards.reduce((s, r) => s + r.weight, 0);
+            const total = currentGachaConfig.rewards.reduce((s, r) => s + r.weight, 0);
             let rand = Math.random() * total;
-            let picked = GACHA_CONFIG.rewards[GACHA_CONFIG.rewards.length - 1];
-            for (const r of GACHA_CONFIG.rewards) {
+            let picked = currentGachaConfig.rewards[currentGachaConfig.rewards.length - 1];
+            for (const r of currentGachaConfig.rewards) {
                 rand -= r.weight;
                 if (rand <= 0) { picked = r; break; }
             }
@@ -2060,7 +2064,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 rewardUpdates.gachaFreeLastUsed = TS();
             } else {
                 // Deduct Intel from user
-                userUpdates.currency = firebase.firestore.FieldValue.increment(-GACHA_CONFIG.paidCostPerSpin);
+                userUpdates.currency = firebase.firestore.FieldValue.increment(-currentGachaConfig.paidCostPerSpin);
                 rewardUpdates[`gachaPaidSpins.${new Date().toDateString()}`] = firebase.firestore.FieldValue.increment(1);
             }
 
@@ -2876,6 +2880,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
                 {/* ── Gacha Modal (full redesign) ── */}
                 {showGachaModal && (() => {
+                    const currentGachaConfig = (family?.level >= 5) ? GACHA_CONFIG_PREMIUM : GACHA_CONFIG_BASIC;
                     const today = new Date().toDateString();
                     const freeUsed = (() => {
                         const lu = family?.gachaFreeLastUsed;
@@ -2884,9 +2889,9 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         return d.toDateString() === today;
                     })();
                     const paidSpinsToday = family?.gachaPaidSpins?.[today] || 0;
-                    const paidRemaining = GACHA_CONFIG.maxPaidSpinsDaily - paidSpinsToday;
+                    const paidRemaining = currentGachaConfig.maxPaidSpinsDaily - paidSpinsToday;
                     const userIntel = currentUserData?.currency || 0;
-                    const canAffordPaid = userIntel >= GACHA_CONFIG.paidCostPerSpin;
+                    const canAffordPaid = userIntel >= currentGachaConfig.paidCostPerSpin;
 
                     return (
                         <div style={{position:'fixed',inset:0,zIndex:Z.OVERLAY,background:'rgba(0,0,0,0.92)',display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>{setShowGachaModal(false);setGachaResult(null);setShowGachaTable(false);}}>
@@ -2929,14 +2934,14 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                         disabled={paidRemaining<=0||!canAffordPaid||spinningGacha}
                                         style={{flex:2,padding:'14px 8px',borderRadius:'14px',border:'none',background:paidRemaining>0&&canAffordPaid?'linear-gradient(135deg,#a78bfa,#7000ff)':'rgba(255,255,255,0.06)',color:paidRemaining>0&&canAffordPaid?'white':'#4b5563',fontSize:'12px',fontWeight:800,cursor:paidRemaining>0&&canAffordPaid?'pointer':'not-allowed',display:'flex',flexDirection:'column',alignItems:'center',gap:'4px'}}>
                                         <span style={{fontSize:'20px'}}>💎</span>
-                                        <span style={{fontSize:'13px'}}>{spinningGacha?'🎰...':(`${lang==='ar'?'سحب':'Draw'} (${GACHA_CONFIG.paidCostPerSpin}🧠)`)}</span>
-                                        <span style={{fontSize:'9px',opacity:0.7}}>{lang==='ar'?`متبقي ${paidRemaining}/${GACHA_CONFIG.maxPaidSpinsDaily}`:`${paidRemaining}/${GACHA_CONFIG.maxPaidSpinsDaily} left`}</span>
+                                        <span style={{fontSize:'13px'}}>{spinningGacha?'🎰...':(`${lang==='ar'?'سحب':'Draw'} (${currentGachaConfig.paidCostPerSpin}🧠)`)}</span>
+                                        <span style={{fontSize:'9px',opacity:0.7}}>{lang==='ar'?`متبقي ${paidRemaining}/${currentGachaConfig.maxPaidSpinsDaily}`:`${paidRemaining}/${currentGachaConfig.maxPaidSpinsDaily} left`}</span>
                                     </button>
                                 </div>
 
                                 {/* Progress bar */}
                                 <div style={{height:'4px',borderRadius:'2px',background:'rgba(255,255,255,0.08)',marginBottom:'12px',overflow:'hidden'}}>
-                                    <div style={{height:'100%',width:`${(paidSpinsToday/GACHA_CONFIG.maxPaidSpinsDaily)*100}%`,background:'linear-gradient(90deg,#a78bfa,#7000ff)',transition:'width 0.4s'}}/>
+                                    <div style={{height:'100%',width:`${(paidSpinsToday/currentGachaConfig.maxPaidSpinsDaily)*100}%`,background:'linear-gradient(90deg,#a78bfa,#7000ff)',transition:'width 0.4s'}}/>
                                 </div>
 
                                 {/* Arrow toggle for rewards table */}
@@ -2947,7 +2952,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 {/* Rewards table */}
                                 {showGachaTable && (
                                     <div style={{display:'flex',flexDirection:'column',gap:'4px',marginTop:'8px'}}>
-                                        {GACHA_CONFIG.rewards.map((r, i) => (
+                                        {currentGachaConfig.rewards.map((r, i) => (
                                             <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 10px',borderRadius:'8px',background:'rgba(255,255,255,0.03)',border:`1px solid ${GACHA_RARITY_COLORS[r.rarity||'common']}33`}}>
                                                 {r.imageURL
                                                     ? <img src={r.imageURL} alt="" style={{width:'20px',height:'20px',objectFit:'contain',flexShrink:0}}/>
@@ -3448,6 +3453,41 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const renderTasks = () => {
         if (!family) return null;
         const taskProgress = family.taskProgress || {};
+        const today = new Date().toDateString();
+        const dailyPtsKey = `dailyPts_${today}_${currentUID}`;
+        const myDailyPoints = family[dailyPtsKey] || 0;
+
+        // ── Claim Daily Milestone Chest ──
+        const handleClaimDailyChest = async (msIdx, ms) => {
+            const claimKey = `dailyChestClaim_${today}_${currentUID}_${msIdx}`;
+            if (family[claimKey]) return; // already claimed
+            if (myDailyPoints < ms.points) return; // not reached
+
+            try {
+                const userUpdates = {};
+                const rewardUpdates = { [claimKey]: true };
+                let msg = '';
+
+                for (const r of ms.rewards) {
+                    if (r.type === 'currency') {
+                        userUpdates.currency = firebase.firestore.FieldValue.increment(r.qty);
+                        msg += `+${r.qty}🧠 `;
+                    } else if (r.type === 'coins') {
+                        rewardUpdates.familyCoins = firebase.firestore.FieldValue.increment(r.qty);
+                        msg += `+${r.qty}🏅 `;
+                    } else if (r.type === 'gift') {
+                        userUpdates[`inventory.gifts`] = firebase.firestore.FieldValue.arrayUnion(r.id);
+                        userUpdates[`inventory.giftCounts.${r.id}`] = firebase.firestore.FieldValue.increment(r.qty);
+                        msg += `+${r.qty}🎁 `;
+                    }
+                }
+
+                if (Object.keys(rewardUpdates).length) await familiesCollection.doc(family.id).update(rewardUpdates);
+                if (Object.keys(userUpdates).length) await usersCollection.doc(currentUID).update(userUpdates);
+
+                onNotification(lang==='ar' ? `✅ تم استلام الصندوق: ${msg}` : `✅ Chest claimed: ${msg}`);
+            } catch(e) {}
+        };
 
         // ── دالة Claim للمهمة ──
         const claimTask = async (task) => {
@@ -3459,6 +3499,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 const r = task.reward;
                 await familiesCollection.doc(family.id).update({
                     [`taskProgress.${key}.claimed`]: true,
+                    [`${dailyPtsKey}`]: firebase.firestore.FieldValue.increment(r.xp || 0),
                     xp:          firebase.firestore.FieldValue.increment(r.xp || 0),
                     activeness:  firebase.firestore.FieldValue.increment((r.xp || 0) * 2),
                     weeklyActiveness: firebase.firestore.FieldValue.increment((r.xp || 0) * 2),
@@ -3476,7 +3517,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             if (!family?.id || !currentUID) return;
             const key = `ft4_${currentUID}`;
             const prog = taskProgress[key] || { current: 0, claimed: false, lastCheckIn: null };
-            const today = new Date().toDateString();
             const lastCheck = prog.lastCheckIn;
             if (lastCheck === today) {
                 onNotification(lang === 'ar' ? '✅ سجّلت حضورك اليوم!' : '✅ Already checked in today!');
@@ -3487,31 +3527,88 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     [`taskProgress.${key}.current`]: 1,
                     [`taskProgress.${key}.lastCheckIn`]: today,
                     [`taskProgress.${key}.claimed`]: false,
-                    activeness: firebase.firestore.FieldValue.increment(50),
-                    weeklyActiveness: firebase.firestore.FieldValue.increment(50),
+                    [`${dailyPtsKey}`]: firebase.firestore.FieldValue.increment(100),
+                    activeness: firebase.firestore.FieldValue.increment(200),
+                    weeklyActiveness: firebase.firestore.FieldValue.increment(200),
                 });
                 onNotification(lang === 'ar' ? '✅ تم تسجيل الحضور!' : '✅ Checked in!');
             } catch(e) {}
         };
 
+        const maxPts = DAILY_TASKS_MILESTONES[DAILY_TASKS_MILESTONES.length - 1]?.points || 1600;
+        const barWidth = Math.min(100, (myDailyPoints / maxPts) * 100);
+
         return (
             <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'10px'}}>
-                <div style={{...S.card, background:'rgba(0,242,255,0.04)', border:'1px solid rgba(0,242,255,0.15)', padding:'10px 14px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                    <div>
-                        <div style={{fontSize:'10px', color:'#6b7280'}}>🧠 {lang==='ar'?'خزينة العائلة':'Family Treasury'}</div>
-                        <div style={{fontSize:'18px', fontWeight:900, color:'#00f2ff', fontStyle:'italic'}}>{fmtFamilyNum(family.treasury||0)}</div>
+                {/* ── HEADER: Family Fund | Family Coins | Shop Coins ── */}
+                <div style={{...S.card, background:'linear-gradient(90deg, rgba(16,185,129,0.05), rgba(0,242,255,0.05))', border:'1px solid rgba(255,255,255,0.1)', padding:'12px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                    <div style={{textAlign:'center', flex:1, borderRight:'1px solid rgba(255,255,255,0.05)'}}>
+                        <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'2px'}}>🛡️ {lang==='ar'?'صندوق القبيلة':'Family Fund'}</div>
+                        <div style={{fontSize:'15px', fontWeight:900, color:'#10b981'}}>{fmtFamilyNum(family.treasury||0)}</div>
                     </div>
-                    <div style={{textAlign:'right'}}>
-                        <div style={{fontSize:'10px', color:'#6b7280'}}>⚡ {lang==='ar'?'نشاطي':'My activity'}</div>
-                        <div style={{fontSize:'14px', fontWeight:800, color:'#fbbf24'}}>{fmtFamilyNum((family.memberDonations?.[currentUID]?.totalIntel || family.memberDonations?.[currentUID]?.total) || 0)}</div>
+                    <div style={{textAlign:'center', flex:1, borderRight:'1px solid rgba(255,255,255,0.05)'}}>
+                        <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'2px'}}>🏅 {lang==='ar'?'عملات القبيلة':'Family Coins'}</div>
+                        <div style={{fontSize:'15px', fontWeight:900, color:'#fbbf24'}}>{fmtFamilyNum(family.familyCoins||0)}</div>
+                    </div>
+                    <div style={{textAlign:'center', flex:1}}>
+                        <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'2px'}}>🧠 {lang==='ar'?'عملات المتجر':'Shop Coins'}</div>
+                        <div style={{fontSize:'15px', fontWeight:900, color:'#00f2ff'}}>{fmtFamilyNum(currentUserData?.currency||0)}</div>
+                    </div>
+                </div>
+
+                {/* ── DAILY ACTIVITY BAR & CHESTS ── */}
+                <div style={{...S.card, padding:'14px 14px 24px', background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.05)', position:'relative'}}>
+                    <div style={{fontSize:'12px', fontWeight:800, color:'#e2e8f0', marginBottom:'16px', display:'flex', justifyContent:'space-between'}}>
+                        <span>{lang==='ar'?'النشاط اليومي':'Daily Activity'}</span>
+                        <span style={{color:'#f97316'}}>{myDailyPoints} ✨</span>
+                    </div>
+                    
+                    {/* The Bar */}
+                    <div style={{position:'relative', height:'8px', background:'rgba(255,255,255,0.08)', borderRadius:'4px', margin:'0 10px'}}>
+                        <div style={{position:'absolute', top:0, left:lang==='ar'?'auto':0, right:lang==='ar'?0:'auto', height:'100%', width:`${barWidth}%`, background:'linear-gradient(90deg, #f59e0b, #f97316)', borderRadius:'4px', transition:'width 0.4s ease-out'}}/>
+                        
+                        {/* The Chest Nodes */}
+                        {DAILY_TASKS_MILESTONES.map((ms, idx) => {
+                            const nodePct = (ms.points / maxPts) * 100;
+                            const isReached = myDailyPoints >= ms.points;
+                            const claimKey = `dailyChestClaim_${today}_${currentUID}_${idx}`;
+                            const isClaimed = family[claimKey] === true;
+                            
+                            return (
+                                <div key={idx} 
+                                     onClick={() => handleClaimDailyChest(idx, ms)}
+                                     style={{
+                                        position:'absolute', 
+                                        top:'50%', 
+                                        left:lang==='ar'?'auto':`${nodePct}%`, 
+                                        right:lang==='ar'?`${nodePct}%`:'auto', 
+                                        transform:'translate(-50%, -50%)', 
+                                        cursor: (isReached && !isClaimed) ? 'pointer' : 'default',
+                                        display:'flex', flexDirection:'column', alignItems:'center'
+                                     }}>
+                                    <div style={{
+                                        width:'28px', height:'28px', borderRadius:'50%', 
+                                        background: isClaimed ? '#10b981' : isReached ? '#f97316' : '#374151',
+                                        border:'2px solid #0d0d1f', display:'flex', alignItems:'center', justifyContent:'center',
+                                        boxShadow: (isReached && !isClaimed) ? '0 0 10px rgba(249,115,22,0.8)' : 'none',
+                                        animation: (isReached && !isClaimed) ? 'pulse 1.5s infinite' : 'none'
+                                    }}>
+                                        <span style={{fontSize:'14px'}}>{isClaimed ? '✅' : '🎁'}</span>
+                                    </div>
+                                    <div style={{position:'absolute', top:'32px', fontSize:'10px', fontWeight:800, color:isReached?'#f97316':'#9ca3af', whiteSpace:'nowrap'}}>
+                                        {ms.points}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
                 {/* ── تعليمة المهام ── */}
                 <div style={{fontSize:'10px', color:'#6b7280', textAlign:'center', padding:'4px', background:'rgba(255,255,255,0.03)', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.06)'}}>
                     {lang==='ar'
-                        ? '📌 المهام شخصية — كل عضو يكمّل مهامه بشكل منفصل'
-                        : '📌 Tasks are personal — each member tracks their own progress'}
+                        ? '📌 المهام والنقاط شخصية — وتتجدد يومياً'
+                        : '📌 Tasks and points are personal — reset daily'}
                 </div>
 
                 {FAMILY_TASKS_CONFIG.map(task => {
@@ -3627,13 +3724,24 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     [`shopPurchases.${key}`]: true,
                 });
                 // Grant to user inventory based on type
-                const inventoryKey = item.type === 'badge' ? 'inventory.badges' : item.type === 'title' ? 'inventory.titles' : null;
+                const inventoryKey = 
+                    item.type === 'badge' ? 'inventory.badges' : 
+                    item.type === 'title' ? 'inventory.titles' : 
+                    item.type === 'theme' ? 'inventory.themes' : 
+                    item.type === 'frame' ? 'inventory.frames' : 
+                    item.type === 'profileEffect' ? 'inventory.profileEffects' :
+                    item.type === 'gift' ? 'inventory.gifts' : null;
+
                 if (inventoryKey) {
                     const updatePayload = {
                         [inventoryKey]: firebase.firestore.FieldValue.arrayUnion(item.id),
                     };
-                    if (item.durationDays) {
-                        updatePayload[`inventory.expiry.${item.id}`] = Date.now() + (item.durationDays * 86400000);
+                    if (item.type === 'gift') {
+                        updatePayload[`inventory.giftCounts.${item.id}`] = firebase.firestore.FieldValue.increment(item.qty || 1);
+                    }
+                    if (item.id !== 'gift_ring') {
+                        const dDays = item.durationDays || 30;
+                        updatePayload[`inventory.expiry.${item.id}`] = Date.now() + (dDays * 86400000);
                     }
                     await usersCollection.doc(currentUID).update(updatePayload);
                 }
