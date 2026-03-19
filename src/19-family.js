@@ -1041,7 +1041,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                         const cfg2 = CHEST_CONFIG[msg.chestType];
                         const msObj = ACTIVENESS_MILESTONES.find(m=>m.chestType===msg.chestType);
                         const isAssigned = msg.type === 'chest_assign' && (msg.assignedTo||[]).includes(currentUID);
-                        const myClaimCount = isAssigned ? ((family?.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo?.includes(currentUID))?.claimedBy?.[currentUID] || 0) : 0;
+                        const myClaimCount = isAssigned ? ((familyData?.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo?.includes(currentUID))?.claimedBy?.[currentUID] || 0) : 0;
                         const maxClaims = msg.maxClaimsPerMember || 1;
                         return React.createElement('div', { key: msg.id, style:{ textAlign:'center', padding:'10px 14px', margin:'4px 0' } },
                             React.createElement('div', { style:{ display:'inline-flex', flexDirection:'column', alignItems:'center', gap:'6px', background:`${(cfg2?.color||'#9ca3af')}14`, border:`1px solid ${(cfg2?.color||'#9ca3af')}44`, borderRadius:'14px', padding:'12px 20px', maxWidth:'280px' } },
@@ -1049,7 +1049,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                                 React.createElement('div', { style:{ fontSize:'11px', fontWeight:800, color:'#e2e8f0', textAlign:'center', lineHeight:1.4 } }, msg.text),
                                 isAssigned && myClaimCount < maxClaims && React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px', background:`${(cfg2?.color||'#9ca3af')}22`, border:`1px solid ${(cfg2?.color||'#9ca3af')}55`, borderRadius:'10px', padding:'5px 12px', cursor:'pointer' },
                                     onClick:()=>{
-                                        const invIdx = (family?.treasuryInventory||[]).findIndex(inv=>inv.chestType===msg.chestType&&(inv.assignedTo||[]).includes(currentUID)&&(inv.claimedBy?.[currentUID]||0)<(inv.maxClaimsPerMember||1));
+                                        const invIdx = (familyData?.treasuryInventory||[]).findIndex(inv=>inv.chestType===msg.chestType&&(inv.assignedTo||[]).includes(currentUID)&&(inv.claimedBy?.[currentUID]||0)<(inv.maxClaimsPerMember||1));
                                         if(invIdx>=0) openAssignedChest(invIdx);
                                     }},
                                     React.createElement('span', { style:{ fontSize:'14px' } }, '🎰'),
