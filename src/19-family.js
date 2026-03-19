@@ -88,150 +88,7 @@ const FAMILY_TASKS_CONFIG = [
     { id:'ft7', icon:'❤️', title_en:'Daily Like Mission',  title_ar:'مهمة الإعجاب اليومي',  sub_en:'Like 3 clanmates profiles/posts', sub_ar:'أعجب بـ 3 منشورات/بروفايلات أعضاء', target:3, daily:true,  reward:{ intel:40,  xp:150,  coins:4,  icon:'🏅' } },
 ];
 
-// ── imageURL: ضع رابط صورة/GIF للصندوق (يدعم GIF متحرك) — اتركه null لو عايز الإيموجي فقط ──
-const ACTIVENESS_MILESTONES = [
-    { threshold:8000,   chestType:'normal',   icon:'📦', imageURL: null, name_en:'Normal Chest',   name_ar:'صندوق عادي' },
-    { threshold:24000,  chestType:'advanced', icon:'🎁', imageURL: null, name_en:'Advanced Chest', name_ar:'صندوق متقدم' },
-    { threshold:60000,  chestType:'rare',     icon:'💠', imageURL: null, name_en:'Rare Chest',     name_ar:'صندوق نادر' },
-    { threshold:120000, chestType:'epic',     icon:'💎', imageURL: null, name_en:'Epic Chest',     name_ar:'صندوق ملحمي' },
-    { threshold:280000, chestType:'super',    icon:'👑', imageURL: null, name_en:'Super Chest',    name_ar:'صندوق أسطوري' },
-];
 
-// ══ CHEST REWARDS CONFIG ══
-const CHEST_CONFIG = {
-    normal: {
-        name_en:'Normal Chest', name_ar:'صندوق عادي', icon:'📦', color:'#4ade80',
-        rewards: [
-            { type:'currency',  amount:1000, icon:'🧠', label_en:'1000 Intel',        label_ar:'1000 إنتل' },
-            { type:'coins',     amount:1000, icon:'🏅', label_en:'1000 Family Coins', label_ar:'1000 عملة قبيلة' },
-            { type:'gift',      giftId:'gift_cake',   qty:1, icon:'🎂', label_en:'Gift (200 Intel)', label_ar:'هدية (200 إنتل)' },
-            { type:'gift',      giftId:'gift_rose',   qty:9, icon:'🌹', label_en:'9× Gift (30 Intel)',label_ar:'9× هدية (30 إنتل)' },
-        ],
-    },
-    advanced: {
-        name_en:'Advanced Chest', name_ar:'صندوق متقدم', icon:'🎁', color:'#60a5fa',
-        rewards: [
-            { type:'frame', frameId:'frame_temp_3d',  duration:3,  icon:'🖼️', label_en:'Frame 3 Days',  label_ar:'إطار 3 أيام' },
-            { type:'frame', frameId:'frame_temp_7d',  duration:7,  icon:'🖼️', label_en:'Frame 7 Days',  label_ar:'إطار 7 أيام' },
-            { type:'gift',  giftId:'gift_racecar',    qty:2, icon:'🏎️', label_en:'2× Gift (2000 Intel)', label_ar:'2× هدية (2000 إنتل)' },
-            { type:'gift',  giftId:'gift_crown',      qty:2, icon:'👑', label_en:'2× Gift (520 Intel)',  label_ar:'2× هدية (520 إنتل)' },
-        ],
-    },
-    rare: {
-        name_en:'Rare Chest', name_ar:'صندوق نادر', icon:'💠', color:'#a78bfa',
-        rewards: [
-            { type:'frame', frameId:'frame_temp_7d',  duration:7,  icon:'🖼️', label_en:'Frame 7 Days',  label_ar:'إطار 7 أيام' },
-            { type:'frame', frameId:'frame_temp_3d',  duration:3,  icon:'🖼️', label_en:'Frame 3 Days',  label_ar:'إطار 3 أيام' },
-            { type:'frame', frameId:'frame_temp_15d', duration:15, icon:'🖼️', label_en:'Frame 15 Days', label_ar:'إطار 15 يوم' },
-            { type:'charisma', amount:20000, icon:'⭐', label_en:'20K Charisma Ring', label_ar:'خاتم كاريزما 20K' },
-            { type:'gift', giftId:'gift_coffee',  qty:2, icon:'☕', label_en:'2× Gift (120 Intel)',  label_ar:'2× هدية (120 إنتل)' },
-            { type:'gift', giftId:'gift_racecar', qty:2, icon:'🏎️', label_en:'2× Gift (2000 Intel)', label_ar:'2× هدية (2000 إنتل)' },
-            { type:'currency', amount:7800, icon:'🧠', label_en:'7800 Intel',        label_ar:'7800 إنتل' },
-            { type:'coins',    amount:7800, icon:'🏅', label_en:'7800 Family Coins', label_ar:'7800 عملة قبيلة' },
-        ],
-    },
-    epic: {
-        name_en:'Epic Chest', name_ar:'صندوق ملحمي', icon:'💎', color:'#ffd700',
-        rewards: [
-            { type:'currency', amount:10000, icon:'🧠', label_en:'10K Intel',         label_ar:'10K إنتل' },
-            { type:'coins',    amount:10000, icon:'🏅', label_en:'10K Family Coins',  label_ar:'10K عملة قبيلة' },
-            { type:'charisma', amount:40000, icon:'⭐', label_en:'40K Charisma Ring', label_ar:'خاتم كاريزما 40K' },
-            { type:'charisma', amount:10000, icon:'⭐', label_en:'10K Charisma Ring', label_ar:'خاتم كاريزما 10K' },
-            { type:'frame', frameId:'frame_temp_7d',  duration:7,  qty:3, icon:'🖼️', label_en:'3× Frame 7 Days', label_ar:'3× إطار 7 أيام' },
-            { type:'frame', frameId:'frame_temp_30d', duration:30, qty:1, icon:'🖼️', label_en:'Frame 30 Days',   label_ar:'إطار 30 يوم' },
-        ],
-    },
-    super: {
-        name_en:'Super Chest', name_ar:'صندوق أسطوري', icon:'👑', color:'#f97316',
-        rewards: [
-            { type:'currency', amount:10000, icon:'🧠', label_en:'10K Intel',         label_ar:'10K إنتل' },
-            { type:'coins',    amount:10000, icon:'🏅', label_en:'10K Family Coins',  label_ar:'10K عملة قبيلة' },
-            { type:'charisma', amount:40000, icon:'⭐', label_en:'40K Charisma Ring', label_ar:'خاتم كاريزما 40K' },
-            { type:'frame', frameId:'frame_temp_7d',  duration:7,  qty:3, icon:'🖼️', label_en:'3× Frame 7 Days', label_ar:'3× إطار 7 أيام' },
-            { type:'frame', frameId:'frame_temp_30d', duration:30, qty:1, icon:'🖼️', label_en:'Frame 30 Days',   label_ar:'إطار 30 يوم' },
-        ],
-    },
-};
-
-// ══ GACHA CONFIG ══
-// freeDailyCost: 0 (مجانية مرة يومياً)
-// paidCostPerSpin: 200 Intel من رصيد اللاعب (مش من الخزينة)
-// maxPaidSpinsDaily: 50 سحبة مدفوعة يومياً
-//
-// ── لتغيير صورة أي جائزة: غير imageURL من null لرابط صورة/GIF ──
-// ── لتغيير نسبة الظهور: غير weight (الإجمالي ~10000) ──
-const GACHA_CONFIG = {
-    paidCostPerSpin: 200, // Intel من رصيد اللاعب لكل سحبة مدفوعة
-    maxPaidSpinsDaily: 50,
-    rewards: [
-        // ── خاتم كاريزما — نادر جداً ──
-        { weight:20,   type:'charisma', amount:20000, rarity:'legendary', icon:'💍', imageURL: null,
-          label_en:'+20K Charisma Ring', label_ar:'خاتم كاريزما 20K',
-          rateDisplay:'0.2%' },
-
-        // ── إطارات عادية (تدعم GIF) ──
-        // imageURL: ضع رابط صورة/GIF للإطار هنا
-        { weight:300,  type:'frame', frameId:'frame_temp_1d',  duration:1,  rarity:'rare', icon:'🖼️', imageURL: null,
-          label_en:'Frame 1 Day', label_ar:'إطار يوم واحد', rateDisplay:'3%' },
-        { weight:200,  type:'frame', frameId:'frame_temp_3d',  duration:3,  rarity:'rare', icon:'🖼️', imageURL: null,
-          label_en:'Frame 3 Days', label_ar:'إطار 3 أيام', rateDisplay:'2%' },
-        { weight:150,  type:'frame', frameId:'frame_temp_7d',  duration:7,  rarity:'epic', icon:'🖼️', imageURL: null,
-          label_en:'Frame 7 Days', label_ar:'إطار 7 أيام', rateDisplay:'1.5%' },
-
-        // ── إطارات متحركة GIF ──
-        // imageURL: ضع رابط GIF للإطار المتحرك هنا
-        { weight:200,  type:'frame_anim', frameId:'frame_anim_1d', duration:1,  rarity:'rare', icon:'✨', imageURL: null,
-          label_en:'Animated Frame 1 Day', label_ar:'إطار متحرك يوم', rateDisplay:'2%' },
-        { weight:150,  type:'frame_anim', frameId:'frame_anim_3d', duration:3,  rarity:'epic', icon:'✨', imageURL: null,
-          label_en:'Animated Frame 3 Days', label_ar:'إطار متحرك 3 أيام', rateDisplay:'1.5%' },
-        { weight:100,  type:'frame_anim', frameId:'frame_anim_7d', duration:7,  rarity:'legendary', icon:'✨', imageURL: null,
-          label_en:'Animated Frame 7 Days', label_ar:'إطار متحرك 7 أيام', rateDisplay:'1%' },
-
-        // ── هدايا ──
-        { weight:200,  type:'gift', giftId:'gift_racecar', qty:1, rarity:'epic', icon:'🏎️', imageURL: null,
-          label_en:'Gift 2000 Intel', label_ar:'هدية 2000 إنتل', rateDisplay:'2%' },
-        { weight:500,  type:'gift', giftId:'gift_crown',   qty:1, rarity:'rare', icon:'👑', imageURL: null,
-          label_en:'Gift 520 Intel', label_ar:'هدية 520 إنتل', rateDisplay:'5%' },
-        { weight:1000, type:'gift', giftId:'gift_cake',    qty:1, rarity:'uncommon', icon:'🎂', imageURL: null,
-          label_en:'Gift 200 Intel', label_ar:'هدية 200 إنتل', rateDisplay:'10%' },
-        { weight:1200, type:'gift', giftId:'gift_coffee',  qty:1, rarity:'uncommon', icon:'☕', imageURL: null,
-          label_en:'Gift 120 Intel', label_ar:'هدية 120 إنتل', rateDisplay:'12%' },
-        { weight:1500, type:'gift', giftId:'gift_teddy',   qty:1, rarity:'common', icon:'🧸', imageURL: null,
-          label_en:'Gift 50 Intel', label_ar:'هدية 50 إنتل', rateDisplay:'15%' },
-
-        // ── عملة الموقع Intel ──
-        { weight:1500, type:'currency', amount:30,   rarity:'common',   icon:'🧠', imageURL: null,
-          label_en:'+30 Intel', label_ar:'+30 إنتل', rateDisplay:'15%' },
-        { weight:800,  type:'currency', amount:555,  rarity:'uncommon', icon:'🧠', imageURL: null,
-          label_en:'+555 Intel', label_ar:'+555 إنتل', rateDisplay:'8%' },
-        { weight:300,  type:'currency', amount:1688, rarity:'rare',     icon:'🧠', imageURL: null,
-          label_en:'+1688 Intel', label_ar:'+1688 إنتل', rateDisplay:'3%' },
-
-        // ── عملة القبيلة ──
-        { weight:1000, type:'coins', amount:30,   rarity:'common',   icon:'🏅', imageURL: null,
-          label_en:'+30 Coins', label_ar:'+30 عملة قبيلة', rateDisplay:'10%' },
-        { weight:500,  type:'coins', amount:50,   rarity:'uncommon', icon:'🏅', imageURL: null,
-          label_en:'+50 Coins', label_ar:'+50 عملة قبيلة', rateDisplay:'5%' },
-        { weight:300,  type:'coins', amount:88,   rarity:'rare',     icon:'🏅', imageURL: null,
-          label_en:'+88 Coins', label_ar:'+88 عملة قبيلة', rateDisplay:'3%' },
-        { weight:100,  type:'coins', amount:1688, rarity:'legendary',icon:'🏅', imageURL: null,
-          label_en:'+1688 Coins', label_ar:'+1688 عملة قبيلة', rateDisplay:'1%' },
-
-        // ── صناديق القبيلة (نادرة جداً) ──
-        { weight:33, type:'chest', chestType:'normal',   rarity:'legendary', icon:'📦', imageURL: null,
-          label_en:'Normal Chest', label_ar:'صندوق عادي', rateDisplay:'0.33%' },
-        { weight:33, type:'chest', chestType:'advanced', rarity:'legendary', icon:'🎁', imageURL: null,
-          label_en:'Advanced Chest', label_ar:'صندوق متقدم', rateDisplay:'0.33%' },
-        { weight:34, type:'chest', chestType:'rare',     rarity:'legendary', icon:'💠', imageURL: null,
-          label_en:'Rare Chest', label_ar:'صندوق نادر', rateDisplay:'0.34%' },
-    ],
-};
-
-// ── ألوان نادرية الجاتشه ──
-const GACHA_RARITY_COLORS = {
-    common: '#9ca3af', uncommon: '#4ade80', rare: '#60a5fa',
-    epic: '#a78bfa', legendary: '#fbbf24',
-};
 
 // ── Role Config ──
 const FAMILY_ROLE_CONFIG = {
@@ -854,26 +711,25 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
             if (!famSnap.exists) return;
             const inv = famSnap.data()?.treasuryInventory || [];
             const chest = inv[inventoryIdx];
-            if (!chest) return;
-
-            const assignedTo = chest.assignedTo || [];
-            if (!assignedTo.includes(currentUID)) return;
-
+            if (!chest || !(chest.assignedTo || []).includes(currentUID)) return;
             const cfg = CHEST_CONFIG[chest.chestType];
-            if (!cfg || !cfg.rewards || cfg.rewards.length === 0) return;
+            if (!cfg) return;
 
             const claims = chest.claimedBy || {};
             const myClaimCount = claims[currentUID] || 0;
-            const maxClaims = chest.maxClaimsPerMember || 1;
-            if (myClaimCount >= maxClaims) {
+            if (myClaimCount >= (chest.maxClaimsPerMember || 1)) {
                 if (onNotification) onNotification(lang === 'ar' ? '✅ استلمت حصتك بالكامل' : '✅ You already claimed your share');
+                setOpeningChest(false);
                 return;
             }
 
-            // Pick a reward from config (equal probability per reward entry)
-            const picked = cfg.rewards[Math.floor(Math.random() * cfg.rewards.length)];
+            const myBundle = chest.assignedDrops ? chest.assignedDrops[currentUID] : null;
+            if (!myBundle) {
+                if (onNotification) onNotification(lang === 'ar' ? '❌ لا يوجد نصيب لك' : '❌ No share for you');
+                setOpeningChest(false);
+                return;
+            }
 
-            // Update claimedBy in inventory
             const newInv = [...inv];
             newInv[inventoryIdx] = {
                 ...chest,
@@ -881,36 +737,55 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
             };
             await familiesCollection.doc(familyId).update({ treasuryInventory: newInv });
 
-            // Grant reward
-            if (picked.type === 'currency') {
-                await usersCollection.doc(currentUID).update({
-                    currency: firebase.firestore.FieldValue.increment(picked.amount || 0),
-                });
-            } else if (picked.type === 'coins') {
-                await familiesCollection.doc(familyId).update({
-                    familyCoins: firebase.firestore.FieldValue.increment(picked.amount || 0),
-                });
-            } else if (picked.type === 'charisma') {
-                await usersCollection.doc(currentUID).update({
-                    charisma: firebase.firestore.FieldValue.increment(picked.amount || 0),
-                });
-            } else if (picked.type === 'frame') {
-                const expiresAt = picked.duration ? (Date.now() + picked.duration * 86400000) : null;
-                await usersCollection.doc(currentUID).update({
-                    'inventory.frames': firebase.firestore.FieldValue.arrayUnion(picked.frameId),
-                    [`inventory.expiry.${picked.frameId}`]: expiresAt,
-                });
-            } else if (picked.type === 'gift') {
-                await usersCollection.doc(currentUID).update({
-                    'inventory.gifts': firebase.firestore.FieldValue.arrayUnion(picked.giftId),
-                    [`inventory.giftCounts.${picked.giftId}`]: firebase.firestore.FieldValue.increment(picked.qty || 1),
-                });
+            if (myBundle.currency > 0) {
+                await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(myBundle.currency) });
+            }
+            if (myBundle.coins > 0) {
+                await familiesCollection.doc(familyId).update({ familyCoins: firebase.firestore.FieldValue.increment(myBundle.coins) });
+            }
+            
+            let totalCharisma = 0;
+            const giftUpdates = {};
+            const frameUpdates = {};
+            
+            myBundle.items.forEach(r => {
+                if (r.type === 'charisma') {
+                    totalCharisma += (r.amount * (r.qty || 1));
+                } else if (r.type === 'frame') {
+                    const expiresAt = r.duration ? Date.now() + r.duration * 86400000 : null;
+                    frameUpdates[`inventory.expiry.${r.frameId}`] = expiresAt;
+                } else if (r.type === 'gift') {
+                    giftUpdates[`inventory.giftCounts.${r.giftId}`] = firebase.firestore.FieldValue.increment(r.qty || 1);
+                }
+            });
+            
+            if (totalCharisma > 0) {
+                await usersCollection.doc(currentUID).update({ charisma: firebase.firestore.FieldValue.increment(totalCharisma) });
+            }
+            if (Object.keys(giftUpdates).length > 0) {
+                const giftIds = myBundle.items.filter(r => r.type === 'gift').map(r => r.giftId);
+                let updatePayload = { ...giftUpdates };
+                giftIds.forEach(id => updatePayload['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(id));
+                await usersCollection.doc(currentUID).update(updatePayload);
+            }
+            if (Object.keys(frameUpdates).length > 0) {
+                const frameIds = myBundle.items.filter(r => r.type === 'frame').map(r => r.frameId);
+                let updatePayload = { ...frameUpdates };
+                frameIds.forEach(id => updatePayload['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(id));
+                await usersCollection.doc(currentUID).update(updatePayload);
             }
 
-            // Post result into chat so everyone sees it
+            const pseudoPicked = {
+                isBundle: true,
+                bundle: myBundle,
+                rarity: 'epic',
+                icon: '🎁',
+                label_ar: 'نصيبك من الصندوق',
+                label_en: 'Your Share',
+            };
+
             const chestIcon = ACTIVENESS_MILESTONES.find(m => m.chestType === chest.chestType)?.icon || '📦';
-            const rewardIcon = picked.icon;
-            const rewardLabel = lang === 'ar' ? (picked.label_ar || '') : (picked.label_en || '');
+            const rewardLabel = lang === 'ar' ? pseudoPicked.label_ar : pseudoPicked.label_en;
             await familiesCollection.doc(familyId).collection('messages').add({
                 senderId: currentUID,
                 senderName: currentUserData?.displayName || 'Member',
@@ -918,11 +793,11 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                 type: 'chest_opened',
                 chestType: chest.chestType,
                 chestIcon,
-                text: lang === 'ar'
-                    ? `🎉 ${rewardIcon} حصلت على: ${rewardLabel}`
-                    : `🎉 ${rewardIcon} You got: ${rewardLabel}`,
                 rewardLabel,
-                rewardIcon,
+                rewardIcon: pseudoPicked.icon,
+                text: lang === 'ar'
+                    ? `🎉 ${currentUserData?.displayName} فتح ${chestIcon} وحصل على نصيبه!`
+                    : `🎉 ${currentUserData?.displayName} opened ${chestIcon} and got their share!`,
                 timestamp: TS(),
             });
 
@@ -2254,31 +2129,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         setClaimingChest(false);
     };
 
-    // ── Upgrade family level ──
-    const handleUpgradeLevel = async () => {
-        if (!family?.id || !canManageFamily(family, currentUID)) return;
-        const curLvl = getFamilyLevelConfig(family.level || 1);
-        const nextLvl = FAMILY_LEVEL_CONFIG.find(c => c.level === curLvl.level + 1);
-        if (!nextLvl) return;
-        if ((family.activeness || 0) < nextLvl.activeness) {
-            onNotification(lang === 'ar' ? 'النشاط غير كافٍ للترقية' : 'Not enough activeness to upgrade');
-            return;
-        }
-        if ((family.familyCoins || 0) < nextLvl.upgradeCost) {
-            onNotification(lang === 'ar' ? 'عملات القبيلة غير كافية للترقية' : 'Not enough family coins to upgrade');
-            return;
-        }
-        try {
-            await familiesCollection.doc(family.id).update({
-                level: nextLvl.level,
-                familyCoins: firebase.firestore.FieldValue.increment(-nextLvl.upgradeCost)
-            });
-            onNotification(lang === 'ar' ? '✅ تمت ترقية القبيلة بنجاح!' : '✅ Family upgraded successfully!');
-        } catch (e) {
-            onNotification(lang === 'ar' ? '❌ خطأ في الترقية' : '❌ Error upgrading');
-        }
-    };
-
     // ── Assign chest from treasury inventory to members ──
     const assignChestToMembers = async (inventoryIdx, memberUids) => {
         if (!family?.id || !canManageFamily(family, currentUID)) return;
@@ -2728,14 +2578,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                             <span>{nextLvl ? fmtFamilyNum(nextLvl.activeness) : '—'}</span>
                         </div>
                     </div>
-                    {/* Upgrade Button */}
-                    {canManage && nextLvl && totalAct >= nextLvl.activeness && (
-                        <div style={{marginBottom:'12px', textAlign:'center'}}>
-                            <button onClick={handleUpgradeLevel} style={{padding:'10px 20px',borderRadius:'12px',background:'linear-gradient(135deg,#f97316,#ef4444)',border:'none',color:'white',fontWeight:900,fontSize:'13px',cursor:'pointer',boxShadow:'0 4px 12px rgba(249,115,22,0.4)',width:'100%'}}>
-                                ⬆️ {lang==='ar'?'ترقية مستوى القبيلة':'Upgrade Family Level'} ( {nextLvl.upgradeCost} 🏅 )
-                            </button>
-                        </div>
-                    )}
                     {/* Progress bar */}
                     <div style={{height:'8px',borderRadius:'4px',background:'#e5e7eb',overflow:'hidden',marginBottom:'12px'}}>
                         <div style={{height:'100%',borderRadius:'4px',width:`${fProg}%`,background:'linear-gradient(90deg,#f97316,#ef4444)',transition:'width 0.6s ease'}}/>
@@ -3787,9 +3629,13 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 // Grant to user inventory based on type
                 const inventoryKey = item.type === 'badge' ? 'inventory.badges' : item.type === 'title' ? 'inventory.titles' : null;
                 if (inventoryKey) {
-                    await usersCollection.doc(currentUID).update({
+                    const updatePayload = {
                         [inventoryKey]: firebase.firestore.FieldValue.arrayUnion(item.id),
-                    });
+                    };
+                    if (item.durationDays) {
+                        updatePayload[`inventory.expiry.${item.id}`] = Date.now() + (item.durationDays * 86400000);
+                    }
+                    await usersCollection.doc(currentUID).update(updatePayload);
                 }
                 onNotification(`✅ ${lang==='ar'?'تم الشراء!':'Purchased!'} ${item.emoji}`);
             } catch(e) {
