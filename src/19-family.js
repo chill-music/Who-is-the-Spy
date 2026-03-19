@@ -2511,10 +2511,9 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
         // Gacha availability check
         const gachaAvailable = (() => {
-            if (treasury < GACHA_CONFIG.dailyCost) return false;
-            const lastUsed = family.gachaLastUsed;
-            if (!lastUsed) return true;
-            const lastDate = lastUsed.toDate ? lastUsed.toDate() : new Date(lastUsed.seconds * 1000);
+            const lastFree = family.gachaFreeLastUsed;
+            if (!lastFree) return true;
+            const lastDate = lastFree.toDate ? lastFree.toDate() : new Date(lastFree.seconds * 1000);
             return lastDate.toDateString() !== new Date().toDateString();
         })();
 
