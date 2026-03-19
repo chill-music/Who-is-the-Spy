@@ -756,6 +756,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     const chatEndRef = React.useRef(null);
     const imgInputRef = React.useRef(null);
     const chatInputRef = React.useRef(null);
+    const [openingChest, setOpeningChest] = React.useState(false);
     // ── Gift modal ──
     const [giftTarget, setGiftTarget] = React.useState(null); // null = self, { uid, displayName, photoURL }
     const [showChatGiftModal, setShowChatGiftModal] = React.useState(false);
@@ -843,6 +844,95 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
         setChatInput(newVal);
         setShowMentionList(false);
         setTimeout(function() { chatInputRef.current && chatInputRef.current.focus(); }, 50);
+    };
+
+    // ── Open assigned chest from family chat ──
+    const openAssignedChest = async (inventoryIdx) => {
+        if (!familyId || !currentUID || openingChest) return;
+        setOpeningChest(true);
+        try {
+            const famSnap = await familiesCollection.doc(familyId).get();
+            if (!famSnap.exists) return;
+            const inv = famSnap.data()?.treasuryInventory || [];
+            const chest = inv[inventoryIdx];
+            if (!chest) return;
+
+            const assignedTo = chest.assignedTo || [];
+            if (!assignedTo.includes(currentUID)) return;
+
+            const cfg = CHEST_CONFIG[chest.chestType];
+            if (!cfg || !cfg.rewards || cfg.rewards.length === 0) return;
+
+            const claims = chest.claimedBy || {};
+            const myClaimCount = claims[currentUID] || 0;
+            const maxClaims = chest.maxClaimsPerMember || 1;
+            if (myClaimCount >= maxClaims) {
+                if (onNotification) onNotification(lang === 'ar' ? '✅ استلمت حصتك بالكامل' : '✅ You already claimed your share');
+                return;
+            }
+
+            // Pick a reward from config (equal probability per reward entry)
+            const picked = cfg.rewards[Math.floor(Math.random() * cfg.rewards.length)];
+
+            // Update claimedBy in inventory
+            const newInv = [...inv];
+            newInv[inventoryIdx] = {
+                ...chest,
+                claimedBy: { ...(chest.claimedBy || {}), [currentUID]: myClaimCount + 1 },
+            };
+            await familiesCollection.doc(familyId).update({ treasuryInventory: newInv });
+
+            // Grant reward
+            if (picked.type === 'currency') {
+                await usersCollection.doc(currentUID).update({
+                    currency: firebase.firestore.FieldValue.increment(picked.amount || 0),
+                });
+            } else if (picked.type === 'coins') {
+                await familiesCollection.doc(familyId).update({
+                    familyCoins: firebase.firestore.FieldValue.increment(picked.amount || 0),
+                });
+            } else if (picked.type === 'charisma') {
+                await usersCollection.doc(currentUID).update({
+                    charisma: firebase.firestore.FieldValue.increment(picked.amount || 0),
+                });
+            } else if (picked.type === 'frame') {
+                const expiresAt = picked.duration ? (Date.now() + picked.duration * 86400000) : null;
+                await usersCollection.doc(currentUID).update({
+                    'inventory.frames': firebase.firestore.FieldValue.arrayUnion(picked.frameId),
+                    [`inventory.expiry.${picked.frameId}`]: expiresAt,
+                });
+            } else if (picked.type === 'gift') {
+                await usersCollection.doc(currentUID).update({
+                    'inventory.gifts': firebase.firestore.FieldValue.arrayUnion(picked.giftId),
+                    [`inventory.giftCounts.${picked.giftId}`]: firebase.firestore.FieldValue.increment(picked.qty || 1),
+                });
+            }
+
+            // Post result into chat so everyone sees it
+            const chestIcon = ACTIVENESS_MILESTONES.find(m => m.chestType === chest.chestType)?.icon || '📦';
+            const rewardIcon = picked.icon;
+            const rewardLabel = lang === 'ar' ? (picked.label_ar || '') : (picked.label_en || '');
+            await familiesCollection.doc(familyId).collection('messages').add({
+                senderId: currentUID,
+                senderName: currentUserData?.displayName || 'Member',
+                senderPhoto: currentUserData?.photoURL || null,
+                type: 'chest_opened',
+                chestType: chest.chestType,
+                chestIcon,
+                text: lang === 'ar'
+                    ? `🎉 ${rewardIcon} حصلت على: ${rewardLabel}`
+                    : `🎉 ${rewardIcon} You got: ${rewardLabel}`,
+                rewardLabel,
+                rewardIcon,
+                timestamp: TS(),
+            });
+
+            if (onNotification) onNotification(lang === 'ar' ? `🎉 ${rewardLabel}` : `🎉 ${rewardLabel}`);
+        } catch (e) {
+            console.error('FamilyChatModal openAssignedChest error:', e);
+            if (onNotification) onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
+        }
+        setOpeningChest(false);
     };
 
     const selfMember = currentUserData ? [{ id: currentUID, displayName: currentUserData.displayName, photoURL: currentUserData.photoURL }] : [];
