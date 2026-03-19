@@ -613,12 +613,16 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
             const nowMs = Date.now();
             const senderVipLevel = (typeof getVIPLevel === 'function' ? (getVIPLevel(currentUserData) || 0) : 0);
             const senderTitle = currentUserData?.activeTitle || currentUserData?.title || null;
+            const senderFrame = currentUserData?.equipped?.frames || null;
+            const senderBadges = (currentUserData?.equipped?.badges || []).slice(0, 3);
             await groupsCollection.doc(activeGroup.id).collection('messages').add({
                 text, senderId: currentUID,
                 senderName: currentUserData?.displayName || 'User',
                 senderPhoto: currentUserData?.photoURL || null,
                 senderVipLevel,
                 senderTitle,
+                senderFrame,
+                senderBadges,
                 createdAt: TS(), type: 'text'
             });
             // ── XP + level update ──
@@ -941,7 +945,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                     background:'rgba(0,0,0,0.7)',
                     display:'flex', alignItems:'center', justifyContent:'center',
                     padding:'4px',
-                }}>
+                }} onClick={() => setActiveGroup(null)}>
                     <div style={{
                         display:'flex', flexDirection:'column',
                         width:'100%', maxWidth:'min(440px, calc(100vw - 8px))',
@@ -951,7 +955,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                         borderRadius:'16px', overflow:'hidden',
                         boxShadow:'0 28px 70px rgba(0,0,0,0.9)',
                         position:'relative', boxSizing:'border-box',
-                    }}>
+                    }} onClick={e => e.stopPropagation()}>
                         {/* ── HEADER ── */}
                         <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 14px',background:'rgba(7,7,22,1)',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
                             <button onClick={()=>setActiveGroup(null)} style={{background:'none',border:'none',color:'#00f2ff',fontSize:'20px',cursor:'pointer',padding:'0 4px',lineHeight:1}}>‹</button>
@@ -970,7 +974,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                                     <span style={{color:grpLvl.color,fontWeight:700}}>{grpLvl.icon} Lv.{grpLvl.level}</span>
                                 </div>
                             </div>
-                            {isAdm && <button onClick={()=>setShowInvite(true)} style={{background:'rgba(167,139,250,0.15)',border:'1px solid rgba(167,139,250,0.3)',borderRadius:'8px',padding:'5px 10px',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>+ {lang==='ar'?'دعوة':'Invite'}</button>}
+                            {isAdm && <button onClick={()=>setShowDetails(true)} style={{background:'rgba(167,139,250,0.15)',border:'1px solid rgba(167,139,250,0.3)',borderRadius:'8px',width:'32px',height:'32px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'16px',color:'#a78bfa',flexShrink:0}} title={lang==='ar'?'إعدادات الجروب':'Group Settings'}>⚙️</button>}
                         </div>
 
                         {/* ── INVITE OVERLAY ── */}
@@ -1321,8 +1325,14 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                         )}
 
                         {/* ── MESSAGES ── */}
-                        <div style={{flex:1,overflowY:'auto',padding:'12px 10px',display:'flex',flexDirection:'column',gap:'4px',background:'linear-gradient(180deg,rgba(5,5,16,0.98),rgba(8,8,22,0.98))'}}>
-                            {messages.map(msg=>{
+                        <div style={{
+                            flex:1, overflowY:'auto', padding:'12px 10px',
+                            display:'flex', flexDirection:'column', gap:'4px',
+                            background: activeGroup.photoURL
+                                ? `linear-gradient(rgba(5,5,16,0.82),rgba(8,8,22,0.82)), url(${activeGroup.photoURL}) center/cover no-repeat`
+                                : 'linear-gradient(180deg,rgba(5,5,16,0.98),rgba(8,8,22,0.98))',
+                            backgroundAttachment:'local',
+                        }}>                            {messages.map(msg=>{
                                 if(msg.type==='system') return(
                                     <div key={msg.id} style={{textAlign:'center',fontSize:'10px',color:'#6b7280',padding:'3px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'20px',alignSelf:'center',maxWidth:'80%'}}>{msg.text}</div>
                                 );
@@ -1364,26 +1374,39 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                                 const isMe=msg.senderId===currentUID;
                                 const isImage=msg.type==='image';
                                 const vipCfgMsg = getVIPConfig(msg.senderVipLevel);
+                                const nameColor = vipCfgMsg ? vipCfgMsg.nameColor : (isMe ? '#00f2ff' : '#a78bfa');
                                 return(
                                     <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end'}}>
-                                        {/* Avatar — shown for ALL senders including self */}
-                                        <div
-                                            onClick={()=>openGroupMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}
-                                            style={{width:'28px',height:'28px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:'pointer',border:vipCfgMsg?`2px solid ${vipCfgMsg.nameColor}`:'2px solid rgba(255,255,255,0.1)',boxShadow:vipCfgMsg?`0 0 6px ${vipCfgMsg.nameColor}66`:'none'}}>
-                                            {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px'}}>😎</div>}
+                                        {/* Avatar with frame */}
+                                        <div style={{position:'relative',width:'30px',height:'30px',flexShrink:0}}>
+                                            <div
+                                                onClick={()=>openGroupMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}
+                                                style={{width:'30px',height:'30px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',cursor:'pointer',border:vipCfgMsg?`2px solid ${vipCfgMsg.nameColor}`:'2px solid rgba(255,255,255,0.1)',boxShadow:vipCfgMsg?`0 0 6px ${vipCfgMsg.nameColor}66`:'none',position:'relative'}}>
+                                                {msg.senderPhoto?<img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>😎</div>}
+                                                {msg.senderFrame && <img src={msg.senderFrame} alt="" onError={e=>e.target.style.display='none'} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}/>}
+                                            </div>
                                         </div>
                                         <div style={{maxWidth:'min(70%, calc(100vw - 80px))'}}>
-                                            {/* Name row — shown for ALL including self */}
+                                            {/* Name row */}
                                             <div style={{marginBottom:'2px',paddingLeft:isMe?0:'4px',paddingRight:isMe?'4px':0}}>
                                                 <div style={{display:'flex',alignItems:'center',gap:'4px',flexWrap:'wrap',cursor:'pointer',justifyContent:isMe?'flex-end':'flex-start'}}
                                                     onClick={()=>openGroupMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}>
                                                     {vipCfgMsg && (
                                                         <span style={{fontSize:'7px',fontWeight:900,background:vipCfgMsg.nameColor,color:'#000',padding:'1px 3px',borderRadius:'2px',flexShrink:0}}>VIP{msg.senderVipLevel}</span>
                                                     )}
-                                                    <span style={{fontSize:'9px',color:isMe?'#00f2ff':'#a78bfa',fontWeight:700}}>{msg.senderName}{isMe?` (${lang==='ar'?'أنت':'you'})`:''}</span>
+                                                    <span style={{fontSize:'9px',color:nameColor,fontWeight:700}}>{msg.senderName}{isMe?` (${lang==='ar'?'أنت':'you'})`:''}</span>
                                                     {msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && (
                                                         <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'11px',objectFit:'contain'}}/>
                                                     )}
+                                                    {/* Badges — up to 3 */}
+                                                    {(msg.senderBadges||[]).slice(0,3).map((b,bi)=>{
+                                                        if (!b) return null;
+                                                        const badge = typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.find(a=>a.id===b) : null;
+                                                        if (!badge) return null;
+                                                        return badge.imageUrl
+                                                            ? <img key={bi} src={badge.imageUrl} alt="" onError={e=>e.target.style.display='none'} style={{width:'12px',height:'12px',objectFit:'contain',flexShrink:0}}/>
+                                                            : <span key={bi} style={{fontSize:'10px'}}>{badge.icon||'🏅'}</span>;
+                                                    })}
                                                 </div>
                                                 {msg.senderTitle && <div style={{fontSize:'8px',color:'#fbbf24',marginTop:'1px',fontStyle:'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'140px',textAlign:isMe?'right':'left'}}>{msg.senderTitle}</div>}
                                             </div>
