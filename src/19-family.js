@@ -2429,13 +2429,16 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
         { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
     ] : [
+        // ترتيب موحّد عشان مايحصلش اختلاف بين Profile و باقي التابات
         { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
-        { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
         { id:'tasks',    label_en:'Tasks',   label_ar:'مهام',     icon:'🎯' },
+        { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
         { id:'shop',     label_en:'Shop',    label_ar:'المتجر',   icon:'🏅' },
         { id:'news',     label_en:'News',    label_ar:'أخبار',    icon:'📰' },
         { id:'manage',   label_en:'Manage',  label_ar:'إدارة',    icon:'⚙️' },
     ];
+
+    const activeTabForBar = TABS.some(t => t.id === activeTab) ? activeTab : 'profile';
 
     const fLvl = family ? getFamilyLevel(family.activeness || 0) : null;
     const fProg = family ? getFamilyLevelProgress(family.activeness || 0) : 0;
@@ -2520,21 +2523,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </div>
                 </div>
 
-                {/* ── Tabs row as bottom nav ── */}
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-around',padding:'8px 0',background:'rgba(255,255,255,0.04)',borderBottom:'1px solid rgba(255,255,255,0.08)',flexShrink:0}}>
-                    {[
-                        {id:'profile',icon:'🏠',label_en:'Profile',label_ar:'الرئيسية'},
-                        {id:'tasks',  icon:'🎯',label_en:'Tasks',  label_ar:'مهام'},
-                        {id:'members',icon:'👥',label_en:'Members',label_ar:'أعضاء'},
-                        {id:'news',   icon:'📰',label_en:'News',   label_ar:'أخبار'},
-                        {id:'manage', icon:'⚙️',label_en:'Manage', label_ar:'إدارة'},
-                    ].map(t => (
-                        <button key={t.id} onClick={()=>setActiveTab(t.id)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'1px',padding:'4px 8px',color:activeTab===t.id?'#00f2ff':'#6b7280',fontSize:'10px',fontWeight:activeTab===t.id?800:500,borderBottom:activeTab===t.id?'2px solid #00f2ff':'2px solid transparent'}}>
-                            <span style={{fontSize:'18px'}}>{t.icon}</span>
-                            <span>{lang==='ar'?t.label_ar:t.label_en}</span>
-                        </button>
-                    ))}
-                </div>
+                {/* ملاحظة: تبويب التابات موجود في الـ Top Tab Bar (خارج Profile)
+                    عشان يكون الشكل ثابت ومايبقاش فيه تبويبين مختلفين يخلّوا الواجهة تختلط */}
 
                 <div style={{flex:1,overflowY:'auto',padding:'12px',display:'flex',flexDirection:'column',gap:'10px'}}>
 
@@ -4238,18 +4228,20 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </div>
 
                     {/* ── Tab Bar (only in family, hidden when profile tab active since it has own nav) ── */}
-                    {family && activeTab !== 'profile' && (
+                    {family && (
                         <div style={S.tabBar}>
                             {TABS.map(tab => (
                                 <button key={tab.id} onClick={()=>setActiveTab(tab.id)} style={{
-                                    flex:1, padding:'10px 4px 8px', fontSize:'10px', fontWeight:activeTab===tab.id?800:500,
-                                    color:activeTab===tab.id?'#00f2ff':'#6b7280', background:'transparent', border:'none',
-                                    borderBottom:`2px solid ${activeTab===tab.id?'#00f2ff':'transparent'}`,
+                                    flex:1, padding:'10px 6px 8px', fontSize:'10px', fontWeight:activeTabForBar===tab.id?900:600,
+                                    color:activeTabForBar===tab.id?'#00f2ff':'#9ca3af',
+                                    background:activeTabForBar===tab.id?'rgba(0,242,255,0.10)':'transparent',
+                                    border:activeTabForBar===tab.id?'1px solid rgba(0,242,255,0.28)':'1px solid rgba(255,255,255,0.0)',
+                                    borderRadius:'14px',
                                     cursor:'pointer', whiteSpace:'nowrap', transition:'all 0.2s',
                                     minWidth:'50px', position:'relative',
                                 }}>
                                     <div style={{fontSize:'14px', marginBottom:'1px'}}>{tab.icon}</div>
-                                    <div>{lang==='ar'?tab.label_ar:tab.label_en}</div>
+                                    <div style={{lineHeight:1.1}}>{lang==='ar'?tab.label_ar:tab.label_en}</div>
                                     {tab.id==='manage'&&(family?.joinRequests?.length>0)&&<span style={{position:'absolute', top:'4px', right:'6px', fontSize:'8px', background:'#f97316', color:'white', borderRadius:'50%', width:'14px', height:'14px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900}}>{family.joinRequests.length}</span>}
                                 </button>
                             ))}
