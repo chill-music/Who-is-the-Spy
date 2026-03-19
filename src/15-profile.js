@@ -6,12 +6,7 @@ const ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     const familyName  = userData?.familyName;
     const signLevel   = userData?.familySignLevel   || null;
     const signColor   = userData?.familySignColor   || '#6b7280';
-    // Try direct URL first, then resolve from FAMILY_SIGN_IMAGES config
-    let signImgURL    = userData?.familySignImageURL || null;
-    if (!signImgURL && signLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined') {
-        const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === signLevel);
-        signImgURL = cfg?.imageURL || null;
-    }
+    const signImgURL  = getFamilySignURL(userData);
 
     // Only show if user has a family AND has earned a sign (level > 0)
     if (!familyTag || !signLevel) return null;
@@ -380,7 +375,7 @@ const GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, on
         return ()=>clearInterval(t);
     }, [recentUnique.length]);
 
-    const fmtBig = (n) => n>=1000000?`${(n/1000000).toFixed(1)}M`:n>=1000?`${(n/1000).toFixed(0)}K`:String(n);
+    const fmtBig = fmtNum; // unified — defined in 01-config.js
 
     return (
         <div className="profile-gift-section">
@@ -1399,7 +1394,7 @@ const MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnPro
                 momentMediaUrl: (m?.type === 'image' || m?.type === 'video') ? (m?.mediaUrl || '') : '',
                 reporterUID: currentUser.uid,
                 reporterName: currentUser.displayName || 'User',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: TS()
             });
             setReportSent(true);
             setTimeout(() => { setReportSent(false); setReportingMomentId(null); setReportReason(''); }, 1800);
@@ -1681,7 +1676,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
             authorName: currentUser.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
             authorPhoto: currentUser.photoURL || null,
             text: newComment.trim(),
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            createdAt: TS()
         });
         // ✅ Track mission: commentsPosted
         try {
@@ -1724,7 +1719,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                 momentMediaUrl: (moment.type === 'image' || moment.type === 'video') ? (moment.mediaUrl || '') : '',
                 reporterUID: currentUser.uid,
                 reporterName: currentUser.displayName || 'User',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: TS()
             });
             setReportSent(true);
             setShowReportMomentModal(false);
@@ -1744,7 +1739,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                 targetOwnerUID: reportTargetComment.authorUID,
                 reporterUID: currentUser.uid,
                 reporterName: currentUser.displayName || 'User',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: TS()
             });
             setShowReportCommentModal(false);
             setReportTargetComment(null);
@@ -1762,7 +1757,7 @@ const MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, o
                 targetOwnerUID: comment.authorUID,
                 reporterUID: currentUser.uid,
                 reporterName: currentUser.displayName || 'User',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: TS()
             });
         } catch(e) {}
     };
@@ -2139,7 +2134,7 @@ const CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
                 likesCount: 0,
                 likedBy: [],
                 commentsCount: 0,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: TS()
             };
             await momentsCollection.add(momentData);
             // ✅ Track mission: momentsPosted
@@ -2271,82 +2266,6 @@ const CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
     );
 };
 
-const MomentsSettingsSection = ({ currentUser, userData, lang }) => {
-    const [moments, setMoments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [selectedMoment, setSelectedMoment] = useState(null);
-
-    useEffect(() => {
-        if (!currentUser?.uid) return;
-        const unsub = momentsCollection
-            .where('authorUID', '==', currentUser.uid)
-            .limit(20)
-            .onSnapshot(snap => {
-                const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                data.sort((a, b) => {
-                    const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
-                    const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
-                    return tb - ta;
-                });
-                setMoments(data);
-                setLoading(false);
-            }, () => setLoading(false));
-        return unsub;
-    }, [currentUser?.uid]);
-
-    return (
-        <div>
-            <button
-                onClick={() => setShowCreateModal(true)}
-                style={{width:'100%', padding:'10px', borderRadius:'10px', background:'linear-gradient(135deg,rgba(0,242,255,0.15),rgba(112,0,255,0.1))', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', fontSize:'13px', fontWeight:800, cursor:'pointer', marginBottom:'12px', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}
-            >
-                <span>📸</span>
-                <span>{lang === 'ar' ? 'إضافة لحظة جديدة' : 'Add New Moment'}</span>
-            </button>
-
-            {loading ? (
-                <div style={{textAlign:'center', padding:'16px', color:'#64748b', fontSize:'12px'}}>...</div>
-            ) : moments.length === 0 ? (
-                <div style={{textAlign:'center', padding:'20px', color:'#64748b', fontSize:'12px'}}>
-                    {lang === 'ar' ? 'لا توجد لحظات بعد. أضف أول لحظة!' : 'No moments yet. Add your first moment!'}
-                </div>
-            ) : (
-                <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'6px'}}>
-                    {moments.map(moment => (
-                        <div key={moment.id} onClick={() => setSelectedMoment(moment)} style={{aspectRatio:'1', borderRadius:'8px', overflow:'hidden', background:'rgba(31,41,55,0.6)', border:'1px solid rgba(255,255,255,0.08)', cursor:'pointer', position:'relative', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                            {moment.type === 'text' ? (
-                                <div style={{padding:'6px', fontSize:'9px', color:'#e2e8f0', textAlign:'center', wordBreak:'break-word', lineHeight:1.4, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical'}}>{moment.content}</div>
-                            ) : moment.type === 'image' ? (
-                                <img src={moment.mediaUrl} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}} />
-                            ) : (
-                                <div style={{width:'100%', height:'100%', position:'relative', background:'#000', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                                    <span style={{fontSize:'24px', opacity:0.7}}>🎥</span>
-                                </div>
-                            )}
-                            <div style={{position:'absolute', bottom:'2px', right:'2px', background:'rgba(0,0,0,0.7)', borderRadius:'6px', padding:'1px 5px', fontSize:'8px', color:'#f87171', fontWeight:700}}>
-                                ❤️ {moment.likesCount || 0}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {showCreateModal && <CreateMomentModal onClose={() => setShowCreateModal(false)} currentUser={currentUser} lang={lang} />}
-            {selectedMoment && (
-                <MomentDetailModal
-                    moment={selectedMoment}
-                    onClose={() => setSelectedMoment(null)}
-                    currentUser={currentUser}
-                    isOwnProfile={true}
-                    lang={lang}
-                    onDelete={(id) => { momentsCollection.doc(id).delete(); setSelectedMoment(null); }}
-                />
-            )}
-        </div>
-    );
-};
-
 // ════════════════════════════════════════════════════════════
 // 🔒 ADMIN BAN MODAL — لوحة الحظر للأدمن
 // ════════════════════════════════════════════════════════════
@@ -2381,7 +2300,7 @@ const AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
                 // Remove ban
                 await usersCollection.doc(targetData.id).update({
                     'ban.isBanned': false,
-                    'ban.removedAt': firebase.firestore.FieldValue.serverTimestamp(),
+                    'ban.removedAt': TS(),
                     'ban.expiresAt': null,
                 });
                 onBanApplied({ isBanned: false });
@@ -2393,7 +2312,7 @@ const AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
                 const banData = {
                     isBanned: true,
                     reason: banReason,
-                    bannedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    bannedAt: TS(),
                     expiresAt: expiresAt,
                     duration: banDuration,
                 };
@@ -2719,7 +2638,7 @@ const AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRo
                     role: selectedRole,
                     assignedBy: viewerUID,
                     assignedByName: viewerData?.displayName || 'Admin',
-                    assignedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    assignedAt: TS(),
                 };
                 await usersCollection.doc(targetUID).update({ staffRole: roleData });
                 onRoleApplied(roleData);
@@ -3122,7 +3041,7 @@ const ProfileV11 = ({
                 senderName:   userData?.displayName || 'User',
                 senderPhoto:  userData?.photoURL || null,
                 amount,
-                timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp:    TS(),
             });
             // Save daily lock to localStorage
             const key = `guard_${currentUserUID}_${targetUID}`;
@@ -3189,7 +3108,7 @@ const ProfileV11 = ({
                 reason:         reportReason,
                 description:    reportDescription.trim(),
                 imageBase64:    reportImagePreview || null,
-                timestamp:      firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp:      TS(),
                 status:         'pending',
                 type:           'user',
             });
@@ -3205,7 +3124,7 @@ const ProfileV11 = ({
                     fromName: null,
                     fromPhoto: null,
                     reportId: reportRef.id,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    timestamp: TS(),
                     read: false,
                 }).catch(() => {});
             }
@@ -3818,7 +3737,7 @@ const ProfileV11 = ({
                                                 2:{ borderColor:'#8da4c8', bg:'rgba(141,164,200,0.10)', nameColor:'#b0c4de', scoreColor:'#90a8cc', size:62, borderW:2.5, crown:'🥈' },
                                                 3:{ borderColor:'#e07b9a', bg:'rgba(224,123,154,0.10)', nameColor:'#f0a0bc', scoreColor:'#e07b9a', size:62, borderW:2.5, crown:'🥉' },
                                             };
-                                            const fmtV = (v) => v >= 1000 ? `${(v/1000).toFixed(1)}K` : v;
+                                            const fmtV = fmtNum; // unified — defined in 01-config.js
                                             const ShieldCard = ({gd, rank}) => {
                                                 const cfg = cfgMap[rank];
                                                 const s = cfg.size;
@@ -3888,7 +3807,7 @@ const ProfileV11 = ({
                                                         </div>
                                                         <span style={{flex:1,fontSize:'13px',fontWeight:700,color:'#e5e7eb',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{g.name}</span>
                                                         <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end'}}>
-                                                            <span style={{fontSize:'13px',color:'#f472b6',fontWeight:800}}>{g.total>=1000?`${(g.total/1000).toFixed(1)}K`:g.total}</span>
+                                                            <span style={{fontSize:'13px',color:'#f472b6',fontWeight:800}}>{fmtNum(g.total)}</span>
                                                             <span style={{fontSize:'8px',color:'rgba(255,255,255,0.3)',fontWeight:600}}>Guard</span>
                                                         </div>
                                                     </div>

@@ -1,214 +1,3 @@
-const GiftLog = ({ show, onClose, targetUID, lang, onOpenProfile, isOwnProfile }) => {
-    const t = TRANSLATIONS[lang];
-    const [gifts, setGifts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('wall'); // 'wall', 'badge', 'received'
-    const [giftCounts, setGiftCounts] = useState({});
-    const [lastSenders, setLastSenders] = useState({});
-    const [totalGifts, setTotalGifts] = useState(0);
-    const [rotatingGiftIndex, setRotatingGiftIndex] = useState(0);
-
-    // Fetch gifts without orderBy to avoid index requirement
-    useEffect(() => {
-        if (!show || !targetUID) return;
-        setLoading(true);
-
-        const unsub = giftsLogCollection
-            .where('receiverId', '==', targetUID)
-            .limit(50)
-            .onSnapshot(snap => {
-                const giftsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Sort in memory instead of query
-                giftsData.sort((a, b) => {
-                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
-                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
-                    return timeB - timeA;
-                });
-                setGifts(giftsData);
-                setTotalGifts(giftsData.length);
-
-                // Calculate gift counts and last senders
-                const counts = {};
-                const senders = {};
-                giftsData.forEach(gift => {
-                    const giftId = gift.giftId;
-                    counts[giftId] = (counts[giftId] || 0) + 1;
-                    if (!senders[giftId]) {
-                        senders[giftId] = {
-                            name: gift.senderName,
-                            photo: gift.senderPhoto,
-                            uid: gift.senderId
-                        };
-                    }
-                });
-                setGiftCounts(counts);
-                setLastSenders(senders);
-                setLoading(false);
-            }, error => {
-                setLoading(false);
-            });
-
-        return unsub;
-    }, [show, targetUID]);
-
-    // Auto-rotate gifts in the mini display
-    useEffect(() => {
-        if (gifts.length === 0) return;
-        const interval = setInterval(() => {
-            setRotatingGiftIndex(prev => (prev + 1) % Math.min(3, gifts.length));
-        }, 2000);
-        return () => clearInterval(interval);
-    }, [gifts.length]);
-
-    if (!show) return null;
-
-    // Get last 3 gifts for mini display
-    const lastThreeGifts = gifts.slice(0, 3);
-
-    // Get unique gifts for Gift Wall
-    const uniqueGifts = SHOP_ITEMS.gifts.map(gift => ({
-        ...gift,
-        count: giftCounts[gift.id] || 0,
-        lastSender: lastSenders[gift.id] || null,
-        received: giftCounts[gift.id] > 0
-    }));
-
-    return (
-        <div className="gift-log-container-v2">
-            {/* Mini Gift Display - Shows rotating gifts */}
-            <div className="gift-mini-display" onClick={() => setActiveTab('wall')}>
-                <div className="gift-mini-images">
-                    {lastThreeGifts.length > 0 ? (
-                        lastThreeGifts.map((gift, idx) => (
-                            <div
-                                key={gift.id}
-                                className={`gift-mini-item ${idx === rotatingGiftIndex && lastThreeGifts.length > 1 ? 'active' : ''}`}
-                            >
-                                {gift.giftImageUrl ? (
-                                    <img src={gift.giftImageUrl} alt={gift.giftName} className="gift-mini-img" />
-                                ) : (
-                                    <span className="gift-mini-emoji">{gift.giftEmoji}</span>
-                                )}
-                            </div>
-                        ))
-                    ) : (
-                        <div className="gift-mini-empty">🎁</div>
-                    )}
-                </div>
-                <div className="gift-mini-info">
-                    <span className="gift-mini-count">{totalGifts}</span>
-                    <span className="gift-mini-label">{t.receivedGiftsCount}</span>
-                </div>
-            </div>
-
-            {/* Tab Buttons */}
-            <div className="gift-log-tabs">
-                <button
-                    className={`gift-log-tab ${activeTab === 'wall' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('wall')}
-                >
-                    🎁 {t.giftWall}
-                </button>
-                <button
-                    className={`gift-log-tab ${activeTab === 'badge' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('badge')}
-                >
-                    🏅 {t.giftBadge}
-                </button>
-                <button
-                    className={`gift-log-tab ${activeTab === 'received' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('received')}
-                >
-                    📬 {t.giftLog}
-                </button>
-            </div>
-
-            {/* Tab Content */}
-            <div className="gift-log-content">
-                {loading ? (
-                    <div className="gift-log-loading">{t.loading}</div>
-                ) : activeTab === 'wall' ? (
-                    /* GIFT WALL - All gifts with received indicator */
-                    <div className="gift-wall-grid">
-                        {uniqueGifts.map(gift => (
-                            <div
-                                key={gift.id}
-                                className={`gift-wall-item ${gift.received ? 'received' : 'not-received'}`}
-                                onClick={() => gift.lastSender && onOpenProfile && onOpenProfile(gift.lastSender.uid)}
-                            >
-                                {gift.imageUrl ? (
-                                    <img src={gift.imageUrl} alt={gift.name_en} className="gift-wall-img" />
-                                ) : (
-                                    <span className="gift-wall-emoji">{gift.emoji}</span>
-                                )}
-                                {gift.received && (
-                                    <>
-                                        <span className="gift-wall-count">×{gift.count}</span>
-                                        {gift.lastSender && (
-                                            <img
-                                                src={gift.lastSender.photo || `https://ui-avatars.com/api/?name=${gift.lastSender.name}&background=random`}
-                                                alt={gift.lastSender.name}
-                                                className="gift-wall-sender"
-                                            />
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                ) : activeTab === 'badge' ? (
-                    /* GIFT BADGE - Coming Soon */
-                    <div className="gift-badge-section">
-                        <div className="coming-soon-badge">
-                            <span className="coming-soon-icon">🏅</span>
-                            <span className="coming-soon-text">{t.comingSoon}</span>
-                        </div>
-                    </div>
-                ) : (
-                    /* RECEIVED GIFTS - Last 10 */
-                    <div className="gift-log-list">
-                        {gifts.length === 0 ? (
-                            <div className="gift-log-empty">{t.giftLogEmpty}</div>
-                        ) : (
-                            gifts.slice(0, 10).map(gift => (
-                                <div
-                                    key={gift.id}
-                                    className="gift-log-item"
-                                    onClick={() => onOpenProfile && onOpenProfile(gift.senderId)}
-                                >
-                                    <img
-                                        src={gift.senderPhoto || `https://ui-avatars.com/api/?name=${gift.senderName}&background=random`}
-                                        alt={gift.senderName}
-                                        className="gift-log-item-avatar"
-                                    />
-                                    <div className="gift-log-item-content">
-                                        <div className="gift-log-item-sender">{gift.senderName}</div>
-                                        <div className="gift-log-item-details">
-                                            {gift.giftImageUrl ? (
-                                                <img src={gift.giftImageUrl} alt={gift.giftName} className="gift-log-item-img" />
-                                            ) : (
-                                                <span className="gift-log-item-emoji">{gift.giftEmoji}</span>
-                                            )}
-                                            <span className="gift-log-item-name">{lang === 'ar' ? gift.giftNameAr : gift.giftNameEn}</span>
-                                        </div>
-                                    </div>
-                                    <div className="gift-log-item-stats">
-                                        <span className="gift-log-item-charisma">+{formatCharisma(gift.charisma)}</span>
-                                        {gift.bonus > 0 && <span className="gift-log-item-bonus">+{gift.bonus} 💰</span>}
-                                        <span className="gift-log-item-time">{formatTime(gift.timestamp)}</span>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-// 🏆 ACHIEVEMENTS DISPLAY COMPONENT
-
 const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
     const t = TRANSLATIONS[lang];
     const [activeCategory, setActiveCategory] = useState('smiles');
@@ -877,7 +666,7 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                                     <div style={{ height:'13px', lineHeight:'13px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', gap:'2px', marginBottom:'3px' }}>
                                         {gift.fromInventory
                                             ? <span style={{ fontSize:'8px', color:'#10b981', fontWeight:800 }}>×{gift.qty||1}</span>
-                                            : <span style={{ fontSize:'8px', fontWeight:800, color:canAfford?'#facc15':'#6b7280' }}>🧠{(gift.cost||0)>=1000?`${((gift.cost||0)/1000).toFixed((gift.cost||0)%1000===0?0:1)}k`:(gift.cost||0)}</span>
+                                            : <span style={{ fontSize:'8px', fontWeight:800, color:canAfford?'#facc15':'#6b7280' }}>🧠{fmtNum(gift.cost||0)}</span>
                                         }
                                     </div>
                                     {/* fix #4: expiry date text below gift in inventory */}
@@ -1047,7 +836,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
                     <div style={{background:'rgba(74,222,128,0.08)',border:'1px solid rgba(74,222,128,0.25)',borderRadius:'8px',padding:'6px',textAlign:'center'}}>
                         <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'بونص':'Bonus'}</div>
-                        <div style={{fontSize:'13px',fontWeight:900,color:'#4ade80'}}>+{totalBonus>=1000?`${(totalBonus/1000).toFixed(1)}k`:totalBonus}🧠</div>
+                        <div style={{fontSize:'13px',fontWeight:900,color:'#4ade80'}}>+{fmtNum(totalBonus)}🧠</div>
                     </div>
                     <div style={{background:'rgba(251,191,36,0.08)',border:'1px solid rgba(251,191,36,0.25)',borderRadius:'8px',padding:'6px',textAlign:'center'}}>
                         <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'نجوم':'Stars'}</div>
@@ -1146,7 +935,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
 
             {totalBonus > 0 && (
                 <div style={{fontSize:'10px',fontWeight:800,color:'#4ade80',textAlign:'center'}}>
-                    +{totalBonus>=1000?`${(totalBonus/1000).toFixed(1)}k`:totalBonus} 🧠
+                    +{fmtNum(totalBonus)} 🧠
                 </div>
             )}
         </div>

@@ -420,23 +420,6 @@ const VIPName = ({ displayName, userData, className = '', style = {} }) => {
     );
 };
 
-// ════ VIP CHAT TITLE COMPONENT ════
-const VIPChatTitle = ({ userData }) => {
-    const level = getVIPLevel(userData);
-    if (!level) return null;
-    const titleUrl = VIP_CHAT_TITLE_URLS[level];
-    if (!titleUrl) return null;
-    return (
-        <span className="vip-chat-title-container" style={{
-            display: 'inline-block',
-            backgroundImage: `url(${titleUrl})`,
-            backgroundSize: 'contain',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-        }} />
-    );
-};
-
 // ════════════════════════════════════════════════════════════
 // 👑 STAFF ROLE BADGE — يظهر في كل مكان
 // ════════════════════════════════════════════════════════════
@@ -781,10 +764,10 @@ const VIP10RequestForm = ({ user, lang, onNotification, userData }) => {
                 status:         0,
                 adminNote:      '',
                 isModification: isModification, // ✅ flag for admin
-                createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt:      TS(),
             });
             await usersCollection.doc(user.uid).update({
-                'vip.lastGiftRequest': firebase.firestore.FieldValue.serverTimestamp()
+                'vip.lastGiftRequest': TS()
             });
             onNotification(lang === 'ar'
                 ? (isModification ? '✅ تم إرسال طلب التعديل!' : '✅ تم إرسال طلبك!')
@@ -1004,7 +987,7 @@ const VIPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
             await usersCollection.doc(user.uid).update({
                 currency: firebase.firestore.FieldValue.increment(-50000),
                 'vip.active': true,
-                'vip.activatedAt': hasVIP ? (userData.vip.activatedAt || firebase.firestore.FieldValue.serverTimestamp()) : firebase.firestore.FieldValue.serverTimestamp(),
+                'vip.activatedAt': hasVIP ? (userData.vip.activatedAt || TS()) : TS(),
                 'vip.expiresAt': expiresAt,
                 'vip.xp': firebase.firestore.FieldValue.increment(hasVIP ? 0 : 5000),
             });
@@ -1274,9 +1257,9 @@ const VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                 // 1 = approved (اتقبل — غيّر القيمة للـ 1 في Firestore لقبول الطلب)
                 // 2 = rejected (اترفض — غيّر القيمة للـ 2 في Firestore لرفض الطلب)
                 status:      0,
-                createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt:   TS(),
             });
-            await usersCollection.doc(user.uid).update({ 'vip.lastIdRequest': firebase.firestore.FieldValue.serverTimestamp() });
+            await usersCollection.doc(user.uid).update({ 'vip.lastIdRequest': TS() });
             onNotification(lang === 'ar' ? '✅ تم إرسال طلب الـ ID!' : '✅ ID request sent!');
             setDesiredId('');
             setIdCheckStatus(null);

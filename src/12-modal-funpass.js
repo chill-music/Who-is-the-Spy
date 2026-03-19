@@ -118,7 +118,7 @@ const FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onO
             await usersCollection.doc(user.uid).update({
                 currency: firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE),
                 [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true,
-                [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: firebase.firestore.FieldValue.serverTimestamp()
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: TS()
             });
             onNotification(lang==='ar'?'🎫 تم شراء Fun Pass!':'🎫 Fun Pass purchased!');
         } catch(e) { onNotification(lang==='ar'?'خطأ':'Error'); }

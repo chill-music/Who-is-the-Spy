@@ -320,8 +320,8 @@ const SupportTicketSection = ({ user, userData, lang, onNotification }) => {
                 category,
                 status:      'open',
                 responses:   [],
-                createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt:   TS(),
+                lastUpdated: TS(),
             });
             setSubject(''); setMessage(''); setCategory('other');
             setView('list');
@@ -346,7 +346,7 @@ const SupportTicketSection = ({ user, userData, lang, onNotification }) => {
             await ticketsCollection.doc(selected.id).update({
                 responses: firebase.firestore.FieldValue.arrayUnion(reply),
                 status: 'open',
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                lastUpdated: TS()
             });
             setUserReply('');
             onNotification(lang==='ar'?'✅ تم إرسال ردك':'✅ Reply sent');
@@ -746,7 +746,7 @@ const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotif
                                                     const lastChange = userData?.lastChangedName?.toDate?.() || new Date(0);
                                                     const diffDays = (now - lastChange) / (1000*60*60*24);
                                                     if(diffDays < 30) { onNotification(lang==='ar'?'يمكن التغيير مرة شهريًا':'Can change once per month'); setEditingName(false); return; }
-                                                    await usersCollection.doc(user.uid).update({displayName:newName.trim(), lastChangedName:firebase.firestore.FieldValue.serverTimestamp()});
+                                                    await usersCollection.doc(user.uid).update({displayName:newName.trim(), lastChangedName:TS()});
                                                     onNotification(lang==='ar'?'تم تغيير الاسم!':'Name changed!');
                                                     setEditingName(false);
                                                 }
@@ -1036,7 +1036,7 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
                 senderTitle: currentUser?.activeTitle || null,
                 senderFrame: currentUser?.equipped?.frames || null,
                 senderBadges: (currentUser?.equipped?.badges || []).slice(0, 3),
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
             });
             // ── 5-second cooldown after each message ──
             setCooldown(5);
@@ -1071,7 +1071,7 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
                 )}
                 {visibleMsgs.map((msg, i) => {
                     const isMe = msg.senderId === currentUID;
-                    const vipCfg = msg.senderVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msg.senderVipLevel-1, VIP_CONFIG.length-1)] : null;
+                    const vipCfg = getVIPConfig(msg.senderVipLevel);
                     if (msg.type === 'red_packet') return (
                         <div key={msg.id||i} style={{alignSelf:'center',fontSize:'10px',color:'#ffd700',padding:'3px 10px',background:'rgba(239,68,68,0.08)',borderRadius:'12px',border:'1px solid rgba(239,68,68,0.2)'}}>
                             🧧 {msg.senderName} {lang==='ar'?'أرسل مغلف':'sent a packet'} {msg.rpAmount?.toLocaleString()} 🧠
@@ -1208,7 +1208,7 @@ const HelpCenterModal = ({ show, onClose, user, userData, lang, onNotification, 
                 userPhoto: userData?.photoURL || '',
                 text: feedbackText.trim(),
                 rating: feedbackRating,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
                 status: 'new',
             });
             setFeedbackText('');
@@ -1399,7 +1399,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                 senderFrame: currentUser?.equipped?.frames || null,
                 senderBadges: (currentUser?.equipped?.badges || []).slice(0, 3),
                 senderFamilyName: null,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
             });
         } catch(e) { setMsgText(text); }
         setSending(false);
@@ -1415,7 +1415,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                 type: 'image', imageData: base64, text: '📷',
                 senderId: user.uid, senderName: currentUser?.displayName || 'User',
                 senderPhoto: currentUser?.photoURL || null,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
             });
         } catch(e) { onNotification(lang==='ar'?'❌ فشل رفع الصورة':'❌ Image upload failed'); }
         setUploadingImg(false);
@@ -1443,7 +1443,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                 type: 'public_chat', msgId: msg.id, msgText: msg.text,
                 reporterUID: user.uid, reporterName: currentUser?.displayName || 'User',
                 reportedUID: msg.senderId, reportedName: msg.senderName,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(), status: 'pending',
+                createdAt: TS(), status: 'pending',
             });
             onNotification(lang==='ar'?'✅ تم إرسال البلاغ':'✅ Report sent');
         } catch(e) {}
@@ -1460,13 +1460,13 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                 senderId: user.uid, senderName: currentUser.displayName || 'User', senderPhoto: currentUser.photoURL || null,
                 targetType: 'public', targetId: 'public', targetName: 'Public',
                 claimedBy: [], maxClaims: rp.maxClaims, remaining: rp.amount,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(), status: 'active',
+                createdAt: TS(), status: 'active',
             });
             await usersCollection.doc(user.uid).update({ currency: firebase.firestore.FieldValue.increment(-rp.amount) });
             await publicChatCollection.add({
                 type: 'red_packet', rpId: rpRef.id, rpAmount: rp.amount, rpConfigId: rp.id,
                 senderId: user.uid, senderName: currentUser.displayName || 'User', senderPhoto: currentUser.photoURL || null,
-                text: `🧧 ${rp.amount}`, createdAt: firebase.firestore.FieldValue.serverTimestamp(), maxClaims: rp.maxClaims,
+                text: `🧧 ${rp.amount}`, createdAt: TS(), maxClaims: rp.maxClaims,
             });
             setShowRPModal(false);
             onNotification(lang==='ar'?'✅ تم إرسال المغلف!':'✅ Packet sent!');
@@ -1496,7 +1496,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
             await publicChatCollection.add({
                 type: 'system',
                 text: lang==='ar' ? `🎉 ${currentUser?.displayName||'مستخدم'} استلم ${claim} 🧠 من مغلف ${rp.senderName}` : `🎉 ${currentUser?.displayName||'User'} claimed ${claim} 🧠 from ${rp.senderName}'s packet`,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(), senderId: 'system',
+                createdAt: TS(), senderId: 'system',
             });
             onNotification(lang==='ar'?`🎉 استلمت ${claim} Intel!`:`🎉 You got ${claim} Intel!`);
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
@@ -1513,35 +1513,9 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
         if (!uid) return;
         setMiniMenuPub(false);
         setMiniProfilePub({ uid, name: basicData?.name || '...', photo: basicData?.photo || null, loading: true });
-        try {
-            const doc = await usersCollection.doc(uid).get();
-            if (doc.exists) {
-                const d = doc.data();
-                const stats = d.stats || {};
-                const wins = stats.wins || 0; const losses = stats.losses || 0;
-                const total = wins + losses;
-                const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
-                const unlockedBadgeIds = Array.isArray(d.achievements)
-                    ? d.achievements.map(a => typeof a === 'string' ? a : a?.id).filter(Boolean)
-                    : ((d.achievements?.badges) || []).map(b => (b?.id) || b).filter(Boolean);
-                const topBadges = typeof ACHIEVEMENTS !== 'undefined'
-                    ? ACHIEVEMENTS.filter(a => unlockedBadgeIds.includes(a.id)).sort((a,b) => (b.tier||0)-(a.tier||0)).slice(0,3) : [];
-                const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
-                const vipCfg = vipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)] : null;
-                const signImgURL = d.familySignImageURL || (d.familySignLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined' ? (FAMILY_SIGN_IMAGES.find(s => s.level === d.familySignLevel)?.imageURL || null) : null);
-                setMiniProfilePub({
-                    uid, name: d.displayName || 'User', photo: d.photoURL || null,
-                    customId: d.customId || null, bannerUrl: d.profileBanner || d.bannerUrl || null,
-                    gender: d.gender || null, charisma: d.charisma || 0,
-                    isFriend: user ? ((d.friends || []).includes(user.uid) || (currentUser?.friends || []).includes(uid)) : false,
-                    familyTag: d.familyTag || null, familySignLevel: d.familySignLevel || null,
-                    familySignColor: d.familySignColor || null, familySignImageURL: signImgURL,
-                    gamesPlayed: total, winRate, topBadges, vipLevel, vipCfg,
-                    coupleRingEmoji: d.coupleRingEmoji || null, coupleRingImageUrl: d.coupleRingImageUrl || null,
-                    loading: false,
-                });
-            }
-        } catch(e) {}
+        const friends = user ? ((currentUser?.friends || []).concat([])) : [];
+        const data = await fetchMiniProfileData(uid, friends);
+        if (data) setMiniProfilePub(data);
     };
 
     if (!show) return null;
@@ -1594,7 +1568,7 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                             }
                             const isMe = msg.senderId === currentUID;
                             const isImg = msg.type === 'image';
-                            const vipCfg = msg.senderVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msg.senderVipLevel-1,VIP_CONFIG.length-1)] : null;
+                            const vipCfg = getVIPConfig(msg.senderVipLevel);
                             return (
                                 <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'8px',alignItems:'flex-end'}}>
                                     {/* Avatar — always shown for everyone */}
@@ -1687,82 +1661,14 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
 
                     {/* ── Mini Profile Popup inside PublicChat (Fix 4 & 8: higher z-index, stays above chat) ── */}
                     {miniProfilePub && (
-                        <div style={{position:'fixed',inset:0,zIndex:Z.MODAL_HIGH+10,background:'rgba(0,0,0,0.82)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}
-                            onClick={()=>{setMiniProfilePub(null);setMiniMenuPub(false);}}>
-                            <div style={{width:'100%',maxWidth:'min(370px, calc(100vw - 20px))',borderRadius:'24px',overflow:'hidden',background:'#0d0d1f',border:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 28px 70px rgba(0,0,0,0.95)',position:'relative'}}
-                                onClick={e=>e.stopPropagation()}>
-                                {/* Banner */}
-                                <div style={{position:'relative',height:'120px',background:miniProfilePub.bannerUrl?`url(${miniProfilePub.bannerUrl}) center/cover no-repeat`:'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)'}}>
-                                    <div style={{position:'absolute',inset:0,background:'linear-gradient(180deg,rgba(0,0,0,0.15) 0%,rgba(13,13,31,0.7) 100%)'}}/>
-                                    <div style={{position:'absolute',top:'10px',right:'10px',zIndex:3}}>
-                                        <button onClick={e=>{e.stopPropagation();setMiniMenuPub(v=>!v);}} style={{background:'rgba(0,0,0,0.55)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:'50%',width:'30px',height:'30px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'white',fontSize:'17px',fontWeight:900}}>⋮</button>
-                                        {miniMenuPub && (
-                                            <div style={{position:'absolute',top:'34px',right:0,background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'1px solid rgba(255,255,255,0.13)',borderRadius:'12px',padding:'5px',minWidth:'160px',boxShadow:'0 10px 30px rgba(0,0,0,0.9)',zIndex:5}} onClick={e=>e.stopPropagation()}>
-                                                <button onClick={()=>{setMiniMenuPub(false);setMiniProfilePub(null);if(onOpenProfile)onOpenProfile(miniProfilePub.uid);}} style={{width:'100%',padding:'9px 12px',borderRadius:'8px',background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'8px',fontSize:'12px',fontWeight:700,color:'#00f2ff',textAlign:'left'}} onMouseEnter={e=>e.currentTarget.style.background='rgba(0,242,255,0.08)'} onMouseLeave={e=>e.currentTarget.style.background='none'}>👤 {lang==='ar'?'فتح البروفايل':'Open Profile'}</button>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {(miniProfilePub.coupleRingEmoji||miniProfilePub.coupleRingImageUrl) && (
-                                        <div style={{position:'absolute',top:'48px',right:'12px',zIndex:2}}>
-                                            {miniProfilePub.coupleRingImageUrl?<img src={miniProfilePub.coupleRingImageUrl} alt="" style={{width:'28px',height:'28px',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}/>:<span style={{fontSize:'22px',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}>{miniProfilePub.coupleRingEmoji}</span>}
-                                        </div>
-                                    )}
-                                </div>
-                                {(miniProfilePub.topBadges||[]).length>0 && (
-                                    <div style={{display:'flex',gap:'6px',padding:'8px 16px 0',justifyContent:'flex-end'}}>
-                                        {(miniProfilePub.topBadges||[]).map((badge,i)=>(
-                                            <div key={i} style={{width:'26px',height:'26px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>
-                                                {badge.imageUrl?<img src={badge.imageUrl} alt="" style={{width:'18px',height:'18px',objectFit:'contain'}}/>:(badge.icon||'🏅')}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                <div style={{padding:(miniProfilePub.topBadges||[]).length>0?'6px 16px 20px':'0 16px 20px',position:'relative'}}>
-                                    <div style={{display:'flex',alignItems:'flex-end',gap:'12px',marginTop:(miniProfilePub.topBadges||[]).length>0?'-48px':'-36px',marginBottom:'14px'}}>
-                                        <div onClick={()=>{setMiniProfilePub(null);setMiniMenuPub(false);if(onOpenProfile)onOpenProfile(miniProfilePub.uid);}} style={{width:'72px',height:'72px',borderRadius:'50%',border:miniProfilePub.vipCfg?`3px solid ${miniProfilePub.vipCfg.nameColor}`:'3px solid #0d0d1f',overflow:'hidden',background:'#1a1a2e',boxShadow:miniProfilePub.vipCfg?`0 0 14px ${miniProfilePub.vipCfg.nameColor}88,0 4px 16px rgba(0,0,0,0.6)`:'0 4px 16px rgba(0,0,0,0.6)',flexShrink:0,zIndex:2,cursor:'pointer'}}>
-                                            {miniProfilePub.photo?<img src={miniProfilePub.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px'}}>😎</div>}
-                                        </div>
-                                        <div style={{flex:1,paddingBottom:'4px',minWidth:0}}>
-                                            <div onClick={()=>{setMiniProfilePub(null);setMiniMenuPub(false);if(onOpenProfile)onOpenProfile(miniProfilePub.uid);}} style={{display:'flex',alignItems:'center',gap:'5px',marginBottom:'5px',cursor:'pointer',flexWrap:'wrap'}}>
-                                                {miniProfilePub.vipCfg && <span style={{fontSize:'8px',fontWeight:900,background:miniProfilePub.vipCfg.nameColor,color:'#000',padding:'1px 4px',borderRadius:'3px'}}>{miniProfilePub.vipCfg.imageUrl?<img src={miniProfilePub.vipCfg.imageUrl} alt="" style={{height:'12px',objectFit:'contain',verticalAlign:'middle'}}/>:null}VIP{miniProfilePub.vipLevel}</span>}
-                                                <span style={{fontSize:'16px',fontWeight:900,color:'#00f2ff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{miniProfilePub.name}</span>
-                                                {miniProfilePub.gender && <span style={{fontSize:'14px'}}>{miniProfilePub.gender==='male'?'♂️':'♀️'}</span>}
-                                            </div>
-                                            {/* ID Row */}
-                                            {miniProfilePub.customId && (
-                                                <div style={{display:'flex',alignItems:'center',gap:'4px',fontSize:'11px',color:'#6b7280'}}>
-                                                    {miniProfilePub.vipCfg?.idBeforeImageUrl
-                                                        ? <><img src={miniProfilePub.vipCfg.idBeforeImageUrl} alt="" style={{height:'16px',objectFit:'contain'}}/><span>{miniProfilePub.customId}</span></>
-                                                        : <span>ID: {miniProfilePub.customId}</span>
-                                                    }
-                                                    <button onClick={()=>navigator.clipboard?.writeText(miniProfilePub.customId)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'12px',color:'#4b5563',padding:'0 2px',lineHeight:1}}>⎘</button>
-                                                </div>
-                                            )}
-                                            {miniProfilePub.loading && <div style={{fontSize:'11px',color:'#4b5563',fontStyle:'italic'}}>⏳</div>}
-                                        </div>
-                                    </div>
-                                    <div style={{display:'flex',borderTop:'1px solid rgba(255,255,255,0.07)',borderBottom:'1px solid rgba(255,255,255,0.07)',margin:'0 0 14px',padding:'10px 0'}}>
-                                        <div style={{flex:1,textAlign:'center'}}>
-                                            <div style={{fontSize:'20px',fontWeight:900,color:'white',lineHeight:1}}>{miniProfilePub.gamesPlayed??0}</div>
-                                            <div style={{fontSize:'10px',color:'#6b7280',marginTop:'3px'}}>{lang==='ar'?'مباريات':'Games'}</div>
-                                        </div>
-                                        <div style={{width:'1px',background:'rgba(255,255,255,0.08)',margin:'4px 0'}}/>
-                                        <div style={{flex:1,textAlign:'center'}}>
-                                            {(()=>{const r=miniProfilePub.winRate??0;const c=r>=70?'#10b981':r>=50?'#facc15':'#f97316';return<><div style={{fontSize:'20px',fontWeight:900,color:c,lineHeight:1}}>{r}%</div><div style={{fontSize:'10px',color:'#6b7280',marginTop:'3px'}}>{lang==='ar'?'نسبة الفوز':'Win Rate'}</div></>;})()}
-                                        </div>
-                                    </div>
-                                    <div style={{display:'flex',gap:'8px'}}>
-                                        {miniProfilePub.uid!==user?.uid && !miniProfilePub.isFriend && (
-                                            <button onClick={async()=>{try{await usersCollection.doc(miniProfilePub.uid).update({friendRequests:firebase.firestore.FieldValue.arrayUnion(user.uid)});setMiniProfilePub(p=>({...p,isFriend:true}));}catch(e){}}} style={{flex:1,padding:'10px',borderRadius:'50px',background:'linear-gradient(135deg,rgba(0,242,255,0.22),rgba(0,180,255,0.18))',border:'1px solid rgba(0,242,255,0.4)',color:'#00f2ff',fontSize:'12px',fontWeight:800,cursor:'pointer'}}>{lang==='ar'?'إضافة':'Add'}</button>
-                                        )}
-                                        {miniProfilePub.uid!==user?.uid && miniProfilePub.isFriend && (
-                                            <div style={{flex:1,padding:'10px',borderRadius:'50px',background:'rgba(16,185,129,0.12)',border:'1px solid rgba(16,185,129,0.3)',color:'#10b981',fontSize:'12px',fontWeight:800,textAlign:'center'}}>✅ {lang==='ar'?'صديق':'Friends'}</div>
-                                        )}
-                                        <button onClick={()=>{setMiniProfilePub(null);setMiniMenuPub(false);if(onOpenProfile)onOpenProfile(miniProfilePub.uid);}} style={{flex:1,padding:'10px',borderRadius:'50px',background:'rgba(0,242,255,0.08)',border:'1px solid rgba(0,242,255,0.25)',color:'#00f2ff',fontSize:'12px',fontWeight:700,cursor:'pointer',textAlign:'center'}}>👤 {lang==='ar'?'البروفايل':'Profile'}</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <MiniProfilePopup
+                            profile={miniProfilePub}
+                            onClose={() => { setMiniProfilePub(null); setMiniMenuPub(false); }}
+                            currentUID={user?.uid}
+                            lang={lang}
+                            onOpenProfile={onOpenProfile}
+                            zIndex={Z.MODAL_HIGH + 10}
+                        />
                     )}
 
                     {/* Input Bar */}

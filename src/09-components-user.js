@@ -323,7 +323,7 @@ const DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) 
         try {
             const updates = {};
             updates[`dailyTasks.boxes.${box.id-1}.status`] = 'claimed';
-            updates[`dailyTasks.boxes.${box.id-1}.claimedAt`] = firebase.firestore.FieldValue.serverTimestamp();
+            updates[`dailyTasks.boxes.${box.id-1}.claimedAt`] = TS();
             if (box.reward.type === 'currency') updates['currency'] = firebase.firestore.FieldValue.increment(box.reward.amount);
             await usersCollection.doc(user.uid).update(updates);
             onNotification(`✅ +${box.reward.amount} 🧠`);
@@ -441,71 +441,7 @@ const DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) 
     );
 };
 
-const LoginRewardsComponent = ({ userData, user, lang, onNotification }) => {
-    const t = TRANSLATIONS[lang] || {};
-    const rewards = userData?.loginRewards || {};
-
-    const handleClaimDay = async (day) => {
-        if ((rewards.claimedDays || []).includes(day)) {
-            return onNotification(lang === 'ar' ? '✅ استلمت بالفعل' : '✅ Already claimed');
-        }
-
-        const lastClaim = rewards.lastClaimDate?.toDate?.() || new Date(0);
-        const hoursSinceLastClaim = (Date.now() - lastClaim.getTime()) / (1000 * 60 * 60);
-
-        if (hoursSinceLastClaim < 23) {
-            return onNotification(lang === 'ar' ? '⏳ عد إلى الغد' : '⏳ Come back tomorrow');
-        }
-
-        try {
-            const rewardData = LOGIN_REWARDS_CONFIG.dailyRewards.find(r => r.day === day);
-            const updates = {
-                'loginRewards.currentDay': day,
-                'loginRewards.lastClaimDate': firebase.firestore.FieldValue.serverTimestamp(),
-                'loginRewards.claimedDays': firebase.firestore.FieldValue.arrayUnion(day),
-                'currency': firebase.firestore.FieldValue.increment(rewardData?.reward || 100)
-            };
-
-            await usersCollection.doc(user.uid).update(updates);
-            onNotification(`✅ +${rewardData?.reward} ${lang === 'ar' ? 'تم الاستلام!' : 'Claimed!'}`);
-        } catch (error) {
-            onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
-        }
-    };
-
-    return (
-        <div style={{ padding: '12px', background: 'rgba(255,215,0,0.08)', borderRadius: '8px', marginBottom: '12px' }}>
-            <h3 style={{ color: '#ffd700', marginBottom: '8px', fontSize: '12px', fontWeight: 800 }}>
-                {lang === 'ar' ? '🎁 مكافآت الدخول' : '🎁 Login Rewards'}
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(40px, 1fr))', gap: '6px' }}>
-                {LOGIN_REWARDS_CONFIG.dailyRewards.slice(0, 7).map(reward => (
-                    <button
-                        key={reward.day}
-                        onClick={() => handleClaimDay(reward.day)}
-                        style={{
-                            padding: '8px',
-                            borderRadius: '6px',
-                            border: '1px solid',
-                            background: (rewards.claimedDays || []).includes(reward.day) ? 'rgba(74,222,128,0.2)' : 'rgba(255,215,0,0.1)',
-                            borderColor: (rewards.claimedDays || []).includes(reward.day) ? 'rgba(74,222,128,0.5)' : 'rgba(255,215,0,0.3)',
-                            color: (rewards.claimedDays || []).includes(reward.day) ? '#4ade80' : '#ffd700',
-                            cursor: 'pointer',
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            textAlign: 'center'
-                        }}
-                    >
-                        <div>{reward.icon}</div>
-                        <div>{reward.day}</div>
-                        {(rewards.claimedDays || []).includes(reward.day) && <div style={{fontSize: '9px'}}>✓</div>}
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
-};
+// LoginRewardsComponent removed — استخدم LoginRewards في 14-modals-misc.js
 
 // AchievementsDisplayComponent removed - use AchievementsDisplayV11 instead
 
@@ -514,7 +450,7 @@ const LoginRewardsComponent = ({ userData, user, lang, onNotification }) => {
 // ════════════════════════════════════════════════════════
 // 👨‍👩‍👧 GROUPS SECTION — Group Chat System
 // ════════════════════════════════════════════════════════
-const groupsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('group_chats');
+// groupsCollection — defined in 01-config.js
 
 // ── Group Level System ──
 const GROUP_LEVEL_CONFIG = [
@@ -536,13 +472,6 @@ const getGroupLevel = (xp = 0) => {
     }
     return cfg;
 };
-const getGroupLevelProgress = (xp = 0) => {
-    const cur = getGroupLevel(xp);
-    const nextCfg = GROUP_LEVEL_CONFIG.find(c => c.level === cur.level + 1);
-    if (!nextCfg) return 100;
-    return Math.min(100, Math.round(((xp - cur.xp) / (nextCfg.xp - cur.xp)) * 100));
-};
-
 const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, lang, onNotification, isLoggedIn, onOpenProfile }) => {
     const [groups, setGroups] = React.useState([]);
     const [activeGroup, setActiveGroup] = React.useState(null);
@@ -574,7 +503,6 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
     const [showRedPacketModal, setShowRedPacketModal] = React.useState(false);
     // ── Mini Profile in group chat ──
     const [groupMiniProfile, setGroupMiniProfile] = React.useState(null);
-    const [groupMiniMenuOpen, setGroupMiniMenuOpen] = React.useState(false);
     const messagesEndRef = React.useRef(null);
     const chatInputRef = React.useRef(null);
     const fileInputRef = React.useRef(null);
@@ -608,7 +536,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
             });
         groupsCollection.doc(activeGroup.id).update({
-            [`readBy.${currentUID}`]: firebase.firestore.FieldValue.serverTimestamp()
+            [`readBy.${currentUID}`]: TS()
         }).catch(() => {});
         return () => unsub();
     }, [activeGroup?.id]);
@@ -640,10 +568,10 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 members: [currentUID],
                 admins: [currentUID],
                 lastMessage: lang === 'ar' ? '🎉 تم إنشاء الجروب' : '🎉 Group created',
-                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastMessageAt: TS(),
                 lastMessageAtMs: nowMs,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                readBy: { [currentUID]: firebase.firestore.FieldValue.serverTimestamp() },
+                createdAt: TS(),
+                readBy: { [currentUID]: TS() },
                 xp: 0,
                 level: 1,
             });
@@ -669,7 +597,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
             await groupsCollection.doc(activeGroup.id).collection('messages').add({
                 text: lang === 'ar' ? `تمت إضافة ${friend?.displayName || 'عضو'}` : `${friend?.displayName || 'Member'} was added`,
                 senderId: 'system', senderName: 'System',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(), type: 'system'
+                createdAt: TS(), type: 'system'
             });
             onNotification(lang === 'ar' ? '✅ تمت الدعوة!' : '✅ Invited!');
             setShowInvite(false);
@@ -691,7 +619,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 senderPhoto: currentUserData?.photoURL || null,
                 senderVipLevel,
                 senderTitle,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(), type: 'text'
+                createdAt: TS(), type: 'text'
             });
             // ── XP + level update ──
             const newXP = (activeGroup.xp || 0) + 1;
@@ -699,11 +627,11 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
             await groupsCollection.doc(activeGroup.id).update({
                 lastMessage: text, lastSenderId: currentUID,
                 lastSenderName: currentUserData?.displayName || 'User',
-                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastMessageAt: TS(),
                 lastMessageAtMs: nowMs,
                 xp: firebase.firestore.FieldValue.increment(1),
                 level: newLevel.level,
-                [`readBy.${currentUID}`]: firebase.firestore.FieldValue.serverTimestamp()
+                [`readBy.${currentUID}`]: TS()
             });
             setActiveGroup(g => ({ ...g, xp: newXP, level: newLevel.level }));
         } catch (e) { console.error('sendMessage error:', e); }
@@ -721,13 +649,13 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 senderName: currentUserData?.displayName || 'User',
                 senderPhoto: currentUserData?.photoURL || null,
                 type: 'image', imageData: base64,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: TS()
             });
             await groupsCollection.doc(activeGroup.id).update({
                 lastMessage: '📷 Photo', lastSenderId: currentUID,
-                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastMessageAt: TS(),
                 lastMessageAtMs: nowMs,
-                [`readBy.${currentUID}`]: firebase.firestore.FieldValue.serverTimestamp()
+                [`readBy.${currentUID}`]: TS()
             });
         } catch (e) { console.error('Image upload error:', e); }
         setUploadingImg(false);
@@ -780,7 +708,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
             await groupsCollection.doc(activeGroup.id).collection('messages').add({
                 text: lang==='ar' ? `تم طرد ${member?.displayName||'عضو'}` : `${member?.displayName||'Member'} was removed`,
                 senderId:'system', senderName:'System', type:'system',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: TS()
             });
             setActiveGroup(g => ({ ...g, members: (g.members||[]).filter(id=>id!==memberId), admins: (g.admins||[]).filter(id=>id!==memberId) }));
             setMembersData(d => d.filter(m=>m.id!==memberId));
@@ -819,7 +747,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
             await groupsCollection.doc(activeGroup.id).collection('messages').add({
                 text: lang==='ar'?`تم نقل الملكية إلى ${target.displayName}`:`Ownership transferred to ${target.displayName}`,
                 senderId:'system', senderName:'System', type:'system',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: TS()
             });
             setActiveGroup(g => ({ ...g, createdBy: target.id, admins: [...(g.admins||[]), target.id] }));
             setShowTransferConfirm(false); setTransferToId('');
@@ -846,7 +774,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 await groupsCollection.doc(activeGroup.id).collection('messages').add({
                     text: lang==='ar'?`${currentUserData?.displayName||'عضو'} غادر الجروب`:`${currentUserData?.displayName||'Member'} left the group`,
                     senderId:'system', senderName:'System', type:'system',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: TS()
                 });
             }
             setActiveGroup(null); setShowDetails(false);
@@ -871,7 +799,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 type: 'group', groupId: activeGroup.id, groupName: activeGroup.name,
                 reporterId: currentUID, reporterName: currentUserData?.displayName || 'User',
                 reason: reportGroupReason.trim(),
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(), status: 'pending'
+                createdAt: TS(), status: 'pending'
             });
             setShowReportGroup(false); setReportGroupReason('');
             onNotification(lang==='ar'?'✅ تم إرسال البلاغ':'✅ Report submitted');
@@ -892,7 +820,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 targetType: 'group', targetId: activeGroup.id, targetName: activeGroup.name,
                 claimedBy: [], maxClaims: rpConfig.maxClaims,
                 remaining: rpConfig.amount,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
                 status: 'active',
             });
             await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(-rpConfig.amount) });
@@ -902,7 +830,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 senderId: currentUID, senderName: currentUserData.displayName || 'User',
                 senderPhoto: currentUserData.photoURL || null,
                 text: lang==='ar'?`🧧 مغلف أحمر ${rpConfig.amount} من ${currentUserData.displayName}`:`🧧 Red Packet ${rpConfig.amount} from ${currentUserData.displayName}`,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
                 maxClaims: rpConfig.maxClaims,
             });
             // Site-wide announcement in public chat
@@ -914,7 +842,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                 text: lang==='ar'
                     ? `🧧 ${currentUserData.displayName} أرسل مغلف ${rpConfig.amount} في جروب ${activeGroup.name}`
                     : `🧧 ${currentUserData.displayName} sent a ${rpConfig.amount} packet in group ${activeGroup.name}`,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
             });
             setShowRedPacketModal(false);
             onNotification(lang==='ar'?'✅ تم إرسال المغلف!':'✅ Red Packet sent!');
@@ -949,7 +877,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                         ? `🎉 ${currentUserData?.displayName||'مستخدم'} استلم ${claim} من مغلف ${rp.senderName}`
                         : `🎉 ${currentUserData?.displayName||'User'} claimed ${claim} from ${rp.senderName}'s packet`,
                     senderId: 'system', senderName: 'System',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: TS(),
                 });
             }
             onNotification(lang==='ar'?`🎉 استلمت ${claim} Intel!`:`🎉 You got ${claim} Intel!`);
@@ -959,31 +887,10 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
     // openGroupMiniProfile → now opens a mini profile popup instead of the full profile
     const openGroupMiniProfile = async (uid, basicData) => {
         if (!uid) return;
-        // Show basic data first while loading
-        setGroupMiniProfile({ uid, name: (basicData && basicData.name) || '...', photo: (basicData && basicData.photo) || null, loading: true });
-        try {
-            const doc = await usersCollection.doc(uid).get();
-            if (doc.exists) {
-                const d = doc.data();
-                const stats = d.stats || {};
-                const wins = stats.wins || 0; const losses = stats.losses || 0;
-                const total = wins + losses;
-                const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
-                const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
-                const vipCfg = vipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)] : null;
-                const signImgURL = d.familySignImageURL || (d.familySignLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined' ? (FAMILY_SIGN_IMAGES.find(s => s.level === d.familySignLevel)?.imageURL || null) : null);
-                setGroupMiniProfile({
-                    uid, name: d.displayName || 'User', photo: d.photoURL || null,
-                    customId: d.customId || null, bannerUrl: d.profileBanner || d.bannerUrl || d.banner || null,
-                    gender: d.gender || null, charisma: d.charisma || 0,
-                    familyTag: d.familyTag || null, familySignLevel: d.familySignLevel || null,
-                    familySignColor: d.familySignColor || null, familySignImageURL: signImgURL,
-                    gamesPlayed: total, winRate, vipLevel, vipCfg,
-                    coupleRingEmoji: d.coupleRingEmoji || null, coupleRingImageUrl: d.coupleRingImageUrl || null,
-                    loading: false,
-                });
-            }
-        } catch(e) { setGroupMiniProfile(null); if (onOpenProfile) onOpenProfile(uid); }
+        setGroupMiniProfile({ uid, name: basicData?.name || '...', photo: basicData?.photo || null, loading: true });
+        const data = await fetchMiniProfileData(uid);
+        if (data) setGroupMiniProfile(data);
+        else { setGroupMiniProfile(null); if (onOpenProfile) onOpenProfile(uid); }
     };
     React.useEffect(() => {
         if (!showDetails || !activeGroup) return;
@@ -1422,7 +1329,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                                 // 🧧 Red Packet message
                                 if(msg.type==='red_packet') {
                                     const isMe=msg.senderId===currentUID;
-                                    const vipCfgRP = msg.senderVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msg.senderVipLevel-1,VIP_CONFIG.length-1)] : null;
+                                    const vipCfgRP = getVIPConfig(msg.senderVipLevel);
                                     return(
                                         <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end',marginBottom:'4px'}}>
                                             <div onClick={()=>openGroupMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}
@@ -1456,7 +1363,7 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
                                 }
                                 const isMe=msg.senderId===currentUID;
                                 const isImage=msg.type==='image';
-                                const vipCfgMsg = msg.senderVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msg.senderVipLevel-1,VIP_CONFIG.length-1)] : null;
+                                const vipCfgMsg = getVIPConfig(msg.senderVipLevel);
                                 return(
                                     <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end'}}>
                                         {/* Avatar — shown for ALL senders including self */}
@@ -1545,58 +1452,13 @@ const GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, 
 
                         {/* ── GROUP MINI PROFILE POPUP (Fix 4) ── */}
                         {groupMiniProfile && (
-                            <div style={{position:'fixed',inset:0,zIndex:9999,background:'rgba(0,0,0,0.82)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}
-                                onClick={()=>{setGroupMiniProfile(null);setGroupMiniMenuOpen(false);}}>
-                                <div style={{width:'100%',maxWidth:'min(340px,calc(100vw-20px))',borderRadius:'24px',overflow:'hidden',background:'#0d0d1f',border:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 28px 70px rgba(0,0,0,0.95)',position:'relative'}}
-                                    onClick={e=>e.stopPropagation()}>
-                                    {/* Banner */}
-                                    <div style={{position:'relative',height:'100px',
-                                        background: groupMiniProfile.bannerUrl ? 'transparent' : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)',
-                                        backgroundImage: groupMiniProfile.bannerUrl ? `url(${groupMiniProfile.bannerUrl})` : undefined,
-                                        backgroundSize:'cover',backgroundPosition:'center',backgroundRepeat:'no-repeat'}}>
-                                        <div style={{position:'absolute',inset:0,background:'linear-gradient(180deg,rgba(0,0,0,0.1) 0%,rgba(13,13,31,0.7) 100%)'}}/>
-                                        <div style={{position:'absolute',top:'8px',right:'8px',zIndex:3}}>
-                                            <button onClick={()=>setGroupMiniMenuOpen(v=>!v)} style={{background:'rgba(0,0,0,0.55)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:'50%',width:'28px',height:'28px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'white',fontSize:'16px',fontWeight:900}}>⋮</button>
-                                            {groupMiniMenuOpen && (
-                                                <div style={{position:'absolute',top:'32px',right:0,background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'1px solid rgba(255,255,255,0.13)',borderRadius:'12px',padding:'5px',minWidth:'150px',boxShadow:'0 10px 30px rgba(0,0,0,0.9)',zIndex:5}} onClick={e=>e.stopPropagation()}>
-                                                    <button onClick={()=>{setGroupMiniMenuOpen(false);setGroupMiniProfile(null);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}} style={{width:'100%',padding:'8px 12px',borderRadius:'8px',background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'8px',fontSize:'12px',fontWeight:700,color:'#00f2ff',textAlign:'left'}} onMouseEnter={e=>e.currentTarget.style.background='rgba(0,242,255,0.08)'} onMouseLeave={e=>e.currentTarget.style.background='none'}>👤 {lang==='ar'?'فتح البروفايل':'Open Profile'}</button>
-                                                </div>
-                                            )}
-                                        </div>
-                                        {(groupMiniProfile.coupleRingEmoji||groupMiniProfile.coupleRingImageUrl)&&(
-                                            <div style={{position:'absolute',top:'40px',right:'10px',zIndex:2}}>
-                                                {groupMiniProfile.coupleRingImageUrl?<img src={groupMiniProfile.coupleRingImageUrl} alt="" style={{width:'24px',height:'24px',objectFit:'contain',filter:'drop-shadow(0 0 5px rgba(255,80,150,0.7))'}}/>:<span style={{fontSize:'20px',filter:'drop-shadow(0 0 5px rgba(255,80,150,0.7))'}}>{groupMiniProfile.coupleRingEmoji}</span>}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div style={{padding:'0 14px 16px',position:'relative'}}>
-                                        <div style={{display:'flex',alignItems:'flex-end',gap:'10px',marginTop:'-32px',marginBottom:'12px'}}>
-                                            <div onClick={()=>{setGroupMiniProfile(null);setGroupMiniMenuOpen(false);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}} style={{width:'64px',height:'64px',borderRadius:'50%',border:groupMiniProfile.vipCfg?`3px solid ${groupMiniProfile.vipCfg.nameColor}`:'3px solid #0d0d1f',overflow:'hidden',background:'#1a1a2e',boxShadow:groupMiniProfile.vipCfg?`0 0 12px ${groupMiniProfile.vipCfg.nameColor}88,0 4px 14px rgba(0,0,0,0.6)`:'0 4px 14px rgba(0,0,0,0.6)',flexShrink:0,zIndex:2,cursor:'pointer'}}>
-                                                {groupMiniProfile.photo?<img src={groupMiniProfile.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>😎</div>}
-                                            </div>
-                                            <div style={{flex:1,paddingBottom:'4px',minWidth:0}}>
-                                                <div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'4px',flexWrap:'wrap',cursor:'pointer'}} onClick={()=>{setGroupMiniProfile(null);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}}>
-                                                    {groupMiniProfile.vipCfg&&<span style={{fontSize:'8px',fontWeight:900,background:groupMiniProfile.vipCfg.nameColor,color:'#000',padding:'1px 4px',borderRadius:'3px'}}>VIP{groupMiniProfile.vipLevel}</span>}
-                                                    <span style={{fontSize:'15px',fontWeight:900,color:'#00f2ff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{groupMiniProfile.name}</span>
-                                                    {groupMiniProfile.gender&&<span style={{fontSize:'14px'}}>{groupMiniProfile.gender==='male'?'♂️':'♀️'}</span>}
-                                                </div>
-                                                {groupMiniProfile.customId&&(
-                                                    <div style={{fontSize:'11px',color:'#6b7280',display:'flex',alignItems:'center',gap:'3px'}}>
-                                                        {groupMiniProfile.vipCfg?.idBeforeImageUrl?<><img src={groupMiniProfile.vipCfg.idBeforeImageUrl} alt="" style={{height:'14px',objectFit:'contain'}}/><span>{groupMiniProfile.customId}</span></>:<span>ID: {groupMiniProfile.customId}</span>}
-                                                    </div>
-                                                )}
-                                                {groupMiniProfile.loading&&<div style={{fontSize:'10px',color:'#4b5563',fontStyle:'italic'}}>⏳</div>}
-                                            </div>
-                                        </div>
-                                        <div style={{display:'flex',borderTop:'1px solid rgba(255,255,255,0.07)',borderBottom:'1px solid rgba(255,255,255,0.07)',margin:'0 0 12px',padding:'10px 0'}}>
-                                            <div style={{flex:1,textAlign:'center'}}><div style={{fontSize:'18px',fontWeight:900,color:'white'}}>{groupMiniProfile.gamesPlayed??0}</div><div style={{fontSize:'10px',color:'#6b7280',marginTop:'2px'}}>{lang==='ar'?'مباريات':'Games'}</div></div>
-                                            <div style={{width:'1px',background:'rgba(255,255,255,0.08)',margin:'4px 0'}}/>
-                                            <div style={{flex:1,textAlign:'center'}}>{(()=>{const r=groupMiniProfile.winRate??0;const c=r>=70?'#10b981':r>=50?'#facc15':'#f97316';return<><div style={{fontSize:'18px',fontWeight:900,color:c}}>{r}%</div><div style={{fontSize:'10px',color:'#6b7280',marginTop:'2px'}}>{lang==='ar'?'نسبة الفوز':'Win Rate'}</div></>;})()}</div>
-                                        </div>
-                                        <button onClick={()=>{setGroupMiniProfile(null);if(onOpenProfile)onOpenProfile(groupMiniProfile.uid);}} style={{width:'100%',padding:'10px',borderRadius:'50px',background:'rgba(0,242,255,0.08)',border:'1px solid rgba(0,242,255,0.25)',color:'#00f2ff',fontSize:'12px',fontWeight:700,cursor:'pointer',textAlign:'center'}}>👤 {lang==='ar'?'فتح البروفايل':'Open Profile'}</button>
-                                    </div>
-                                </div>
-                            </div>
+                            <MiniProfilePopup
+                                profile={groupMiniProfile}
+                                onClose={() => setGroupMiniProfile(null)}
+                                currentUID={currentUID}
+                                lang={lang}
+                                onOpenProfile={onOpenProfile}
+                            />
                         )}
 
                         {/* ── INPUT BAR ── */}

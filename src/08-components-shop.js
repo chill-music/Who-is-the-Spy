@@ -799,7 +799,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 
         {/* ── VIP Confirm Dialog ── */}
         {showVIPConfirm && ReactDOM.createPortal(
-            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.76)',backdropFilter:'blur(7px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999}}
+            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.76)',backdropFilter:'blur(7px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH}}
                 onClick={()=>setShowVIPConfirm(false)}>
                 <div style={{background:'linear-gradient(135deg,#1a0533,#0d0d2b)',border:'2px solid #a855f7',borderRadius:'20px',padding:'28px',maxWidth:'300px',width:'90%',textAlign:'center',boxShadow:'0 0 60px rgba(168,85,247,0.28)'}}
                     onClick={e=>e.stopPropagation()}>
@@ -899,7 +899,7 @@ const ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets,
                                     status:'reclaimed',
                                     remaining: 0,
                                     maxClaims: 0,
-                                    reclaimedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                    reclaimedAt: TS()
                                 });
                                 const uniqueId = (sp.configId||'rp_600') + '_' + Date.now();
                                 await usersCollection.doc(user.uid).update({
@@ -1226,14 +1226,14 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                                 senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
                                                                 targetType:'family', targetId:myFamilyId,
                                                                 claimedBy:[], maxClaims:rpSendModal.maxClaims||5,
-                                                                remaining:rpSendModal.amount, createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'active'
+                                                                remaining:rpSendModal.amount, createdAt:TS(), status:'active'
                                                             });
                                                             await usersCollection.doc(user.uid).update({'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId)});
                                                             await famCol.doc(myFamilyId).collection('messages').add({
                                                                 type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount,
                                                                 rpConfigId:rpSendModal.id, maxClaims:rpSendModal.maxClaims||5,
                                                                 senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
-                                                                text:'🧧 '+rpSendModal.amount, timestamp:firebase.firestore.FieldValue.serverTimestamp()
+                                                                text:'🧧 '+rpSendModal.amount, timestamp:TS()
                                                             });
                                                             setRpSendModal(null);
                                                         } catch(e){ console.error('Family RP send error',e); }
@@ -1253,7 +1253,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                                     senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
                                                                     targetType:'dm', targetId:fid, targetName:friend.displayName||'User',
                                                                     claimedBy:[], maxClaims:1, remaining:rpSendModal.amount,
-                                                                    createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'active'
+                                                                    createdAt:TS(), status:'active'
                                                                 });
                                                                 await usersCollection.doc(user.uid).update({'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId)});
                                                                 const chatId = [user.uid, fid].sort().join('_');
@@ -1261,7 +1261,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                                     type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount,
                                                                     rpConfigId:rpSendModal.id, senderId:user.uid,
                                                                     senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
-                                                                    text:'🧧 '+rpSendModal.amount, timestamp:firebase.firestore.FieldValue.serverTimestamp(), maxClaims:1
+                                                                    text:'🧧 '+rpSendModal.amount, timestamp:TS(), maxClaims:1
                                                                 });
                                                                 setRpSendModal(null);
                                                             } catch(e) {}

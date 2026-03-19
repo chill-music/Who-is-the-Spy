@@ -6,12 +6,7 @@
 // Data:    RINGS_DATA, COUPLE_GIFTS_DATA
 // Helpers: sendProposal, acceptProposal, declineProposal, divorceCouple
 // ════════════════════════════════════════════════════════════════════
-
-// ─────────────────────────────────────────────
-// 📦 FIRESTORE COLLECTION  (add this line to 01-config.js too)
-// ─────────────────────────────────────────────
-const couplesCollection = db.collection('artifacts').doc(appId)
-    .collection('public').doc('data').collection('couples');
+// couplesCollection — defined in 01-config.js
 
 // ─────────────────────────────────────────────
 // 💍 RINGS DATA — Extended with admin/event fields
@@ -173,7 +168,7 @@ const sendProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message,
             intimacyPoints: 0,
             couplePhotoUrl: null,
             sharedBio: '',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: TS(),
             proposedBy: fromUID,
         });
         await batch.commit();
@@ -192,7 +187,7 @@ const sendProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message,
             giftId: giftId || null,
             proposalMessage: message || '',
             coupleDocId: coupleRef.id,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: TS(),
             read: false,
         });
 
@@ -222,7 +217,7 @@ const acceptProposal = async ({ coupleDocId, uid1, uid2, onNotification, lang })
         const batch = db.batch();
         batch.update(couplesCollection.doc(coupleDocId), {
             status: 'accepted',
-            marriageDate: firebase.firestore.FieldValue.serverTimestamp(),
+            marriageDate: TS(),
         });
         batch.update(usersCollection.doc(uid1), { partnerId: uid2, isMarried: true });
         batch.update(usersCollection.doc(uid2), { partnerId: uid1, isMarried: true });
@@ -234,7 +229,7 @@ const acceptProposal = async ({ coupleDocId, uid1, uid2, onNotification, lang })
             fromUserId: uid2,
             type: 'couple_accepted',
             message: lang==='ar' ? '💖 قبلوا طلب ارتباطك!' : '💖 Your proposal was accepted!',
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: TS(),
             read: false,
         });
 

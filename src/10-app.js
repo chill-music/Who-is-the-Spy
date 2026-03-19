@@ -363,7 +363,7 @@ function App() {
         if (!isLoggedIn || !user) return;
         try {
             await usersCollection.doc(user.uid).update({
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                lastActive: TS()
             });
         } catch (error) {
             console.error('LastActive update error:', error);
@@ -380,7 +380,7 @@ function App() {
         try {
             await usersCollection.doc(user.uid).update({
                 [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true,
-                [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: firebase.firestore.FieldValue.serverTimestamp(),
+                [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: TS(),
                 'currency': firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE)
             });
             setNotification(lang === 'ar' ? '✅ تم الشراء!' : '✅ Purchased!');
@@ -397,7 +397,7 @@ function App() {
             const rewardData = LOGIN_REWARDS_CONFIG.dailyRewards.find(r => r.day === day);
             await usersCollection.doc(user.uid).update({
                 'loginRewards.currentDay': day,
-                'loginRewards.lastClaimDate': firebase.firestore.FieldValue.serverTimestamp(),
+                'loginRewards.lastClaimDate': TS(),
                 'loginRewards.claimedDays': firebase.firestore.FieldValue.arrayUnion(day),
                 'currency': firebase.firestore.FieldValue.increment(rewardData?.reward || 100)
             });
@@ -412,7 +412,7 @@ function App() {
         try {
             const updates = {};
             updates[`dailyTasks.boxes.${boxId - 1}.status`] = 'claimed';
-            updates[`dailyTasks.boxes.${boxId - 1}.claimedAt`] = firebase.firestore.FieldValue.serverTimestamp();
+            updates[`dailyTasks.boxes.${boxId - 1}.claimedAt`] = TS();
 
             if (reward.type === 'currency') {
                 updates['currency'] = firebase.firestore.FieldValue.increment(reward.amount);
@@ -601,14 +601,14 @@ function App() {
 
         // Set online immediately on login
         usersCollection.doc(user.uid).update({
-            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+            lastActive: TS(),
             onlineStatus: 'online'
         }).catch(() => {});
 
         // Heartbeat every 3 minutes
         const interval = setInterval(() => {
             usersCollection.doc(user.uid).update({
-                lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+                lastActive: TS(),
                 onlineStatus: 'online'
             }).catch(() => {});
         }, 180000);
@@ -630,12 +630,12 @@ function App() {
             if (document.visibilityState === 'hidden') {
                 usersCollection.doc(user.uid).update({
                     onlineStatus: 'away',
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                    lastActive: TS()
                 }).catch(() => {});
             } else {
                 usersCollection.doc(user.uid).update({
                     onlineStatus: 'online',
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                    lastActive: TS()
                 }).catch(() => {});
             }
         };
@@ -663,7 +663,7 @@ function App() {
         if (sessionDay !== today) {
             // New day - reset boxes and set session start
             usersCollection.doc(user.uid).update({
-                'dailyTasks.sessionStartTime': firebase.firestore.FieldValue.serverTimestamp(),
+                'dailyTasks.sessionStartTime': TS(),
                 'dailyTasks.boxes': Array(8).fill(null).map(() => ({ status: 'unclaimed' }))
             }).catch(() => {});
         }
@@ -716,7 +716,7 @@ function App() {
                     historyWrittenRooms.current.add(roomId);
 
                     setShowSummary(true);
-                    historyCollection.add({ ...data, finishedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    historyCollection.add({ ...data, finishedAt: TS() });
                     roomsCollection.doc(roomId).update({ summaryShown: true });
 
                     // ✅ Update stats, missions, achievements when game ends
@@ -992,9 +992,9 @@ function App() {
             achievements: [],
             friends: [],
             friendRequests: [],
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: TS(),
             lastChangedName: null,
-            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+            lastActive: TS(),
             isAnonymous: false,
             currency: 100,
             inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] },
@@ -1028,7 +1028,7 @@ function App() {
             const savedNick = localStorage.getItem('pro_spy_nick');
             const guestNick = savedNick || ('Player_' + Math.random().toString(36).substring(2, 6));
             const guestUID = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-            const newGuestData = { uid: guestUID, displayName: guestNick, photoURL: null, customId: Math.floor(100000 + Math.random() * 900000).toString(), stats: { wins: 0, losses: 0, xp: 0 }, currency: 0, charisma: 0, equipped: { badges: [] }, inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] }, isAnonymous: true, isGuest: true, createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastActive: firebase.firestore.FieldValue.serverTimestamp() };
+            const newGuestData = { uid: guestUID, displayName: guestNick, photoURL: null, customId: Math.floor(100000 + Math.random() * 900000).toString(), stats: { wins: 0, losses: 0, xp: 0 }, currency: 0, charisma: 0, equipped: { badges: [] }, inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] }, isAnonymous: true, isGuest: true, createdAt: TS(), lastActive: TS() };
             try { await guestsCollection.doc(guestUID).set(newGuestData); setGuestData(newGuestData); setNickname(guestNick); localStorage.setItem('pro_spy_guest_uid', guestUID); localStorage.setItem('pro_spy_nick', guestNick); } catch (e) { }
         };
         initGuest();
@@ -1039,7 +1039,7 @@ function App() {
     const getDefaultPhoto = useCallback((uData, name) => uData?.photoURL || `https://ui-avatars.com/api/?name=${name || 'Guest'}&background=random`, []);
 
     // Notification Functions
-    const createNotification = useCallback(async (toUserId, type, message, fromUserId, fromName, giftData = null) => { try { await notificationsCollection.add({ toUserId, fromUserId, fromName, type, message, giftData, timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false }); } catch (e) { } }, []);
+    const createNotification = useCallback(async (toUserId, type, message, fromUserId, fromName, giftData = null) => { try { await notificationsCollection.add({ toUserId, fromUserId, fromName, type, message, giftData, timestamp: TS(), read: false }); } catch (e) { } }, []);
     const markNotificationRead = useCallback(async (notifId) => { try { await notificationsCollection.doc(notifId).update({ read: true }); } catch (e) { } }, []);
     const clearAllNotifications = useCallback(async () => { try { const batch = db.batch(); notifications.forEach(n => { batch.delete(notificationsCollection.doc(n.id)); }); await batch.commit(); setNotifications([]); setUnreadNotifications(0); } catch (e) { } }, [notifications]);
     const handleNotificationClick = useCallback((notif) => {
@@ -1134,7 +1134,7 @@ function App() {
                     break;
             }
             updates['loginRewards.currentDay'] = day;
-            updates['loginRewards.lastClaimDate'] = firebase.firestore.FieldValue.serverTimestamp();
+            updates['loginRewards.lastClaimDate'] = TS();
             updates['loginRewards.streak'] = firebase.firestore.FieldValue.increment(1);
             updates['loginRewards.totalClaims'] = firebase.firestore.FieldValue.increment(1);
             updates['loginRewards.cycleMonth'] = getCurrentCycleMonth();
@@ -1239,7 +1239,7 @@ function App() {
             wordSelEndTime: Date.now() + 45000,
             votingRequest: null,
             ejectedUID: null,
-            startedAt: firebase.firestore.FieldValue.serverTimestamp()
+            startedAt: TS()
         });
     }, [room, currentUID, roomId, t]);
     const submitWordVote = useCallback(async (word) => {
@@ -1485,7 +1485,7 @@ function App() {
                     charisma:     gift.charisma,
                     bonus:        bonuses[i],
                     cost:         gift.cost,
-                    timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
+                    timestamp:    TS(),
                 }));
             }
 
@@ -1507,7 +1507,7 @@ function App() {
                 giftCost:      totalCost,
                 giftQty:       qty,
                 text:          `🎁 ${qty > 1 ? `×${qty} ` : ''}${lang === 'ar' ? 'أرسل هدية' : 'Sent a gift'}: ${gift.emoji}`,
-                timestamp:     firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp:     TS(),
             };
 
             if (isSelfSend) {
@@ -1517,7 +1517,7 @@ function App() {
                     participants: [user.uid, user.uid],
                     type:         'self',
                     lastMessage:  `🎁 ${giftName}${qty > 1 ? ` ×${qty}` : ''}`,
-                    lastAt:       firebase.firestore.FieldValue.serverTimestamp(),
+                    lastAt:       TS(),
                 }, { merge: true }));
                 parallelOps.push(selfChatRef.collection('messages').add(chatMsgBase));
             } else {
@@ -1526,7 +1526,7 @@ function App() {
                 parallelOps.push(chatsCollection.doc(chatId).set({
                     members:                    [user.uid, targetUser.uid],
                     lastMessage:                `🎁 ${giftName}${qty > 1 ? ` ×${qty}` : ''}`,
-                    timestamp:                  firebase.firestore.FieldValue.serverTimestamp(),
+                    timestamp:                  TS(),
                     [`unread.${targetUser.uid}`]: firebase.firestore.FieldValue.increment(1),
                 }, { merge: true }));
                 // Notification
@@ -1563,7 +1563,7 @@ function App() {
                     charisma:     totalCharisma,
                     giftId:       gift.id,
                     qty,
-                    timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
+                    timestamp:    TS(),
                 }).catch(() => {});
             }
 
@@ -1723,7 +1723,7 @@ function App() {
                 currency:            firebase.firestore.FieldValue.increment(-VIP_SHOP_COST),
                 'vip.isActive':      true,
                 'vip.expiresAt':     firebase.firestore.Timestamp.fromDate(baseDate),
-                'vip.purchasedAt':   firebase.firestore.FieldValue.serverTimestamp(),
+                'vip.purchasedAt':   TS(),
             };
 
             if (isFirstPurchase) {
@@ -2284,10 +2284,7 @@ function App() {
                         >
                             <span style={{fontSize:'14px'}}>🧠</span>
                             <span style={{fontSize:'12px',fontWeight:900,color:'#00f2ff',letterSpacing:'0.3px'}}>
-                                {(currentUserData?.currency||0) >= 1000
-                                    ? `${((currentUserData.currency)/1000).toFixed(1)}K`
-                                    : (currentUserData?.currency||0)
-                                }
+                                {fmtNum(currentUserData?.currency||0)}
                             </span>
                         </div>
                     )}
@@ -2387,7 +2384,7 @@ function App() {
                                                     ? <img src={currentLevel.iconUrl} alt="" style={{width:'18px',height:'18px',objectFit:'contain', filter: currentLevel.hasGlow?`drop-shadow(0 0 4px ${currentLevel.color})`:'none'}} />
                                                     : <span style={{color: currentLevel?.color||'#ffd700'}}>⭐</span>;
                                             })()}
-                                            <span className="sval gold">{((currentUserData?.charisma||0)>=1000?((currentUserData.charisma/1000).toFixed(1)+'K'):(currentUserData?.charisma||0))}</span>
+                                            <span className="sval gold">{fmtNum(currentUserData?.charisma||0)}</span>
                                             <span>{lang==='ar'?'كاريزما':'Charisma'}</span>
                                         </div>
                                         <div className="stat-pill-new"><span>🔥</span><span className="sval green">{currentUserData?.loginRewards?.streak || 0}</span><span>Streak</span></div>
@@ -2549,7 +2546,7 @@ function App() {
                                 const top3 = data.slice(0,3);
                                 const rest = data.slice(3);
                                 const getVal = (p) => leaderboardTab === 'charisma' ? (p.charisma || 0) : (p.stats?.wins || 0);
-                                const fmt = (v) => v >= 1000 ? (v/1000).toFixed(1)+'K' : v;
+                                const fmt = fmtNum; // unified — defined in 01-config.js
                                 const getAvatar = (p) => p.photoURL || p.photo || null;
                                 const getEmoji = (i) => ['😎','🦊','🐺'][i] || '👤';
                                 const slots = top3.length >= 3
@@ -2733,7 +2730,7 @@ function App() {
                                     const statusColor = (f) => f.onlineStatus==='online' ? '#4ade80' : f.onlineStatus==='away' ? '#facc15' : '#6b7280';
                                     const renderFriend = (friend) => {
                                         const fVipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(friend) || 0) : 0;
-                                        const fVipCfg = fVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(fVipLevel-1, VIP_CONFIG.length-1)] : null;
+                                        const fVipCfg = getVIPConfig(fVipLevel);
                                         const fEquipped = friend.equipped || {};
                                         const fBadgeIds = (fEquipped.badges || []).slice(0, 3);
                                         const fTitleId = fEquipped.titles || null;
@@ -2927,8 +2924,8 @@ function App() {
                                         <div className="me-hero-id">{currentUserData?.customId ? `#${currentUserData.customId}` : `ID: ${currentUID?.slice(0,8)||'—'}`}</div>
                                         <div className="me-hero-stats-row">
                                             <span>🏆 {currentUserData?.stats?.wins || 0}</span>
-                                            <span>⭐ {(currentUserData?.charisma||0)>=1000?((currentUserData.charisma/1000).toFixed(1)+'K'):(currentUserData?.charisma||0)}</span>
-                                            <span>🧠 {(currentUserData?.currency||0)>=1000?((currentUserData.currency/1000).toFixed(1)+'K'):(currentUserData?.currency||0)}</span>
+                                            <span>⭐ {fmtNum(currentUserData?.charisma||0)}</span>
+                                            <span>🧠 {fmtNum(currentUserData?.currency||0)}</span>
                                         </div>
                                     </div>
                                     <div style={{fontSize:'16px',color:'var(--text-muted)',flexShrink:0}}>›</div>

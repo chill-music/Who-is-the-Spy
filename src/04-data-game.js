@@ -34,14 +34,6 @@ const isItemExpired = (expiryTimestamp) => {
     return Date.now() > expiryTimestamp;
 };
 
-// Returns days remaining (null = permanent, 0 = expired)
-const getItemDaysLeft = (expiryTimestamp) => {
-    if (!expiryTimestamp) return null;
-    const ms = expiryTimestamp - Date.now();
-    if (ms <= 0) return 0;
-    return Math.ceil(ms / 86400000);
-};
-
 // Build expiresAt timestamp when buying/awarding an item
 const buildItemExpiresAt = (durationDays) => {
     if (!durationDays) return null;
@@ -526,8 +518,6 @@ const EMOJI_CATEGORIES = {
     objects: ['🔥', '⭐', '🌟', '✨', '💫', '🎉', '🎊', '🎁', '🎈', '🎀', '🏆', '🥇', '🥈', '🥉', '⚽', '🏀', '🎮', '🎲', '🎯', '🎵', '🎶', '🎤', '🎧', '📷', '💻', '📱', '💰', '💵', '💎', '👑', '🎩'],
     nature: ['🚀', '✈️', '🛸', '🌹', '🌸', '🌺', '🌻', '🌼', '🌷', '🌱', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃']
 };
-
-const EMOJI_LIST = Object.values(EMOJI_CATEGORIES).flat();
 
 // --- Helper Functions ---
 const formatTime = (timestamp) => { if (!timestamp) return ''; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };

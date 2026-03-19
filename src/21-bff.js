@@ -125,7 +125,7 @@ const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotificatio
             tokenId,
             cardType: token.cardType,
             requestedBy: fromUID,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: TS(),
             acceptedAt: null,
         });
 
@@ -141,7 +141,7 @@ const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotificatio
                 : `🤝 ${fromData?.displayName} sent you a ${token.name_en} friendship request!`,
             tokenId,
             bffDocId: bffRef.id,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: TS(),
             read: false,
         });
 
@@ -170,7 +170,7 @@ const acceptBFFRequest = async ({ bffDocId, uid1, uid2, onNotification, lang }) 
     try {
         await bffCollection.doc(bffDocId).update({
             status: 'active',
-            acceptedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            acceptedAt: TS(),
         });
         onNotification && onNotification(lang === 'ar' ? '🤝 تم قبول طلب الصداقة!' : '🤝 Friendship accepted!');
         return { ok: true };
@@ -247,43 +247,10 @@ const sendLoveBotMessage = async (toUID, data) => {
                     : (data.message || '')),
             bffDocId: data.bffDocId || null,
             coupleDocId: data.coupleDocId || null,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: TS(),
             read: false,
         });
     } catch (e) {}
-};
-
-// ─────────────────────────────────────────────
-// 🎴 BFF CARD BACKGROUND — renders token card bg
-// ─────────────────────────────────────────────
-const BFFCardBackground = ({ cardType, color, glow, children }) => {
-    const imgURL = BFF_CONFIG.cardImages?.[cardType] || BFF_CONFIG.cardImages?.default;
-    return (
-        <div style={{
-            position: 'relative',
-            width: '100%',
-            minHeight: '160px',
-            borderRadius: '18px',
-            overflow: 'hidden',
-            background: imgURL
-                ? 'transparent'
-                : `linear-gradient(135deg, ${color}18, ${color}08)`,
-            border: `1.5px solid ${color}55`,
-            boxShadow: `0 0 24px ${glow}, 0 8px 32px rgba(0,0,0,0.6)`,
-        }}>
-            {imgURL && (
-                <img src={imgURL} alt="" style={{
-                    position: 'absolute', inset: 0,
-                    width: '100%', height: '100%',
-                    objectFit: 'cover', borderRadius: '18px',
-                    opacity: 0.85,
-                }} />
-            )}
-            <div style={{ position: 'relative', zIndex: 1 }}>
-                {children}
-            </div>
-        </div>
-    );
 };
 
 // ─────────────────────────────────────────────

@@ -205,14 +205,14 @@ const PrivateChatModal = ({
                 senderVipLevel: myVipLevel,
                 type:          'text',
                 text,
-                timestamp:     firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp:     TS(),
             };
             // ✅ Always save to Firestore so the other person sees it
             await chatsCollection.doc(chatId).collection('messages').add(msgData);
             await chatsCollection.doc(chatId).set({
                 members:  [user.uid, friend.uid],
                 lastMessage: text,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: TS(),
                 [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1),
             }, { merge: true });
             if (onSendNotification) {
@@ -244,13 +244,13 @@ const PrivateChatModal = ({
                 type:          'image',
                 imageData:     base64,
                 text:          '📷',
-                timestamp:     firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp:     TS(),
             };
             await chatsCollection.doc(chatId).collection('messages').add(msgData);
             await chatsCollection.doc(chatId).set({
                 members:  [user.uid, friend.uid],
                 lastMessage: '📷 Photo',
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: TS(),
                 [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1),
             }, { merge: true });
             playSound('click');
@@ -318,55 +318,9 @@ const PrivateChatModal = ({
         if (!uid) return;
         setLoadingMiniProfile(true);
         setShowMiniMenu(false);
-        setMiniProfile({ uid, name: '...', photo: null, customId: null, bannerUrl: null, gender: null, loading: true });
-        try {
-            const doc = await usersCollection.doc(uid).get();
-            if (doc.exists) {
-                const d = doc.data();
-                const stats = d.stats || {};
-                const wins = stats.wins || 0;
-                const losses = stats.losses || 0;
-                const total = wins + losses;
-                const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
-                const unlockedBadgeIds = Array.isArray(d.achievements)
-                    ? d.achievements.map(a => typeof a === 'string' ? a : a?.id).filter(Boolean)
-                    : ((d.achievements?.badges) || []).map(b => b?.id || b).filter(Boolean);
-                const topBadges = typeof ACHIEVEMENTS !== 'undefined'
-                    ? ACHIEVEMENTS.filter(a => unlockedBadgeIds.includes(a.id))
-                        .sort((a, b) => (b.tier || 0) - (a.tier || 0))
-                        .slice(0, 3)
-                    : [];
-                // VIP info
-                const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
-                const vipCfg = vipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)] : null;
-                // Family sign image
-                const signImgURL = d.familySignImageURL || (d.familySignLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined' ? (FAMILY_SIGN_IMAGES.find(s => s.level === d.familySignLevel)?.imageURL || null) : null);
-                setMiniProfile({
-                    uid,
-                    name: d.displayName || 'User',
-                    photo: d.photoURL || null,
-                    customId: d.customId || null,
-                    bannerUrl: d.profileBanner || d.bannerUrl || d.banner || d.profileBannerUrl || null,
-                    gender: d.gender || null,
-                    isFriend: (currentUser?.friends || []).includes(uid),
-                    charisma: d.charisma || 0,
-                    familyTag: d.familyTag || null,
-                    familyName: d.familyName || null,
-                    familySignLevel: d.familySignLevel || null,
-                    familySignColor: d.familySignColor || null,
-                    familySignImageURL: signImgURL,
-                    gamesPlayed: total,
-                    winRate,
-                    topBadges,
-                    vipLevel,
-                    vipCfg,
-                    equippedFrame: d.equipped?.frames || null,
-                    coupleRingEmoji: d.coupleRingEmoji || null,
-                    coupleRingImageUrl: d.coupleRingImageUrl || null,
-                    loading: false,
-                });
-            }
-        } catch(e) { console.error('openMiniProfile error:', e); }
+        setMiniProfile({ uid, name: '...', photo: null, loading: true });
+        const data = await fetchMiniProfileData(uid, currentUser?.friends || []);
+        if (data) setMiniProfile(data);
         setLoadingMiniProfile(false);
     };
 
@@ -376,7 +330,7 @@ const PrivateChatModal = ({
         try {
             await chatsCollection.doc(chatId).collection('messages').doc(msgId).update({
                 text: newText.trim(),
-                editedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                editedAt: TS(),
                 isEdited: true,
             });
             setEditingMsgId(null);
@@ -392,7 +346,7 @@ const PrivateChatModal = ({
             await chatsCollection.doc(chatId).collection('messages').doc(msgId).update({
                 text: lang === 'ar' ? '🗑️ تم حذف هذه الرسالة' : '🗑️ This message was deleted',
                 isDeleted: true,
-                deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                deletedAt: TS(),
                 imageData: firebase.firestore.FieldValue.delete(),
                 type: 'deleted',
             });
@@ -418,7 +372,7 @@ const PrivateChatModal = ({
                 } : null,
                 type:          'user',
                 resolved:      false,
-                createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt:     TS(),
             });
             // إشعار للمستخدم بإرسال البلاغ
             await botChatsCollection.add({
@@ -429,7 +383,7 @@ const PrivateChatModal = ({
                     ? `🕵️ تم استلام بلاغك ضد "${friend.displayName || 'المستخدم'}".\nسيقوم فريق الإدارة بمراجعة البلاغ والتحقيق فيه.\n\nشكراً لمساعدتنا في الحفاظ على سلامة المجتمع.`
                     : `🕵️ Your report against "${friend.displayName || 'user'}" has been received.\nOur moderation team will review and investigate.\n\nThank you for helping keep the community safe.`,
                 read: false,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: TS(),
             }).catch(() => {});
             setReportStep('done');
         } catch (e) { console.error('Report error:', e); }
@@ -513,7 +467,7 @@ const PrivateChatModal = ({
                   {friend.vip?.isActive && getVIPLevel && getVIPLevel(friend) > 0 && VIP_CONFIG && (
                     <span style={{
                       fontSize: '8px', fontWeight: 900,
-                      background: VIP_CONFIG[Math.min(getVIPLevel(friend)-1, VIP_CONFIG.length-1)]?.nameColor || '#7c3aed',
+                      background: getVIPConfig(getVIPLevel(friend))?.nameColor || '#7c3aed',
                       color: '#000', padding: '1px 4px', borderRadius: '3px', flexShrink: 0,
                     }}>VIP{getVIPLevel(friend)}</span>
                   )}
@@ -619,7 +573,7 @@ const PrivateChatModal = ({
                 const isLastGroup = nextSender !== msg.senderId;
                 // Get VIP config for this message sender
                 const msgVipLevel = msg.senderVipLevel || 0;
-                const msgVipCfg = msgVipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(msgVipLevel-1, VIP_CONFIG.length-1)] : null;
+                const msgVipCfg = getVIPConfig(msgVipLevel);
 
                 // 🧧 Red Packet bubble
                 if(isRedPacket) {
@@ -1158,20 +1112,20 @@ const PrivateChatModal = ({
                           senderId:user.uid, senderName:currentUser?.displayName||'User', senderPhoto:currentUser?.photoURL||null,
                           targetType:'dm', targetId:friend.uid, targetName:friend.displayName,
                           claimedBy:[], maxClaims:1, remaining:rp.amount,
-                          createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'active',
+                          createdAt:TS(), status:'active',
                         });
                         await usersCollection.doc(user.uid).update({currency:firebase.firestore.FieldValue.increment(-rp.amount)});
                         await chatsCollection.doc(chatId).collection('messages').add({
                           type:'red_packet', rpId:rpRef.id, rpAmount:rp.amount, rpConfigId:rp.id,
                           senderId:user.uid, senderName:currentUser?.displayName||'User', senderPhoto:currentUser?.photoURL||null,
-                          text:`🧧 ${rp.amount}`, timestamp:firebase.firestore.FieldValue.serverTimestamp(), maxClaims:1,
+                          text:`🧧 ${rp.amount}`, timestamp:TS(), maxClaims:1,
                         });
                         // Announce
                         await publicChatCollection.add({
                           type:'red_packet_announce', senderId:user.uid, senderName:currentUser?.displayName||'User',
                           amount:rp.amount, targetType:'dm', targetName:friend.displayName,
                           text:lang==='ar'?`🧧 ${currentUser?.displayName} أرسل مغلف ${rp.amount} إلى ${friend.displayName}`:`🧧 ${currentUser?.displayName} sent a ${rp.amount} packet to ${friend.displayName}`,
-                          createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+                          createdAt:TS(),
                         });
                         setShowDMRedPacket(false);
                       } catch(e) { console.error(e); }
@@ -1248,7 +1202,7 @@ const PrivateChatModal = ({
           const activeMsg = messages.find(m => m.id === msgMenuId);
           if (!activeMsg) return null;
           return (
-            <div style={{ position:'fixed', inset:0, zIndex: 9998 }} onClick={() => setMsgMenuId(null)}>
+            <div style={{ position:'fixed', inset:0, zIndex: Z.MODAL_HIGH }} onClick={() => setMsgMenuId(null)}>
               <div style={{
                 position:'fixed',
                 bottom: `${msgMenuPos.bottom}px`,
@@ -1256,7 +1210,7 @@ const PrivateChatModal = ({
                 background: 'linear-gradient(160deg,#0e0e22,#13122a)',
                 border: '1px solid rgba(255,255,255,0.12)',
                 borderRadius: '10px', padding: '5px',
-                zIndex: 9999,
+                zIndex: Z.MODAL_HIGH + 1,
                 boxShadow: '0 8px 24px rgba(0,0,0,0.9)',
                 minWidth: '130px',
                 whiteSpace: 'nowrap',
@@ -1280,266 +1234,20 @@ const PrivateChatModal = ({
 
         {/* ── Mini Profile Modal — Enhanced Design ── */}
         {miniProfile && (
-          <div style={{
-            position:'fixed', inset:0, zIndex: Z.OVERLAY,
-            background:'rgba(0,0,0,0.78)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            padding:'16px',
-          }} onClick={() => { setMiniProfile(null); setShowMiniMenu(false); }}>
-            <div style={{
-              width:'100%', maxWidth:'min(370px, calc(100vw - 20px))',
-              borderRadius:'24px', overflow:'hidden',
-              background:'#0d0d1f',
-              border:'1px solid rgba(255,255,255,0.1)',
-              boxShadow:'0 28px 70px rgba(0,0,0,0.95)',
-              position:'relative',
-            }} onClick={e => e.stopPropagation()}>
-
-              {/* ── Banner — full width ── */}
-              <div style={{
-                position:'relative', height:'120px',
-                background: miniProfile.bannerUrl
-                  ? 'transparent'
-                  : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)',
-                backgroundImage: miniProfile.bannerUrl ? `url(${miniProfile.bannerUrl})` : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-              }}>
-                <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.18) 0%,rgba(13,13,31,0.65) 100%)' }} />
-
-                {/* 3-dot menu top-right */}
-                <div style={{ position:'absolute', top:'10px', right:'10px', zIndex:3 }}>
-                  <div style={{ position:'relative' }}>
-                    <button
-                      onClick={e => { e.stopPropagation(); setShowMiniMenu(v => !v); }}
-                      style={{ background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.18)', borderRadius:'50%', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white', fontSize:'17px', fontWeight:900, lineHeight:1 }}
-                    >⋮</button>
-                    {showMiniMenu && (
-                      <div style={{ position:'absolute', top:'34px', right:0, background:'linear-gradient(160deg,#0e0e22,#13122a)', border:'1px solid rgba(255,255,255,0.13)', borderRadius:'12px', padding:'5px', minWidth:'160px', boxShadow:'0 10px 30px rgba(0,0,0,0.9)', zIndex:5 }}
-                        onClick={e => e.stopPropagation()}>
-                        <button
-                          onClick={() => {
-                            setShowMiniMenu(false);
-                            setMiniProfile(null);
-                            // small delay so miniProfile closes first
-                            setTimeout(() => {
-                              setReportStep('reason');
-                              setReportReason('');
-                              setReportDMMsg(null);
-                              setShowReportModal(true);
-                            }, 50);
-                          }}
-                          style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#f87171', textAlign:'left' }}
-                          onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}
-                          onMouseLeave={e => e.currentTarget.style.background='none'}
-                        >🚨 {lang==='ar'?'إبلاغ':'Report'}</button>
-                        {miniProfile.uid !== user?.uid && (
-                          <button
-                            onClick={async () => { if (isBlocked) { await handleUnblock(); } else { await handleBlock(); } setShowMiniMenu(false); setMiniProfile(null); }}
-                            style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color: isBlocked?'#4ade80':'#f59e0b', textAlign:'left' }}
-                            onMouseEnter={e => e.currentTarget.style.background = isBlocked?'rgba(74,222,128,0.1)':'rgba(245,158,11,0.1)'}
-                            onMouseLeave={e => e.currentTarget.style.background='none'}
-                          >{isBlocked ? `✅ ${lang==='ar'?'إلغاء الحظر':'Unblock'}` : `🚫 ${lang==='ar'?'حظر':'Block'}`}</button>
-                        )}
-                        <button
-                          onClick={() => { setShowMiniMenu(false); setMiniProfile(null); if(onOpenProfile) onOpenProfile(miniProfile.uid); }}
-                          style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#00f2ff', textAlign:'left' }}
-                          onMouseEnter={e => e.currentTarget.style.background='rgba(0,242,255,0.08)'}
-                          onMouseLeave={e => e.currentTarget.style.background='none'}
-                        >👤 {lang==='ar'?'فتح البروفايل':'Open Profile'}</button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* 💍 Couple ring — top right below 3-dot */}
-                {(miniProfile.coupleRingEmoji || miniProfile.coupleRingImageUrl) && (
-                  <div style={{ position:'absolute', top:'48px', right:'12px', zIndex:2 }}>
-                    {miniProfile.coupleRingImageUrl
-                      ? <img src={miniProfile.coupleRingImageUrl} alt="" style={{width:'28px',height:'28px',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}/>
-                      : <span style={{fontSize:'22px',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'}}>{miniProfile.coupleRingEmoji}</span>}
-                  </div>
-                )}
-              </div>
-
-              {/* ── Badges row — RIGHT side ── */}
-              {(miniProfile.topBadges || []).length > 0 && (
-                <div style={{ display:'flex', gap:'6px', padding:'8px 16px 0', justifyContent:'flex-end' }}>
-                  {(miniProfile.topBadges || []).map((badge, i) => (
-                    <div key={i} title={badge.title_en || badge.name_en || ''} style={{
-                      width:'26px', height:'26px', borderRadius:'8px',
-                      background:'rgba(255,255,255,0.06)',
-                      border:'1px solid rgba(255,255,255,0.12)',
-                      display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:'14px',
-                    }}>
-                      {badge.imageUrl
-                        ? <img src={badge.imageUrl} alt="" style={{ width:'18px', height:'18px', objectFit:'contain' }} />
-                        : (badge.icon || '🏅')
-                      }
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* ── Profile section ── */}
-              <div style={{ padding: (miniProfile.topBadges||[]).length > 0 ? '6px 16px 20px' : '0 16px 20px', position:'relative' }}>
-                {/* Avatar + info row */}
-                <div style={{ display:'flex', alignItems:'flex-end', gap:'12px', marginTop: (miniProfile.topBadges||[]).length > 0 ? '-48px' : '-36px', marginBottom:'14px' }}>
-                  {/* Avatar — click opens full profile */}
-                  <div
-                    onClick={() => { setMiniProfile(null); setShowMiniMenu(false); if (onOpenProfile) onOpenProfile(miniProfile.uid); }}
-                    style={{
-                      width:'72px', height:'72px', borderRadius:'50%',
-                      border: miniProfile.vipCfg ? `3px solid ${miniProfile.vipCfg.nameColor}` : '3px solid #0d0d1f',
-                      overflow:'hidden', background:'#1a1a2e',
-                      boxShadow: miniProfile.vipCfg ? `0 0 14px ${miniProfile.vipCfg.nameColor}88, 0 4px 16px rgba(0,0,0,0.6)` : '0 4px 16px rgba(0,0,0,0.6)',
-                      flexShrink:0, zIndex:2, cursor:'pointer', position:'relative',
-                    }}
-                  >
-                    {miniProfile.photo
-                      ? <img src={miniProfile.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                      : <div style={{ width:'100%', height:'100%', background:'linear-gradient(135deg,#4f46e5,#7c3aed)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'28px' }}>😎</div>
-                    }
-                  </div>
-                  {/* Text info */}
-                  <div style={{ flex:1, paddingBottom:'4px', minWidth:0 }}>
-                    {/* Name row: Name + VIP badge + gender */}
-                    <div
-                      onClick={() => { setMiniProfile(null); setShowMiniMenu(false); if (onOpenProfile) onOpenProfile(miniProfile.uid); }}
-                      style={{ display:'flex', alignItems:'center', gap:'5px', marginBottom:'5px', cursor:'pointer', flexWrap:'wrap' }}
-                    >
-                      {/* VIP badge BEFORE gender, right after name */}
-                      {miniProfile.vipCfg && (
-                        <span style={{ fontSize:'8px', fontWeight:900, background:miniProfile.vipCfg.nameColor, color:'#000', padding:'1px 4px', borderRadius:'3px', flexShrink:0, display:'inline-flex', alignItems:'center', gap:'2px' }}>
-                          {miniProfile.vipCfg.badgeImageUrl && <img src={miniProfile.vipCfg.badgeImageUrl} alt="" style={{height:'10px',objectFit:'contain'}}/>}
-                          VIP{miniProfile.vipLevel}
-                        </span>
-                      )}
-                      <span style={{ fontSize:'16px', fontWeight:900, color:'#00f2ff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration:'underline dotted rgba(0,242,255,0.4)' }}>{miniProfile.name}</span>
-                      {miniProfile.gender && <span style={{ fontSize:'16px', lineHeight:1 }}>{miniProfile.gender === 'male' ? '♂️' : '♀️'}</span>}
-                      {/* Charisma: photo icon + Lv. number — exactly like full profile */}
-                      {(() => {
-                        if (typeof getCharismaLevel === 'undefined') return null;
-                        const { currentLevel: lvlData } = getCharismaLevel(miniProfile.charisma || 0);
-                        if (!lvlData) return null;
-                        const hasGlow = lvlData.hasGlow;
-                        const isDivine = lvlData.isDivine;
-                        return (
-                          <div style={{
-                            display:'flex', alignItems:'center', gap:'4px',
-                            padding:'3px 10px', borderRadius:'20px',
-                            background: isDivine ? 'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))' : hasGlow ? `${lvlData.color}18` : 'rgba(255,255,255,0.06)',
-                            border: isDivine ? '1px solid rgba(0,212,255,0.4)' : hasGlow ? `1px solid ${lvlData.color}55` : '1px solid rgba(255,255,255,0.1)',
-                            boxShadow: isDivine ? '0 0 10px rgba(0,212,255,0.25)' : hasGlow ? `0 0 8px ${lvlData.color}44` : 'none',
-                            flexShrink:0,
-                          }}>
-                            {lvlData.iconType === 'image' && lvlData.iconUrl
-                              ? <img src={lvlData.iconUrl} alt="" style={{ width:'16px', height:'16px', borderRadius: isDivine ? '50%' : '0', objectFit:'cover' }} />
-                              : <span style={{ fontSize:'13px' }}>{lvlData.icon}</span>}
-                            <span style={{ fontSize:'10px', fontWeight:800, color: isDivine ? '#00d4ff' : lvlData.color }}>
-                              Lv.{lvlData.level}
-                            </span>
-                          </div>
-                        );
-                      })()}
-                      {/* Family Sign — show image with tag overlaid if image available */}
-                      {miniProfile.familyTag && (() => {
-                        const signLevel = miniProfile.familySignLevel;
-                        let signImgURL = miniProfile.familySignImageURL || null;
-                        if (!signImgURL && signLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined') {
-                          const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === signLevel);
-                          signImgURL = cfg?.imageURL || null;
-                        }
-                        if (signImgURL) {
-                          const imgW = 44 + ((miniProfile.familyTag.length || 3) * 6);
-                          const imgH = Math.round(imgW * 0.55);
-                          const fontSize = (miniProfile.familyTag.length||3) <= 3 ? 11 : (miniProfile.familyTag.length||3) === 4 ? 10 : 9;
-                          const signColor = miniProfile.familySignColor || '#00f2ff';
-                          const hasGlow = (signLevel||0) >= 4;
-                          return (
-                            <span style={{position:'relative',display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0,width:`${imgW}px`,height:`${imgH}px`,filter:hasGlow?`drop-shadow(0 0 6px ${signColor}cc)`:'none'}}>
-                              <img src={signImgURL} alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain'}}/>
-                              <span style={{position:'relative',zIndex:1,fontSize:`${fontSize}px`,fontWeight:900,fontStyle:'italic',letterSpacing:'1.5px',color:'#fff',textShadow:'0 0 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.7)'}}>{miniProfile.familyTag}</span>
-                            </span>
-                          );
-                        }
-                        return (
-                          <span style={{ fontSize:'10px', fontWeight:800, color:'#00f2ff', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', borderRadius:'6px', padding:'2px 8px' }}>{miniProfile.familyTag}</span>
-                        );
-                      })()}
-                    </div>
-                    {/* ID */}
-                    {miniProfile.customId && (
-                      <div style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'11px', color:'#6b7280' }}>
-                        {miniProfile.vipCfg?.idBeforeImageUrl
-                          ? <><img src={miniProfile.vipCfg.idBeforeImageUrl} alt="" style={{height:'16px',objectFit:'contain',flexShrink:0}}/><span>{miniProfile.customId}</span></>
-                          : <span>ID: {miniProfile.customId}</span>
-                        }
-                        <button onClick={() => navigator.clipboard?.writeText(miniProfile.customId)}
-                          style={{ background:'none', border:'none', cursor:'pointer', fontSize:'12px', color:'#4b5563', padding:'0 2px', lineHeight:1 }}>⎘</button>
-                      </div>
-                    )}
-                    {miniProfile.loading && <div style={{ fontSize:'11px', color:'#4b5563', fontStyle:'italic' }}>⏳</div>}
-                  </div>
-                </div>
-
-                {/* Stats row */}
-                <div style={{ display:'flex', borderTop:'1px solid rgba(255,255,255,0.07)', borderBottom:'1px solid rgba(255,255,255,0.07)', margin:'0 0 16px', padding:'12px 0' }}>
-                  <div style={{ flex:1, textAlign:'center' }}>
-                    <div style={{ fontSize:'22px', fontWeight:900, color:'white', lineHeight:1 }}>{miniProfile.gamesPlayed ?? 0}</div>
-                    <div style={{ fontSize:'10px', color:'#6b7280', marginTop:'3px' }}>{lang==='ar'?'مباريات':'Games'}</div>
-                  </div>
-                  <div style={{ width:'1px', background:'rgba(255,255,255,0.08)', margin:'4px 0' }} />
-                  <div style={{ flex:1, textAlign:'center' }}>
-                    {(() => {
-                      const rate = miniProfile.winRate ?? 0;
-                      const col = rate >= 70 ? '#10b981' : rate >= 50 ? '#facc15' : '#f97316';
-                      return <>
-                        <div style={{ fontSize:'22px', fontWeight:900, color:col, lineHeight:1 }}>{rate}%</div>
-                        <div style={{ fontSize:'10px', color:'#6b7280', marginTop:'3px' }}>{lang==='ar'?'نسبة الفوز':'Winning Rate'}</div>
-                      </>;
-                    })()}
-                  </div>
-                </div>
-
-                {/* Action buttons */}
-                <div style={{ display:'flex', gap:'10px' }}>
-                  {miniProfile.uid !== user?.uid && !miniProfile.isFriend && (
-                    <button onClick={async () => {
-                        try {
-                          await usersCollection.doc(miniProfile.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) });
-                          setMiniProfile(p => ({ ...p, isFriend: true }));
-                        } catch(e) {}
-                      }}
-                      style={{ flex:1, padding:'11px', borderRadius:'50px', background:'linear-gradient(135deg,rgba(0,242,255,0.22),rgba(0,180,255,0.18))', border:'1px solid rgba(0,242,255,0.4)', color:'#00f2ff', fontSize:'13px', fontWeight:800, cursor:'pointer' }}>
-                      {lang==='ar'?'إضافة':'Add'}
-                    </button>
-                  )}
-                  {miniProfile.uid !== user?.uid && miniProfile.isFriend && (
-                    <div style={{ flex:1, padding:'11px', borderRadius:'50px', background:'rgba(16,185,129,0.12)', border:'1px solid rgba(16,185,129,0.3)', color:'#10b981', fontSize:'13px', fontWeight:800, textAlign:'center' }}>
-                      ✅ {lang==='ar'?'صديق':'Friends'}
-                    </div>
-                  )}
-                  {miniProfile.uid !== user?.uid && onSendGift && (
-                    <button onClick={() => { setMiniProfile(null); setShowMiniMenu(false); setShowGiftModal(true); }}
-                      style={{ flex:1, padding:'11px', borderRadius:'50px', background:'linear-gradient(135deg,rgba(255,80,150,0.26),rgba(236,72,153,0.18))', border:'1px solid rgba(255,80,150,0.4)', color:'#f472b6', fontSize:'13px', fontWeight:800, cursor:'pointer' }}>
-                      {lang==='ar'?'إرسال هدية':'Send Gift'}
-                    </button>
-                  )}
-                  {/* Self — show "You" + open full profile */}
-                  {miniProfile.uid === user?.uid && (
-                    <button onClick={() => { setMiniProfile(null); setShowMiniMenu(false); if(onOpenProfile) onOpenProfile(miniProfile.uid); }}
-                      style={{ flex:1, padding:'11px', borderRadius:'50px', background:'rgba(0,242,255,0.08)', border:'1px solid rgba(0,242,255,0.25)', color:'#00f2ff', fontSize:'13px', fontWeight:700, cursor:'pointer', textAlign:'center' }}>
-                      👤 {lang==='ar'?'بروفايلي':'My Profile'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <MiniProfilePopup
+            profile={miniProfile}
+            onClose={() => { setMiniProfile(null); setShowMiniMenu(false); }}
+            currentUID={user?.uid}
+            lang={lang}
+            onOpenProfile={onOpenProfile}
+            onSendGift={onSendGift ? () => { setShowGiftModal(true); } : null}
+            onReport={() => { setTimeout(() => { setReportStep('reason'); setReportReason(''); setReportDMMsg(null); setShowReportModal(true); }, 50); }}
+            onBlock={handleBlock}
+            onUnblock={handleUnblock}
+            isBlocked={isBlocked}
+          />
         )}
+
 
         {/* ── Delete Chat Confirm Modal ── */}
         {showDeleteChatConfirm && (

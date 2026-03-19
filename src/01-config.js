@@ -66,6 +66,12 @@ const redPacketsCollection      = db.collection('artifacts').doc(appId).collecti
 const publicChatCollection      = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('public_chat');
 const helpFaqCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('help_faq');
 const feedbackCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('feedback');
+// ── Collections added from scattered files (centralized here) ──
+const familiesCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('families');
+const couplesCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('couples');
+const groupsCollection          = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('group_chats');
+const staffLogCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('staff_activity_log');
+const ticketsCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('support_tickets');
 
 // ════════════════════════════════════════════════════════
 // 🧧 RED PACKETS SYSTEM CONFIG
@@ -209,11 +215,7 @@ const BOT_CHATS_CONFIG = [
 ];
 
 // --- Constants ---
-const CURRENCY_NAME = "Intel";
-const CURRENCY_ICON = "🧠";
-const MAX_ROUNDS = 3;
 const MAX_BADGES = 10;
-const MAX_GIFT_LOG_DISPLAY = 10;
 
 // ════════════════════════════════════════════════════════
 // 🔒 ADMIN SYSTEM — ضع Firebase UID بتاعك هنا
@@ -367,10 +369,108 @@ const VIP_ID_ICONS = {
     9:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip8.png', // ← VIP 9:  ضع رابط الأيقونة الأنيمشن هنا
     10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip10.png', // ← VIP 10: ضع رابط الأيقونة الأسطورية هنا
 };
-// دالة مساعدة للحصول على أيقونة الـ ID حسب مستوى VIP
-const getIdIconForVIP = (vipLevel) => {
-    if (!vipLevel || vipLevel < 6) return ID_ICON_IMAGE_URL;
-    return VIP_ID_ICONS[vipLevel] || ID_ICON_IMAGE_URL;
+// ════════════════════════════════════════════════════════
+// 🔢 fmtNum — دالة موحدة لتنسيق الأرقام (K / M)
+// الاستخدام: fmtNum(1500) → '1.5K' | fmtNum(2000000) → '2.0M'
+// ════════════════════════════════════════════════════════
+const fmtNum = (n) => {
+    if (n === undefined || n === null) return '0';
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000)     return (n / 1_000).toFixed(1) + 'K';
+    return String(n);
+};
+
+// ════════════════════════════════════════════════════════
+// 🏴 getFamilySignURL — دالة موحدة لجلب صورة ساين العائلة
+// الاستخدام: getFamilySignURL(userData) → URL | null
+// تحل محل 7 أماكن تكرار لنفس المنطق عبر الكود
+// ════════════════════════════════════════════════════════
+const getFamilySignURL = (data) => {
+    if (!data) return null;
+    if (data.familySignImageURL) return data.familySignImageURL;
+    const level = data.familySignLevel;
+    if (!level || typeof FAMILY_SIGN_IMAGES === 'undefined') return null;
+    const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === level);
+    return cfg?.imageURL || null;
+};
+
+// ════════════════════════════════════════════════════════
+// 👑 getVIPConfig — دالة موحدة لجلب إعدادات VIP
+// بدلاً من: VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)]
+// الاستخدام: const vipCfg = getVIPConfig(vipLevel)
+// ════════════════════════════════════════════════════════
+const getVIPConfig = (vipLevel) => {
+    if (!vipLevel || vipLevel <= 0 || typeof VIP_CONFIG === 'undefined') return null;
+    return VIP_CONFIG[Math.min(vipLevel - 1, VIP_CONFIG.length - 1)] || null;
+};
+
+// ════════════════════════════════════════════════════════
+// ⏱️ TS — اختصار لـ firebase.firestore.FieldValue.serverTimestamp()
+// الاستخدام: createdAt: TS()
+// ════════════════════════════════════════════════════════
+const TS = () => firebase.firestore.FieldValue.serverTimestamp();
+
+// ════════════════════════════════════════════════════════
+// 👤 fetchMiniProfileData — دالة موحدة لجلب بيانات الميني بروفايل
+// تحل محل 4 نسخ متطابقة في: 09, 13, 14, 19
+//
+// الاستخدام:
+//   const data = await fetchMiniProfileData(uid, myFriendsList);
+//   if (data) setMiniProfile(data);
+//
+// myFriendsList — مصفوفة الـ UIDs اللي المستخدم أصدقاؤهم (اختياري)
+// ════════════════════════════════════════════════════════
+const fetchMiniProfileData = async (uid, myFriendsList = []) => {
+    if (!uid) return null;
+    try {
+        const doc = await usersCollection.doc(uid).get();
+        if (!doc.exists) return null;
+        const d = doc.data();
+        const stats   = d.stats || {};
+        const wins    = stats.wins    || 0;
+        const losses  = stats.losses  || 0;
+        const total   = wins + losses;
+        const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+        const unlockedBadgeIds = Array.isArray(d.achievements)
+            ? d.achievements.map(a => typeof a === 'string' ? a : a?.id).filter(Boolean)
+            : ((d.achievements?.badges) || []).map(b => b?.id || b).filter(Boolean);
+        const topBadges = typeof ACHIEVEMENTS !== 'undefined'
+            ? ACHIEVEMENTS.filter(a => unlockedBadgeIds.includes(a.id))
+                .sort((a, b) => (b.tier || 0) - (a.tier || 0))
+                .slice(0, 3)
+            : [];
+
+        const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
+        const vipCfg   = getVIPConfig(vipLevel);
+
+        return {
+            uid,
+            name:               d.displayName            || 'User',
+            photo:              d.photoURL                || null,
+            customId:           d.customId               || null,
+            bannerUrl:          d.profileBanner || d.bannerUrl || d.banner || d.profileBannerUrl || null,
+            gender:             d.gender                 || null,
+            charisma:           d.charisma               || 0,
+            isFriend:           myFriendsList.includes(uid),
+            familyTag:          d.familyTag              || null,
+            familyName:         d.familyName             || null,
+            familySignLevel:    d.familySignLevel        || null,
+            familySignColor:    d.familySignColor        || null,
+            familySignImageURL: getFamilySignURL(d),
+            equippedFrame:      d.equipped?.frames       || null,
+            coupleRingEmoji:    d.coupleRingEmoji         || null,
+            coupleRingImageUrl: d.coupleRingImageUrl      || null,
+            gamesPlayed:        total,
+            winRate,
+            topBadges,
+            vipLevel,
+            vipCfg,
+            loading: false,
+        };
+    } catch(e) {
+        return null;
+    }
 };
 
 // 🔊 AUDIO SYSTEM`

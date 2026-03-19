@@ -3,10 +3,7 @@
 //    فقط Owner / Admin / Moderator يقدروا يشوفوها
 //    يتم استدعاؤها من SettingsModal
 // ════════════════════════════════════════════════════════
-
-// ── Collections الجديدة ──────────────────────────────────
-const staffLogCollection   = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('staff_activity_log');
-const ticketsCollection    = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('support_tickets');
+// staffLogCollection, ticketsCollection — defined in 01-config.js
 
 // ── Helper: تسجيل نشاط المشرف ────────────────────────────
 const logStaffAction = async (staffUID, staffName, action, targetUID = null, targetName = null, details = '') => {
@@ -16,7 +13,7 @@ const logStaffAction = async (staffUID, staffName, action, targetUID = null, tar
             targetUID: targetUID || null,
             targetName: targetName || null,
             details,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            timestamp: TS()
         });
     } catch(e) { console.error('Staff log error:', e); }
 };
@@ -74,8 +71,8 @@ const FakeProfilesSection = ({ lang, onNotification }) => {
                 stats: { wins, losses: Math.floor(wins * 0.4), xp: wins * 25, spy_wins: Math.floor(wins * 0.3), agent_wins: Math.floor(wins * 0.7), win_streak: 0 },
                 charisma, currency: 100, inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] },
                 equipped: { badges: [] }, achievements: [], friends: [], friendRequests: [],
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
+                lastActive: TS(),
                 isAnonymous: false, isFakeProfile: true,
                 loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 },
             };
@@ -305,7 +302,7 @@ const StaffManagementSection = ({ currentUser, currentUserData, lang, onNotifica
                 onNotification(lang==='ar'?'✅ تم إزالة الرتبة':'✅ Role removed');
             } else {
                 await usersCollection.doc(targetUID).update({
-                    staffRole: { role, assignedBy: currentUser.uid, assignedAt: firebase.firestore.FieldValue.serverTimestamp() }
+                    staffRole: { role, assignedBy: currentUser.uid, assignedAt: TS() }
                 });
                 await logStaffAction(currentUser.uid, currentUserData?.displayName, `ASSIGN_${role.toUpperCase()}`, targetUID, targetName, `Assigned role: ${role}`);
                 onNotification(`✅ ${lang==='ar'?'تم تعيين':'Assigned'} ${role}`);
@@ -458,7 +455,7 @@ const UserManagementSection = ({ currentUser, currentUserData, lang, onNotificat
                 expiresAt = firebase.firestore.Timestamp.fromDate(d);
             }
             await usersCollection.doc(targetUser.id).update({
-                ban: { isBanned: true, bannedBy: currentUser.uid, reason: banReason || 'Violation', expiresAt, bannedAt: firebase.firestore.FieldValue.serverTimestamp() }
+                ban: { isBanned: true, bannedBy: currentUser.uid, reason: banReason || 'Violation', expiresAt, bannedAt: TS() }
             });
             await logStaffAction(currentUser.uid, currentUserData?.displayName, 'BAN_USER', targetUser.id, targetUser.displayName, `Duration: ${banDuration} days. Reason: ${banReason}`);
             onNotification(`✅ ${lang==='ar'?'تم الحظر':'User banned'}`);
@@ -589,7 +586,7 @@ const BroadcastSection = ({ currentUser, currentUserData, lang, onNotification }
                     fromName: lang==='ar'?'فريق PRO SPY':'PRO SPY Team',
                     icon: '📢',
                     read: false,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    timestamp: TS()
                 });
                 count++;
             });
@@ -708,7 +705,7 @@ const BanPanelInline = ({ reportedUID, reportedName, reportId, currentUser, curr
                     bannedByName: currentUserData?.displayName || 'Admin',
                     reason:    banReason.trim(),
                     expiresAt: expiresAt ? firebase.firestore.Timestamp.fromDate(expiresAt) : null,
-                    bannedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+                    bannedAt:  TS(),
                     permanent: banDuration === 'perm',
                 }
             });
@@ -721,7 +718,7 @@ const BanPanelInline = ({ reportedUID, reportedName, reportId, currentUser, curr
                 const reportDoc = await reportsCollection.doc(reportId).get().catch(()=>null);
                 if (reportDoc && reportDoc.exists) {
                     const reporterUID = reportDoc.data()?.reporterUID;
-                    await reportsCollection.doc(reportId).update({ resolved: true, resolvedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
+                    await reportsCollection.doc(reportId).update({ resolved: true, resolvedAt: TS() }).catch(()=>{});
                     // Send detective bot message to reporter
                     if (reporterUID && typeof botChatsCollection !== 'undefined') {
                         const durLabel = banDuration === 'perm'
@@ -736,7 +733,7 @@ const BanPanelInline = ({ reportedUID, reportedName, reportId, currentUser, curr
                                 : `🕵️ Your report against "${reportedName}" has been reviewed.\n✅ Action taken: ${durLabel}\nReason: ${banReason}\n\nThank you for keeping the community safe.`,
                             fromName: null,
                             fromPhoto: null,
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            timestamp: TS(),
                             read: false,
                         }).catch(()=>{});
                     }
@@ -912,7 +909,7 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, on
                 resolved: true,
                 status: 'resolved',
                 resolvedBy: currentUser.uid,
-                resolvedAt: firebase.firestore.FieldValue.serverTimestamp()
+                resolvedAt: TS()
             });
             await logStaffAction(currentUser.uid, currentUserData?.displayName, 'RESOLVE_REPORT',
                 reportData.reportedUID || reportData.targetOwnerUID,
@@ -931,7 +928,7 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, on
                         : `🕵️ Your report against "${reportData.reportedName || 'user'}" has been reviewed.\nℹ️ After investigation, no action was taken at this time.\n\nThank you for your report.`,
                     fromName: null,
                     fromPhoto: null,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    timestamp: TS(),
                     read: false,
                 }).catch(()=>{});
             }
@@ -948,7 +945,7 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, on
                 escalatedTo: selectedEscalateTo,
                 escalatedBy: currentUser.uid,
                 escalatedNote: escalateNote,
-                escalatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                escalatedAt: TS()
             });
             // أرسل notification للمسؤول اللي صعّدنا إليه
             const targetStaff = staffList.find(s => s.id === selectedEscalateTo);
@@ -961,7 +958,7 @@ const ReportsSection = ({ currentUser, currentUserData, lang, onNotification, on
                 icon: '🚨',
                 read: false,
                 reportId,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                timestamp: TS()
             });
             await logStaffAction(currentUser.uid, currentUserData?.displayName, 'ESCALATE_REPORT',
                 reportData.reportedUID || null, getReportedName(reportData),
@@ -1288,7 +1285,7 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
                 escalatedBy: currentUser.uid,
                 escalatedByName: currentUserData?.displayName || 'Moderator',
                 escalatedNote: escalateNote.trim(),
-                escalatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                escalatedAt: TS(),
                 status: 'open', // يفضل open عشان الأدمن يشوفه
             });
             // إشعار للمسؤول
@@ -1300,7 +1297,7 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
                 icon: '🔺',
                 read: false,
                 ticketId: selectedTicket.id,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                timestamp: TS()
             });
             await logStaffAction(
                 currentUser.uid, currentUserData?.displayName,
@@ -1329,7 +1326,7 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
             await ticketsCollection.doc(selectedTicket.id).update({
                 responses: firebase.firestore.FieldValue.arrayUnion(reply),
                 status: 'answered',
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                lastUpdated: TS()
             });
             // إشعار المستخدم
             if (selectedTicket.userId && selectedTicket.userId !== '_system') {
@@ -1341,7 +1338,7 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
                     icon: '🎫',
                     read: false,
                     ticketId: selectedTicket.id,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    timestamp: TS()
                 });
             }
             await logStaffAction(currentUser.uid, currentUserData?.displayName, 'REPLY_TICKET',
@@ -1359,7 +1356,7 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
             await ticketsCollection.doc(ticketId).update({
                 status: 'closed',
                 closedBy: currentUser.uid,
-                closedAt: firebase.firestore.FieldValue.serverTimestamp()
+                closedAt: TS()
             });
             // إشعار المستخدم بالإغلاق
             const ticket = tickets.find(t => t.id === ticketId);
@@ -1372,7 +1369,7 @@ const TicketsSection = ({ currentUser, currentUserData, lang, onNotification }) 
                     icon: '🔒',
                     read: false,
                     ticketId,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    timestamp: TS()
                 });
             }
             await logStaffAction(currentUser.uid, currentUserData?.displayName, 'CLOSE_TICKET',
@@ -1947,7 +1944,7 @@ const FinancialLogSection = ({ lang }) => {
 
             {/* ── Edit Balance Modal ── */}
             {editUser && (
-                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:'16px'}}
+                <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH,padding:'16px'}}
                     onClick={() => { setEditUser(null); setEditAmount(''); setEditNote(''); }}>
                     <div style={{background:'linear-gradient(160deg,#0a0a20,#0f0f2e)',border:'1px solid rgba(16,185,129,0.35)',borderRadius:'18px',padding:'22px',width:'100%',maxWidth:'320px'}}
                         onClick={e => e.stopPropagation()}>
@@ -2073,12 +2070,12 @@ const FAQManagementSection = ({ lang, onNotification }) => {
         }
         setSaving(true);
         try {
-            const data = { ...formData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+            const data = { ...formData, updatedAt: TS() };
             if (editId) {
                 await helpFaqCollection.doc(editId).update(data);
                 onNotification(lang==='ar'?'✅ تم التعديل':'✅ Updated');
             } else {
-                await helpFaqCollection.add({ ...data, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                await helpFaqCollection.add({ ...data, createdAt: TS() });
                 onNotification(lang==='ar'?'✅ تم الإضافة':'✅ Added');
             }
             setShowForm(false); setEditId(null);

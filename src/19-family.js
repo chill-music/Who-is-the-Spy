@@ -3,9 +3,7 @@
 // 🏠 FAMILY SYSTEM — Complete Clan/Family System V2
 // File: 19-family.js
 // ════════════════════════════════════════════════════════
-
-// ── Firestore Collections ──
-const familiesCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('families');
+// familiesCollection — defined in 01-config.js
 
 // ════════════════════════════════════════════════════════
 // ⚙️  FAMILY CONFIG — Levels, Sign Levels, Tasks
@@ -348,7 +346,7 @@ const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curr
     // Load bell notifications (moment likes/comments for current user)
     useEffect(() => {
         if (!show || !currentUID || !showBell) return;
-        (notificationsCollection || db.collection('artifacts').doc(typeof appId !== 'undefined' ? appId : 'pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('notifications'))
+        notificationsCollection
             .where('recipientUID', '==', currentUID)
             .where('type', 'in', ['moment_like', 'moment_comment'])
             .orderBy('createdAt', 'desc')
@@ -377,7 +375,7 @@ const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curr
                 mediaUrl: mediaUrl || null,
                 likes: [],
                 comments: [],
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
             });
             setCreateText(''); setCreateImage(null); setCreateImageFile(null); setShowCreatePost(false);
         } catch(e) {}
@@ -602,80 +600,6 @@ const FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curr
     );
 };
 
-// ════════════════════════════════════════════════════════
-// 🏆 FAMILY RANKING MODAL
-// ════════════════════════════════════════════════════════
-const FamilyRankingModal = ({ show, onClose, lang, currentFamilyId }) => {
-    const [rankings, setRankings] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        if (!show) return;
-        setLoading(true);
-        familiesCollection.orderBy('xp', 'desc').limit(50).get().then(snap => {
-            setRankings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            setLoading(false);
-        }).catch(() => setLoading(false));
-    }, [show]);
-
-    if (!show) return null;
-
-    return (
-        <PortalModal>
-            <div className="modal-overlay" onClick={onClose} style={{ zIndex: Z.MODAL_HIGH + 1 }}>
-                <div className="animate-pop" onClick={e => e.stopPropagation()} style={{
-                    background:'linear-gradient(180deg,#0d0d1f,#08080f)',
-                    border:'1px solid rgba(255,215,0,0.2)', borderRadius:'18px',
-                    width:'100%', maxWidth:'420px', maxHeight:'85vh',
-                    display:'flex', flexDirection:'column', overflow:'hidden',
-                }}>
-                    <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
-                        <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                            <span style={{fontSize:'20px'}}>🏆</span>
-                            <div style={{fontSize:'14px', fontWeight:800, color:'white'}}>{lang==='ar'?'ترتيب العائلات':'Family Rankings'}</div>
-                        </div>
-                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer'}}>✕</button>
-                    </div>
-                    <div style={{flex:1, overflowY:'auto', padding:'12px'}}>
-                        {loading ? <div style={{textAlign:'center',padding:'40px',color:'#6b7280'}}>⏳</div> :
-                        rankings.map((fam, i) => {
-                            const fl = getFamilyLevel(fam.xp || 0);
-                            const sign = getFamilySignLevelData(fam.activeness || 0);
-                            const isMine = fam.id === currentFamilyId;
-                            return (
-                                <div key={fam.id} style={{
-                                    display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px',
-                                    borderRadius:'12px', marginBottom:'6px',
-                                    background: isMine ? 'rgba(0,242,255,0.08)' : i < 3 ? 'rgba(255,215,0,0.04)' : 'rgba(255,255,255,0.03)',
-                                    border: isMine ? '1px solid rgba(0,242,255,0.3)' : i === 0 ? '1px solid rgba(255,215,0,0.2)' : '1px solid rgba(255,255,255,0.06)',
-                                }}>
-                                    <div style={{width:'26px', textAlign:'center', fontSize:i < 3 ? '16px' : '11px', color:i===0?'#ffd700':i===1?'#9ca3af':i===2?'#cd7f32':'#4b5563', fontWeight:800, flexShrink:0}}>
-                                        {i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`}
-                                    </div>
-                                    <div style={{width:'38px', height:'38px', borderRadius:'12px', background:`${fl.color}15`, border:`1px solid ${fl.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', flexShrink:0}}>
-                                        {fam.photoURL ? <img src={fam.photoURL} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'10px'}} alt=""/> : (fam.emblem || '🏠')}
-                                    </div>
-                                    <div style={{flex:1, minWidth:0}}>
-                                        <div style={{display:'flex', alignItems:'center', gap:'5px', flexWrap:'wrap'}}>
-                                            <span style={{fontSize:'13px', fontWeight:800, color:isMine?'#00f2ff':'white', fontStyle:'italic'}}>{fam.name}</span>
-                                            <FamilySignBadge tag={fam.tag} color={sign.color} small signLevel={sign.level} />
-                                        </div>
-                                        <div style={{fontSize:'10px', color:'#6b7280', marginTop:'2px'}}>
-                                            <span style={{color:fl.color}}>{fl.icon} Lv.{fl.level}</span>
-                                            <span style={{marginLeft:'8px'}}>👥 {fam.members?.length||0}</span>
-                                            <span style={{marginLeft:'8px'}}>✨ {fmtFamilyNum(fam.xp||0)} XP</span>
-                                        </div>
-                                    </div>
-                                    {isMine && <span style={{fontSize:'10px', color:'#00f2ff', fontWeight:800}}>★</span>}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
-        </PortalModal>
-    );
-};
 
 // ════════════════════════════════════════════════════════
 // 💬 FAMILY CHAT MODAL — Standalone chat accessible from Chat tab
@@ -698,7 +622,6 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     const [sendingFamRP, setSendingFamRP] = React.useState(false);
     // ── Mini profile popup ──
     const [miniProfile, setMiniProfile] = React.useState(null);
-    const [showMiniMenuFam, setShowMiniMenuFam] = React.useState(false);
     // ── @ Mention ──
     const [mentionSearch, setMentionSearch] = React.useState('');
     const [showMentionList, setShowMentionList] = React.useState(false);
@@ -707,42 +630,9 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     // ── فتح ميني بروفايل في شات القبيلة ──
     const openFamilyChatMiniProfile = async function(uid, basicData) {
         if (!uid) return;
-        setShowMiniMenuFam(false);
         setMiniProfile({ uid, name: (basicData && basicData.name) || '...', photo: (basicData && basicData.photo) || null, loading: true });
-        try {
-            const doc = await usersCollection.doc(uid).get();
-            if (doc.exists) {
-                const d = doc.data();
-                const stats = d.stats || {};
-                const wins = stats.wins || 0; const losses = stats.losses || 0;
-                const total = wins + losses;
-                const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
-                const unlockedBadgeIds = Array.isArray(d.achievements)
-                    ? d.achievements.map(function(a) { return typeof a === 'string' ? a : (a && a.id); }).filter(Boolean)
-                    : ((d.achievements && d.achievements.badges) || []).map(function(b) { return (b && b.id) || b; }).filter(Boolean);
-                const topBadges = typeof ACHIEVEMENTS !== 'undefined'
-                    ? ACHIEVEMENTS.filter(function(a) { return unlockedBadgeIds.includes(a.id); })
-                        .sort(function(a, b) { return (b.tier || 0) - (a.tier || 0); }).slice(0, 3) : [];
-                const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
-                const vipCfg = vipLevel > 0 && typeof VIP_CONFIG !== 'undefined' ? VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)] : null;
-                var signImgURL = d.familySignImageURL || null;
-                if (!signImgURL && d.familySignLevel && typeof FAMILY_SIGN_IMAGES !== 'undefined') {
-                    var cfg2 = FAMILY_SIGN_IMAGES.find(function(s) { return s.level === d.familySignLevel; });
-                    signImgURL = (cfg2 && cfg2.imageURL) || null;
-                }
-                setMiniProfile({
-                    uid, name: d.displayName || 'User', photo: d.photoURL || null,
-                    customId: d.customId || null, bannerUrl: d.profileBanner || d.bannerUrl || d.banner || d.profileBannerUrl || null,
-                    gender: d.gender || null, charisma: d.charisma || 0,
-                    isFriend: ((userData && userData.friends) || []).includes(uid),
-                    familyTag: d.familyTag || null, familySignLevel: d.familySignLevel || null,
-                    familySignColor: d.familySignColor || null, familySignImageURL: signImgURL,
-                    gamesPlayed: total, winRate, topBadges, vipLevel, vipCfg,
-                    coupleRingEmoji: d.coupleRingEmoji || null, coupleRingImageUrl: d.coupleRingImageUrl || null,
-                    loading: false,
-                });
-            }
-        } catch(e) { console.error('openFamilyChatMiniProfile error:', e); }
+        const data = await fetchMiniProfileData(uid, (userData && userData.friends) || []);
+        if (data) setMiniProfile(data);
     };
 
     // جلب أعضاء العائلة للمنشن
@@ -842,16 +732,16 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                 senderPhoto: currentUserData?.photoURL || null,
                 text: finalText,
                 type: finalType,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: TS(),
                 ...extra,
             });
             if (type === 'text') setChatInput('');
             await familiesCollection.doc(familyId).update({
                 lastChatMessage: finalText || (type === 'image' ? '📷' : ''),
                 lastChatSenderId: currentUID,
-                lastChatAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastChatAt: TS(),
                 lastChatAtMs: Date.now(),
-                ['chatReadBy.' + currentUID]: firebase.firestore.FieldValue.serverTimestamp(),
+                ['chatReadBy.' + currentUID]: TS(),
             }).catch(function() {});
         } catch (e) { console.error('FamilyChatModal sendMessage error:', e); }
         setSendingMsg(false);
@@ -966,95 +856,31 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                 )
             ),
             // ── Mini Profile Popup ──
-            miniProfile && React.createElement('div', {
-                style: { position:'fixed', inset:0, zIndex: Z.OVERLAY, background:'rgba(0,0,0,0.78)', display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' },
-                onClick: function() { setMiniProfile(null); setShowMiniMenuFam(false); }
-            },
-                React.createElement('div', {
-                    style: { width:'100%', maxWidth:'min(370px, calc(100vw - 20px))', borderRadius:'24px', overflow:'hidden', background:'#0d0d1f', border:'1px solid rgba(255,255,255,0.1)', boxShadow:'0 28px 70px rgba(0,0,0,0.95)', position:'relative' },
-                    onClick: function(e) { e.stopPropagation(); }
+            miniProfile && React.createElement(MiniProfilePopup, {
+                profile: miniProfile,
+                onClose: function() { setMiniProfile(null); },
+                currentUID: currentUID,
+                lang: lang,
+                onOpenProfile: onOpenProfile,
+                onSendGift: onSendGift ? function(p) {
+                    setGiftTarget({ uid: p.uid, displayName: p.name, photoURL: p.photo });
+                    setShowChatGiftModal(true);
+                } : null,
+                onReport: async function(p) {
+                    try {
+                        await reportsCollection.add({
+                            type: 'user',
+                            reporterUID: currentUID,
+                            reporterName: (currentUserData && currentUserData.displayName) || 'User',
+                            reportedUID: p.uid, reportedName: p.name,
+                            reason: 'family_chat_report',
+                            createdAt: TS(),
+                            status: 'pending',
+                        });
+                    } catch(e) {}
+                    if (onNotification) onNotification(lang === 'ar' ? '✅ تم إرسال البلاغ' : '✅ Report sent');
                 },
-                    React.createElement('div', { style: { position:'relative', height:'120px',
-                        background: miniProfile.bannerUrl ? 'transparent' : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)',
-                        backgroundImage: miniProfile.bannerUrl ? ('url(' + miniProfile.bannerUrl + ')') : undefined,
-                        backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
-                    } },
-                        React.createElement('div', { style: { position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.18) 0%,rgba(13,13,31,0.65) 100%)' } }),
-                        React.createElement('div', { style: { position:'absolute', top:'10px', right:'10px', zIndex:3 } },
-                            React.createElement('div', { style: { position:'relative' } },
-                                React.createElement('button', { onClick: function(e) { e.stopPropagation(); setShowMiniMenuFam(function(v){return !v;}); }, style: { background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.18)', borderRadius:'50%', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white', fontSize:'17px', fontWeight:900 } }, '⋮'),
-                                showMiniMenuFam && React.createElement('div', { style: { position:'absolute', top:'34px', right:0, background:'linear-gradient(160deg,#0e0e22,#13122a)', border:'1px solid rgba(255,255,255,0.13)', borderRadius:'12px', padding:'5px', minWidth:'160px', boxShadow:'0 10px 30px rgba(0,0,0,0.9)', zIndex:5 }, onClick: function(e) { e.stopPropagation(); } },
-                                    React.createElement('button', { onClick: function() { setShowMiniMenuFam(false); setMiniProfile(null); if(typeof onOpenProfile==='function') onOpenProfile(miniProfile.uid); }, style: { width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#00f2ff', textAlign:'left' }, onMouseEnter:function(e){e.currentTarget.style.background='rgba(0,242,255,0.08)';}, onMouseLeave:function(e){e.currentTarget.style.background='none';} }, '👤 ' + (lang==='ar'?'فتح البروفايل':'Open Profile')),
-                                    miniProfile.uid !== currentUID && React.createElement('button', { onClick: async function() { try { await reportsCollection.add({ type:'user', reporterUID:currentUID, reporterName:(currentUserData&&currentUserData.displayName)||'User', reportedUID:miniProfile.uid, reportedName:miniProfile.name, reason:'family_chat_report', createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'pending' }); } catch(e){} setShowMiniMenuFam(false); setMiniProfile(null); if(onNotification) onNotification(lang==='ar'?'✅ تم إرسال البلاغ':'✅ Report sent'); }, style: { width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#f87171', textAlign:'left' }, onMouseEnter:function(e){e.currentTarget.style.background='rgba(239,68,68,0.1)';}, onMouseLeave:function(e){e.currentTarget.style.background='none';} }, '🚨 ' + (lang==='ar'?'إبلاغ':'Report'))
-                                )
-                            )
-                        ),
-                        (miniProfile.coupleRingEmoji || miniProfile.coupleRingImageUrl) && React.createElement('div', { style: { position:'absolute', top:'48px', right:'12px', zIndex:2 } },
-                            miniProfile.coupleRingImageUrl ? React.createElement('img', { src:miniProfile.coupleRingImageUrl, alt:'', style:{width:'28px',height:'28px',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'} }) : React.createElement('span', { style:{fontSize:'22px',filter:'drop-shadow(0 0 6px rgba(255,80,150,0.7))'} }, miniProfile.coupleRingEmoji)
-                        )
-                    ),
-                    (miniProfile.topBadges||[]).length > 0 && React.createElement('div', { style:{display:'flex',gap:'6px',padding:'8px 16px 0',justifyContent:'flex-end'} },
-                        (miniProfile.topBadges||[]).map(function(badge,i){ return React.createElement('div',{key:i,title:badge.title_en||badge.name_en||'',style:{width:'26px',height:'26px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}, badge.imageUrl?React.createElement('img',{src:badge.imageUrl,alt:'',style:{width:'18px',height:'18px',objectFit:'contain'}}):(badge.icon||'🏅')); })
-                    ),
-                    React.createElement('div', { style: { padding: (miniProfile.topBadges||[]).length > 0 ? '6px 16px 20px' : '0 16px 20px', position:'relative' } },
-                        React.createElement('div', { style: { display:'flex', alignItems:'flex-end', gap:'12px', marginTop: (miniProfile.topBadges||[]).length > 0 ? '-48px' : '-36px', marginBottom:'14px' } },
-                            React.createElement('div', { onClick: function(){setMiniProfile(null);setShowMiniMenuFam(false);if(typeof onOpenProfile==='function')onOpenProfile(miniProfile.uid);}, style: { width:'72px', height:'72px', borderRadius:'50%', border: miniProfile.vipCfg?('3px solid '+miniProfile.vipCfg.nameColor):'3px solid #0d0d1f', overflow:'hidden', background:'#1a1a2e', boxShadow: miniProfile.vipCfg?('0 0 14px '+miniProfile.vipCfg.nameColor+'88, 0 4px 16px rgba(0,0,0,0.6)'):'0 4px 16px rgba(0,0,0,0.6)', flexShrink:0, zIndex:2, cursor:'pointer' } },
-                                miniProfile.photo ? React.createElement('img',{src:miniProfile.photo,alt:'',style:{width:'100%',height:'100%',objectFit:'cover'}}) : React.createElement('div',{style:{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px'}},'😎')
-                            ),
-                            React.createElement('div', { style: { flex:1, paddingBottom:'4px', minWidth:0 } },
-                                React.createElement('div', { onClick:function(){setMiniProfile(null);setShowMiniMenuFam(false);if(typeof onOpenProfile==='function')onOpenProfile(miniProfile.uid);}, style:{display:'flex',alignItems:'center',gap:'5px',marginBottom:'5px',cursor:'pointer',flexWrap:'wrap'} },
-                                    miniProfile.vipCfg && React.createElement('span',{style:{fontSize:'8px',fontWeight:900,background:miniProfile.vipCfg.nameColor,color:'#000',padding:'1px 4px',borderRadius:'3px',flexShrink:0,display:'inline-flex',alignItems:'center',gap:'2px'}},
-                                        miniProfile.vipCfg.badgeImageUrl ? React.createElement('img',{src:miniProfile.vipCfg.badgeImageUrl,alt:'',style:{height:'10px',objectFit:'contain'}}) : null,
-                                        'VIP'+miniProfile.vipLevel
-                                    ),
-                                    React.createElement('span',{style:{fontSize:'16px',fontWeight:900,color:'#00f2ff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textDecoration:'underline dotted rgba(0,242,255,0.4)'}},miniProfile.name),
-                                    miniProfile.gender && React.createElement('span',{style:{fontSize:'14px',lineHeight:1}},miniProfile.gender==='male'?'♂️':'♀️')
-                                ),
-                                React.createElement('div', { style:{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap',marginBottom:'5px'} },
-                                    (function(){
-                                        if(typeof getCharismaLevel==='undefined') return null;
-                                        var res=getCharismaLevel(miniProfile.charisma||0); var lvl=res.currentLevel; if(!lvl) return null;
-                                        return React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'4px',padding:'3px 10px',borderRadius:'20px',background:lvl.isDivine?'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))':lvl.hasGlow?lvl.color+'18':'rgba(255,255,255,0.06)',border:lvl.isDivine?'1px solid rgba(0,212,255,0.4)':lvl.hasGlow?'1px solid '+lvl.color+'55':'1px solid rgba(255,255,255,0.1)',boxShadow:lvl.isDivine?'0 0 10px rgba(0,212,255,0.25)':lvl.hasGlow?'0 0 8px '+lvl.color+'44':'none',flexShrink:0}},
-                                            lvl.iconType==='image'&&lvl.iconUrl ? React.createElement('img',{src:lvl.iconUrl,alt:'',style:{width:'16px',height:'16px',borderRadius:lvl.isDivine?'50%':'0',objectFit:'cover'}}) : React.createElement('span',{style:{fontSize:'13px'}},lvl.icon),
-                                            React.createElement('span',{style:{fontSize:'10px',fontWeight:800,color:lvl.isDivine?'#00d4ff':lvl.color}},'Lv.'+lvl.level)
-                                        );
-                                    })(),
-                                    miniProfile.familyTag && (function(){
-                                        var si=miniProfile.familySignImageURL; var tag=miniProfile.familyTag||'';
-                                        if(si){var iw=44+(tag.length*6);var ih=Math.round(iw*0.55);var fs=tag.length<=3?11:tag.length===4?10:9;var sc=miniProfile.familySignColor||'#00f2ff';var hg=(miniProfile.familySignLevel||0)>=4;
-                                            return React.createElement('span',{style:{position:'relative',display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0,width:iw+'px',height:ih+'px',filter:hg?'drop-shadow(0 0 6px '+sc+'cc)':'none'}},
-                                                React.createElement('img',{src:si,alt:'',style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain'}}),
-                                                React.createElement('span',{style:{position:'relative',zIndex:1,fontSize:fs+'px',fontWeight:900,fontStyle:'italic',letterSpacing:'1.5px',color:'#fff',textShadow:'0 0 6px rgba(0,0,0,0.9)'}},tag));
-                                        }
-                                        return React.createElement('span',{style:{fontSize:'10px',fontWeight:800,color:'#00f2ff',background:'rgba(0,242,255,0.15)',border:'1px solid rgba(0,242,255,0.3)',borderRadius:'6px',padding:'2px 8px'}},tag);
-                                    })()
-                                ),
-                                miniProfile.customId && React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'4px',fontSize:'11px',color:'#6b7280'}},
-                                    miniProfile.vipCfg && miniProfile.vipCfg.idBeforeImageUrl
-                                        ? React.createElement(React.Fragment, null,
-                                            React.createElement('img',{src:miniProfile.vipCfg.idBeforeImageUrl,alt:'',style:{height:'16px',objectFit:'contain',flexShrink:0}}),
-                                            React.createElement('span',null,miniProfile.customId)
-                                          )
-                                        : React.createElement('span',null,'ID: '+miniProfile.customId),
-                                    React.createElement('button',{onClick:function(){navigator.clipboard&&navigator.clipboard.writeText(miniProfile.customId);},style:{background:'none',border:'none',cursor:'pointer',fontSize:'12px',color:'#4b5563',padding:'0 2px',lineHeight:1}},'⎘')
-                                ),
-                                miniProfile.loading && React.createElement('div',{style:{fontSize:'11px',color:'#4b5563',fontStyle:'italic'}},'⏳')
-                            )
-                        ),
-                        React.createElement('div',{style:{display:'flex',borderTop:'1px solid rgba(255,255,255,0.07)',borderBottom:'1px solid rgba(255,255,255,0.07)',margin:'0 0 16px',padding:'12px 0'}},
-                            React.createElement('div',{style:{flex:1,textAlign:'center'}}, React.createElement('div',{style:{fontSize:'22px',fontWeight:900,color:'white',lineHeight:1}},miniProfile.gamesPlayed!=null?miniProfile.gamesPlayed:0), React.createElement('div',{style:{fontSize:'10px',color:'#6b7280',marginTop:'3px'}},lang==='ar'?'مباريات':'Games')),
-                            React.createElement('div',{style:{width:'1px',background:'rgba(255,255,255,0.08)',margin:'4px 0'}}),
-                            React.createElement('div',{style:{flex:1,textAlign:'center'}},(function(){var r=miniProfile.winRate!=null?miniProfile.winRate:0;var c=r>=70?'#10b981':r>=50?'#facc15':'#f97316';return[React.createElement('div',{key:'r',style:{fontSize:'22px',fontWeight:900,color:c,lineHeight:1}},r+'%'),React.createElement('div',{key:'l',style:{fontSize:'10px',color:'#6b7280',marginTop:'3px'}},lang==='ar'?'نسبة الفوز':'Win Rate')]})())
-                        ),
-                        React.createElement('div',{style:{display:'flex',gap:'10px'}},
-                            miniProfile.uid!==currentUID && !miniProfile.isFriend && React.createElement('button',{onClick:async function(){try{await usersCollection.doc(miniProfile.uid).update({friendRequests:firebase.firestore.FieldValue.arrayUnion(currentUID)});setMiniProfile(function(p){return Object.assign({},p,{isFriend:true});});}catch(e){}},style:{flex:1,padding:'11px',borderRadius:'50px',background:'linear-gradient(135deg,rgba(0,242,255,0.22),rgba(0,180,255,0.18))',border:'1px solid rgba(0,242,255,0.4)',color:'#00f2ff',fontSize:'13px',fontWeight:800,cursor:'pointer'}},lang==='ar'?'إضافة':'Add'),
-                            miniProfile.uid!==currentUID && miniProfile.isFriend && React.createElement('div',{style:{flex:1,padding:'11px',borderRadius:'50px',background:'rgba(16,185,129,0.12)',border:'1px solid rgba(16,185,129,0.3)',color:'#10b981',fontSize:'13px',fontWeight:800,textAlign:'center'}},'✅ '+(lang==='ar'?'صديق':'Friends')),
-                            miniProfile.uid!==currentUID && onSendGift && React.createElement('button',{onClick:function(){setMiniProfile(null);setShowMiniMenuFam(false);setGiftTarget({uid:miniProfile.uid,displayName:miniProfile.name,photoURL:miniProfile.photo});setShowChatGiftModal(true);},style:{flex:1,padding:'11px',borderRadius:'50px',background:'linear-gradient(135deg,rgba(255,80,150,0.26),rgba(236,72,153,0.18))',border:'1px solid rgba(255,80,150,0.4)',color:'#f472b6',fontSize:'13px',fontWeight:800,cursor:'pointer'}},lang==='ar'?'إرسال هدية':'Send Gift'),
-                            miniProfile.uid===currentUID && React.createElement('div',{style:{flex:1,padding:'11px',borderRadius:'50px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)',color:'#6b7280',fontSize:'13px',fontWeight:700,textAlign:'center'}},lang==='ar'?'أنت 👤':'You 👤')
-                        )
-                    )
-                )
-            ),
+            }),
             // Messages
             React.createElement('div', {
                 style: { flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px', minHeight:0 }
@@ -1093,7 +919,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                                         var claim = Math.min(perClaim+bonus, rp.remaining||rp.amount);
                                         await redPacketsCollection.doc(rpId).update({ claimedBy:firebase.firestore.FieldValue.arrayUnion(currentUID), remaining:firebase.firestore.FieldValue.increment(-claim), status:((rp.claimedBy&&rp.claimedBy.length||0)+1>=(rp.maxClaims||1))?'exhausted':'active' });
                                         await usersCollection.doc(currentUID).update({ currency:firebase.firestore.FieldValue.increment(claim) });
-                                        await familiesCollection.doc(familyId).collection('messages').add({ type:'system', text:(lang==='ar'?'🎉 '+((userData||currentUserData)?.displayName||'عضو')+' استلم '+claim+' 🧠 من مغلف '+rp.senderName:'🎉 '+((userData||currentUserData)?.displayName||'Member')+' claimed '+claim+' 🧠 from '+rp.senderName+"'s packet"), senderId:'system', timestamp:firebase.firestore.FieldValue.serverTimestamp() });
+                                        await familiesCollection.doc(familyId).collection('messages').add({ type:'system', text:(lang==='ar'?'🎉 '+((userData||currentUserData)?.displayName||'عضو')+' استلم '+claim+' 🧠 من مغلف '+rp.senderName:'🎉 '+((userData||currentUserData)?.displayName||'Member')+' claimed '+claim+' 🧠 from '+rp.senderName+"'s packet"), senderId:'system', timestamp:TS() });
                                         if(onNotification) onNotification(lang==='ar'?'🎉 استلمت '+claim+' Intel!':'🎉 Got '+claim+' Intel!');
                                     } catch(e) { if(onNotification) onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
                                 }
@@ -1270,19 +1096,19 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                                             senderId:currentUID, senderName:sender.displayName||'User', senderPhoto:sender.photoURL||null,
                                             targetType:'family', targetId:familyId, targetName:(familyData&&familyData.name)||'Family',
                                             claimedBy:[], maxClaims:rp.maxClaims, remaining:rp.amount,
-                                            createdAt:firebase.firestore.FieldValue.serverTimestamp(), status:'active',
+                                            createdAt:TS(), status:'active',
                                         });
                                         await usersCollection.doc(currentUID).update({ currency:firebase.firestore.FieldValue.increment(-rp.amount) });
                                         await familiesCollection.doc(familyId).collection('messages').add({
                                             type:'red_packet', rpId:rpRef.id, rpAmount:rp.amount, rpConfigId:rp.id,
                                             senderId:currentUID, senderName:sender.displayName||'User', senderPhoto:sender.photoURL||null,
-                                            text:'🧧 '+rp.amount, timestamp:firebase.firestore.FieldValue.serverTimestamp(), maxClaims:rp.maxClaims,
+                                            text:'🧧 '+rp.amount, timestamp:TS(), maxClaims:rp.maxClaims,
                                         });
                                         await publicChatCollection.add({
                                             type:'red_packet_announce', senderId:currentUID, senderName:sender.displayName||'User',
                                             amount:rp.amount, targetType:'family', targetName:(familyData&&familyData.name)||'Family',
                                             text:(lang==='ar'?'🧧 '+(sender.displayName||'User')+' أرسل مغلف '+rp.amount+' في قبيلة '+((familyData&&familyData.name)||'Family'):'🧧 '+(sender.displayName||'User')+' sent a '+rp.amount+' packet in family '+((familyData&&familyData.name)||'Family')),
-                                            createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+                                            createdAt:TS(),
                                         });
                                         setShowFamRPModal(false);
                                         if (onNotification) onNotification(lang==='ar'?'✅ تم إرسال المغلف!':'✅ Packet sent!');
@@ -1327,63 +1153,6 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     );
 };
 
-
-// ════════════════════════════════════════════════════════
-// 🏠 FAMILY CHAT ITEM — Shows in Chat section when user has a family
-// ════════════════════════════════════════════════════════
-const FamilyChatItem = ({ familyId, currentUID, currentUserData, lang, onOpenChat }) => {
-    const [family, setFamily] = React.useState(null);
-    const [hasUnread, setHasUnread] = React.useState(false);
-
-    React.useEffect(() => {
-        if (!familyId) return;
-        var unsub = familiesCollection.doc(familyId).onSnapshot(function(snap) {
-            if (snap.exists) {
-                var d = Object.assign({ id: snap.id }, snap.data());
-                setFamily(d);
-                var lastAtMs = d.lastChatAtMs || (d.lastChatAt && d.lastChatAt.toMillis && d.lastChatAt.toMillis()) || 0;
-                var readAtRaw = d.chatReadBy && d.chatReadBy[currentUID];
-                var readAtMs = readAtRaw && readAtRaw.toMillis ? readAtRaw.toMillis() : (readAtRaw && readAtRaw.seconds ? readAtRaw.seconds * 1000 : 0);
-                setHasUnread(lastAtMs > readAtMs && d.lastChatSenderId !== currentUID && lastAtMs > 0);
-            }
-        }, function() {});
-        return function() { unsub(); };
-    }, [familyId, currentUID]);
-
-    if (!family) return null;
-
-    var signData = getFamilySignLevelData(family.weeklyActiveness || 0) || { level:0, color:'#4b5563', glow:'rgba(75,85,99,0.3)', defaultIcon:'🏠' };
-    var fLvl = getFamilyLevel(family.xp || 0);
-    var lastTime = family.lastChatAt ? fmtFamilyTime(family.lastChatAt, lang) : '';
-
-    return React.createElement('div', {
-        onClick: function() { onOpenChat(family); },
-        style: { display:'flex', alignItems:'center', gap:'12px', padding:'12px 16px', cursor:'pointer', background: hasUnread?'linear-gradient(135deg,rgba(255,136,0,0.1),rgba(255,80,0,0.05))':'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.05)', transition:'background 0.2s' }
-    },
-        React.createElement('div', { style: { position:'relative', flexShrink:0 } },
-            React.createElement('div', {
-                style: { width:'46px', height:'46px', borderRadius:'50%', overflow:'hidden', background:'linear-gradient(135deg,' + signData.color + '22,rgba(0,0,0,0.3))', border:'2px solid ' + signData.color + '55', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px' }
-            }, family.photoURL ? React.createElement('img', { src: family.photoURL, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}}) : family.emblem || '🏠'),
-            hasUnread && React.createElement('div', { style: { position:'absolute', top:'-2px', right:'-2px', width:'14px', height:'14px', borderRadius:'50%', background:'#f97316', border:'2px solid var(--bg-main)', boxShadow:'0 0 6px rgba(249,115,22,0.8)' }})
-        ),
-        React.createElement('div', { style: { flex:1, minWidth:0 } },
-            React.createElement('div', { style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'3px' } },
-                React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'5px', flex:1, minWidth:0, flexWrap:'wrap' } },
-                    React.createElement('span', { style: { fontSize:'13px', fontWeight: hasUnread?800:600, color: hasUnread?'#e2e8f0':'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } }, family.name),
-                    signData.level > 0 && React.createElement(FamilySignBadge, { tag: family.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: family.signImageURL })
-                ),
-                React.createElement('span', { style: { fontSize:'9px', color:'#6b7280', flexShrink:0, marginLeft:'6px' } }, lastTime)
-            ),
-            React.createElement('div', { style: { fontSize:'11px', color: hasUnread?'#d1d5db':'#6b7280', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } },
-                '🏠 ' + (family.lastChatMessage || (lang==='ar'?'شات العائلة':'Family Chat'))
-            ),
-            React.createElement('div', { style: { fontSize:'9px', color: fLvl.color, marginTop:'2px' } },
-                fLvl.icon + ' Lv.' + fLvl.level + ' · ' + ((family.members && family.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members')
-            )
-        ),
-        React.createElement('div', { style: { fontSize:'16px', color:'#f97316', flexShrink:0 } }, '›')
-    );
-};
 
 // ════════════════════════════════════════════════════════
 // 🏆 FAMILY RANKING INLINE — Used in ranking tab
@@ -1454,6 +1223,60 @@ const FamilyRankingInline = ({ lang, currentFamilyId, onOpenFamily }) => {
 };
 
 // ════════════════════════════════════════════════════════
+// 👤 FamilyMemberQuickCard — Lightweight inline popup
+//    position:absolute داخل modal (مش fixed)
+//    يظهر عند الضغط على اسم عضو في chat العائلة
+// ════════════════════════════════════════════════════════
+const FamilyMemberQuickCard = ({ member, currentUID, lang, onSendGift, onClose }) => {
+    if (!member) return null;
+    const isSelf = member.uid === currentUID;
+    return (
+        <div style={{
+            position:'absolute', inset:0, zIndex:10,
+            background:'rgba(0,0,0,0.6)',
+            display:'flex', alignItems:'center', justifyContent:'center',
+        }} onClick={onClose}>
+            <div style={{
+                background:'linear-gradient(160deg,#0e0e22,#13122a)',
+                border:'1px solid rgba(0,242,255,0.25)', borderRadius:'18px',
+                padding:'20px', width:'240px',
+                boxShadow:'0 20px 50px rgba(0,0,0,0.9)',
+                textAlign:'center',
+            }} onClick={e => e.stopPropagation()}>
+
+                <div style={{width:'64px',height:'64px',borderRadius:'50%',overflow:'hidden',margin:'0 auto 10px',border:'2px solid rgba(0,242,255,0.35)'}}>
+                    {member.photo
+                        ? <img src={member.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                        : <div style={{width:'100%',height:'100%',background:'rgba(255,255,255,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px'}}>😎</div>
+                    }
+                </div>
+
+                <div style={{fontSize:'14px',fontWeight:800,color:'white',marginBottom:'4px'}}>{member.name}</div>
+
+                {member.customId && (
+                    <div style={{fontSize:'11px',color:'#6b7280',marginBottom:'14px'}}>
+                        🪪 #{member.customId}
+                    </div>
+                )}
+
+                {!isSelf && onSendGift && (
+                    <button onClick={() => { onClose(); onSendGift(member); }}
+                        style={{width:'100%',padding:'10px',borderRadius:'10px',background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15))',border:'1px solid rgba(255,215,0,0.4)',color:'#fbbf24',fontSize:'13px',fontWeight:800,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                        🎁 {lang==='ar'?'أرسل هدية':'Send Gift'}
+                    </button>
+                )}
+
+                {isSelf && (
+                    <div style={{fontSize:'11px',color:'#6b7280'}}>
+                        {lang==='ar'?'هذا أنت':'This is you'}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ════════════════════════════════════════════════════════
 // 🏠 FAMILY MODAL — Main Component V2
 // ════════════════════════════════════════════════════════
 const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification, viewFamilyId, onSendGift, userData }) => {
@@ -1477,7 +1300,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     const [showFamilyChatGift, setShowFamilyChatGift] = useState(false);
     // ── Mini profile popup in chat ──
     const [miniProfileMember, setMiniProfileMember] = useState(null); // { uid, name, photo, customId }
-    const [miniProfileGiftSending, setMiniProfileGiftSending] = useState(false);
     // ── Mention @ in chat ──
     const [mentionSearch, setMentionSearch] = useState(''); // query بعد @
     const [showMentionList, setShowMentionList] = useState(false);
@@ -1618,7 +1440,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 actorUID: currentUID,
                 actorName: currentUserData?.displayName || 'Member',
                 actorPhoto: currentUserData?.photoURL || null,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
             });
         } catch (e) {}
     };
@@ -1630,7 +1452,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 senderName: currentUserData?.displayName || 'Member',
                 senderPhoto: currentUserData?.photoURL || null,
                 text, type,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: TS(),
                 ...extra,
             });
         } catch (e) {}
@@ -1642,7 +1464,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 senderId: 'system',
                 senderName: 'SYSTEM',
                 text, type: 'system',
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: TS(),
             });
         } catch (e) {}
     };
@@ -1689,8 +1511,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 activenessClaimedMilestones: [],
                 taskProgress: {},
                 joinRequests: [], joinMode: 'open', weeklyRank: null,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                lastActivity: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: TS(),
+                lastActivity: TS(),
             });
             await usersCollection.doc(currentUID).update({
                 currency: firebase.firestore.FieldValue.increment(-FAMILY_CREATE_COST),
@@ -1730,7 +1552,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 xp: firebase.firestore.FieldValue.increment(10),
                 [`memberRoles.${currentUID}`]: 'member',
                 [`memberDonations.${currentUID}`]: { weekly: 0, total: 0, weeklyIntel: 0, totalIntel: 0 },
-                lastActivity: firebase.firestore.FieldValue.serverTimestamp(),
+                lastActivity: TS(),
             });
             await usersCollection.doc(currentUID).update({
                 familyId, familyName: fd.name, familyTag: fd.tag,
@@ -1829,7 +1651,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 [`memberDonations.${currentUID}.weeklyIntel`]: (don.weeklyIntel || 0) + amount,
                 [`memberDonations.${currentUID}.totalIntel`]: (don.totalIntel || 0) + amount,
                 ...(ft3Prog.claimed ? {} : { [`taskProgress.${ft3Key}.current`]: newFt3 }),
-                lastActivity: firebase.firestore.FieldValue.serverTimestamp(),
+                lastActivity: TS(),
             });
             await usersCollection.doc(currentUID).update({
                 currency: firebase.firestore.FieldValue.increment(-amount),
@@ -1842,7 +1664,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 type: 'donation',
                 amount,
                 text: lang === 'ar' ? `💰 ${currentUserData?.displayName} تبرع بـ ${fmtFamilyNum(amount)} إنتل 🧠` : `💰 ${currentUserData?.displayName} donated ${fmtFamilyNum(amount)} Intel 🧠`,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: TS(),
             });
             await postNews(family.id, 'donation', lang === 'ar' ? `${currentUserData?.displayName} تبرع بـ ${fmtFamilyNum(amount)} إنتل` : `${currentUserData?.displayName} donated ${fmtFamilyNum(amount)} Intel`, amount);
             onNotification(`✅ +${fmtFamilyNum(amount)} 🧠 ${lang === 'ar' ? 'تم التبرع!' : 'Donated!'}`);
@@ -1869,7 +1691,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 senderRole: myRole || 'member',
                 type: isAnnouncement ? 'announcement' : 'text',
                 text,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: TS(),
             };
             await familiesCollection.doc(family.id).collection('messages').add(msgData);
 
@@ -1877,7 +1699,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             if (isAnnouncement) {
                 await familiesCollection.doc(family.id).update({
                     announcement: text,
-                    announcementAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    announcementAt: TS(),
                     announcementBy: currentUserData?.displayName || 'Leader',
                 });
             }
@@ -2385,56 +2207,13 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 )}
 
                 {/* ── Mini Profile Popup ── */}
-                {miniProfileMember && (
-                    <div style={{
-                        position:'absolute', inset:0, zIndex:10,
-                        background:'rgba(0,0,0,0.6)',
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                    }} onClick={() => setMiniProfileMember(null)}>
-                        <div style={{
-                            background:'linear-gradient(160deg,#0e0e22,#13122a)',
-                            border:'1px solid rgba(0,242,255,0.25)', borderRadius:'18px',
-                            padding:'20px', width:'240px',
-                            boxShadow:'0 20px 50px rgba(0,0,0,0.9)',
-                            textAlign:'center',
-                        }} onClick={e => e.stopPropagation()}>
-                            {/* صورة + اسم */}
-                            <div style={{width:'64px',height:'64px',borderRadius:'50%',overflow:'hidden',margin:'0 auto 10px',border:'2px solid rgba(0,242,255,0.35)'}}>
-                                {miniProfileMember.photo
-                                    ? <img src={miniProfileMember.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                    : <div style={{width:'100%',height:'100%',background:'rgba(255,255,255,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px'}}>😎</div>
-                                }
-                            </div>
-                            <div style={{fontSize:'14px',fontWeight:800,color:'white',marginBottom:'4px'}}>{miniProfileMember.name}</div>
-                            {miniProfileMember.customId && (
-                                <div style={{fontSize:'11px',color:'#6b7280',marginBottom:'14px'}}>
-                                    🪪 #{miniProfileMember.customId}
-                                </div>
-                            )}
-                            {/* زر إرسال هدية */}
-                            {onSendGift && miniProfileMember.uid !== currentUID && (
-                                <button
-                                    disabled={miniProfileGiftSending}
-                                    onClick={() => {
-                                        // افتح gift modal مع تحديد هذا العضو كـ target
-                                        setMiniProfileMember(null);
-                                        setShowFamilyChatGift({ targetUID: miniProfileMember.uid, targetName: miniProfileMember.name, targetPhoto: miniProfileMember.photo });
-                                    }}
-                                    style={{
-                                        width:'100%', padding:'10px', borderRadius:'10px',
-                                        background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15))',
-                                        border:'1px solid rgba(255,215,0,0.4)',
-                                        color:'#fbbf24', fontSize:'13px', fontWeight:800, cursor:'pointer',
-                                        display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
-                                    }}
-                                >🎁 {lang==='ar'?'أرسل هدية':'Send Gift'}</button>
-                            )}
-                            {miniProfileMember.uid === currentUID && (
-                                <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'هذا أنت':'This is you'}</div>
-                            )}
-                        </div>
-                    </div>
-                )}
+                <FamilyMemberQuickCard
+                    member={miniProfileMember}
+                    currentUID={currentUID}
+                    lang={lang}
+                    onClose={() => setMiniProfileMember(null)}
+                    onSendGift={onSendGift ? (m) => setShowFamilyChatGift({ targetUID: m.uid, targetName: m.name, targetPhoto: m.photo }) : null}
+                />
 
                 {/* Messages */}
                 <div style={{flex:1, overflowY:'auto', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px'}}>
