@@ -10,17 +10,19 @@
 // ════════════════════════════════════════════════════════
 const FAMILY_CREATE_COST = 500;
 
+// ══ Family levels now based on TOTAL activeness (not XP) ══
+// 'activeness' field used for level-up (cumulative)
 const FAMILY_LEVEL_CONFIG = [
-    { level:1,  xp:0,      name_en:'Rookie',        name_ar:'مبتدئة',       color:'#4ade80', maxMembers:20,  icon:'🌱' },
-    { level:2,  xp:500,    name_en:'Rising',         name_ar:'صاعدة',        color:'#22d3ee', maxMembers:25,  icon:'⬆️' },
-    { level:3,  xp:1500,   name_en:'Established',    name_ar:'راسخة',        color:'#60a5fa', maxMembers:30,  icon:'🏕️' },
-    { level:4,  xp:3500,   name_en:'Warriors',       name_ar:'محاربون',      color:'#fbbf24', maxMembers:40,  icon:'⚔️' },
-    { level:5,  xp:7000,   name_en:'Guardians',      name_ar:'حراس',         color:'#f97316', maxMembers:50,  icon:'🛡️' },
-    { level:6,  xp:13000,  name_en:'Elite',          name_ar:'نخبة',         color:'#a78bfa', maxMembers:60,  icon:'💎' },
-    { level:7,  xp:22000,  name_en:'Champions',      name_ar:'أبطال',        color:'#ffd700', maxMembers:80,  icon:'🏆' },
-    { level:8,  xp:35000,  name_en:'Legends',        name_ar:'أساطير',       color:'#ef4444', maxMembers:100, icon:'🔥' },
-    { level:9,  xp:55000,  name_en:'Dynasty',        name_ar:'سلالة',        color:'#818cf8', maxMembers:120, icon:'👑' },
-    { level:10, xp:80000,  name_en:'GOAT',           name_ar:'الأعظم',       color:'#00d4ff', maxMembers:160, icon:'🌌' },
+    { level:1,  activeness:0,       name_en:'Rookie',     name_ar:'مبتدئة',   color:'#4ade80', maxMembers:20,  icon:'🌱', upgradeCost:0 },
+    { level:2,  activeness:8000,    name_en:'Rising',     name_ar:'صاعدة',    color:'#22d3ee', maxMembers:25,  icon:'⬆️', upgradeCost:1000 },
+    { level:3,  activeness:24000,   name_en:'Established',name_ar:'راسخة',    color:'#60a5fa', maxMembers:30,  icon:'🏕️', upgradeCost:2000 },
+    { level:4,  activeness:60000,   name_en:'Warriors',   name_ar:'محاربون',  color:'#fbbf24', maxMembers:40,  icon:'⚔️', upgradeCost:3000 },
+    { level:5,  activeness:120000,  name_en:'Guardians',  name_ar:'حراس',     color:'#f97316', maxMembers:50,  icon:'🛡️', upgradeCost:5000 },
+    { level:6,  activeness:280000,  name_en:'Elite',      name_ar:'نخبة',     color:'#a78bfa', maxMembers:60,  icon:'💎', upgradeCost:8000 },
+    { level:7,  activeness:500000,  name_en:'Champions',  name_ar:'أبطال',    color:'#ffd700', maxMembers:80,  icon:'🏆', upgradeCost:12000 },
+    { level:8,  activeness:800000,  name_en:'Legends',    name_ar:'أساطير',   color:'#ef4444', maxMembers:100, icon:'🔥', upgradeCost:18000 },
+    { level:9,  activeness:1200000, name_en:'Dynasty',    name_ar:'سلالة',    color:'#818cf8', maxMembers:120, icon:'👑', upgradeCost:25000 },
+    { level:10, activeness:2000000, name_en:'GOAT',       name_ar:'الأعظم',   color:'#00d4ff', maxMembers:160, icon:'🌌', upgradeCost:0 },
 ];
 
 // ════ FAMILY SIGN LEVELS — Based on Weekly Activeness ════
@@ -60,18 +62,18 @@ const getFamilySignProgress = (weeklyActiveness = 0) => {
     return Math.min(100, Math.round(((weeklyActiveness - cur.threshold) / (next.threshold - cur.threshold)) * 100));
 };
 
-const getFamilyLevel = (xp = 0) => {
+const getFamilyLevel = (activeness = 0) => {
     let cfg = FAMILY_LEVEL_CONFIG[0];
     for (let i = FAMILY_LEVEL_CONFIG.length - 1; i >= 0; i--) {
-        if (xp >= FAMILY_LEVEL_CONFIG[i].xp) { cfg = FAMILY_LEVEL_CONFIG[i]; break; }
+        if (activeness >= FAMILY_LEVEL_CONFIG[i].activeness) { cfg = FAMILY_LEVEL_CONFIG[i]; break; }
     }
     return cfg;
 };
-const getFamilyLevelProgress = (xp = 0) => {
-    const cur = getFamilyLevel(xp);
+const getFamilyLevelProgress = (activeness = 0) => {
+    const cur = getFamilyLevel(activeness);
     const next = FAMILY_LEVEL_CONFIG.find(c => c.level === cur.level + 1);
     if (!next) return 100;
-    return Math.min(100, Math.round(((xp - cur.xp) / (next.xp - cur.xp)) * 100));
+    return Math.min(100, Math.round(((activeness - cur.activeness) / (next.activeness - cur.activeness)) * 100));
 };
 
 // ════ UPDATED TASKS — Triple Currency: Intel + XP + Family Coins ════
@@ -86,12 +88,81 @@ const FAMILY_TASKS_CONFIG = [
 ];
 
 const ACTIVENESS_MILESTONES = [
-    { threshold:8000,   reward:200,  icon:'🎁' },
-    { threshold:24000,  reward:500,  icon:'🎁' },
-    { threshold:60000,  reward:1000, icon:'💎' },
-    { threshold:120000, reward:2000, icon:'💎' },
-    { threshold:280000, reward:5000, icon:'👑' },
+    { threshold:8000,   chestType:'normal',   icon:'📦', name_en:'Normal Chest',   name_ar:'صندوق عادي' },
+    { threshold:24000,  chestType:'advanced', icon:'🎁', name_en:'Advanced Chest', name_ar:'صندوق متقدم' },
+    { threshold:60000,  chestType:'rare',     icon:'💠', name_en:'Rare Chest',     name_ar:'صندوق نادر' },
+    { threshold:120000, chestType:'epic',     icon:'💎', name_en:'Epic Chest',     name_ar:'صندوق ملحمي' },
+    { threshold:280000, chestType:'super',    icon:'👑', name_en:'Super Chest',    name_ar:'صندوق أسطوري' },
 ];
+
+// ══ CHEST REWARDS CONFIG ══
+const CHEST_CONFIG = {
+    normal: {
+        name_en:'Normal Chest', name_ar:'صندوق عادي', icon:'📦', color:'#4ade80',
+        rewards: [
+            { type:'currency',  amount:1000, icon:'🧠', label_en:'1000 Intel',        label_ar:'1000 إنتل' },
+            { type:'coins',     amount:1000, icon:'🏅', label_en:'1000 Family Coins', label_ar:'1000 عملة قبيلة' },
+            { type:'gift',      giftId:'gift_cake',   qty:1, icon:'🎂', label_en:'Gift (200 Intel)', label_ar:'هدية (200 إنتل)' },
+            { type:'gift',      giftId:'gift_rose',   qty:9, icon:'🌹', label_en:'9× Gift (30 Intel)',label_ar:'9× هدية (30 إنتل)' },
+        ],
+    },
+    advanced: {
+        name_en:'Advanced Chest', name_ar:'صندوق متقدم', icon:'🎁', color:'#60a5fa',
+        rewards: [
+            { type:'frame', frameId:'frame_temp_3d',  duration:3,  icon:'🖼️', label_en:'Frame 3 Days',  label_ar:'إطار 3 أيام' },
+            { type:'frame', frameId:'frame_temp_7d',  duration:7,  icon:'🖼️', label_en:'Frame 7 Days',  label_ar:'إطار 7 أيام' },
+            { type:'gift',  giftId:'gift_racecar',    qty:2, icon:'🏎️', label_en:'2× Gift (2000 Intel)', label_ar:'2× هدية (2000 إنتل)' },
+            { type:'gift',  giftId:'gift_crown',      qty:2, icon:'👑', label_en:'2× Gift (520 Intel)',  label_ar:'2× هدية (520 إنتل)' },
+        ],
+    },
+    rare: {
+        name_en:'Rare Chest', name_ar:'صندوق نادر', icon:'💠', color:'#a78bfa',
+        rewards: [
+            { type:'frame', frameId:'frame_temp_7d',  duration:7,  icon:'🖼️', label_en:'Frame 7 Days',  label_ar:'إطار 7 أيام' },
+            { type:'frame', frameId:'frame_temp_3d',  duration:3,  icon:'🖼️', label_en:'Frame 3 Days',  label_ar:'إطار 3 أيام' },
+            { type:'frame', frameId:'frame_temp_15d', duration:15, icon:'🖼️', label_en:'Frame 15 Days', label_ar:'إطار 15 يوم' },
+            { type:'charisma', amount:20000, icon:'⭐', label_en:'20K Charisma Ring', label_ar:'خاتم كاريزما 20K' },
+            { type:'gift', giftId:'gift_coffee',  qty:2, icon:'☕', label_en:'2× Gift (120 Intel)',  label_ar:'2× هدية (120 إنتل)' },
+            { type:'gift', giftId:'gift_racecar', qty:2, icon:'🏎️', label_en:'2× Gift (2000 Intel)', label_ar:'2× هدية (2000 إنتل)' },
+            { type:'currency', amount:7800, icon:'🧠', label_en:'7800 Intel',        label_ar:'7800 إنتل' },
+            { type:'coins',    amount:7800, icon:'🏅', label_en:'7800 Family Coins', label_ar:'7800 عملة قبيلة' },
+        ],
+    },
+    epic: {
+        name_en:'Epic Chest', name_ar:'صندوق ملحمي', icon:'💎', color:'#ffd700',
+        rewards: [
+            { type:'currency', amount:10000, icon:'🧠', label_en:'10K Intel',         label_ar:'10K إنتل' },
+            { type:'coins',    amount:10000, icon:'🏅', label_en:'10K Family Coins',  label_ar:'10K عملة قبيلة' },
+            { type:'charisma', amount:40000, icon:'⭐', label_en:'40K Charisma Ring', label_ar:'خاتم كاريزما 40K' },
+            { type:'charisma', amount:10000, icon:'⭐', label_en:'10K Charisma Ring', label_ar:'خاتم كاريزما 10K' },
+            { type:'frame', frameId:'frame_temp_7d',  duration:7,  qty:3, icon:'🖼️', label_en:'3× Frame 7 Days', label_ar:'3× إطار 7 أيام' },
+            { type:'frame', frameId:'frame_temp_30d', duration:30, qty:1, icon:'🖼️', label_en:'Frame 30 Days',   label_ar:'إطار 30 يوم' },
+        ],
+    },
+    super: {
+        name_en:'Super Chest', name_ar:'صندوق أسطوري', icon:'👑', color:'#f97316',
+        rewards: [
+            { type:'currency', amount:10000, icon:'🧠', label_en:'10K Intel',         label_ar:'10K إنتل' },
+            { type:'coins',    amount:10000, icon:'🏅', label_en:'10K Family Coins',  label_ar:'10K عملة قبيلة' },
+            { type:'charisma', amount:40000, icon:'⭐', label_en:'40K Charisma Ring', label_ar:'خاتم كاريزما 40K' },
+            { type:'frame', frameId:'frame_temp_7d',  duration:7,  qty:3, icon:'🖼️', label_en:'3× Frame 7 Days', label_ar:'3× إطار 7 أيام' },
+            { type:'frame', frameId:'frame_temp_30d', duration:30, qty:1, icon:'🖼️', label_en:'Frame 30 Days',   label_ar:'إطار 30 يوم' },
+        ],
+    },
+};
+
+// ══ GACHA CONFIG — daily draw costs treasury ══
+const GACHA_CONFIG = {
+    dailyCost: 500, // intel from treasury per draw
+    rewards: [
+        { weight:40, type:'currency', amount:200,  icon:'🧠', label_en:'+200 Intel',   label_ar:'+200 إنتل' },
+        { weight:30, type:'currency', amount:500,  icon:'🧠', label_en:'+500 Intel',   label_ar:'+500 إنتل' },
+        { weight:15, type:'coins',    amount:100,  icon:'🏅', label_en:'+100 Family Coins', label_ar:'+100 عملة' },
+        { weight:10, type:'currency', amount:1000, icon:'🧠', label_en:'+1000 Intel',  label_ar:'+1000 إنتل' },
+        { weight:4,  type:'charisma', amount:5000, icon:'⭐', label_en:'+5K Charisma', label_ar:'+5K كاريزما' },
+        { weight:1,  type:'charisma', amount:20000,icon:'⭐', label_en:'+20K Charisma',label_ar:'+20K كاريزما' },
+    ],
+};
 
 // ── Role Config ──
 const FAMILY_ROLE_CONFIG = {
@@ -1174,7 +1245,7 @@ const FamilyRankingInline = ({ lang, currentFamilyId, onOpenFamily }) => {
     return (
         <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
             {rankings.map((fam, i) => {
-                const fl = getFamilyLevel(fam.xp || 0);
+                const fl = getFamilyLevel(fam.activeness || 0);
                 const sign = getFamilySignLevelData(fam.weeklyActiveness || 0);
                 const signColor = sign?.color || '#6b7280';
                 const signLevel = sign?.level || 0;
@@ -1210,7 +1281,7 @@ const FamilyRankingInline = ({ lang, currentFamilyId, onOpenFamily }) => {
                             </div>
                         </div>
                         <div style={{textAlign:'right', flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'2px'}}>
-                            <div style={{fontSize:'12px', fontWeight:900, color:'#fbbf24'}}>{fmtFamilyNum(fam.xp||0)} XP</div>
+                            <div style={{fontSize:'12px', fontWeight:900, color:'#fbbf24'}}>{fmtFamilyNum(fam.activeness||0)} XP</div>
                             {sign && <div style={{fontSize:'9px', color: signColor, fontWeight:700}}>{lang==='ar'?sign.name_ar:sign.name_en}</div>}
                             {onOpenFamily && <div style={{fontSize:'9px', color:'#4b5563'}}>›</div>}
                         </div>
@@ -1319,6 +1390,22 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
     // Header dots menu
     // header menu state removed (three-dot removed; ranking is now a tab)
 
+    // ── Chest / Treasury ──
+    const [showChestModal, setShowChestModal] = useState(false);
+    const [selectedChest, setSelectedChest] = useState(null);
+    const [claimingChest, setClaimingChest] = useState(false);
+    const [chestResult, setChestResult] = useState(null);
+
+    // ── Gacha ──
+    const [showGachaModal, setShowGachaModal] = useState(false);
+    const [spinningGacha, setSpinningGacha] = useState(false);
+    const [gachaResult, setGachaResult] = useState(null);
+
+    // ── Find Family (auto-load all families) ──
+    const [allFamilies, setAllFamilies] = useState([]);
+    const [loadingAllFamilies, setLoadingAllFamilies] = useState(false);
+    const [showRankingModal, setShowRankingModal] = useState(false);
+
     // Create/Join state
     const [view, setView] = useState('home');
     const [tribeName, setFamilyName] = useState('');
@@ -1359,6 +1446,45 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 setEditDesc(d.description || '');
                 setJoinMode(d.joinMode || 'open');
                 setEditTag(d.tag || '');
+
+                // ── Weekly sign reset logic (client-side) ──
+                // Every Sunday: save weeklyActiveness as lastWeekActiveness, reset weekly
+                if (!viewFamilyId && canManageFamily(d, currentUID)) {
+                    const now = new Date();
+                    const lastReset = d.lastWeeklyReset;
+                    const lastResetDate = lastReset ? (lastReset.toDate ? lastReset.toDate() : new Date(lastReset.seconds * 1000)) : null;
+                    const isSunday = now.getDay() === 0;
+                    const needsReset = isSunday && (!lastResetDate || lastResetDate.toDateString() !== now.toDateString());
+                    if (needsReset) {
+                        // Save last week's activeness and reset weekly counter
+                        const newSignData = getFamilySignLevelData(d.weeklyActiveness || 0);
+                        const updates = {
+                            lastWeekActiveness: d.weeklyActiveness || 0,
+                            weeklyActiveness: 0,
+                            lastWeeklyReset: firebase.firestore.FieldValue.serverTimestamp(),
+                        };
+                        // Update all members' sign level based on last week
+                        familiesCollection.doc(fid).update(updates).catch(() => {});
+                        if (newSignData) {
+                            for (const uid of (d.members || [])) {
+                                usersCollection.doc(uid).update({
+                                    familySignLevel: newSignData.level,
+                                    familySignColor: newSignData.color,
+                                    familySignImageURL: d.signImageURL || null,
+                                }).catch(() => {});
+                            }
+                        } else {
+                            // No sign earned — clear members' signs
+                            for (const uid of (d.members || [])) {
+                                usersCollection.doc(uid).update({
+                                    familySignLevel: null,
+                                    familySignColor: null,
+                                    familySignImageURL: null,
+                                }).catch(() => {});
+                            }
+                        }
+                    }
+                }
             } else {
                 setFamily(null);
                 if (!viewFamilyId) {
@@ -1469,11 +1595,14 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         } catch (e) {}
     };
 
-    // Update user's sign fields when joining/sign changes
+    // Update user's sign fields — uses lastWeekActiveness to determine sign level
     const syncUserFamilySign = async (familyId, familyData) => {
         try {
-            const weeklyAct = familyData.weeklyActiveness || 0;
-            const signD = getFamilySignLevelData(weeklyAct);
+            // Use last week's activeness if available, otherwise current weekly
+            const actToCheck = familyData.lastWeekActiveness !== undefined
+                ? familyData.lastWeekActiveness
+                : (familyData.weeklyActiveness || 0);
+            const signD = getFamilySignLevelData(actToCheck);
             await usersCollection.doc(currentUID).update({
                 familySignLevel: signD?.level || null,
                 familySignColor: signD?.color || null,
@@ -1505,10 +1634,12 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 members: [currentUID],
                 memberRoles: { [currentUID]: 'owner' },
                 memberDonations: { [currentUID]: { weekly: 0, total: 0, weeklyIntel: 0, totalIntel: 0 } },
-                level: 1, xp: 0,
-                activeness: 0, weeklyActiveness: 0,
-                treasury: 0,
+                level: 1, activeness: 0, weeklyActiveness: 0,
+                lastWeekActiveness: 0,
+                treasury: 0, familyCoins: 0,
                 activenessClaimedMilestones: [],
+                treasuryInventory: [],
+                gachaLastUsed: null,
                 taskProgress: {},
                 joinRequests: [], joinMode: 'open', weeklyRank: null,
                 createdAt: TS(),
@@ -1643,7 +1774,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
             await familiesCollection.doc(family.id).update({
                 treasury: firebase.firestore.FieldValue.increment(amount),
-                xp: firebase.firestore.FieldValue.increment(Math.floor(amount / 10)),
                 activeness: firebase.firestore.FieldValue.increment(amount),
                 weeklyActiveness: firebase.firestore.FieldValue.increment(amount),
                 [`memberDonations.${currentUID}.weekly`]: (don.weekly || 0) + amount,
@@ -1725,14 +1855,16 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 updates[`memberRoles.${uid}`] = 'member';
                 updates[`memberDonations.${uid}`] = { weekly: 0, total: 0, weeklyIntel: 0, totalIntel: 0 };
                 updates.members = firebase.firestore.FieldValue.arrayUnion(uid);
-                updates.xp = firebase.firestore.FieldValue.increment(5);
                 await familiesCollection.doc(family.id).update(updates);
                 const fd = await familiesCollection.doc(family.id).get();
+                const fdData = fd.data() || {};
+                const actForSign = fdData.lastWeekActiveness !== undefined ? fdData.lastWeekActiveness : (fdData.weeklyActiveness || 0);
+                const newMemberSign = getFamilySignLevelData(actForSign);
                 await usersCollection.doc(uid).update({
                     familyId: family.id, familyName: family.name, familyTag: family.tag,
-                    familySignLevel: getFamilySignLevelData(fd.data()?.weeklyActiveness || 0)?.level || null,
-                    familySignColor: getFamilySignLevelData(fd.data()?.weeklyActiveness || 0)?.color || null,
-                    familySignImageURL: fd.data()?.signImageURL || null,
+                    familySignLevel: newMemberSign?.level || null,
+                    familySignColor: newMemberSign?.color || null,
+                    familySignImageURL: fdData.signImageURL || null,
                 });
                 const p = joinRequesterProfiles.find(m => m.id === uid);
                 await postSystemMessage(family.id, `🎉 ${p?.displayName || 'Member'} ${lang === 'ar' ? 'انضم للعائلة!' : 'joined the family!'}`);
@@ -1799,6 +1931,87 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             onNotification(lang==='ar'?'✅ تم تغيير الوسم':'✅ Tag updated');
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
         setSavingTag(false);
+    };
+
+    // ── Load all families for Find Family ──
+    const loadAllFamilies = async () => {
+        setLoadingAllFamilies(true);
+        try {
+            const snap = await familiesCollection.orderBy('activeness', 'desc').limit(30).get();
+            setAllFamilies(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch(e) {}
+        setLoadingAllFamilies(false);
+    };
+
+    // ── Gacha Roll ──
+    const handleGachaRoll = async () => {
+        if (!family?.id || !currentUID || spinningGacha) return;
+        const treasury = family.treasury || 0;
+        if (treasury < GACHA_CONFIG.dailyCost) {
+            onNotification(lang==='ar' ? `❌ الخزينة تحتاج ${GACHA_CONFIG.dailyCost} إنتل للجاتشه` : `❌ Treasury needs ${GACHA_CONFIG.dailyCost} Intel for Gacha`);
+            return;
+        }
+        // Check daily cooldown
+        const lastUsed = family.gachaLastUsed;
+        if (lastUsed) {
+            const lastDate = lastUsed.toDate ? lastUsed.toDate() : new Date(lastUsed.seconds * 1000);
+            const today = new Date().toDateString();
+            if (lastDate.toDateString() === today) {
+                onNotification(lang==='ar' ? '⏳ الجاتشه متاحة مرة واحدة يومياً' : '⏳ Gacha available once daily');
+                return;
+            }
+        }
+        setSpinningGacha(true);
+        try {
+            // Weighted random pick
+            const total = GACHA_CONFIG.rewards.reduce((s, r) => s + r.weight, 0);
+            let rand = Math.random() * total;
+            let picked = GACHA_CONFIG.rewards[GACHA_CONFIG.rewards.length - 1];
+            for (const r of GACHA_CONFIG.rewards) {
+                rand -= r.weight;
+                if (rand <= 0) { picked = r; break; }
+            }
+            // Deduct from treasury and save
+            await familiesCollection.doc(family.id).update({
+                treasury: firebase.firestore.FieldValue.increment(-GACHA_CONFIG.dailyCost),
+                gachaLastUsed: TS(),
+            });
+            // Give reward to user
+            if (picked.type === 'currency') {
+                await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(picked.amount) });
+            } else if (picked.type === 'charisma') {
+                await usersCollection.doc(currentUID).update({ charisma: firebase.firestore.FieldValue.increment(picked.amount) });
+            } else if (picked.type === 'coins') {
+                await familiesCollection.doc(family.id).update({ familyCoins: firebase.firestore.FieldValue.increment(picked.amount) });
+            }
+            setGachaResult(picked);
+            onNotification(`🎰 ${lang==='ar' ? picked.label_ar : picked.label_en}`);
+        } catch(e) { onNotification(lang==='ar' ? '❌ خطأ' : '❌ Error'); }
+        setSpinningGacha(false);
+    };
+
+    // ── Claim Chest ──
+    const handleClaimChest = async (chestIdx) => {
+        if (!family?.id || !canManageFamily(family, currentUID) || claimingChest) return;
+        const ms = ACTIVENESS_MILESTONES[chestIdx];
+        if (!ms) return;
+        if ((family.activeness || 0) < ms.threshold) return;
+        const claimed = family.activenessClaimedMilestones || [];
+        if (claimed.includes(chestIdx)) return;
+        setClaimingChest(true);
+        const cfg = CHEST_CONFIG[ms.chestType];
+        try {
+            // Add to treasury inventory
+            const chestItem = { chestType: ms.chestType, idx: chestIdx, claimedAt: Date.now(), claimedBy: currentUID };
+            await familiesCollection.doc(family.id).update({
+                activenessClaimedMilestones: firebase.firestore.FieldValue.arrayUnion(chestIdx),
+                treasuryInventory: firebase.firestore.FieldValue.arrayUnion(chestItem),
+            });
+            setSelectedChest({ cfg, idx: chestIdx });
+            setShowChestModal(true);
+            onNotification(`✅ ${lang==='ar' ? cfg.name_ar : cfg.name_en} ${lang==='ar' ? 'أُضيف للخزينة' : 'added to Treasury'}`);
+        } catch(e) { onNotification(lang==='ar' ? '❌ خطأ' : '❌ Error'); }
+        setClaimingChest(false);
     };
 
     const claimActiveMilestone = async (idx) => {
@@ -1946,195 +2159,304 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         { id:'manage',   label_en:'Manage',  label_ar:'إدارة',    icon:'⚙️' },
     ];
 
-    const fLvl = family ? getFamilyLevel(family.xp || 0) : null;
-    const fProg = family ? getFamilyLevelProgress(family.xp || 0) : 0;
+    const fLvl = family ? getFamilyLevel(family.activeness || 0) : null;
+    const fProg = family ? getFamilyLevelProgress(family.activeness || 0) : 0;
     const myRole = family ? getFamilyRole(family, currentUID) : null;
     const canManage = family ? canManageFamily(family, currentUID) : false;
     const weeklyAct = family ? (family.weeklyActiveness || 0) : 0;
-    // signData can be null if no weekly activeness yet — use a safe fallback
+    // signData: based on lastWeekActiveness (last week's activity → this week's sign)
+    // If lastWeekActiveness not set, use weeklyActiveness as fallback
     const SIGN_FALLBACK = { level: 0, color: '#4b5563', glow: 'rgba(75,85,99,0.3)', defaultIcon: '🏠', bg: 'rgba(75,85,99,0.1)', name_ar: 'بدون ساين', name_en: 'No Sign', threshold: 0 };
-    const signData = (family ? getFamilySignLevelData(weeklyAct) : null) || SIGN_FALLBACK;
-    const signProg = family ? getFamilySignProgress(weeklyAct) : 0;
+    const lastWeekAct = family ? (family.lastWeekActiveness !== undefined ? family.lastWeekActiveness : weeklyAct) : 0;
+    const signData = (family ? getFamilySignLevelData(lastWeekAct) : null) || SIGN_FALLBACK;
+    const signProg = family ? getFamilySignProgress(lastWeekAct) : 0;
 
     // ─────────────────────────────────────────────
-    // TAB: PROFILE
+    // TAB: PROFILE (redesigned to match reference image)
     // ─────────────────────────────────────────────
     const renderProfile = () => {
         if (!family || !fLvl) return null;
         const claimed = family.activenessClaimedMilestones || [];
         const weeklyAct = family.weeklyActiveness || 0;
+        const totalAct = family.activeness || 0;
         const treasury = family.treasury || 0;
+        const familyCoins = family.familyCoins || 0;
+        const treasuryInventory = family.treasuryInventory || [];
         const ownerMember = familyMembers.find(m => m.id === family.createdBy);
 
+        // Gacha availability check
+        const gachaAvailable = (() => {
+            if (treasury < GACHA_CONFIG.dailyCost) return false;
+            const lastUsed = family.gachaLastUsed;
+            if (!lastUsed) return true;
+            const lastDate = lastUsed.toDate ? lastUsed.toDate() : new Date(lastUsed.seconds * 1000);
+            return lastDate.toDateString() !== new Date().toDateString();
+        })();
+
+        // Next level info
+        const nextLvl = FAMILY_LEVEL_CONFIG.find(c => c.level === fLvl.level + 1);
+
         return (
-            <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'12px'}}>
+            <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', background:'#f5f6fa'}}>
 
-                {/* ── OFFICIAL ANNOUNCEMENT — at top for visibility ── */}
-                {family.announcement && (
-                    <div style={{
-                        background:'linear-gradient(135deg,rgba(20,10,0,0.95),rgba(30,15,0,0.95))',
-                        border:'2px solid rgba(255,165,0,0.8)',
-                        boxShadow:'0 0 28px rgba(255,140,0,0.25), inset 0 0 20px rgba(255,140,0,0.05)',
-                        borderRadius:'14px',
-                        position:'relative',
-                        padding:'14px 14px 14px 22px',
-                    }}>
-                        {/* left glow bar */}
-                        <div style={{position:'absolute',left:0,top:0,bottom:0,width:'5px',background:'linear-gradient(180deg,#ffd700,#ff8800)',borderRadius:'14px 0 0 14px'}}/>
-                        {/* Header row */}
-                        <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
-                            <span style={{fontSize:'20px',flexShrink:0}}>📢</span>
-                            <div style={{flex:1}}>
-                                <div style={{fontSize:'10px', fontWeight:900, color:'#ffd700', letterSpacing:'1.5px', textTransform:'uppercase'}}>
-                                    {lang==='ar'?'إعلان رسمي':'OFFICIAL ANNOUNCEMENT'}
-                                </div>
-                                {family.announcementBy && (
-                                    <div style={{fontSize:'9px',color:'rgba(255,255,255,0.5)',marginTop:'1px'}}>
-                                        {lang==='ar'?'بواسطة:':'By:'} {family.announcementBy}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        {/* Announcement text — always fully visible */}
-                        <div style={{
-                            fontSize:'13px',
-                            color:'#ffffff',
-                            lineHeight:1.7,
-                            fontWeight:500,
-                            wordBreak:'break-word',
-                            whiteSpace:'pre-wrap',
-                            paddingTop:'4px',
-                            borderTop:'1px solid rgba(255,165,0,0.25)',
-                        }}>{family.announcement}</div>
-                    </div>
-                )}
-
-                {/* ── Family Hero ── */}
-                <div style={{...S.card, background:`linear-gradient(135deg,rgba(0,242,255,0.06),rgba(112,0,255,0.06))`, border:`1px solid rgba(0,242,255,0.15)`, padding:'14px'}}>
+                {/* ── Family Hero Card ── */}
+                <div style={{
+                    background: family.photoURL ? `linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.6)),url(${family.photoURL}) center/cover no-repeat` : 'linear-gradient(135deg,#1a1040,#0a0a2e)',
+                    padding:'18px 16px 14px', position:'relative',
+                }}>
                     <div style={{display:'flex', alignItems:'center', gap:'14px'}}>
-                        {/* Photo/Avatar */}
-                        <div style={{position:'relative', flexShrink:0}}>
-                            <div style={{width:'72px', height:'72px', borderRadius:'50%', border:`3px solid ${fLvl.color}`, overflow:'hidden', boxShadow:`0 0 16px ${fLvl.color}44`, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'32px'}}>
-                                {family.photoURL
-                                    ? <img src={family.photoURL} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>
-                                    : family.emblem || '🏠'
-                                }
+                        {/* Photo */}
+                        <div style={{position:'relative',flexShrink:0}}>
+                            <div style={{width:'64px',height:'64px',borderRadius:'16px',border:`3px solid ${fLvl.color}`,overflow:'hidden',background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'30px',boxShadow:`0 0 20px ${fLvl.color}66`}}>
+                                {family.photoURL ? <img src={family.photoURL} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/> : (family.emblem || '🏠')}
                             </div>
-                            <div style={{position:'absolute', bottom:'-4px', left:'50%', transform:'translateX(-50%)', background:fLvl.color, color:'#000', fontSize:'9px', fontWeight:900, padding:'1px 7px', borderRadius:'10px', whiteSpace:'nowrap'}}>
-                                LV.{fLvl.level}
-                            </div>
+                            {canManage && <button onClick={()=>photoFileRef.current?.click()} style={{position:'absolute',bottom:'-4px',right:'-4px',width:'22px',height:'22px',borderRadius:'50%',background:'rgba(0,242,255,0.9)',border:'2px solid #0d0d1f',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'11px'}}>📷</button>}
+                            <input ref={photoFileRef} type="file" accept="image/*" style={{display:'none'}} onChange={handlePhotoUpload}/>
                         </div>
-                        <div style={{flex:1, minWidth:0}}>
-                            <div style={{display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'4px'}}>
-                                <span style={{fontSize:'18px', fontWeight:900, color:'white', fontStyle:'italic', letterSpacing:'-0.5px'}}>{family.name}</span>
-                                {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} signLevel={signData.level} imageURL={family.signImageURL} />}
+                        {/* Info */}
+                        <div style={{flex:1,minWidth:0}}>
+                            <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'2px',flexWrap:'wrap'}}>
+                                <span style={{fontSize:'20px',fontWeight:900,color:'white',fontStyle:'italic',fontFamily:"'Outfit',sans-serif"}}>{family.name}</span>
+                                {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />}
                             </div>
-                            <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'4px'}}>ID · {family.id?.slice(-6).toUpperCase()}</div>
-                            <div style={{display:'flex', gap:'8px', flexWrap:'wrap', alignItems:'center'}}>
-                                <span style={{fontSize:'10px', fontWeight:700, color:fLvl.color}}>{fLvl.icon} {lang==='ar'?fLvl.name_ar:fLvl.name_en}</span>
-                                <span style={{fontSize:'10px', color:'#6b7280'}}>👥 {family.members?.length||0}/{fLvl.maxMembers}</span>
-                            </div>
+                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.6)',marginBottom:'4px'}}>ID · {family.id?.slice(-6).toUpperCase()}</div>
+                            {/* Weekly Rank badge */}
+                            {family.weeklyRank && (
+                                <div style={{display:'inline-flex',alignItems:'center',gap:'4px',background:'rgba(255,215,0,0.2)',border:'1px solid rgba(255,215,0,0.5)',borderRadius:'20px',padding:'2px 10px',fontSize:'10px',fontWeight:800,color:'#ffd700'}}>
+                                    🏅 {lang==='ar'?'الترتيب الأسبوعي':'Weekly Rank'}: {family.weeklyRank}
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* XP Progress */}
-                    <div style={{marginTop:'12px'}}>
-                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#6b7280', marginBottom:'4px'}}>
-                            <span>XP: {fmtFamilyNum(family.xp||0)}</span>
-                            <span>{fProg}%</span>
-                            {FAMILY_LEVEL_CONFIG.find(c=>c.level===fLvl.level+1) && <span>{lang==='ar'?'التالي':'Next'}: {fmtFamilyNum(FAMILY_LEVEL_CONFIG.find(c=>c.level===fLvl.level+1).xp)}</span>}
-                        </div>
-                        <div style={{height:'5px', borderRadius:'3px', background:'rgba(255,255,255,0.08)', overflow:'hidden'}}>
-                            <div style={{height:'100%', borderRadius:'3px', width:`${fProg}%`, background:`linear-gradient(90deg,${fLvl.color},${fLvl.color}88)`, transition:'width 0.6s ease'}} />
-                        </div>
+                    {/* Level Badge */}
+                    <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'12px'}}>
+                        <div style={{background:fLvl.color,color:'#000',fontSize:'9px',fontWeight:900,padding:'2px 8px',borderRadius:'10px'}}>{fLvl.icon} LV.{fLvl.level} {lang==='ar'?fLvl.name_ar:fLvl.name_en}</div>
+                        <div style={{fontSize:'9px',color:'rgba(255,255,255,0.5)'}}>👥 {family.members?.length||0}/{fLvl.maxMembers}</div>
+                        {myRole && <FamilyRoleBadge role={myRole} lang={lang} small />}
                     </div>
                 </div>
 
-                {/* ── Treasury & Stats ── */}
-                <div style={{display:'flex', gap:'8px'}}>
-                    <div style={{flex:1, ...S.card, background:'rgba(255,215,0,0.06)', border:'1px solid rgba(255,215,0,0.2)', textAlign:'center', padding:'10px'}}>
-                        <div style={{fontSize:'10px', color:'#9ca3af', marginBottom:'3px'}}>🧠 {lang==='ar'?'خزينة العائلة':'Treasury'}</div>
-                        <div style={{fontSize:'16px', fontWeight:900, color:'#ffd700', fontStyle:'italic'}}>{fmtFamilyNum(treasury)}</div>
-                    </div>
-                    <div style={{flex:1, ...S.card, background:'rgba(0,242,255,0.04)', border:'1px solid rgba(0,242,255,0.15)', textAlign:'center', padding:'10px'}}>
-                        <div style={{fontSize:'10px', color:'#9ca3af', marginBottom:'3px'}}>⚡ {lang==='ar'?'النشاط الأسبوعي':'Weekly Activity'}</div>
-                        <div style={{fontSize:'16px', fontWeight:900, color:'#00f2ff', fontStyle:'italic'}}>{fmtFamilyNum(weeklyAct)}</div>
-                    </div>
-                </div>
-
-                {/* ── Donate Button — only for members ── */}
-                {!isReadOnly && (
-                <div style={S.card}>
-                    <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: showDonatePanel ? '10px' : '0'}}>
-                        <div style={{fontSize:'12px', fontWeight:700, color:'white'}}>💰 {lang==='ar'?'التبرع للعائلة':'Donate to Family'}</div>
-                        <button onClick={()=>setShowDonatePanel(!showDonatePanel)} style={{...S.btn, padding:'6px 14px', fontSize:'11px', background:'linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15))', border:'1px solid rgba(255,215,0,0.3)', color:'#fbbf24'}}>
-                            {showDonatePanel ? (lang==='ar'?'إغلاق':'Close') : (lang==='ar'?'تبرع':'Donate')}
+                {/* ── Tabs row as bottom nav ── */}
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-around',padding:'8px 0',background:'white',borderBottom:'1px solid #e5e7eb',flexShrink:0}}>
+                    {[
+                        {id:'profile',icon:'🏠',label_en:'Profile',label_ar:'الرئيسية'},
+                        {id:'tasks',  icon:'🎯',label_en:'Tasks',  label_ar:'مهام'},
+                        {id:'members',icon:'👥',label_en:'Members',label_ar:'أعضاء'},
+                        {id:'news',   icon:'📰',label_en:'News',   label_ar:'أخبار'},
+                        {id:'manage', icon:'⚙️',label_en:'Manage', label_ar:'إدارة'},
+                    ].map(t => (
+                        <button key={t.id} onClick={()=>setActiveTab(t.id)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'1px',padding:'4px 8px',color:activeTab===t.id?'#3b82f6':'#9ca3af',fontSize:'10px',fontWeight:activeTab===t.id?800:500,borderBottom:activeTab===t.id?'2px solid #3b82f6':'2px solid transparent'}}>
+                            <span style={{fontSize:'18px'}}>{t.icon}</span>
+                            <span>{lang==='ar'?t.label_ar:t.label_en}</span>
                         </button>
+                    ))}
+                </div>
+
+                <div style={{flex:1,overflowY:'auto',padding:'12px',display:'flex',flexDirection:'column',gap:'10px'}}>
+
+                {/* ── Activeness Section ── */}
+                <div style={{background:'white',borderRadius:'16px',padding:'14px',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
+                        <span style={{fontSize:'14px',fontWeight:800,color:'#1f2937',borderLeft:'3px solid #f97316',paddingLeft:'8px'}}>🔥 {lang==='ar'?'النشاط':'Activeness'}</span>
+                        <div style={{display:'flex',alignItems:'center',gap:'4px',fontSize:'11px',color:'#6b7280'}}>
+                            <span style={{color:'#f97316',fontWeight:800}}>{fmtFamilyNum(totalAct)}</span>
+                            <span>/</span>
+                            <span>{nextLvl ? fmtFamilyNum(nextLvl.activeness) : '—'}</span>
+                        </div>
                     </div>
-                    {showDonatePanel && (
-                        <div style={{display:'flex', gap:'8px'}}>
-                            <input type="number" value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} style={{...S.input, flex:1}} placeholder={lang==='ar'?'الكمية (إنتل)':'Amount (Intel)'} min="1" />
-                            <button onClick={handleDonate} disabled={donating||!donateAmount} style={{...S.btn, flexShrink:0, padding:'10px 16px', background:donateAmount&&!donating?'linear-gradient(135deg,#ffd700,#f97316)':'rgba(255,255,255,0.06)', color:donateAmount?'#000':'#4b5563', cursor:donateAmount?'pointer':'not-allowed'}}>
-                                {donating?'⏳':'🧠'}
+                    {/* Progress bar */}
+                    <div style={{height:'8px',borderRadius:'4px',background:'#e5e7eb',overflow:'hidden',marginBottom:'12px'}}>
+                        <div style={{height:'100%',borderRadius:'4px',width:`${fProg}%`,background:'linear-gradient(90deg,#f97316,#ef4444)',transition:'width 0.6s ease'}}/>
+                    </div>
+
+                    {/* Weekly Activeness */}
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
+                        <div style={{background:'rgba(249,115,22,0.08)',border:'1px solid rgba(249,115,22,0.2)',borderRadius:'12px',padding:'8px 14px'}}>
+                            <div style={{fontSize:'10px',color:'#9ca3af',marginBottom:'2px'}}>⚡ {lang==='ar'?'النشاط الأسبوعي':'Weekly Activeness'}</div>
+                            <div style={{fontSize:'20px',fontWeight:900,color:'#1f2937'}}>{fmtFamilyNum(weeklyAct)}</div>
+                            <div style={{fontSize:'9px',color:'#9ca3af',marginTop:'2px'}}>{lang==='ar'?'يتجدد الأحد':'Refresh on Sun'}</div>
+                        </div>
+                        {!isReadOnly && (
+                            <button onClick={()=>setShowDonatePanel(!showDonatePanel)} style={{padding:'10px 18px',borderRadius:'10px',border:'1px solid rgba(249,115,22,0.4)',background:'rgba(249,115,22,0.08)',color:'#f97316',fontSize:'12px',fontWeight:800,cursor:'pointer'}}>
+                                💰 {lang==='ar'?'تبرع':'Donate'}
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Donate panel */}
+                    {showDonatePanel && !isReadOnly && (
+                        <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
+                            <input type="number" value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} style={{flex:1,padding:'9px 12px',borderRadius:'10px',border:'1px solid #e5e7eb',fontSize:'12px',outline:'none',background:'#f9fafb'}} placeholder={lang==='ar'?'الكمية...':'Amount...'}/>
+                            <button onClick={handleDonate} disabled={donating||!donateAmount} style={{padding:'9px 16px',borderRadius:'10px',border:'none',background:donateAmount&&!donating?'#f97316':'#e5e7eb',color:donateAmount?'white':'#9ca3af',fontWeight:800,fontSize:'12px',cursor:donateAmount?'pointer':'not-allowed'}}>
+                                {donating?'⏳':'✓'}
                             </button>
                         </div>
                     )}
-                    <div style={{fontSize:'10px', color:'#4b5563', marginTop:'6px'}}>
-                        {lang==='ar'?`رصيدك: ${fmtFamilyNum(currentUserData?.currency||0)} 🧠`:`Your balance: ${fmtFamilyNum(currentUserData?.currency||0)} 🧠`}
-                    </div>
-                </div>
-                )}
 
-                {/* ── Join Button — for non-members who are not in any family ── */}
-                {isReadOnly && !currentUserData?.familyId && family && (
-                <div style={{...S.card, background:'linear-gradient(135deg,rgba(0,242,255,0.07),rgba(112,0,255,0.05))', border:'1px solid rgba(0,242,255,0.2)', textAlign:'center', padding:'18px'}}>
-                    <div style={{fontSize:'32px', marginBottom:'8px'}}>🏠</div>
-                    <div style={{fontSize:'13px', fontWeight:800, color:'white', marginBottom:'4px'}}>
-                        {lang==='ar'?'انضم لهذه العائلة':'Join this Family'}
-                    </div>
-                    <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'14px', lineHeight:1.5}}>
-                        {lang==='ar'?'لست عضواً في أي عائلة — انضم الآن!':"You're not in any family — join now!"}
-                    </div>
-                    <button
-                        onClick={()=>setView('join')}
-                        style={{padding:'10px 28px', borderRadius:'12px', border:'none', background:'linear-gradient(135deg,#00f2ff,#7000ff)', color:'white', fontSize:'13px', fontWeight:800, cursor:'pointer', boxShadow:'0 4px 16px rgba(0,242,255,0.3)'}}>
-                        ➕ {lang==='ar'?'انضم الآن':'Join Now'}
-                    </button>
-                </div>
-                )}
-
-                {/* ── Activeness Milestones ── */}
-                <div style={S.card}>
-                    <div style={S.sectionTitle}>🎁 {lang==='ar'?'مكافآت النشاط':'Activeness Rewards'}</div>
-                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                    {/* Chest milestones — horizontal scroll */}
+                    <div style={{display:'flex',gap:'10px',overflowX:'auto',paddingTop:'4px',scrollbarWidth:'none'}}>
                         {ACTIVENESS_MILESTONES.map((ms, idx) => {
                             const isClaimed = claimed.includes(idx);
-                            const isReached = (family.activeness || 0) >= ms.threshold;
+                            const isReached = totalAct >= ms.threshold;
+                            const cfg = CHEST_CONFIG[ms.chestType];
                             return (
-                                <div key={idx} style={{display:'flex', alignItems:'center', gap:'10px', padding:'8px 10px', borderRadius:'10px', background: isClaimed?'rgba(16,185,129,0.08)':isReached?'rgba(0,242,255,0.06)':'rgba(255,255,255,0.03)', border:`1px solid ${isClaimed?'rgba(16,185,129,0.25)':isReached?'rgba(0,242,255,0.2)':'rgba(255,255,255,0.06)'}`}}>
-                                    <span style={{fontSize:'16px'}}>{ms.icon}</span>
-                                    <div style={{flex:1}}>
-                                        <div style={{fontSize:'11px', fontWeight:700, color:isClaimed?'#10b981':isReached?'#00f2ff':'#6b7280'}}>{fmtFamilyNum(ms.threshold)} {lang==='ar'?'نشاط':'activeness'}</div>
-                                        <div style={{fontSize:'10px', color:'#fbbf24', fontWeight:700}}>+{fmtFamilyNum(ms.reward)} 🧠</div>
+                                <div key={idx} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',flexShrink:0,width:'62px',cursor:isReached&&!isClaimed&&canManage?'pointer':'default'}}
+                                    onClick={()=>isReached&&!isClaimed&&canManage&&handleClaimChest(idx)}>
+                                    <div style={{position:'relative',fontSize:'32px',filter:isClaimed?'grayscale(0.3)':isReached?'none':'grayscale(1)',opacity:isClaimed?0.7:1,transition:'all 0.2s'}}>
+                                        {isClaimed ? '✅' : ms.icon}
+                                        {!isClaimed && isReached && (
+                                            <div style={{position:'absolute',top:'-4px',right:'-4px',width:'14px',height:'14px',borderRadius:'50%',background:'#ef4444',border:'2px solid white',animation:'pulse 1s infinite'}}/>
+                                        )}
                                     </div>
-                                    {canManage && (
-                                        <button disabled={isClaimed||!isReached} onClick={()=>claimActiveMilestone(idx)}
-                                            style={{...S.btn, padding:'5px 12px', fontSize:'10px', background:isClaimed?'rgba(16,185,129,0.15)':isReached?'rgba(0,242,255,0.2)':'rgba(255,255,255,0.04)', color:isClaimed?'#10b981':isReached?'#00f2ff':'#4b5563', cursor:isReached&&!isClaimed?'pointer':'not-allowed', border:'none'}}>
-                                            {isClaimed?'✅':(lang==='ar'?'اجمع':'Claim')}
-                                        </button>
-                                    )}
+                                    <div style={{fontSize:'9px',fontWeight:700,color:isClaimed?'#10b981':isReached?cfg.color:'#9ca3af',textAlign:'center'}}>{fmtFamilyNum(ms.threshold)}</div>
+                                    <div style={{fontSize:'8px',color:'#9ca3af',textAlign:'center'}}>{lang==='ar'?ms.name_ar.split(' ')[0]:ms.name_en.split(' ')[0]}</div>
                                 </div>
                             );
                         })}
                     </div>
                 </div>
 
-                {/* ── Announcement moved to top of page for visibility ── */}
+                {/* ── Treasury Section ── */}
+                <div style={{background:'white',borderRadius:'16px',padding:'14px',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+                        <span style={{fontSize:'14px',fontWeight:800,color:'#1f2937',borderLeft:'3px solid #10b981',paddingLeft:'8px'}}>🛡️ {lang==='ar'?'الخزينة':'Treasury'}</span>
+                        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:'4px',background:'rgba(16,185,129,0.08)',border:'1px solid rgba(16,185,129,0.2)',borderRadius:'20px',padding:'3px 10px'}}>
+                                <span style={{fontSize:'13px'}}>🏅</span>
+                                <span style={{fontSize:'12px',fontWeight:800,color:'#10b981'}}>{fmtFamilyNum(treasury)}</span>
+                                {!isReadOnly && <button onClick={()=>setShowDonatePanel(!showDonatePanel)} style={{background:'rgba(16,185,129,0.2)',border:'none',borderRadius:'50%',width:'18px',height:'18px',cursor:'pointer',fontSize:'12px',display:'flex',alignItems:'center',justifyContent:'center',color:'#10b981',fontWeight:900,lineHeight:1}}>+</button>}
+                            </div>
+                        </div>
+                    </div>
 
-                <div style={{height:'12px'}} />
+                    {/* Barrier (next level cost) */}
+                    {nextLvl && (
+                        <div style={{fontSize:'10px',color:'#6b7280',marginBottom:'10px'}}>
+                            🔒 {lang==='ar'?'الحاجز للمستوى التالي':'Barrier for next level'}: <span style={{color:'#f97316',fontWeight:800}}>{fmtFamilyNum(nextLvl.upgradeCost || 0)} 🏅</span>
+                            {canManage && nextLvl.upgradeCost > 0 && treasury >= nextLvl.upgradeCost && (
+                                <button onClick={async () => {
+                                    if (!family?.id || !canManage) return;
+                                    try {
+                                        await familiesCollection.doc(family.id).update({
+                                            treasury: firebase.firestore.FieldValue.increment(-(nextLvl.upgradeCost||0)),
+                                            level: fLvl.level + 1,
+                                        });
+                                        onNotification(`🆙 ${lang==='ar'?'ارتفع المستوى!':'Level Up!'}`);
+                                    } catch(e) {}
+                                }} style={{marginLeft:'8px',padding:'2px 10px',borderRadius:'8px',border:'none',background:'linear-gradient(135deg,#10b981,#059669)',color:'white',fontSize:'10px',fontWeight:800,cursor:'pointer'}}>
+                                    🆙 {lang==='ar'?'ترقية':'Upgrade'}
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Chest inventory */}
+                    {treasuryInventory.length > 0 ? (
+                        <div style={{display:'flex',gap:'10px',overflowX:'auto',paddingBottom:'4px',scrollbarWidth:'none'}}>
+                            {treasuryInventory.map((item, i) => {
+                                const cfg = CHEST_CONFIG[item.chestType];
+                                if (!cfg) return null;
+                                return (
+                                    <div key={i} onClick={()=>{ setSelectedChest({cfg, idx: item.idx}); setShowChestModal(true); }} style={{flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',width:'68px',padding:'8px 4px',borderRadius:'12px',background:`${cfg.color}12`,border:`1px solid ${cfg.color}44`,cursor:'pointer'}}>
+                                        <div style={{fontSize:'28px'}}>{ACTIVENESS_MILESTONES.find(m=>m.chestType===item.chestType)?.icon||'📦'}</div>
+                                        <div style={{fontSize:'9px',fontWeight:700,color:cfg.color,textAlign:'center'}}>{lang==='ar'?cfg.name_ar:cfg.name_en}</div>
+                                        <div style={{fontSize:'8px',color:'#9ca3af'}}>{lang==='ar'?'اضغط للفتح':'Tap to open'}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div style={{textAlign:'center',padding:'16px',color:'#9ca3af',fontSize:'11px'}}>
+                            <div style={{fontSize:'28px',marginBottom:'6px'}}>📦</div>
+                            {lang==='ar'?'لا توجد صناديق في الخزينة بعد':'No chests in treasury yet'}
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Announcement ── */}
+                {family.announcement && (
+                    <div style={{background:'white',borderRadius:'16px',padding:'14px',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}>
+                        <span style={{fontSize:'13px',fontWeight:800,color:'#1f2937',borderLeft:'3px solid #f59e0b',paddingLeft:'8px',display:'block',marginBottom:'8px'}}>📢 {lang==='ar'?'الإعلان':'Announcement'}</span>
+                        <div style={{fontSize:'13px',color:'#374151',lineHeight:1.7,whiteSpace:'pre-wrap',wordBreak:'break-word'}}>
+                            {family.announcementBy && <span style={{fontSize:'10px',color:'#9ca3af',display:'block',marginBottom:'4px'}}>{lang==='ar'?'بواسطة:':'By:'} {family.announcementBy}</span>}
+                            {family.announcement}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Join button for external view ── */}
+                {isReadOnly && !currentUserData?.familyId && (
+                    <div style={{background:'white',borderRadius:'16px',padding:'18px',textAlign:'center',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}>
+                        <div style={{fontSize:'32px',marginBottom:'8px'}}>🏠</div>
+                        <div style={{fontSize:'13px',fontWeight:800,color:'#1f2937',marginBottom:'12px'}}>{lang==='ar'?'انضم لهذه العائلة':'Join this Family'}</div>
+                        <button onClick={()=>setView('join')} style={{padding:'10px 28px',borderRadius:'12px',border:'none',background:'linear-gradient(135deg,#00f2ff,#7000ff)',color:'white',fontSize:'13px',fontWeight:800,cursor:'pointer'}}>
+                            ➕ {lang==='ar'?'انضم الآن':'Join Now'}
+                        </button>
+                    </div>
+                )}
+
+                <div style={{height:'8px'}}/>
+                </div>
+
+                {/* ── Chest Detail Modal ── */}
+                {showChestModal && selectedChest && (
+                    <div style={{position:'fixed',inset:0,zIndex:Z.OVERLAY,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}} onClick={()=>setShowChestModal(false)}>
+                        <div style={{background:'linear-gradient(160deg,#0e0e22,#13122a)',border:`2px solid ${selectedChest.cfg.color}`,borderRadius:'20px',padding:'24px',maxWidth:'340px',width:'100%',boxShadow:`0 0 40px ${selectedChest.cfg.color}44`}} onClick={e=>e.stopPropagation()}>
+                            <div style={{textAlign:'center',marginBottom:'16px'}}>
+                                <div style={{fontSize:'48px',marginBottom:'8px'}}>{ACTIVENESS_MILESTONES.find(m=>m.chestType===selectedChest.cfg.name_en.toLowerCase().split(' ')[0])?.icon || '📦'}</div>
+                                <div style={{fontSize:'16px',fontWeight:900,color:selectedChest.cfg.color}}>{lang==='ar'?selectedChest.cfg.name_ar:selectedChest.cfg.name_en}</div>
+                            </div>
+                            <div style={{fontSize:'11px',fontWeight:800,color:'#9ca3af',marginBottom:'10px',textAlign:'center'}}>{lang==='ar'?'محتويات الصندوق:':'Chest Contents:'}</div>
+                            <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'16px'}}>
+                                {selectedChest.cfg.rewards.map((r, i) => (
+                                    <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 12px',borderRadius:'10px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)'}}>
+                                        <span style={{fontSize:'18px'}}>{r.icon}</span>
+                                        <span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>{lang==='ar'?r.label_ar:r.label_en}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <button onClick={()=>setShowChestModal(false)} style={{width:'100%',padding:'11px',borderRadius:'12px',border:'none',background:`linear-gradient(135deg,${selectedChest.cfg.color},${selectedChest.cfg.color}aa)`,color:'#000',fontSize:'13px',fontWeight:900,cursor:'pointer'}}>
+                                {lang==='ar'?'✓ حسناً':'✓ Got it'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Gacha Modal ── */}
+                {showGachaModal && (
+                    <div style={{position:'fixed',inset:0,zIndex:Z.OVERLAY,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}} onClick={()=>setShowGachaModal(false)}>
+                        <div style={{background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'2px solid rgba(167,139,250,0.5)',borderRadius:'20px',padding:'24px',maxWidth:'320px',width:'100%',textAlign:'center'}} onClick={e=>e.stopPropagation()}>
+                            <div style={{fontSize:'48px',marginBottom:'8px'}}>{gachaResult ? gachaResult.icon : '🎰'}</div>
+                            <div style={{fontSize:'15px',fontWeight:900,color:'#a78bfa',marginBottom:'4px'}}>{lang==='ar'?'جاتشه القبيلة':'Clan Gacha'}</div>
+                            <div style={{fontSize:'10px',color:'#6b7280',marginBottom:'16px'}}>
+                                {lang==='ar'?`تكلفة: ${GACHA_CONFIG.dailyCost} إنتل من الخزينة`:`Cost: ${GACHA_CONFIG.dailyCost} Intel from treasury`}
+                                <span style={{display:'block',marginTop:'2px',color:gachaAvailable?'#10b981':'#f87171'}}>
+                                    {gachaAvailable?(lang==='ar'?'✅ متاحة اليوم':'✅ Available today'):(lang==='ar'?'⏳ استُخدمت اليوم':'⏳ Used today')}
+                                </span>
+                            </div>
+                            {gachaResult ? (
+                                <div style={{padding:'14px',borderRadius:'12px',background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.3)',marginBottom:'16px'}}>
+                                    <div style={{fontSize:'32px',marginBottom:'6px'}}>{gachaResult.icon}</div>
+                                    <div style={{fontSize:'14px',fontWeight:900,color:'#a78bfa'}}>{lang==='ar'?gachaResult.label_ar:gachaResult.label_en}</div>
+                                </div>
+                            ) : null}
+                            <div style={{display:'flex',gap:'8px'}}>
+                                <button onClick={()=>{setShowGachaModal(false);setGachaResult(null);}} style={{flex:1,padding:'10px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',cursor:'pointer'}}>
+                                    {lang==='ar'?'إغلاق':'Close'}
+                                </button>
+                                {!gachaResult && (
+                                    <button onClick={handleGachaRoll} disabled={!gachaAvailable||spinningGacha} style={{flex:1,padding:'10px',borderRadius:'10px',border:'none',background:gachaAvailable&&!spinningGacha?'linear-gradient(135deg,#a78bfa,#7000ff)':'rgba(255,255,255,0.06)',color:gachaAvailable?'white':'#4b5563',fontSize:'12px',fontWeight:800,cursor:gachaAvailable?'pointer':'not-allowed'}}>
+                                        {spinningGacha?'🎰...':`🎰 ${lang==='ar'?'اسحب':'Draw'}`}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
-    };
+    }
 
     // ─────────────────────────────────────────────
     // TAB: CHAT
@@ -2467,7 +2789,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 placeholder={lang==='ar'?'بحث...':'Search...'} />
                         </div>
                         <span style={{fontSize:'10px', color:'#6b7280', fontWeight:700, flexShrink:0}}>
-                            {family.members?.length||0}/{getFamilyLevel(family.xp||0).maxMembers}
+                            {family.members?.length||0}/{getFamilyLevel(family.activeness||0).maxMembers}
                         </span>
                     </div>
                     {/* Tab buttons */}
@@ -3272,14 +3594,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         </div>
                         <div style={{marginLeft:'auto', fontSize:'18px', color:'#6b7280'}}>›</div>
                     </button>
-                    <button onClick={()=>setShowRankingModal(true)} style={{padding:'14px 16px', borderRadius:'14px', border:'1px solid rgba(255,215,0,0.2)', background:'linear-gradient(135deg,rgba(255,215,0,0.06),rgba(255,140,0,0.04))', color:'white', cursor:'pointer', display:'flex', alignItems:'center', gap:'14px', textAlign:'left', width:'100%'}}>
-                        <span style={{fontSize:'28px'}}>🏆</span>
-                        <div>
-                            <div style={{fontSize:'13px', fontWeight:700, color:'#fbbf24', marginBottom:'2px'}}>{lang==='ar'?'ترتيب العائلات':'Family Rankings'}</div>
-                            <div style={{fontSize:'10px', color:'#6b7280'}}>{lang==='ar'?'شاهد أقوى العائلات':'See the top families'}</div>
-                        </div>
-                        <div style={{marginLeft:'auto', fontSize:'18px', color:'#6b7280'}}>›</div>
-                    </button>
+
                 </>
             ) : (
                 <div style={{textAlign:'center', padding:'24px', color:'#6b7280', fontSize:'13px'}}>
@@ -3336,11 +3651,20 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         </div>
     );
 
-    const renderJoin = () => (
+    const renderJoin = () => {
+        // Auto-load all families on first render
+        if (allFamilies.length === 0 && !loadingAllFamilies) {
+            loadAllFamilies();
+        }
+        const displayFamilies = joinResults.length > 0 ? joinResults : allFamilies;
+        return (
         <div style={{flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:'12px'}}>
             <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px'}}>
                 <button onClick={()=>{setView('home');setJoinResults([]);setJoinSearch('');}} style={{background:'none', border:'none', color:'#a78bfa', fontSize:'20px', cursor:'pointer', padding:'0 4px'}}>‹</button>
                 <span style={{fontSize:'15px', fontWeight:800, color:'white'}}>🔍 {lang==='ar'?'البحث عن عائلة':'Find Family'}</span>
+                <button onClick={loadAllFamilies} disabled={loadingAllFamilies} style={{marginLeft:'auto',background:'rgba(167,139,250,0.15)',border:'1px solid rgba(167,139,250,0.3)',borderRadius:'8px',width:'32px',height:'32px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'14px',color:'#a78bfa'}}>
+                    {loadingAllFamilies?'⏳':'🔄'}
+                </button>
             </div>
             <div style={{display:'flex', gap:'8px'}}>
                 <input value={joinSearch} onChange={e=>setJoinSearch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&searchFamilies()} style={S.input} placeholder={lang==='ar'?'ابحث بالوسم أو الاسم...':'Search by tag or name...'} />
@@ -3348,9 +3672,9 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     {searching?'⏳':'🔍'}
                 </button>
             </div>
-            {joinResults.map(fam => {
-                const fl = getFamilyLevel(fam.xp || 0);
-                const fs = getFamilySignLevelData(fam.activeness || 0);
+            {displayFamilies.map(fam => {
+                const fl = getFamilyLevel(fam.activeness || 0);
+                const fs = getFamilySignLevelData(fam.weeklyActiveness || fam.activeness || 0);
                 const isFull = (fam.members?.length||0) >= fl.maxMembers;
                 const isAlreadyIn = fam.members?.includes(currentUID);
                 const needsApproval = fam.joinMode === 'approval';
@@ -3363,7 +3687,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         <div style={{flex:1, minWidth:0}}>
                             <div style={{display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px', flexWrap:'wrap'}}>
                                 <span style={{fontSize:'14px', fontWeight:800, color:'white', fontStyle:'italic'}}>{fam.name}</span>
-                                <FamilySignBadge tag={fam.tag} color={fs.color} small signLevel={fs.level} />
+                                {fs && <FamilySignBadge tag={fam.tag} color={fs.color} small signLevel={fs.level} />}
                             </div>
                             <div style={{fontSize:'10px', color:'#6b7280', display:'flex', gap:'8px', flexWrap:'wrap'}}>
                                 <span style={{color:fl.color, fontWeight:700}}>{fl.icon} Lv.{fl.level}</span>
@@ -3384,9 +3708,12 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     </div>
                 );
             })}
-            {joinResults.length===0&&joinSearch&&!searching&&<div style={{textAlign:'center', padding:'24px', color:'#4b5563', fontSize:'12px'}}>{lang==='ar'?'لا توجد نتائج':'No results found'}</div>}
+            {loadingAllFamilies && displayFamilies.length===0 && <div style={{textAlign:'center',padding:'24px',color:'#6b7280',fontSize:'12px'}}>⏳ {lang==='ar'?'جارٍ التحميل...':'Loading...'}</div>}
+            {!loadingAllFamilies && displayFamilies.length===0 && <div style={{textAlign:'center',padding:'24px',color:'#4b5563',fontSize:'12px'}}>{lang==='ar'?'لا توجد عائلات':'No families found'}</div>}
+            {joinResults.length===0 && joinSearch && !searching && displayFamilies.length===0 && <div style={{textAlign:'center', padding:'24px', color:'#4b5563', fontSize:'12px'}}>{lang==='ar'?'لا توجد نتائج':'No results found'}</div>}
         </div>
-    );
+        );
+    };
 
     // ─────────────────────────────────────────────
     // MAIN RENDER
@@ -3439,8 +3766,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         </div>
                     </div>
 
-                    {/* ── Tab Bar (only in family) ── */}
-                    {family && (
+                    {/* ── Tab Bar (only in family, hidden when profile tab active since it has own nav) ── */}
+                    {family && activeTab !== 'profile' && (
                         <div style={S.tabBar}>
                             {TABS.map(tab => (
                                 <button key={tab.id} onClick={()=>setActiveTab(tab.id)} style={{
@@ -3452,10 +3779,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 }}>
                                     <div style={{fontSize:'14px', marginBottom:'1px'}}>{tab.icon}</div>
                                     <div>{lang==='ar'?tab.label_ar:tab.label_en}</div>
-                                    {/* Unread badge for chat tab */}
-                                    {tab.id==='chat' && family?.announcement && activeTab!=='chat' && (
-                                        <span style={{position:'absolute', top:'4px', right:'6px', fontSize:'7px', background:'#f97316', color:'white', borderRadius:'50%', width:'14px', height:'14px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900}}>📢</span>
-                                    )}
                                     {tab.id==='manage'&&(family?.joinRequests?.length>0)&&<span style={{position:'absolute', top:'4px', right:'6px', fontSize:'8px', background:'#f97316', color:'white', borderRadius:'50%', width:'14px', height:'14px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900}}>{family.joinRequests.length}</span>}
                                 </button>
                             ))}
@@ -3481,6 +3804,34 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                             </>
                         )}
                     </div>
+
+                    {/* ── Bottom Nav Bar (visible when family exists, profile tab) ── */}
+                    {family && activeTab === 'profile' && (
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-around',padding:'8px 16px',background:'white',borderTop:'1px solid #e5e7eb',flexShrink:0}}>
+                            {/* Chat */}
+                            <button onClick={()=>setActiveTab('chat')} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
+                                <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'rgba(107,114,128,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>💬</div>
+                                <span style={{fontSize:'9px',color:'#6b7280',fontWeight:600}}>{lang==='ar'?'شات':'Chat'}</span>
+                            </button>
+                            {/* Room (go to family chat full modal) */}
+                            <button onClick={()=>setActiveTab('chat')} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
+                                <div style={{width:'50px',height:'50px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(0,242,255,0.15),rgba(112,0,255,0.15))',border:'2px solid rgba(0,242,255,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>🏠</div>
+                                <span style={{fontSize:'9px',color:'#00f2ff',fontWeight:800}}>{lang==='ar'?'الغرفة':'Room'}</span>
+                            </button>
+                            {/* Gacha */}
+                            <button onClick={()=>setShowGachaModal(true)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
+                                <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'rgba(167,139,250,0.15)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>🎰</div>
+                                <span style={{fontSize:'9px',color:'#a78bfa',fontWeight:600}}>{lang==='ar'?'جاتشه':'Gacha'}</span>
+                            </button>
+                            {/* Plus - donate shortcut */}
+                            {!isReadOnly && (
+                                <button onClick={()=>setShowDonatePanel(v=>!v)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
+                                    <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'rgba(16,185,129,0.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',fontWeight:900,color:'#10b981'}}>+</div>
+                                    <span style={{fontSize:'9px',color:'#10b981',fontWeight:600}}>{lang==='ar'?'تبرع':'Donate'}</span>
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </PortalModal>
