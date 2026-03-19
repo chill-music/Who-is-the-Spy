@@ -64,18 +64,17 @@ const getFamilySignProgress = (weeklyActiveness = 0) => {
     return Math.min(100, Math.round(((weeklyActiveness - cur.threshold) / (next.threshold - cur.threshold)) * 100));
 };
 
-const getFamilyLevel = (activeness = 0) => {
-    let cfg = FAMILY_LEVEL_CONFIG[0];
-    for (let i = FAMILY_LEVEL_CONFIG.length - 1; i >= 0; i--) {
-        if (activeness >= FAMILY_LEVEL_CONFIG[i].activeness) { cfg = FAMILY_LEVEL_CONFIG[i]; break; }
-    }
+const getFamilyLevelConfig = (level = 1) => {
+    let cfg = FAMILY_LEVEL_CONFIG.find(c => c.level === level) || FAMILY_LEVEL_CONFIG[0];
     return cfg;
 };
-const getFamilyLevelProgress = (activeness = 0) => {
-    const cur = getFamilyLevel(activeness);
-    const next = FAMILY_LEVEL_CONFIG.find(c => c.level === cur.level + 1);
+const getFamilyLevelProgress = (activeness = 0, currentLevel = 1) => {
+    const cur = getFamilyLevelConfig(currentLevel);
+    const next = FAMILY_LEVEL_CONFIG.find(c => c.level === currentLevel + 1);
     if (!next) return 100;
-    return Math.min(100, Math.round(((activeness - cur.activeness) / (next.activeness - cur.activeness)) * 100));
+    const progress = Math.max(0, activeness - cur.activeness);
+    const range = next.activeness - cur.activeness;
+    return Math.max(0, Math.min(100, Math.round((progress / range) * 100)));
 };
 
 // ════ UPDATED TASKS — Triple Currency: Intel + XP + Family Coins ════
@@ -1037,7 +1036,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     if (!show) return null;
 
     var signData = (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0) : null) || { level:0, color:'#4b5563', glow:'rgba(75,85,99,0.3)', defaultIcon:'🏠' };
-    var fLvl = familyData ? getFamilyLevel(familyData.xp || 0) : null;
+    var fLvl = familyData ? getFamilyLevelConfig(familyData.level || 1) : null;
 
     return React.createElement(PortalModal, null,
         React.createElement('div', {
@@ -1396,7 +1395,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                         const targetDoc = target.uid === currentUID
                             ? { uid: target.uid, ...target }
                             : await usersCollection.doc(target.uid).get().then(d => d.exists ? { uid: target.uid, ...d.data() } : target).catch(() => target);
-                        await onSendGift(gift, targetDoc, qty || 1);
+                        await onSendGift(gift, targetDoc, qty || 1, false, familyId);
                     }
                     setShowChatGiftModal(false);
                     setGiftTarget(null);
@@ -1430,7 +1429,7 @@ const FamilyRankingInline = ({ lang, currentFamilyId, onOpenFamily }) => {
     return (
         <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
             {rankings.map((fam, i) => {
-                const fl = getFamilyLevel(fam.activeness || 0);
+                const fl = getFamilyLevelConfig(fam.level || 1);
                 const sign = getFamilySignLevelData(fam.weeklyActiveness || 0);
                 const signColor = sign?.color || '#6b7280';
                 const signLevel = sign?.level || 0;
@@ -1860,7 +1859,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             const snap = await familiesCollection.doc(familyId).get();
             if (!snap.exists) { onNotification(lang === 'ar' ? '❌ العائلة غير موجودة' : '❌ Family not found'); setJoining(false); return; }
             const fd = snap.data();
-            const lvl = getFamilyLevel(fd.xp || 0);
+            const lvl = getFamilyLevelConfig(fd.level || 1);
             if ((fd.members || []).length >= lvl.maxMembers) { onNotification(lang === 'ar' ? '❌ العائلة ممتلئة' : '❌ Family is full'); setJoining(false); return; }
 
             // If approval required, add to joinRequests
@@ -2255,8 +2254,33 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         setClaimingChest(false);
     };
 
+    // ── Upgrade family level ──
+    const handleUpgradeLevel = async () => {
+        if (!family?.id || !canManageFamily(family, currentUID)) return;
+        const curLvl = getFamilyLevelConfig(family.level || 1);
+        const nextLvl = FAMILY_LEVEL_CONFIG.find(c => c.level === curLvl.level + 1);
+        if (!nextLvl) return;
+        if ((family.activeness || 0) < nextLvl.activeness) {
+            onNotification(lang === 'ar' ? 'النشاط غير كافٍ للترقية' : 'Not enough activeness to upgrade');
+            return;
+        }
+        if ((family.familyCoins || 0) < nextLvl.upgradeCost) {
+            onNotification(lang === 'ar' ? 'عملات القبيلة غير كافية للترقية' : 'Not enough family coins to upgrade');
+            return;
+        }
+        try {
+            await familiesCollection.doc(family.id).update({
+                level: nextLvl.level,
+                familyCoins: firebase.firestore.FieldValue.increment(-nextLvl.upgradeCost)
+            });
+            onNotification(lang === 'ar' ? '✅ تمت ترقية القبيلة بنجاح!' : '✅ Family upgraded successfully!');
+        } catch (e) {
+            onNotification(lang === 'ar' ? '❌ خطأ في الترقية' : '❌ Error upgrading');
+        }
+    };
+
     // ── Assign chest from treasury inventory to members ──
-    const assignChestToMembers = async (inventoryIdx, memberUids, maxClaimsPerMember) => {
+    const assignChestToMembers = async (inventoryIdx, memberUids) => {
         if (!family?.id || !canManageFamily(family, currentUID)) return;
         setAssigningLoading(true);
         try {
@@ -2266,8 +2290,53 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             const cfg = CHEST_CONFIG[chest.chestType];
             if (!cfg) { setAssigningLoading(false); return; }
 
-            // Update inventory item with assignedTo
-            inv[inventoryIdx] = { ...chest, assignedTo: memberUids, maxClaimsPerMember };
+            // ── Pre-calculate drops for all assigned members ──
+            const numMembers = memberUids.length;
+            const drops = memberUids.map(uid => ({
+                uid,
+                currency: 0,
+                coins: 0,
+                items: []
+            }));
+
+            cfg.rewards.forEach(r => {
+                if (r.type === 'currency' || r.type === 'coins' || r.type === 'familyCoins') {
+                    let totalAmt = r.amount;
+                    let base = Math.floor(totalAmt / numMembers);
+                    let rem = totalAmt % numMembers;
+                    drops.forEach(d => { d[r.type === 'familyCoins' ? 'coins' : r.type] += base; });
+                    for (let i = 0; i < rem; i++) {
+                        let luckyIdx = Math.floor(Math.random() * drops.length);
+                        drops[luckyIdx][r.type === 'familyCoins' ? 'coins' : r.type] += 1;
+                    }
+                } else if (r.type === 'charisma') {
+                    // Charisma ring acts as single undivided item
+                    let luckyIdx = Math.floor(Math.random() * drops.length);
+                    drops[luckyIdx].items.push({...r, qty: 1});
+                } else {
+                    // Discrete items (gifts, frames)
+                    let totalQty = r.qty || 1;
+                    for (let i = 0; i < totalQty; i++) {
+                        let luckyIdx = Math.floor(Math.random() * drops.length);
+                        let luckyDrop = drops[luckyIdx];
+                        let existing = luckyDrop.items.find(item => 
+                            (r.type === 'gift' && item.giftId === r.giftId) || 
+                            (r.type === 'frame' && item.frameId === r.frameId)
+                        );
+                        if (existing) {
+                            existing.qty = (existing.qty || 1) + 1;
+                        } else {
+                            luckyDrop.items.push({...r, qty: 1});
+                        }
+                    }
+                }
+            });
+
+            const assignedDrops = {};
+            drops.forEach(d => { assignedDrops[d.uid] = d; });
+
+            // Update inventory item with assignedTo and the calculated bundled drops
+            inv[inventoryIdx] = { ...chest, assignedTo: memberUids, assignedDrops, maxClaimsPerMember: 1 };
 
             await familiesCollection.doc(family.id).update({ treasuryInventory: inv });
 
@@ -2283,19 +2352,18 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 chestName: lang === 'ar' ? cfg.name_ar : cfg.name_en,
                 inventoryIdx,
                 assignedTo: memberUids,
-                maxClaimsPerMember,
+                maxClaimsPerMember: 1,
                 assignedBy: currentUserData?.displayName || 'Owner',
                 text: lang === 'ar'
-                    ? `📦 ${currentUserData?.displayName} أرسل صندوق ${cfg.name_ar} لـ: ${names} (كل شخص يمكنه فتح ${maxClaimsPerMember} صندوق)`
-                    : `📦 ${currentUserData?.displayName} sent ${cfg.name_en} to: ${names} (each can open ${maxClaimsPerMember})`,
+                    ? `📦 ${currentUserData?.displayName} أرسل صندوق ${cfg.name_ar} لـ: ${names}`
+                    : `📦 ${currentUserData?.displayName} sent ${cfg.name_en} to: ${names}`,
                 timestamp: TS(),
             });
 
             setShowAssignModal(false);
             setAssigningChest(null);
             setSelectedAssignees([]);
-            setAssignCount(1);
-            onNotification(lang === 'ar' ? '✅ تم إرسال الصندوق!' : '✅ Chest assigned!');
+            onNotification(lang === 'ar' ? '✅ تم إرسال الصندوق بنجاح!' : '✅ Chest assigned successfully!');
         } catch(e) {
             console.error(e);
             onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
@@ -2322,9 +2390,12 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
         setClaimingChest(true);
         try {
-            // Weighted random pick from chest rewards
-            const rewards = cfg.rewards;
-            const picked = rewards[Math.floor(Math.random() * rewards.length)];
+            // Retrieve pre-calculated bundle for this user
+            const myBundle = chest.assignedDrops ? chest.assignedDrops[currentUID] : null;
+            if (!myBundle) {
+                onNotification(lang === 'ar' ? '❌ لا يوجد نصيب لك' : '❌ No share for you');
+                setClaimingChest(false); return;
+            }
 
             // Update claim count
             const newInv = [...inv];
@@ -2334,25 +2405,54 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             };
             await familiesCollection.doc(family.id).update({ treasuryInventory: newInv });
 
-            // Give reward
-            if (picked.type === 'currency') {
-                await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(picked.amount) });
-            } else if (picked.type === 'coins') {
-                await familiesCollection.doc(family.id).update({ familyCoins: firebase.firestore.FieldValue.increment(picked.amount) });
-            } else if (picked.type === 'charisma') {
-                await usersCollection.doc(currentUID).update({ charisma: firebase.firestore.FieldValue.increment(picked.amount) });
-            } else if (picked.type === 'frame') {
-                const expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
-                await usersCollection.doc(currentUID).update({
-                    [`inventory.frames`]: firebase.firestore.FieldValue.arrayUnion(picked.frameId),
-                    [`inventory.expiry.${picked.frameId}`]: expiresAt,
-                });
-            } else if (picked.type === 'gift') {
-                await usersCollection.doc(currentUID).update({
-                    [`inventory.gifts`]: firebase.firestore.FieldValue.arrayUnion(picked.giftId),
-                    [`inventory.giftCounts.${picked.giftId}`]: firebase.firestore.FieldValue.increment(picked.qty || 1),
-                });
+            // Give bundle rewards
+            if (myBundle.currency > 0) {
+                await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(myBundle.currency) });
             }
+            if (myBundle.coins > 0) {
+                await familiesCollection.doc(family.id).update({ familyCoins: firebase.firestore.FieldValue.increment(myBundle.coins) });
+            }
+            
+            let totalCharisma = 0;
+            const giftUpdates = {};
+            const frameUpdates = {};
+            
+            myBundle.items.forEach(r => {
+                if (r.type === 'charisma') {
+                    totalCharisma += (r.amount * (r.qty || 1));
+                } else if (r.type === 'frame') {
+                    const expiresAt = r.duration ? Date.now() + r.duration * 86400000 : null;
+                    frameUpdates[`inventory.expiry.${r.frameId}`] = expiresAt;
+                } else if (r.type === 'gift') {
+                    giftUpdates[`inventory.giftCounts.${r.giftId}`] = firebase.firestore.FieldValue.increment(r.qty || 1);
+                }
+            });
+            
+            if (totalCharisma > 0) {
+                await usersCollection.doc(currentUID).update({ charisma: firebase.firestore.FieldValue.increment(totalCharisma) });
+            }
+            if (Object.keys(giftUpdates).length > 0) {
+                const giftIds = myBundle.items.filter(r => r.type === 'gift').map(r => r.giftId);
+                let updatePayload = { ...giftUpdates };
+                giftIds.forEach(id => updatePayload['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(id));
+                await usersCollection.doc(currentUID).update(updatePayload);
+            }
+            if (Object.keys(frameUpdates).length > 0) {
+                const frameIds = myBundle.items.filter(r => r.type === 'frame').map(r => r.frameId);
+                let updatePayload = { ...frameUpdates };
+                frameIds.forEach(id => updatePayload['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(id));
+                await usersCollection.doc(currentUID).update(updatePayload);
+            }
+
+            // Build pseudo picked item for UI
+            const pseudoPicked = {
+                isBundle: true,
+                bundle: myBundle,
+                rarity: 'epic',
+                icon: '🎁',
+                label_ar: 'نصيبك من الصندوق',
+                label_en: 'Your Share',
+            };
 
             // Post result to chat
             const chestIcon = ACTIVENESS_MILESTONES.find(m => m.chestType === chest.chestType)?.icon || '📦';
@@ -2363,18 +2463,18 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 type: 'chest_opened',
                 chestType: chest.chestType,
                 chestIcon,
-                rewardLabel: lang === 'ar' ? picked.label_ar : picked.label_en,
-                rewardIcon: picked.icon,
+                rewardLabel: lang === 'ar' ? pseudoPicked.label_ar : pseudoPicked.label_en,
+                rewardIcon: pseudoPicked.icon,
                 text: lang === 'ar'
-                    ? `🎉 ${currentUserData?.displayName} فتح ${chestIcon} ${cfg.name_ar} وحصل على: ${picked.icon} ${picked.label_ar}`
-                    : `🎉 ${currentUserData?.displayName} opened ${chestIcon} ${cfg.name_en} and got: ${picked.icon} ${picked.label_en}`,
+                    ? `🎉 ${currentUserData?.displayName} فتح ${chestIcon} ${cfg.name_ar} وحصل على نصيبه من الصندوق!`
+                    : `🎉 ${currentUserData?.displayName} opened ${chestIcon} ${cfg.name_en} and got their share!`,
                 timestamp: TS(),
             });
 
-            setChestResult(picked);
+            setChestResult(pseudoPicked);
             setSelectedChest({ cfg, inventoryIdx });
             setShowChestModal(true);
-            onNotification(`🎉 ${lang === 'ar' ? picked.label_ar : picked.label_en}`);
+            onNotification(`🎉 ${lang === 'ar' ? 'تم فتح الصندوق!' : 'Chest opened!'}`);
         } catch(e) {
             console.error(e);
             onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
@@ -2530,8 +2630,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
     const activeTabForBar = TABS.some(t => t.id === activeTab) ? activeTab : 'profile';
 
-    const fLvl = family ? getFamilyLevel(family.activeness || 0) : null;
-    const fProg = family ? getFamilyLevelProgress(family.activeness || 0) : 0;
+    const fLvl = family ? getFamilyLevelConfig(family.level || 1) : null;
+    const fProg = family ? getFamilyLevelProgress(family.activeness || 0, family.level || 1) : 0;
     const myRole = family ? getFamilyRole(family, currentUID) : null;
     const canManage = family ? canManageFamily(family, currentUID) : false;
     const weeklyAct = family ? (family.weeklyActiveness || 0) : 0;
@@ -2628,6 +2728,14 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                             <span>{nextLvl ? fmtFamilyNum(nextLvl.activeness) : '—'}</span>
                         </div>
                     </div>
+                    {/* Upgrade Button */}
+                    {canManage && nextLvl && totalAct >= nextLvl.activeness && (
+                        <div style={{marginBottom:'12px', textAlign:'center'}}>
+                            <button onClick={handleUpgradeLevel} style={{padding:'10px 20px',borderRadius:'12px',background:'linear-gradient(135deg,#f97316,#ef4444)',border:'none',color:'white',fontWeight:900,fontSize:'13px',cursor:'pointer',boxShadow:'0 4px 12px rgba(249,115,22,0.4)',width:'100%'}}>
+                                ⬆️ {lang==='ar'?'ترقية مستوى القبيلة':'Upgrade Family Level'} ( {nextLvl.upgradeCost} 🏅 )
+                            </button>
+                        </div>
+                    )}
                     {/* Progress bar */}
                     <div style={{height:'8px',borderRadius:'4px',background:'#e5e7eb',overflow:'hidden',marginBottom:'12px'}}>
                         <div style={{height:'100%',borderRadius:'4px',width:`${fProg}%`,background:'linear-gradient(90deg,#f97316,#ef4444)',transition:'width 0.6s ease'}}/>
@@ -2747,54 +2855,57 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     )}
 
                     {/* Chest inventory */}
-                    {treasuryInventory.length > 0 ? (
-                        <div style={{display:'flex',gap:'10px',overflowX:'auto',paddingBottom:'4px',scrollbarWidth:'none'}}>
-                            {treasuryInventory.map((item, i) => {
-                                const cfg = CHEST_CONFIG[item.chestType];
-                                if (!cfg) return null;
-                                const ms = ACTIVENESS_MILESTONES.find(m => m.chestType === item.chestType);
-                                const chestImg = ms?.imageURL || null;
-                                const myAssigned = (item.assignedTo || []).includes(currentUID);
-                                const myClaimCount = (item.claimedBy || {})[currentUID] || 0;
-                                const canClaim = myAssigned && myClaimCount < (item.maxClaimsPerMember || 1);
-                                const remainingClaims = myAssigned ? Math.max(0, (item.maxClaimsPerMember || 1) - myClaimCount) : 0;
-                                return (
-                                    <div key={i} style={{flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',width:'72px',padding:'8px 4px',borderRadius:'12px',background:`${cfg.color}14`,border:`1px solid ${cfg.color}44`,cursor:'pointer',position:'relative'}}
-                                        onClick={()=>{
-                                            if (canManage) {
-                                                setAssigningChest({inventoryIdx:i, cfg, item});
-                                                setShowAssignModal(true);
-                                            } else if (canClaim) {
-                                                openAssignedChest(i);
-                                            } else {
-                                                setSelectedChest({cfg, idx: item.idx});
-                                                setChestResult(null);
-                                                setShowChestModal(true);
-                                            }
-                                        }}>
-                                        {/* Chest image or emoji */}
-                                        {chestImg
-                                            ? <img src={chestImg} alt="" style={{width:'44px',height:'44px',objectFit:'contain'}}/>
-                                            : <div style={{fontSize:'32px'}}>{ms?.icon || '📦'}</div>}
-                                        <div style={{fontSize:'9px',fontWeight:700,color:cfg.color,textAlign:'center'}}>{lang==='ar'?cfg.name_ar:cfg.name_en}</div>
-                                        {canClaim && (
-                                            <div style={{position:'absolute',top:'-5px',right:'-5px',width:'18px',height:'18px',borderRadius:'50%',background:'#ef4444',border:'2px solid #0d0d1f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'9px',fontWeight:900,color:'white'}}>
-                                                {remainingClaims}
+                    {(() => {
+                        const visibleInventory = (treasuryInventory || []).map((item, i) => ({item, i})).filter(({item}) => !item.assignedTo || item.assignedTo.length === 0 || (item.assignedTo.includes(currentUID) && (item.claimedBy || {})[currentUID] < (item.maxClaimsPerMember || 1)));
+                        return visibleInventory.length > 0 ? (
+                            <div style={{display:'flex',gap:'10px',overflowX:'auto',paddingBottom:'4px',scrollbarWidth:'none'}}>
+                                {visibleInventory.map(({item, i}) => {
+                                    const cfg = CHEST_CONFIG[item.chestType];
+                                    if (!cfg) return null;
+                                    const ms = ACTIVENESS_MILESTONES.find(m => m.chestType === item.chestType);
+                                    const chestImg = ms?.imageURL || null;
+                                    const myAssigned = (item.assignedTo || []).includes(currentUID);
+                                    const myClaimCount = (item.claimedBy || {})[currentUID] || 0;
+                                    const canClaim = myAssigned && myClaimCount < (item.maxClaimsPerMember || 1);
+                                    const remainingClaims = myAssigned ? Math.max(0, (item.maxClaimsPerMember || 1) - myClaimCount) : 0;
+                                    return (
+                                        <div key={i} style={{flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',width:'72px',padding:'8px 4px',borderRadius:'12px',background:`${cfg.color}14`,border:`1px solid ${cfg.color}44`,cursor:'pointer',position:'relative'}}
+                                            onClick={()=>{
+                                                if (canManage && !canClaim && (!item.assignedTo || item.assignedTo.length === 0)) {
+                                                    setAssigningChest({inventoryIdx:i, cfg, item});
+                                                    setShowAssignModal(true);
+                                                } else if (canClaim) {
+                                                    openAssignedChest(i);
+                                                } else {
+                                                    setSelectedChest({cfg, idx: item.idx});
+                                                    setChestResult(null);
+                                                    setShowChestModal(true);
+                                                }
+                                            }}>
+                                            {/* Chest image or emoji */}
+                                            {chestImg
+                                                ? <img src={chestImg} alt="" style={{width:'44px',height:'44px',objectFit:'contain'}}/>
+                                                : <div style={{fontSize:'32px'}}>{ms?.icon || '📦'}</div>}
+                                            <div style={{fontSize:'9px',fontWeight:700,color:cfg.color,textAlign:'center'}}>{lang==='ar'?cfg.name_ar:cfg.name_en}</div>
+                                            {canClaim && (
+                                                <div style={{position:'absolute',top:'-5px',right:'-5px',width:'18px',height:'18px',borderRadius:'50%',background:'#ef4444',border:'2px solid #0d0d1f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'9px',fontWeight:900,color:'white'}}>
+                                                    {remainingClaims}
+                                                </div>
+                                            )}
+                                            <div style={{fontSize:'8px',color:'#9ca3af',textAlign:'center'}}>
+                                                {canManage && (!item.assignedTo || item.assignedTo.length === 0) ? (lang==='ar'?'توزيع':'Assign') : canClaim ? (lang==='ar'?'افتح':'Open') : (lang==='ar'?'تفاصيل':'Details')}
                                             </div>
-                                        )}
-                                        <div style={{fontSize:'8px',color:'#9ca3af',textAlign:'center'}}>
-                                            {canManage?(lang==='ar'?'توزيع':'Assign'):canClaim?(lang==='ar'?'افتح':'Open'):(lang==='ar'?'تفاصيل':'Details')}
                                         </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div style={{textAlign:'center',padding:'16px',color:'#6b7280',fontSize:'11px'}}>
-                            <div style={{fontSize:'28px',marginBottom:'6px'}}>📦</div>
-                            {lang==='ar'?'لا توجد صناديق في الخزينة بعد':'No chests in treasury yet'}
-                        </div>
-                    )}
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div style={{textAlign:'center',padding:'16px',color:'#6b7280',fontSize:'11px'}}>
+                                <div style={{fontSize:'28px',marginBottom:'6px'}}>📦</div>
+                                {lang==='ar'?'لا توجد صناديق متاحة في الخزينة بعد':'No chests available in treasury yet'}
+                            </div>
+                        );
+                    })()}
                 </div>
 
                 {/* ── Announcement ── */}
@@ -2839,12 +2950,29 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 {chestResult && <div style={{fontSize:'11px',color:'#10b981',marginTop:'4px'}}>🎉 {lang==='ar'?'حصلت على:':'You got:'}</div>}
                             </div>
                             {/* Result highlight */}
-                            {chestResult && (
+                            {chestResult && !chestResult.isBundle && (
                                 <div style={{padding:'14px',borderRadius:'14px',background:`${GACHA_RARITY_COLORS[chestResult.rarity||'common']}18`,border:`2px solid ${GACHA_RARITY_COLORS[chestResult.rarity||'common']}`,marginBottom:'12px',textAlign:'center'}}>
                                     {chestResult.imageURL
                                         ? <img src={chestResult.imageURL} alt="" style={{width:'48px',height:'48px',objectFit:'contain',display:'block',margin:'0 auto 6px'}}/>
                                         : <div style={{fontSize:'36px',marginBottom:'6px'}}>{chestResult.icon}</div>}
                                     <div style={{fontSize:'14px',fontWeight:900,color:GACHA_RARITY_COLORS[chestResult.rarity||'common']}}>{lang==='ar'?chestResult.label_ar:chestResult.label_en}</div>
+                                </div>
+                            )}
+                            {chestResult && chestResult.isBundle && (
+                                <div style={{padding:'14px',borderRadius:'14px',background:'rgba(16,185,129,0.1)',border:`2px solid #10b981`,marginBottom:'12px',textAlign:'center'}}>
+                                    <div style={{fontSize:'36px',marginBottom:'6px'}}>🎁</div>
+                                    <div style={{fontSize:'14px',fontWeight:900,color:'#10b981',marginBottom:'8px'}}>{lang==='ar'?'نصيبك من الصندوق:':'Your Share:'}</div>
+                                    {chestResult.bundle.currency > 0 && <div style={{fontSize:'12px',color:'white',marginBottom:'4px'}}><span style={{fontSize:'16px'}}>🧠</span> {chestResult.bundle.currency} {lang==='ar'?'إنتل':'Intel'}</div>}
+                                    {chestResult.bundle.coins > 0 && <div style={{fontSize:'12px',color:'white',marginBottom:'4px'}}><span style={{fontSize:'16px'}}>🏅</span> {chestResult.bundle.coins} {lang==='ar'?'عملة قبيلة':'Family Coins'}</div>}
+                                    {chestResult.bundle.items.map((r, i) => (
+                                        <div key={i} style={{fontSize:'12px',color:'white',marginBottom:'4px'}}>
+                                            {r.imageURL ? <img src={r.imageURL} alt="" style={{width:'16px',height:'16px',objectFit:'contain',verticalAlign:'middle'}}/> : <span style={{fontSize:'16px',verticalAlign:'middle'}}>{r.icon}</span>}
+                                            <span style={{marginLeft:'6px',verticalAlign:'middle'}}>{r.qty > 1 ? `×${r.qty} ` : ''}{lang==='ar'?r.label_ar:r.label_en}</span>
+                                        </div>
+                                    ))}
+                                    {chestResult.bundle.currency === 0 && chestResult.bundle.coins === 0 && chestResult.bundle.items.length === 0 && (
+                                        <div style={{fontSize:'12px',color:'#6b7280'}}>{lang==='ar'?'حظ أوفر المرة القادمة':'Better luck next time'}</div>
+                                    )}
                                 </div>
                             )}
                             {/* Contents list */}
@@ -2873,15 +3001,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                             <div style={{fontSize:'15px',fontWeight:900,color:assigningChest.cfg.color,marginBottom:'14px',textAlign:'center'}}>
                                 📦 {lang==='ar'?'توزيع الصندوق':'Assign Chest'}
                             </div>
-                            {/* Assign count */}
-                            <div style={{marginBottom:'12px'}}>
-                                <div style={{fontSize:'11px',color:'#9ca3af',marginBottom:'6px'}}>🔢 {lang==='ar'?'كم صندوق لكل شخص':'How many per person'}</div>
-                                <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
-                                    <button onClick={()=>setAssignCount(Math.max(1,assignCount-1))} style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(255,255,255,0.08)',border:'none',color:'white',fontSize:'18px',cursor:'pointer'}}>−</button>
-                                    <span style={{flex:1,textAlign:'center',fontSize:'18px',fontWeight:900,color:'#00f2ff'}}>{assignCount}</span>
-                                    <button onClick={()=>setAssignCount(assignCount+1)} style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(255,255,255,0.08)',border:'none',color:'white',fontSize:'18px',cursor:'pointer'}}>+</button>
-                                </div>
-                            </div>
                             {/* Member selection */}
                             <div style={{fontSize:'11px',color:'#9ca3af',marginBottom:'8px'}}>👥 {lang==='ar'?'اختر الأعضاء':'Select Members'}</div>
                             <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'14px',maxHeight:'200px',overflowY:'auto'}}>
@@ -2903,7 +3022,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 <button onClick={()=>setShowAssignModal(false)} style={{flex:1,padding:'10px',borderRadius:'10px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',cursor:'pointer'}}>
                                     {lang==='ar'?'إلغاء':'Cancel'}
                                 </button>
-                                <button onClick={()=>assignChestToMembers(assigningChest.inventoryIdx, selectedAssignees, assignCount)}
+                                <button onClick={()=>assignChestToMembers(assigningChest.inventoryIdx, selectedAssignees)}
                                     disabled={selectedAssignees.length===0||assigningLoading}
                                     style={{flex:2,padding:'10px',borderRadius:'10px',border:'none',background:selectedAssignees.length>0?`linear-gradient(135deg,${assigningChest.cfg.color},${assigningChest.cfg.color}bb)`:'rgba(255,255,255,0.06)',color:selectedAssignees.length>0?'#000':'#4b5563',fontSize:'12px',fontWeight:900,cursor:selectedAssignees.length>0?'pointer':'not-allowed'}}>
                                     {assigningLoading?'⏳...':`📦 ${lang==='ar'?`إرسال لـ ${selectedAssignees.length} عضو`:`Send to ${selectedAssignees.length} member(s)`}`}
@@ -3340,7 +3459,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 placeholder={lang==='ar'?'بحث...':'Search...'} />
                         </div>
                         <span style={{fontSize:'10px', color:'#6b7280', fontWeight:700, flexShrink:0}}>
-                            {family.members?.length||0}/{getFamilyLevel(family.activeness||0).maxMembers}
+                            {family.members?.length||0}/{getFamilyLevelConfig(family.level||1).maxMembers}
                         </span>
                     </div>
                     {/* Tab buttons */}
@@ -4224,7 +4343,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 </button>
             </div>
             {displayFamilies.map(fam => {
-                const fl = getFamilyLevel(fam.activeness || 0);
+                const fl = getFamilyLevelConfig(fam.level || 1);
                 const fs = getFamilySignLevelData(fam.weeklyActiveness || fam.activeness || 0);
                 const isFull = (fam.members?.length||0) >= fl.maxMembers;
                 const isAlreadyIn = fam.members?.includes(currentUID);
