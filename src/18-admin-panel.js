@@ -509,17 +509,76 @@ const UserManagementSection = ({ currentUser, currentUserData, lang, onNotificat
                     </div>
 
                     {/* Stats row */}
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px', marginBottom:'14px' }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:'8px', marginBottom:'14px' }}>
                         {[
                             { label: lang==='ar'?'انتصارات':'Wins', val: targetUser.stats?.wins || 0, color:'#10b981' },
                             { label: lang==='ar'?'خسارات':'Losses', val: targetUser.stats?.losses || 0, color:'#ef4444' },
                             { label: lang==='ar'?'إنتل':'Intel', val: targetUser.currency || 0, color:'#00f2ff' },
+                            { label: lang==='ar'?'كاريزما':'Charisma', val: targetUser.charisma || 0, color:'#fbbf24' },
                         ].map(s => (
                             <div key={s.label} style={{ background:'rgba(255,255,255,0.04)', borderRadius:'8px', padding:'8px', textAlign:'center' }}>
-                                <div style={{ fontSize:'15px', fontWeight:800, color:s.color }}>{s.val}</div>
+                                <div style={{ fontSize:'15px', fontWeight:800, color:s.color }}>{typeof s.val === 'number' ? s.val.toLocaleString() : s.val}</div>
                                 <div style={{ fontSize:'9px', color:'#6b7280' }}>{s.label}</div>
                             </div>
                         ))}
+                    </div>
+
+                    {/* Balance Management */}
+                    <div style={{ background:'rgba(0,242,255,0.05)', border:'1px solid rgba(0,242,255,0.15)', borderRadius:'10px', padding:'12px', marginBottom:'14px' }}>
+                        <div style={{ fontSize:'11px', fontWeight:700, color:'#00f2ff', marginBottom:'10px' }}>
+                            💰 {lang==='ar'?'إدارة الرصيد':'Balance Management'}
+                        </div>
+                        <div style={{ display:'flex', gap:'6px', marginBottom:'8px' }}>
+                            <button onClick={async () => {
+                                setProcessing(true);
+                                try {
+                                    const freshDoc = await usersCollection.doc(targetUser.id).get();
+                                    if (freshDoc.exists) {
+                                        const freshData = freshDoc.data();
+                                        // Force-write currency to trigger listeners
+                                        await usersCollection.doc(targetUser.id).update({
+                                            currency: freshData.currency || 0,
+                                            charisma: freshData.charisma || 0,
+                                        });
+                                        setTargetUser(prev => ({ ...prev, currency: freshData.currency || 0, charisma: freshData.charisma || 0 }));
+                                        onNotification(`✅ ${lang==='ar'?'تم تحديث الرصيد':'Balance refreshed'}: ${freshData.currency || 0} 🧠`);
+                                        await logStaffAction(currentUser.uid, currentUserData?.displayName, 'REPAIR_BALANCE', targetUser.id, targetUser.displayName, `Repaired balance: ${freshData.currency}`);
+                                    }
+                                } catch(e) { onNotification('❌ Error'); }
+                                setProcessing(false);
+                            }} disabled={processing}
+                                style={{ flex:1, padding:'7px', borderRadius:'7px', fontSize:'11px', fontWeight:700, cursor:'pointer',
+                                    background:'rgba(0,242,255,0.12)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', opacity:processing?0.5:1 }}>
+                                {processing ? '⏳' : `🔄 ${lang==='ar'?'تحديث/إصلاح الرصيد':'Repair/Refresh Balance'}`}
+                            </button>
+                        </div>
+                        <div style={{ fontSize:'10px', color:'#6b7280', marginBottom:'6px' }}>
+                            {lang==='ar'?'تعيين رصيد يدوياً:':'Set balance manually:'}
+                        </div>
+                        <div style={{ display:'flex', gap:'6px' }}>
+                            <input className="input-dark"
+                                style={{ flex:1, padding:'6px 10px', borderRadius:'6px', fontSize:'11px' }}
+                                type="number" min="0" placeholder={lang==='ar'?'الرصيد الجديد (إنتل)':'New Intel balance'}
+                                id="admin-manual-balance" />
+                            <button onClick={async () => {
+                                const inputEl = document.getElementById('admin-manual-balance');
+                                const newBal = parseInt(inputEl?.value);
+                                if (isNaN(newBal) || newBal < 0) { onNotification('❌ Invalid'); return; }
+                                setProcessing(true);
+                                try {
+                                    await usersCollection.doc(targetUser.id).update({ currency: newBal });
+                                    setTargetUser(prev => ({ ...prev, currency: newBal }));
+                                    onNotification(`✅ ${lang==='ar'?'تم تعيين الرصيد':'Balance set to'}: ${newBal} 🧠`);
+                                    await logStaffAction(currentUser.uid, currentUserData?.displayName, 'SET_BALANCE', targetUser.id, targetUser.displayName, `Manually set balance to: ${newBal}`);
+                                    inputEl.value = '';
+                                } catch(e) { onNotification('❌ Error'); }
+                                setProcessing(false);
+                            }} disabled={processing}
+                                style={{ padding:'6px 12px', borderRadius:'6px', fontSize:'11px', fontWeight:700, cursor:'pointer',
+                                    background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.4)', color:'#f59e0b' }}>
+                                {processing ? '⏳' : `💾 ${lang==='ar'?'حفظ':'Set'}`}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Ban controls */}
