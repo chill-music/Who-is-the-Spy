@@ -1020,11 +1020,11 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     var isDonation = msg.type === 'donation';
                     // 📦 Chest assign/open messages in family chat
                     if (msg.type === 'chest_assign' || msg.type === 'chest_opened') {
-                        const cfg2 = CHEST_CONFIG[msg.chestType];
                         const msObj = ACTIVENESS_MILESTONES.find(m=>m.chestType===msg.chestType);
-                        const isAssigned = msg.type === 'chest_assign' && (msg.assignedTo||[]).includes(currentUID);
-                        // Read LIVE claim data from familyData for accuracy
+                        // Read LIVE chest data to ensure current user assignment is accurate
                         const liveChest = (familyData?.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo&&inv.inventoryIdx===msg.inventoryIdx);
+                        const isAssigned = msg.type === 'chest_assign' && (liveChest?.assignedTo || msg.assignedTo || []).includes(currentUID);
+                        // Read LIVE claim data from familyData for accuracy
                         const liveClaimedBy = liveChest?.claimedBy || msg.claimedBy || {};
                         const myClaimCount = isAssigned ? (liveClaimedBy[currentUID] || 0) : 0;
                         const maxClaims = msg.maxClaimsPerMember || 1;
@@ -1178,7 +1178,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     );
                     return React.createElement('div', { key: msg.id, style: { display:'flex', flexDirection: isMe?'row-reverse':'row', gap:'8px', alignItems:'flex-end' } },
                         // صورة المرسل — قابلة للضغط
-                        !isMe && React.createElement('div', {
+                        React.createElement('div', {
                             onClick: function() { openFamilyChatMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }); },
                             style: { width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer' }
                         },
@@ -1188,11 +1188,11 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                         ),
                         React.createElement('div', { style: { maxWidth:'72%' } },
                             // اسم المرسل — قابل للضغط
-                            !isMe && React.createElement('div', {
+                            React.createElement('div', {
                                 onClick: function() { openFamilyChatMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }); },
-                                style: { fontSize:'10px', color:'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft:'4px', cursor:'pointer' },
+                                style: { fontSize:'10px', color: isMe?'#00f2ff':'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft: isMe?'0':'4px', paddingRight: isMe?'4px':'0', cursor:'pointer', textAlign: isMe?'right':'left' },
                                 onMouseEnter: function(e) { e.currentTarget.style.color='#00f2ff'; },
-                                onMouseLeave: function(e) { e.currentTarget.style.color='#9ca3af'; }
+                                onMouseLeave: function(e) { e.currentTarget.style.color= isMe?'#00f2ff':'#9ca3af'; }
                             }, msg.senderName),
                             msg.type === 'image' && msg.imageUrl
                                 ? React.createElement('img', { src: msg.imageUrl, alt:'', style:{ width: 'min(240px,calc(100vw - 80px))', maxHeight:'240px', borderRadius:'12px', display:'block', objectFit:'cover', cursor:'pointer' }, onClick: function(){var w=window.open();w.document.write('<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="'+msg.imageUrl+'" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>');}  })
@@ -1497,7 +1497,7 @@ const FamilyMemberQuickCard = ({ member, currentUID, lang, onSendGift, onClose }
 // ════════════════════════════════════════════════════════
 // 🏠 FAMILY MODAL — Main Component V2
 // ════════════════════════════════════════════════════════
-const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification, viewFamilyId, onSendGift, userData }) => {
+const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification, viewFamilyId, onSendGift, userData, onOpenChat }) => {
     const [activeTab, setActiveTab] = useState('profile');
     const [family, setFamily] = useState(null);
     const [loadingFamily, setLoadingFamily] = useState(true);
@@ -2834,7 +2834,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
                     {/* Chest inventory */}
                     {(() => {
-                        const visibleInventory = (treasuryInventory || []).map((item, i) => ({item, i})).filter(({item}) => !item.assignedTo || item.assignedTo.length === 0 || (item.assignedTo.includes(currentUID) && (item.claimedBy || {})[currentUID] < (item.maxClaimsPerMember || 1)));
+                        const visibleInventory = (treasuryInventory || []).map((item, i) => ({item, i}));
                         return visibleInventory.length > 0 ? (
                             <div style={{display:'flex',gap:'10px',overflowX:'auto',paddingBottom:'4px',scrollbarWidth:'none'}}>
                                 {visibleInventory.map(({item, i}) => {
@@ -3204,6 +3204,137 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         </div>
                     )}
                     {chatMessages.map(msg => {
+                        if (msg.type === 'chest_assign' || msg.type === 'chest_opened') {
+                            const cfg2 = CHEST_CONFIG[msg.chestType];
+                            const msObj = ACTIVENESS_MILESTONES.find(m=>m.chestType===msg.chestType);
+                            const liveChest = (family.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo&&inv.inventoryIdx===msg.inventoryIdx);
+                            const isAssigned = msg.type === 'chest_assign' && (liveChest?.assignedTo || msg.assignedTo || []).includes(currentUID);
+                            const liveClaimedBy = liveChest?.claimedBy || msg.claimedBy || {};
+                            const myClaimCount = isAssigned ? (liveClaimedBy[currentUID] || 0) : 0;
+                            const maxClaims = msg.maxClaimsPerMember || 1;
+                            const totalAssigned = (msg.assignedTo||[]).length;
+                            const totalClaimed = Object.keys(liveClaimedBy).length;
+                            const isOpened = msg.type === 'chest_opened';
+                            const chestColor = cfg2?.color || '#9ca3af';
+                            const liveDrops = liveChest?.assignedDrops || msg.assignedDrops || {};
+                            const isDetailOpen = chestDetailMsg === msg.id;
+
+                            return (
+                                <div key={msg.id} style={{textAlign:'center', padding:'10px 14px', margin:'4px 0'}}>
+                                    <div style={{display:'inline-flex', flexDirection:'column', alignItems:'center', gap:'6px', background:`${chestColor}14`, border:`1px solid ${chestColor}44`, borderRadius:'14px', padding:'12px 20px', maxWidth:'320px', width:'100%'}}>
+                                        <div style={{fontSize:'28px'}}>{msObj?.imageURL ? <img src={msObj.imageURL} alt="" style={{width:'32px',height:'32px',objectFit:'contain'}}/> : (msg.chestIcon||'📦')}</div>
+                                        <div style={{fontSize:'11px', fontWeight:800, color:'#e2e8f0', textAlign:'center', lineHeight:1.5, whiteSpace:'pre-line'}}>{msg.text}</div>
+                                        {isOpened && msg.rewardReceipt && (
+                                            <div style={{fontSize:'10px', color:'#fbbf24', fontWeight:700, background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.25)', borderRadius:'8px', padding:'5px 10px', width:'100%', textAlign:'center'}}>
+                                                📋 {msg.rewardReceipt}
+                                            </div>
+                                        )}
+                                        {totalAssigned > 0 && (
+                                            <div style={{fontSize:'9px', color:'#6b7280', background:'rgba(255,255,255,0.04)', borderRadius:'6px', padding:'3px 8px'}}>
+                                                {lang==='ar'?'استلم':'Claimed'}: {totalClaimed}/{totalAssigned}
+                                            </div>
+                                        )}
+                                        {isAssigned && myClaimCount < maxClaims && (
+                                            <div style={{display:'flex', alignItems:'center', gap:'6px', background:chestColor+'22', border:'1px solid '+chestColor+'55', borderRadius:'10px', padding:'5px 12px', cursor:'pointer'}}
+                                                onClick={() => {
+                                                    const invIdx = (family.treasuryInventory||[]).findIndex(inv=>inv.chestType===msg.chestType&&(inv.assignedTo||[]).includes(currentUID)&&(inv.claimedBy?.[currentUID]||0)<(inv.maxClaimsPerMember||1));
+                                                    if(invIdx>=0) openAssignedChest(invIdx);
+                                                }}>
+                                                <span style={{fontSize:'14px'}}>🎰</span>
+                                                <span style={{fontSize:'11px', fontWeight:800, color:chestColor}}>
+                                                    {lang==='ar'?'افتح صندوقك':'Open your chest'} ({maxClaims - myClaimCount} {lang==='ar'?'متبقي':'left'})
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div style={{fontSize:'10px', color:'#6b7280', cursor:'pointer', textDecoration:'underline dotted', marginTop:'2px'}}
+                                            onClick={() => setChestDetailMsg(isDetailOpen ? null : msg.id)}>
+                                            {isDetailOpen ? (lang==='ar'?'إخفاء التفاصيل ▲':'Hide Details ▲') : (lang==='ar'?'عرض التفاصيل ▼':'View Details ▼')}
+                                        </div>
+                                        {isDetailOpen && (
+                                            <div style={{width:'100%', background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'10px', marginTop:'4px', textAlign:'left'}}>
+                                                <div style={{fontSize:'10px', fontWeight:800, color:'#9ca3af', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.5px'}}>
+                                                    📦 {lang==='ar'?'محتويات الصندوق':'Chest Contents'}
+                                                </div>
+                                                {cfg2?.rewards?.map((r, ri) => (
+                                                    <div key={ri} style={{display:'flex', alignItems:'center', gap:'6px', padding:'3px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                                                        <span style={{fontSize:'14px', flexShrink:0}}>{r.icon || '📦'}</span>
+                                                        <span style={{flex:1, fontSize:'10px', color:'#d1d5db'}}>{lang==='ar' ? r.label_ar : r.label_en}</span>
+                                                        {r.amount && <span style={{fontSize:'10px', color:'#6b7280'}}>×{r.amount}</span>}
+                                                        {r.qty && r.qty > 1 && <span style={{fontSize:'10px', color:'#6b7280'}}>×{r.qty}</span>}
+                                                    </div>
+                                                ))}
+                                                {Object.keys(liveDrops).length > 0 && (
+                                                    <div style={{marginTop:'10px'}}>
+                                                        <div style={{fontSize:'10px', fontWeight:800, color:'#9ca3af', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.5px'}}>
+                                                            👥 {lang==='ar'?'توزيع المشاركين':'Participant Distribution'}
+                                                        </div>
+                                                        {Object.entries(liveDrops).map(([uid, drop]) => {
+                                                            const hasClaimed = !!liveClaimedBy[uid];
+                                                            const memberName = familyMembers.find(m => m.id === uid)?.displayName || uid.slice(0,8);
+                                                            const shareParts = [];
+                                                            if (drop.currency > 0) shareParts.push(drop.currency + ' 🧠');
+                                                            if (drop.coins > 0) shareParts.push(drop.coins + ' ' + FAMILY_COINS_SYMBOL);
+                                                            (drop.items||[]).forEach(it => shareParts.push((it.qty||1) + '× ' + (it.icon||'🎁')));
+                                                            return (
+                                                                <div key={uid} style={{display:'flex', alignItems:'center', gap:'6px', padding:'4px 8px', marginBottom:'3px', borderRadius:'6px', background: hasClaimed ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.03)', border: '1px solid ' + (hasClaimed ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.06)')}}>
+                                                                    <span style={{fontSize:'11px', flex:1, color: hasClaimed ? '#10b981' : '#e2e8f0', fontWeight:700}}>
+                                                                        {(hasClaimed ? '✅ ' : '⏳ ') + memberName}
+                                                                    </span>
+                                                                    <span style={{fontSize:'9px', color:'#9ca3af'}}>{shareParts.join(' • ') || '—'}</span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                        <div style={{fontSize:'8px', color:'#4b5563', marginTop:'2px'}}>{fmtFamilyTime(msg.timestamp, lang)}</div>
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        if (msg.type === 'red_packet') {
+                            return (
+                                <div key={msg.id} style={{display:'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap:'7px', alignItems:'flex-end'}}>
+                                    <div
+                                        onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
+                                        style={{width:'26px', height:'26px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer'}}
+                                    >
+                                        {msg.senderPhoto ? <img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px'}}>😎</div>}
+                                    </div>
+                                    <div style={{maxWidth:'min(220px,calc(100vw-90px))'}}>
+                                        <div style={{fontSize:'9px', color: isMe?'#00f2ff':'#a78bfa', fontWeight:700, marginBottom:'3px', paddingLeft: isMe?0:'4px', paddingRight: isMe?'4px':0, textAlign: isMe?'right':'left', cursor:'pointer'}}
+                                            onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
+                                        >{msg.senderName}</div>
+                                        {typeof RedPacketCard !== 'undefined' && (
+                                            <RedPacketCard
+                                                rpId={msg.rpId} rpAmount={msg.rpAmount} maxClaims={msg.maxClaims} senderName={msg.senderName}
+                                                currentUID={currentUID} user={{uid:currentUID}} currentUser={userData||currentUserData} lang={lang}
+                                                onClaim={async (rpId) => {
+                                                    try {
+                                                        const rpDoc = await redPacketsCollection.doc(rpId).get();
+                                                        if (!rpDoc.exists) return;
+                                                        const rp = rpDoc.data();
+                                                        if (rp.claimedBy && rp.claimedBy.includes(currentUID)) { onNotification(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed'); return; }
+                                                        if ((rp.claimedBy?.length||0)>=(rp.maxClaims||1)) { onNotification(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted'); return; }
+                                                        const perClaim = Math.floor(rp.amount/(rp.maxClaims||1));
+                                                        const bonus = Math.floor(Math.random()*Math.floor(perClaim*0.5));
+                                                        const claim = Math.min(perClaim+bonus, rp.remaining||rp.amount);
+                                                        await redPacketsCollection.doc(rpId).update({ claimedBy:firebase.firestore.FieldValue.arrayUnion(currentUID), remaining:firebase.firestore.FieldValue.increment(-claim), status:((rp.claimedBy?.length||0)+1>=(rp.maxClaims||1))?'exhausted':'active' });
+                                                        await usersCollection.doc(currentUID).update({ currency:firebase.firestore.FieldValue.increment(claim) });
+                                                        await familiesCollection.doc(family.id).collection('messages').add({ type:'system', text:(lang==='ar'?'🎉 '+((userData||currentUserData)?.displayName||'عضو')+' استلم '+claim+' 🧠 من مغلف '+rp.senderName:'🎉 '+((userData||currentUserData)?.displayName||'Member')+' claimed '+claim+' 🧠 from '+rp.senderName+"'s packet"), senderId:'system', timestamp:TS() });
+                                                        onNotification(lang==='ar'?'🎉 استلمت '+claim+' Intel!':'🎉 Got '+claim+' Intel!');
+                                                    } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+                                                }}
+                                            />
+                                        )}
+                                        <div style={{fontSize:'9px', color:'#d1d5db', marginTop:'2px', textAlign: isMe?'right':'left', paddingLeft:'4px'}}>{fmtFamilyTime(msg.timestamp, lang)}</div>
+                                    </div>
+                                </div>
+                            );
+                        }
+
                         const isMe = msg.senderId === currentUID;
                         const isSystem = msg.senderId === 'system' || msg.type === 'system';
                         const isDonation = msg.type === 'donation';
@@ -3251,34 +3382,30 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                         return (
                             <div key={msg.id} style={{display:'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap:'8px', alignItems:'flex-end'}}>
                                 {/* صورة المرسل — قابلة للضغط لفتح ميني بروفايل */}
-                                {!isMe && (
-                                    <div
-                                        style={{width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer'}}
-                                        onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
-                                    >
-                                        {msg.senderPhoto
-                                            ? <img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                            : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>😎</div>
-                                        }
-                                    </div>
-                                )}
+                                <div
+                                    style={{width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer'}}
+                                    onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
+                                >
+                                    {msg.senderPhoto
+                                        ? <img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                        : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>😎</div>
+                                    }
+                                </div>
                                 <div style={{maxWidth:'72%'}}>
                                     {/* اسم المرسل — قابل للضغط لفتح ميني بروفايل */}
-                                    {!isMe && (
-                                        <div style={{display:'flex', alignItems:'center', gap:'4px', marginBottom:'3px', paddingLeft:'4px'}}>
-                                            <div
-                                                style={{fontSize:'10px', color:'#9ca3af', fontWeight:700, cursor:'pointer'}}
-                                                onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
-                                                onMouseEnter={e => e.currentTarget.style.color='#00f2ff'}
-                                                onMouseLeave={e => e.currentTarget.style.color='#9ca3af'}
-                                            >{msg.senderName}</div>
-                                            {(msg.senderFamilyName || family?.name) && typeof FamilySignBadge !== 'undefined' && (
-                                                <div style={{transform:'scale(0.85)',transformOrigin:'left center',marginRight:'-8px'}}>
-                                                    <FamilySignBadge family={{name: msg.senderFamilyName || family?.name, tag: msg.senderFamilyTag || family?.tag, signLevel: msg.senderFamilySignLevel || null, signColor: msg.senderFamilySignColor || null, signImageURL: msg.senderFamilySignImageURL || family?.signImageURL || null}} />
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                    <div style={{display:'flex', alignItems:'center', gap:'4px', marginBottom:'3px', paddingLeft: isMe ? '0' : '4px', paddingRight: isMe ? '4px' : '0', justifyContent: isMe ? 'flex-end' : 'flex-start'}}>
+                                        <div
+                                            style={{fontSize:'10px', color: isMe ? '#00f2ff' : '#9ca3af', fontWeight:700, cursor:'pointer'}}
+                                            onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
+                                            onMouseEnter={e => e.currentTarget.style.color='#00f2ff'}
+                                            onMouseLeave={e => e.currentTarget.style.color= isMe ? '#00f2ff' : '#9ca3af'}
+                                        >{msg.senderName}</div>
+                                        {(msg.senderFamilyName || family?.name) && typeof FamilySignBadge !== 'undefined' && (
+                                            <div style={{transform:'scale(0.85)',transformOrigin:'left center',marginRight:'-8px'}}>
+                                                <FamilySignBadge family={{name: msg.senderFamilyName || family?.name, tag: msg.senderFamilyTag || family?.tag, signLevel: msg.senderFamilySignLevel || null, signColor: msg.senderFamilySignColor || null, signImageURL: msg.senderFamilySignImageURL || family?.signImageURL || null}} />
+                                            </div>
+                                        )}
+                                    </div>
                                     <div style={{
                                         padding:'8px 12px', borderRadius: isMe ? '14px 4px 14px 14px' : '4px 14px 14px 14px',
                                         background: isMe ? 'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.2))' : 'rgba(255,255,255,0.07)',
@@ -3647,7 +3774,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 const r = task.reward;
                 await familiesCollection.doc(family.id).update({
                     [`taskProgress.${key}.claimed`]: true,
-                    [`${dailyPtsKey}`]: firebase.firestore.FieldValue.increment(r.xp || 0),
+                    [`${dailyPtsKey}`]: firebase.firestore.FieldValue.increment(34),
                     xp:          firebase.firestore.FieldValue.increment(r.xp || 0),
                     activeness:  firebase.firestore.FieldValue.increment((r.xp || 0) * 2),
                     weeklyActiveness: firebase.firestore.FieldValue.increment((r.xp || 0) * 2),
@@ -3675,7 +3802,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     [`taskProgress.${key}.current`]: 1,
                     [`taskProgress.${key}.lastCheckIn`]: today,
                     [`taskProgress.${key}.claimed`]: false,
-                    [`${dailyPtsKey}`]: firebase.firestore.FieldValue.increment(100),
+                    [`${dailyPtsKey}`]: firebase.firestore.FieldValue.increment(34),
                     activeness: firebase.firestore.FieldValue.increment(200),
                     weeklyActiveness: firebase.firestore.FieldValue.increment(200),
                 });
@@ -4585,8 +4712,8 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     {/* ── Bottom Nav Bar (visible when family exists, profile tab) ── */}
                     {family && activeTab === 'profile' && (
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-around',padding:'8px 16px',background:'rgba(255,255,255,0.04)',borderTop:'1px solid #e5e7eb',flexShrink:0}}>
-                            {/* Chat */}
-                            <button onClick={()=>setActiveTab('chat')} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
+                            {/* Chat — navigate to family chat page */}
+                            <button onClick={()=>{ if (onOpenChat) { onClose(); onOpenChat(); } else { setActiveTab('chat'); } }} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
                                 <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'rgba(107,114,128,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>💬</div>
                                 <span style={{fontSize:'9px',color:'#6b7280',fontWeight:600}}>{lang==='ar'?'شات':'Chat'}</span>
                             </button>
