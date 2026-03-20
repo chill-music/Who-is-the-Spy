@@ -1036,6 +1036,11 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
                 senderTitle: currentUser?.activeTitle || null,
                 senderFrame: currentUser?.equipped?.frames || null,
                 senderBadges: (currentUser?.equipped?.badges || []).slice(0, 3),
+                senderFamilyName: currentUser?.familyName || null,
+                senderFamilyTag: currentUser?.familyTag || null,
+                senderFamilySignLevel: currentUser?.familySignLevel || null,
+                senderFamilySignColor: currentUser?.familySignColor || null,
+                senderFamilySignImageURL: currentUser?.familySignImageURL || null,
                 createdAt: TS(),
             });
             // ── 5-second cooldown after each message ──
@@ -1088,6 +1093,11 @@ const LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile
                                 <div onClick={() => onOpenProfile && onOpenProfile(msg.senderId)}
                                     style={{display:'flex',alignItems:'center',gap:'3px',marginBottom:'1px',cursor:'pointer',justifyContent:isMe?'flex-end':'flex-start'}}>
                                     <span style={{fontSize:'8px',fontWeight:700,color:vipCfg?vipCfg.nameColor:'#a78bfa'}}>{msg.senderName}</span>
+                                    {msg.senderFamilyName && typeof FamilySignBadge !== 'undefined' && (
+                                        <div style={{transform:'scale(0.8)',transformOrigin:isMe?'right center':'left center',marginRight:isMe?0:'-10px',marginLeft:isMe?'-10px':0}}>
+                                            <FamilySignBadge family={{name: msg.senderFamilyName, tag: msg.senderFamilyTag, signLevel: msg.senderFamilySignLevel, signColor: msg.senderFamilySignColor, signImageURL: msg.senderFamilySignImageURL}} />
+                                        </div>
+                                    )}
                                     {vipCfg && <span style={{fontSize:'7px',fontWeight:900,background:vipCfg.nameColor,color:'#000',padding:'0 2px',borderRadius:'2px'}}>VIP{msg.senderVipLevel}</span>}
                                     {msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'10px',objectFit:'contain'}}/>}
                                 </div>
@@ -1398,7 +1408,11 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                 senderTitle: currentUser?.activeTitle || null,
                 senderFrame: currentUser?.equipped?.frames || null,
                 senderBadges: (currentUser?.equipped?.badges || []).slice(0, 3),
-                senderFamilyName: null,
+                senderFamilyName: currentUser?.familyName || null,
+                senderFamilyTag: currentUser?.familyTag || null,
+                senderFamilySignLevel: currentUser?.familySignLevel || null,
+                senderFamilySignColor: currentUser?.familySignColor || null,
+                senderFamilySignImageURL: currentUser?.familySignImageURL || null,
                 createdAt: TS(),
             });
         } catch(e) { setMsgText(text); }
@@ -1584,6 +1598,11 @@ const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotificatio
                                         {/* Name row */}
                                         <div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'3px',paddingLeft:isMe?0:'2px',paddingRight:isMe?'2px':0,justifyContent:isMe?'flex-end':'flex-start',flexWrap:'wrap',cursor:'pointer'}} onClick={()=>openMiniProfilePub(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}>
                                             <span style={{fontSize:'10px',color:nameColor,fontWeight:800}}>{isMe?(lang==='ar'?'أنت':'You'):msg.senderName}</span>
+                                            {msg.senderFamilyName && typeof FamilySignBadge !== 'undefined' && (
+                                                <div style={{transform:'scale(0.85)',transformOrigin:isMe?'right center':'left center',marginRight:isMe?0:'-8px',marginLeft:isMe?'-8px':0}}>
+                                                    <FamilySignBadge family={{name: msg.senderFamilyName, tag: msg.senderFamilyTag, signLevel: msg.senderFamilySignLevel, signColor: msg.senderFamilySignColor, signImageURL: msg.senderFamilySignImageURL}} />
+                                                </div>
+                                            )}
                                             {vipCfg && <span style={{fontSize:'8px',fontWeight:900,background:vipCfg.nameColor,color:'#000',padding:'1px 4px',borderRadius:'3px'}}>VIP{msg.senderVipLevel}</span>}
                                             {msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt="" style={{height:'13px',objectFit:'contain'}}/>}
                                             {/* Badges */}
