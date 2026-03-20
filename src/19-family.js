@@ -708,114 +708,135 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
         if (!familyId || !currentUID || openingChest) return;
         setOpeningChest(true);
         try {
-            const famSnap = await familiesCollection.doc(familyId).get();
-            if (!famSnap.exists) return;
-            const inv = famSnap.data()?.treasuryInventory || [];
-            const chest = inv[inventoryIdx];
-            if (!chest || !(chest.assignedTo || []).includes(currentUID)) return;
-            const cfg = CHEST_CONFIG[chest.chestType];
-            if (!cfg) return;
+            const familyRef = familiesCollection.doc(familyId);
+            let myBundle = { currency: 0, coins: 0, charisma: 0, items: [] };
 
-            const claims = chest.claimedBy || {};
-            const myClaimCount = claims[currentUID] || 0;
-            if (myClaimCount >= (chest.maxClaimsPerMember || 1)) {
-                if (onNotification) onNotification(lang === 'ar' ? '✅ استلمت حصتك بالكامل' : '✅ You already claimed your share');
-                setOpeningChest(false);
-                return;
-            }
+            await db.runTransaction(async (transaction) => {
+                const famDoc = await transaction.get(familyRef);
+                if (!famDoc.exists) throw new Error('Family not found');
+                const famData = famDoc.data();
+                const freshInv = famData.treasuryInventory || [];
+                const freshChest = freshInv[inventoryIdx];
+                if (!freshChest || !(freshChest.assignedTo || []).includes(currentUID)) throw new Error('Not assigned');
+                
+                const freshClaims = freshChest.claimedBy || {};
+                const freshClaimCount = freshClaims[currentUID] || 0;
+                if (freshClaimCount >= (freshChest.maxClaimsPerMember || 1)) throw new Error('Already claimed');
 
-            const myBundle = chest.assignedDrops ? chest.assignedDrops[currentUID] : null;
-            if (!myBundle) {
-                if (onNotification) onNotification(lang === 'ar' ? '❌ لا يوجد نصيب لك' : '❌ No share for you');
-                setOpeningChest(false);
-                return;
-            }
+                const totalParticipants = freshChest.assignedTo.length;
+                const remainingParticipants = totalParticipants - Object.keys(freshClaims).length;
+                let numClaimsNow = remainingParticipants > 0 ? remainingParticipants : 1;
+                
+                let updatedRewards = [];
+                const rewardsToGive = { currency: 0, coins: 0, charisma: 0, items: [] };
 
-            const newInv = [...inv];
-            newInv[inventoryIdx] = {
-                ...chest,
-                claimedBy: { ...(chest.claimedBy || {}), [currentUID]: myClaimCount + 1 },
-            };
-            await familiesCollection.doc(familyId).update({ treasuryInventory: newInv });
+                (freshChest.availableRewards || []).forEach(r => {
+                    let newR = { ...r };
+                    if (r.type === 'currency' || r.type === 'familyCoins' || r.type === 'coins' || r.type === 'charisma') {
+                        let total = r.amountRemaining || 0;
+                        let myShare = Math.floor(total / numClaimsNow);
+                        if (numClaimsNow === 1) {
+                            myShare = total;
+                        } else {
+                            let remainder = total % numClaimsNow;
+                            if (remainder > 0 && Math.random() < 0.5) myShare += 1;
+                        }
+                        if (myShare > total) myShare = total;
+                        
+                        if (myShare > 0) {
+                            if (r.type === 'currency') rewardsToGive.currency += myShare;
+                            else if (r.type === 'charisma') rewardsToGive.charisma += myShare;
+                            else rewardsToGive.coins += myShare;
+                        }
+                        newR.amountRemaining = total - myShare;
+                        updatedRewards.push(newR);
+                    } else {
+                        if (!r.claimedBy) {
+                            if (Math.random() < 1 / numClaimsNow) {
+                                rewardsToGive.items.push({ ...r, qty: 1 });
+                                newR.claimedBy = currentUID;
+                            }
+                        }
+                        updatedRewards.push(newR);
+                    }
+                });
 
+                freshChest.availableRewards = updatedRewards;
+                freshChest.claimedBy = { ...freshClaims, [currentUID]: freshClaimCount + 1 };
+                freshInv[inventoryIdx] = freshChest;
+
+                transaction.update(familyRef, { treasuryInventory: freshInv });
+                myBundle = rewardsToGive;
+            });
+
+            // Give bundle rewards
             if (myBundle.currency > 0) {
                 await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(myBundle.currency) });
             }
             if (myBundle.coins > 0) {
                 await familiesCollection.doc(familyId).update({ familyCoins: firebase.firestore.FieldValue.increment(myBundle.coins) });
             }
+            if (myBundle.charisma > 0) {
+                await usersCollection.doc(currentUID).update({ charisma: firebase.firestore.FieldValue.increment(myBundle.charisma) });
+            }
             
-            let totalCharisma = 0;
-            const giftUpdates = {};
-            const frameUpdates = {};
+            const updatePayload = {};
+            const arrayUnion = firebase.firestore.FieldValue.arrayUnion;
             
             myBundle.items.forEach(r => {
-                if (r.type === 'charisma') {
-                    totalCharisma += (r.amount * (r.qty || 1));
-                } else if (r.type === 'frame') {
+                if (r.type === 'frame') {
                     const expiresAt = r.duration ? Date.now() + r.duration * 86400000 : null;
-                    frameUpdates[`inventory.expiry.${r.frameId}`] = expiresAt;
+                    updatePayload[`inventory.expiry.${r.frameId}`] = expiresAt;
+                    updatePayload['inventory.frames'] = arrayUnion(r.frameId);
+                } else if (r.type === 'title') {
+                    updatePayload['inventory.titles'] = arrayUnion(r.titleId);
+                } else if (r.type === 'badge') {
+                    updatePayload['inventory.badges'] = arrayUnion(r.badgeId);
+                } else if (r.type === 'ring') {
+                    updatePayload['inventory.rings'] = arrayUnion(r.ringId);
                 } else if (r.type === 'gift') {
-                    giftUpdates[`inventory.giftCounts.${r.giftId}`] = firebase.firestore.FieldValue.increment(r.qty || 1);
-                    if (r.giftId !== 'gift_ring') {
-                        giftUpdates[`inventory.expiry.${r.giftId}`] = Date.now() + 30 * 86400000;
+                    if (r.giftId === 'gift_ring') {
+                        updatePayload['inventory.rings'] = arrayUnion(r.giftId);
+                    } else {
+                        updatePayload[`inventory.giftCounts.${r.giftId}`] = firebase.firestore.FieldValue.increment(r.qty || 1);
+                        updatePayload['inventory.gifts'] = arrayUnion(r.giftId);
                     }
                 }
             });
             
-            if (totalCharisma > 0) {
-                await usersCollection.doc(currentUID).update({ charisma: firebase.firestore.FieldValue.increment(totalCharisma) });
-            }
-            if (Object.keys(giftUpdates).length > 0) {
-                const giftIds = myBundle.items.filter(r => r.type === 'gift').map(r => r.giftId);
-                let updatePayload = { ...giftUpdates };
-                updatePayload['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(...giftIds);
-                await usersCollection.doc(currentUID).update(updatePayload);
-            }
-            if (Object.keys(frameUpdates).length > 0) {
-                const frameIds = myBundle.items.filter(r => r.type === 'frame').map(r => r.frameId);
-                let updatePayload = { ...frameUpdates };
-                updatePayload['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(...frameIds);
+            if (Object.keys(updatePayload).length > 0) {
                 await usersCollection.doc(currentUID).update(updatePayload);
             }
 
-            const pseudoPicked = {
-                isBundle: true,
-                bundle: myBundle,
-                rarity: 'epic',
-                icon: '🎁',
-                label_ar: 'نصيبك من الصندوق',
-                label_en: 'Your Share',
-            };
-
-            // Build detailed receipt
+            // Build detailed receipt text
             const receiptParts = [];
             if (myBundle.currency > 0) receiptParts.push(`${myBundle.currency} 🧠`);
             if (myBundle.coins > 0) receiptParts.push(`${myBundle.coins} ${FAMILY_COINS_SYMBOL}`);
-            if (totalCharisma > 0) receiptParts.push(`${totalCharisma} ⭐`);
+            if (myBundle.charisma > 0) receiptParts.push(`${myBundle.charisma} ⭐`);
             myBundle.items.forEach(r => {
-                if (r.type === 'gift') receiptParts.push(`${r.qty || 1}× ${r.icon || '🎁'}`);
-                if (r.type === 'frame') receiptParts.push(`${r.icon || '🖼️'} ${r.duration || '?'}d`);
+                let rIcon = r.icon || '🎁';
+                let rLabel = lang==='ar'?r.label_ar:r.label_en;
+                if (r.type === 'frame') receiptParts.push(`${rIcon} ${r.duration || '?'}d`);
+                else receiptParts.push(`${r.qty || 1}× ${rIcon}`);
             });
-            const receiptText = receiptParts.join(' • ') || '🎁';
+            const receiptText = receiptParts.join(' • ') || (lang==='ar'?'لا شيء':'Nothing');
 
-            const chestIcon = ACTIVENESS_MILESTONES.find(m => m.chestType === chest.chestType)?.icon || '📦';
+            const chestRef = (familyData?.treasuryInventory || [])[inventoryIdx];
+            const chestIcon = ACTIVENESS_MILESTONES.find(m => m.chestType === chestRef?.chestType)?.icon || '📦';
+            const chestName = chestRef ? (lang==='ar' ? CHEST_CONFIG[chestRef.chestType]?.name_ar : CHEST_CONFIG[chestRef.chestType]?.name_en) : 'Chest';
+
             await familiesCollection.doc(familyId).collection('messages').add({
                 senderId: currentUID,
                 senderName: currentUserData?.displayName || 'Member',
                 senderPhoto: currentUserData?.photoURL || null,
                 type: 'chest_opened',
-                chestType: chest.chestType,
+                chestType: chestRef?.chestType || '',
                 chestIcon,
-                rewardLabel: lang === 'ar' ? pseudoPicked.label_ar : pseudoPicked.label_en,
-                rewardIcon: pseudoPicked.icon,
                 rewardReceipt: receiptText,
-                assignedDrops: chest.assignedDrops || {},
-                assignedTo: chest.assignedTo || [],
-                claimedBy: { ...(chest.claimedBy || {}), [currentUID]: myClaimCount + 1 },
+                inventoryIdx,
                 text: lang === 'ar'
-                    ? `🎉 ${currentUserData?.displayName} فتح ${chestIcon} ${cfg.name_ar}\n📋 حصل على: ${receiptText}`
-                    : `🎉 ${currentUserData?.displayName} opened ${chestIcon} ${cfg.name_en}\n📋 Received: ${receiptText}`,
+                    ? `🎉 ${currentUserData?.displayName} فتح ${chestIcon} ${chestName}\n📋 حصل على: ${receiptText}`
+                    : `🎉 ${currentUserData?.displayName} opened ${chestIcon} ${chestName}\n📋 Received: ${receiptText}`,
                 timestamp: TS(),
             });
 
