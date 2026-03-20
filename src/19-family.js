@@ -613,6 +613,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
     const imgInputRef = React.useRef(null);
     const chatInputRef = React.useRef(null);
     const [openingChest, setOpeningChest] = React.useState(false);
+    const [chestDetailMsg, setChestDetailMsg] = React.useState(null);
     // ── Gift modal ──
     const [giftTarget, setGiftTarget] = React.useState(null); // null = self, { uid, displayName, photoURL }
     const [showChatGiftModal, setShowChatGiftModal] = React.useState(false);
@@ -768,13 +769,13 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
             if (Object.keys(giftUpdates).length > 0) {
                 const giftIds = myBundle.items.filter(r => r.type === 'gift').map(r => r.giftId);
                 let updatePayload = { ...giftUpdates };
-                giftIds.forEach(id => updatePayload['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(id));
+                updatePayload['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(...giftIds);
                 await usersCollection.doc(currentUID).update(updatePayload);
             }
             if (Object.keys(frameUpdates).length > 0) {
                 const frameIds = myBundle.items.filter(r => r.type === 'frame').map(r => r.frameId);
                 let updatePayload = { ...frameUpdates };
-                frameIds.forEach(id => updatePayload['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(id));
+                updatePayload['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(...frameIds);
                 await usersCollection.doc(currentUID).update(updatePayload);
             }
 
@@ -787,8 +788,18 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                 label_en: 'Your Share',
             };
 
+            // Build detailed receipt
+            const receiptParts = [];
+            if (myBundle.currency > 0) receiptParts.push(`${myBundle.currency} 🧠`);
+            if (myBundle.coins > 0) receiptParts.push(`${myBundle.coins} ${FAMILY_COINS_SYMBOL}`);
+            if (totalCharisma > 0) receiptParts.push(`${totalCharisma} ⭐`);
+            myBundle.items.forEach(r => {
+                if (r.type === 'gift') receiptParts.push(`${r.qty || 1}× ${r.icon || '🎁'}`);
+                if (r.type === 'frame') receiptParts.push(`${r.icon || '🖼️'} ${r.duration || '?'}d`);
+            });
+            const receiptText = receiptParts.join(' • ') || '🎁';
+
             const chestIcon = ACTIVENESS_MILESTONES.find(m => m.chestType === chest.chestType)?.icon || '📦';
-            const rewardLabel = lang === 'ar' ? pseudoPicked.label_ar : pseudoPicked.label_en;
             await familiesCollection.doc(familyId).collection('messages').add({
                 senderId: currentUID,
                 senderName: currentUserData?.displayName || 'Member',
@@ -796,15 +807,19 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                 type: 'chest_opened',
                 chestType: chest.chestType,
                 chestIcon,
-                rewardLabel,
+                rewardLabel: lang === 'ar' ? pseudoPicked.label_ar : pseudoPicked.label_en,
                 rewardIcon: pseudoPicked.icon,
+                rewardReceipt: receiptText,
+                assignedDrops: chest.assignedDrops || {},
+                assignedTo: chest.assignedTo || [],
+                claimedBy: { ...(chest.claimedBy || {}), [currentUID]: myClaimCount + 1 },
                 text: lang === 'ar'
-                    ? `🎉 ${currentUserData?.displayName} فتح ${chestIcon} وحصل على نصيبه!`
-                    : `🎉 ${currentUserData?.displayName} opened ${chestIcon} and got their share!`,
+                    ? `🎉 ${currentUserData?.displayName} فتح ${chestIcon} ${cfg.name_ar}\n📋 حصل على: ${receiptText}`
+                    : `🎉 ${currentUserData?.displayName} opened ${chestIcon} ${cfg.name_en}\n📋 Received: ${receiptText}`,
                 timestamp: TS(),
             });
 
-            if (onNotification) onNotification(lang === 'ar' ? `🎉 ${rewardLabel}` : `🎉 ${rewardLabel}`);
+            if (onNotification) onNotification(`🎉 ${lang === 'ar' ? 'تم فتح الصندوق!' : 'Chest opened!'} ${receiptText}`);
         } catch (e) {
             console.error('FamilyChatModal openAssignedChest error:', e);
             if (onNotification) onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
@@ -1008,37 +1023,87 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                         const cfg2 = CHEST_CONFIG[msg.chestType];
                         const msObj = ACTIVENESS_MILESTONES.find(m=>m.chestType===msg.chestType);
                         const isAssigned = msg.type === 'chest_assign' && (msg.assignedTo||[]).includes(currentUID);
-                        const myClaimCount = isAssigned ? ((familyData?.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo?.includes(currentUID))?.claimedBy?.[currentUID] || 0) : 0;
+                        // Read LIVE claim data from familyData for accuracy
+                        const liveChest = (familyData?.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo&&inv.inventoryIdx===msg.inventoryIdx);
+                        const liveClaimedBy = liveChest?.claimedBy || msg.claimedBy || {};
+                        const myClaimCount = isAssigned ? (liveClaimedBy[currentUID] || 0) : 0;
                         const maxClaims = msg.maxClaimsPerMember || 1;
                         const totalAssigned = (msg.assignedTo||[]).length;
-                        const totalClaimed = msg.claimedBy ? Object.keys(msg.claimedBy).length : 0;
+                        const totalClaimed = Object.keys(liveClaimedBy).length;
                         const isOpened = msg.type === 'chest_opened';
                         const chestColor = cfg2?.color || '#9ca3af';
+                        const isDetailOpen = chestDetailMsg === msg.id;
+                        const liveDrops = liveChest?.assignedDrops || msg.assignedDrops || {};
 
                         return React.createElement('div', { key: msg.id, style:{ textAlign:'center', padding:'10px 14px', margin:'4px 0' } },
-                            React.createElement('div', { style:{ display:'inline-flex', flexDirection:'column', alignItems:'center', gap:'6px', background:`${chestColor}14`, border:`1px solid ${chestColor}44`, borderRadius:'14px', padding:'12px 20px', maxWidth:'300px', width:'100%' } },
+                            React.createElement('div', { style:{ display:'inline-flex', flexDirection:'column', alignItems:'center', gap:'6px', background:`${chestColor}14`, border:`1px solid ${chestColor}44`, borderRadius:'14px', padding:'12px 20px', maxWidth:'320px', width:'100%' } },
                                 React.createElement('div', { style:{ fontSize:'28px' } }, msObj?.imageURL ? React.createElement('img', { src:msObj.imageURL, alt:'', style:{width:'32px',height:'32px',objectFit:'contain'} }) : (msg.chestIcon||'📦')),
                                 React.createElement('div', { style:{ fontSize:'11px', fontWeight:800, color:'#e2e8f0', textAlign:'center', lineHeight:1.5, whiteSpace:'pre-line' } }, msg.text),
 
                                 // Receipt display for opened chests
                                 isOpened && msg.rewardReceipt && React.createElement('div', { style:{ fontSize:'10px', color:'#fbbf24', fontWeight:700, background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.25)', borderRadius:'8px', padding:'5px 10px', width:'100%', textAlign:'center' } },
-                                    `📋 ${msg.rewardReceipt}`
+                                    '📋 ' + msg.rewardReceipt
                                 ),
 
-                                // Claim counter for assign messages
-                                !isOpened && totalAssigned > 0 && React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', background:'rgba(255,255,255,0.04)', borderRadius:'6px', padding:'3px 8px' } },
-                                    `${lang==='ar'?'استلم':'Claimed'}: ${totalClaimed}/${totalAssigned}`
+                                // Claim counter
+                                totalAssigned > 0 && React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', background:'rgba(255,255,255,0.04)', borderRadius:'6px', padding:'3px 8px' } },
+                                    (lang==='ar'?'استلم':'Claimed') + ': ' + totalClaimed + '/' + totalAssigned
                                 ),
 
                                 // Open chest button
-                                isAssigned && myClaimCount < maxClaims && React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px', background:`${chestColor}22`, border:`1px solid ${chestColor}55`, borderRadius:'10px', padding:'5px 12px', cursor:'pointer' },
+                                isAssigned && myClaimCount < maxClaims && React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px', background:chestColor+'22', border:'1px solid '+chestColor+'55', borderRadius:'10px', padding:'5px 12px', cursor:'pointer' },
                                     onClick:()=>{
                                         const invIdx = (familyData?.treasuryInventory||[]).findIndex(inv=>inv.chestType===msg.chestType&&(inv.assignedTo||[]).includes(currentUID)&&(inv.claimedBy?.[currentUID]||0)<(inv.maxClaimsPerMember||1));
                                         if(invIdx>=0) openAssignedChest(invIdx);
                                     }},
                                     React.createElement('span', { style:{ fontSize:'14px' } }, '🎰'),
                                     React.createElement('span', { style:{ fontSize:'11px', fontWeight:800, color:chestColor } },
-                                        (lang==='ar'?'افتح صندوقك':'Open your chest') + ` (${maxClaims - myClaimCount} ${lang==='ar'?'متبقي':'left'})`
+                                        (lang==='ar'?'افتح صندوقك':'Open your chest') + ' (' + (maxClaims - myClaimCount) + ' ' + (lang==='ar'?'متبقي':'left') + ')'
+                                    )
+                                ),
+
+                                // View Details toggle button
+                                React.createElement('div', { style:{ fontSize:'10px', color:'#6b7280', cursor:'pointer', textDecoration:'underline dotted', marginTop:'2px' },
+                                    onClick:()=>{ setChestDetailMsg(isDetailOpen ? null : msg.id); }
+                                }, isDetailOpen ? (lang==='ar'?'إخفاء التفاصيل ▲':'Hide Details ▲') : (lang==='ar'?'عرض التفاصيل ▼':'View Details ▼')),
+
+                                // Detail popup — shows all items in chest + who got what
+                                isDetailOpen && React.createElement('div', { style:{ width:'100%', background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'10px', marginTop:'4px', textAlign:'left' } },
+                                    // All items in this chest type
+                                    React.createElement('div', { style:{ fontSize:'10px', fontWeight:800, color:'#9ca3af', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.5px' } },
+                                        '📦 ' + (lang==='ar'?'محتويات الصندوق':'Chest Contents')
+                                    ),
+                                    cfg2 && cfg2.rewards.map(function(r, ri) {
+                                        return React.createElement('div', { key: ri, style:{ display:'flex', alignItems:'center', gap:'6px', padding:'3px 0', borderBottom:'1px solid rgba(255,255,255,0.04)' } },
+                                            React.createElement('span', { style:{ fontSize:'14px', flexShrink:0 } }, r.icon || '📦'),
+                                            React.createElement('span', { style:{ flex:1, fontSize:'10px', color:'#d1d5db' } }, lang==='ar' ? r.label_ar : r.label_en),
+                                            r.amount && React.createElement('span', { style:{ fontSize:'10px', color:'#6b7280' } }, '×' + r.amount),
+                                            r.qty && r.qty > 1 && React.createElement('span', { style:{ fontSize:'10px', color:'#6b7280' } }, '×' + r.qty)
+                                        );
+                                    }),
+
+                                    // Participants and what they got
+                                    Object.keys(liveDrops).length > 0 && React.createElement('div', { style:{ marginTop:'10px' } },
+                                        React.createElement('div', { style:{ fontSize:'10px', fontWeight:800, color:'#9ca3af', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.5px' } },
+                                            '👥 ' + (lang==='ar'?'توزيع المشاركين':'Participant Distribution')
+                                        ),
+                                        Object.entries(liveDrops).map(function(entry) {
+                                            var uid = entry[0]; var drop = entry[1];
+                                            var hasClaimed = !!liveClaimedBy[uid];
+                                            var memberName = familyMembers.find(function(m){ return m.id === uid; })?.displayName || uid.slice(0,8);
+                                            var shareParts = [];
+                                            if (drop.currency > 0) shareParts.push(drop.currency + ' 🧠');
+                                            if (drop.coins > 0) shareParts.push(drop.coins + ' ' + FAMILY_COINS_SYMBOL);
+                                            (drop.items||[]).forEach(function(it) {
+                                                shareParts.push((it.qty||1) + '× ' + (it.icon||'🎁'));
+                                            });
+                                            return React.createElement('div', { key: uid, style:{ display:'flex', alignItems:'center', gap:'6px', padding:'4px 8px', marginBottom:'3px', borderRadius:'6px', background: hasClaimed ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.03)', border: '1px solid ' + (hasClaimed ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.06)') } },
+                                                React.createElement('span', { style:{ fontSize:'11px', flex:1, color: hasClaimed ? '#10b981' : '#e2e8f0', fontWeight:700 } },
+                                                    (hasClaimed ? '✅ ' : '⏳ ') + memberName
+                                                ),
+                                                React.createElement('span', { style:{ fontSize:'9px', color:'#9ca3af' } }, shareParts.join(' • ') || '—')
+                                            );
+                                        })
                                     )
                                 ),
 
@@ -2243,6 +2308,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 assignedTo: memberUids,
                 maxClaimsPerMember: 1,
                 assignedBy: currentUserData?.displayName || 'Owner',
+                assignedDrops: assignedDrops,
                 text: lang === 'ar'
                     ? `📦 ${currentUserData?.displayName} أرسل صندوق ${cfg.name_ar} لـ: ${names}`
                     : `📦 ${currentUserData?.displayName} sent ${cfg.name_en} to: ${names}`,
@@ -2323,13 +2389,13 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             if (Object.keys(giftUpdates).length > 0) {
                 const giftIds = myBundle.items.filter(r => r.type === 'gift').map(r => r.giftId);
                 let updatePayload = { ...giftUpdates };
-                giftIds.forEach(id => updatePayload['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(id));
+                updatePayload['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(...giftIds);
                 await usersCollection.doc(currentUID).update(updatePayload);
             }
             if (Object.keys(frameUpdates).length > 0) {
                 const frameIds = myBundle.items.filter(r => r.type === 'frame').map(r => r.frameId);
                 let updatePayload = { ...frameUpdates };
-                frameIds.forEach(id => updatePayload['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(id));
+                updatePayload['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(...frameIds);
                 await usersCollection.doc(currentUID).update(updatePayload);
             }
 
