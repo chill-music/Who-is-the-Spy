@@ -1975,6 +1975,11 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 senderId: currentUID,
                 senderName: currentUserData?.displayName || 'Member',
                 senderPhoto: currentUserData?.photoURL || null,
+                senderFamilyName: currentUserData?.familyName || family?.name || null,
+                senderFamilyTag: currentUserData?.familyTag || family?.tag || null,
+                senderFamilySignLevel: currentUserData?.familySignLevel || null,
+                senderFamilySignColor: currentUserData?.familySignColor || null,
+                senderFamilySignImageURL: currentUserData?.familySignImageURL || family?.signImageURL || null,
                 senderRole: myRole || 'member',
                 type: isAnnouncement ? 'announcement' : 'text',
                 text,
@@ -2244,53 +2249,21 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             const cfg = CHEST_CONFIG[chest.chestType];
             if (!cfg) { setAssigningLoading(false); return; }
 
-            // ── Pre-calculate drops for all assigned members ──
-            const numMembers = memberUids.length;
-            const drops = memberUids.map(uid => ({
-                uid,
-                currency: 0,
-                coins: 0,
-                items: []
-            }));
-
+            // ── Prepare available rewards array for on-claim luck drop ──
+            const availableRewards = [];
             cfg.rewards.forEach(r => {
-                if (r.type === 'currency' || r.type === 'coins' || r.type === 'familyCoins') {
-                    let totalAmt = r.amount;
-                    let base = Math.floor(totalAmt / numMembers);
-                    let rem = totalAmt % numMembers;
-                    drops.forEach(d => { d[r.type === 'familyCoins' ? 'coins' : r.type] += base; });
-                    for (let i = 0; i < rem; i++) {
-                        let luckyIdx = Math.floor(Math.random() * drops.length);
-                        drops[luckyIdx][r.type === 'familyCoins' ? 'coins' : r.type] += 1;
-                    }
-                } else if (r.type === 'charisma') {
-                    // Charisma ring acts as single undivided item
-                    let luckyIdx = Math.floor(Math.random() * drops.length);
-                    drops[luckyIdx].items.push({...r, qty: 1});
+                if (r.type === 'currency' || r.type === 'familyCoins' || r.type === 'coins' || r.type === 'charisma') {
+                    availableRewards.push({ ...r, amountRemaining: r.amount || 0 });
                 } else {
-                    // Discrete items (gifts, frames)
-                    let totalQty = r.qty || 1;
+                    const totalQty = r.qty || 1;
                     for (let i = 0; i < totalQty; i++) {
-                        let luckyIdx = Math.floor(Math.random() * drops.length);
-                        let luckyDrop = drops[luckyIdx];
-                        let existing = luckyDrop.items.find(item => 
-                            (r.type === 'gift' && item.giftId === r.giftId) || 
-                            (r.type === 'frame' && item.frameId === r.frameId)
-                        );
-                        if (existing) {
-                            existing.qty = (existing.qty || 1) + 1;
-                        } else {
-                            luckyDrop.items.push({...r, qty: 1});
-                        }
+                        availableRewards.push({ ...r, qty: 1, claimedBy: null });
                     }
                 }
             });
 
-            const assignedDrops = {};
-            drops.forEach(d => { assignedDrops[d.uid] = d; });
-
-            // Update inventory item with assignedTo and the calculated bundled drops
-            inv[inventoryIdx] = { ...chest, assignedTo: memberUids, assignedDrops, maxClaimsPerMember: 1 };
+            // Update inventory item with assignedTo
+            inv[inventoryIdx] = { ...chest, assignedTo: memberUids, availableRewards, maxClaimsPerMember: 1 };
 
             await familiesCollection.doc(family.id).update({ treasuryInventory: inv });
 
@@ -2308,7 +2281,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 assignedTo: memberUids,
                 maxClaimsPerMember: 1,
                 assignedBy: currentUserData?.displayName || 'Owner',
-                assignedDrops: assignedDrops,
                 text: lang === 'ar'
                     ? `📦 ${currentUserData?.displayName} أرسل صندوق ${cfg.name_ar} لـ: ${names}`
                     : `📦 ${currentUserData?.displayName} sent ${cfg.name_en} to: ${names}`,
@@ -2345,20 +2317,66 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
 
         setClaimingChest(true);
         try {
-            // Retrieve pre-calculated bundle for this user
-            const myBundle = chest.assignedDrops ? chest.assignedDrops[currentUID] : null;
-            if (!myBundle) {
-                onNotification(lang === 'ar' ? '❌ لا يوجد نصيب لك' : '❌ No share for you');
-                setClaimingChest(false); return;
-            }
+            const familyRef = familiesCollection.doc(family.id);
+            let myBundle = { currency: 0, coins: 0, charisma: 0, items: [] };
 
-            // Update claim count
-            const newInv = [...inv];
-            newInv[inventoryIdx] = {
-                ...chest,
-                claimedBy: { ...(chest.claimedBy || {}), [currentUID]: myClaimCount + 1 },
-            };
-            await familiesCollection.doc(family.id).update({ treasuryInventory: newInv });
+            await db.runTransaction(async (transaction) => {
+                const famDoc = await transaction.get(familyRef);
+                if (!famDoc.exists) throw new Error('Family not found');
+                const famData = famDoc.data();
+                const freshInv = famData.treasuryInventory || [];
+                const freshChest = freshInv[inventoryIdx];
+                if (!freshChest || !(freshChest.assignedTo || []).includes(currentUID)) throw new Error('Not assigned');
+                
+                const freshClaims = freshChest.claimedBy || {};
+                const freshClaimCount = freshClaims[currentUID] || 0;
+                if (freshClaimCount >= (freshChest.maxClaimsPerMember || 1)) throw new Error('Already claimed');
+
+                const totalParticipants = freshChest.assignedTo.length;
+                const remainingParticipants = totalParticipants - Object.keys(freshClaims).length;
+                let numClaimsNow = remainingParticipants > 0 ? remainingParticipants : 1;
+                
+                let updatedRewards = [];
+                const rewardsToGive = { currency: 0, coins: 0, charisma: 0, items: [] };
+
+                (freshChest.availableRewards || []).forEach(r => {
+                    let newR = { ...r };
+                    if (r.type === 'currency' || r.type === 'familyCoins' || r.type === 'coins' || r.type === 'charisma') {
+                        let total = r.amountRemaining || 0;
+                        let myShare = Math.floor(total / numClaimsNow);
+                        if (numClaimsNow === 1) {
+                            myShare = total;
+                        } else {
+                            let remainder = total % numClaimsNow;
+                            if (remainder > 0 && Math.random() < 0.5) myShare += 1;
+                        }
+                        if (myShare > total) myShare = total;
+                        
+                        if (myShare > 0) {
+                            if (r.type === 'currency') rewardsToGive.currency += myShare;
+                            else if (r.type === 'charisma') rewardsToGive.charisma += myShare;
+                            else rewardsToGive.coins += myShare;
+                        }
+                        newR.amountRemaining = total - myShare;
+                        updatedRewards.push(newR);
+                    } else {
+                        if (!r.claimedBy) {
+                            if (Math.random() < 1 / numClaimsNow) {
+                                rewardsToGive.items.push({ ...r, qty: 1 });
+                                newR.claimedBy = currentUID;
+                            }
+                        }
+                        updatedRewards.push(newR);
+                    }
+                });
+
+                freshChest.availableRewards = updatedRewards;
+                freshChest.claimedBy = { ...freshClaims, [currentUID]: freshClaimCount + 1 };
+                freshInv[inventoryIdx] = freshChest;
+
+                transaction.update(familyRef, { treasuryInventory: freshInv });
+                myBundle = rewardsToGive;
+            });
 
             // Give bundle rewards
             if (myBundle.currency > 0) {
@@ -2367,35 +2385,35 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             if (myBundle.coins > 0) {
                 await familiesCollection.doc(family.id).update({ familyCoins: firebase.firestore.FieldValue.increment(myBundle.coins) });
             }
+            if (myBundle.charisma > 0) {
+                await usersCollection.doc(currentUID).update({ charisma: firebase.firestore.FieldValue.increment(myBundle.charisma) });
+            }
             
-            let totalCharisma = 0;
-            const giftUpdates = {};
-            const frameUpdates = {};
+            const updatePayload = {};
+            const arrayUnion = firebase.firestore.FieldValue.arrayUnion;
             
             myBundle.items.forEach(r => {
-                if (r.type === 'charisma') {
-                    totalCharisma += (r.amount * (r.qty || 1));
-                } else if (r.type === 'frame') {
+                if (r.type === 'frame') {
                     const expiresAt = r.duration ? Date.now() + r.duration * 86400000 : null;
-                    frameUpdates[`inventory.expiry.${r.frameId}`] = expiresAt;
+                    updatePayload[`inventory.expiry.${r.frameId}`] = expiresAt;
+                    updatePayload['inventory.frames'] = arrayUnion(r.frameId);
+                } else if (r.type === 'title') {
+                    updatePayload['inventory.titles'] = arrayUnion(r.titleId);
+                } else if (r.type === 'badge') {
+                    updatePayload['inventory.badges'] = arrayUnion(r.badgeId);
+                } else if (r.type === 'ring') {
+                    updatePayload['inventory.rings'] = arrayUnion(r.ringId);
                 } else if (r.type === 'gift') {
-                    giftUpdates[`inventory.giftCounts.${r.giftId}`] = firebase.firestore.FieldValue.increment(r.qty || 1);
+                    if (r.giftId === 'gift_ring') {
+                        updatePayload['inventory.rings'] = arrayUnion(r.giftId);
+                    } else {
+                        updatePayload[`inventory.giftCounts.${r.giftId}`] = firebase.firestore.FieldValue.increment(r.qty || 1);
+                        updatePayload['inventory.gifts'] = arrayUnion(r.giftId);
+                    }
                 }
             });
             
-            if (totalCharisma > 0) {
-                await usersCollection.doc(currentUID).update({ charisma: firebase.firestore.FieldValue.increment(totalCharisma) });
-            }
-            if (Object.keys(giftUpdates).length > 0) {
-                const giftIds = myBundle.items.filter(r => r.type === 'gift').map(r => r.giftId);
-                let updatePayload = { ...giftUpdates };
-                updatePayload['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(...giftIds);
-                await usersCollection.doc(currentUID).update(updatePayload);
-            }
-            if (Object.keys(frameUpdates).length > 0) {
-                const frameIds = myBundle.items.filter(r => r.type === 'frame').map(r => r.frameId);
-                let updatePayload = { ...frameUpdates };
-                updatePayload['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(...frameIds);
+            if (Object.keys(updatePayload).length > 0) {
                 await usersCollection.doc(currentUID).update(updatePayload);
             }
 
@@ -2403,12 +2421,14 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             const receiptParts = [];
             if (myBundle.currency > 0) receiptParts.push(`${myBundle.currency} 🧠`);
             if (myBundle.coins > 0) receiptParts.push(`${myBundle.coins} ${FAMILY_COINS_SYMBOL}`);
-            if (totalCharisma > 0) receiptParts.push(`${totalCharisma} ⭐`);
+            if (myBundle.charisma > 0) receiptParts.push(`${myBundle.charisma} ⭐`);
             myBundle.items.forEach(r => {
-                if (r.type === 'gift') receiptParts.push(`${r.qty || 1}× ${r.icon || '🎁'}`);
-                if (r.type === 'frame') receiptParts.push(`${r.icon || '🖼️'} ${r.duration || '?'}d`);
+                let rIcon = r.icon || '🎁';
+                let rLabel = lang==='ar'?r.label_ar:r.label_en;
+                if (r.type === 'frame') receiptParts.push(`${rIcon} ${r.duration || '?'}d`);
+                else receiptParts.push(`${r.qty || 1}× ${rIcon}`);
             });
-            const receiptText = receiptParts.join(' • ') || '🎁';
+            const receiptText = receiptParts.join(' • ') || (lang==='ar'?'لا شيء':'Nothing');
 
             // Build pseudo picked item for UI
             const pseudoPicked = {
@@ -2432,9 +2452,6 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 rewardLabel: lang === 'ar' ? pseudoPicked.label_ar : pseudoPicked.label_en,
                 rewardIcon: pseudoPicked.icon,
                 rewardReceipt: receiptText,
-                assignedDrops: chest.assignedDrops || {},
-                assignedTo: chest.assignedTo || [],
-                claimedBy: { ...(chest.claimedBy || {}), [currentUID]: myClaimCount + 1 },
                 text: lang === 'ar'
                     ? `🎉 ${currentUserData?.displayName} فتح ${chestIcon} ${cfg.name_ar}\n📋 حصل على: ${receiptText}`
                     : `🎉 ${currentUserData?.displayName} opened ${chestIcon} ${cfg.name_en}\n📋 Received: ${receiptText}`,
@@ -3248,12 +3265,19 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                                 <div style={{maxWidth:'72%'}}>
                                     {/* اسم المرسل — قابل للضغط لفتح ميني بروفايل */}
                                     {!isMe && (
-                                        <div
-                                            style={{fontSize:'10px', color:'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft:'4px', cursor:'pointer'}}
-                                            onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
-                                            onMouseEnter={e => e.currentTarget.style.color='#00f2ff'}
-                                            onMouseLeave={e => e.currentTarget.style.color='#9ca3af'}
-                                        >{msg.senderName}</div>
+                                        <div style={{display:'flex', alignItems:'center', gap:'4px', marginBottom:'3px', paddingLeft:'4px'}}>
+                                            <div
+                                                style={{fontSize:'10px', color:'#9ca3af', fontWeight:700, cursor:'pointer'}}
+                                                onClick={() => setMiniProfileMember({ uid: msg.senderId, name: msg.senderName, photo: msg.senderPhoto, customId: null })}
+                                                onMouseEnter={e => e.currentTarget.style.color='#00f2ff'}
+                                                onMouseLeave={e => e.currentTarget.style.color='#9ca3af'}
+                                            >{msg.senderName}</div>
+                                            {(msg.senderFamilyName || family?.name) && typeof FamilySignBadge !== 'undefined' && (
+                                                <div style={{transform:'scale(0.85)',transformOrigin:'left center',marginRight:'-8px'}}>
+                                                    <FamilySignBadge family={{name: msg.senderFamilyName || family?.name, tag: msg.senderFamilyTag || family?.tag, signLevel: msg.senderFamilySignLevel || null, signColor: msg.senderFamilySignColor || null, signImageURL: msg.senderFamilySignImageURL || family?.signImageURL || null}} />
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                     <div style={{
                                         padding:'8px 12px', borderRadius: isMe ? '14px 4px 14px 14px' : '4px 14px 14px 14px',
