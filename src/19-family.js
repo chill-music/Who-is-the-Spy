@@ -1010,20 +1010,40 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                         const isAssigned = msg.type === 'chest_assign' && (msg.assignedTo||[]).includes(currentUID);
                         const myClaimCount = isAssigned ? ((familyData?.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo?.includes(currentUID))?.claimedBy?.[currentUID] || 0) : 0;
                         const maxClaims = msg.maxClaimsPerMember || 1;
+                        const totalAssigned = (msg.assignedTo||[]).length;
+                        const totalClaimed = msg.claimedBy ? Object.keys(msg.claimedBy).length : 0;
+                        const isOpened = msg.type === 'chest_opened';
+                        const chestColor = cfg2?.color || '#9ca3af';
+
                         return React.createElement('div', { key: msg.id, style:{ textAlign:'center', padding:'10px 14px', margin:'4px 0' } },
-                            React.createElement('div', { style:{ display:'inline-flex', flexDirection:'column', alignItems:'center', gap:'6px', background:`${(cfg2?.color||'#9ca3af')}14`, border:`1px solid ${(cfg2?.color||'#9ca3af')}44`, borderRadius:'14px', padding:'12px 20px', maxWidth:'280px' } },
+                            React.createElement('div', { style:{ display:'inline-flex', flexDirection:'column', alignItems:'center', gap:'6px', background:`${chestColor}14`, border:`1px solid ${chestColor}44`, borderRadius:'14px', padding:'12px 20px', maxWidth:'300px', width:'100%' } },
                                 React.createElement('div', { style:{ fontSize:'28px' } }, msObj?.imageURL ? React.createElement('img', { src:msObj.imageURL, alt:'', style:{width:'32px',height:'32px',objectFit:'contain'} }) : (msg.chestIcon||'📦')),
-                                React.createElement('div', { style:{ fontSize:'11px', fontWeight:800, color:'#e2e8f0', textAlign:'center', lineHeight:1.4 } }, msg.text),
-                                isAssigned && myClaimCount < maxClaims && React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px', background:`${(cfg2?.color||'#9ca3af')}22`, border:`1px solid ${(cfg2?.color||'#9ca3af')}55`, borderRadius:'10px', padding:'5px 12px', cursor:'pointer' },
+                                React.createElement('div', { style:{ fontSize:'11px', fontWeight:800, color:'#e2e8f0', textAlign:'center', lineHeight:1.5, whiteSpace:'pre-line' } }, msg.text),
+
+                                // Receipt display for opened chests
+                                isOpened && msg.rewardReceipt && React.createElement('div', { style:{ fontSize:'10px', color:'#fbbf24', fontWeight:700, background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.25)', borderRadius:'8px', padding:'5px 10px', width:'100%', textAlign:'center' } },
+                                    `📋 ${msg.rewardReceipt}`
+                                ),
+
+                                // Claim counter for assign messages
+                                !isOpened && totalAssigned > 0 && React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', background:'rgba(255,255,255,0.04)', borderRadius:'6px', padding:'3px 8px' } },
+                                    `${lang==='ar'?'استلم':'Claimed'}: ${totalClaimed}/${totalAssigned}`
+                                ),
+
+                                // Open chest button
+                                isAssigned && myClaimCount < maxClaims && React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px', background:`${chestColor}22`, border:`1px solid ${chestColor}55`, borderRadius:'10px', padding:'5px 12px', cursor:'pointer' },
                                     onClick:()=>{
                                         const invIdx = (familyData?.treasuryInventory||[]).findIndex(inv=>inv.chestType===msg.chestType&&(inv.assignedTo||[]).includes(currentUID)&&(inv.claimedBy?.[currentUID]||0)<(inv.maxClaimsPerMember||1));
                                         if(invIdx>=0) openAssignedChest(invIdx);
                                     }},
                                     React.createElement('span', { style:{ fontSize:'14px' } }, '🎰'),
-                                    React.createElement('span', { style:{ fontSize:'11px', fontWeight:800, color:cfg2?.color||'#9ca3af' } },
+                                    React.createElement('span', { style:{ fontSize:'11px', fontWeight:800, color:chestColor } },
                                         (lang==='ar'?'افتح صندوقك':'Open your chest') + ` (${maxClaims - myClaimCount} ${lang==='ar'?'متبقي':'left'})`
                                     )
-                                )
+                                ),
+
+                                // Timestamp
+                                React.createElement('div', { style:{ fontSize:'8px', color:'#4b5563', marginTop:'2px' } }, fmtTime(msg.timestamp))
                             )
                         );
                     }
@@ -2020,9 +2040,9 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
         if (!family?.id || !currentUID || spinningGacha) return;
         const currentGachaConfig = (family?.level >= 5) ? GACHA_CONFIG_PREMIUM : GACHA_CONFIG_BASIC;
         const today = new Date().toDateString();
+        const HARD_COST_CAP = 200; // Hard-coded safety cap
 
         if (mode === 'free') {
-            // Check if free spin used today
             const lastFree = family.gachaFreeLastUsed;
             if (lastFree) {
                 const lastDate = lastFree.toDate ? lastFree.toDate() : new Date(lastFree.seconds * 1000);
@@ -2032,12 +2052,11 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 }
             }
         } else {
-            // Paid: 200 Intel from user wallet, max 50/day
-            if ((currentUserData?.currency || 0) < currentGachaConfig.paidCostPerSpin) {
-                onNotification(lang==='ar' ? `❌ تحتاج ${currentGachaConfig.paidCostPerSpin} إنتل` : `❌ Need ${currentGachaConfig.paidCostPerSpin} Intel`);
+            const costPerSpin = Math.min(currentGachaConfig.paidCostPerSpin, HARD_COST_CAP);
+            if ((currentUserData?.currency || 0) < costPerSpin) {
+                onNotification(lang==='ar' ? `❌ تحتاج ${costPerSpin} إنتل` : `❌ Need ${costPerSpin} Intel`);
                 return;
             }
-            const paidKey = `gachaPaid_${today}`;
             const spinsToday = family.gachaPaidSpins?.[today] || 0;
             if (spinsToday >= currentGachaConfig.maxPaidSpinsDaily) {
                 onNotification(lang==='ar' ? `❌ وصلت الحد اليومي (${currentGachaConfig.maxPaidSpinsDaily} سحبة)` : `❌ Daily limit reached (${currentGachaConfig.maxPaidSpinsDaily} spins)`);
@@ -2058,23 +2077,34 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             }
 
             const rewardUpdates = {};
-            const userUpdates = {};
 
             if (mode === 'free') {
                 rewardUpdates.gachaFreeLastUsed = TS();
             } else {
-                // Deduct Intel from user
-                userUpdates.currency = firebase.firestore.FieldValue.increment(-currentGachaConfig.paidCostPerSpin);
-                rewardUpdates[`gachaPaidSpins.${new Date().toDateString()}`] = firebase.firestore.FieldValue.increment(1);
+                // ── TRANSACTION: Atomic deduction with balance verification ──
+                const costPerSpin = Math.min(currentGachaConfig.paidCostPerSpin, HARD_COST_CAP);
+                const userRef = usersCollection.doc(currentUID);
+                await db.runTransaction(async (transaction) => {
+                    const userDoc = await transaction.get(userRef);
+                    if (!userDoc.exists) throw new Error('User not found');
+                    const currentBalance = userDoc.data()?.currency || 0;
+                    if (currentBalance < costPerSpin) throw new Error('Insufficient balance');
+                    transaction.update(userRef, {
+                        currency: firebase.firestore.FieldValue.increment(-costPerSpin),
+                    });
+                });
+                rewardUpdates[`gachaPaidSpins.${today}`] = firebase.firestore.FieldValue.increment(1);
             }
 
             // Apply reward
             if (picked.type === 'currency') {
-                userUpdates.currency = firebase.firestore.FieldValue.increment(
-                    (userUpdates.currency || 0) + picked.amount
-                );
+                await usersCollection.doc(currentUID).update({
+                    currency: firebase.firestore.FieldValue.increment(picked.amount),
+                });
             } else if (picked.type === 'charisma') {
-                userUpdates.charisma = firebase.firestore.FieldValue.increment(picked.amount);
+                await usersCollection.doc(currentUID).update({
+                    charisma: firebase.firestore.FieldValue.increment(picked.amount),
+                });
             } else if (picked.type === 'coins') {
                 rewardUpdates.familyCoins = firebase.firestore.FieldValue.increment(picked.amount);
             } else if (picked.type === 'frame' || picked.type === 'frame_anim') {
@@ -2084,10 +2114,14 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     [`inventory.expiry.${picked.frameId}`]: expiresAt,
                 });
             } else if (picked.type === 'gift') {
-                await usersCollection.doc(currentUID).update({
+                const giftPayload = {
                     [`inventory.gifts`]: firebase.firestore.FieldValue.arrayUnion(picked.giftId),
                     [`inventory.giftCounts.${picked.giftId}`]: firebase.firestore.FieldValue.increment(picked.qty || 1),
-                });
+                };
+                if (picked.giftId !== 'gift_ring') {
+                    giftPayload[`inventory.expiry.${picked.giftId}`] = Date.now() + 30 * 86400000;
+                }
+                await usersCollection.doc(currentUID).update(giftPayload);
             } else if (picked.type === 'chest') {
                 const chestItem = { chestType: picked.chestType, gachaWon: true, wonAt: Date.now(), wonBy: currentUID };
                 rewardUpdates.treasuryInventory = firebase.firestore.FieldValue.arrayUnion(chestItem);
@@ -2096,15 +2130,16 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
             if (Object.keys(rewardUpdates).length) {
                 await familiesCollection.doc(family.id).update(rewardUpdates);
             }
-            if (Object.keys(userUpdates).length) {
-                await usersCollection.doc(currentUID).update(userUpdates);
-            }
 
             setGachaResult(picked);
             onNotification(`🎰 ${lang==='ar' ? picked.label_ar : picked.label_en}`);
         } catch(e) {
             console.error(e);
-            onNotification(lang==='ar' ? '❌ خطأ' : '❌ Error');
+            if (e.message === 'Insufficient balance') {
+                onNotification(lang==='ar' ? '❌ الرصيد غير كافٍ' : '❌ Insufficient balance');
+            } else {
+                onNotification(lang==='ar' ? '❌ خطأ' : '❌ Error');
+            }
         }
         setSpinningGacha(false);
     };
@@ -2298,6 +2333,17 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 await usersCollection.doc(currentUID).update(updatePayload);
             }
 
+            // Build detailed receipt text
+            const receiptParts = [];
+            if (myBundle.currency > 0) receiptParts.push(`${myBundle.currency} 🧠`);
+            if (myBundle.coins > 0) receiptParts.push(`${myBundle.coins} ${FAMILY_COINS_SYMBOL}`);
+            if (totalCharisma > 0) receiptParts.push(`${totalCharisma} ⭐`);
+            myBundle.items.forEach(r => {
+                if (r.type === 'gift') receiptParts.push(`${r.qty || 1}× ${r.icon || '🎁'}`);
+                if (r.type === 'frame') receiptParts.push(`${r.icon || '🖼️'} ${r.duration || '?'}d`);
+            });
+            const receiptText = receiptParts.join(' • ') || '🎁';
+
             // Build pseudo picked item for UI
             const pseudoPicked = {
                 isBundle: true,
@@ -2308,7 +2354,7 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 label_en: 'Your Share',
             };
 
-            // Post result to chat
+            // Post detailed result to chat
             const chestIcon = ACTIVENESS_MILESTONES.find(m => m.chestType === chest.chestType)?.icon || '📦';
             await familiesCollection.doc(family.id).collection('messages').add({
                 senderId: currentUID,
@@ -2319,16 +2365,20 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                 chestIcon,
                 rewardLabel: lang === 'ar' ? pseudoPicked.label_ar : pseudoPicked.label_en,
                 rewardIcon: pseudoPicked.icon,
+                rewardReceipt: receiptText,
+                assignedDrops: chest.assignedDrops || {},
+                assignedTo: chest.assignedTo || [],
+                claimedBy: { ...(chest.claimedBy || {}), [currentUID]: myClaimCount + 1 },
                 text: lang === 'ar'
-                    ? `🎉 ${currentUserData?.displayName} فتح ${chestIcon} ${cfg.name_ar} وحصل على نصيبه من الصندوق!`
-                    : `🎉 ${currentUserData?.displayName} opened ${chestIcon} ${cfg.name_en} and got their share!`,
+                    ? `🎉 ${currentUserData?.displayName} فتح ${chestIcon} ${cfg.name_ar}\n📋 حصل على: ${receiptText}`
+                    : `🎉 ${currentUserData?.displayName} opened ${chestIcon} ${cfg.name_en}\n📋 Received: ${receiptText}`,
                 timestamp: TS(),
             });
 
             setChestResult(pseudoPicked);
             setSelectedChest({ cfg, inventoryIdx });
             setShowChestModal(true);
-            onNotification(`🎉 ${lang === 'ar' ? 'تم فتح الصندوق!' : 'Chest opened!'}`);
+            onNotification(`🎉 ${lang === 'ar' ? 'تم فتح الصندوق!' : 'Chest opened!'} ${receiptText}`);
         } catch(e) {
             console.error(e);
             onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
@@ -2892,17 +2942,26 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     const userIntel = currentUserData?.currency || 0;
                     const canAffordPaid = userIntel >= currentGachaConfig.paidCostPerSpin;
 
+                    // Dynamic glow based on clan level
+                    const lvl = family?.level || 1;
+                    const gachaGlow = lvl >= 8
+                        ? { border: '1px solid rgba(255,215,0,0.6)', boxShadow: '0 0 40px rgba(255,215,0,0.3), 0 0 80px rgba(167,139,250,0.15), inset 0 0 30px rgba(255,215,0,0.08)' }
+                        : lvl >= 5
+                        ? { border: '1px solid rgba(255,215,0,0.45)', boxShadow: '0 0 30px rgba(255,215,0,0.2), inset 0 0 20px rgba(255,215,0,0.05)' }
+                        : { border: '1px solid rgba(167,139,250,0.4)', boxShadow: '0 0 20px rgba(167,139,250,0.12)' };
+                    const gachaTitleColor = lvl >= 8 ? '#ffd700' : lvl >= 5 ? '#fbbf24' : '#a78bfa';
+
                     return (
                         <div style={{position:'fixed',inset:0,zIndex:Z.OVERLAY,background:'rgba(0,0,0,0.92)',display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>{setShowGachaModal(false);setGachaResult(null);setShowGachaTable(false);}}>
-                            <div style={{background:'linear-gradient(180deg,#13102a,#0d0d1f)',border:'1px solid rgba(167,139,250,0.4)',borderRadius:'24px 24px 0 0',padding:'20px 20px 28px',width:'100%',maxWidth:'480px',maxHeight:'88vh',overflowY:'auto'}} onClick={e=>e.stopPropagation()}>
+                            <div style={{background:'linear-gradient(180deg,#13102a,#0d0d1f)',...gachaGlow,borderRadius:'24px 24px 0 0',padding:'20px 20px 28px',width:'100%',maxWidth:'480px',maxHeight:'88vh',overflowY:'auto',transition:'box-shadow 0.4s'}} onClick={e=>e.stopPropagation()}>
                                 {/* Handle bar */}
                                 <div style={{width:'36px',height:'4px',borderRadius:'2px',background:'rgba(255,255,255,0.15)',margin:'0 auto 16px'}}/>
 
                                 {/* Title */}
                                 <div style={{textAlign:'center',marginBottom:'16px'}}>
                                     <div style={{fontSize:'28px',marginBottom:'4px'}}>🎰</div>
-                                    <div style={{fontSize:'17px',fontWeight:900,color:'#a78bfa'}}>{lang==='ar'?'جاتشه القبيلة':'Clan Gacha'}</div>
-                                    <div style={{fontSize:'10px',color:'#6b7280',marginTop:'2px'}}>{lang==='ar'?'حظاً موفقاً!':'Good luck!'}</div>
+                                    <div style={{fontSize:'17px',fontWeight:900,color:gachaTitleColor}}>{lang==='ar'?'جاتشه القبيلة':'Clan Gacha'}</div>
+                                    <div style={{fontSize:'10px',color:'#6b7280',marginTop:'2px'}}>{lvl >= 8 ? (lang==='ar'?'✨ مستوى أسطوري!':'✨ Mythic Level!') : lvl >= 5 ? (lang==='ar'?'⭐ مستوى متقدم':'⭐ Premium Level') : (lang==='ar'?'حظاً موفقاً!':'Good luck!')}</div>
                                 </div>
 
                                 {/* Result display */}
@@ -3744,7 +3803,10 @@ const FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, 
                     }
                     await usersCollection.doc(currentUID).update(updatePayload);
                 }
-                onNotification(`✅ ${lang==='ar'?'تم الشراء!':'Purchased!'} ${item.emoji}`);
+                const typeLabel = lang === 'ar'
+                    ? { badge:'بادج', title:'لقب', theme:'ثيم', frame:'إطار', profileEffect:'تأثير', gift:'هدية' }[item.type] || 'عنصر'
+                    : { badge:'Badge', title:'Title', theme:'Theme', frame:'Frame', profileEffect:'Effect', gift:'Gift' }[item.type] || 'Item';
+                onNotification(`✅ ${item.emoji} ${lang==='ar'?`تم شراء ${typeLabel} — أُضيف للحقيبة!`:`${typeLabel} purchased — added to your bag!`}`);
             } catch(e) {
                 onNotification(lang==='ar' ? '❌ خطأ في الشراء' : '❌ Purchase error');
             }
