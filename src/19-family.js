@@ -1020,6 +1020,7 @@ const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curr
                     var isDonation = msg.type === 'donation';
                     // 📦 Chest assign/open messages in family chat
                     if (msg.type === 'chest_assign' || msg.type === 'chest_opened') {
+                        const cfg2 = CHEST_CONFIG[msg.chestType];
                         const msObj = ACTIVENESS_MILESTONES.find(m=>m.chestType===msg.chestType);
                         // Read LIVE chest data to ensure current user assignment is accurate
                         const liveChest = (familyData?.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo&&inv.inventoryIdx===msg.inventoryIdx);
