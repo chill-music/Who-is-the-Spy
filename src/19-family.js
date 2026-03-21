@@ -12,13 +12,13 @@
 
 
 // Get sign image URL from config (FAMILY_SIGN_IMAGES defined in 01-config.js)
-const FamilyTreasury = window.FamilyTreasury;
-const FamilyGacha = window.FamilyGacha;
-const FamilyChatModal = window.FamilyChatModal;
-const FamilyService = window.FamilyService;
-const FamilyUtils = window.FamilyUtils;
-const FamilyMembers = window.FamilyMembers;
-const { 
+var FamilyTreasury = window.FamilyTreasury;
+var FamilyGacha = window.FamilyGacha;
+var FamilyChatModal = window.FamilyChatModal;
+var FamilyService = window.FamilyService;
+var FamilyUtils = window.FamilyUtils;
+var FamilyMembers = window.FamilyMembers;
+var { 
     FAMILY_CREATE_COST, 
     FAMILY_LEVEL_CONFIG, 
     FAMILY_SIGN_LEVELS, 
@@ -26,7 +26,7 @@ const {
     FAMILY_TASKS_CONFIG,
     FAMILY_EMBLEMS 
 } = window.FamilyConstants;
-const { FamilyRoleBadge, FamilySignBadge, S } = window.FamilyShared;
+var { FamilyRoleBadge, FamilySignBadge, S } = window.FamilyShared;
 
 // Helpers and redundant definitions removed.
 

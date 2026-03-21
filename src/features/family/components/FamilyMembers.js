@@ -1,16 +1,16 @@
 /**
  * FamilyMembers.js - Component for displaying and managing family members.
  */
-const { 
+var { 
     FAMILY_ROLE_CONFIG, 
     getFamilyRole, 
     getFamilyLevelConfig,
     getFamilySignLevelData
 } = window.FamilyConstants;
-const { fmtFamilyNum } = window;
-const { FamilyRoleBadge, FamilySignBadge } = window.FamilyShared;
+var { fmtFamilyNum } = window;
+var { FamilyRoleBadge, FamilySignBadge } = window.FamilyShared;
 
-const FamilyMembers = ({ 
+var FamilyMembers = ({ 
     family, 
     members, 
     currentUID, 

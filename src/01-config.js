@@ -545,7 +545,7 @@ const TS = () => firebase.firestore.FieldValue.serverTimestamp();
 //
 // myFriendsList — مصفوفة الـ UIDs اللي المستخدم أصدقاؤهم (اختياري)
 // ════════════════════════════════════════════════════════
-export const fetchMiniProfileData = async (uid, myFriendsList = []) => {
+const fetchMiniProfileData = async (uid, myFriendsList = []) => {
     if (!uid) return null;
     try {
         const doc = await usersCollection.doc(uid).get();

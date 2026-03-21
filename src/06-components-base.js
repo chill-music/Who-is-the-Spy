@@ -282,7 +282,7 @@ const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClea
 //   isBlocked    — هل اليوزر محظور حالياً (اختياري)
 //   zIndex       — zIndex للـ overlay (افتراضي Z.OVERLAY)
 // ════════════════════════════════════════════════════════════
-const MiniProfilePopup = ({
+var MiniProfilePopup = ({
     profile,
     onClose,
     currentUID,

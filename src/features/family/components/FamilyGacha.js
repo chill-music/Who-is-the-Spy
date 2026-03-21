@@ -4,12 +4,12 @@ const {
 } = window.FamilyConstants;
 const { Z, PortalModal } = window;
 const { fmtFamilyNum } = window;
-const FamilyService = window.FamilyService;
+var FamilyService = window.FamilyService;
 
 /**
  * FamilyGacha - Modal component for family gacha spins.
  */
-const FamilyGacha = ({ 
+var FamilyGacha = ({ 
     show, 
     onClose, 
     family, 

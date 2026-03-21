@@ -113,7 +113,7 @@ if (typeof window !== 'undefined') {
     initEvents.forEach(event => document.addEventListener(event, initHandler, { once: true }));
 }
 
-export const playNotificationSound = () => playSound('notification');
+const playNotificationSound = () => playSound('notification');
 const playRewardSound = () => playSound('reward');
 // playGiftSound removed — was never called anywhere in the project
 

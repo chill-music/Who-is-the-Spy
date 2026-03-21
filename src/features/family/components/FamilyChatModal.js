@@ -1,4 +1,4 @@
-const { 
+var { 
     Z, 
     RED_PACKETS_CONFIG, 
     CHEST_CONFIG, 
@@ -7,11 +7,11 @@ const {
     PortalModal, 
     fetchMiniProfileData 
 } = window.FamilyConstants || window;
-const { 
+var { 
     getFamilySignLevelData, 
     getFamilyLevelConfig 
 } = window.FamilyConstants;
-const { 
+var { 
     firebase, 
     auth, 
     db, 
@@ -21,21 +21,21 @@ const {
     reportsCollection, 
     publicChatCollection 
 } = window;
-const playNotificationSound = window.playNotificationSound || (() => {});
-const { 
+var playNotificationSound = window.playNotificationSound || (() => {});
+var { 
     canManageFamily, 
     sendMessage: serviceSendMessage, 
     handleImageUpload: serviceHandleImageUpload 
 } = window.FamilyService;
-const { renderMsgText: utilRenderMsgText } = window.FamilyUtils;
-const TS = window.TS || (() => firebase.firestore.FieldValue.serverTimestamp());
-const { MiniProfilePopup, FamilySignBadge, RedPacketCard } = window;
-const { SendGiftModal } = window;
+var { renderMsgText: utilRenderMsgText } = window.FamilyUtils;
+var TS = window.TS || (() => firebase.firestore.FieldValue.serverTimestamp());
+var { MiniProfilePopup, FamilySignBadge, RedPacketCard } = window;
+var { SendGiftModal } = window;
 
 /**
  * FamilyChatModal - Extracted component for family chat functionality.
  */
-const FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily, onSendGift, userData, onNotification, onOpenProfile }) => {
+var FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily, onSendGift, userData, onNotification, onOpenProfile }) => {
     const [messages, setMessages] = React.useState([]);
     const [chatInput, setChatInput] = React.useState('');
     const [sendingMsg, setSendingMsg] = React.useState(false);

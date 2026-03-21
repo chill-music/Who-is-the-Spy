@@ -11,14 +11,14 @@ const {
     db, 
     firebase 
 } = window;
-const FamilyService = window.FamilyService;
+var FamilyService = window.FamilyService;
 const fmtFamilyNum = window.fmtFamilyNum || ((n) => n?.toLocaleString() || '0');
 const S = window.FamilyShared?.S || {};
 
 /**
  * FamilyTreasury - Component for managing family funds, chests, and upgrades.
  */
-const FamilyTreasury = ({ 
+var FamilyTreasury = ({ 
     family, 
     currentUID, 
     currentUserData, 

@@ -6,7 +6,7 @@ const {
     FAMILY_TASKS_CONFIG, 
     DAILY_TASKS_MILESTONES 
 } = window.FamilyConstants;
-const FamilyService = window.FamilyService;
+var FamilyService = window.FamilyService;
 const { useState, useEffect } = React;
 
 const FamilyTasks = ({ 
