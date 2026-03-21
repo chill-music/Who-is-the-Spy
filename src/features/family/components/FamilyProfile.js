@@ -6,15 +6,17 @@ var FamilyProfile = ({
     familyMembers,
     currentUID,
     currentUserData,
+    userData,
     lang,
     onUpdateInfo,
-    isReadOnly
+    isReadOnly,
+    showDonatePanel,
+    setShowDonatePanel
 }) => {
     if (!family) return null;
     if (!familyMembers) familyMembers = family.members || [];
     if (isReadOnly === undefined) isReadOnly = false;
 
-    const [showDonatePanel, setShowDonatePanel] = React.useState(false);
     var photoFileRef = React.useRef(null);
     var onNotification = window.showNotification || (() => {});
 
