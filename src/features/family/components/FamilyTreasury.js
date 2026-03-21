@@ -377,5 +377,5 @@ var FamilyTreasury = ({
     );
 };
 
-// window.FamilyTreasury = FamilyTreasury; is already at the end.
+window.FamilyTreasury = FamilyTreasury;
 // No export default.

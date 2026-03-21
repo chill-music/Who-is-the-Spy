@@ -625,6 +625,6 @@ var FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, curren
     );
 };
 
-// window.FamilyChatModal = FamilyChatModal; is already at the end.
+window.FamilyChatModal = FamilyChatModal;
 // No export default.
 

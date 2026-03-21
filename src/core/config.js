@@ -2,7 +2,7 @@
 // This file contains shared constants for UI, Systems, and Features.
 
 // 🎯 Z-INDEX CONSTANTS - Layer Management
-export const Z = {
+var Z = {
     MODAL:      10000,
     MODAL_HIGH: 12000,
     MODAL_TOP:  15000,
@@ -12,7 +12,7 @@ export const Z = {
 };
 
 // 🎨 GRADIENT CONSTANTS - Reusable styles
-export const GR = {
+var GR = {
     DARK_CARD:  'linear-gradient(135deg, rgba(15,15,35,0.95), rgba(25,25,50,0.95))',
     NEON:       'linear-gradient(135deg, rgba(0,242,255,0.15), rgba(112,0,255,0.15))',
     GOLD:       'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,140,0,0.15))',
@@ -21,7 +21,7 @@ export const GR = {
 };
 
 // 🧧 RED PACKETS SYSTEM CONFIG
-export const RED_PACKETS_CONFIG = [
+var RED_PACKETS_CONFIG = [
     { id: 'rp_600', amount: 600, emoji: '🧧', name_ar: 'مغلف 600', name_en: 'Red Packet 600', color: '#ef4444', glow: 'rgba(239,68,68,0.6)', bg: 'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(185,28,28,0.12))', border: 'rgba(239,68,68,0.4)', imageURL: null, maxClaims: 5, desc_ar: 'مغلف أحمر صغير — يوزع على 5 أشخاص', desc_en: 'Small red packet — shared among 5 people' },
     { id: 'rp_1800', amount: 1800, emoji: '🧧', name_ar: 'مغلف 1800', name_en: 'Red Packet 1800', color: '#f97316', glow: 'rgba(249,115,22,0.6)', bg: 'linear-gradient(135deg,rgba(249,115,22,0.18),rgba(194,65,12,0.12))', border: 'rgba(249,115,22,0.4)', imageURL: null, maxClaims: 8, desc_ar: 'مغلف أحمر متوسط — يوزع على 8 أشخاص', desc_en: 'Medium red packet — shared among 8 people' },
     { id: 'rp_3000', amount: 3000, emoji: '🧧', name_ar: 'مغلف 3000', name_en: 'Red Packet 3000', color: '#fbbf24', glow: 'rgba(251,191,36,0.6)', bg: 'linear-gradient(135deg,rgba(251,191,36,0.18),rgba(180,83,9,0.12))', border: 'rgba(251,191,36,0.4)', imageURL: null, maxClaims: 10, desc_ar: 'مغلف ذهبي — يوزع على 10 أشخاص', desc_en: 'Golden packet — shared among 10 people' },
@@ -30,7 +30,7 @@ export const RED_PACKETS_CONFIG = [
 ];
 
 // 🤝 BFF SYSTEM CONFIG
-export const BFF_CONFIG = {
+var BFF_CONFIG = {
     freeSlots: 3,
     extraSlotCost: 1000,
     cardImages: {
@@ -44,7 +44,7 @@ export const BFF_CONFIG = {
     },
 };
 
-export const BFF_TOKEN_ITEMS = [
+var BFF_TOKEN_ITEMS = [
     { id:'bff_paper_plane', emoji:'✈️', name_en:'Paper Plane Relationship', name_ar:'علاقة طيارة ورق',   cost:500,  rarity:'Common',    cardType:'paper_plane', imageURL: null, color:'#60a5fa', glow:'rgba(96,165,250,0.5)',  desc_en:'A simple, sweet bond.',        desc_ar:'رابطة بسيطة وحلوة.' },
     { id:'bff_airplane',    emoji:'🛫', name_en:'Airplane Relationship',    name_ar:'علاقة طيارة',       cost:1000, rarity:'Uncommon',  cardType:'airplane',    imageURL: null, color:'#4ade80', glow:'rgba(74,222,128,0.5)',  desc_en:'Soaring friendship.',          desc_ar:'صداقة تحلق في السماء.' },
     { id:'bff_house',       emoji:'🏠', name_en:'House Relationship',       name_ar:'علاقة بيت',         cost:1500, rarity:'Rare',      cardType:'house',       imageURL: null, color:'#f59e0b', glow:'rgba(245,158,11,0.5)',  desc_en:'A warm, homey bond.',          desc_ar:'رابطة دائفة كالبيت.' },
@@ -53,21 +53,25 @@ export const BFF_TOKEN_ITEMS = [
     { id:'bff_castle',      emoji:'🏰', name_en:'Friends Castle',           name_ar:'قلعة الأصدقاء',     cost:8000, rarity:'Mythic',    cardType:'castle',      imageURL: null, color:'#f0abfc', glow:'rgba(240,171,252,0.7)', desc_en:'An unbreakable legendary bond.', desc_ar:'رابطة أسطورية لا تنكسر.' },
 ];
 
-export const BOT_CHATS_CONFIG = [
+var BOT_CHATS_CONFIG = [
     { id: 'detective_bot', name_ar: 'المحقق', name_en: 'The Detective', emoji: '🕵️', description_ar: 'نظام البلاغات الرسمي — البلاغات والردود', description_en: 'Official report system — reports & responses', color: '#00d4ff', glow: 'rgba(0,212,255,0.4)', photoURL: null, official: true, readOnly: true },
     { id: 'love_bot', name_ar: 'بوت دواء', name_en: 'Dawa Bot', emoji: '💌', description_ar: 'إشعارات الزواج وعلاقات BFF الرسمية', description_en: 'Official wedding & BFF notifications', color: '#f9a8d4', glow: 'rgba(249,168,212,0.4)', photoURL: null, official: true, readOnly: true },
 ];
 
-export const ADMIN_UIDS = [ 'PfZAViU4swQdbBZOfqJDnPZSs9l2' ];
-export const OWNER_UID = ADMIN_UIDS[0];
+var OWNER_UID = 'fE9630YfAAd3qC9L0WJbW48J1yP2'; // Your UID
+var ADMIN_UIDS = [
+    'fE9630YfAAd3qC9L0WJbW48J1yP2', // Owner
+    'fL6R06T6X3X6',               // Admin 1
+    'fL6R06T6Y4Y7'                // Admin 2
+];
 
-export const ROLE_CONFIG = {
+var ROLE_CONFIG = {
     owner: { label_ar: 'المالك', label_en: 'Owner', icon: '👑', color: '#ffd700', glow: 'rgba(255,215,0,0.8)', bg: 'linear-gradient(135deg,rgba(255,215,0,0.18),rgba(255,140,0,0.12))', border: 'rgba(255,215,0,0.55)', badgeClass: 'role-badge-owner' },
     admin: { label_ar: 'أدمن', label_en: 'Admin', icon: '🛡️', color: '#ef4444', glow: 'rgba(239,68,68,0.7)', bg: 'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(185,28,28,0.12))', border: 'rgba(239,68,68,0.5)', badgeClass: 'role-badge-admin' },
     moderator: { label_ar: 'مشرف', label_en: 'Mod', icon: '🔰', color: '#3b82f6', glow: 'rgba(59,130,246,0.6)', bg: 'linear-gradient(135deg,rgba(59,130,246,0.18),rgba(29,78,216,0.12))', border: 'rgba(59,130,246,0.5)', badgeClass: 'role-badge-mod' },
 };
 
-export const CHEST_CONFIG = {
+var CHEST_CONFIG = {
     normal: { name_en:'Normal Chest', name_ar:'صندوق عادي', icon:'📦', color:'#4ade80', rewards: [ { type:'currency', amount:1000, icon:'🧠', label_en:'1000 Intel', label_ar:'1000 إنتل' }, { type:'coins', amount:1000, icon:'🏅', label_en:'1000 Family Coins', label_ar:'1000 عملة قبيلة' }, { type:'gift', giftId:'gift_cake', qty:1, icon:'🎂', label_en:'Gift (Cake)', label_ar:'كيكة' }, { type:'gift', giftId:'gift_rose', qty:9, icon:'🌹', label_en:'9× Rose',label_ar:'9× وردة' } ] },
     advanced: { name_en:'Advanced Chest', name_ar:'صندوق متقدم', icon:'🎁', color:'#60a5fa', rewards: [ { type:'frame', frameId:'frame_neon', duration:3, icon:'🖼️', label_en:'Neon Frame 3d', label_ar:'إطار نيون 3d' }, { type:'frame', frameId:'frame_fire', duration:7, icon:'🖼️', label_en:'Fire Frame 7d', label_ar:'إطار نار 7d' }, { type:'gift', giftId:'gift_racecar', qty:2, icon:'🏎️', label_en:'2× Race Car', label_ar:'2× سيارة' }, { type:'gift', giftId:'gift_crown', qty:2, icon:'👑', label_en:'2× Crown', label_ar:'2× تاج' } ] },
     rare: { name_en:'Rare Chest', name_ar:'صندوق نادر', icon:'💠', color:'#a78bfa', rewards: [ { type:'frame', frameId:'frame_gold', duration:7, icon:'🖼️', label_en:'Gold Frame 7d', label_ar:'إطار ذهبي 7d' }, { type:'frame', frameId:'frame_ice', duration:3, icon:'🖼️', label_en:'Ice Frame 3d', label_ar:'إطار جليد 3d' }, { type:'frame', frameId:'frame_rainbow', duration:15, icon:'🖼️', label_en:'Rainbow Frame 15d', label_ar:'إطار قوس قزح 15d' }, { type:'gift', giftId:'gift_ring', qty:1, icon:'💍', label_en:'Diamond Ring', label_ar:'خاتم ألماس' }, { type:'gift', giftId:'gift_coffee', qty:2, icon:'☕', label_en:'2× Coffee', label_ar:'2× قهوة' }, { type:'gift', giftId:'gift_racecar', qty:2, icon:'🏎️', label_en:'2× Race Car', label_ar:'2× سيارة' }, { type:'currency', amount:7800, icon:'🧠', label_en:'7800 Intel', label_ar:'7800 إنتل' }, { type:'coins', amount:7800, icon:'🏅', label_en:'7800 Coins', label_ar:'7800 عملة' } ] },
@@ -75,7 +79,7 @@ export const CHEST_CONFIG = {
     super: { name_en:'Super Chest', name_ar:'صندوق أسطوري', icon:'👑', color:'#f97316', rewards: [ { type:'currency', amount:10000, icon:'🧠', label_en:'10K Intel', label_ar:'10K إنتل' }, { type:'coins', amount:10000, icon:'🏅', label_en:'10K Coins', label_ar:'10K عملة' }, { type:'gift', giftId:'gift_ring', qty:2, icon:'💍', label_en:'2× Diamond Ring', label_ar:'2× خاتم ألماس' }, { type:'frame', frameId:'fp_frame_mythic',duration:7,  qty:3, icon:'🖼️', label_en:'3× Mythic Frame 7d', label_ar:'3× إطار خرافي 7d' }, { type:'frame', frameId:'fp_frame_gold',  duration:30, qty:1, icon:'🖼️', label_en:'Gold Frame 30d',   label_ar:'إطار ذهبي 30d' } ] },
 };
 
-export const GACHA_CONFIG_BASIC = {
+var GACHA_CONFIG_BASIC = {
     paidCostPerSpin: 200, maxPaidSpinsDaily: 50,
     rewards: [
         { weight: 200, type: 'currency', amount: 50, rarity: 'common', icon: '🧠', label_en: '+50 Intel', label_ar: '+50 إنتل', rateDisplay: '20%' },
@@ -90,7 +94,7 @@ export const GACHA_CONFIG_BASIC = {
     ]
 };
 
-export const GACHA_CONFIG_PREMIUM = {
+var GACHA_CONFIG_PREMIUM = {
     paidCostPerSpin: 200, maxPaidSpinsDaily: 50,
     rewards: [
         { weight: 200, type: 'currency', amount: 150, rarity: 'common', icon: '🧠', label_en: '+150 Intel', label_ar: '+150 إنتل', rateDisplay: '20%' },
@@ -108,18 +112,18 @@ export const GACHA_CONFIG_PREMIUM = {
     ]
 };
 
-export const GACHA_RARITY_COLORS = {
+var GACHA_RARITY_COLORS = {
     common: '#9ca3af', uncommon: '#4ade80', rare: '#60a5fa',
     epic: '#a78bfa', legendary: '#fbbf24',
 };
 
-export const DAILY_TASKS_MILESTONES = [
+var DAILY_TASKS_MILESTONES = [
     { points: 20,  rewards: [ {type:'currency', id:'currency', qty:5}, {type:'coins', id:'coins', qty:5}, {type:'gift', id:'gift_rose', qty:5} ] },
     { points: 60,  rewards: [ {type:'currency', id:'currency', qty:10},{type:'coins', id:'coins', qty:10},{type:'gift', id:'gift_rose', qty:10} ] },
     { points: 100, rewards: [ {type:'currency', id:'currency', qty:15},{type:'coins', id:'coins', qty:15},{type:'gift', id:'gift_rose', qty:15} ] }
 ];
 
-export const ACTIVENESS_MILESTONES = [
+var ACTIVENESS_MILESTONES = [
     { threshold:8000,   chestType:'normal',   icon:'📦', imageURL: null, name_en:'Normal Chest',   name_ar:'صندوق عادي' },
     { threshold:24000,  chestType:'advanced', icon:'🎁', imageURL: null, name_en:'Advanced Chest', name_ar:'صندوق متقدم' },
     { threshold:60000,  chestType:'rare',     icon:'💠', imageURL: null, name_en:'Rare Chest',     name_ar:'صندوق نادر' },
@@ -127,7 +131,7 @@ export const ACTIVENESS_MILESTONES = [
     { threshold:280000, chestType:'super',    icon:'👑', imageURL: null, name_en:'Super Chest',    name_ar:'صندوق أسطوري' },
 ];
 
-export const FAMILY_SHOP_ITEMS = [
+var FAMILY_SHOP_ITEMS = [
     { id:'fs1', emoji:'🎖️', name_en:'Warrior Badge',   name_ar:'شارة المحارب',    cost:30,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Exclusive family warrior badge', desc_ar:'شارة محارب حصرية للعائلة' },
     { id:'fs2', emoji:'🛡️', name_en:'Shield Badge',    name_ar:'شارة الدرع',      cost:50,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Honor shield badge',             desc_ar:'شارة درع الشرف' },
     { id:'fs3', emoji:'👑', name_en:'Crown Badge',     name_ar:'شارة التاج',      cost:100, type:'badge',  rarity:'epic',       durationDays:7, desc_en:'Royal crown clan badge',         desc_ar:'شارة تاج ملكي' },
@@ -140,7 +144,7 @@ export const FAMILY_SHOP_ITEMS = [
     { id:'fs10', emoji:'🦁', name_en:'Lion Title',     name_ar:'لقب الأسد',        cost:250, type:'title',  rarity:'epic',       durationDays:7, desc_en:'Pride of the clan lion title',   desc_ar:'لقب أسد فخر العائلة' },
 ];
 
-export const FAMILY_SIGN_IMAGES = [
+var FAMILY_SIGN_IMAGES = [
     { level: 1, threshold: 1000,   imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign1.png' },
     { level: 2, threshold: 10000,  imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign2.png' },
     { level: 3, threshold: 30000,  imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign3.png' },
@@ -148,7 +152,7 @@ export const FAMILY_SIGN_IMAGES = [
     { level: 5, threshold: 300000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign5.png' },
 ];
 
-export const VIP_ID_ICONS = {
+var VIP_ID_ICONS = {
     6:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip.png',
     7:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip6.png',
     8:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip7.png',
@@ -156,14 +160,14 @@ export const VIP_ID_ICONS = {
     10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip10.png',
 };
 
-export const ID_ICON_IMAGE_URL = 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idon.png';
-export const FAMILY_COINS_SYMBOL = '🏅';
-export const MAX_BADGES = 10;
+var ID_ICON_IMAGE_URL = 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idon.png';
+var FAMILY_COINS_SYMBOL = '🏅';
+var MAX_BADGES = 10;
 
 // 🏰 FAMILY SYSTEM CONFIG
-export const FAMILY_CREATE_COST = 500;
+var FAMILY_CREATE_COST = 500;
 
-export const FAMILY_LEVEL_CONFIG = [
+var FAMILY_LEVEL_CONFIG = [
     { level:1,  activeness:0,       name_en:'Rookie',     name_ar:'مبتدئة',   color:'#4ade80', maxMembers:20,  icon:'🌱', upgradeCost:0,     imageURL: null },
     { level:2,  activeness:8000,    name_en:'Rising',     name_ar:'صاعدة',    color:'#22d3ee', maxMembers:25,  icon:'⬆️', upgradeCost:1000,  imageURL: null },
     { level:3,  activeness:24000,   name_en:'Established',name_ar:'راسخة',    color:'#60a5fa', maxMembers:30,  icon:'🏕️', upgradeCost:2000,  imageURL: null },
@@ -176,7 +180,7 @@ export const FAMILY_LEVEL_CONFIG = [
     { level:10, activeness:2000000, name_en:'GOAT',       name_ar:'الأعظم',   color:'#00d4ff', maxMembers:160, icon:'🌌', upgradeCost:0,     imageURL: null },
 ];
 
-export const FAMILY_SIGN_LEVELS = [
+var FAMILY_SIGN_LEVELS = [
     { level:1, threshold:1000,   name_ar:'ساين المستوى 1',  name_en:'Sign Level 1',  color:'#6b7280', glow:'rgba(107,114,128,0.3)', defaultIcon:'🏠', bg:'rgba(107,114,128,0.15)' },
     { level:2, threshold:10000,  name_ar:'ساين المستوى 2',  name_en:'Sign Level 2',  color:'#22d3ee', glow:'rgba(34,211,238,0.4)',  defaultIcon:'⚔️', bg:'rgba(34,211,238,0.15)' },
     { level:3, threshold:30000,  name_ar:'ساين المستوى 3',  name_en:'Sign Level 3',  color:'#fbbf24', glow:'rgba(251,191,36,0.4)',  defaultIcon:'🛡️', bg:'rgba(251,191,36,0.15)' },
@@ -184,7 +188,7 @@ export const FAMILY_SIGN_LEVELS = [
     { level:5, threshold:300000, name_ar:'ساين المستوى 5',  name_en:'Sign Level 5',  color:'#ef4444', glow:'rgba(239,68,68,0.65)',  defaultIcon:'🌟', bg:'rgba(239,68,68,0.15)',   hasGlow:true },
 ];
 
-export const FAMILY_TASKS_CONFIG = [
+var FAMILY_TASKS_CONFIG = [
     { id:'ft1', icon:'🎮', title_en:'Play 5 Games',        title_ar:'العب 5 ألعاب',        sub_en:'Play 5 spy games this week',      sub_ar:'العب 5 ألعاب جاسوس هذا الأسبوع', target:5,   daily:false, reward:{ intel:50,  xp:200,  coins:5,  icon:'🏅' } },
     { id:'ft2', icon:'🏆', title_en:'Win 3 Games',         title_ar:'اكسب 3 ألعاب',        sub_en:'Win 3 games to earn rewards',     sub_ar:'اكسب 3 ألعاب للحصول على المكافآت', target:3,  daily:false, reward:{ intel:100, xp:400,  coins:10, icon:'🏅' } },
     { id:'ft3', icon:'💰', title_en:'Donate 500 Intel',    title_ar:'تبرع بـ 500 إنتل',     sub_en:'Donate 500 Intel to family fund', sub_ar:'تبرع بـ 500 إنتل لصندوق العائلة', target:500, daily:false, reward:{ intel:80,  xp:300,  coins:8,  icon:'🏅' } },
@@ -194,20 +198,20 @@ export const FAMILY_TASKS_CONFIG = [
     { id:'ft7', icon:'❤️', title_en:'Daily Like Mission',  title_ar:'مهمة الإعجاب اليومي',  sub_en:'Like 3 clanmates profiles/posts', sub_ar:'أعجب بـ 3 منشورات/بروفايلات أعضاء', target:3, daily:true,  reward:{ intel:40,  xp:150,  coins:4,  icon:'🏅' } },
 ];
 
-export const FAMILY_ROLE_CONFIG = {
+var FAMILY_ROLE_CONFIG = {
     owner:     { label_en:'Owner',  label_ar:'المالك', color:'#ffd700', bg:'rgba(255,215,0,0.18)',    border:'rgba(255,215,0,0.45)',    icon:'👑' },
     admin:     { label_en:'Admin',  label_ar:'أدمن',   color:'#ef4444', bg:'rgba(239,68,68,0.18)',    border:'rgba(239,68,68,0.45)',    icon:'🛡️' },
     moderator: { label_en:'Mod',    label_ar:'مشرف',   color:'#3b82f6', bg:'rgba(59,130,246,0.18)',   border:'rgba(59,130,246,0.45)',   icon:'🔰' },
     member:    { label_en:'Member', label_ar:'عضو',    color:'#6b7280', bg:'rgba(107,114,128,0.12)',  border:'rgba(107,114,128,0.3)',   icon:'👤' },
 };
 
-export const FAMILY_EMBLEMS = ['🏠','⚔️','🛡️','🔥','🌊','⚡','🌙','🌟','💎','👑','🐉','🦁','🐺','🦅','🦋','🌹','🏹','🎯','🌈','💫'];
+var FAMILY_EMBLEMS = ['🏠','⚔️','🛡️','🔥','🌊','⚡','🌙','🌟','💎','👑','🐉','🦁','🐺','🦅','🦋','🌹','🏹','🎯','🌈','💫'];
 
 // --- UI Helpers ---
 
 // Portal helper - renders children on document.body to escape backdrop-filter stacking context
-export const PortalModal = ({ children }) => {
-    const el = React.useRef(document.createElement('div'));
+var PortalModal = ({ children }) => {
+    var el = React.useRef(document.createElement('div'));
     React.useEffect(() => {
         document.body.appendChild(el.current);
         return () => { if (el.current.parentNode) el.current.parentNode.removeChild(el.current); };
@@ -215,18 +219,27 @@ export const PortalModal = ({ children }) => {
     return ReactDOM.createPortal(children, el.current);
 };
 
-export const getFamilySignImage = (activeness = 0) => {
+var getFamilySignImage = (activeness = 0) => {
     // Find the highest level where threshold <= activeness
-    const signs = [...FAMILY_SIGN_IMAGES].sort((a,b) => b.threshold - a.threshold);
-    const matched = signs.find(s => activeness >= s.threshold);
+    var signs = [...FAMILY_SIGN_IMAGES].sort((a,b) => b.threshold - a.threshold);
+    var matched = signs.find(s => activeness >= s.threshold);
     return matched ? matched.imageURL : null;
 };
 
-export const getFamilySignLevelData = (activeness = 0) => {
-    const levels = [...FAMILY_SIGN_LEVELS].sort((a,b) => b.threshold - a.threshold);
+var getFamilySignLevelData = (activeness = 0) => {
+    var levels = [...FAMILY_SIGN_LEVELS].sort((a,b) => b.threshold - a.threshold);
     return levels.find(l => activeness >= l.threshold) || FAMILY_SIGN_LEVELS[0];
 };
 
-export const getFamilyLevelConfig = (level = 1) => {
+var getFamilyLevelConfig = (level = 1) => {
     return FAMILY_LEVEL_CONFIG.find(c => c.level === level) || FAMILY_LEVEL_CONFIG[0];
+};
+
+// Expose to window
+window.FamilyConstants = {
+    OWNER_UID, ADMIN_UIDS, ROLE_CONFIG, Z, CHEST_CONFIG, GACHA_CONFIG_BASIC, GACHA_CONFIG_PREMIUM, 
+    DAILY_TASKS_MILESTONES, ACTIVENESS_MILESTONES, FAMILY_SHOP_ITEMS, FAMILY_SIGN_IMAGES,
+    VIP_ID_ICONS, ID_ICON_IMAGE_URL, FAMILY_COINS_SYMBOL, MAX_BADGES, FAMILY_CREATE_COST,
+    FAMILY_LEVEL_CONFIG, FAMILY_SIGN_LEVELS, FAMILY_TASKS_CONFIG, FAMILY_ROLE_CONFIG,
+    FAMILY_EMBLEMS, PortalModal, getFamilySignImage, getFamilySignLevelData, getFamilyLevelConfig
 };

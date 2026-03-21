@@ -1,10 +1,10 @@
-let audioContext = null;
-let isAudioInitialized = false;
+var audioContext = null;
+var isAudioInitialized = false;
 
-const initAudioContext = () => {
+var initAudioContext = () => {
     if (audioContext) return audioContext;
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        var AudioContext = window.AudioContext || window.webkitAudioContext;
         audioContext = new AudioContext();
         isAudioInitialized = true;
         return audioContext;
@@ -13,7 +13,7 @@ const initAudioContext = () => {
     }
 };
 
-const playSound = (type) => {
+var playSound = (type) => {
     try {
         // Check if sound is muted
         if (typeof window !== 'undefined' && window.proSpySoundMuted) return;
@@ -23,11 +23,11 @@ const playSound = (type) => {
         if (!audioContext) return;
         if (audioContext.state === 'suspended') audioContext.resume();
 
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+        var oscillator = audioContext.createOscillator();
+        var gainNode = audioContext.createGain();
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        const now = audioContext.currentTime;
+        var now = audioContext.currentTime;
 
         switch(type) {
             case 'click':
@@ -92,7 +92,7 @@ const playSound = (type) => {
     }
 };
 
-const initAudioOnFirstInteraction = () => {
+var initAudioOnFirstInteraction = () => {
     if (!isAudioInitialized) {
         initAudioContext();
         playSound('click');
@@ -105,16 +105,16 @@ if (typeof window !== 'undefined') {
 }
 
 if (typeof window !== 'undefined') {
-    const initEvents = ['click', 'touchstart', 'keydown'];
-    const initHandler = () => {
+    var initEvents = ['click', 'touchstart', 'keydown'];
+    var initHandler = () => {
         initAudioOnFirstInteraction();
         initEvents.forEach(event => document.removeEventListener(event, initHandler));
     };
     initEvents.forEach(event => document.addEventListener(event, initHandler, { once: true }));
 }
 
-const playNotificationSound = () => playSound('notification');
-const playRewardSound = () => playSound('reward');
+var playNotificationSound = () => playSound('notification');
+var playRewardSound = () => playSound('reward');
 // playGiftSound removed — was never called anywhere in the project
 
 // LOGIN REWARDS - 30 DAYS

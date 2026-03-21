@@ -20,13 +20,13 @@ class ErrorBoundary extends React.Component {
 }
 
 // Guest Banner
-const GuestBanner = ({ lang }) => {
+var GuestBanner = ({ lang }) => {
     const t = TRANSLATIONS[lang];
     return ( <div className="guest-banner"> <h3 className="guest-banner-title">{t.guestTitle}</h3> <p className="guest-banner-desc">{t.guestDesc}</p> </div> );
 };
 
 // Notification Toast — Modern sliding pill from top
-const NotificationToast = ({ message, onClose }) => {
+var NotificationToast = ({ message, onClose }) => {
     const [visible, setVisible] = useState(false);
     const [exiting, setExiting] = useState(false);
 
@@ -116,10 +116,10 @@ const NotificationToast = ({ message, onClose }) => {
 };
 
 // Modal Close Button
-const ModalCloseBtn = ({ onClose }) => (<button onClick={onClose} className="modal-close-btn" aria-label="Close">&times;</button>);
+var ModalCloseBtn = ({ onClose }) => (<button onClick={onClose} className="modal-close-btn" aria-label="Close">&times;</button>);
 
 // Charisma Display
-const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
+var CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
     const t = TRANSLATIONS[lang];
     const { currentLevel, nextLevel } = getCharismaLevel(charisma || 0);
     const progress = getCharismaProgress(charisma || 0);
@@ -172,7 +172,7 @@ const CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
 // ── renderBadges removed (dead code — never called anywhere in project)
 
 // Notification Dropdown
-const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, lang }) => {
+var AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, lang }) => {
     const sizeConfig = { sm: { wrapper: 52, avatar: 30, mask: 32 }, md: { wrapper: 72, avatar: 40, mask: 42 }, lg: { wrapper: 110, avatar: 60, mask: 62 }, xl: { wrapper: 140, avatar: 80, mask: 82 } };
     const config = sizeConfig[size] || sizeConfig.md;
     const frameItem = SHOP_ITEMS.frames.find(f => f.id === equipped?.frames);
@@ -233,7 +233,7 @@ const AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, la
 // ── renderBadges removed (dead code — never called anywhere in project)
 
 // Notification Dropdown
-const NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClearAll, onNotificationClick, lang }) => {
+var NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClearAll, onNotificationClick, lang }) => {
     const t = TRANSLATIONS[lang];
     if (!show) return null;
     const unreadCount = notifications.filter(n => !n.read).length;

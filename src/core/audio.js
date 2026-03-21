@@ -1,11 +1,11 @@
-let audioContext = null;
-let isAudioInitialized = false;
+var audioContext = null;
+var isAudioInitialized = false;
 
-const initAudioContext = () => {
+var initAudioContext = () => {
     if (audioContext) return audioContext;
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioContext = new AudioContext();
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioCtx();
         isAudioInitialized = true;
         return audioContext;
     } catch (e) {
@@ -13,7 +13,7 @@ const initAudioContext = () => {
     }
 };
 
-export const playSound = (type) => {
+var playSound = (type) => {
     try {
         if (typeof window !== 'undefined' && window.proSpySoundMuted) return;
         if (localStorage.getItem('pro_spy_sound_muted') === 'true') return;
@@ -22,11 +22,11 @@ export const playSound = (type) => {
         if (!audioContext) return;
         if (audioContext.state === 'suspended') audioContext.resume();
 
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+        var oscillator = audioContext.createOscillator();
+        var gainNode = audioContext.createGain();
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        const now = audioContext.currentTime;
+        var now = audioContext.currentTime;
 
         switch(type) {
             case 'click':
@@ -80,8 +80,16 @@ export const playSound = (type) => {
     } catch (e) {}
 };
 
-export const playNotificationSound = () => playSound('notification');
-export const playRewardSound = () => playSound('reward');
-export const playMessageSound = () => playSound('message');
-export const playSuccessSound = () => playSound('success');
-export const playClickSound = () => playSound('click');
+var playNotificationSound = () => playSound('notification');
+var playRewardSound       = () => playSound('reward');
+var playMessageSound      = () => playSound('message');
+var playSuccessSound      = () => playSound('success');
+var playClickSound        = () => playSound('click');
+
+// Expose to window for global access
+window.playSound = playSound;
+window.playNotificationSound = playNotificationSound;
+window.playRewardSound = playRewardSound;
+window.playMessageSound = playMessageSound;
+window.playSuccessSound = playSuccessSound;
+window.playClickSound = playClickSound;
