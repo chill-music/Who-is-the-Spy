@@ -798,7 +798,7 @@ var searchFamilyByTag = async (tag) => {
 /**
  * Sends a message to the family chat.
  */
-const sendMessage = async ({ familyId, currentUID, currentUserData, text, image, type = 'text' }) => {
+var sendMessage = async ({ familyId, currentUID, currentUserData, text, image, type = 'text' }) => {
     if (!familyId || (!text?.trim() && !image)) return;
     
     const msgData = {
@@ -830,7 +830,7 @@ const sendMessage = async ({ familyId, currentUID, currentUserData, text, image,
 /**
  * Handles image file upload and returns a data URL (resized).
  */
-const handleImageUpload = (file) => {
+var handleImageUpload = (file) => {
     return new Promise((resolve, reject) => {
         if (!file) { reject('No file'); return; }
         const reader = new FileReader();
@@ -861,7 +861,7 @@ const handleImageUpload = (file) => {
 /**
  * Claims a daily milestone chest.
  */
-const claimDailyMilestoneChest = async ({ family, currentUID, msIdx, ms, lang, onNotification }) => {
+var claimDailyMilestoneChest = async ({ family, currentUID, msIdx, ms, lang, onNotification }) => {
     if (!family?.id || !currentUID) return;
     const today = new Date().toDateString();
     const dailyPtsKey = `dailyPts_${today}_${currentUID}`;
@@ -892,7 +892,7 @@ const claimDailyMilestoneChest = async ({ family, currentUID, msIdx, ms, lang, o
 /**
  * Claims a family task.
  */
-const claimTask = async ({ family, currentUID, task, lang, onNotification }) => {
+var claimTask = async ({ family, currentUID, task, lang, onNotification }) => {
     if (!family?.id || !currentUID) return;
     const key = `${task.id}_${currentUID}`;
     const taskProgress = family.taskProgress || {};
@@ -928,7 +928,7 @@ const claimTask = async ({ family, currentUID, task, lang, onNotification }) => 
 /**
  * Handles daily check-in task.
  */
-const handleCheckIn = async ({ family, currentUID, lang, onNotification }) => {
+var handleCheckIn = async ({ family, currentUID, lang, onNotification }) => {
     if (!family?.id || !currentUID) return;
     const today = new Date().toDateString();
     const key = `ft4_${currentUID}`;
@@ -955,7 +955,7 @@ const handleCheckIn = async ({ family, currentUID, lang, onNotification }) => {
 /**
  * Purchases an item from the family shop.
  */
-const buyShopItem = async ({ currentUID, family, item, lang, onNotification }) => {
+var buyShopItem = async ({ currentUID, family, item, lang, onNotification }) => {
     if (!currentUID || !family?.id || !item) return;
     const coins = family.familyCoins || 0;
     const purchases = family.shopPurchases || {};

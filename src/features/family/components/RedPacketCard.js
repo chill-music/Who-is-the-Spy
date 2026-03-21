@@ -1,4 +1,4 @@
-const { redPacketsCollection } = window;
+var { redPacketsCollection } = window;
 
 /**
  * 🧧 RED PACKET CARD — Tap once to see details, tap Claim to get funds

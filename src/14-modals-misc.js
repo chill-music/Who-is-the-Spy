@@ -902,7 +902,7 @@ const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotif
 // 🧧 RED PACKET CARD — Tap once to see details, tap Claim to get funds
 //    Used in Public Chat, Family Chat, Group Chat
 // ════════════════════════════════════════════════════════
-const RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user, currentUser, lang, onClaim }) => {
+var RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user, currentUser, lang, onClaim }) => {
     const [showDetails, setShowDetails] = React.useState(false);
     const [rpData, setRpData] = React.useState(null);
     const [loading, setLoading] = React.useState(false);

@@ -62,7 +62,7 @@ var FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = null,
 };
 
 // Common styles for Family components
-const S = {
+var S = {
     card: {
         background: 'rgba(255,255,255,0.03)',
         border: '1px solid rgba(255,255,255,0.06)',
