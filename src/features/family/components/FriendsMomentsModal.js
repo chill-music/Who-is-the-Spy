@@ -1,4 +1,4 @@
-const { momentsCollection, notificationsCollection, TS, firebase } = window;
+var { momentsCollection, notificationsCollection, TS, firebase } = window;
 
 var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, currentUID, friendsData, lang, onOpenProfile, PortalModal, Z }) => {
     const [moments, setMoments] = React.useState([]);

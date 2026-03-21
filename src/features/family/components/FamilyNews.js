@@ -1,7 +1,7 @@
 /**
  * FamilyNews.js - Renders the family news feed.
  */
-const { fmtFamilyTime, fmtFamilyNum } = window;
+var { fmtFamilyTime, fmtFamilyNum } = window;
 
 var FamilyNews = ({ family, currentUserData, lang }) => {
     const newsTypeIcon = { 

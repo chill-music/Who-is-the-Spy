@@ -1,7 +1,7 @@
 // --- Firebase Configuration & Initialization ---
 // This file initializes Firebase once and exports the db, auth, and collections.
 
-const firebaseConfig = {
+var firebaseConfig = {
     apiKey: "AIzaSyApAJaNfF0YHupunLRlK3jRYvttxczWShY",
     authDomain: "who-is-the-spy-919b9.firebaseapp.com",
     projectId: "who-is-the-spy-919b9",
@@ -20,7 +20,7 @@ export const db = firebase.firestore();
 export const appId = 'pro_spy_v25_final_fix_complete';
 
 // Helper for references
-const getPublicDoc = (coll) => db.collection('artifacts').doc(appId).collection('public').doc('data').collection(coll);
+var getPublicDoc = (coll) => db.collection('artifacts').doc(appId).collection('public').doc('data').collection(coll);
 
 // COLLECTIONS
 export const usersCollection = getPublicDoc('users');

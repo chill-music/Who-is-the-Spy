@@ -1,10 +1,10 @@
-// ��������������������������������������������������������
-// � VIP SYSTEM � 10 Levels
-//    �� بادجات VIP �اب�ة ��تخص�ص �� ��ا
-// ��������������������������������������������������������
+// ════════════════════════════════════════════════════════
+// 👑 VIP SYSTEM — 10 Levels
+//    كل بادجات VIP قابلة للتخصيص من هنا
+// ════════════════════════════════════════════════════════
 
-// � VIP BADGE IMAGES � ضع ر�ابط ص�ر ا�بادجات ��ا
-var IP_BADGE_URLS = {
+// 🔧 VIP BADGE IMAGES — ضع روابط صور البادجات هنا
+var VIP_BADGE_URLS = {
     1:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip1.png',   // رابط بادج VIP 1
     2:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip2.png',   // رابط بادج VIP 2
     3:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip3.png',   // رابط بادج VIP 3
@@ -17,8 +17,8 @@ var IP_BADGE_URLS = {
     10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip10.png',   // رابط بادج VIP 10
 };
 
-// � VIP CHAT TITLE IMAGES � ص�ر Title ف� ا�شات خ�ف اس� ا��ستخد�
-var IP_CHAT_TITLE_URLS = {
+// 🔧 VIP CHAT TITLE IMAGES — صور Title في الشات خلف اسم المستخدم
+var VIP_CHAT_TITLE_URLS = {
     1:  '',
     2:  '',
     3:  '',
@@ -31,9 +31,9 @@ var IP_CHAT_TITLE_URLS = {
     10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip10.png',
 };
 
-// � VIP MOMENT BACKGROUNDS � خ�ف�ة ا�� Moments �� ��ف� 2 �� 10
-var IP_MOMENT_BG_URLS = {
-    2:  '',   // رابط خ�ف�ة Moments �� VIP 2
+// 🔧 VIP MOMENT BACKGROUNDS — خلفية الـ Moments من ليفل 2 لـ 10
+var VIP_MOMENT_BG_URLS = {
+    2:  '',   // رابط خلفية Moments لـ VIP 2
     3:  '',
     4:  '',
     5:  '',
@@ -44,35 +44,35 @@ var IP_MOMENT_BG_URLS = {
     10: '',
 };
 
-// ���� VIP XP SYSTEM ����
-// XP �ط��ب ���ص�� ��� �ست�� (�حسب ترا��� � �ج��ع ا�� XP ا����)
-var IP_XP_THRESHOLDS = {
-    0: 0,        // عاد�
-    1: 5000,     // VIP 1 � 5,000 XP
-    2: 15000,    // VIP 2 � 15,000 XP
-    3: 35000,    // VIP 3 � 35,000 XP
-    4: 70000,    // VIP 4 � 70,000 XP
-    5: 120000,   // VIP 5 � 120,000 XP
-    6: 200000,   // VIP 6 � 200,000 XP
-    7: 320000,   // VIP 7 � 320,000 XP
-    8: 480000,   // VIP 8 � 480,000 XP
-    9: 700000,   // VIP 9 � 700,000 XP
-    10: 1000000, // VIP 10 � 1,000,000 XP
+// ════ VIP XP SYSTEM ════
+// XP مطلوب للوصول لكل مستوى (يحسب تراكمي — مجموع الـ XP الكلي)
+var VIP_XP_THRESHOLDS = {
+    0: 0,        // عادي
+    1: 5000,     // VIP 1 — 5,000 XP
+    2: 15000,    // VIP 2 — 15,000 XP
+    3: 35000,    // VIP 3 — 35,000 XP
+    4: 70000,    // VIP 4 — 70,000 XP
+    5: 120000,   // VIP 5 — 120,000 XP
+    6: 200000,   // VIP 6 — 200,000 XP
+    7: 320000,   // VIP 7 — 320,000 XP
+    8: 480000,   // VIP 8 — 480,000 XP
+    9: 700000,   // VIP 9 — 700,000 XP
+    10: 1000000, // VIP 10 — 1,000,000 XP
 };
 
-// XP ا��� ��سب� ا��اعب �� �� �د�ة �بعت�ا = �سبة �� ا�� charisma بتاع ا��د�ة
-var IP_XP_PER_CHARISMA_RATE = 0.05; // 5% �� ا�� charisma � VIP XP
+// XP اللي يكسبه اللاعب من كل هدية يبعتها = نسبة من الـ charisma بتاع الهدية
+var VIP_XP_PER_CHARISMA_RATE = 0.05; // 5% من الـ charisma → VIP XP
 
-// حساب VIP XP �� �د�ة �ع��ة
-// � �� ا��د�ة ع�د�ا vipXP �حدد �د��ا� �ُستخد�� غ�ر �د� �ُحسب 5% �� ا��ار�ز�ا
-var etGiftVIPXP = (gift) => {
+// حساب VIP XP من هدية معينة
+// ✅ لو الهدية عندها vipXP محدد يدوياً يُستخدم، غير كده يُحسب 5% من الكاريزما
+var getGiftVIPXP = (gift) => {
     if (gift.vipXP !== undefined && gift.vipXP !== null) return Math.max(1, gift.vipXP);
     const xp = Math.round((gift.charisma || 0) * VIP_XP_PER_CHARISMA_RATE);
     return Math.max(1, xp); // minimum 1 XP per gift
 };
 
-// حساب �ست�� VIP �� ا�� XP ا����
-var etVIPLevelFromXP = (totalXP) => {
+// حساب مستوى VIP من الـ XP الكلي
+var getVIPLevelFromXP = (totalXP) => {
     let level = 0;
     for (let lvl = 10; lvl >= 1; lvl--) {
         if (totalXP >= VIP_XP_THRESHOLDS[lvl]) {
@@ -83,8 +83,8 @@ var etVIPLevelFromXP = (totalXP) => {
     return level;
 };
 
-// Progress ���ست�� ا��اد�
-var etVIPXPProgress = (totalXP) => {
+// Progress للمستوى القادم
+var getVIPXPProgress = (totalXP) => {
     const currentLevel = getVIPLevelFromXP(totalXP);
     if (currentLevel >= 10) return { currentLevel: 10, progress: 100, xpInLevel: 0, xpNeeded: 0, totalXP };
     const currentThreshold = VIP_XP_THRESHOLDS[currentLevel];
@@ -95,51 +95,51 @@ var etVIPXPProgress = (totalXP) => {
     return { currentLevel, progress, xpInLevel, xpNeeded, totalXP };
 };
 
-// ���� VIP CONFIG � ا�إعدادات ا��ا��ة ��� �ست�� ����
-var IP_CONFIG = [
+// ════ VIP CONFIG — الإعدادات الكاملة لكل مستوى ════
+var VIP_CONFIG = [
     {
         level: 1,
-        name_en: 'VIP I',       name_ar: 'ف� آ� ب� 1',
-        // ا����: أح�ر �� 1-5
+        name_en: 'VIP I',       name_ar: 'في آي بي 1',
+        // اللون: أحمر لـ 1-5
         nameColor: '#ef4444',
         glowColor: null,
         gradientAnim: false,
         xpMultiplier: 1.2,           // x1.2 XP
-        idLength: 6,                  // ط�� ID عاد�
-        customIdLength: null,         // �ا custom ID
+        idLength: 6,                  // طول ID عادي
+        customIdLength: null,         // لا custom ID
         exclusiveGifts: false,
         vipDailyTasks: false,
         exclusiveForm: false,
-        // �� VIP Items � ع�اصر تُضاف ��إ�ف�تر� ع�د ا�شراء �تختف� ��ا VIP ��ت��
-        // �ثا�: [{ id: 'frame_vip1_gold', type: 'frames' }, { id: 'badge_vip1_star', type: 'badges' }]
-        vipItems: [],  // � VIP 1 أضف ��ا ع�اصر ا��ست�� ا�أ��
-        // �️ ص�رة �ب� ا�� ID ف� ا�بر�فا�� � ضع رابط ص�رة/GIF ��ا أ� null
-        idBeforeImageUrl: null, // � VIP 1: ضع رابط ا�ص�رة ��ا
-        benefits_en: ['1.2� XP Multiplier', 'VIP Badge'],
-        benefits_ar: ['�ضاعف XP � 1.2', 'بادج VIP'],
+        // 🎁 VIP Items — عناصر تُضاف للإنفنتري عند الشراء وتختفي لما VIP ينتهي
+        // مثال: [{ id: 'frame_vip1_gold', type: 'frames' }, { id: 'badge_vip1_star', type: 'badges' }]
+        vipItems: [],  // ← VIP 1 أضف هنا عناصر المستوى الأول
+        // 🖼️ صورة قبل الـ ID في البروفايل — ضع رابط صورة/GIF هنا أو null
+        idBeforeImageUrl: null, // ← VIP 1: ضع رابط الصورة هنا
+        benefits_en: ['1.2× XP Multiplier', 'VIP Badge'],
+        benefits_ar: ['مضاعف XP × 1.2', 'بادج VIP'],
     },
     {
         level: 2,
-        name_en: 'VIP II',      name_ar: 'ف� آ� ب� 2',
+        name_en: 'VIP II',      name_ar: 'في آي بي 2',
         nameColor: '#ef4444',
         glowColor: null,
         gradientAnim: false,
         xpMultiplier: 1.3,
         idLength: 6,
         customIdLength: null,
-        exclusiveGifts: true,         // �� �دا�ا حصر�ة �� ��ا
-        vipDailyTasks: true,          // � تفع�� Daily Tasks VIP
+        exclusiveGifts: true,         // 🎁 هدايا حصرية من هنا
+        vipDailyTasks: true,          // ✅ تفعيل Daily Tasks VIP
         exclusiveForm: false,
-        // �� VIP Items Level 2 � أضف ع�اصر ��ا (تُ��ح ع�د ا�شراء� تُسحب ع�د ا�ت�اء VIP)
-        vipItems: [],  // � �ثا�: [{ id: 'frame_vip2', type: 'frames' }]
-        // �️ ص�رة �ب� ا�� ID ف� ا�بر�فا��
-        idBeforeImageUrl: null, // � VIP 2: ضع رابط ا�ص�رة ��ا
-        benefits_en: ['1.3� XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
-        benefits_ar: ['�ضاعف XP � 1.3', 'بادج VIP', '�دا�ا حصر�ة', '��ا� ����ة VIP'],
+        // 🎁 VIP Items Level 2 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip2', type: 'frames' }]
+        // 🖼️ صورة قبل الـ ID في البروفايل
+        idBeforeImageUrl: null, // ← VIP 2: ضع رابط الصورة هنا
+        benefits_en: ['1.3× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+        benefits_ar: ['مضاعف XP × 1.3', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
     {
         level: 3,
-        name_en: 'VIP III',     name_ar: 'ف� آ� ب� 3',
+        name_en: 'VIP III',     name_ar: 'في آي بي 3',
         nameColor: '#ef4444',
         glowColor: null,
         gradientAnim: false,
@@ -149,15 +149,15 @@ var IP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
-        // �� VIP Items Level 3 � أضف ع�اصر ��ا (تُ��ح ع�د ا�شراء� تُسحب ع�د ا�ت�اء VIP)
-        vipItems: [],  // � �ثا�: [{ id: 'frame_vip3', type: 'frames' }]
-        idBeforeImageUrl: null, // � VIP 3: ضع رابط ا�ص�رة ��ا
-        benefits_en: ['1.4� XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
-        benefits_ar: ['�ضاعف XP � 1.4', 'بادج VIP', '�دا�ا حصر�ة', '��ا� ����ة VIP'],
+        // 🎁 VIP Items Level 3 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip3', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 3: ضع رابط الصورة هنا
+        benefits_en: ['1.4× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+        benefits_ar: ['مضاعف XP × 1.4', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
     {
         level: 4,
-        name_en: 'VIP IV',      name_ar: 'ف� آ� ب� 4',
+        name_en: 'VIP IV',      name_ar: 'في آي بي 4',
         nameColor: '#ef4444',
         glowColor: null,
         gradientAnim: false,
@@ -167,15 +167,15 @@ var IP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
-        // �� VIP Items Level 4 � أضف ع�اصر ��ا (تُ��ح ع�د ا�شراء� تُسحب ع�د ا�ت�اء VIP)
-        vipItems: [],  // � �ثا�: [{ id: 'frame_vip4', type: 'frames' }]
-        idBeforeImageUrl: null, // � VIP 4: ضع رابط ا�ص�رة ��ا
-        benefits_en: ['1.5� XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
-        benefits_ar: ['�ضاعف XP � 1.5', 'بادج VIP', '�دا�ا حصر�ة', '��ا� ����ة VIP'],
+        // 🎁 VIP Items Level 4 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip4', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 4: ضع رابط الصورة هنا
+        benefits_en: ['1.5× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+        benefits_ar: ['مضاعف XP × 1.5', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
     {
         level: 5,
-        name_en: 'VIP V',       name_ar: 'ف� آ� ب� 5',
+        name_en: 'VIP V',       name_ar: 'في آي بي 5',
         nameColor: '#ef4444',
         glowColor: null,
         gradientAnim: false,
@@ -185,16 +185,16 @@ var IP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
-        // �� VIP Items Level 5 � أضف ع�اصر ��ا (تُ��ح ع�د ا�شراء� تُسحب ع�د ا�ت�اء VIP)
-        vipItems: [],  // � �ثا�: [{ id: 'frame_vip5', type: 'frames' }]
-        idBeforeImageUrl: null, // � VIP 5: ضع رابط ا�ص�رة ��ا
-        benefits_en: ['1.6� XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
-        benefits_ar: ['�ضاعف XP � 1.6', 'بادج VIP', '�دا�ا حصر�ة', '��ا� ����ة VIP'],
+        // 🎁 VIP Items Level 5 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip5', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 5: ضع رابط الصورة هنا
+        benefits_en: ['1.6× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+        benefits_ar: ['مضاعف XP × 1.6', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP'],
     },
     {
         level: 6,
-        name_en: 'VIP VI',      name_ar: 'ف� آ� ب� 6',
-        // Yellow + Glow �� 6-8
+        name_en: 'VIP VI',      name_ar: 'في آي بي 6',
+        // Yellow + Glow لـ 6-8
         nameColor: '#eab308',
         glowColor: 'rgba(234,179,8,0.8)',
         gradientAnim: false,
@@ -204,16 +204,16 @@ var IP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
-        // �� VIP Items Level 6 � أضف ع�اصر ��ا (تُ��ح ع�د ا�شراء� تُسحب ع�د ا�ت�اء VIP)
-        vipItems: [],  // � �ثا�: [{ id: 'frame_vip6', type: 'frames' }]
-        idBeforeImageUrl: null, // � VIP 6: ضع رابط ا�ص�رة ��ا
-        idIconImageUrl: null,   // � VIP 6: أ����ة ���زة أ�ا� ا�� ID (ذ�ب�ة �ث�ا�)
-        benefits_en: ['1.7� XP', 'Gold Name Glow', 'Custom 6-Digit ID', 'Exclusive Gifts', 'VIP Daily Tasks'],
-        benefits_ar: ['�ضاعف XP � 1.7', 'ت��ج اس� ذ�ب�', 'ID �خصص 6 أر�ا�', '�دا�ا حصر�ة', '��ا� ����ة VIP'],
+        // 🎁 VIP Items Level 6 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip6', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 6: ضع رابط الصورة هنا
+        idIconImageUrl: null,   // ← VIP 6: أيقونة مميزة أمام الـ ID (ذهبية مثلاً)
+        benefits_en: ['1.7× XP', 'Gold Name Glow', 'Custom 6-Digit ID', 'Exclusive Gifts', 'VIP Daily Tasks'],
+        benefits_ar: ['مضاعف XP × 1.7', 'توهج اسم ذهبي', 'ID مخصص 6 أرقام', 'هدايا حصرية', 'مهام يومية VIP'],
     },
     {
         level: 7,
-        name_en: 'VIP VII',     name_ar: 'ف� آ� ب� 7',
+        name_en: 'VIP VII',     name_ar: 'في آي بي 7',
         nameColor: '#eab308',
         glowColor: 'rgba(234,179,8,0.9)',
         gradientAnim: false,
@@ -223,16 +223,16 @@ var IP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
-        // �� VIP Items Level 7 � أضف ع�اصر ��ا (تُ��ح ع�د ا�شراء� تُسحب ع�د ا�ت�اء VIP)
-        vipItems: [],  // � �ثا�: [{ id: 'frame_vip7', type: 'frames' }]
-        idBeforeImageUrl: null, // � VIP 7: ضع رابط ا�ص�رة ��ا
-        idIconImageUrl: null,   // � VIP 7: أ����ة ���زة أ�ا� ا�� ID
-        benefits_en: ['1.8� XP', 'Gold Name Glow', 'Custom 5-Digit ID', 'Exclusive Gifts'],
-        benefits_ar: ['�ضاعف XP � 1.8', 'ت��ج اس� ذ�ب�', 'ID �خصص 5 أر�ا�', '�دا�ا حصر�ة'],
+        // 🎁 VIP Items Level 7 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip7', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 7: ضع رابط الصورة هنا
+        idIconImageUrl: null,   // ← VIP 7: أيقونة مميزة أمام الـ ID
+        benefits_en: ['1.8× XP', 'Gold Name Glow', 'Custom 5-Digit ID', 'Exclusive Gifts'],
+        benefits_ar: ['مضاعف XP × 1.8', 'توهج اسم ذهبي', 'ID مخصص 5 أرقام', 'هدايا حصرية'],
     },
     {
         level: 8,
-        name_en: 'VIP VIII',    name_ar: 'ف� آ� ب� 8',
+        name_en: 'VIP VIII',    name_ar: 'في آي بي 8',
         nameColor: '#eab308',
         glowColor: 'rgba(234,179,8,1)',
         gradientAnim: false,
@@ -242,17 +242,17 @@ var IP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
-        // �� VIP Items Level 8 � أضف ع�اصر ��ا (تُ��ح ع�د ا�شراء� تُسحب ع�د ا�ت�اء VIP)
-        vipItems: [],  // � �ثا�: [{ id: 'frame_vip8', type: 'frames' }]
-        idBeforeImageUrl: null, // � VIP 8: ضع رابط ا�ص�رة ��ا
-        idIconImageUrl: null,   // � VIP 8: أ����ة ���زة أ�ا� ا�� ID
-        benefits_en: ['1.9� XP', 'Gold Name Glow', 'Custom 4-Digit ID', 'Exclusive Gifts'],
-        benefits_ar: ['�ضاعف XP � 1.9', 'ت��ج اس� ذ�ب�', 'ID �خصص 4 أر�ا�', '�دا�ا حصر�ة'],
+        // 🎁 VIP Items Level 8 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip8', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 8: ضع رابط الصورة هنا
+        idIconImageUrl: null,   // ← VIP 8: أيقونة مميزة أمام الـ ID
+        benefits_en: ['1.9× XP', 'Gold Name Glow', 'Custom 4-Digit ID', 'Exclusive Gifts'],
+        benefits_ar: ['مضاعف XP × 1.9', 'توهج اسم ذهبي', 'ID مخصص 4 أرقام', 'هدايا حصرية'],
     },
     {
         level: 9,
-        name_en: 'VIP IX',      name_ar: 'ف� آ� ب� 9',
-        // Red + Gradient Animation �� 9-10
+        name_en: 'VIP IX',      name_ar: 'في آي بي 9',
+        // Red + Gradient Animation لـ 9-10
         nameColor: '#ef4444',
         glowColor: 'rgba(239,68,68,0.9)',
         gradientAnim: true,
@@ -262,16 +262,16 @@ var IP_CONFIG = [
         exclusiveGifts: true,
         vipDailyTasks: true,
         exclusiveForm: false,
-        // �� VIP Items Level 9 � أضف ع�اصر ��ا (تُ��ح ع�د ا�شراء� تُسحب ع�د ا�ت�اء VIP)
-        vipItems: [],  // � �ثا�: [{ id: 'frame_vip9', type: 'frames' }]
-        idBeforeImageUrl: null, // � VIP 9: ضع رابط ا�ص�رة ��ا
-        idIconImageUrl: null,   // � VIP 9: أ����ة أ���ش� أ�ا� ا�� ID
-        benefits_en: ['2� XP', 'Animated Name Glow', 'Custom 3-Digit ID', 'Exclusive Gifts'],
-        benefits_ar: ['�ضاعف XP � 2', 'ت��ج اس� �تحر�', 'ID �خصص 3 أر�ا�', '�دا�ا حصر�ة'],
+        // 🎁 VIP Items Level 9 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip9', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 9: ضع رابط الصورة هنا
+        idIconImageUrl: null,   // ← VIP 9: أيقونة أنيمشن أمام الـ ID
+        benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 3-Digit ID', 'Exclusive Gifts'],
+        benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص 3 أرقام', 'هدايا حصرية'],
     },
     {
         level: 10,
-        name_en: 'VIP X',       name_ar: 'ف� آ� ب� 10',
+        name_en: 'VIP X',       name_ar: 'في آي بي 10',
         nameColor: '#ef4444',
         glowColor: 'rgba(239,68,68,1)',
         gradientAnim: true,
@@ -280,53 +280,53 @@ var IP_CONFIG = [
         customIdLength: 2,            // Custom 2-digit ID
         exclusiveGifts: true,
         vipDailyTasks: true,
-        exclusiveForm: true,          // � ف�ر� �دا�ا �خصصة
-        // �� VIP Items Level 10 � أضف ع�اصر ��ا (تُ��ح ع�د ا�شراء� تُسحب ع�د ا�ت�اء VIP)
-        vipItems: [],  // � �ثا�: [{ id: 'frame_vip10', type: 'frames' }]
-        idBeforeImageUrl: null, // � VIP 10: ضع رابط ا�ص�رة ��ا
-        idIconImageUrl: null,   // � VIP 10: أ����ة أسط�ر�ة أ�ا� ا�� ID
-        benefits_en: ['2� XP', 'Animated Name Glow', 'Custom 2-Digit ID', 'Exclusive Gifts', 'Custom Gift Request'],
-        benefits_ar: ['�ضاعف XP � 2', 'ت��ج اس� �تحر�', 'ID �خصص ر����', '�دا�ا حصر�ة', 'ط�ب �د�ة �خصصة'],
+        exclusiveForm: true,          // 📋 فورم هدايا مخصصة
+        // 🎁 VIP Items Level 10 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+        vipItems: [],  // ← مثال: [{ id: 'frame_vip10', type: 'frames' }]
+        idBeforeImageUrl: null, // ← VIP 10: ضع رابط الصورة هنا
+        idIconImageUrl: null,   // ← VIP 10: أيقونة أسطورية أمام الـ ID
+        benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 2-Digit ID', 'Exclusive Gifts', 'Custom Gift Request'],
+        benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص رقمين', 'هدايا حصرية', 'طلب هدية مخصصة'],
     },
 ];
 
-// ���� HELPER FUNCTIONS ����
+// ════ HELPER FUNCTIONS ════
 
-// getVIPData � �رجع config ا�� VIP ب�اء� ع�� ا�� XP
-var etVIPData = (userData) => {
+// getVIPData — يرجع config الـ VIP بناءً على الـ XP
+var getVIPData = (userData) => {
     const totalXP = userData?.vip?.xp || 0;
     const level = getVIPLevelFromXP(totalXP);
     if (!level) return null;
     return VIP_CONFIG.find(v => v.level === level) || null;
 };
 
-// getVIPLevel � �حسب ا���ف� �� ا�� XP (أ� fallback ��� manual level)
-var etVIPLevel = (userData) => {
+// getVIPLevel — يحسب الليفل من الـ XP (أو fallback للـ manual level)
+var getVIPLevel = (userData) => {
     const totalXP = userData?.vip?.xp || 0;
     if (totalXP > 0) return getVIPLevelFromXP(totalXP);
-    return userData?.vip?.level || 0; // fallback ��� manual admin assign
+    return userData?.vip?.level || 0; // fallback للـ manual admin assign
 };
 
-var asVIP = (userData) => getVIPLevel(userData) >= 1;
-// hasVIPExclusiveGifts removed � dead code, never called anywhere in project
+var hasVIP = (userData) => getVIPLevel(userData) >= 1;
+// hasVIPExclusiveGifts removed — dead code, never called anywhere in project
 
-var asVIPDailyTasks = (userData) => {
+var hasVIPDailyTasks = (userData) => {
     const cfg = getVIPData(userData);
     return cfg?.vipDailyTasks === true;
 };
 
-var etVIPXPMultiplier = (userData) => {
+var getVIPXPMultiplier = (userData) => {
     const cfg = getVIPData(userData);
     return cfg?.xpMultiplier || 1;
 };
 
-var etVIPCustomIdLength = (userData) => {
+var getVIPCustomIdLength = (userData) => {
     const cfg = getVIPData(userData);
     return cfg?.customIdLength || null;
 };
 
-// ���� VIP BADGE COMPONENT ����
-var IPBadge = ({ userData, onClick, size = 'sm' }) => {
+// ════ VIP BADGE COMPONENT ════
+var VIPBadge = ({ userData, onClick, size = 'sm' }) => {
     const level = getVIPLevel(userData);
     if (!level) return null;
 
@@ -372,8 +372,8 @@ var IPBadge = ({ userData, onClick, size = 'sm' }) => {
     );
 };
 
-// ���� VIP NAME COMPONENT � اس� ا�� VIP با�تأث�رات ا�صح ����
-var IPName = ({ displayName, userData, className = '', style = {} }) => {
+// ════ VIP NAME COMPONENT — اسم الـ VIP بالتأثيرات الصح ════
+var VIPName = ({ displayName, userData, className = '', style = {} }) => {
     const level = getVIPLevel(userData);
     if (!level) {
         return <span className={className} style={style}>{displayName}</span>;
@@ -420,9 +420,9 @@ var IPName = ({ displayName, userData, className = '', style = {} }) => {
     );
 };
 
-// ������������������������������������������������������������
-// � STAFF ROLE BADGE � �ظ�ر ف� �� ��ا�
-// ������������������������������������������������������������
+// ════════════════════════════════════════════════════════════
+// 👑 STAFF ROLE BADGE — يظهر في كل مكان
+// ════════════════════════════════════════════════════════════
 var StaffRoleBadge = ({ userData, uid, lang, size = 'sm', onClick }) => {
     const role = getUserRole(userData, uid);
     if (!role) return null;
@@ -455,21 +455,21 @@ var StaffRoleBadge = ({ userData, uid, lang, size = 'sm', onClick }) => {
     );
 };
 
-// ������������������������������������������������������������
-// ���️  PLAYER NAME TAG
-// ا����ب���ت ا���ح�د �عرض ا��اعب ف� �� ��ا�:
-//   ��ب� · ��در ب�رد · أصد�اء · تص��ت · أ� ��ا� تا��
+// ════════════════════════════════════════════════════════════
+// 🏷️  PLAYER NAME TAG
+// الكومبوننت الموحّد لعرض اللاعب في كل مكان:
+//   لوبي · ليدر بورد · أصدقاء · تصويت · أي مكان تاني
 //
 // Props:
-//   player      � { photoURL|photo, displayName|name, equipped, vip }
-//   lang        � 'ar' | 'en'
-//   size        � 'sm' (default) | 'md'
-//   showStatus  � ��� ��طة ا�ستات�س (�ث�ا� '#4ade80') أ� null
-// ������������������������������������������������������������
-// � FIX: FlagDisplay � works on ALL platforms including Windows Chrome
+//   player      — { photoURL|photo, displayName|name, equipped, vip }
+//   lang        — 'ar' | 'en'
+//   size        — 'sm' (default) | 'md'
+//   showStatus  — لون نقطة الستاتوس (مثلاً '#4ade80') أو null
+// ════════════════════════════════════════════════════════════
+// ✅ FIX: FlagDisplay — works on ALL platforms including Windows Chrome
 // Windows Chrome does NOT render flag emoji. We use flagcdn.com image as primary
 // and fall back to emoji if the image fails.
-var lagDisplay = ({ countryCode, flagEmoji, size = 20, style = {} }) => {
+var FlagDisplay = ({ countryCode, flagEmoji, size = 20, style = {} }) => {
     const [imgFailed, setImgFailed] = React.useState(false);
     if (!countryCode && !flagEmoji) return null;
     const code = (countryCode || '').toLowerCase();
@@ -497,11 +497,11 @@ var lagDisplay = ({ countryCode, flagEmoji, size = 20, style = {} }) => {
     return <span style={{ fontSize: (size * 1.1) + 'px', lineHeight: 1, ...style }}>{flagEmoji || ''}</span>;
 };
 
-var layerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
+var PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
     if (!player) return null;
 
     const photoURL  = player.photoURL || player.photo || null;
-    const name      = player.displayName || player.name || '�';
+    const name      = player.displayName || player.name || '—';
     const equipped  = player.equipped || {};
     const vipActive = getVIPLevel(player) > 0;
     const banData   = player.ban || null;
@@ -512,7 +512,7 @@ var layerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
     const titleId   = equipped.titles;
     const titleItem = titleId ? SHOP_ITEMS.titles.find(t => t.id === titleId) : null;
 
-    // Badges � max 3
+    // Badges — max 3
     const badgeIds  = equipped.badges || [];
 
     const avatarSz  = size === 'md' ? 'md' : 'sm';
@@ -521,7 +521,7 @@ var layerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
     return (
         <div style={{ display:'flex', alignItems:'center', gap: size==='md'?'10px':'8px', minWidth:0 }}>
 
-            {/* �� Avatar �� */}
+            {/* ── Avatar ── */}
             <div style={{ position:'relative', flexShrink:0 }}>
                 <AvatarWithFrame photoURL={photoURL} equipped={equipped} size={avatarSz} banData={banData} lang={lang} />
                 {showStatus && (
@@ -533,10 +533,10 @@ var layerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
                 )}
             </div>
 
-            {/* �� Info �� */}
+            {/* ── Info ── */}
             <div style={{ display:'flex', flexDirection:'column', gap:'2px', minWidth:0 }}>
 
-                {/* Row 1 � Name + VIP badge + role badge + ban indicator */}
+                {/* Row 1 — Name + VIP badge + role badge + ban indicator */}
                 <div style={{ display:'flex', alignItems:'center', gap:'4px', flexWrap:'nowrap' }}>
                     <VIPName
                         displayName={name}
@@ -552,11 +552,11 @@ var layerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
                         <StaffRoleBadge userData={player} uid={playerUID} lang={lang} size="sm" />
                     )}
                     {banData?.isBanned && (!banData.expiresAt || new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))) && (
-                        <span className="banned-name-indicator">�</span>
+                        <span className="banned-name-indicator">🚫</span>
                     )}
                 </div>
 
-                {/* Row 2 � Badges (max 3) */}
+                {/* Row 2 — Badges (max 3) */}
                 {badgeIds.length > 0 && (
                     <div style={{ display:'flex', alignItems:'center', gap:'2px' }}>
                         {badgeIds.slice(0, 3).map((bid, idx) => {
@@ -572,7 +572,7 @@ var layerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
                     </div>
                 )}
 
-                {/* Row 3 � Title with � */}
+                {/* Row 3 — Title with 🌐 */}
                 {titleItem && (
                     <div style={{ display:'flex', alignItems:'center', gap:'2px' }}>
                         {titleItem.imageUrl && titleItem.imageUrl.trim() !== '' ? (
@@ -580,7 +580,7 @@ var layerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
                                 style={{ maxWidth:'70px', maxHeight:'13px', objectFit:'contain' }} />
                         ) : (
                             <span style={{ fontSize:'9px', color:'#a78bfa', lineHeight:1, whiteSpace:'nowrap' }}>
-                                � {titleItem.preview} {lang==='ar' ? titleItem.name_ar : titleItem.name_en}
+                                🌐 {titleItem.preview} {lang==='ar' ? titleItem.name_ar : titleItem.name_en}
                             </span>
                         )}
                     </div>
@@ -591,8 +591,8 @@ var layerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
     );
 };
 
-// ���� VIP BADGE POPUP ����
-var IPBadgePopup = ({ level, onClose }) => {
+// ════ VIP BADGE POPUP ════
+var VIPBadgePopup = ({ level, onClose }) => {
     if (!level) return null;
     const cfg = VIP_CONFIG[level - 1];
     return (
@@ -605,7 +605,7 @@ var IPBadgePopup = ({ level, onClose }) => {
                 style={{ background: 'linear-gradient(135deg,#0f0f1a,#1a0010)', border: `2px solid ${cfg.nameColor}`, borderRadius: '16px', padding: '24px', textAlign: 'center', minWidth: '220px', boxShadow: `0 0 30px ${cfg.nameColor}55` }}
                 onClick={e => e.stopPropagation()}
             >
-                <div style={{ fontSize: '40px', marginBottom: '10px' }}>�</div>
+                <div style={{ fontSize: '40px', marginBottom: '10px' }}>👑</div>
                 <div style={{ color: cfg.nameColor, fontWeight: 900, fontSize: '20px', marginBottom: '6px' }}>
                     VIP Level {level}
                 </div>
@@ -613,7 +613,7 @@ var IPBadgePopup = ({ level, onClose }) => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
                     {cfg.benefits_ar.map((b, i) => (
                         <div key={i} style={{ fontSize: '11px', color: '#d1d5db', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ color: cfg.nameColor }}>�</span> {b}
+                            <span style={{ color: cfg.nameColor }}>✓</span> {b}
                         </div>
                     ))}
                 </div>
@@ -625,14 +625,14 @@ var IPBadgePopup = ({ level, onClose }) => {
     );
 };
 
-// ���� VIP INFO TABLE MODAL ����
-var IPInfoModal = ({ onClose, lang }) => {
+// ════ VIP INFO TABLE MODAL ════
+var VIPInfoModal = ({ onClose, lang }) => {
     const t = TRANSLATIONS[lang] || TRANSLATIONS['en'];
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px' }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">� {lang === 'ar' ? '���زات VIP' : 'VIP Benefits'}</h2>
+                    <h2 className="modal-title">👑 {lang === 'ar' ? 'مميزات VIP' : 'VIP Benefits'}</h2>
                     <ModalCloseBtn onClose={onClose} />
                 </div>
                 <div className="modal-body" style={{ padding: '12px' }}>
@@ -654,7 +654,7 @@ var IPInfoModal = ({ onClose, lang }) => {
                                     <span style={{ color: cfg.nameColor, fontWeight: 700, fontSize: '13px' }}>
                                         {lang === 'ar' ? cfg.name_ar : cfg.name_en}
                                     </span>
-                                    {cfg.xpMultiplier >= 2 && <span style={{ fontSize: '10px', color: '#fbbf24' }}>� �2</span>}
+                                    {cfg.xpMultiplier >= 2 && <span style={{ fontSize: '10px', color: '#fbbf24' }}>⚡ ×2</span>}
                                 </div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '3px' }}>
                                     {(lang === 'ar' ? cfg.benefits_ar : cfg.benefits_en).map((b, i) => (
@@ -671,7 +671,7 @@ var IPInfoModal = ({ onClose, lang }) => {
                                             background: 'rgba(96,165,250,0.1)',
                                             borderRadius: '4px', padding: '2px 6px',
                                             border: '1px solid rgba(96,165,250,0.3)'
-                                        }}>ID: {cfg.customIdLength} {lang === 'ar' ? 'أر�ا�' : 'digits'}</span>
+                                        }}>ID: {cfg.customIdLength} {lang === 'ar' ? 'أرقام' : 'digits'}</span>
                                     )}
                                 </div>
                             </div>
@@ -683,8 +683,8 @@ var IPInfoModal = ({ onClose, lang }) => {
     );
 };
 
-// ���� VIP 10 EXCLUSIVE REQUEST FORM � with full approval system ����
-var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
+// ════ VIP 10 EXCLUSIVE REQUEST FORM — with full approval system ════
+var VIP10RequestForm = ({ user, lang, onNotification, userData }) => {
     const [giftName,    setGiftName]    = useState('');
     const [giftImage,   setGiftImage]   = useState('');
     const [giftEmail,   setGiftEmail]   = useState('');
@@ -718,7 +718,7 @@ var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
         return unsub;
     }, [user?.uid]);
 
-    // � Can the user submit THIS month?
+    // ✅ Can the user submit THIS month?
     const getMonthKey = (d) => {
         const date = d?.toDate ? d.toDate() : (d ? new Date(d) : null);
         if (!date) return null;
@@ -728,13 +728,13 @@ var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
     const lastRequestMonthKey = getMonthKey(latestRequest?.createdAt);
     const alreadyRequestedThisMonth = lastRequestMonthKey === thisMonthKey;
 
-    // � Logic:
-    // - No request ever � show form
-    // - Pending (0) � show waiting
-    // - Approved (1) + same month � show approved + "next month you can modify"
-    // - Approved (1) + new month � show approved + "modify gift" button � opens form with "Modification" label
-    // - Rejected (2) + same month � show rejected + can resubmit
-    // - Rejected (2) + new month � show form (fresh start)
+    // ✅ Logic:
+    // - No request ever → show form
+    // - Pending (0) → show waiting
+    // - Approved (1) + same month → show approved + "next month you can modify"
+    // - Approved (1) + new month → show approved + "modify gift" button → opens form with "Modification" label
+    // - Rejected (2) + same month → show rejected + can resubmit
+    // - Rejected (2) + new month → show form (fresh start)
     const isApproved  = latestRequest?.status === 1;
     const isRejected  = latestRequest?.status === 2;
     const isPending   = latestRequest?.status === 0;
@@ -763,39 +763,39 @@ var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
                 luckyNumber:    parseInt(luckyNumber) || 0,
                 status:         0,
                 adminNote:      '',
-                isModification: isModification, // � flag for admin
+                isModification: isModification, // ✅ flag for admin
                 createdAt:      TS(),
             });
             await usersCollection.doc(user.uid).update({
                 'vip.lastGiftRequest': TS()
             });
             onNotification(lang === 'ar'
-                ? (isModification ? '� ت� إرسا� ط�ب ا�تعد��!' : '� ت� إرسا� ط�ب�!')
-                : (isModification ? '� Modification request sent!' : '� Request sent!'));
+                ? (isModification ? '✅ تم إرسال طلب التعديل!' : '✅ تم إرسال طلبك!')
+                : (isModification ? '✅ Modification request sent!' : '✅ Request sent!'));
             setGiftName(''); setGiftImage(''); setGiftEmail(''); setLuckyNumber('');
             setShowForm(false);
         } catch (e) {
-            onNotification(lang === 'ar' ? '� خطأ� حا�� �رة أخر�' : '� Error, try again');
+            onNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
         }
         setSending(false);
     };
 
     if (loadingReq) return null;
 
-    // �� Gift request form ��
+    // ── Gift request form ──
     const RequestForm = ({ label }) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {label && (
                 <div style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 800, textAlign: 'center',
                     background: 'rgba(251,191,36,0.08)', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(251,191,36,0.2)' }}>
-                    �️ {label}
+                    ✏️ {label}
                 </div>
             )}
-            <input className="input-dark" placeholder={lang === 'ar' ? 'اس� ا��د�ة' : 'Gift name'}
+            <input className="input-dark" placeholder={lang === 'ar' ? 'اسم الهدية' : 'Gift name'}
                 value={giftName} onChange={e => setGiftName(e.target.value)} style={{ fontSize: '12px' }} />
             <div>
                 <label style={{ fontSize: '11px', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>
-                    �️ {lang === 'ar' ? 'ص�رة ا��د�ة (اخت�ار�)' : 'Gift image (optional)'}
+                    🖼️ {lang === 'ar' ? 'صورة الهدية (اختياري)' : 'Gift image (optional)'}
                 </label>
                 <input type="file" accept="image/*" onChange={handleImageChange}
                     style={{ fontSize: '11px', color: '#d1d5db', background: 'rgba(255,255,255,0.05)',
@@ -805,27 +805,27 @@ var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
                         <img src={giftImage} alt="preview" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.4)' }} />
                         <button onClick={() => setGiftImage('')} style={{ fontSize: '10px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' }}>
-                            � {lang === 'ar' ? 'حذف' : 'Remove'}
+                            ✕ {lang === 'ar' ? 'حذف' : 'Remove'}
                         </button>
                     </div>
                 )}
             </div>
-            <input className="input-dark" type="email" placeholder={lang === 'ar' ? 'بر�د� ا�إ��تر���' : 'Your email'}
+            <input className="input-dark" type="email" placeholder={lang === 'ar' ? 'بريدك الإلكتروني' : 'Your email'}
                 value={giftEmail} onChange={e => setGiftEmail(e.target.value)} style={{ fontSize: '12px' }} />
-            <input className="input-dark" type="number" placeholder={lang === 'ar' ? 'ر��� ا��حظ�ظ ��' : 'Your lucky number ��'}
+            <input className="input-dark" type="number" placeholder={lang === 'ar' ? 'رقمك المحظوظ 🍀' : 'Your lucky number 🍀'}
                 value={luckyNumber} onChange={e => setLuckyNumber(e.target.value)} style={{ fontSize: '12px' }} />
             <button onClick={handleSubmit} disabled={sending || !giftName.trim()} className="btn-neon"
                 style={{ padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
                     opacity: sending || !giftName.trim() ? 0.5 : 1 }}>
-                {sending ? '⏳' : (lang === 'ar' ? '� إرسا� ا�ط�ب' : '� Send Request')}
+                {sending ? '⏳' : (lang === 'ar' ? '📨 إرسال الطلب' : '📨 Send Request')}
             </button>
             <div style={{ fontSize: '9px', color: '#6b7280', textAlign: 'center' }}>
-                � {lang === 'ar' ? 'س�ت� �راجعة ط�ب� خ�ا� 24 ساعة' : 'Request reviewed within 24h'}
+                ⚡ {lang === 'ar' ? 'سيتم مراجعة طلبك خلال 24 ساعة' : 'Request reviewed within 24h'}
             </div>
         </div>
     );
 
-    // �� Status card shared ��
+    // ── Status card shared ──
     const StatusCard = ({ statusColor, statusEmoji, statusText, giftText, note, children }) => (
         <div style={{
             borderRadius: '10px', padding: '12px',
@@ -838,7 +838,7 @@ var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
                 <div>
                     <div style={{ fontSize: '11px', fontWeight: 800, color: `rgb(${statusColor})` }}>{statusText}</div>
                     {giftText && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>
-                        {lang === 'ar' ? 'ا��د�ة:' : 'Gift:'}{' '}
+                        {lang === 'ar' ? 'الهدية:' : 'Gift:'}{' '}
                         <span style={{ color: '#fbbf24', fontWeight: 700 }}>{giftText}</span>
                     </div>}
                 </div>
@@ -847,14 +847,14 @@ var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
                 <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '7px', padding: '8px 10px',
                     borderLeft: '3px solid #ef4444', fontSize: '11px', color: '#e2e8f0', lineHeight: 1.5 }}>
                     <span style={{ fontSize: '9px', color: '#ef4444', fontWeight: 800, display: 'block', marginBottom: '2px' }}>
-                        {lang === 'ar' ? '� رسا�ة ا�إدارة:' : '� Admin Note:'}
+                        {lang === 'ar' ? '📋 رسالة الإدارة:' : '📋 Admin Note:'}
                     </span>
                     {note}
                 </div>
             )}
             {children}
             <div style={{ fontSize: '9px', color: '#6b7280', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '5px' }}>
-                {lang === 'ar' ? '����� ا�ط�ب �رة �احدة ف� ا�ش�ر' : 'One request per month'}
+                {lang === 'ar' ? 'يمكنك الطلب مرة واحدة في الشهر' : 'One request per month'}
             </div>
         </div>
     );
@@ -867,35 +867,35 @@ var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
         }}>
             <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '13px', marginBottom: '10px',
                 display: 'flex', alignItems: 'center', gap: '6px' }}>
-                � {lang === 'ar' ? 'ط�ب �د�ة �خصصة (VIP 10 ف�ط)' : 'Custom Gift Request (VIP 10 only)'}
+                👑 {lang === 'ar' ? 'طلب هدية مخصصة (VIP 10 فقط)' : 'Custom Gift Request (VIP 10 only)'}
             </div>
 
-            {/* �� No request yet � show form �� */}
+            {/* ── No request yet → show form ── */}
             {!latestRequest && <RequestForm label={null} />}
 
-            {/* �� Pending (0) � waiting �� */}
+            {/* ── Pending (0) → waiting ── */}
             {isPending && (
                 <StatusCard
                     statusColor="251,191,36"
                     statusEmoji="⏳"
-                    statusText={lang === 'ar' ? 'ط�ب� ��د ا��راجعة�' : 'Request under review�'}
+                    statusText={lang === 'ar' ? 'طلبك قيد المراجعة…' : 'Request under review…'}
                     giftText={latestRequest.giftName}
                     note={latestRequest.adminNote || null}
                 >
                     {!latestRequest.adminNote && (
                         <div style={{ fontSize: '9px', color: '#6b7280', textAlign: 'center' }}>
-                            {lang === 'ar' ? 'ف� ا�تظار رد ا�إدارة�' : 'Waiting for admin response�'}
+                            {lang === 'ar' ? 'في انتظار رد الإدارة…' : 'Waiting for admin response…'}
                         </div>
                     )}
                 </StatusCard>
             )}
 
-            {/* �� Approved (1) �� */}
+            {/* ── Approved (1) ── */}
             {isApproved && !showForm && (
                 <StatusCard
                     statusColor="74,222,128"
-                    statusEmoji="�"
-                    statusText={lang === 'ar' ? '� ت� �ب�� ط�ب ا��د�ة!' : '� Gift Request Approved!'}
+                    statusEmoji="✅"
+                    statusText={lang === 'ar' ? '✅ تم قبول طلب الهدية!' : '✅ Gift Request Approved!'}
                     giftText={latestRequest.giftName}
                     note={latestRequest.adminNote || null}
                 >
@@ -905,34 +905,34 @@ var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
                             background: 'rgba(251,191,36,0.15)', color: '#fbbf24',
                             border: '1px solid rgba(251,191,36,0.35)', cursor: 'pointer'
                         }}>
-                            �️ {lang === 'ar' ? 'تعد�� ا��د�ة (ش�ر جد�د)' : 'Modify Gift (New Month)'}
+                            ✏️ {lang === 'ar' ? 'تعديل الهدية (شهر جديد)' : 'Modify Gift (New Month)'}
                         </button>
                     ) : (
                         <div style={{ fontSize: '9px', color: '#6b7280', textAlign: 'center' }}>
-                            � {lang === 'ar' ? '����� ا�تعد�� ا�ش�ر ا��اد�' : 'You can modify next month'}
+                            🔒 {lang === 'ar' ? 'يمكنك التعديل الشهر القادم' : 'You can modify next month'}
                         </div>
                     )}
                 </StatusCard>
             )}
 
-            {/* �� Modification form (after approval) �� */}
+            {/* ── Modification form (after approval) ── */}
             {isApproved && showForm && (
                 <>
-                    <RequestForm label={lang === 'ar' ? 'تعد�� ا��د�ة ا��خصصة' : 'Modify Custom Gift'} />
+                    <RequestForm label={lang === 'ar' ? 'تعديل الهدية المخصصة' : 'Modify Custom Gift'} />
                     <button onClick={() => setShowForm(false)} style={{
                         width: '100%', marginTop: '4px', padding: '5px', background: 'none',
                         border: 'none', color: '#6b7280', fontSize: '10px', cursor: 'pointer' }}>
-                        {lang === 'ar' ? '� إ�غاء' : '� Cancel'}
+                        {lang === 'ar' ? '← إلغاء' : '← Cancel'}
                     </button>
                 </>
             )}
 
-            {/* �� Rejected (2) �� */}
+            {/* ── Rejected (2) ── */}
             {isRejected && !showForm && (
                 <StatusCard
                     statusColor="248,113,113"
-                    statusEmoji="�"
-                    statusText={lang === 'ar' ? 'ت� رفض ط�ب�' : 'Request Rejected'}
+                    statusEmoji="❌"
+                    statusText={lang === 'ar' ? 'تم رفض طلبك' : 'Request Rejected'}
                     giftText={latestRequest.giftName}
                     note={latestRequest.adminNote || null}
                 >
@@ -941,19 +941,19 @@ var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
                         background: 'rgba(239,68,68,0.15)', color: '#f87171',
                         border: '1px solid rgba(239,68,68,0.3)', cursor: 'pointer'
                     }}>
-                        � {lang === 'ar' ? 'إرسا� ط�ب جد�د' : 'Submit New Request'}
+                        🔄 {lang === 'ar' ? 'إرسال طلب جديد' : 'Submit New Request'}
                     </button>
                 </StatusCard>
             )}
 
-            {/* �� New form after rejection �� */}
+            {/* ── New form after rejection ── */}
             {isRejected && showForm && (
                 <>
                     <RequestForm label={null} />
                     <button onClick={() => setShowForm(false)} style={{
                         width: '100%', marginTop: '4px', padding: '5px', background: 'none',
                         border: 'none', color: '#6b7280', fontSize: '10px', cursor: 'pointer' }}>
-                        {lang === 'ar' ? '� إ�غاء' : '� Cancel'}
+                        {lang === 'ar' ? '← إلغاء' : '← Cancel'}
                     </button>
                 </>
             )}
@@ -963,8 +963,8 @@ var IP10RequestForm = ({ user, lang, onNotification, userData }) => {
 
 
 
-// ���� VIP BUY / RENEW SECTION (embedded in VIP Center) ����
-var IPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
+// ════ VIP BUY / RENEW SECTION (embedded in VIP Center) ════
+var VIPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
     const [showConfirm, setShowConfirm] = useState(false);
     const [buying, setBuying] = useState(false);
     const currency = userData?.currency || 0;
@@ -991,10 +991,10 @@ var IPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
                 'vip.expiresAt': expiresAt,
                 'vip.xp': firebase.firestore.FieldValue.increment(hasVIP ? 0 : 5000),
             });
-            onNotification && onNotification(lang === 'ar' ? '� ت� تفع�� VIP! +30 ���' : '� VIP Activated! +30 days');
+            onNotification && onNotification(lang === 'ar' ? '👑 تم تفعيل VIP! +30 يوم' : '👑 VIP Activated! +30 days');
             setShowConfirm(false);
         } catch(e) {
-            onNotification && onNotification(lang === 'ar' ? '� خطأ' : '� Error');
+            onNotification && onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
         }
         setBuying(false);
     };
@@ -1019,20 +1019,20 @@ var IPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
                     {canAfford && <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)', animation:'shimmer 2s infinite' }}/>}
                     <span style={{ position:'relative' }}>
                         {canAfford
-                            ? `� ${lang === 'ar' ? 'تجد�د +30 ���' : 'Renew +30 days'} � 50,000 �`
-                            : `� ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 �`}
+                            ? `🔄 ${lang === 'ar' ? 'تجديد +30 يوم' : 'Renew +30 days'} — 50,000 🧠`
+                            : `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠`}
                     </span>
                 </button>
             ) : (
                 <div style={{ borderRadius:'12px', overflow:'hidden', border:'1px solid rgba(168,85,247,0.35)', background:'linear-gradient(135deg,#1a0533,#0d0d2b)', padding:'14px', textAlign:'center' }}>
-                    <div style={{ color:'#e9d5ff', fontWeight:800, fontSize:'14px', marginBottom:'4px' }}>� {lang === 'ar' ? 'تجد�د VIP�' : 'Renew VIP?'}</div>
-                    <div style={{ color:'#fbbf24', fontWeight:900, fontSize:'16px', marginBottom:'12px' }}>50,000 �</div>
+                    <div style={{ color:'#e9d5ff', fontWeight:800, fontSize:'14px', marginBottom:'4px' }}>🔄 {lang === 'ar' ? 'تجديد VIP؟' : 'Renew VIP?'}</div>
+                    <div style={{ color:'#fbbf24', fontWeight:900, fontSize:'16px', marginBottom:'12px' }}>50,000 🧠</div>
                     <div style={{ display:'flex', gap:'8px', justifyContent:'center' }}>
                         <button onClick={() => setShowConfirm(false)} style={{ padding:'7px 16px', borderRadius:'9px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#9ca3af', fontWeight:600, cursor:'pointer', fontSize:'12px' }}>
-                            {lang === 'ar' ? 'إ�غاء' : 'Cancel'}
+                            {lang === 'ar' ? 'إلغاء' : 'Cancel'}
                         </button>
                         <button onClick={handleBuyVIP} disabled={buying} style={{ padding:'7px 20px', borderRadius:'9px', border:'none', background:'linear-gradient(135deg,#7c3aed,#a855f7)', color:'#fff', fontWeight:800, cursor:'pointer', fontSize:'12px' }}>
-                            {buying ? '⏳' : (lang === 'ar' ? 'تأ��د' : 'Confirm')}
+                            {buying ? '⏳' : (lang === 'ar' ? 'تأكيد' : 'Confirm')}
                         </button>
                     </div>
                 </div>
@@ -1049,18 +1049,18 @@ var IPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
                 border:'1px solid rgba(168,85,247,0.3)',
                 fontSize:'11px', color:'#c4b5fd', lineHeight:1.6, textAlign:'center',
             }}>
-                �� {lang === 'ar'
-                    ? '�� �د�ة ترس��ا ت��ح� VIP XP � ���ا أرس�ت أ�ثر ارتفع �ست�ا�!'
-                    : 'Every gift you send earns VIP XP � the more you give, the higher you level!'}
+                🎁 {lang === 'ar'
+                    ? 'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر ارتفع مستواك!'
+                    : 'Every gift you send earns VIP XP — the more you give, the higher you level!'}
             </div>
 
             {/* Feature pills */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px' }}>
                 {[
-                    { icon:'�', ar:'اس� ���� ���ز',    en:'Colored VIP Name'    },
-                    { icon:'�', ar:'�ضاعف XP �1.2',   en:'1.2� XP Multiplier'  },
-                    { icon:'��', ar:'بادج VIP حصر�',    en:'Exclusive VIP Badge' },
-                    { icon:'��', ar:'�دا�ا VIP ��ف�ة',  en:'Locked VIP Gifts'    },
+                    { icon:'🎨', ar:'اسم ملون مميز',    en:'Colored VIP Name'    },
+                    { icon:'⚡', ar:'مضاعف XP ×1.2',   en:'1.2× XP Multiplier'  },
+                    { icon:'🏅', ar:'بادج VIP حصري',    en:'Exclusive VIP Badge' },
+                    { icon:'🎁', ar:'هدايا VIP مقفلة',  en:'Locked VIP Gifts'    },
                 ].map((f,i) => (
                     <div key={i} style={{
                         display:'flex', alignItems:'center', gap:'7px',
@@ -1076,7 +1076,7 @@ var IPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
 
             {/* Balance */}
             <div style={{ textAlign:'center', fontSize:'11px', color:'#6b7280' }}>
-                {lang === 'ar' ? 'رص�د�:' : 'Balance:'} <span style={{ color:'#fbbf24', fontWeight:700 }}>{currency.toLocaleString()} �</span>
+                {lang === 'ar' ? 'رصيدك:' : 'Balance:'} <span style={{ color:'#fbbf24', fontWeight:700 }}>{currency.toLocaleString()} 🧠</span>
             </div>
 
             {/* Buy button */}
@@ -1095,24 +1095,24 @@ var IPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
                     {canAfford && <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)', animation:'shimmer 2s infinite' }}/>}
                     <span style={{ position:'relative' }}>
                         {canAfford
-                            ? `� ${lang === 'ar' ? 'اشترِ VIP 1' : 'Buy VIP 1'} � 50,000 �`
-                            : `� ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 � (${lang === 'ar' ? '�د��' : 'Have'}: ${currency.toLocaleString()})`}
+                            ? `👑 ${lang === 'ar' ? 'اشترِ VIP 1' : 'Buy VIP 1'} — 50,000 🧠`
+                            : `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠 (${lang === 'ar' ? 'لديك' : 'Have'}: ${currency.toLocaleString()})`}
                     </span>
                 </button>
             ) : (
                 <div style={{ borderRadius:'14px', overflow:'hidden', border:'1px solid rgba(168,85,247,0.35)', background:'linear-gradient(135deg,#1a0533,#0d0d2b)' }}>
                     <div style={{ padding:'16px', textAlign:'center' }}>
-                        <div style={{ fontSize:'36px', marginBottom:'8px' }}>�</div>
+                        <div style={{ fontSize:'36px', marginBottom:'8px' }}>👑</div>
                         <div style={{ color:'#e9d5ff', fontWeight:900, fontSize:'15px', marginBottom:'6px' }}>
-                            {lang === 'ar' ? 'تفع�� VIP�' : 'Activate VIP?'}
+                            {lang === 'ar' ? 'تفعيل VIP؟' : 'Activate VIP?'}
                         </div>
-                        <div style={{ color:'#fbbf24', fontWeight:900, fontSize:'18px', marginBottom:'14px' }}>50,000 �</div>
+                        <div style={{ color:'#fbbf24', fontWeight:900, fontSize:'18px', marginBottom:'14px' }}>50,000 🧠</div>
                         <div style={{ display:'flex', gap:'10px', justifyContent:'center' }}>
                             <button onClick={() => setShowConfirm(false)} style={{ padding:'9px 20px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#9ca3af', fontWeight:600, cursor:'pointer' }}>
-                                {lang === 'ar' ? 'إ�غاء' : 'Cancel'}
+                                {lang === 'ar' ? 'إلغاء' : 'Cancel'}
                             </button>
                             <button onClick={handleBuyVIP} disabled={buying} style={{ padding:'9px 24px', borderRadius:'10px', border:'none', background:'linear-gradient(135deg,#7c3aed,#a855f7)', color:'#fff', fontWeight:800, cursor:'pointer', boxShadow:'0 0 20px rgba(168,85,247,0.45)', fontSize:'13px' }}>
-                                {buying ? '⏳' : (lang === 'ar' ? 'تأ��د' : 'Confirm')}
+                                {buying ? '⏳' : (lang === 'ar' ? 'تأكيد' : 'Confirm')}
                             </button>
                         </div>
                     </div>
@@ -1122,8 +1122,8 @@ var IPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
     );
 };
 
-// ���� VIP CENTER SECTION (for Settings) ����
-var IPCenterSection = ({ userData, user, lang, onNotification }) => {
+// ════ VIP CENTER SECTION (for Settings) ════
+var VIPCenterSection = ({ userData, user, lang, onNotification }) => {
     const [showInfoModal, setShowInfoModal]       = useState(false);
     const [showBadgePopup, setShowBadgePopup]     = useState(false);
     const [customIdEnabled, setCustomIdEnabled]   = useState(userData?.vip?.customIdEnabled || false);
@@ -1131,7 +1131,7 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
     const [desiredId, setDesiredId]               = useState('');
     const [idCheckStatus, setIdCheckStatus]       = useState(null); // null | 'checking' | 'taken' | 'available'
     const [idRequestSending, setIdRequestSending] = useState(false);
-    // � Pending request listener � �تابع حا�ة ا�ط�ب ف� real-time
+    // ✅ Pending request listener — يتابع حالة الطلب في real-time
     const [pendingRequest, setPendingRequest]     = useState(null); // null | { status, adminNote, desiredId }
     const [seenRequestId, setSeenRequestId]       = useState(null); // last request we've shown result for
 
@@ -1141,7 +1141,7 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
     const customIdLen = getVIPCustomIdLength(userData);
     const xpInfo      = getVIPXPProgress(totalVIPXP);
 
-    // � Real-time listener ع�� آخر ط�ب ID ���ستخد� (بد�� orderBy �تج�ب index)
+    // ✅ Real-time listener على آخر طلب ID للمستخدم (بدون orderBy لتجنب index)
     useEffect(() => {
         if (!user || !level || !customIdLen) return;
         const unsub = vip10IdRequestsCollection
@@ -1164,7 +1164,7 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
         return unsub;
     }, [user?.uid, level]);
 
-    // � Auto-apply customId when admin approves request (status = 1)
+    // ✅ Auto-apply customId when admin approves request (status = 1)
     useEffect(() => {
         if (!pendingRequest || pendingRequest.status !== 1 || !user) return;
         // Only apply if the desired ID isn't already set
@@ -1189,7 +1189,7 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
             const normalId = Math.floor(100000 + Math.random() * 900000).toString();
             await usersCollection.doc(user.uid).update({ 'vip.customIdEnabled': false, customId: normalId });
         }
-        onNotification(lang === 'ar' ? 'ت� ا�حفظ �' : 'Saved �');
+        onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
     };
 
     // Check if user already made a request this month
@@ -1206,10 +1206,10 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
     const validateIdInput = (id) => {
         if (!customIdLen || !id) return null;
         const onlyDigits = /^\d+$/.test(id);
-        if (!onlyDigits) return lang === 'ar' ? `� أر�ا� ف�ط` : `� Digits only`;
+        if (!onlyDigits) return lang === 'ar' ? `❌ أرقام فقط` : `❌ Digits only`;
         if (id.length !== customIdLen) return lang === 'ar'
-            ? `� �جب أ� ���� ${customIdLen} أر�ا� با�ضبط (VIP ${level})`
-            : `� Must be exactly ${customIdLen} digits (VIP ${level})`;
+            ? `❌ يجب أن يكون ${customIdLen} أرقام بالضبط (VIP ${level})`
+            : `❌ Must be exactly ${customIdLen} digits (VIP ${level})`;
         return null; // valid
     };
 
@@ -1226,13 +1226,13 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
         } catch { setIdCheckStatus(null); }
     };
 
-    // Submit custom ID request � ALL VIP 6-10 go through request system
+    // Submit custom ID request — ALL VIP 6-10 go through request system
     const handleIdRequest = async () => {
         const err = validateIdInput(desiredId.trim());
         if (err || idCheckStatus !== 'available' || idRequestSending || !user) return;
         setIdRequestSending(true);
         try {
-            // � Check for existing PENDING requests with same desiredId
+            // ✅ Check for existing PENDING requests with same desiredId
             const pendingSnap = await vip10IdRequestsCollection
                 .where('desiredId', '==', desiredId.trim())
                 .where('status', '==', 0)
@@ -1240,8 +1240,8 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                 .get();
             if (!pendingSnap.empty) {
                 onNotification(lang === 'ar'
-                    ? '� �ذا ا�� ID �حج�ز حا��ا� �� �ستخد� آخر'
-                    : '� This ID is already reserved by another user');
+                    ? '❌ هذا الـ ID محجوز حالياً من مستخدم آخر'
+                    : '❌ This ID is already reserved by another user');
                 setIdRequestSending(false);
                 return;
             }
@@ -1252,42 +1252,42 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                 desiredId:   desiredId.trim(),
                 currentId:   userData?.customId || '',
                 vipLevel:    level,
-                // � STATUS FIELD:
-                // 0 = pending (default, ط�ب ��د ا��راجعة)
-                // 1 = approved (ات�ب� � غ��ر ا����ة ��� 1 ف� Firestore ��ب�� ا�ط�ب)
-                // 2 = rejected (اترفض � غ��ر ا����ة ��� 2 ف� Firestore �رفض ا�ط�ب)
+                // 🔧 STATUS FIELD:
+                // 0 = pending (default, طلب قيد المراجعة)
+                // 1 = approved (اتقبل — غيّر القيمة للـ 1 في Firestore لقبول الطلب)
+                // 2 = rejected (اترفض — غيّر القيمة للـ 2 في Firestore لرفض الطلب)
                 status:      0,
                 createdAt:   TS(),
             });
             await usersCollection.doc(user.uid).update({ 'vip.lastIdRequest': TS() });
-            onNotification(lang === 'ar' ? '� ت� إرسا� ط�ب ا�� ID!' : '� ID request sent!');
+            onNotification(lang === 'ar' ? '✅ تم إرسال طلب الـ ID!' : '✅ ID request sent!');
             setDesiredId('');
             setIdCheckStatus(null);
         } catch (e) {
-            onNotification(lang === 'ar' ? '� خطأ� حا�� �رة أخر�' : '� Error, try again');
+            onNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
         }
         setIdRequestSending(false);
     };
 
-    // ��� ا�أ��ا� ب�اء� ع�� ا���ف� ���
+    // ─── الألوان بناءً على الليفل ───
     const barColor  = cfg ? cfg.nameColor : '#7c3aed';
     const nextLevel = level < 10 ? level + 1 : 10;
     const nextCfg   = VIP_CONFIG.find(v => v.level === nextLevel);
 
     return (
         <div className="settings-section">
-            {/* �� Header �� */}
+            {/* ── Header ── */}
             <div className="settings-section-title">
-                <span>�</span>
+                <span>👑</span>
                 <span>VIP Center</span>
                 <button
                     onClick={() => setShowInfoModal(true)}
                     style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', color:'#60a5fa', fontSize:'16px', padding:'0 2px' }}
-                    title={lang === 'ar' ? '�ع���ات VIP' : 'VIP Info'}
-                >�️</button>
+                    title={lang === 'ar' ? 'معلومات VIP' : 'VIP Info'}
+                >ℹ️</button>
             </div>
 
-            {/* �� VIP XP Card �� (تظ�ر دا���ا) */}
+            {/* ── VIP XP Card ── (تظهر دايمًا) */}
             <div style={{
                 background: level
                     ? `linear-gradient(135deg, ${barColor}14, rgba(15,15,26,0.97))`
@@ -1322,18 +1322,18 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                                 border:'1px solid rgba(112,0,255,0.4)'
                             }}>VIP 0</div>
                             <span style={{ color:'#9ca3af', fontSize:'13px' }}>
-                                {lang === 'ar' ? 'غ�ر �ُفع���' : 'Not Active'}
+                                {lang === 'ar' ? 'غير مُفعَّل' : 'Not Active'}
                             </span>
                         </>
                     )}
                 </div>
 
-                {/* �� XP Progress Bar or CTA �� */}
+                {/* ── XP Progress Bar or CTA ── */}
                 {level > 0 ? (
                 <div>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'5px' }}>
                         <span style={{ fontSize:'11px', color:'#9ca3af' }}>
-                            � VIP XP
+                            🔥 VIP XP
                         </span>
                         <span style={{ fontSize:'11px', fontWeight:700, color: barColor }}>
                             {totalVIPXP.toLocaleString()}
@@ -1368,28 +1368,28 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                     {/* Level labels */}
                     <div style={{ display:'flex', justifyContent:'space-between', marginTop:'4px' }}>
                         <span style={{ fontSize:'9px', color:'#6b7280' }}>
-                            {lang === 'ar' ? `ا��ست�� ${level}` : `Level ${level}`}
+                            {lang === 'ar' ? `المستوى ${level}` : `Level ${level}`}
                         </span>
                         {level < 10 ? (
                             <span style={{ fontSize:'9px', color: barColor }}>
                                 {lang === 'ar'
-                                    ? `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP ���ست�� ${nextLevel} �`
-                                    : `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP to Level ${nextLevel} �`
+                                    ? `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP للمستوى ${nextLevel} 👑`
+                                    : `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP to Level ${nextLevel} 👑`
                                 }
                             </span>
                         ) : (
                             <span style={{ fontSize:'9px', color:'#fbbf24', fontWeight:700 }}>
-                                � MAX LEVEL
+                                ✨ MAX LEVEL
                             </span>
                         )}
                     </div>
                 </div>
                 ) : (
-                /* No VIP � Buy section */
+                /* No VIP — Buy section */
                 <VIPBuySection userData={userData} user={user} lang={lang} onNotification={onNotification} />
                 )}
 
-                {/* �� Tip + Renew � only for active VIP �� */}
+                {/* ── Tip + Renew — only for active VIP ── */}
                 {level > 0 && (
                 <>
                 <div style={{
@@ -1397,8 +1397,8 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                     padding:'6px 10px', background:'rgba(255,255,255,0.03)',
                     borderRadius:'8px', border:'1px solid rgba(255,255,255,0.05)'
                 }}>
-                    �� {lang === 'ar'
-                        ? 'أرس� �دا�ا �تحص� ع�� VIP XP �ترتفع ��ست�� أع��!'
+                    🎁 {lang === 'ar'
+                        ? 'أرسل هدايا لتحصل على VIP XP وترتفع لمستوى أعلى!'
                         : 'Send gifts to earn VIP XP and level up!'}
                 </div>
                 {/* Renew VIP button */}
@@ -1406,16 +1406,16 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                 </>
                 )}
 
-                {/* �� Level perks if active �� */}
+                {/* ── Level perks if active ── */}
                 {level > 0 && (
                     <>
                         {/* XP Multiplier */}
                         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:'12px' }}>
-                            <span style={{ color:'#9ca3af' }}>� {lang === 'ar' ? '�ضاعف XP ا�أ�عاب' : 'Game XP Multiplier'}</span>
-                            <span style={{ color:'#fbbf24', fontWeight:700 }}>�{cfg.xpMultiplier}</span>
+                            <span style={{ color:'#9ca3af' }}>⚡ {lang === 'ar' ? 'مضاعف XP الألعاب' : 'Game XP Multiplier'}</span>
+                            <span style={{ color:'#fbbf24', fontWeight:700 }}>×{cfg.xpMultiplier}</span>
                         </div>
 
-                        {/* Custom ID Request � VIP 6+ (all levels go through request system) */}
+                        {/* Custom ID Request — VIP 6+ (all levels go through request system) */}
                         {customIdLen && (
                             <div style={{
                                 background: level === 10
@@ -1425,23 +1425,23 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                                 borderRadius: '10px', padding: '12px', marginTop: '4px'
                             }}>
                                 <div style={{ fontSize:'11px', fontWeight:800, color: level === 10 ? '#ef4444' : '#60a5fa', marginBottom:'8px' }}>
-                                    � {lang === 'ar'
-                                        ? `ط�ب ID �خصص (${customIdLen} أر�ا� با�ضبط) � �رة �� ش�ر`
-                                        : `Custom ID Request (exactly ${customIdLen} digits) � once/month`}
+                                    🪪 {lang === 'ar'
+                                        ? `طلب ID مخصص (${customIdLen} أرقام بالضبط) — مرة كل شهر`
+                                        : `Custom ID Request (exactly ${customIdLen} digits) — once/month`}
                                 </div>
                                 {userData?.customId && (
                                     <div style={{ fontSize:'10px', color:'#9ca3af', marginBottom:'6px' }}>
-                                        {lang === 'ar' ? 'ا�� ID ا�حا��:' : 'Current ID:'} <span style={{color:'#fbbf24', fontWeight:700}}>{userData.customId}</span>
+                                        {lang === 'ar' ? 'الـ ID الحالي:' : 'Current ID:'} <span style={{color:'#fbbf24', fontWeight:700}}>{userData.customId}</span>
                                     </div>
                                 )}
-                                {/* � Show form when no pending request (or after approved/rejected + new month)
+                                {/* ✅ Show form when no pending request (or after approved/rejected + new month)
                                     Show status box when request is pending/active */}
                                 {!pendingRequest ? (
                                     <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                                         <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
                                             <input
                                                 className="input-dark"
-                                                placeholder={lang === 'ar' ? `${customIdLen} أر�ا�` : `${customIdLen} digits`}
+                                                placeholder={lang === 'ar' ? `${customIdLen} أرقام` : `${customIdLen} digits`}
                                                 value={desiredId}
                                                 maxLength={customIdLen}
                                                 inputMode="numeric"
@@ -1463,7 +1463,7 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                                                     color: desiredId.length === customIdLen ? '#60a5fa' : '#6b7280'
                                                 }}
                                             >
-                                                {idCheckStatus === 'checking' ? '⏳' : (lang === 'ar' ? 'تح��' : 'Check')}
+                                                {idCheckStatus === 'checking' ? '⏳' : (lang === 'ar' ? 'تحقق' : 'Check')}
                                             </button>
                                         </div>
                                         {/* Digit progress dots */}
@@ -1479,16 +1479,16 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                                         {/* Validation */}
                                         {desiredId.length > 0 && desiredId.length !== customIdLen && (
                                             <div style={{ fontSize:'10px', color:'#fbbf24', fontWeight:700 }}>
-                                                �️ {lang === 'ar'
-                                                    ? `�جب أ� ���� ${customIdLen} أر�ا� با�ضبط (أدخ�ت ${desiredId.length})`
+                                                ⚠️ {lang === 'ar'
+                                                    ? `يجب أن يكون ${customIdLen} أرقام بالضبط (أدخلت ${desiredId.length})`
                                                     : `Must be exactly ${customIdLen} digits (you entered ${desiredId.length})`}
                                             </div>
                                         )}
                                         {idCheckStatus === 'taken' && (
-                                            <div style={{ fontSize:'10px', color:'#f87171', fontWeight:700 }}>� {lang === 'ar' ? '�ذا ا�� ID �أخ�ذ با�فع�' : 'This ID is already taken'}</div>
+                                            <div style={{ fontSize:'10px', color:'#f87171', fontWeight:700 }}>❌ {lang === 'ar' ? 'هذا الـ ID مأخوذ بالفعل' : 'This ID is already taken'}</div>
                                         )}
                                         {idCheckStatus === 'available' && (
-                                            <div style={{ fontSize:'10px', color:'#4ade80', fontWeight:700 }}>� {lang === 'ar' ? 'ا�� ID �تاح!' : 'ID is available!'}</div>
+                                            <div style={{ fontSize:'10px', color:'#4ade80', fontWeight:700 }}>✅ {lang === 'ar' ? 'الـ ID متاح!' : 'ID is available!'}</div>
                                         )}
                                         <button
                                             onClick={handleIdRequest}
@@ -1503,14 +1503,14 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                                                 border: 'none', opacity: idRequestSending ? 0.6 : 1
                                             }}
                                         >
-                                            {idRequestSending ? '⏳' : (lang === 'ar' ? '� إرسا� ا�ط�ب' : '� Send Request')}
+                                            {idRequestSending ? '⏳' : (lang === 'ar' ? '📨 إرسال الطلب' : '📨 Send Request')}
                                         </button>
                                         <div style={{ fontSize:'9px', color:'#6b7280', textAlign:'center' }}>
-                                            {lang === 'ar' ? '� س�ت� �راجعة ط�ب� �تطب��� خ�ا� 24 ساعة' : '� Request reviewed & applied within 24h'}
+                                            {lang === 'ar' ? '⚡ سيتم مراجعة طلبك وتطبيقه خلال 24 ساعة' : '⚡ Request reviewed & applied within 24h'}
                                         </div>
                                     </div>
                                 ) : (
-                                    /* � Real-time Request Status Box */
+                                    /* ✅ Real-time Request Status Box */
                                     <div style={{
                                         borderRadius:'10px', padding:'12px',
                                         background: pendingRequest?.status === 1
@@ -1528,7 +1528,7 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                                         {/* Status row */}
                                         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                                             <span style={{ fontSize:'18px' }}>
-                                                {pendingRequest?.status === 1 ? '�' : pendingRequest?.status === 2 ? '�' : '⏳'}
+                                                {pendingRequest?.status === 1 ? '✅' : pendingRequest?.status === 2 ? '❌' : '⏳'}
                                             </span>
                                             <div>
                                                 <div style={{ fontSize:'11px', fontWeight:800, color:
@@ -1536,15 +1536,15 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                                                     : pendingRequest?.status === 2 ? '#f87171' : '#fbbf24'
                                                 }}>
                                                     {pendingRequest?.status === 1
-                                                        ? (lang === 'ar' ? '� ت� �ب�� ط�ب� �تطب�� ا�� ID!' : '� Request Approved & Applied!')
+                                                        ? (lang === 'ar' ? '✅ تم قبول طلبك وتطبيق الـ ID!' : '✅ Request Approved & Applied!')
                                                         : pendingRequest?.status === 2
-                                                        ? (lang === 'ar' ? '� ت� رفض ط�ب�' : '� Request Rejected')
-                                                        : (lang === 'ar' ? '⏳ ط�ب� ��د ا��راجعة�' : '⏳ Request under review�')
+                                                        ? (lang === 'ar' ? '❌ تم رفض طلبك' : '❌ Request Rejected')
+                                                        : (lang === 'ar' ? '⏳ طلبك قيد المراجعة…' : '⏳ Request under review…')
                                                     }
                                                 </div>
                                                 {pendingRequest?.desiredId && (
                                                     <div style={{ fontSize:'10px', color:'#9ca3af', marginTop:'2px' }}>
-                                                        {lang === 'ar' ? 'ا�� ID ا��ط��ب:' : 'Requested ID:'}{' '}
+                                                        {lang === 'ar' ? 'الـ ID المطلوب:' : 'Requested ID:'}{' '}
                                                         <span style={{ color:'#fbbf24', fontWeight:700, letterSpacing:'2px' }}>
                                                             {pendingRequest.desiredId}
                                                         </span>
@@ -1560,14 +1560,14 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                                                 fontSize:'11px', color:'#e2e8f0', lineHeight:1.5
                                             }}>
                                                 <span style={{ fontSize:'9px', color:'#60a5fa', fontWeight:800, display:'block', marginBottom:'2px' }}>
-                                                    {lang === 'ar' ? '� رسا�ة �� ا�إدارة:' : '� Admin Note:'}
+                                                    {lang === 'ar' ? '📋 رسالة من الإدارة:' : '📋 Admin Note:'}
                                                 </span>
                                                 {pendingRequest.adminNote}
                                             </div>
                                         )}
                                         {!pendingRequest?.adminNote && pendingRequest?.status === 0 && (
                                             <div style={{ fontSize:'9px', color:'#6b7280', textAlign:'center' }}>
-                                                {lang === 'ar' ? 'ف� ا�تظار رد �� ا��سؤ�����' : 'Waiting for admin response�'}
+                                                {lang === 'ar' ? 'في انتظار رد من المسؤولين…' : 'Waiting for admin response…'}
                                             </div>
                                         )}
                                         {/* If rejected: allow new request */}
@@ -1580,11 +1580,11 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
                                                     border:'1px solid rgba(96,165,250,0.3)', cursor:'pointer'
                                                 }}
                                             >
-                                                {lang === 'ar' ? '� ط�ب ID جد�د' : '� Request New ID'}
+                                                {lang === 'ar' ? '🔄 طلب ID جديد' : '🔄 Request New ID'}
                                             </button>
                                         )}
                                         <div style={{ fontSize:'9px', color:'#6b7280', textAlign:'center', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'5px' }}>
-                                            {lang === 'ar' ? '����� ا�ط�ب �رة �احدة ف� ا�ش�ر' : 'You can request once per month'}
+                                            {lang === 'ar' ? 'يمكنك الطلب مرة واحدة في الشهر' : 'You can request once per month'}
                                         </div>
                                     </div>
                                 )}
@@ -1604,4 +1604,3 @@ var IPCenterSection = ({ userData, user, lang, onNotification }) => {
         </div>
     );
 };
-

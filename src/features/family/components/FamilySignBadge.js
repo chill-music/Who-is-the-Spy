@@ -1,4 +1,4 @@
-const { FAMILY_SIGN_LEVELS, getFamilySignImage } = window.FamilyConstants || {};
+var { FAMILY_SIGN_LEVELS, getFamilySignImage } = window.FamilyConstants || {};
 
 // Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
 var FamilySignBadge = ({ level, size = 40, lang }) => {

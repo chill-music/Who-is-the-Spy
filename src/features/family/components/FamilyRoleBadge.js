@@ -1,4 +1,4 @@
-const { FAMILY_ROLE_CONFIG } = window.FamilyConstants || {};
+var { FAMILY_ROLE_CONFIG } = window.FamilyConstants || {};
 
 var FamilyRoleBadge = ({ role, lang, small = false }) => {
     const cfg = FAMILY_ROLE_CONFIG[role] || FAMILY_ROLE_CONFIG.member;

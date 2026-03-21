@@ -1,11 +1,11 @@
-const { 
+var { 
     getFamilyLevelConfig, 
     createFamily, 
     loadFamilies, 
     searchFamilyByTag 
 } = window.FamilyService;
-const { FAMILY_COINS_SYMBOL } = window.FamilyConstants;
-const { useState, useEffect } = React;
+var { FAMILY_COINS_SYMBOL } = window.FamilyConstants;
+var { useState, useEffect } = React;
 
 var FamilySearch = ({ 
     view, // 'home', 'create', 'join'

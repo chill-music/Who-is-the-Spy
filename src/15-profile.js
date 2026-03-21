@@ -1,6 +1,6 @@
-// ������������������������������������������������������������
-// ��� PROFILE FAMILY SIGN BADGE � Shows clan sign on profile
-// ������������������������������������������������������������
+// ════════════════════════════════════════════════════════════
+// 🏴 PROFILE FAMILY SIGN BADGE — Shows clan sign on profile
+// ════════════════════════════════════════════════════════════
 var ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     const familyTag   = userData?.familyTag;
     const familyName  = userData?.familyName;
@@ -12,23 +12,23 @@ var ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     if (!familyTag || !signLevel) return null;
 
     const hasGlow = signLevel >= 4;
-    // ا�� glow �ستخد� ��� ا�سا�� �فس� � �ست�� 5 أح�ر� �ست�� 4 برت�ا��
+    // الـ glow يستخدم لون الساين نفسه — مستوى 5 أحمر، مستوى 4 برتقالي
     const glowIntensity = signLevel === 5 ? 'dd' : signLevel === 4 ? 'cc' : '99';
     const glowMid       = signLevel === 5 ? '88' : signLevel === 4 ? '77' : '55';
     const glowFar       = signLevel === 5 ? '44' : '33';
 
-    // �� ف� ص�رة: تظ�ر �ب�رة �ع ا�تاج ��ت�ب ف���ا باحتراف
+    // لو في صورة: تظهر كبيرة مع التاج مكتوب فوقها باحتراف
     if (signImgURL) {
-        // عرض ا�ص�رة �ت�اسب �ع عدد ا�أحرف � 3�52px  4�62px  5�72px
+        // عرض الصورة يتناسب مع عدد الأحرف — 3→52px  4→62px  5→72px
         const imgW = 44 + (familyTag.length * 6);
-        const imgH = Math.round(imgW * 0.55); // �سبة عرض/ارتفاع ثابتة
-        // حج� ا�خط �ت�اسب �ع حج� ا�ص�رة
+        const imgH = Math.round(imgW * 0.55); // نسبة عرض/ارتفاع ثابتة
+        // حجم الخط يتناسب مع حجم الصورة
         const fontSize = familyTag.length <= 3 ? 11 : familyTag.length === 4 ? 10 : 9;
 
         return (
             <span
                 onClick={onClick}
-                title={familyName ? (lang === 'ar' ? `عائ�ة: ${familyName}` : `Family: ${familyName}`) : familyTag}
+                title={familyName ? (lang === 'ar' ? `عائلة: ${familyName}` : `Family: ${familyName}`) : familyTag}
                 style={{
                     position:'relative',
                     display:'inline-flex', alignItems:'center', justifyContent:'center',
@@ -40,7 +40,7 @@ var ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
                     transition:'all 0.2s',
                 }}
             >
-                {/* ا�ص�رة ا�خ�ف�ة */}
+                {/* الصورة الخلفية */}
                 <img
                     src={signImgURL}
                     alt=""
@@ -51,7 +51,7 @@ var ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
                         display:'block',
                     }}
                 />
-                {/* ا�تاج ��ت�ب ف�� ا�ص�رة */}
+                {/* التاج مكتوب فوق الصورة */}
                 <span style={{
                     position:'relative', zIndex:1,
                     fontSize:`${fontSize}px`,
@@ -78,11 +78,11 @@ var ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
         );
     }
 
-    // �� �ا ف� ص�رة: badge �ص� عاد�
+    // لو ما في صورة: badge نصي عادي
     return (
         <span
             onClick={onClick}
-            title={familyName ? (lang === 'ar' ? `عائ�ة: ${familyName}` : `Family: ${familyName}`) : familyTag}
+            title={familyName ? (lang === 'ar' ? `عائلة: ${familyName}` : `Family: ${familyName}`) : familyTag}
             style={{
                 display:'inline-flex', alignItems:'center', gap:'4px',
                 padding:'2px 8px', borderRadius:'6px', fontSize:'11px',
@@ -98,7 +98,7 @@ var ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     );
 };
 
-var inRateCircleV11 = ({ wins, losses, lang }) => {
+var WinRateCircleV11 = ({ wins, losses, lang }) => {
     const total = wins + losses;
     const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
@@ -115,18 +115,18 @@ var inRateCircleV11 = ({ wins, losses, lang }) => {
         <div className="profile-winrate-circle" style={{ background: gradient, width:'64px', height:'64px', flexShrink:0 }}>
             <div className="profile-winrate-content">
                 <span className="profile-winrate-value" style={{ color: getColor(rate), fontSize:'13px' }}>{rate}%</span>
-                <span className="profile-winrate-label" style={{fontSize:'7px'}}>{lang === 'ar' ? '�عد�' : 'Win%'}</span>
+                <span className="profile-winrate-label" style={{fontSize:'7px'}}>{lang === 'ar' ? 'معدل' : 'Win%'}</span>
             </div>
         </div>
     );
 };
 
-// ������������������������������������������������������������
-// �� GIFT WALL V12 � Luxury Redesign (Image-matched)
-// ������������������������������������������������������������
+// ════════════════════════════════════════════════════════════
+// 🎁 GIFT WALL V12 — Luxury Redesign (Image-matched)
+// ════════════════════════════════════════════════════════════
 
 // Helper: get gift level (1,2,3) based on received count
-var etGiftLevel = (count) => {
+var getGiftLevel = (count) => {
     if (count >= 50) return 3;
     if (count >= 25) return 2;
     if (count >= 5)  return 1;
@@ -134,15 +134,15 @@ var etGiftLevel = (count) => {
 };
 
 // Helper: frame style per level
-var etGiftLevelFrame = (level) => {
+var getGiftLevelFrame = (level) => {
     if (level === 3) return { border:'2px solid rgba(255,215,0,0.95)',  shadow:'0 0 14px rgba(255,215,0,0.55), 0 0 28px rgba(255,215,0,0.18)', labelColor:'#ffd700' };
     if (level === 2) return { border:'2px solid rgba(200,200,220,0.9)', shadow:'0 0 10px rgba(200,200,220,0.35)', labelColor:'#C0C0C0' };
     if (level === 1) return { border:'2px solid rgba(184,115,51,0.85)', shadow:'0 0 8px rgba(184,115,51,0.3)',  labelColor:'#cd7f32' };
     return            { border:'1.5px solid rgba(60,60,80,0.35)',       shadow:'none', labelColor:'#4b5563' };
 };
 
-// �� Gift Wall Detail Modal (Image 1 style) ��
-var iftWallDetailModalV12 = ({ giftDetail, topSenderInfo, lang, onClose }) => {
+// ── Gift Wall Detail Modal (Image 1 style) ──
+var GiftWallDetailModalV12 = ({ giftDetail, topSenderInfo, lang, onClose }) => {
     const { gift, count, rarity, rKey, level } = giftDetail;
     const topSender = topSenderInfo?.[gift.id];
     const frameStyle = getGiftLevelFrame(level);
@@ -200,7 +200,7 @@ var iftWallDetailModalV12 = ({ giftDetail, topSenderInfo, lang, onClose }) => {
                     <div style={{position:'absolute',bottom:'10px',right:'10px',fontSize:'14px',opacity:0.3,color:rarity.color,transform:'scale(-1)'}}>❧</div>
 
                     {/* Close button */}
-                    <button onClick={onClose} style={{position:'absolute',top:'10px',right:'14px',background:'rgba(255,255,255,0.08)',border:'none',color:'#9ca3af',fontSize:'14px',cursor:'pointer',borderRadius:'50%',width:'24px',height:'24px',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}>�</button>
+                    <button onClick={onClose} style={{position:'absolute',top:'10px',right:'14px',background:'rgba(255,255,255,0.08)',border:'none',color:'#9ca3af',fontSize:'14px',cursor:'pointer',borderRadius:'50%',width:'24px',height:'24px',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}>✕</button>
 
                     {/* Gift Image Box */}
                     <div style={{
@@ -218,7 +218,7 @@ var iftWallDetailModalV12 = ({ giftDetail, topSenderInfo, lang, onClose }) => {
                         {gift.imageUrl && gift.imageUrl.trim() ? (
                             <img src={gift.imageUrl} alt={gift.name_en} style={{width:'88px',height:'88px',objectFit:'contain',filter:`drop-shadow(0 0 12px ${rarity.color}88)`}} />
                         ) : (
-                            <span style={{fontSize:'60px',filter:`drop-shadow(0 0 14px ${rarity.color}99)`}}>{gift.emoji||'��'}</span>
+                            <span style={{fontSize:'60px',filter:`drop-shadow(0 0 14px ${rarity.color}99)`}}>{gift.emoji||'🎁'}</span>
                         )}
                     </div>
 
@@ -247,10 +247,10 @@ var iftWallDetailModalV12 = ({ giftDetail, topSenderInfo, lang, onClose }) => {
                             <img src={topSender.photo||`https://ui-avatars.com/api/?name=${encodeURIComponent(topSender.name||'U')}&background=6366f1&color=fff&size=40`}
                                 alt="" style={{width:'36px',height:'36px',borderRadius:'50%',border:`2px solid ${rarity.color}66`,objectFit:'cover',flexShrink:0}} />
                             <div style={{flex:1,minWidth:0}}>
-                                <div style={{fontSize:'8px',color:'#9ca3af',fontWeight:600}}>{lang==='ar'?'أ�ثر �� أرس�':'With the most gifts'}</div>
+                                <div style={{fontSize:'8px',color:'#9ca3af',fontWeight:600}}>{lang==='ar'?'أكثر من أرسل':'With the most gifts'}</div>
                                 <div style={{fontSize:'12px',fontWeight:800,color:'white',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{topSender.name||'?'}</div>
                             </div>
-                            <div style={{fontSize:'14px',fontWeight:900,color:rarity.color,flexShrink:0}}>�{topSender.count}</div>
+                            <div style={{fontSize:'14px',fontWeight:900,color:rarity.color,flexShrink:0}}>×{topSender.count}</div>
                         </div>
                     )}
 
@@ -258,34 +258,34 @@ var iftWallDetailModalV12 = ({ giftDetail, topSenderInfo, lang, onClose }) => {
                     <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'10px'}}>
                         {/* Price */}
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'9px'}}>
-                            <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:600}}>� {lang==='ar'?'ا�سعر':'Price'}</span>
-                            <span style={{fontSize:'13px',fontWeight:800,color:'#fbbf24'}}>{(gift.cost||0).toLocaleString()} �</span>
+                            <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:600}}>💰 {lang==='ar'?'السعر':'Price'}</span>
+                            <span style={{fontSize:'13px',fontWeight:800,color:'#fbbf24'}}>{(gift.cost||0).toLocaleString()} 🧠</span>
                         </div>
                         {/* Amount received */}
                         {count > 0 && (
                             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'9px'}}>
-                                <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:600}}>� {lang==='ar'?'ا��ست��':'Amount'}</span>
-                                <span style={{fontSize:'13px',fontWeight:800,color:rarity.color}}>�{count}</span>
+                                <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:600}}>📦 {lang==='ar'?'المستلم':'Amount'}</span>
+                                <span style={{fontSize:'13px',fontWeight:800,color:rarity.color}}>×{count}</span>
                             </div>
                         )}
                         {/* Star level row */}
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'9px'}}>
-                            <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:600}}>{lang==='ar'?'⭐ ا��ست��':'⭐ Star'}</span>
+                            <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:600}}>{lang==='ar'?'⭐ المستوى':'⭐ Star'}</span>
                             <div style={{display:'flex',gap:'4px'}}>
                                 {[1,2,3].map(s=>(
-                                    <span key={s} style={{fontSize:'18px',color:level>=s?'#ffd700':'rgba(255,255,255,0.15)',filter:level>=s?'drop-shadow(0 0 4px #ffd700)':'none'}}>�</span>
+                                    <span key={s} style={{fontSize:'18px',color:level>=s?'#ffd700':'rgba(255,255,255,0.15)',filter:level>=s?'drop-shadow(0 0 4px #ffd700)':'none'}}>★</span>
                                 ))}
                             </div>
                         </div>
                         {/* Charisma */}
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'9px'}}>
-                            <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:600}}>⭐ {lang==='ar'?'�ار�ز�ا':'Charisma'}</span>
+                            <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:600}}>⭐ {lang==='ar'?'كاريزما':'Charisma'}</span>
                             <span style={{fontSize:'13px',fontWeight:800,color:'#fbbf24'}}>{(gift.charisma||0).toLocaleString()}</span>
                         </div>
                         {/* VIP Required */}
                         {gift.vipMinLevel > 0 && (
                             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'9px'}}>
-                                <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:600}}>� {lang==='ar'?'�تط�ب':'Requires'}</span>
+                                <span style={{fontSize:'11px',color:'#9ca3af',fontWeight:600}}>👑 {lang==='ar'?'يتطلب':'Requires'}</span>
                                 <span style={{fontSize:'13px',fontWeight:900,color:VIP_CONFIG[gift.vipMinLevel-1]?.nameColor||'#ef4444'}}>VIP {gift.vipMinLevel}+</span>
                             </div>
                         )}
@@ -295,13 +295,13 @@ var iftWallDetailModalV12 = ({ giftDetail, topSenderInfo, lang, onClose }) => {
                     {needMore > 0 && (
                         <div style={{textAlign:'center',fontSize:'11px',color:'#f97316',fontWeight:700,padding:'6px 12px',background:'rgba(249,115,22,0.1)',border:'1px solid rgba(249,115,22,0.3)',borderRadius:'8px'}}>
                             {lang==='ar'
-                                ? `� تحتاج ${needMore} �د�ة أخر� ���ست�� ا�تا��!`
-                                : `� Need ${needMore} more to level up!`}
+                                ? `✨ تحتاج ${needMore} هدية أخرى للمستوى التالي!`
+                                : `✨ Need ${needMore} more to level up!`}
                         </div>
                     )}
                     {level === 3 && (
                         <div style={{textAlign:'center',fontSize:'11px',color:'#ffd700',fontWeight:800,padding:'6px 12px',background:'rgba(255,215,0,0.1)',border:'1px solid rgba(255,215,0,0.3)',borderRadius:'8px'}}>
-                            � {lang==='ar'?'ا�حد ا�أ�ص�! أسط�ر�':'MAX LEVEL! Legendary'}
+                            👑 {lang==='ar'?'الحد الأقصى! أسطوري':'MAX LEVEL! Legendary'}
                         </div>
                     )}
                 </div>
@@ -310,8 +310,8 @@ var iftWallDetailModalV12 = ({ giftDetail, topSenderInfo, lang, onClose }) => {
     );
 };
 
-// �� GiftWallV11 Main Component ��
-var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpenProfile }) => {
+// ── GiftWallV11 Main Component ──
+var GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpenProfile }) => {
     const [activeTab, setActiveTab] = useState('wall');
     const [selectedGiftDetail, setSelectedGiftDetail] = useState(null);
     const [showAllGifts, setShowAllGifts] = useState(false);
@@ -375,12 +375,12 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
         return ()=>clearInterval(t);
     }, [recentUnique.length]);
 
-    const fmtBig = fmtNum; // unified � defined in 01-config.js
+    const fmtBig = fmtNum; // unified — defined in 01-config.js
 
     return (
         <div className="profile-gift-section">
 
-            {/* � Mini Preview Banner � clickable � opens full wall modal */}
+            {/* ✅ Mini Preview Banner — clickable → opens full wall modal */}
             <div
                 onClick={() => setShowWallModal(true)}
                 style={{
@@ -402,8 +402,8 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                 ))}
 
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px',position:'relative'}}>
-                    <span style={{fontSize:'13px',fontWeight:800,color:'white',letterSpacing:'0.3px'}}>�� {lang==='ar'?'جدار ا��دا�ا':'Gift Wall'}</span>
-                    <span style={{fontSize:'11px',color:'#6b7280',fontWeight:600}}>{lang==='ar'?'اضغط ��عرض �':'Tap to view �'}</span>
+                    <span style={{fontSize:'13px',fontWeight:800,color:'white',letterSpacing:'0.3px'}}>🎁 {lang==='ar'?'جدار الهدايا':'Gift Wall'}</span>
+                    <span style={{fontSize:'11px',color:'#6b7280',fontWeight:600}}>{lang==='ar'?'اضغط للعرض ›':'Tap to view ›'}</span>
                 </div>
 
                 <div style={{display:'flex',alignItems:'center',gap:'14px',position:'relative'}}>
@@ -423,12 +423,12 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                                     zIndex: 3-i,
                                 }}>
                                     {g.giftImageUrl?<img src={g.giftImageUrl} alt="" style={{width:'32px',height:'32px',objectFit:'contain'}}/>
-                                        :<span style={{fontSize:'26px'}}>{g.giftEmoji||'��'}</span>}
+                                        :<span style={{fontSize:'26px'}}>{g.giftEmoji||'🎁'}</span>}
                                 </div>
                             );
                         }) : (
                             <div style={{width:'46px',height:'46px',borderRadius:'12px',background:'rgba(255,255,255,0.04)',border:'1.5px dashed rgba(255,255,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                                <span style={{fontSize:'22px',opacity:0.35}}>��</span>
+                                <span style={{fontSize:'22px',opacity:0.35}}>🎁</span>
                             </div>
                         )}
                     </div>
@@ -436,9 +436,9 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                     {/* Stats */}
                     <div style={{display:'flex',flex:1,justifyContent:'space-around',alignItems:'center'}}>
                         {[
-                            {val:totalGifts,            label:lang==='ar'?'�د�ة':'Gift',  color:'white'},
-                            {val:fmtBig(totalCharisma), label:lang==='ar'?'�ج�ة':'Star',  color:'#fbbf24'},
-                            {val:uniqueTypesCount,       label:lang==='ar'?'��ع':'Badge',  color:'#a78bfa'},
+                            {val:totalGifts,            label:lang==='ar'?'هدية':'Gift',  color:'white'},
+                            {val:fmtBig(totalCharisma), label:lang==='ar'?'نجمة':'Star',  color:'#fbbf24'},
+                            {val:uniqueTypesCount,       label:lang==='ar'?'نوع':'Badge',  color:'#a78bfa'},
                         ].map((s,i,arr)=>(
                             <React.Fragment key={s.label}>
                                 <div style={{textAlign:'center'}}>
@@ -452,7 +452,7 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                 </div>
             </div>
 
-            {/* � Full Wall Modal � opens when banner is tapped */}
+            {/* ✅ Full Wall Modal — opens when banner is tapped */}
             {showWallModal && (
                 <PortalModal>
                     <div onClick={()=>setShowWallModal(false)} style={{
@@ -476,19 +476,19 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                             borderBottom:'1px solid rgba(255,255,255,0.08)',
                             flexShrink:0,
                         }}>
-                            <span style={{fontSize:'15px',fontWeight:900,color:'white'}}>�� {lang==='ar'?'جدار ا��دا�ا':'Gift Wall'}</span>
+                            <span style={{fontSize:'15px',fontWeight:900,color:'white'}}>🎁 {lang==='ar'?'جدار الهدايا':'Gift Wall'}</span>
                             <button onClick={()=>setShowWallModal(false)} style={{
                                 background:'rgba(255,255,255,0.08)',border:'none',color:'#9ca3af',
                                 fontSize:'16px',cursor:'pointer',borderRadius:'50%',
                                 width:'28px',height:'28px',display:'flex',alignItems:'center',justifyContent:'center'
-                            }}>�</button>
+                            }}>✕</button>
                         </div>
 
                         {/* Tab buttons */}
                         <div style={{display:'flex',gap:'0',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
                             {[
-                                {id:'wall',icon:'��',ar:'ا��دا�ا',en:'Gifts'},
-                                {id:'log', icon:'�',ar:'ا�سج�', en:'Log'},
+                                {id:'wall',icon:'🎁',ar:'الهدايا',en:'Gifts'},
+                                {id:'log', icon:'📬',ar:'السجل', en:'Log'},
                             ].map(tab=>(
                                 <button key={tab.id} onClick={()=>setActiveTab(tab.id)} style={{
                                     flex:1, padding:'10px 4px', fontSize:'12px', fontWeight:700,
@@ -505,7 +505,7 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                         {/* Scrollable content */}
                         <div style={{flex:1,overflowY:'auto',padding:'12px 14px',background:'linear-gradient(160deg,#060612,#0a0a1e)'}}>
 
-                            {/* �� Gift Wall Grid �� */}
+                            {/* ── Gift Wall Grid ── */}
                             {activeTab==='wall' && (
                                 <>
                                     <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'8px'}}>
@@ -540,12 +540,12 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                                                     onMouseEnter={e=>{if(unlocked)e.currentTarget.style.transform='scale(1.06)';}}
                                                     onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
                                                 >
-                                                    {/* Sender avatar � top right */}
+                                                    {/* Sender avatar — top right */}
                                                     {unlocked && topSdr?.photo && (
                                                         <img src={topSdr.photo} alt=""
                                                             style={{position:'absolute',top:'4px',right:'4px',width:'16px',height:'16px',borderRadius:'50%',border:'1.5px solid rgba(255,255,255,0.25)',zIndex:4,objectFit:'cover'}} />
                                                     )}
-                                                    {/* Level badge � top left */}
+                                                    {/* Level badge — top left */}
                                                     {unlocked&&lvl>0&&(
                                                         <div style={{
                                                             position:'absolute',top:'4px',left:'4px',
@@ -567,14 +567,14 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                                                         {gift.imageUrl&&gift.imageUrl.trim()?(
                                                             <img src={gift.imageUrl} alt={gift.name_en} style={{width:'40px',height:'40px',objectFit:'contain',filter:unlocked?`drop-shadow(0 0 6px ${rarity.color}66)`:'grayscale(1)'}}/>
                                                         ):(
-                                                            <span style={{fontSize:'24px',lineHeight:1,filter:unlocked?`drop-shadow(0 0 7px ${rarity.color}77)`:'grayscale(1) opacity(0.5)'}}>{gift.emoji||'��'}</span>
+                                                            <span style={{fontSize:'24px',lineHeight:1,filter:unlocked?`drop-shadow(0 0 7px ${rarity.color}77)`:'grayscale(1) opacity(0.5)'}}>{gift.emoji||'🎁'}</span>
                                                         )}
                                                     </div>
                                                     {/* Stars */}
                                                     {unlocked&&(
                                                         <div style={{position:'absolute',bottom:'14px',left:'50%',transform:'translateX(-50%)',display:'flex',gap:'1px'}}>
                                                             {[1,2,3].map(s=>(
-                                                                <span key={s} style={{fontSize:'8px',color:lvl>=s?'#ffd700':'rgba(255,255,255,0.18)',filter:lvl>=s?'drop-shadow(0 0 3px #ffd700)':'none'}}>�</span>
+                                                                <span key={s} style={{fontSize:'8px',color:lvl>=s?'#ffd700':'rgba(255,255,255,0.18)',filter:lvl>=s?'drop-shadow(0 0 3px #ffd700)':'none'}}>★</span>
                                                             ))}
                                                         </div>
                                                     )}
@@ -588,7 +588,7 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                                                         <span style={{fontSize:'7px',color:'#d1d5db',fontWeight:600,maxWidth:'100%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',lineHeight:1.2}}>
                                                             {lang==='ar'?gift.name_ar:gift.name_en}
                                                         </span>
-                                                        {unlocked&&<span style={{fontSize:'8px',color:frame.labelColor,fontWeight:800,lineHeight:1}}>�{count}</span>}
+                                                        {unlocked&&<span style={{fontSize:'8px',color:frame.labelColor,fontWeight:800,lineHeight:1}}>×{count}</span>}
                                                     </div>
                                                 </div>
                                             );
@@ -600,14 +600,14 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                                             background:'rgba(0,242,255,0.05)',border:'1px solid rgba(0,242,255,0.15)',
                                             borderRadius:'8px',color:'#00f2ff',fontSize:'11px',fontWeight:700,cursor:'pointer',
                                         }}>
-                                            {showAllGifts?(lang==='ar'?'� عرض أ��':'� Show Less'):
-                                                `� ${lang==='ar'?'ا��ز�د':'More'} (${allGifts.length-GIFTS_LIMIT} ${lang==='ar'?'�د�ة':'gifts'})`}
+                                            {showAllGifts?(lang==='ar'?'▲ عرض أقل':'▲ Show Less'):
+                                                `▼ ${lang==='ar'?'المزيد':'More'} (${allGifts.length-GIFTS_LIMIT} ${lang==='ar'?'هدية':'gifts'})`}
                                         </button>
                                     )}
                                 </>
                             )}
 
-                            {/* �� Log Tab �� */}
+                            {/* ── Log Tab ── */}
                             {activeTab==='log'&&(
                                 <div className="profile-gift-log">
                                     {gifts&&gifts.length>0?(
@@ -624,11 +624,11 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                                                     <div className="profile-gift-log-content">
                                                         <div className="profile-gift-log-sender">
                                                             {gift.senderName||'Unknown'}
-                                                            {isMythicLog&&<span style={{marginLeft:'4px',fontSize:'9px',color:'#ff0055'}}>� Mythic</span>}
+                                                            {isMythicLog&&<span style={{marginLeft:'4px',fontSize:'9px',color:'#ff0055'}}>🔮 Mythic</span>}
                                                         </div>
                                                         <div className="profile-gift-log-details">
-                                                            <span className="profile-gift-log-emoji">{gift.giftEmoji||'��'}</span>
-                                                            <span className="profile-gift-log-name">{lang==='ar'?(gift.giftNameAr||'�د�ة'):(gift.giftNameEn||'Gift')}</span>
+                                                            <span className="profile-gift-log-emoji">{gift.giftEmoji||'🎁'}</span>
+                                                            <span className="profile-gift-log-name">{lang==='ar'?(gift.giftNameAr||'هدية'):(gift.giftNameEn||'Gift')}</span>
                                                         </div>
                                                     </div>
                                                     <div className="profile-gift-log-stats">
@@ -640,8 +640,8 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                                         })
                                     ):(
                                         <div className="profile-gift-empty">
-                                            <span style={{fontSize:'32px'}}>��</span>
-                                            <span>{lang==='ar'?'�ا ت�جد �دا�ا بعد':'No gifts yet'}</span>
+                                            <span style={{fontSize:'32px'}}>🎁</span>
+                                            <span>{lang==='ar'?'لا توجد هدايا بعد':'No gifts yet'}</span>
                                         </div>
                                     )}
                                 </div>
@@ -650,7 +650,7 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
                     </div>{/* end inner dialog */}
                     </div>{/* end backdrop */}
 
-                    {/* �� Gift Detail Modal (on top of wall modal) �� */}
+                    {/* ── Gift Detail Modal (on top of wall modal) ── */}
                     {selectedGiftDetail&&(
                         <GiftWallDetailModalV12
                             giftDetail={selectedGiftDetail}
@@ -665,8 +665,8 @@ var iftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpe
     );
 };
 
-// �� ACHIEVEMENTS DISPLAY V11 - GROUPED TIERED SYSTEM
-var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
+// 🏆 ACHIEVEMENTS DISPLAY V11 - GROUPED TIERED SYSTEM
+var AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
     const rawAchievements = userData?.achievements;
 
     const unlockedIds = React.useMemo(() => {
@@ -704,9 +704,9 @@ var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
     // Tier visual config
     const TIER_STYLE = {
         1: { color: '#9ca3af',  glow: false, label: TRANSLATIONS[lang]?.achTier1 || 'Bronze' },
-        2: { color: '#60a5fa',  glow: false, label: TRANSLATIONS[lang]?.achTier2 || 'Silver' },   // � Blue
-        3: { color: '#fbbf24',  glow: true,  label: TRANSLATIONS[lang]?.achTier3 || 'Legendary' }, // � Yellow/Gold
-        // � Tier 4 � Divine (Celestial Cyan)
+        2: { color: '#60a5fa',  glow: false, label: TRANSLATIONS[lang]?.achTier2 || 'Silver' },   // ✨ Blue
+        3: { color: '#fbbf24',  glow: true,  label: TRANSLATIONS[lang]?.achTier3 || 'Legendary' }, // ✨ Yellow/Gold
+        // ✨ Tier 4 → Divine (Celestial Cyan)
         4: { color: '#00d4ff',  glow: true,  label: TRANSLATIONS[lang]?.achTier4 || 'Divine', ultimate: true, isDivine: true },
     };
     const TIER_DOT_COLOR = { 1: '#78716c', 2: '#60a5fa', 3: '#fbbf24', 4: '#00d4ff' };
@@ -747,7 +747,7 @@ var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
             {/* Header */}
             <div className="profile-achievements-header">
                 <span className="profile-achievements-title">
-                    �� {lang === 'ar' ? 'ا�إ�جازات' : 'Achievements'}
+                    🏆 {lang === 'ar' ? 'الإنجازات' : 'Achievements'}
                 </span>
                 <span style={{
                     fontSize:'11px', fontWeight:800, padding:'2px 8px', borderRadius:'8px',
@@ -797,7 +797,7 @@ var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                                     ? (ts.ultimate ? `drop-shadow(0 0 10px ${tierColor})` : ts.glow ? `drop-shadow(0 0 6px ${tierColor})` : 'none')
                                     : 'grayscale(100%)'
                             }}>
-                                {displayTier.icon || '��'}
+                                {displayTier.icon || '🏅'}
                             </span>
 
                             {/* Tier name */}
@@ -815,7 +815,7 @@ var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                                 {TRANSLATIONS[lang]?.[displayTier.nameKey] || groupKey}
                             </span>
 
-                            {/* Tier dots � 4 dots showing which tiers are unlocked */}
+                            {/* Tier dots — 4 dots showing which tiers are unlocked */}
                             <div style={{ display:'flex', gap:'3px', marginTop:'2px' }}>
                                 {tiers.map(a => (
                                     <div key={a.tier} style={{
@@ -835,7 +835,7 @@ var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                             {/* Progress bar to next tier OR Complete */}
                             {allDone ? (
                                 <div style={{ fontSize:'8px', color:'#fbbf24', fontWeight:700 }}>
-                                    {lang === 'ar' ? '� ��ت��!' : '� Complete!'}
+                                    {lang === 'ar' ? '✓ مكتمل!' : '✓ Complete!'}
                                 </div>
                             ) : nextTier && (
                                 <div style={{ width:'100%' }}>
@@ -874,7 +874,7 @@ var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                             style={{ maxWidth:'340px', width:'100%' }}
                         >
                             <div style={{ fontSize:'13px', fontWeight:800, color:'#e2e8f0', marginBottom:'12px', textAlign:'center' }}>
-                                �� {lang === 'ar' ? '�ست��ات ا�إ�جاز' : 'Achievement Tiers'}
+                                🏆 {lang === 'ar' ? 'مستويات الإنجاز' : 'Achievement Tiers'}
                             </div>
                             <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
                                 {selectedGroup.tiers.map(ach => {
@@ -901,7 +901,7 @@ var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                                             </span>
                                             <div style={{ flex:1 }}>
                                                 <div style={{ fontSize:'11px', fontWeight:800, color: isUnlocked ? ts.color : '#9ca3af' }}>
-                                                    {ts.label} � {TRANSLATIONS[lang]?.[ach.nameKey] || ach.id}
+                                                    {ts.label} — {TRANSLATIONS[lang]?.[ach.nameKey] || ach.id}
                                                 </div>
                                                 <div style={{ fontSize:'10px', color:'#6b7280', marginTop:'2px' }}>
                                                     {TRANSLATIONS[lang]?.[ach.descKey] || ''}
@@ -916,7 +916,7 @@ var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                                                 )}
                                             </div>
                                             {isUnlocked && (
-                                                <span style={{ fontSize:'16px', color:'#4ade80' }}>�</span>
+                                                <span style={{ fontSize:'16px', color:'#4ade80' }}>✓</span>
                                             )}
                                         </div>
                                     );
@@ -927,7 +927,7 @@ var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                                 onClick={() => setSelectedGroup(null)}
                                 style={{ marginTop:'12px' }}
                             >
-                                {lang === 'ar' ? 'إغ�ا�' : 'Close'} �
+                                {lang === 'ar' ? 'إغلاق' : 'Close'} ✕
                             </button>
                         </div>
                     </div>
@@ -936,8 +936,8 @@ var chievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
         </div>
     );
 };
-// � USER TITLE COMPONENT V11 - FIXED VISIBILITY
-var serTitleV11 = ({ equipped, lang }) => {
+// 👤 USER TITLE COMPONENT V11 - FIXED VISIBILITY
+var UserTitleV11 = ({ equipped, lang }) => {
     const titleId = equipped?.titles;
     if (!titleId) return null;
 
@@ -961,8 +961,8 @@ var serTitleV11 = ({ equipped, lang }) => {
     );
 };
 
-// �️ USER BADGES COMPONENT V11 - SHOW ALL 10 BADGES
-var serBadgesV11 = ({ equipped, lang }) => {
+// 🎖️ USER BADGES COMPONENT V11 - SHOW ALL 10 BADGES
+var UserBadgesV11 = ({ equipped, lang }) => {
     const badges = equipped?.badges || [];
     if (badges.length === 0) return null;
 
@@ -987,8 +987,8 @@ var serBadgesV11 = ({ equipped, lang }) => {
     );
 };
 
-// � AVATAR WITH FRAME V11 - FIXED CIRCULAR (Frame AROUND Avatar)
-var vatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId, banData, lang }) => {
+// 👤 AVATAR WITH FRAME V11 - FIXED CIRCULAR (Frame AROUND Avatar)
+var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId, banData, lang }) => {
     const sizeMap = {
         sm: { wrapper: 64, avatar: 36, frameSize: 56 },
         md: { wrapper: 80, avatar: 48, frameSize: 72 },
@@ -1063,7 +1063,7 @@ var vatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId, 
                 {hasImageEffect && effect && (
                     <ProfileEffectOverlayInline effectId={resolvedEffectId} />
                 )}
-                {/* � Ban Overlay on Profile Avatar */}
+                {/* 🚫 Ban Overlay on Profile Avatar */}
                 {showBan && (
                     <div style={{
                         position: 'absolute', inset: 0, borderRadius: '50%',
@@ -1073,7 +1073,7 @@ var vatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId, 
                         flexDirection: 'column', zIndex: 11,
                     }}>
                         <span style={{ fontSize: '10px', fontWeight: 900, color: '#fff', textAlign: 'center', lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.9)', letterSpacing: '0px' }}>
-                            {lang === 'ar' ? '�حظ�ر' : 'BANNED'}
+                            {lang === 'ar' ? 'محظور' : 'BANNED'}
                         </span>
                     </div>
                 )}
@@ -1086,8 +1086,8 @@ var vatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId, 
     );
 };
 
-// � PROFILE EFFECT OVERLAY � INLINE VERSION (loops inside avatar circle)
-var rofileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
+// ✨ PROFILE EFFECT OVERLAY — INLINE VERSION (loops inside avatar circle)
+var ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
     const [particles, setParticles] = useState([]);
     const tickRef = useRef(0);
     const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
@@ -1118,7 +1118,7 @@ var rofileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
         return () => clearInterval(interval);
     }, [effectId, loopEvery]);
 
-    // GIF effect inline on avatar � show once then fade
+    // GIF effect inline on avatar — show once then fade
     if (effect && effect.imageUrl && effect.imageUrl.trim() !== '') {
         return <GifProfileEffect effect={effect} />;
     }
@@ -1139,11 +1139,11 @@ var rofileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
     );
 };
 
-// � PROFILE EFFECT OVERLAY (confined to profile card, loops on profile open)
+// ✨ PROFILE EFFECT OVERLAY (confined to profile card, loops on profile open)
 // - GIF effects: rendered as overlay inside the card, sized to card
 // - Particle effects: fall inside card bounds only
-// � GIF PROFILE EFFECT � shows once on mount for displayDuration ms then fades
-var ifProfileEffect = ({ effect }) => {
+// ✨ GIF PROFILE EFFECT — shows once on mount for displayDuration ms then fades
+var GifProfileEffect = ({ effect }) => {
     const [visible, setVisible] = useState(true);
     const [fading, setFading] = useState(false);
     const dur = effect?.displayDuration || 2000;
@@ -1179,7 +1179,7 @@ var ifProfileEffect = ({ effect }) => {
 };
 
 // - loopEvery / displayDuration read from effect.loopEvery / effect.displayDuration
-var rofileEffectOverlay = ({ effectId }) => {
+var ProfileEffectOverlay = ({ effectId }) => {
     const [particles, setParticles] = useState([]);
     const [alive, setAlive] = useState(false);
     const timerRef = useRef(null);
@@ -1187,9 +1187,9 @@ var rofileEffectOverlay = ({ effectId }) => {
 
     const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
 
-    // How often to re-burst � default 4s, override with effect.loopEvery (ms)
+    // How often to re-burst — default 4s, override with effect.loopEvery (ms)
     const loopEvery       = effect?.loopEvery       || 4000;
-    // How long each burst lasts � default 2200ms, override with effect.displayDuration (ms)
+    // How long each burst lasts — default 2200ms, override with effect.displayDuration (ms)
     const displayDuration = effect?.displayDuration || (effect?.duration || 2200);
 
     const triggerBurst = useCallback(() => {
@@ -1225,12 +1225,12 @@ var rofileEffectOverlay = ({ effectId }) => {
 
     if (!effect) return null;
 
-    // �� GIF / Image effect � showOnce: show for displayDuration ms then fade ��
+    // ── GIF / Image effect — showOnce: show for displayDuration ms then fade ──
     if (effect.imageUrl && effect.imageUrl.trim() !== '') {
         return <GifProfileEffect effect={effect} />;
     }
 
-    // �� Particle effect � falls inside card bounds only ��
+    // ── Particle effect — falls inside card bounds only ──
     if (!alive || particles.length === 0) return null;
     return (
         <div style={{
@@ -1254,12 +1254,12 @@ var rofileEffectOverlay = ({ effectId }) => {
     );
 };
 
-// � MOMENTS SYSTEM - Complete Component
+// 📸 MOMENTS SYSTEM - Complete Component
 
 // Max file size: 2MB images, 5MB videos (10 sec max)
-var AX_IMAGE_SIZE = 2 * 1024 * 1024;
-var AX_VIDEO_SIZE = 5 * 1024 * 1024;
-var AX_VIDEO_DURATION = 10;
+var MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+var MAX_VIDEO_SIZE = 5 * 1024 * 1024;
+var MAX_VIDEO_DURATION = 10;
 
 var AllMomentsModal = ({ show, onClose, moments, ownerName, ownerPhoto, lang, onSelectMoment }) => {
     if (!show) return null;
@@ -1276,18 +1276,18 @@ var AllMomentsModal = ({ show, onClose, moments, ownerName, ownerPhoto, lang, on
                     <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
                         {/* Back arrow + author photo */}
                         <button onClick={onClose} style={{width:'28px', height:'28px', borderRadius:'8px', border:'none', background:'rgba(255,255,255,0.07)', color:'#9ca3af', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                            �
+                            ‹
                         </button>
                         {ownerPhoto
                             ? <img src={ownerPhoto} alt="" style={{width:'28px', height:'28px', borderRadius:'50%', objectFit:'cover', border:'2px solid rgba(0,242,255,0.4)'}} />
-                            : <div style={{width:'28px', height:'28px', borderRadius:'50%', background:'rgba(0,242,255,0.1)', border:'2px solid rgba(0,242,255,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px'}}>�</div>
+                            : <div style={{width:'28px', height:'28px', borderRadius:'50%', background:'rgba(0,242,255,0.1)', border:'2px solid rgba(0,242,255,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px'}}>📸</div>
                         }
                         <div>
-                            <div style={{fontSize:'13px', fontWeight:800, color:'white'}}>{lang==='ar'?'�� ا��حظات':'All Moments'}</div>
-                            <div style={{fontSize:'9px', color:'#6b7280'}}>{ownerName} · {moments.length} {lang==='ar'?'�حظة':'moments'}</div>
+                            <div style={{fontSize:'13px', fontWeight:800, color:'white'}}>{lang==='ar'?'كل اللحظات':'All Moments'}</div>
+                            <div style={{fontSize:'9px', color:'#6b7280'}}>{ownerName} · {moments.length} {lang==='ar'?'لحظة':'moments'}</div>
                         </div>
                     </div>
-                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer'}}>�</button>
+                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer'}}>✕</button>
                 </div>
                 <div style={{flex:1, overflowY:'auto', padding:'10px 12px'}}>
                     <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'6px'}}>
@@ -1310,7 +1310,7 @@ var AllMomentsModal = ({ show, onClose, moments, ownerName, ownerPhoto, lang, on
                                 )}
                                 {/* type badge */}
                                 <div style={{position:'absolute', top:'3px', left:'3px', fontSize:'7px', background:'rgba(0,0,0,0.6)', borderRadius:'3px', padding:'1px 3px', color:'#00f2ff', fontWeight:700}}>
-                                    {moment.type === 'text' ? '�️' : moment.type === 'image' ? '�️' : '�'}
+                                    {moment.type === 'text' ? '✏️' : moment.type === 'image' ? '🖼️' : '🎥'}
                                 </div>
                                 {(moment.likesCount||0) > 0 && (
                                     <div style={{position:'absolute', bottom:'2px', right:'3px', fontSize:'7px', color:'#f87171', fontWeight:700}}>❤️{moment.likesCount}</div>
@@ -1324,7 +1324,7 @@ var AllMomentsModal = ({ show, onClose, moments, ownerName, ownerPhoto, lang, on
     );
 };
 
-var omentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfile, lang, onMomentPosted, onOpenProfile }) => {
+var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfile, lang, onMomentPosted, onOpenProfile }) => {
     const [moments, setMoments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedMoment, setSelectedMoment] = useState(null);
@@ -1412,7 +1412,7 @@ var omentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfil
             borderRadius:'14px', overflow:'hidden',
             boxShadow:'0 8px 32px rgba(0,0,0,0.3)'
         }}>
-            {/* �� Header �� */}
+            {/* ── Header ── */}
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', borderBottom: moments.length > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none'}}>
 
                 {/* Left: author avatar + title + count */}
@@ -1424,12 +1424,12 @@ var omentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfil
                     {/* Author avatar next to back/nav arrow */}
                     {ownerPhoto
                         ? <img src={ownerPhoto} alt="" style={{width:'22px', height:'22px', borderRadius:'50%', objectFit:'cover', border:'1px solid rgba(0,242,255,0.35)', flexShrink:0}} />
-                        : <div style={{width:'22px', height:'22px', borderRadius:'50%', background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', flexShrink:0}}>�</div>
+                        : <div style={{width:'22px', height:'22px', borderRadius:'50%', background:'rgba(0,242,255,0.1)', border:'1px solid rgba(0,242,255,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', flexShrink:0}}>📷</div>
                     }
                     {/* Red dot for new unread moments */}
                     <div style={{position:'relative'}}>
                         <span style={{fontSize:'10px', fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.5px'}}>
-                            {lang === 'ar' ? 'ا��حظات' : 'Moments'}
+                            {lang === 'ar' ? 'اللحظات' : 'Moments'}
                         </span>
                         {hasNewMoments && (
                             <div style={{position:'absolute', top:'-3px', right:'-7px', width:'6px', height:'6px', borderRadius:'50%', background:'#ef4444', boxShadow:'0 0 6px rgba(239,68,68,0.8)'}} />
@@ -1449,28 +1449,28 @@ var omentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfil
                             onClick={() => { setShowAllMoments(true); markSeen(); }}
                             style={{fontSize:'9px', color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', padding:'3px 8px', cursor:'pointer', fontWeight:600}}
                         >
-                            {lang === 'ar' ? `ا��� (${moments.length})` : `All (${moments.length})`}
+                            {lang === 'ar' ? `الكل (${moments.length})` : `All (${moments.length})`}
                         </button>
                     )}
 
-                    {/* Camera icon � Add new moment */}
+                    {/* Camera icon — Add new moment */}
                     {isOwnProfile && currentUser && !currentUser.isGuest && !currentUser.isAnonymous && (
                         <button
                             onClick={() => setShowCreateModal(true)}
                             style={{width:'26px', height:'26px', borderRadius:'7px', border:'1px solid rgba(0,242,255,0.3)', background:'rgba(0,242,255,0.08)', color:'#00f2ff', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}
-                            title={lang==='ar'?'أضف �حظة':'Add Moment'}
-                        >�</button>
+                            title={lang==='ar'?'أضف لحظة':'Add Moment'}
+                        >📷</button>
                     )}
                 </div>
             </div>
 
-            {/* �� Content Grid �� */}
+            {/* ── Content Grid ── */}
             <div style={{padding:'10px 12px 12px'}}>
             {loading ? (
                 <div style={{textAlign:'center', padding:'16px', color:'#64748b', fontSize:'11px'}}>...</div>
             ) : moments.length === 0 ? (
                 <div style={{textAlign:'center', padding:'12px', color:'#64748b', fontSize:'11px'}}>
-                    {lang === 'ar' ? '�ا ت�جد �حظات بعد' : 'No moments yet'}
+                    {lang === 'ar' ? 'لا توجد لحظات بعد' : 'No moments yet'}
                 </div>
             ) : (
                 <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'5px'}}>
@@ -1484,7 +1484,7 @@ var omentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfil
 
                             {/* Moment type indicator */}
                             <div style={{position:'absolute', top:'4px', left:'4px', zIndex:2, fontSize:'8px', background:'rgba(0,0,0,0.6)', borderRadius:'4px', padding:'1px 4px', color:'#00f2ff', fontWeight:700, pointerEvents:'none'}}>
-                                {moment.type === 'text' ? '�️' : moment.type === 'image' ? '�️' : '�'}
+                                {moment.type === 'text' ? '✏️' : moment.type === 'image' ? '🖼️' : '🎥'}
                             </div>
 
                             {/* Three-dot menu button */}
@@ -1492,23 +1492,23 @@ var omentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfil
                                 <button
                                     onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId===moment.id?null:moment.id); }}
                                     style={{width:'20px', height:'20px', borderRadius:'5px', border:'none', background:'rgba(0,0,0,0.55)', color:'white', fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1, padding:0}}
-                                >�</button>
+                                >⋮</button>
                                 {openMenuId === moment.id && (
                                     <div onClick={e=>e.stopPropagation()} style={{position:'absolute', top:'22px', right:0, background:'rgba(13,13,31,0.97)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'10px', overflow:'hidden', zIndex:99, minWidth:'130px', boxShadow:'0 8px 24px rgba(0,0,0,0.8)'}}>
                                         {/* Report (non-owner) */}
                                         {currentUser && currentUser.uid !== moment.authorUID && (
                                             <button onClick={() => { setOpenMenuId(null); setReportingMomentId(moment.id); setReportReason(''); setReportSent(false); }} style={{display:'flex', alignItems:'center', gap:'7px', width:'100%', padding:'9px 12px', background:'none', border:'none', color:'#f87171', fontSize:'11px', fontWeight:700, cursor:'pointer'}}>
-                                                � {lang==='ar'?'إب�اغ':'Report'}
+                                                🚩 {lang==='ar'?'إبلاغ':'Report'}
                                             </button>
                                         )}
                                         {/* Delete (owner) */}
                                         {isOwnProfile && (
                                             <button onClick={() => { setOpenMenuId(null); momentsCollection.doc(moment.id).delete(); }} style={{display:'flex', alignItems:'center', gap:'7px', width:'100%', padding:'9px 12px', background:'none', border:'none', color:'#f87171', fontSize:'11px', fontWeight:700, cursor:'pointer'}}>
-                                                �️ {lang==='ar'?'حذف':'Delete'}
+                                                🗑️ {lang==='ar'?'حذف':'Delete'}
                                             </button>
                                         )}
                                         <button onClick={()=>setOpenMenuId(null)} style={{display:'flex', alignItems:'center', gap:'7px', width:'100%', padding:'9px 12px', background:'none', border:'none', color:'#6b7280', fontSize:'11px', cursor:'pointer'}}>
-                                            � {lang==='ar'?'إ�غاء':'Cancel'}
+                                            ✕ {lang==='ar'?'إلغاء':'Cancel'}
                                         </button>
                                     </div>
                                 )}
@@ -1525,7 +1525,7 @@ var omentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfil
                                 <div style={{width:'100%', height:'100%', position:'relative', background:'#000', pointerEvents:'none'}}>
                                     <video src={moment.mediaUrl} style={{width:'100%', height:'100%', objectFit:'cover'}} muted />
                                     <div style={{position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.25)'}}>
-                                        <span style={{fontSize:'22px'}}>�</span>
+                                        <span style={{fontSize:'22px'}}>▶</span>
                                     </div>
                                 </div>
                             ) : null}
@@ -1552,17 +1552,17 @@ var omentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfil
             </div>
         </div>
 
-        {/* �� Report Modal (from grid three-dot) �� */}
+        {/* ── Report Modal (from grid three-dot) ── */}
         {reportingMomentId && (
             <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.MODAL+10, padding:'16px'}} onClick={()=>setReportingMomentId(null)}>
                 <div style={{background:'linear-gradient(180deg,#0f0f1e,#0a0a14)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:'16px', width:'100%', maxWidth:'340px', padding:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.9)'}} onClick={e=>e.stopPropagation()}>
-                    <div style={{fontSize:'14px', fontWeight:800, color:'white', marginBottom:'4px'}}>� {lang==='ar'?'إب�اغ ع� �حظة':'Report Moment'}</div>
-                    <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'14px'}}>{lang==='ar'?'اختر سبب ا�إب�اغ':'Select a reason'}</div>
+                    <div style={{fontSize:'14px', fontWeight:800, color:'white', marginBottom:'4px'}}>🚩 {lang==='ar'?'إبلاغ عن لحظة':'Report Moment'}</div>
+                    <div style={{fontSize:'10px', color:'#6b7280', marginBottom:'14px'}}>{lang==='ar'?'اختر سبب الإبلاغ':'Select a reason'}</div>
                     {[
-                        [lang==='ar'?'�حت�� �س�ء':'Offensive content', 'offensive'],
-                        [lang==='ar'?'�ضا��ة':'Harassment', 'harassment'],
-                        [lang==='ar'?'إسبا�':'Spam', 'spam'],
-                        [lang==='ar'?'�حت�� غ�ر �ائ�':'Inappropriate content', 'inappropriate'],
+                        [lang==='ar'?'محتوى مسيء':'Offensive content', 'offensive'],
+                        [lang==='ar'?'مضايقة':'Harassment', 'harassment'],
+                        [lang==='ar'?'إسبام':'Spam', 'spam'],
+                        [lang==='ar'?'محتوى غير لائق':'Inappropriate content', 'inappropriate'],
                     ].map(([label, val]) => (
                         <button key={val} onClick={()=>setReportReason(val)} style={{display:'block', width:'100%', padding:'9px 13px', marginBottom:'6px', borderRadius:'10px', border:`1px solid ${reportReason===val?'rgba(239,68,68,0.5)':'rgba(255,255,255,0.08)'}`, background:reportReason===val?'rgba(239,68,68,0.1)':'rgba(255,255,255,0.03)', color:reportReason===val?'#f87171':'#9ca3af', fontSize:'12px', cursor:'pointer', textAlign:'left', fontWeight:reportReason===val?700:400}}>
                             {label}
@@ -1570,10 +1570,10 @@ var omentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfil
                     ))}
                     <div style={{display:'flex', gap:'8px', marginTop:'10px'}}>
                         <button onClick={()=>setReportingMomentId(null)} style={{flex:1, padding:'10px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#6b7280', fontSize:'12px', cursor:'pointer', fontWeight:700}}>
-                            {lang==='ar'?'إ�غاء':'Cancel'}
+                            {lang==='ar'?'إلغاء':'Cancel'}
                         </button>
                         <button onClick={handleReport} disabled={!reportReason||reportSent} style={{flex:1, padding:'10px', borderRadius:'10px', border:'none', background:reportReason&&!reportSent?'linear-gradient(135deg,#ef4444,#dc2626)':'rgba(255,255,255,0.06)', color:reportReason&&!reportSent?'white':'#4b5563', fontSize:'12px', cursor:reportReason&&!reportSent?'pointer':'not-allowed', fontWeight:700}}>
-                            {reportSent?`� ${lang==='ar'?'ت�':'Sent'}`:`� ${lang==='ar'?'إب�اغ':'Report'}`}
+                            {reportSent?`✅ ${lang==='ar'?'تم':'Sent'}`:`🚩 ${lang==='ar'?'إبلاغ':'Report'}`}
                         </button>
                     </div>
                 </div>
@@ -1673,12 +1673,12 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
         setSubmitting(true);
         await momentsCollection.doc(moment.id).collection('comments').add({
             authorUID: currentUser.uid,
-            authorName: currentUser.displayName || (lang === 'ar' ? '�ستخد�' : 'User'),
+            authorName: currentUser.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
             authorPhoto: currentUser.photoURL || null,
             text: newComment.trim(),
             createdAt: TS()
         });
-        // � Track mission: commentsPosted
+        // ✅ Track mission: commentsPosted
         try {
             const today = new Date().toDateString();
             const dp = currentUser?.missionProgress?.daily || {};
@@ -1702,7 +1702,7 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
     };
 
     const handleDeleteComment = async (commentId) => {
-        if (!window.confirm(lang === 'ar' ? 'حذف �ذا ا�تع����' : 'Delete this comment?')) return;
+        if (!window.confirm(lang === 'ar' ? 'حذف هذا التعليق؟' : 'Delete this comment?')) return;
         await momentsCollection.doc(moment.id).collection('comments').doc(commentId).delete();
     };
 
@@ -1778,7 +1778,7 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                     <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
                         {moment.authorPhoto
                             ? <img src={moment.authorPhoto} alt="" style={{width:'28px', height:'28px', borderRadius:'50%', objectFit:'cover'}} />
-                            : <div style={{width:'28px', height:'28px', borderRadius:'50%', background:'#374151', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px'}}>�</div>
+                            : <div style={{width:'28px', height:'28px', borderRadius:'50%', background:'#374151', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px'}}>👤</div>
                         }
                         <span style={{fontSize:'12px', fontWeight:700, color:'white'}}>{moment.authorName}</span>
                     </div>
@@ -1787,10 +1787,10 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                         {currentUser && !isOwnProfile && (
                             <button
                                 onClick={() => !reportSent && setShowReportMomentModal(true)}
-                                title={lang === 'ar' ? 'إب�اغ' : 'Report'}
+                                title={lang === 'ar' ? 'إبلاغ' : 'Report'}
                                 style={{background: reportSent ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.06)', border: reportSent ? '1px solid rgba(251,191,36,0.4)' : '1px solid rgba(255,255,255,0.1)', borderRadius:'6px', color: reportSent ? '#fbbf24' : '#6b7280', fontSize:'10px', padding:'3px 8px', cursor: reportSent ? 'default' : 'pointer', fontWeight:700}}
                             >
-                                {reportSent ? (lang === 'ar' ? '� ت�' : '� Sent') : (lang === 'ar' ? '� إب�اغ' : '� Report')}
+                                {reportSent ? (lang === 'ar' ? '✓ تم' : '✓ Sent') : (lang === 'ar' ? '🚩 إبلاغ' : '🚩 Report')}
                             </button>
                         )}
                         {/* Delete button - shown to owner */}
@@ -1799,10 +1799,10 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                                 onClick={() => setShowDeleteConfirm(true)}
                                 style={{background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:'6px', color:'#f87171', fontSize:'10px', padding:'3px 8px', cursor:'pointer', fontWeight:700}}
                             >
-                                �️
+                                🗑️
                             </button>
                         )}
-                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.08)', border:'none', color:'#9ca3af', fontSize:'16px', cursor:'pointer', borderRadius:'6px', padding:'4px 8px'}}>�</button>
+                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.08)', border:'none', color:'#9ca3af', fontSize:'16px', cursor:'pointer', borderRadius:'6px', padding:'4px 8px'}}>✕</button>
                     </div>
                 </div>
 
@@ -1832,16 +1832,16 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                             fontSize:'12px', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:'5px'
                         }}
                     >
-                        {liked ? '❤️' : '�'} {likesCount}
+                        {liked ? '❤️' : '🤍'} {likesCount}
                     </button>
-                    <span style={{fontSize:'10px', color:'#64748b'}}>� {comments.length}</span>
+                    <span style={{fontSize:'10px', color:'#64748b'}}>💬 {comments.length}</span>
                 </div>
 
                 {/* Comments list */}
                 <div style={{flex:1, overflowY:'auto', padding:'8px 14px', display:'flex', flexDirection:'column', gap:'8px'}}>
                     {comments.length === 0 ? (
                         <div style={{textAlign:'center', color:'#64748b', fontSize:'11px', padding:'12px 0'}}>
-                            {lang === 'ar' ? '�ا ت�جد تع���ات' : 'No comments yet'}
+                            {lang === 'ar' ? 'لا توجد تعليقات' : 'No comments yet'}
                         </div>
                     ) : comments.map(c => {
                         const isMyComment = currentUser?.uid === c.authorUID;
@@ -1850,7 +1850,7 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                             <div key={c.id} style={{display:'flex', gap:'8px', alignItems:'flex-start'}}>
                                 {c.authorPhoto
                                     ? <img src={c.authorPhoto} alt="" style={{width:'24px', height:'24px', borderRadius:'50%', objectFit:'cover', flexShrink:0}} />
-                                    : <div style={{width:'24px', height:'24px', borderRadius:'50%', background:'#374151', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px'}}>�</div>
+                                    : <div style={{width:'24px', height:'24px', borderRadius:'50%', background:'#374151', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px'}}>👤</div>
                                 }
                                 <div style={{background:'rgba(255,255,255,0.05)', borderRadius:'10px', padding:'6px 10px', flex:1, minWidth:0}}>
                                     <div style={{fontSize:'9px', fontWeight:700, color:'#00f2ff', marginBottom:'2px'}}>{c.authorName}</div>
@@ -1863,14 +1863,14 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                                             onClick={() => handleDeleteComment(c.id)}
                                             title={lang === 'ar' ? 'حذف' : 'Delete'}
                                             style={{background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'5px', color:'#f87171', fontSize:'9px', padding:'2px 5px', cursor:'pointer', lineHeight:1}}
-                                        >�</button>
+                                        >✕</button>
                                     )}
                                     {!isMyComment && currentUser && (
                                         <button
                                             onClick={() => { setReportTargetComment(c); setShowReportCommentModal(true); }}
-                                            title={lang === 'ar' ? 'إب�اغ' : 'Report'}
+                                            title={lang === 'ar' ? 'إبلاغ' : 'Report'}
                                             style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'5px', color:'#6b7280', fontSize:'9px', padding:'2px 5px', cursor:'pointer', lineHeight:1}}
-                                        >�</button>
+                                        >🚩</button>
                                     )}
                                 </div>
                             </div>
@@ -1897,10 +1897,10 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                                 }}>⏳</div>
                                 <div>
                                     <div style={{fontSize:'11px', fontWeight:700, color:'#fb923c'}}>
-                                        {lang === 'ar' ? 'ا�تظر �ب� ا�تع��� ا�تا��' : 'Wait before next comment'}
+                                        {lang === 'ar' ? 'انتظر قبل التعليق التالي' : 'Wait before next comment'}
                                     </div>
                                     <div style={{fontSize:'10px', color:'#9ca3af', marginTop:'2px'}}>
-                                        {lang === 'ar' ? `${cooldownRemaining} ثا��ة` : `${cooldownRemaining}s remaining`}
+                                        {lang === 'ar' ? `${cooldownRemaining} ثانية` : `${cooldownRemaining}s remaining`}
                                     </div>
                                 </div>
                                 {/* Progress bar */}
@@ -1919,7 +1919,7 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                                     value={newComment}
                                     onChange={e => setNewComment(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && handleComment()}
-                                    placeholder={lang === 'ar' ? 'ا�تب تع���ا�...' : 'Write a comment...'}
+                                    placeholder={lang === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...'}
                                     style={{flex:1, background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'10px', padding:'8px 12px', color:'white', fontSize:'12px', outline:'none', fontFamily:'inherit'}}
                                 />
                                 <button
@@ -1927,31 +1927,31 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                                     disabled={!newComment.trim() || submitting}
                                     style={{background:GR.NEON, border:'none', borderRadius:'10px', color:'white', fontSize:'12px', fontWeight:700, padding:'8px 14px', cursor:'pointer', opacity: (!newComment.trim() || submitting) ? 0.5 : 1}}
                                 >
-                                    {lang === 'ar' ? 'إرسا�' : 'Send'}
+                                    {lang === 'ar' ? 'إرسال' : 'Send'}
                                 </button>
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* �� REPORT MOMENT MODAL �� */}
+                {/* ── REPORT MOMENT MODAL ── */}
                 {showReportMomentModal && (
                     <PortalModal>
                         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.TOOLTIP,padding:'16px'}} onClick={() => setShowReportMomentModal(false)}>
                             <div style={{background:GR.DARK_CARD,border:'1px solid rgba(239,68,68,0.3)',borderRadius:'14px',padding:'20px',maxWidth:'300px',width:'100%'}} onClick={e => e.stopPropagation()}>
-                                <div style={{fontSize:'22px',textAlign:'center',marginBottom:'6px'}}>�</div>
+                                <div style={{fontSize:'22px',textAlign:'center',marginBottom:'6px'}}>🚩</div>
                                 <div style={{fontSize:'14px',fontWeight:800,color:'white',textAlign:'center',marginBottom:'4px'}}>
-                                    {lang==='ar'?'إب�اغ ع� ا��حظة':'Report Moment'}
+                                    {lang==='ar'?'إبلاغ عن اللحظة':'Report Moment'}
                                 </div>
                                 <div style={{fontSize:'11px',color:'#9ca3af',textAlign:'center',marginBottom:'14px'}}>
-                                    {lang==='ar'?'اختر سبب ا�إب�اغ:':'Select a reason:'}
+                                    {lang==='ar'?'اختر سبب الإبلاغ:':'Select a reason:'}
                                 </div>
                                 <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'14px'}}>
                                     {[
-                                        {key:'offensive_image', icon:'�️', ar:'ص�رة �س�ئة/����ة', en:'Offensive Image'},
-                                        {key:'verbal_abuse',    icon:'�', ar:'شت��ة/إ�ا�ة',       en:'Verbal Abuse'},
-                                        {key:'spam',            icon:'�', ar:'سبا�',               en:'Spam'},
-                                        {key:'other',           icon:'�', ar:'سبب آخر',            en:'Other'}
+                                        {key:'offensive_image', icon:'🖼️', ar:'صورة مسيئة/مهينة', en:'Offensive Image'},
+                                        {key:'verbal_abuse',    icon:'💬', ar:'شتيمة/إهانة',       en:'Verbal Abuse'},
+                                        {key:'spam',            icon:'📢', ar:'سبام',               en:'Spam'},
+                                        {key:'other',           icon:'❓', ar:'سبب آخر',            en:'Other'}
                                     ].map(r => (
                                         <button key={r.key} onClick={() => setMomentReportReason(r.key)} style={{
                                             padding:'8px 12px', borderRadius:'8px', fontSize:'12px', cursor:'pointer',
@@ -1966,10 +1966,10 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                                 </div>
                                 <div style={{display:'flex',gap:'8px'}}>
                                     <button onClick={() => { setShowReportMomentModal(false); setMomentReportReason(''); }} style={{flex:1,padding:'8px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',fontWeight:700,cursor:'pointer'}}>
-                                        {lang==='ar'?'إ�غاء':'Cancel'}
+                                        {lang==='ar'?'إلغاء':'Cancel'}
                                     </button>
                                     <button onClick={handleReportMoment} disabled={!momentReportReason} style={{flex:1,padding:'8px',borderRadius:'8px',background: momentReportReason ? 'rgba(239,68,68,0.2)' : 'rgba(100,100,100,0.1)',border: momentReportReason ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.05)',color: momentReportReason ? '#f87171' : '#4b5563',fontSize:'12px',fontWeight:700,cursor: momentReportReason ? 'pointer' : 'default',opacity: momentReportReason ? 1 : 0.5}}>
-                                        {lang==='ar'?'إرسا�':'Submit'}
+                                        {lang==='ar'?'إرسال':'Submit'}
                                     </button>
                                 </div>
                             </div>
@@ -1977,28 +1977,28 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                     </PortalModal>
                 )}
 
-                {/* �� REPORT COMMENT MODAL �� */}
+                {/* ── REPORT COMMENT MODAL ── */}
                 {showReportCommentModal && reportTargetComment && (
                     <PortalModal>
                         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.TOOLTIP,padding:'16px'}} onClick={() => { setShowReportCommentModal(false); setReportTargetComment(null); }}>
                             <div style={{background:GR.DARK_CARD,border:'1px solid rgba(239,68,68,0.3)',borderRadius:'14px',padding:'20px',maxWidth:'300px',width:'100%'}} onClick={e => e.stopPropagation()}>
-                                <div style={{fontSize:'22px',textAlign:'center',marginBottom:'6px'}}>�</div>
+                                <div style={{fontSize:'22px',textAlign:'center',marginBottom:'6px'}}>🚩</div>
                                 <div style={{fontSize:'14px',fontWeight:800,color:'white',textAlign:'center',marginBottom:'4px'}}>
-                                    {lang==='ar'?'إب�اغ ع� تع���':'Report Comment'}
+                                    {lang==='ar'?'إبلاغ عن تعليق':'Report Comment'}
                                 </div>
                                 {/* Show the comment content */}
                                 <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'8px',padding:'8px 10px',marginBottom:'12px',fontSize:'11px',color:'#cbd5e1',maxHeight:'60px',overflow:'hidden',textOverflow:'ellipsis'}}>
-                                    � {reportTargetComment.text}
+                                    💬 {reportTargetComment.text}
                                 </div>
                                 <div style={{fontSize:'11px',color:'#9ca3af',textAlign:'center',marginBottom:'10px'}}>
-                                    {lang==='ar'?'اختر سبب ا�إب�اغ:':'Select a reason:'}
+                                    {lang==='ar'?'اختر سبب الإبلاغ:':'Select a reason:'}
                                 </div>
                                 <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'14px'}}>
                                     {[
-                                        {key:'verbal_abuse', icon:'�', ar:'شت��ة/إ�ا�ة',    en:'Verbal Abuse'},
-                                        {key:'spam',         icon:'�', ar:'سبا�',            en:'Spam'},
-                                        {key:'harassment',   icon:'�', ar:'�ضا��ة',          en:'Harassment'},
-                                        {key:'other',        icon:'�', ar:'سبب آخر',         en:'Other'}
+                                        {key:'verbal_abuse', icon:'💬', ar:'شتيمة/إهانة',    en:'Verbal Abuse'},
+                                        {key:'spam',         icon:'📢', ar:'سبام',            en:'Spam'},
+                                        {key:'harassment',   icon:'😡', ar:'مضايقة',          en:'Harassment'},
+                                        {key:'other',        icon:'❓', ar:'سبب آخر',         en:'Other'}
                                     ].map(r => (
                                         <button key={r.key} onClick={() => setCommentReportReason(r.key)} style={{
                                             padding:'8px 12px', borderRadius:'8px', fontSize:'12px', cursor:'pointer',
@@ -2013,10 +2013,10 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                                 </div>
                                 <div style={{display:'flex',gap:'8px'}}>
                                     <button onClick={() => { setShowReportCommentModal(false); setReportTargetComment(null); setCommentReportReason(''); }} style={{flex:1,padding:'8px',borderRadius:'8px',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',fontWeight:700,cursor:'pointer'}}>
-                                        {lang==='ar'?'إ�غاء':'Cancel'}
+                                        {lang==='ar'?'إلغاء':'Cancel'}
                                     </button>
                                     <button onClick={handleReportCommentSubmit} disabled={!commentReportReason} style={{flex:1,padding:'8px',borderRadius:'8px',background: commentReportReason ? 'rgba(239,68,68,0.2)' : 'rgba(100,100,100,0.1)',border: commentReportReason ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.05)',color: commentReportReason ? '#f87171' : '#4b5563',fontSize:'12px',fontWeight:700,cursor: commentReportReason ? 'pointer' : 'default',opacity: commentReportReason ? 1 : 0.5}}>
-                                        {lang==='ar'?'إرسا�':'Submit'}
+                                        {lang==='ar'?'إرسال':'Submit'}
                                     </button>
                                 </div>
                             </div>
@@ -2029,16 +2029,16 @@ var MomentDetailModal = ({ moment, onClose, currentUser, isOwnProfile, lang, onD
                     <PortalModal>
                         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.TOOLTIP, padding:'16px'}} onClick={() => setShowDeleteConfirm(false)}>
                             <div style={{background:GR.DARK_CARD, border:'1px solid rgba(239,68,68,0.35)', borderRadius:'14px', padding:'22px 24px', textAlign:'center', maxWidth:'260px', width:'100%'}} onClick={e => e.stopPropagation()}>
-                                <div style={{fontSize:'32px', marginBottom:'8px'}}>�️</div>
+                                <div style={{fontSize:'32px', marginBottom:'8px'}}>🗑️</div>
                                 <div style={{fontSize:'14px', fontWeight:800, color:'white', marginBottom:'6px'}}>
-                                    {lang === 'ar' ? 'حذف ا��حظة�' : 'Delete Moment?'}
+                                    {lang === 'ar' ? 'حذف اللحظة؟' : 'Delete Moment?'}
                                 </div>
                                 <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'18px'}}>
-                                    {lang === 'ar' ? '�ا ���� ا�تراجع ع� �ذا ا�إجراء' : 'This action cannot be undone'}
+                                    {lang === 'ar' ? 'لا يمكن التراجع عن هذا الإجراء' : 'This action cannot be undone'}
                                 </div>
                                 <div style={{display:'flex', gap:'8px'}}>
                                     <button onClick={() => setShowDeleteConfirm(false)} style={{flex:1, padding:'9px', borderRadius:'8px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'12px', fontWeight:700, cursor:'pointer'}}>
-                                        {lang === 'ar' ? 'إ�غاء' : 'Cancel'}
+                                        {lang === 'ar' ? 'إلغاء' : 'Cancel'}
                                     </button>
                                     <button onClick={() => { setShowDeleteConfirm(false); onDelete(moment.id); }} style={{flex:1, padding:'9px', borderRadius:'8px', background:'rgba(239,68,68,0.18)', border:'1px solid rgba(239,68,68,0.4)', color:'#f87171', fontSize:'12px', fontWeight:700, cursor:'pointer'}}>
                                         {lang === 'ar' ? 'حذف' : 'Delete'}
@@ -2069,7 +2069,7 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
 
         if (momentType === 'image') {
             if (file.size > MAX_IMAGE_SIZE) {
-                setError(lang === 'ar' ? 'حج� ا�ص�رة �ب�ر جدا� (ا�حد 2MB)' : 'Image too large (max 2MB)');
+                setError(lang === 'ar' ? 'حجم الصورة كبير جداً (الحد 2MB)' : 'Image too large (max 2MB)');
                 return;
             }
             // Compress image with canvas to stay under Firestore 1MB doc limit
@@ -2096,7 +2096,7 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
             reader.readAsDataURL(file);
         } else if (momentType === 'video') {
             if (file.size > MAX_VIDEO_SIZE) {
-                setError(lang === 'ar' ? 'حج� ا�ف�د�� �ب�ر جدا� (ا�حد 5MB)' : 'Video too large (max 5MB)');
+                setError(lang === 'ar' ? 'حجم الفيديو كبير جداً (الحد 5MB)' : 'Video too large (max 5MB)');
                 return;
             }
             const url = URL.createObjectURL(file);
@@ -2105,7 +2105,7 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
             video.onloadedmetadata = () => {
                 URL.revokeObjectURL(url);
                 if (video.duration > MAX_VIDEO_DURATION) {
-                    setError(lang === 'ar' ? `ا�ف�د�� �جب أ� ���� ${MAX_VIDEO_DURATION} ث�ا�� ف�ط` : `Video must be max ${MAX_VIDEO_DURATION} seconds`);
+                    setError(lang === 'ar' ? `الفيديو يجب أن يكون ${MAX_VIDEO_DURATION} ثواني فقط` : `Video must be max ${MAX_VIDEO_DURATION} seconds`);
                     return;
                 }
                 const reader = new FileReader();
@@ -2125,7 +2125,7 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
         try {
             const momentData = {
                 authorUID: currentUser.uid,
-                authorName: currentUser.displayName || (lang === 'ar' ? '�ستخد�' : 'User'),
+                authorName: currentUser.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
                 authorPhoto: currentUser.photoURL || null,
                 authorVipLevel: getVIPLevel(currentUser) || 0,
                 type: momentType,
@@ -2137,7 +2137,7 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
                 createdAt: TS()
             };
             await momentsCollection.add(momentData);
-            // � Track mission: momentsPosted
+            // ✅ Track mission: momentsPosted
             try {
                 const today = new Date().toDateString();
                 const dp = currentUser?.missionProgress?.daily || {};
@@ -2163,7 +2163,7 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
             if (onPosted) onPosted();
             onClose();
         } catch (e) {
-            setError(lang === 'ar' ? 'حدث خطأ� حا�� �رة أخر�' : 'Error occurred, try again');
+            setError(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, try again');
         }
         setUploading(false);
     };
@@ -2173,17 +2173,17 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
             <div style={{background:GR.DARK_CARD, border:'1px solid rgba(0,242,255,0.25)', borderRadius:'16px', width:'100%', maxWidth:'360px', overflow:'hidden'}} onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
-                    <span style={{fontWeight:800, fontSize:'15px', color:'white'}}>{lang === 'ar' ? '� �حظة جد�دة' : '� New Moment'}</span>
-                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.1)', border:'none', color:'#9ca3af', fontSize:'16px', cursor:'pointer', borderRadius:'6px', padding:'4px 8px'}}>�</button>
+                    <span style={{fontWeight:800, fontSize:'15px', color:'white'}}>{lang === 'ar' ? '📸 لحظة جديدة' : '📸 New Moment'}</span>
+                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.1)', border:'none', color:'#9ca3af', fontSize:'16px', cursor:'pointer', borderRadius:'6px', padding:'4px 8px'}}>✕</button>
                 </div>
 
                 <div style={{padding:'16px'}}>
                     {/* Type selector */}
                     <div style={{display:'flex', gap:'6px', marginBottom:'14px'}}>
                         {[
-                            {id:'text', icon:'�️', ar:'�ص', en:'Text'},
-                            {id:'image', icon:'�️', ar:'ص�رة', en:'Image'},
-                            {id:'video', icon:'�', ar:'ف�د��', en:'Video'}
+                            {id:'text', icon:'✏️', ar:'نص', en:'Text'},
+                            {id:'image', icon:'🖼️', ar:'صورة', en:'Image'},
+                            {id:'video', icon:'🎥', ar:'فيديو', en:'Video'}
                         ].map(t => (
                             <button
                                 key={t.id}
@@ -2207,7 +2207,7 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
                             value={textContent}
                             onChange={e => setTextContent(e.target.value)}
                             maxLength={280}
-                            placeholder={lang === 'ar' ? 'ا�تب �حظت� ��ا...' : 'Write your moment here...'}
+                            placeholder={lang === 'ar' ? 'اكتب لحظتك هنا...' : 'Write your moment here...'}
                             style={{width:'100%', background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'10px', padding:'10px 12px', color:'white', fontSize:'13px', fontFamily:'inherit', resize:'none', height:'100px', outline:'none'}}
                         />
                     )}
@@ -2221,17 +2221,17 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
                                         ? <img src={mediaPreview} alt="" style={{width:'100%', maxHeight:'180px', objectFit:'cover'}} />
                                         : <video src={mediaPreview} controls style={{width:'100%', maxHeight:'180px'}} />
                                     }
-                                    <button onClick={() => { setMediaFile(null); setMediaPreview(null); setTextContent(''); }} style={{position:'absolute', top:'6px', right:'6px', background:'rgba(0,0,0,0.7)', border:'none', color:'white', borderRadius:'50%', width:'24px', height:'24px', cursor:'pointer', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center'}}>�</button>
+                                    <button onClick={() => { setMediaFile(null); setMediaPreview(null); setTextContent(''); }} style={{position:'absolute', top:'6px', right:'6px', background:'rgba(0,0,0,0.7)', border:'none', color:'white', borderRadius:'50%', width:'24px', height:'24px', cursor:'pointer', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center'}}>✕</button>
                                 </div>
                             ) : (
                                 <div
                                     onClick={() => fileRef.current?.click()}
                                     style={{border:'2px dashed rgba(0,242,255,0.3)', borderRadius:'10px', padding:'24px', textAlign:'center', cursor:'pointer', color:'#64748b', fontSize:'12px'}}
                                 >
-                                    <div style={{fontSize:'28px', marginBottom:'6px'}}>{momentType === 'image' ? '�️' : '�'}</div>
-                                    <div>{lang === 'ar' ? 'ا��ر �اخت�ار ��ف' : 'Click to select file'}</div>
+                                    <div style={{fontSize:'28px', marginBottom:'6px'}}>{momentType === 'image' ? '🖼️' : '🎥'}</div>
+                                    <div>{lang === 'ar' ? 'انقر لاختيار ملف' : 'Click to select file'}</div>
                                     <div style={{fontSize:'9px', marginTop:'4px', color:'#475569'}}>
-                                        {momentType === 'image' ? (lang === 'ar' ? 'ا�حد ا�أ�ص� 2MB' : 'Max 2MB') : (lang === 'ar' ? 'ا�حد 10 ث�ا�� / 5MB' : 'Max 10s / 5MB')}
+                                        {momentType === 'image' ? (lang === 'ar' ? 'الحد الأقصى 2MB' : 'Max 2MB') : (lang === 'ar' ? 'الحد 10 ثواني / 5MB' : 'Max 10s / 5MB')}
                                     </div>
                                 </div>
                             )}
@@ -2240,7 +2240,7 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
                                 value={textContent}
                                 onChange={e => setTextContent(e.target.value)}
                                 maxLength={200}
-                                placeholder={lang === 'ar' ? 'أضف تع���ا� (اخت�ار�)...' : 'Add a caption (optional)...'}
+                                placeholder={lang === 'ar' ? 'أضف تعليقاً (اختياري)...' : 'Add a caption (optional)...'}
                                 style={{width:'100%', marginTop:'8px', background:'rgba(0,0,0,0.35)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'8px 12px', color:'white', fontSize:'12px', fontFamily:'inherit', resize:'none', height:'56px', outline:'none'}}
                             />
                         </div>
@@ -2258,7 +2258,7 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
                             opacity: (uploading || (momentType === 'text' ? !textContent.trim() : !mediaFile)) ? 0.5 : 1
                         }}
                     >
-                        {uploading ? (lang === 'ar' ? 'جارٍ ا��شر...' : 'Posting...') : (lang === 'ar' ? '�شر ا��حظة �' : 'Post Moment �')}
+                        {uploading ? (lang === 'ar' ? 'جارٍ النشر...' : 'Posting...') : (lang === 'ar' ? 'نشر اللحظة 🚀' : 'Post Moment 🚀')}
                     </button>
                 </div>
             </div>
@@ -2266,9 +2266,9 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
     );
 };
 
-// ������������������������������������������������������������
-// � ADMIN BAN MODAL � ��حة ا�حظر ��أد��
-// ������������������������������������������������������������
+// ════════════════════════════════════════════════════════════
+// 🔒 ADMIN BAN MODAL — لوحة الحظر للأدمن
+// ════════════════════════════════════════════════════════════
 var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
     const [banDuration, setBanDuration] = useState('7'); // days or 'permanent'
     const [banReason, setBanReason] = useState('');
@@ -2277,23 +2277,23 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
     const isBanned = isBannedUser(targetData);
 
     const durationOptions = [
-        { value: '1',         label_ar: '��� �احد',   label_en: '1 Day' },
-        { value: '3',         label_ar: '3 أ�ا�',      label_en: '3 Days' },
-        { value: '7',         label_ar: '7 أ�ا�',      label_en: '7 Days' },
-        { value: '14',        label_ar: '14 ���',      label_en: '14 Days' },
-        { value: '30',        label_ar: '30 ���',      label_en: '30 Days' },
-        { value: 'permanent', label_ar: 'دائ�',        label_en: 'Permanent' },
+        { value: '1',         label_ar: 'يوم واحد',   label_en: '1 Day' },
+        { value: '3',         label_ar: '3 أيام',      label_en: '3 Days' },
+        { value: '7',         label_ar: '7 أيام',      label_en: '7 Days' },
+        { value: '14',        label_ar: '14 يوم',      label_en: '14 Days' },
+        { value: '30',        label_ar: '30 يوم',      label_en: '30 Days' },
+        { value: 'permanent', label_ar: 'دائم',        label_en: 'Permanent' },
     ];
     const reasonOptions = [
         { value: 'cheating',  label_ar: 'غش',           label_en: 'Cheating' },
-        { value: 'abuse',     label_ar: 'س��� �س�ء',    label_en: 'Abusive Behavior' },
-        { value: 'spam',      label_ar: 'سبا�',          label_en: 'Spam' },
+        { value: 'abuse',     label_ar: 'سلوك مسيء',    label_en: 'Abusive Behavior' },
+        { value: 'spam',      label_ar: 'سبام',          label_en: 'Spam' },
         { value: 'other',     label_ar: 'سبب آخر',       label_en: 'Other' },
     ];
 
     const handleApplyBan = async () => {
         if (!targetData?.id) return;
-        if (!banReason && !isBanned) { setError(lang === 'ar' ? 'اختر سبب ا�حظر' : 'Select a ban reason'); return; }
+        if (!banReason && !isBanned) { setError(lang === 'ar' ? 'اختر سبب الحظر' : 'Select a ban reason'); return; }
         setApplying(true);
         try {
             if (isBanned) {
@@ -2321,7 +2321,7 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
                 onClose();
             }
         } catch (e) {
-            setError(lang === 'ar' ? 'حدث خطأ� حا�� �جددا�' : 'An error occurred, try again');
+            setError(lang === 'ar' ? 'حدث خطأ، حاول مجدداً' : 'An error occurred, try again');
         }
         setApplying(false);
     };
@@ -2335,12 +2335,12 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
 
                     {/* Header */}
                     <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'18px' }}>
-                        <span style={{ fontSize:'28px' }}>{isBanned ? '�' : '�'}</span>
+                        <span style={{ fontSize:'28px' }}>{isBanned ? '🔓' : '🔒'}</span>
                         <div>
                             <div style={{ fontSize:'14px', fontWeight:900, color:'#f87171' }}>
                                 {isBanned
-                                    ? (lang === 'ar' ? 'رفع ا�حظر' : 'Remove Ban')
-                                    : (lang === 'ar' ? 'حظر ا�حساب' : 'Ban Account')}
+                                    ? (lang === 'ar' ? 'رفع الحظر' : 'Remove Ban')
+                                    : (lang === 'ar' ? 'حظر الحساب' : 'Ban Account')}
                             </div>
                             <div style={{ fontSize:'11px', color:'#9ca3af', marginTop:'2px' }}>
                                 {targetData?.displayName || targetData?.id}
@@ -2353,20 +2353,20 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
                         <div style={{ marginBottom:'16px' }}>
                             <div style={{ padding:'12px', borderRadius:'10px', background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', marginBottom:'12px' }}>
                                 <div style={{ fontSize:'11px', fontWeight:700, color:'#f87171', marginBottom:'4px' }}>
-                                    {lang === 'ar' ? '�️ �ذا ا�حساب �حظ�ر حا��ا�' : '�️ This account is currently banned'}
+                                    {lang === 'ar' ? '⚠️ هذا الحساب محظور حالياً' : '⚠️ This account is currently banned'}
                                 </div>
                                 {targetData?.ban?.reason && (
                                     <div style={{ fontSize:'10px', color:'#fca5a5' }}>
-                                        {lang === 'ar' ? 'ا�سبب: ' : 'Reason: '}{targetData.ban.reason}
+                                        {lang === 'ar' ? 'السبب: ' : 'Reason: '}{targetData.ban.reason}
                                     </div>
                                 )}
                                 <div style={{ fontSize:'10px', color:'#9ca3af', marginTop:'2px' }}>
-                                    {lang === 'ar' ? '��ت��: ' : 'Expires: '}
+                                    {lang === 'ar' ? 'ينتهي: ' : 'Expires: '}
                                     <span style={{ color:'#fbbf24', fontWeight:700 }}>{formatBanExpiry(targetData, lang)}</span>
                                 </div>
                             </div>
                             <p style={{ fontSize:'11px', color:'#9ca3af', textAlign:'center' }}>
-                                {lang === 'ar' ? '�� تر�د رفع ا�حظر ع� �ذا ا�حساب�' : 'Do you want to remove the ban from this account?'}
+                                {lang === 'ar' ? 'هل تريد رفع الحظر عن هذا الحساب؟' : 'Do you want to remove the ban from this account?'}
                             </p>
                         </div>
                     ) : (
@@ -2375,7 +2375,7 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
                             {/* Duration */}
                             <div>
                                 <div style={{ fontSize:'11px', fontWeight:700, color:'#9ca3af', marginBottom:'6px' }}>
-                                    {lang === 'ar' ? '⏱ �دة ا�حظر' : '⏱ Ban Duration'}
+                                    {lang === 'ar' ? '⏱ مدة الحظر' : '⏱ Ban Duration'}
                                 </div>
                                 <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
                                     {durationOptions.map(opt => (
@@ -2393,7 +2393,7 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
                             {/* Reason */}
                             <div>
                                 <div style={{ fontSize:'11px', fontWeight:700, color:'#9ca3af', marginBottom:'6px' }}>
-                                    {lang === 'ar' ? '� سبب ا�حظر' : '� Ban Reason'}
+                                    {lang === 'ar' ? '📋 سبب الحظر' : '📋 Ban Reason'}
                                 </div>
                                 <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
                                     {reasonOptions.map(opt => (
@@ -2417,7 +2417,7 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
                     {/* Action buttons */}
                     <div style={{ display:'flex', gap:'8px' }}>
                         <button onClick={onClose} style={{ flex:1, padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>
-                            {lang === 'ar' ? 'إ�غاء' : 'Cancel'}
+                            {lang === 'ar' ? 'إلغاء' : 'Cancel'}
                         </button>
                         <button onClick={handleApplyBan} disabled={applying}
                             style={{ flex:1, padding:'10px', borderRadius:'10px', fontSize:'13px', fontWeight:800, cursor:applying?'not-allowed':'pointer', opacity:applying?0.6:1,
@@ -2425,7 +2425,7 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
                                 border: isBanned ? '1px solid rgba(74,222,128,0.4)' : '1px solid rgba(239,68,68,0.45)',
                                 color: isBanned ? '#4ade80' : '#f87171',
                             }}>
-                            {applying ? '...' : isBanned ? (lang === 'ar' ? '� رفع ا�حظر' : '� Remove Ban') : (lang === 'ar' ? '� تطب�� ا�حظر' : '� Apply Ban')}
+                            {applying ? '...' : isBanned ? (lang === 'ar' ? '✅ رفع الحظر' : '✅ Remove Ban') : (lang === 'ar' ? '🔒 تطبيق الحظر' : '🔒 Apply Ban')}
                         </button>
                     </div>
                 </div>
@@ -2434,88 +2434,88 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
     );
 };
 
-// ������������������������������������������������������������
-// � ROLE INFO POPUP � �ظ�ر ��ا حد �ضغط ع�� ا�تا�ت�
-// ������������������������������������������������������������
-var OLE_INFO = {
+// ════════════════════════════════════════════════════════════
+// 👑 ROLE INFO POPUP — يظهر لما حد يضغط على التايتل
+// ════════════════════════════════════════════════════════════
+var ROLE_INFO = {
     owner: {
-        title_ar: '�ا�� ا����ع',
+        title_ar: 'مالك الموقع',
         title_en: 'Site Owner',
-        subtitle_ar: 'ا��سؤ�� ا�أ�� �ا�أع��',
+        subtitle_ar: 'المسؤول الأول والأعلى',
         subtitle_en: 'Highest Authority',
         points_ar: [
-            '� �ا�� ا��عبة ��ط��ر�ا',
-            '�️ �تح�� ف� �� إعدادات ا����ع',
-            '�️ �ع��� ا�أد�� �ا��شرف��',
-            '� ���� ص�اح�ات ا�حظر �ا�إدارة ا��ا��ة',
-            '� ا�شخص ا��ح�د ا��� ��در �عد�� ع�� ا���د',
+            '👑 مالك اللعبة ومطوّرها',
+            '⚙️ يتحكم في كل إعدادات الموقع',
+            '🛡️ يعيّن الأدمن والمشرفين',
+            '🔒 يملك صلاحيات الحظر والإدارة الكاملة',
+            '🚀 الشخص الوحيد اللي يقدر يعدّل على الكود',
         ],
         points_en: [
-            '� Owner and developer of the game',
-            '�️ Full control over all site settings',
-            '�️ Appoints Admins and Moderators',
-            '� Full ban and management permissions',
-            '� The only one who can modify the code',
+            '👑 Owner and developer of the game',
+            '⚙️ Full control over all site settings',
+            '🛡️ Appoints Admins and Moderators',
+            '🔒 Full ban and management permissions',
+            '🚀 The only one who can modify the code',
         ],
         gradient: 'linear-gradient(160deg,#1a1000,#0f0f1e)',
         borderColor: 'rgba(255,215,0,0.45)',
         accentColor: '#ffd700',
         glowColor: 'rgba(255,215,0,0.15)',
-        icon: '�',
+        icon: '👑',
     },
     admin: {
-        title_ar: 'أد��',
+        title_ar: 'أدمن',
         title_en: 'Admin',
-        subtitle_ar: '�سؤ�� ا�إدارة',
+        subtitle_ar: 'مسؤول الإدارة',
         subtitle_en: 'Administration Manager',
         points_ar: [
-            '�️ �د�ر ��ح�� ب�ئة ا��عبة',
-            '� �حظر ا��خا�ف�� ���ف�ذ ا���ا���',
-            '� �ع��� �شرف�� جدد',
-            '� �راجع ا�ب�اغات ��تخذ ا�إجراءات',
-            '� �ت�اص� �ع ا�� Owner �ح� ا��ش��ات ا��ب�رة',
+            '🛡️ يدير ويحمي بيئة اللعبة',
+            '🔒 يحظر المخالفين وينفّذ القوانين',
+            '🔰 يعيّن مشرفين جدد',
+            '📋 يراجع البلاغات ويتخذ الإجراءات',
+            '🤝 يتواصل مع الـ Owner لحل المشكلات الكبيرة',
         ],
         points_en: [
-            '�️ Manages and protects the game environment',
-            '� Bans rule-breakers and enforces policies',
-            '� Appoints new Moderators',
-            '� Reviews reports and takes action',
-            '� Coordinates with Owner on major issues',
+            '🛡️ Manages and protects the game environment',
+            '🔒 Bans rule-breakers and enforces policies',
+            '🔰 Appoints new Moderators',
+            '📋 Reviews reports and takes action',
+            '🤝 Coordinates with Owner on major issues',
         ],
         gradient: 'linear-gradient(160deg,#1a0005,#0f0f1e)',
         borderColor: 'rgba(239,68,68,0.4)',
         accentColor: '#ef4444',
         glowColor: 'rgba(239,68,68,0.12)',
-        icon: '�️',
+        icon: '🛡️',
     },
     moderator: {
-        title_ar: '�شرف',
+        title_ar: 'مشرف',
         title_en: 'Moderator',
-        subtitle_ar: '�شرف ا��عبة',
+        subtitle_ar: 'مشرف اللعبة',
         subtitle_en: 'Game Moderator',
         points_ar: [
-            '� �شرف ع�� س�ر ا��عب بش�� عاد�',
-            '� �را�ب ا��حادثات �ا�س����ات داخ� ا��عبة',
-            '� �ت��� ا�ب�اغات ��رفع�ا ��أد��',
-            '� �ساعد ا��اعب�� ��ح� ا��زاعات ا�بس�طة',
-            '� ��تز� بتطب�� ��اعد ا��جت�ع',
+            '🔰 يشرف على سير اللعب بشكل عادل',
+            '👀 يراقب المحادثات والسلوكيات داخل اللعبة',
+            '🚨 يتلقى البلاغات ويرفعها للأدمن',
+            '🤝 يساعد اللاعبين ويحل النزاعات البسيطة',
+            '📌 يلتزم بتطبيق قواعد المجتمع',
         ],
         points_en: [
-            '� Ensures fair gameplay',
-            '� Monitors chats and in-game behavior',
-            '� Receives reports and escalates to Admin',
-            '� Helps players and resolves minor disputes',
-            '� Enforces community guidelines',
+            '🔰 Ensures fair gameplay',
+            '👀 Monitors chats and in-game behavior',
+            '🚨 Receives reports and escalates to Admin',
+            '🤝 Helps players and resolves minor disputes',
+            '📌 Enforces community guidelines',
         ],
         gradient: 'linear-gradient(160deg,#00051a,#0f0f1e)',
         borderColor: 'rgba(59,130,246,0.4)',
         accentColor: '#3b82f6',
         glowColor: 'rgba(59,130,246,0.12)',
-        icon: '�',
+        icon: '🔰',
     },
 };
 
-var oleInfoPopup = ({ targetData, lang, onClose }) => {
+var RoleInfoPopup = ({ targetData, lang, onClose }) => {
     const tUID = targetData?.id || targetData?.uid;
     const role = getUserRole(targetData, tUID);
     if (!role) return null;
@@ -2561,14 +2561,14 @@ var oleInfoPopup = ({ targetData, lang, onClose }) => {
 
                         {/* Name of the person */}
                         <div style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <span style={{ fontSize: '12px', color: '#d1d5db', fontWeight: 700 }}>{targetData?.displayName || '�'}</span>
+                            <span style={{ fontSize: '12px', color: '#d1d5db', fontWeight: 700 }}>{targetData?.displayName || '—'}</span>
                         </div>
                     </div>
 
                     {/* Points */}
                     <div style={{ padding: '16px 20px' }}>
                         <div style={{ fontSize: '10px', fontWeight: 800, color: '#6b7280', letterSpacing: '0.5px', marginBottom: '10px', textTransform: 'uppercase' }}>
-                            {lang === 'ar' ? 'ا���ا� �ا�ص�اح�ات' : 'Duties & Permissions'}
+                            {lang === 'ar' ? 'المهام والصلاحيات' : 'Duties & Permissions'}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
                             {(lang === 'ar' ? info.points_ar : info.points_en).map((point, i) => (
@@ -2592,7 +2592,7 @@ var oleInfoPopup = ({ targetData, lang, onClose }) => {
                             border: `1px solid ${info.borderColor}`,
                             color: info.accentColor, fontSize: '13px', fontWeight: 800, cursor: 'pointer',
                         }}>
-                            {lang === 'ar' ? 'إغ�ا�' : 'Close'}
+                            {lang === 'ar' ? 'إغلاق' : 'Close'}
                         </button>
                     </div>
                 </div>
@@ -2601,9 +2601,9 @@ var oleInfoPopup = ({ targetData, lang, onClose }) => {
     );
 };
 
-// ������������������������������������������������������������
-// � ADMIN ROLE MODAL � ��حة إدارة ا�رتب
-// ������������������������������������������������������������
+// ════════════════════════════════════════════════════════════
+// 👑 ADMIN ROLE MODAL — لوحة إدارة الرتب
+// ════════════════════════════════════════════════════════════
 var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRoleApplied }) => {
     const [selectedRole, setSelectedRole] = useState('');
     const [applying, setApplying] = useState(false);
@@ -2614,14 +2614,14 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
     const assignableRoles = getAssignableRoles(viewerData, viewerUID);
     const viewerRole = getUserRole(viewerData, viewerUID);
 
-    // Owner �ا �ُ�س
+    // Owner لا يُمس
     const isTargetOwner = targetRole === 'owner';
-    // Admin �ا ��در �عد� admin آخر
+    // Admin لا يقدر يعدل admin آخر
     const cannotModify = isTargetOwner || (viewerRole === 'admin' && targetRole === 'admin');
 
     const roleOptions = [
-        { value: 'admin',     icon: '�️', label_ar: 'أد��',   label_en: 'Admin',     color: '#ef4444' },
-        { value: 'moderator', icon: '�', label_ar: '�شرف',   label_en: 'Moderator', color: '#3b82f6' },
+        { value: 'admin',     icon: '🛡️', label_ar: 'أدمن',   label_en: 'Admin',     color: '#ef4444' },
+        { value: 'moderator', icon: '🔰', label_ar: 'مشرف',   label_en: 'Moderator', color: '#3b82f6' },
     ].filter(r => assignableRoles.includes(r.value));
 
     const handleApply = async () => {
@@ -2645,7 +2645,7 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
             }
             onClose();
         } catch (e) {
-            setError(lang === 'ar' ? 'حدث خطأ� حا�� �جددا�' : 'An error occurred, try again');
+            setError(lang === 'ar' ? 'حدث خطأ، حاول مجدداً' : 'An error occurred, try again');
         }
         setApplying(false);
     };
@@ -2659,10 +2659,10 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
 
                     {/* Header */}
                     <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'18px' }}>
-                        <span style={{ fontSize:'28px' }}>�</span>
+                        <span style={{ fontSize:'28px' }}>👑</span>
                         <div>
                             <div style={{ fontSize:'14px', fontWeight:900, color:'#fbbf24' }}>
-                                {lang === 'ar' ? 'إدارة ا�رتبة' : 'Manage Role'}
+                                {lang === 'ar' ? 'إدارة الرتبة' : 'Manage Role'}
                             </div>
                             <div style={{ fontSize:'11px', color:'#9ca3af', marginTop:'2px' }}>
                                 {targetData?.displayName || targetUID}
@@ -2673,7 +2673,7 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
                     {/* Current role */}
                     {targetRole && (
                         <div style={{ padding:'10px 12px', borderRadius:'10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.09)', marginBottom:'14px', display:'flex', alignItems:'center', gap:'8px' }}>
-                            <span style={{ fontSize:'10px', color:'#6b7280' }}>{lang === 'ar' ? 'ا�رتبة ا�حا��ة:' : 'Current Role:'}</span>
+                            <span style={{ fontSize:'10px', color:'#6b7280' }}>{lang === 'ar' ? 'الرتبة الحالية:' : 'Current Role:'}</span>
                             <StaffRoleBadge userData={targetData} uid={targetUID} lang={lang} size="md" />
                         </div>
                     )}
@@ -2681,9 +2681,9 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
                     {cannotModify ? (
                         /* Cannot modify notice */
                         <div style={{ padding:'14px', borderRadius:'10px', background:'rgba(251,191,36,0.08)', border:'1px solid rgba(251,191,36,0.25)', textAlign:'center', marginBottom:'14px' }}>
-                            <div style={{ fontSize:'24px', marginBottom:'6px' }}>�️</div>
+                            <div style={{ fontSize:'24px', marginBottom:'6px' }}>⚠️</div>
                             <div style={{ fontSize:'12px', color:'#fbbf24', fontWeight:700 }}>
-                                {lang === 'ar' ? '�ا ���� تعد�� رتبة �ذا ا��ستخد�' : "Cannot modify this user's role"}
+                                {lang === 'ar' ? 'لا يمكن تعديل رتبة هذا المستخدم' : "Cannot modify this user's role"}
                             </div>
                         </div>
                     ) : (
@@ -2698,8 +2698,8 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
                                     border: selectedRole === 'none' ? '1.5px solid rgba(156,163,175,0.5)' : '1px solid rgba(255,255,255,0.08)',
                                     color: selectedRole === 'none' ? '#d1d5db' : '#9ca3af',
                                 }}>
-                                    <span style={{ fontSize:'16px' }}>�</span>
-                                    <span>{lang === 'ar' ? 'بد�� رتبة (إزا�ة)' : 'No Role (Remove)'}</span>
+                                    <span style={{ fontSize:'16px' }}>🚫</span>
+                                    <span>{lang === 'ar' ? 'بدون رتبة (إزالة)' : 'No Role (Remove)'}</span>
                                 </button>
 
                                 {/* Role options */}
@@ -2716,11 +2716,11 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
                                             <div style={{ fontWeight:900 }}>{lang === 'ar' ? opt.label_ar : opt.label_en}</div>
                                             <div style={{ fontSize:'9px', color:'#6b7280', marginTop:'1px', fontWeight:500 }}>
                                                 {opt.value === 'admin'
-                                                    ? (lang === 'ar' ? '��در �حظر ��ع��� �شرف��' : 'Can ban users & assign moderators')
-                                                    : (lang === 'ar' ? 'ص�اح�ات ا�إشراف ا�أساس�ة' : 'Basic moderation permissions')}
+                                                    ? (lang === 'ar' ? 'يقدر يحظر ويعيّن مشرفين' : 'Can ban users & assign moderators')
+                                                    : (lang === 'ar' ? 'صلاحيات الإشراف الأساسية' : 'Basic moderation permissions')}
                                             </div>
                                         </div>
-                                        {selectedRole === opt.value && <span style={{ color: opt.color, fontSize:'16px' }}>�</span>}
+                                        {selectedRole === opt.value && <span style={{ color: opt.color, fontSize:'16px' }}>✓</span>}
                                     </button>
                                 ))}
                             </div>
@@ -2730,7 +2730,7 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
                             {/* Action buttons */}
                             <div style={{ display:'flex', gap:'8px' }}>
                                 <button onClick={onClose} style={{ flex:1, padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>
-                                    {lang === 'ar' ? 'إ�غاء' : 'Cancel'}
+                                    {lang === 'ar' ? 'إلغاء' : 'Cancel'}
                                 </button>
                                 <button onClick={handleApply} disabled={!selectedRole || applying} style={{
                                     flex:1, padding:'10px', borderRadius:'10px', fontSize:'13px', fontWeight:800,
@@ -2740,7 +2740,7 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
                                     border: '1px solid rgba(255,215,0,0.4)',
                                     color: '#fbbf24',
                                 }}>
-                                    {applying ? '...' : (lang === 'ar' ? '� تطب��' : '� Apply')}
+                                    {applying ? '...' : (lang === 'ar' ? '✓ تطبيق' : '✓ Apply')}
                                 </button>
                             </div>
                         </>
@@ -2748,7 +2748,7 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
 
                     {cannotModify && (
                         <button onClick={onClose} style={{ width:'100%', padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>
-                            {lang === 'ar' ? 'إغ�ا�' : 'Close'}
+                            {lang === 'ar' ? 'إغلاق' : 'Close'}
                         </button>
                     )}
                 </div>
@@ -2757,7 +2757,7 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
     );
 };
 
-// � PROFILE V11 - MAIN COMPONENT
+// 🎯 PROFILE V11 - MAIN COMPONENT
 var ProfileV11 = ({
     show,
     onClose,
@@ -2817,12 +2817,12 @@ var ProfileV11 = ({
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [showRoleInfoPopup, setShowRoleInfoPopup] = useState(false);
 
-    // �� Couple badge state
+    // 💍 Couple badge state
     const [profileCoupleDoc, setProfileCoupleDoc]         = useState(null);
     const [profilePartnerData, setProfilePartnerData]     = useState(null);
     const [showProfileCoupleCard, setShowProfileCoupleCard] = useState(false);
 
-    // �️ GUARD SYSTEM STATE
+    // 🛡️ GUARD SYSTEM STATE
     const [guardData, setGuardData]               = useState([]);   // top guardians [{uid,name,photo,total}]
     const [showGuardModal, setShowGuardModal]     = useState(false);
     const [guardGiven, setGuardGiven]             = useState(false); // did viewer already give guard today?
@@ -2875,7 +2875,7 @@ var ProfileV11 = ({
         }
     }, [userData, targetUID]);
 
-    // �� Real-time couple doc + real-time partner photo listener � MUTUAL (works for both uid1 and uid2)
+    // 💍 Real-time couple doc + real-time partner photo listener — MUTUAL (works for both uid1 and uid2)
     useEffect(() => {
         if (!show || !targetUID) {
             setProfileCoupleDoc(null);
@@ -2893,7 +2893,7 @@ var ProfileV11 = ({
                 }, () => {});
         };
 
-        // Query both directions simultaneously � first match wins
+        // Query both directions simultaneously — first match wins
         const p1 = couplesCollection
             .where('uid1', '==', targetUID).where('status', '==', 'accepted').limit(1)
             .get().catch(() => null);
@@ -2968,7 +2968,7 @@ var ProfileV11 = ({
         });
     }, [show, targetUID]);
 
-    // �️ Guard system � load top 100 guardians (ranked by charisma gifted to this user)
+    // 🛡️ Guard system — load top 100 guardians (ranked by charisma gifted to this user)
     useEffect(() => {
         if (!show || !targetUID) return;
         const unsub = guardCollection
@@ -2992,7 +2992,7 @@ var ProfileV11 = ({
         return () => unsub();
     }, [show, targetUID, currentUserUID]);
 
-    // �️ Check daily guard status from localStorage
+    // 🛡️ Check daily guard status from localStorage
     useEffect(() => {
         if (!show || !currentUserUID || !targetUID) return;
         const key = `guard_${currentUserUID}_${targetUID}`;
@@ -3018,7 +3018,7 @@ var ProfileV11 = ({
         }
     }, [show, currentUserUID, targetUID]);
 
-    // �️ Give Guard handler � friends only, once per day
+    // 🛡️ Give Guard handler — friends only, once per day
     const handleGiveGuard = useCallback(async () => {
         if (!currentUserUID || !targetUID || guardGiven || !isLoggedInProp) return;
         // Only friends can give guard
@@ -3119,8 +3119,8 @@ var ProfileV11 = ({
                     toUserId: currentUserUID,
                     type: 'report_received',
                     message: lang === 'ar'
-                        ? `�️ ت� است�ا� ب�اغ� ب�جاح ضد "${targetData?.displayName || 'Unknown'}".\nا�سبب: ${reportReason}\n\nس�ت� �راجعت� �� �ِب� ا�فر��. ا�تظر ا�رد ��ا.`
-                        : `�️ Your report against "${targetData?.displayName || 'Unknown'}" was received successfully.\nReason: ${reportReason}\n\nOur team will review it. Watch for a response here.`,
+                        ? `🕵️ تم استلام بلاغك بنجاح ضد "${targetData?.displayName || 'Unknown'}".\nالسبب: ${reportReason}\n\nسيتم مراجعته من قِبل الفريق. انتظر الرد هنا.`
+                        : `🕵️ Your report against "${targetData?.displayName || 'Unknown'}" was received successfully.\nReason: ${reportReason}\n\nOur team will review it. Watch for a response here.`,
                     fromName: null,
                     fromPhoto: null,
                     reportId: reportRef.id,
@@ -3144,7 +3144,7 @@ var ProfileV11 = ({
     return (
         <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL}}>
             <div className="profile-glass-card animate-pop" style={{position:'relative'}} onClick={e => e.stopPropagation()}>
-                {/* Profile Effect � confined inside card, behind content */}
+                {/* Profile Effect — confined inside card, behind content */}
                 {targetData?.equipped?.profileEffects && (
                     <ProfileEffectOverlay key={`fx-${targetUID}`} effectId={targetData.equipped.profileEffects} />
                 )}
@@ -3161,39 +3161,39 @@ var ProfileV11 = ({
                                 className="profile-options-btn"
                                 onClick={() => setShowOptionsMenu(!showOptionsMenu)}
                             >
-                                �
+                                ⋮
                             </button>
                             {showOptionsMenu && (
                                 <div className="profile-options-menu">
                                     {isBlocked ? (
                                         <button onClick={handleUnblockUser} className="profile-options-item unblock">
-                                            <span>�</span>
-                                            <span>{lang === 'ar' ? 'إ�غاء ا�حظر' : 'Unblock'}</span>
+                                            <span>🔓</span>
+                                            <span>{lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}</span>
                                         </button>
                                     ) : (
                                         <button onClick={() => { setShowBlockConfirm(true); setShowOptionsMenu(false); }} className="profile-options-item block">
-                                            <span>�</span>
+                                            <span>🚫</span>
                                             <span>{lang === 'ar' ? 'حظر' : 'Block'}</span>
                                         </button>
                                     )}
                                     <button onClick={() => { setShowReportModal(true); setShowOptionsMenu(false); }} className="profile-options-item report" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',width:'100%',textAlign:'center'}}>
-                                        <span>�</span>
-                                        <span>{lang === 'ar' ? 'إب�اغ' : 'Report'}</span>
+                                        <span>🚨</span>
+                                        <span>{lang === 'ar' ? 'إبلاغ' : 'Report'}</span>
                                     </button>
-                                    {/* � ADMIN ONLY - Ban/Unban */}
+                                    {/* 🔒 ADMIN ONLY - Ban/Unban */}
                                     {isAdmin(currentUserUID) && !isTargetGuest && (
                                         <button onClick={() => { setShowBanModal(true); setShowOptionsMenu(false); }}
                                             style={{ display:'flex', alignItems:'center', gap:'6px', width:'100%', padding:'10px 14px', background:'rgba(239,68,68,0.12)', border:'none', borderTop:'1px solid rgba(239,68,68,0.2)', color:'#f87171', fontSize:'13px', fontWeight:700, cursor:'pointer', textAlign: lang==='ar'?'right':'left' }}>
-                                            <span>�</span>
-                                            <span>{isBannedUser(targetData) ? (lang === 'ar' ? 'رفع ا�حظر' : 'Remove Ban') : (lang === 'ar' ? 'حظر ا�حساب' : 'Ban Account')}</span>
+                                            <span>🔒</span>
+                                            <span>{isBannedUser(targetData) ? (lang === 'ar' ? 'رفع الحظر' : 'Remove Ban') : (lang === 'ar' ? 'حظر الحساب' : 'Ban Account')}</span>
                                         </button>
                                     )}
-                                    {/* � ADMIN ONLY - Manage Role */}
+                                    {/* 👑 ADMIN ONLY - Manage Role */}
                                     {canManageRoles(userData, currentUserUID) && !isTargetGuest && (
                                         <button onClick={() => { setShowRoleModal(true); setShowOptionsMenu(false); }}
                                             style={{ display:'flex', alignItems:'center', gap:'6px', width:'100%', padding:'10px 14px', background:'rgba(255,215,0,0.08)', border:'none', borderTop:'1px solid rgba(255,215,0,0.15)', color:'#fbbf24', fontSize:'13px', fontWeight:700, cursor:'pointer', textAlign: lang==='ar'?'right':'left' }}>
-                                            <span>�</span>
-                                            <span>{lang === 'ar' ? 'إدارة ا�رتبة' : 'Manage Role'}</span>
+                                            <span>👑</span>
+                                            <span>{lang === 'ar' ? 'إدارة الرتبة' : 'Manage Role'}</span>
                                         </button>
                                     )}
                                 </div>
@@ -3206,7 +3206,7 @@ var ProfileV11 = ({
                         onClick={onClose}
                         className="profile-close-btn"
                     >
-                        �
+                        ✕
                     </button>
                 </div>
 
@@ -3257,10 +3257,10 @@ var ProfileV11 = ({
                         <button
                             className="profile-banner-camera"
                             onClick={() => bannerFileRef.current?.click()}
-                            title={lang === 'ar' ? 'تغ��ر ا�ب�ر' : 'Change banner'}
+                            title={lang === 'ar' ? 'تغيير البنر' : 'Change banner'}
                             disabled={bannerUploading}
                         >
-                            {bannerUploading ? '⏳' : '�'}
+                            {bannerUploading ? '⏳' : '📷'}
                         </button>
                     )}
                     <div className="profile-avatar-wrapper">
@@ -3275,15 +3275,15 @@ var ProfileV11 = ({
                         />
                     </div>
 
-                    {/* �� Couple Badge � show PARTNER's photo next to ring (real-time) */}
+                    {/* 💍 Couple Badge — show PARTNER's photo next to ring (real-time) */}
                     {profileCoupleDoc && profilePartnerData ? (
                         <>
                             {/* MUTUAL BADGE: on this profile we show the PARTNER's photo + ring
-                                So viewer sees: when looking at person A � shows person B's photo
-                                              when looking at person B � shows person A's photo   */}
+                                So viewer sees: when looking at person A → shows person B's photo
+                                              when looking at person B → shows person A's photo   */}
                             {(() => {
                                 const ringData = RINGS_DATA && RINGS_DATA.find(r => r.id === profileCoupleDoc.ringId);
-                                const ringEmoji = ringData?.emoji || '��';
+                                const ringEmoji = ringData?.emoji || '💍';
                                 const ringImageURL = ringData?.imageURL || null;
                                 const ringGlow = ringData?.glow || 'rgba(236,72,153,0.6)';
                                 // partnerData is always the OTHER person from targetUID's perspective
@@ -3291,9 +3291,9 @@ var ProfileV11 = ({
                                     <div
                                         className="profile-couple-badge"
                                         onClick={() => setShowProfileCoupleCard(true)}
-                                        title={lang === 'ar' ? `�رتبط ب� ${profilePartnerData.displayName}` : `Coupled with ${profilePartnerData.displayName}`}
+                                        title={lang === 'ar' ? `مرتبط بـ ${profilePartnerData.displayName}` : `Coupled with ${profilePartnerData.displayName}`}
                                     >
-                                        {/* Ring � image or emoji */}
+                                        {/* Ring — image or emoji */}
                                         <span className="cb-ring" style={{filter: ringImageURL ? undefined : `drop-shadow(0 0 5px ${ringGlow})`}}>
                                             {ringImageURL
                                                 ? <img src={ringImageURL} alt="" style={{width:'16px',height:'16px',objectFit:'contain',verticalAlign:'middle',mixBlendMode:'screen',display:'block'}}/>
@@ -3304,7 +3304,7 @@ var ProfileV11 = ({
                                         <div className="cb-avatar">
                                             {profilePartnerData.photoURL
                                                 ? <img src={profilePartnerData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                                : '��'
+                                                : '😍'
                                             }
                                         </div>
                                         <span className="cb-name">{profilePartnerData.displayName}</span>
@@ -3330,7 +3330,7 @@ var ProfileV11 = ({
                             )}
                         </>
                     ) : isOwnProfile && !isGuestProp && (
-                        /* Not married � subtle "Add Partner" nudge */
+                        /* Not married — subtle "Add Partner" nudge */
                         <div
                             style={{
                                 position:'absolute', bottom:'-16px', right:'16px',
@@ -3343,8 +3343,8 @@ var ProfileV11 = ({
                             }}
                             onClick={() => { if (onOpenMarriage) onOpenMarriage(); else if (onOpenSettings) onOpenSettings(); }}
                         >
-                            <span style={{fontSize:'13px'}}>��</span>
-                            {lang === 'ar' ? 'أضف شر���' : 'Add Partner'}
+                            <span style={{fontSize:'13px'}}>💍</span>
+                            {lang === 'ar' ? 'أضف شريكك' : 'Add Partner'}
                         </div>
                     )}
                 </div>
@@ -3357,12 +3357,12 @@ var ProfileV11 = ({
                     </div>
                 ) : !targetData ? (
                     <div className="profile-loading">
-                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>�</div>
+                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
                         <div className="profile-loading-text">{t.friendNotFound || 'User not found'}</div>
                     </div>
                 ) : (
                     <>
-                        {/* � BAN NOTICE BANNER */}
+                        {/* 🚫 BAN NOTICE BANNER */}
                         {isBannedUser(targetData) && (
                             <div style={{
                                 margin: '0 12px 6px',
@@ -3373,16 +3373,16 @@ var ProfileV11 = ({
                                 display: 'flex', alignItems: 'center', gap: '10px',
                                 boxShadow: '0 0 20px rgba(220,0,0,0.15)',
                             }}>
-                                <span style={{ fontSize: '22px', flexShrink: 0, lineHeight: 1 }}>�</span>
+                                <span style={{ fontSize: '22px', flexShrink: 0, lineHeight: 1 }}>🚫</span>
                                 <div style={{ fontSize: '13px', fontWeight: 900, color: '#f87171', letterSpacing: '0.3px' }}>
-                                    {lang === 'ar' ? 'ت� حظر �ذا ا�حساب' : 'This Account is Banned'}
+                                    {lang === 'ar' ? 'تم حظر هذا الحساب' : 'This Account is Banned'}
                                 </div>
                             </div>
                         )}
 
                         <div className="profile-identity">
 
-                            {/* �� ROW 0: Staff Role Badge (if any) �� */}
+                            {/* ══ ROW 0: Staff Role Badge (if any) ══ */}
                             {getUserRole(targetData, targetData?.id || targetData?.uid) && (
                                 <div style={{display:'flex', justifyContent:'center', marginBottom:'4px'}}>
                                     <StaffRoleBadge
@@ -3395,7 +3395,7 @@ var ProfileV11 = ({
                                 </div>
                             )}
 
-                            {/* �� ROW 1: ا�اس� + VIP Badge (�سط) �� */}
+                            {/* ══ ROW 1: الاسم + VIP Badge (وسط) ══ */}
                             <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', flexWrap:'wrap', marginBottom:'6px'}}>
                                 <VIPName
                                     displayName={targetData?.displayName || 'Unknown'}
@@ -3405,17 +3405,17 @@ var ProfileV11 = ({
                                 <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
                             </div>
 
-                            {/* �� ROW 2: ا�ج�س + ا��ار�ز�ا + فا���� سا�� (�سار) | ا�ب�د (����) �� */}
+                            {/* ══ ROW 2: الجنس + الكاريزما + فاميلي ساين (يسار) | البلد (يمين) ══ */}
                             <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', padding:'0 8px', marginBottom:'6px', minHeight:'26px'}}>
-                                {/* �سار: ا�ج�س + ا��ار�ز�ا + فا���� سا�� */}
+                                {/* يسار: الجنس + الكاريزما + فاميلي ساين */}
                                 <div style={{display:'flex', alignItems:'center', gap:'6px', flexShrink:0, flexWrap:'wrap'}}>
                                     {targetData?.gender === 'male' && (
-                                        <span style={{fontSize:'18px', color:'#60a5fa', lineHeight:1}}>�️</span>
+                                        <span style={{fontSize:'18px', color:'#60a5fa', lineHeight:1}}>♂️</span>
                                     )}
                                     {targetData?.gender === 'female' && (
-                                        <span style={{fontSize:'18px', color:'#f472b6', lineHeight:1}}>�️</span>
+                                        <span style={{fontSize:'18px', color:'#f472b6', lineHeight:1}}>♀️</span>
                                     )}
-                                    {/* ا��ار�ز�ا �باشرة بعد ا�ج�س */}
+                                    {/* الكاريزما مباشرة بعد الجنس */}
                                     {(() => {
                                         const { currentLevel: lvlData } = getCharismaLevel(targetData?.charisma || 0);
                                         if (!lvlData) return null;
@@ -3440,7 +3440,7 @@ var ProfileV11 = ({
                                             </div>
                                         );
                                     })()}
-                                    {/* فا���� سا�� ج�ب ا��ار�ز�ا ع�� ا�ش�ا� */}
+                                    {/* فاميلي ساين جنب الكاريزما على الشمال */}
                                     {targetData?.familyTag && (
                                         <ProfileFamilySignBadge
                                             userData={targetData}
@@ -3449,10 +3449,10 @@ var ProfileV11 = ({
                                         />
                                     )}
                                 </div>
-                                {/* ����: ا�ب�د ف�ط */}
+                                {/* يمين: البلد فقط */}
                                 <div style={{display:'flex', alignItems:'center', gap:'4px', flexShrink:0}}>
                                     {targetData?.country?.flag && (
-                                        /* � FIX: Use FlagDisplay for cross-platform flag rendering (Windows Chrome) */
+                                        /* ✅ FIX: Use FlagDisplay for cross-platform flag rendering (Windows Chrome) */
                                         <FlagDisplay
                                             countryCode={targetData.country.code}
                                             flagEmoji={targetData.country.flag}
@@ -3462,7 +3462,7 @@ var ProfileV11 = ({
                                 </div>
                             </div>
 
-                            {/* �� ROW 4: ID ع�� ا�ش�ا� � ص�رة داخ� ا�� pill �� ��ج�دة �� */}
+                            {/* ══ ROW 4: ID على الشمال — صورة داخل الـ pill لو موجودة ══ */}
                             {(() => {
                                 const vipLvl = getVIPLevel(targetData);
                                 const vipCfg = vipLvl > 0 ? VIP_CONFIG.find(v => v.level === vipLvl) : null;
@@ -3476,7 +3476,7 @@ var ProfileV11 = ({
                                         {idBeforeImg && (
                                             <img src={idBeforeImg} alt="vip-id" style={{height:'22px', objectFit:'contain', flexShrink:0}} />
                                         )}
-                                        {/* ا�� pill بتاع ا�� ID */}
+                                        {/* الـ pill بتاع الـ ID */}
                                         <span
                                             className="profile-id-display"
                                             style={{margin:0, display:'inline-flex', alignItems:'center', gap:'5px', cursor:'pointer'}}
@@ -3487,16 +3487,16 @@ var ProfileV11 = ({
                                             }}
                                         >
                                             {copiedId ? (
-                                                lang === 'ar' ? '� ت� ا��سخ!' : '� Copied!'
+                                                lang === 'ar' ? '✓ تم النسخ!' : '✓ Copied!'
                                             ) : idIconImg ? (
-                                                /* �� ف� ص�رة: تظ�ر ج�� ا�� pill بد� "ID:" */
+                                                /* لو في صورة: تظهر جوه الـ pill بدل "ID:" */
                                                 <>
                                                     <img src={idIconImg} alt="id-icon"
                                                         style={{width:'24px', height:'24px', borderRadius:'50%', objectFit:'cover', flexShrink:0, filter:'drop-shadow(0 0 4px rgba(0,242,255,0.5))'}} />
                                                     {idValue}
                                                 </>
                                             ) : (
-                                                /* �� �ا ف� ص�رة: ا�ش�� ا�عاد� */
+                                                /* لو ما في صورة: الشكل العادي */
                                                 `ID: ${idValue}`
                                             )}
                                         </span>
@@ -3504,13 +3504,13 @@ var ProfileV11 = ({
                                 );
                             })()}
 
-                            {/* �� ROW 5: ا�بادجات (max 10) �� */}
+                            {/* ══ ROW 5: البادجات (max 10) ══ */}
                             <UserBadgesV11 equipped={targetData?.equipped} lang={lang} />
 
-                            {/* �� ROW 6: ا�تا�ت�ز � �� ا�تا�ت�ز ا��فع��ة �� */}
+                            {/* ══ ROW 6: التايتلز — كل التايتلز المفعّلة ══ */}
                             <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
 
-                            {/* �� Moments + Charisma �� */}
+                            {/* ══ Moments + Charisma ══ */}
                             <MomentsSection
                                 ownerUID={targetUID}
                                 ownerName={targetData?.displayName || ''}
@@ -3522,7 +3522,7 @@ var ProfileV11 = ({
                             <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
                         </div>{/* end profile-identity */}
 
-                        {/* �� STATS ROW �� */}
+                        {/* ── STATS ROW ── */}
                         <div style={{
                             display:'flex', alignItems:'center', justifyContent:'space-evenly',
                             width:'100%', padding:'10px 8px', boxSizing:'border-box',
@@ -3532,14 +3532,14 @@ var ProfileV11 = ({
                             {/* Wins */}
                             <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:'1',minWidth:0}}>
                                 <span style={{fontSize:'18px',fontWeight:900,color:'#4ade80',lineHeight:1}}>{wins}</span>
-                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>�� {lang==='ar'?'ف�ز':'Wins'}</span>
+                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>🏆 {lang==='ar'?'فوز':'Wins'}</span>
                             </div>
                             {/* Divider */}
                             <div style={{width:'1px',height:'32px',background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
                             {/* Losses */}
                             <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:'1',minWidth:0}}>
                                 <span style={{fontSize:'18px',fontWeight:900,color:'#f87171',lineHeight:1}}>{losses}</span>
-                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>� {lang==='ar'?'خسارة':'Losses'}</span>
+                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>💀 {lang==='ar'?'خسارة':'Losses'}</span>
                             </div>
                             {/* Divider */}
                             <div style={{width:'1px',height:'32px',background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
@@ -3552,20 +3552,20 @@ var ProfileV11 = ({
                             {/* Rank */}
                             <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:'1',minWidth:0}}>
                                 <span style={{fontSize:'18px',fontWeight:900,color:'#fbbf24',lineHeight:1}}>#{charismaRank||'--'}</span>
-                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>�️ {lang==='ar'?'رتبة':'Rank'}</span>
+                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>🎖️ {lang==='ar'?'رتبة':'Rank'}</span>
                             </div>
                             {/* Divider */}
                             <div style={{width:'1px',height:'32px',background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
                             {/* Level */}
                             <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',flex:'1',minWidth:0}}>
                                 <span style={{fontSize:'18px',fontWeight:900,color:'#a78bfa',lineHeight:1}}>{level}</span>
-                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>� {lang==='ar'?'�ست��':'Level'}</span>
+                                <span style={{fontSize:'8px',color:'#6b7280',fontWeight:600,textAlign:'center'}}>⚡ {lang==='ar'?'مستوى':'Level'}</span>
                             </div>
                         </div>
 
                         <GiftWallV11 gifts={gifts} lang={lang} isOwnProfile={isOwnProfile} userData={userData} onOpenProfile={onOpenProfile} onSendGiftToSelf={isGuestProp ? null : (gift) => { setSelfGift(gift); setShowSelfGiftModal(true); }} />
 
-                        {/* � BFF STRIP � above Guard */}
+                        {/* 🤝 BFF STRIP — above Guard */}
                         {!loading && targetData && (
                             <BFFStripProfile
                                 targetUID={targetUID}
@@ -3578,7 +3578,7 @@ var ProfileV11 = ({
                             />
                         )}
 
-                        {/* �️ GUARD STRIP � square compact design */}
+                        {/* 🛡️ GUARD STRIP — square compact design */}
                         {!loading && targetData && (
                             <div
                                 onClick={() => setShowGuardModal(true)}
@@ -3599,7 +3599,7 @@ var ProfileV11 = ({
                                 <div style={{display:'flex', alignItems:'center', gap:'8px', flex:1}}>
                                     <div>
                                         <div style={{fontSize:'12px', fontWeight:800, color:'#e5e7eb', letterSpacing:'-0.2px'}}>Guard</div>
-                                        {/* Give/Locked button � only for friends viewing others' profiles */}
+                                        {/* Give/Locked button — only for friends viewing others' profiles */}
                                         {!isOwnProfile && isLoggedInProp && currentUserFriends?.includes(targetUID) && (
                                             <div
                                                 onClick={e => { e.stopPropagation(); handleGiveGuard(); }}
@@ -3618,9 +3618,9 @@ var ProfileV11 = ({
                                                 }}
                                             >
                                                 {guardGiven ? (
-                                                    <>� {lang==='ar'?'غدا�':'Tomorrow'}</>
+                                                    <>🔒 {lang==='ar'?'غداً':'Tomorrow'}</>
                                                 ) : (
-                                                    <>� {lang==='ar'?'أعطِ ح�ا�ة':'Give Guard'}</>
+                                                    <>✨ {lang==='ar'?'أعطِ حماية':'Give Guard'}</>
                                                 )}
                                             </div>
                                         )}
@@ -3653,12 +3653,12 @@ var ProfileV11 = ({
                                             );
                                         })}
                                     </div>
-                                    <span style={{fontSize:'16px', color:'rgba(255,255,255,0.3)', fontWeight:300, marginLeft:'6px'}}>�</span>
+                                    <span style={{fontSize:'16px', color:'rgba(255,255,255,0.3)', fontWeight:300, marginLeft:'6px'}}>›</span>
                                 </div>
                             </div>
                         )}
 
-                        {/* �️ GUARD MODAL */}
+                        {/* 🛡️ GUARD MODAL */}
                         {showGuardModal && (
                             <PortalModal>
                                 <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.82)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH,padding:'16px'}}
@@ -3672,24 +3672,24 @@ var ProfileV11 = ({
                                         boxShadow:'0 8px 40px rgba(0,0,0,0.6)',
                                     }} onClick={e => e.stopPropagation()}>
 
-                                        {/* �� Header �� */}
+                                        {/* ── Header ── */}
                                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 16px 12px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
                                             <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                                                 <div style={{width:'38px',height:'38px',borderRadius:'50%',overflow:'hidden',border:'2px solid rgba(255,255,255,0.15)',flexShrink:0}}>
                                                     {targetData?.photoURL
                                                         ? <img src={targetData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                                        : <div style={{width:'100%',height:'100%',background:'#1a1a3e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>�</div>
+                                                        : <div style={{width:'100%',height:'100%',background:'#1a1a3e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>👤</div>
                                                     }
                                                 </div>
                                                 <div>
                                                     <div style={{fontSize:'13px',fontWeight:900,color:'#fff'}}>{targetData?.displayName||''}</div>
-                                                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.45)',fontWeight:600}}>�️ Guard Ranking</div>
+                                                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.45)',fontWeight:600}}>🛡️ Guard Ranking</div>
                                                 </div>
                                             </div>
-                                            <button onClick={() => setShowGuardModal(false)} style={{background:'rgba(255,255,255,0.08)',border:'none',color:'#9ca3af',fontSize:'16px',cursor:'pointer',padding:'5px 9px',borderRadius:'8px',lineHeight:1}}>�</button>
+                                            <button onClick={() => setShowGuardModal(false)} style={{background:'rgba(255,255,255,0.08)',border:'none',color:'#9ca3af',fontSize:'16px',cursor:'pointer',padding:'5px 9px',borderRadius:'8px',lineHeight:1}}>✕</button>
                                         </div>
 
-                                        {/* �� Protection Button � ��أصد�اء ف�ط �� */}
+                                        {/* ── Protection Button — للأصدقاء فقط ── */}
                                         {!isOwnProfile && isLoggedInProp && currentUserFriends?.includes(targetUID) && (
                                             <div style={{padding:'12px 14px 6px'}}>
                                                 <button
@@ -3715,29 +3715,29 @@ var ProfileV11 = ({
                                                     onMouseLeave={e=>{ if(!guardGiven){ e.currentTarget.style.background='linear-gradient(135deg,rgba(0,212,255,0.22),rgba(112,0,255,0.22))'; e.currentTarget.style.boxShadow='0 0 18px rgba(0,212,255,0.15)'; } }}
                                                 >
                                                     {guardGiven ? (
-                                                        <>� {lang==='ar'?'��د أعط�ت ح�ا�ة ا���� � عُد غدا�':'Already protected today � come back tomorrow'}</>
+                                                        <>🔒 {lang==='ar'?'لقد أعطيت حماية اليوم — عُد غداً':'Already protected today — come back tomorrow'}</>
                                                     ) : (
-                                                        <>�️ {lang==='ar'?'أعطِ ح�ا�ة ����ة':'Give Daily Protection'}</>
+                                                        <>🛡️ {lang==='ar'?'أعطِ حماية يومية':'Give Daily Protection'}</>
                                                     )}
                                                 </button>
                                                 {!guardGiven && (
                                                     <div style={{fontSize:'9px',color:'rgba(255,255,255,0.28)',textAlign:'center',marginTop:'5px'}}>
                                                         {lang==='ar'
-                                                            ? '�� ��� �رة �احدة � ا�ح�ا�ة تعت�د ع�� عدد أصد�ائ� (1�70)'
-                                                            : 'Once per day � protection based on your friends count (1�70)'}
+                                                            ? 'كل يوم مرة واحدة — الحماية تعتمد على عدد أصدقائك (1–70)'
+                                                            : 'Once per day — protection based on your friends count (1–70)'}
                                                     </div>
                                                 )}
                                             </div>
                                         )}
 
-                                        {/* �� Top 3 shields � always rendered with empty fallback �� */}
+                                        {/* ── Top 3 shields — always rendered with empty fallback ── */}
                                         {(() => {
                                             const cfgMap = {
-                                                1:{ borderColor:'#f5a72a', bg:'rgba(245,167,42,0.10)', nameColor:'#ffd166', scoreColor:'#ffc042', size:78, borderW:3,  crown:'�' },
-                                                2:{ borderColor:'#8da4c8', bg:'rgba(141,164,200,0.10)', nameColor:'#b0c4de', scoreColor:'#90a8cc', size:62, borderW:2.5, crown:'�' },
-                                                3:{ borderColor:'#e07b9a', bg:'rgba(224,123,154,0.10)', nameColor:'#f0a0bc', scoreColor:'#e07b9a', size:62, borderW:2.5, crown:'�' },
+                                                1:{ borderColor:'#f5a72a', bg:'rgba(245,167,42,0.10)', nameColor:'#ffd166', scoreColor:'#ffc042', size:78, borderW:3,  crown:'👑' },
+                                                2:{ borderColor:'#8da4c8', bg:'rgba(141,164,200,0.10)', nameColor:'#b0c4de', scoreColor:'#90a8cc', size:62, borderW:2.5, crown:'🥈' },
+                                                3:{ borderColor:'#e07b9a', bg:'rgba(224,123,154,0.10)', nameColor:'#f0a0bc', scoreColor:'#e07b9a', size:62, borderW:2.5, crown:'🥉' },
                                             };
-                                            const fmtV = fmtNum; // unified � defined in 01-config.js
+                                            const fmtV = fmtNum; // unified — defined in 01-config.js
                                             const ShieldCard = ({gd, rank}) => {
                                                 const cfg = cfgMap[rank];
                                                 const s = cfg.size;
@@ -3764,7 +3764,7 @@ var ProfileV11 = ({
                                                                     ? <svg width="28" height="28" viewBox="0 0 24 24" fill="none" opacity="0.25"><circle cx="12" cy="8" r="4" stroke="#fff" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>
                                                                     : gd.photo
                                                                         ? <img src={gd.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                                                        : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>�</div>
+                                                                        : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>👤</div>
                                                                 }
                                                             </div>
                                                             {!isEmpty && (
@@ -3774,7 +3774,7 @@ var ProfileV11 = ({
                                                             )}
                                                         </div>
                                                         <span style={{fontSize:'11px',fontWeight:800,color:isEmpty?'rgba(255,255,255,0.2)':cfg.nameColor,maxWidth:'76px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>{isEmpty?(lang==='ar'?'فارغ':'Empty'):gd.name}</span>
-                                                        <span style={{fontSize:'12px',fontWeight:900,color:isEmpty?'rgba(255,255,255,0.15)':cfg.scoreColor}}>{isEmpty?'�':fmtV(gd.total)}</span>
+                                                        <span style={{fontSize:'12px',fontWeight:900,color:isEmpty?'rgba(255,255,255,0.15)':cfg.scoreColor}}>{isEmpty?'—':fmtV(gd.total)}</span>
                                                         <span style={{fontSize:'8px',color:'rgba(255,255,255,0.3)',fontWeight:600,letterSpacing:'0.3px'}}>Guard</span>
                                                     </div>
                                                 );
@@ -3788,7 +3788,7 @@ var ProfileV11 = ({
                                             );
                                         })()}
 
-                                        {/* �� Ranks 4+ �� */}
+                                        {/* ── Ranks 4+ ── */}
                                         {guardData.length > 3 && (
                                             <div style={{margin:'6px 14px 14px',borderRadius:'14px',overflow:'hidden',border:'1px solid rgba(255,255,255,0.07)'}}>
                                                 {guardData.slice(3).map((g, i) => (
@@ -3802,7 +3802,7 @@ var ProfileV11 = ({
                                                         <div style={{width:'36px',height:'36px',borderRadius:'50%',overflow:'hidden',border:'1.5px solid rgba(255,255,255,0.12)',flexShrink:0}}>
                                                             {g.photo
                                                                 ? <img src={g.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                                                : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>�</div>
+                                                                : <div style={{width:'100%',height:'100%',background:'#1e1e3f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>👤</div>
                                                             }
                                                         </div>
                                                         <span style={{flex:1,fontSize:'13px',fontWeight:700,color:'#e5e7eb',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{g.name}</span>
@@ -3825,35 +3825,35 @@ var ProfileV11 = ({
 
                         {isBlocked && !isOwnProfile && (
                             <div className="profile-blocked-notice">
-                                <span>�</span>
-                                <span>{lang === 'ar' ? '��د حظرت �ذا ا��ستخد�' : 'You have blocked this user'}</span>
+                                <span>🚫</span>
+                                <span>{lang === 'ar' ? 'لقد حظرت هذا المستخدم' : 'You have blocked this user'}</span>
                             </div>
                         )}
 
                         {blockedByTarget && !isOwnProfile && (
                             <div className="profile-blocked-notice blocked-by-other">
-                                <span>�</span>
-                                <span>{lang === 'ar' ? '�ذا ا��ستخد� �د حظر�' : 'This user has blocked you'}</span>
+                                <span>🚫</span>
+                                <span>{lang === 'ar' ? 'هذا المستخدم قد حظرك' : 'This user has blocked you'}</span>
                             </div>
                         )}
 
-                        {/* �� GUEST LOGIN BANNER � shown to guest viewing their own profile �� */}
+                        {/* ── GUEST LOGIN BANNER — shown to guest viewing their own profile ── */}
                         {isOwnProfile && isGuestProp && onLoginGoogle && (
                             <div style={{margin:'8px 12px',padding:'14px 16px',borderRadius:'16px',background:'linear-gradient(135deg,rgba(66,133,244,0.13),rgba(26,115,232,0.08))',border:'1px solid rgba(66,133,244,0.3)',display:'flex',alignItems:'center',gap:'12px'}}>
-                                <span style={{fontSize:'28px',flexShrink:0}}>�</span>
+                                <span style={{fontSize:'28px',flexShrink:0}}>🔑</span>
                                 <div style={{flex:1,minWidth:0}}>
-                                    <div style={{fontSize:'13px',fontWeight:800,color:'#e5e7eb',marginBottom:'2px'}}>{lang==='ar'?'سج�� دخ��� بج�ج�':'Sign in with Google'}</div>
-                                    <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'احفظ ت�د�� �است�تع ب�� ا���زات':'Save progress & unlock all features'}</div>
+                                    <div style={{fontSize:'13px',fontWeight:800,color:'#e5e7eb',marginBottom:'2px'}}>{lang==='ar'?'سجّل دخولك بجوجل':'Sign in with Google'}</div>
+                                    <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'احفظ تقدمك واستمتع بكل الميزات':'Save progress & unlock all features'}</div>
                                 </div>
                                 <button
                                     onClick={onLoginGoogle}
                                     style={{flexShrink:0,padding:'8px 14px',borderRadius:'10px',background:'linear-gradient(135deg,#4285f4,#1a73e8)',border:'none',color:'#fff',fontWeight:800,fontSize:'12px',cursor:'pointer',whiteSpace:'nowrap',boxShadow:'0 2px 10px rgba(66,133,244,0.4)'}}>
-                                    {lang==='ar'?'دخ��':'Login'}
+                                    {lang==='ar'?'دخول':'Login'}
                                 </button>
                             </div>
                         )}
 
-                        {/* �� GUEST BADGE - visible to ALL viewers �� */}
+                        {/* ── GUEST BADGE - visible to ALL viewers ── */}
                         {isTargetGuest && (
                             <div style={{
                                 display:'flex', alignItems:'center', justifyContent:'center', gap:'8px',
@@ -3863,13 +3863,13 @@ var ProfileV11 = ({
                                 borderRadius:'12px',
                                 boxShadow:'0 0 16px rgba(251,191,36,0.12)'
                             }}>
-                                <span style={{fontSize:'16px'}}>�</span>
+                                <span style={{fontSize:'16px'}}>👤</span>
                                 <div>
                                     <div style={{fontSize:'12px', fontWeight:900, color:'#fbbf24', letterSpacing:'0.5px'}}>
-                                        {lang==='ar' ? 'حساب ض�ف' : 'GUEST ACCOUNT'}
+                                        {lang==='ar' ? 'حساب ضيف' : 'GUEST ACCOUNT'}
                                     </div>
                                     <div style={{fontSize:'9px', color:'#92400e', fontWeight:600}}>
-                                        {lang==='ar' ? '�ا ���� إضافت� �صد�� أ� إرسا� �دا�ا' : 'Limited features � no friends or gifts'}
+                                        {lang==='ar' ? 'لا يمكن إضافته كصديق أو إرسال هدايا' : 'Limited features — no friends or gifts'}
                                     </div>
                                 </div>
                             </div>
@@ -3878,7 +3878,7 @@ var ProfileV11 = ({
                         {!isOwnProfile && !isTargetGuest && !isBlocked && !blockedByTarget && !isGuestViewer && (
                             <div className="profile-actions">
                                 {isAlreadyFriend ? (
-                                    /* Already friends � show Chat button */
+                                    /* Already friends → show Chat button */
                                     <button
                                         onClick={() => {
                                             if (onOpenChat) {
@@ -3888,23 +3888,23 @@ var ProfileV11 = ({
                                         className="profile-action-btn primary"
                                         style={{background:'linear-gradient(135deg,rgba(0,242,255,0.25),rgba(112,0,255,0.2))', borderColor:'rgba(0,242,255,0.4)'}}
                                     >
-                                        <span>�</span>
-                                        <span>{lang === 'ar' ? '�حادثة' : 'Chat'}</span>
+                                        <span>💬</span>
+                                        <span>{lang === 'ar' ? 'محادثة' : 'Chat'}</span>
                                     </button>
                                 ) : hasPendingRequest ? (
                                     <button disabled className="profile-action-btn secondary">
                                         <span>⏳</span>
-                                        <span>{lang === 'ar' ? 'ت� ا�إرسا�' : 'Sent'}</span>
+                                        <span>{lang === 'ar' ? 'تم الإرسال' : 'Sent'}</span>
                                     </button>
                                 ) : (
                                     <button onClick={handleAddFriend} className="profile-action-btn primary">
-                                        <span>�</span>
-                                        <span>{lang === 'ar' ? 'أضف صد��' : 'Add Friend'}</span>
+                                        <span>👤</span>
+                                        <span>{lang === 'ar' ? 'أضف صديق' : 'Add Friend'}</span>
                                     </button>
                                 )}
                                 <button onClick={() => setShowGiftModal(true)} className="profile-action-btn secondary">
-                                    <span>��</span>
-                                    <span>{lang === 'ar' ? 'أرس� �د�ة' : 'Send Gift'}</span>
+                                    <span>🎁</span>
+                                    <span>{lang === 'ar' ? 'أرسل هدية' : 'Send Gift'}</span>
                                 </button>
                             </div>
                         )}
@@ -3924,8 +3924,8 @@ var ProfileV11 = ({
                                         transition:'all 0.2s'
                                     }}
                                 >
-                                    <span style={{fontSize:'16px'}}>�</span>
-                                    <span>{lang === 'ar' ? 'شات�' : 'My Chat'}</span>
+                                    <span style={{fontSize:'16px'}}>💬</span>
+                                    <span>{lang === 'ar' ? 'شاتي' : 'My Chat'}</span>
                                 </button>
                                 {/* Self Gift */}
                                 <button
@@ -3939,8 +3939,8 @@ var ProfileV11 = ({
                                         transition:'all 0.2s'
                                     }}
                                 >
-                                    <span style={{fontSize:'16px'}}>��</span>
-                                    <span>{lang === 'ar' ? '�د�ة ��فس�' : 'Gift Myself'}</span>
+                                    <span style={{fontSize:'16px'}}>🎁</span>
+                                    <span>{lang === 'ar' ? 'هدية لنفسي' : 'Gift Myself'}</span>
                                 </button>
                             </div>
                         )}
@@ -3951,8 +3951,8 @@ var ProfileV11 = ({
                 {showReportModal && (
                     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL,padding:'16px'}} onClick={() => { setShowReportModal(false); setReportReason(''); setReportDescription(''); setReportImagePreview(null); }}>
                         <div className="profile-confirm-modal" onClick={e => e.stopPropagation()} style={{maxWidth:'320px', width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
-                            <div className="profile-confirm-icon">�</div>
-                            <div className="profile-confirm-title">{lang === 'ar' ? 'إب�اغ ع� �ستخد�' : 'Report User'}</div>
+                            <div className="profile-confirm-icon">🚨</div>
+                            <div className="profile-confirm-title">{lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'}</div>
 
                             {/* Reported user info */}
                             <div style={{ display:'flex', alignItems:'center', gap:'8px', background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'8px 10px', marginBottom:'12px' }}>
@@ -3966,17 +3966,17 @@ var ProfileV11 = ({
 
                             {/* Reason selection */}
                             <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'8px', textAlign:'start'}}>
-                                {lang === 'ar' ? 'سبب ا�ب�اغ:' : 'Reason:'}
+                                {lang === 'ar' ? 'سبب البلاغ:' : 'Reason:'}
                             </div>
                             <div style={{display:'flex', flexDirection:'column', gap:'5px', marginBottom:'12px'}}>
                                 {[
-                                    {key:'abusive',       icon:'�', ar:'س��� �س�ء',       en:'Abusive Behavior'},
-                                    {key:'verbal_abuse',  icon:'�', ar:'شت��ة �فظ�ة',      en:'Verbal Abuse'},
-                                    {key:'cheating',      icon:'�', ar:'غش ف� ا��عبة',     en:'Cheating'},
-                                    {key:'fraud',         icon:'�', ar:'احت�ا�',            en:'Fraud'},
-                                    {key:'avatar',        icon:'�️', ar:'ص�رة أفاتار �س�ئة', en:'Inappropriate Avatar'},
-                                    {key:'spam',          icon:'�', ar:'سبا�',              en:'Spam'},
-                                    {key:'other',         icon:'�', ar:'سبب آخر',           en:'Other'}
+                                    {key:'abusive',       icon:'🤬', ar:'سلوك مسيء',       en:'Abusive Behavior'},
+                                    {key:'verbal_abuse',  icon:'💬', ar:'شتيمة لفظية',      en:'Verbal Abuse'},
+                                    {key:'cheating',      icon:'🎮', ar:'غش في اللعبة',     en:'Cheating'},
+                                    {key:'fraud',         icon:'💰', ar:'احتيال',            en:'Fraud'},
+                                    {key:'avatar',        icon:'🖼️', ar:'صورة أفاتار مسيئة', en:'Inappropriate Avatar'},
+                                    {key:'spam',          icon:'📢', ar:'سبام',              en:'Spam'},
+                                    {key:'other',         icon:'❓', ar:'سبب آخر',           en:'Other'}
                                 ].map(r => (
                                     <button key={r.key} onClick={() => setReportReason(r.key)} style={{
                                         padding:'7px 10px', borderRadius:'7px', fontSize:'12px',
@@ -3994,13 +3994,13 @@ var ProfileV11 = ({
 
                             {/* Description */}
                             <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>
-                                {lang === 'ar' ? '�صف ا��ش��ة (اخت�ار�):' : 'Describe the issue (optional):'}
+                                {lang === 'ar' ? 'وصف المشكلة (اختياري):' : 'Describe the issue (optional):'}
                             </div>
                             <textarea
                                 value={reportDescription}
                                 onChange={e => setReportDescription(e.target.value)}
                                 maxLength={300}
-                                placeholder={lang === 'ar' ? 'اشرح �ا حدث با�تفص��...' : 'Explain what happened in detail...'}
+                                placeholder={lang === 'ar' ? 'اشرح ما حدث بالتفصيل...' : 'Explain what happened in detail...'}
                                 style={{
                                     width:'100%', padding:'8px', borderRadius:'7px', fontSize:'11px', resize:'vertical', minHeight:'55px',
                                     background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)',
@@ -4009,14 +4009,14 @@ var ProfileV11 = ({
 
                             {/* Image upload */}
                             <div style={{fontSize:'11px', color:'#9ca3af', marginBottom:'6px'}}>
-                                {lang === 'ar' ? 'إرفا� ص�رة (اخت�ار�):' : 'Attach image (optional):'}
+                                {lang === 'ar' ? 'إرفاق صورة (اختياري):' : 'Attach image (optional):'}
                             </div>
                             {reportImagePreview ? (
                                 <div style={{ position:'relative', marginBottom:'10px' }}>
                                     <img src={reportImagePreview} style={{ width:'100%', maxHeight:'120px', objectFit:'cover', borderRadius:'7px', border:'1px solid rgba(255,255,255,0.1)' }} />
                                     <button onClick={() => setReportImagePreview(null)}
                                         style={{ position:'absolute', top:'4px', right:'4px', background:'rgba(0,0,0,0.7)', border:'none', color:'white', borderRadius:'50%', width:'20px', height:'20px', cursor:'pointer', fontSize:'11px', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                                        �
+                                        ✕
                                     </button>
                                 </div>
                             ) : (
@@ -4025,7 +4025,7 @@ var ProfileV11 = ({
                                     padding:'8px', borderRadius:'7px', marginBottom:'10px', cursor:'pointer',
                                     background:'rgba(255,255,255,0.04)', border:'1px dashed rgba(255,255,255,0.2)', color:'#9ca3af', fontSize:'11px'
                                 }}>
-                                    � {lang === 'ar' ? 'اضغط �إرفا� ص�رة' : 'Click to attach image'}
+                                    📎 {lang === 'ar' ? 'اضغط لإرفاق صورة' : 'Click to attach image'}
                                     <input type="file" accept="image/*" style={{display:'none'}} onChange={e => {
                                         const file = e.target.files?.[0];
                                         if (!file) return;
@@ -4052,11 +4052,11 @@ var ProfileV11 = ({
 
                             <div className="profile-confirm-actions">
                                 <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDescription(''); setReportImagePreview(null); }} className="cancel">
-                                    {lang === 'ar' ? 'إ�غاء' : 'Cancel'}
+                                    {lang === 'ar' ? 'إلغاء' : 'Cancel'}
                                 </button>
                                 <button onClick={handleSendReport} disabled={!reportReason || reportSending} className="confirm"
                                     style={{opacity: (!reportReason || reportSending) ? 0.5 : 1, background:'#ef4444'}}>
-                                    {reportSending ? '...' : (lang === 'ar' ? 'إرسا� ا�ب�اغ' : 'Submit Report')}
+                                    {reportSending ? '...' : (lang === 'ar' ? 'إرسال البلاغ' : 'Submit Report')}
                                 </button>
                             </div>
                         </div>
@@ -4066,18 +4066,18 @@ var ProfileV11 = ({
                 {showBlockConfirm && (
                     <div className="profile-confirm-overlay" onClick={() => setShowBlockConfirm(false)}>
                         <div className="profile-confirm-modal" onClick={e => e.stopPropagation()}>
-                            <div className="profile-confirm-icon">�</div>
+                            <div className="profile-confirm-icon">🚫</div>
                             <div className="profile-confirm-title">
-                                {lang === 'ar' ? 'حظر ا��ستخد�' : 'Block User'}
+                                {lang === 'ar' ? 'حظر المستخدم' : 'Block User'}
                             </div>
                             <div className="profile-confirm-message">
                                 {lang === 'ar'
-                                    ? `�� أ�ت �تأ�د �� حظر ${targetData?.displayName || '�ذا ا��ستخد�'}�`
+                                    ? `هل أنت متأكد من حظر ${targetData?.displayName || 'هذا المستخدم'}؟`
                                     : `Are you sure you want to block ${targetData?.displayName || 'this user'}?`}
                             </div>
                             <div className="profile-confirm-actions">
                                 <button onClick={() => setShowBlockConfirm(false)} className="cancel">
-                                    {lang === 'ar' ? 'إ�غاء' : 'Cancel'}
+                                    {lang === 'ar' ? 'إلغاء' : 'Cancel'}
                                 </button>
                                 <button onClick={handleBlockUser} className="confirm">
                                     {lang === 'ar' ? 'حظر' : 'Block'}
@@ -4087,7 +4087,7 @@ var ProfileV11 = ({
                     </div>
                 )}
 
-                {/* � ADMIN BAN MODAL */}
+                {/* 🔒 ADMIN BAN MODAL */}
                 {showBanModal && isAdmin(currentUserUID) && (
                     <AdminBanModal
                         targetData={targetData}
@@ -4099,7 +4099,7 @@ var ProfileV11 = ({
                     />
                 )}
 
-                {/* � ADMIN ROLE MODAL */}
+                {/* 👑 ADMIN ROLE MODAL */}
                 {showRoleModal && canManageRoles(userData, currentUserUID) && (
                     <AdminRoleModal
                         targetData={targetData}
@@ -4113,7 +4113,7 @@ var ProfileV11 = ({
                     />
                 )}
 
-                {/* � ROLE INFO POPUP */}
+                {/* 👑 ROLE INFO POPUP */}
                 {showRoleInfoPopup && (
                     <RoleInfoPopup
                         targetData={targetData}
@@ -4140,7 +4140,7 @@ var ProfileV11 = ({
                 <SendGiftModal
                     show={showSelfGiftModal}
                     onClose={() => setShowSelfGiftModal(false)}
-                    targetUser={{ uid: userData?.uid, displayName: userData?.displayName || (lang==='ar'?'أ�ت':'You'), photoURL: userData?.photoURL }}
+                    targetUser={{ uid: userData?.uid, displayName: userData?.displayName || (lang==='ar'?'أنت':'You'), photoURL: userData?.photoURL }}
                     currentUser={userData}
                     lang={lang}
                     onSendGift={async (gift, targetUser) => {
@@ -4159,4 +4159,3 @@ var ProfileV11 = ({
 window.ProfileV11 = ProfileV11;
 
 // Wrap with ErrorBoundary
-
