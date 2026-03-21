@@ -36,7 +36,7 @@ var { SendGiftModal } = window;
  * FamilyChatModal - Extracted component for family chat functionality.
  */
 var FamilyChatModal = (props) => {
-    var { isOpen, onClose, currentUID, currentUserData, lang, onSendGift, userData, onNotification, onOpenProfile, family, S, myRole } = props;
+    var { isOpen, onClose, currentUID, currentUserData, lang, onSendGift, userData, onNotification, onOpenProfile, onOpenFamily, family, S, myRole } = props;
     var show = props.show !== undefined ? props.show : (isOpen !== undefined ? isOpen : !onClose);
     var familyData = props.familyData || family;
     var familyId = props.familyId || familyData?.id || userData?.familyId || currentUserData?.familyId;
