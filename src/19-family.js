@@ -1,13 +1,13 @@
-﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ“¸ FRIENDS MOMENTS MODAL
-// ðŸ  FAMILY SYSTEM â€” Complete Clan/Family System V2
+// ��������������������������������������������������������
+// � FRIENDS MOMENTS MODAL
+// ��� FAMILY SYSTEM � Complete Clan/Family System V2
 // File: 19-family.js
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// familiesCollection â€” defined in 01-config.js
+// ��������������������������������������������������������
+// familiesCollection � defined in 01-config.js
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// âš™ï¸  FAMILY CONFIG â€” Levels, Sign Levels, Tasks
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// �️  FAMILY CONFIG � Levels, Sign Levels, Tasks
+// ��������������������������������������������������������
 // Configuration is now loaded from window.FamilyConstants
 
 
@@ -35,13 +35,13 @@ var { FamilyRoleBadge, FamilySignBadge, S } = window.FamilyShared;
 
 
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ  FAMILY MODAL â€” Main Component V2
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-var amilyModal = ({ isOpen, onClose, lang, ...props }) => {
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // ðŸ› ï¸ DATA & STATE
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ��������������������������������������������������������
+// ��� FAMILY MODAL � Main Component V2
+// ��������������������������������������������������������
+var FamilyModal = ({ isOpen, onClose, lang, ...props }) => {
+    // ���������������������������������������������
+    // �️ DATA & STATE
+    // ���������������������������������������������
     const { 
         currentUID, currentUserData, 
         family, familyMembers, 
@@ -57,11 +57,11 @@ var amilyModal = ({ isOpen, onClose, lang, ...props }) => {
 
     if (!isOpen) return null;
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // ðŸ“¦ RENDER LOGIC
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ���������������������������������������������
+    // � RENDER LOGIC
+    // ���������������������������������������������
     const renderContent = () => {
-        if (loadingFamily) return <div style={{flex:1, display:'flex', alignItems:'center', justifyContent:'center', color:'#6b7280'}}>â³ {lang==='ar'?'Ø¬Ø§Ø±Ù Ø§Ù„ØªØ­Ù…ÙŠÙ„...':'Loading...'}</div>;
+        if (loadingFamily) return <div style={{flex:1, display:'flex', alignItems:'center', justifyContent:'center', color:'#6b7280'}}>⏳ {lang==='ar'?'جارٍ ا�تح���...':'Loading...'}</div>;
         
         // If not in a family, or viewing an external family
         if (!family || (viewFamilyId && family.id !== viewFamilyId)) {
@@ -108,17 +108,17 @@ var amilyModal = ({ isOpen, onClose, lang, ...props }) => {
                     }}>
                         <div style={{display:'flex', alignItems:'center', gap:'10px', flex:1, minWidth:0}}>
                             <div style={{fontSize:'18px', fontWeight:900, color:'white', fontStyle:'italic'}}>
-                                {family ? family.name : (lang==='ar'?'Ø¹Ø§Ù„Ù… Ø§Ù„Ø¹Ø§Ø¦Ù„Ø§Øª':'Family World')}
+                                {family ? family.name : (lang==='ar'?'عا�� ا�عائ�ات':'Family World')}
                             </div>
                         </div>
-                        <button onClick={onClose} style={{width:'30px', height:'30px', borderRadius:'8px', border:'none', background:'rgba(255,255,255,0.08)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>âœ•</button>
+                        <button onClick={onClose} style={{width:'30px', height:'30px', borderRadius:'8px', border:'none', background:'rgba(255,255,255,0.08)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>�</button>
                     </div>
 
                     {/* Body */}
                     <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden'}}>
                         {error && (
                             <div style={{padding:'10px', background:'rgba(239,68,68,0.1)', color:'#f87171', fontSize:'11px', textAlign:'center', borderBottom:'1px solid rgba(239,68,68,0.2)'}}>
-                                âš ï¸ {error}
+                                �️ {error}
                             </div>
                         )}
                         {renderContent()}
@@ -131,13 +131,13 @@ var amilyModal = ({ isOpen, onClose, lang, ...props }) => {
                             padding:'8px 4px', gap:'2px'
                         }}>
                             {[
-                                {id:'profile', label:lang==='ar'?'Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©':'Home', icon:'ðŸ '},
-                                {id:'members', label:lang==='ar'?'Ø§Ù„Ø£Ø¹Ø¶Ø§Ø¡':'Members', icon:'ðŸ‘¥'},
-                                {id:'tasks',   label:lang==='ar'?'Ø§Ù„Ù…Ù‡Ø§Ù…':'Tasks', icon:'ðŸŽ¯'},
-                                {id:'shop',    label:lang==='ar'?'Ø§Ù„Ù…ØªØ¬Ø±':'Shop', icon:'ðŸ’Ž'},
-                                {id:'ranking', label:lang==='ar'?'Ø§Ù„ØªØ±ØªÙŠØ¨':'Rank', icon:'ðŸ†'},
-                                {id:'news',    label:lang==='ar'?'Ø§Ù„Ø£Ø®Ø¨Ø§Ø±':'News', icon:'ðŸ“°'},
-                                {id:'manage',  label:lang==='ar'?'Ø§Ù„Ø¥Ø¯Ø§Ø±Ø©':'Manage', icon:'âš™ï¸'},
+                                {id:'profile', label:lang==='ar'?'ا�رئ�س�ة':'Home', icon:'���'},
+                                {id:'members', label:lang==='ar'?'ا�أعضاء':'Members', icon:'�'},
+                                {id:'tasks',   label:lang==='ar'?'ا���ا�':'Tasks', icon:'�'},
+                                {id:'shop',    label:lang==='ar'?'ا��تجر':'Shop', icon:'�'},
+                                {id:'ranking', label:lang==='ar'?'ا�ترت�ب':'Rank', icon:'��'},
+                                {id:'news',    label:lang==='ar'?'ا�أخبار':'News', icon:'�'},
+                                {id:'manage',  label:lang==='ar'?'ا�إدارة':'Manage', icon:'�️'},
                             ].map(tab => (
                                 <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
                                     flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',

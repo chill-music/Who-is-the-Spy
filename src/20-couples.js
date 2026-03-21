@@ -1,47 +1,47 @@
-﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ’ PRO SPY â€” COUPLES / MARRIAGE SYSTEM  (20-couples.js)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������������������
+// �� PRO SPY � COUPLES / MARRIAGE SYSTEM  (20-couples.js)
+// ��������������������������������������������������������������������
 // Load order: after 19-family.js and before 16-main.js
 // Exposes: CoupleCardModal, ProposalModal, IncomingProposalModal
 // Data:    RINGS_DATA, COUPLE_GIFTS_DATA
 // Helpers: sendProposal, acceptProposal, declineProposal, divorceCouple
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// couplesCollection â€” defined in 01-config.js
+// ��������������������������������������������������������������������
+// couplesCollection � defined in 01-config.js
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸ’ RINGS DATA â€” Extended with admin/event fields
+// ���������������������������������������������
+// �� RINGS DATA � Extended with admin/event fields
 // event: labeled "Event" in shop | hidden: doesn't appear in shop | limited: shows countdown
 // imageURL: custom image overrides emoji | glow: custom glow color
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ���������������������������������������������
 var INGS_DATA = [
-    { id:'ring_bronze',   emoji:'ðŸ’', imageURL:null, name_en:'Bronze Ring',      name_ar:'Ø®Ø§ØªÙ… Ø¨Ø±ÙˆÙ†Ø²ÙŠ',     cost:500,   levelReq:0,  rarity:'Common',    color:'#cd7f32', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'Ø¨Ø¯Ø§ÙŠØ© Ø¯Ø§ÙØ¦Ø© Ù„Ù„Ø£Ø¨Ø¯ÙŠØ©.',   event:false, hidden:false, limited:false, limitedUntil:null },
-             { id:'kingshehab',   emoji:null, imageURL:'https://res.cloudinary.com/dqewgiqsh/image/upload/v1773406707/ringking_lxnly9.gif', name_en:'King Ring',     name_ar:'Ø®Ø§ØªÙ… Ø§Ù„Ù…Ù„Ùƒ',      cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(240,171,252,0.6)', desc_en:'The ring of kings â€” a royal bond.',  desc_ar:'Ø®Ø§ØªÙ… Ø§Ù„Ù…Ù„ÙˆÙƒ â€” Ø±Ø§Ø¨Ø·Ø© Ù…Ù„ÙƒÙŠØ© Ø£Ø¨Ø¯ÙŠØ©.',  event:true, hidden:false, limited:false, limitedUntil:null },
-    { id:'ring_silver',   emoji:'ðŸ’', imageURL:null, name_en:'Silver Ring',      name_ar:'Ø®Ø§ØªÙ… ÙØ¶ÙŠ',        cost:1500,  levelReq:3,  rarity:'Uncommon',  color:'#c0c0c0', glow:'rgba(192,192,192,0.4)', desc_en:'Elegant and timeless.',       desc_ar:'Ø£Ù†Ø§Ù‚Ø© Ø®Ø§Ù„Ø¯Ø©.',            event:false, hidden:false, limited:false, limitedUntil:null },
-    { id:'ring_gold',     emoji:'ðŸ’', imageURL:null, name_en:'Gold Ring',        name_ar:'Ø®Ø§ØªÙ… Ø°Ù‡Ø¨ÙŠ',       cost:3000,  levelReq:5,  rarity:'Rare',      color:'#ffd700', glow:'rgba(255,215,0,0.5)',   desc_en:'Golden love, golden future.', desc_ar:'Ø­Ø¨ Ø°Ù‡Ø¨ÙŠØŒ Ù…Ø³ØªÙ‚Ø¨Ù„ Ø°Ù‡Ø¨ÙŠ.',   event:false, hidden:false, limited:false, limitedUntil:null },
-    { id:'ring_rose',     emoji:'ðŸ’', imageURL:null, name_en:'Rose Gold Ring',   name_ar:'Ø®Ø§ØªÙ… Ø°Ù‡Ø¨ÙŠ ÙˆØ±Ø¯ÙŠ',  cost:5000,  levelReq:7,  rarity:'Epic',      color:'#f9a8d4', glow:'rgba(249,168,212,0.5)', desc_en:'Blush pink, bold love.',      desc_ar:'ÙˆØ±Ø¯ÙŠ Ø±Ù‚ÙŠÙ‚ØŒ Ø­Ø¨ Ø¬Ø±ÙŠØ¡.',     event:false, hidden:false, limited:false, limitedUntil:null },
-    { id:'ring_diamond',  emoji:'ðŸ’Ž', imageURL:null, name_en:'Diamond Ring',     name_ar:'Ø®Ø§ØªÙ… Ø§Ù„Ù…Ø§Ø³',      cost:10000, levelReq:10, rarity:'Legendary', color:'#00d4ff', glow:'rgba(0,212,255,0.6)',   desc_en:'Forever brilliant.',          desc_ar:'Ù„Ø§Ù…Ø¹ Ø¥Ù„Ù‰ Ø§Ù„Ø£Ø¨Ø¯.',         event:false, hidden:false, limited:false, limitedUntil:null },
-    { id:'ring_eternal',  emoji:'âœ¨', imageURL:null, name_en:'Eternal Ring',     name_ar:'Ø®Ø§ØªÙ… Ø§Ù„Ø£Ø¨Ø¯ÙŠØ©',    cost:25000, levelReq:15, rarity:'Mythic',    color:'#a855f7', glow:'rgba(168,85,247,0.7)',  desc_en:'Beyond time and space.',      desc_ar:'Ø£Ø¨Ø¹Ø¯ Ù…Ù† Ø§Ù„Ø²Ù…Ø§Ù† ÙˆØ§Ù„Ù…ÙƒØ§Ù†.', event:false, hidden:false, limited:false, limitedUntil:null },
-    // â”€â”€ EVENT RINGS (hidden by default, revealed via admin/events) â”€â”€
-    { id:'ring_valentine',emoji:'ðŸ’', imageURL:null, name_en:"Valentine's Ring", name_ar:'Ø®Ø§ØªÙ… Ø§Ù„ÙØ§Ù„Ù†ØªØ§ÙŠÙ†', cost:8000,  levelReq:0,  rarity:'Epic',      color:'#f43f5e', glow:'rgba(244,63,94,0.6)',   desc_en:'Limited edition love ring.',  desc_ar:'Ø®Ø§ØªÙ… Ø­Ø¨ Ù…Ø­Ø¯ÙˆØ¯.',          event:true,  hidden:true,  limited:true,  limitedUntil:null },
+    { id:'ring_bronze',   emoji:'��', imageURL:null, name_en:'Bronze Ring',      name_ar:'خات� بر��ز�',     cost:500,   levelReq:0,  rarity:'Common',    color:'#cd7f32', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بدا�ة دافئة ��أبد�ة.',   event:false, hidden:false, limited:false, limitedUntil:null },
+             { id:'kingshehab',   emoji:null, imageURL:'https://res.cloudinary.com/dqewgiqsh/image/upload/v1773406707/ringking_lxnly9.gif', name_en:'King Ring',     name_ar:'خات� ا����',      cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(240,171,252,0.6)', desc_en:'The ring of kings � a royal bond.',  desc_ar:'خات� ا����� � رابطة ����ة أبد�ة.',  event:true, hidden:false, limited:false, limitedUntil:null },
+    { id:'ring_silver',   emoji:'��', imageURL:null, name_en:'Silver Ring',      name_ar:'خات� فض�',        cost:1500,  levelReq:3,  rarity:'Uncommon',  color:'#c0c0c0', glow:'rgba(192,192,192,0.4)', desc_en:'Elegant and timeless.',       desc_ar:'أ�ا�ة خا�دة.',            event:false, hidden:false, limited:false, limitedUntil:null },
+    { id:'ring_gold',     emoji:'��', imageURL:null, name_en:'Gold Ring',        name_ar:'خات� ذ�ب�',       cost:3000,  levelReq:5,  rarity:'Rare',      color:'#ffd700', glow:'rgba(255,215,0,0.5)',   desc_en:'Golden love, golden future.', desc_ar:'حب ذ�ب�� �ست�ب� ذ�ب�.',   event:false, hidden:false, limited:false, limitedUntil:null },
+    { id:'ring_rose',     emoji:'��', imageURL:null, name_en:'Rose Gold Ring',   name_ar:'خات� ذ�ب� �رد�',  cost:5000,  levelReq:7,  rarity:'Epic',      color:'#f9a8d4', glow:'rgba(249,168,212,0.5)', desc_en:'Blush pink, bold love.',      desc_ar:'�رد� ر���� حب جر�ء.',     event:false, hidden:false, limited:false, limitedUntil:null },
+    { id:'ring_diamond',  emoji:'�', imageURL:null, name_en:'Diamond Ring',     name_ar:'خات� ا��اس',      cost:10000, levelReq:10, rarity:'Legendary', color:'#00d4ff', glow:'rgba(0,212,255,0.6)',   desc_en:'Forever brilliant.',          desc_ar:'�ا�ع إ�� ا�أبد.',         event:false, hidden:false, limited:false, limitedUntil:null },
+    { id:'ring_eternal',  emoji:'�', imageURL:null, name_en:'Eternal Ring',     name_ar:'خات� ا�أبد�ة',    cost:25000, levelReq:15, rarity:'Mythic',    color:'#a855f7', glow:'rgba(168,85,247,0.7)',  desc_en:'Beyond time and space.',      desc_ar:'أبعد �� ا�ز�ا� �ا���ا�.', event:false, hidden:false, limited:false, limitedUntil:null },
+    // �� EVENT RINGS (hidden by default, revealed via admin/events) ��
+    { id:'ring_valentine',emoji:'�', imageURL:null, name_en:"Valentine's Ring", name_ar:'خات� ا�فا��تا��', cost:8000,  levelReq:0,  rarity:'Epic',      color:'#f43f5e', glow:'rgba(244,63,94,0.6)',   desc_en:'Limited edition love ring.',  desc_ar:'خات� حب �حد�د.',          event:true,  hidden:true,  limited:true,  limitedUntil:null },
 ];
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸŽ PROPOSAL GIFTS DATA
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ���������������������������������������������
+// �� PROPOSAL GIFTS DATA
+// ���������������������������������������������
 var ROPOSAL_GIFTS = [
-    { id:'pg_rose',      emoji:'ðŸŒ¹', name_en:'Red Rose',      name_ar:'ÙˆØ±Ø¯Ø© Ø­Ù…Ø±Ø§Ø¡',     cost:100,  charisma:200  },
-    { id:'pg_bouquet',   emoji:'ðŸ’', name_en:'Bouquet',       name_ar:'Ø¨Ø§Ù‚Ø© Ø²Ù‡ÙˆØ±',      cost:300,  charisma:600  },
-    { id:'pg_chocolate', emoji:'ðŸ«', name_en:'Chocolates',    name_ar:'Ø´ÙˆÙƒÙˆÙ„Ø§ØªØ©',       cost:500,  charisma:1000 },
-    { id:'pg_teddy',     emoji:'ðŸ§¸', name_en:'Teddy Bear',    name_ar:'Ø¯Ø¨Ø¯ÙˆØ¨',           cost:800,  charisma:1600 },
-    { id:'pg_cake',      emoji:'ðŸŽ‚', name_en:'Love Cake',     name_ar:'ÙƒÙŠÙƒØ© Ø§Ù„Ø­Ø¨',      cost:1200, charisma:2400 },
-    { id:'pg_heart',     emoji:'ðŸ’', name_en:'Heart Box',     name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ø§Ù„Ù‚Ù„Ø¨',    cost:2000, charisma:4000 },
-    { id:'pg_stars',     emoji:'â­', name_en:'Falling Stars', name_ar:'Ù†ÙŠØ§Ø²Ùƒ Ø§Ù„Ø­Ø¨',     cost:3000, charisma:6000 },
-    { id:'pg_crown',     emoji:'ðŸ‘‘', name_en:'Love Crown',    name_ar:'ØªØ§Ø¬ Ø§Ù„Ø­Ø¨',       cost:5000, charisma:10000},
+    { id:'pg_rose',      emoji:'�', name_en:'Red Rose',      name_ar:'�ردة ح�راء',     cost:100,  charisma:200  },
+    { id:'pg_bouquet',   emoji:'�', name_en:'Bouquet',       name_ar:'با�ة ز��ر',      cost:300,  charisma:600  },
+    { id:'pg_chocolate', emoji:'���', name_en:'Chocolates',    name_ar:'ش����اتة',       cost:500,  charisma:1000 },
+    { id:'pg_teddy',     emoji:'�', name_en:'Teddy Bear',    name_ar:'دبد�ب',           cost:800,  charisma:1600 },
+    { id:'pg_cake',      emoji:'�', name_en:'Love Cake',     name_ar:'���ة ا�حب',      cost:1200, charisma:2400 },
+    { id:'pg_heart',     emoji:'�', name_en:'Heart Box',     name_ar:'ص�د�� ا���ب',    cost:2000, charisma:4000 },
+    { id:'pg_stars',     emoji:'⭐', name_en:'Falling Stars', name_ar:'��از� ا�حب',     cost:3000, charisma:6000 },
+    { id:'pg_crown',     emoji:'�', name_en:'Love Crown',    name_ar:'تاج ا�حب',       cost:5000, charisma:10000},
 ];
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸŽ¨ HELPERS
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ���������������������������������������������
+// � HELPERS
+// ���������������������������������������������
 var ARITY_COLORS_C = {
     Common:'#9ca3af', Uncommon:'#4ade80', Rare:'#60a5fa',
     Epic:'#a78bfa',   Legendary:'#ffd700', Mythic:'#f0abfc',
@@ -57,12 +57,12 @@ var oupleTimeDiff = (marriageDate) => {
     return { days, hours, mins };
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸ–¼ï¸ RingImageCanvas â€” removes black bg pixels via canvas.
+// ���������������������������������������������
+// �️ RingImageCanvas � removes black bg pixels via canvas.
 // Uses crossOrigin="anonymous" so getImageData never throws.
 // Hidden DOM img keeps GIF frames advancing for animation.
 // Only used where mix-blend-mode fails (inside position:absolute+zIndex stacking contexts).
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ���������������������������������������������
 var ingImageCanvas = ({ src, size = 40, glow }) => {
     const canvasRef = React.useRef(null);
     const imgRef    = React.useRef(null);
@@ -88,7 +88,7 @@ var ingImageCanvas = ({ src, size = 40, glow }) => {
                         if (d[i] < 45 && d[i+1] < 45 && d[i+2] < 45) d[i+3] = 0;
                     }
                     ctx.putImageData(id, 0, 0);
-                } catch(e) { /* CORS blocked â€” shows as-is */ }
+                } catch(e) { /* CORS blocked � shows as-is */ }
             }
             rafRef.current = requestAnimationFrame(draw);
         };
@@ -98,7 +98,7 @@ var ingImageCanvas = ({ src, size = 40, glow }) => {
     }, [src, size]);
 
     return React.createElement(React.Fragment, null,
-        /* crossOrigin="anonymous" is CRITICAL â€” without it, getImageData throws SecurityError
+        /* crossOrigin="anonymous" is CRITICAL � without it, getImageData throws SecurityError
            position:fixed off-screen keeps the img in DOM so browser advances GIF frames */
         React.createElement('img', {
             ref: imgRef,
@@ -118,9 +118,9 @@ var ingImageCanvas = ({ src, size = 40, glow }) => {
     );
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸ”§ FIRESTORE LOGIC
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ���������������������������������������������
+// � FIRESTORE LOGIC
+// ���������������������������������������������
 
 // Send a proposal: creates a couple doc with status='pending', deducts cost, sends notification
 var endProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message, onNotification, lang }) => {
@@ -131,7 +131,7 @@ var endProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message, on
     const totalCost = ring.cost + (gift?.cost || 0);
     const currency  = fromData?.currency || 0;
     if (currency < totalCost) {
-        onNotification && onNotification(lang==='ar' ? `âŒ ØªØ­ØªØ§Ø¬ ${totalCost} ðŸ§ ` : `âŒ Need ${totalCost} ðŸ§ `);
+        onNotification && onNotification(lang==='ar' ? `� تحتاج ${totalCost} �` : `� Need ${totalCost} �`);
         return { ok: false, err: 'Not enough currency' };
     }
 
@@ -146,7 +146,7 @@ var endProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message, on
             .where('status', 'in', ['pending','accepted'])
             .get();
         if (!existingCouple.empty || !existingCouple2.empty) {
-            onNotification && onNotification(lang==='ar' ? 'âŒ ÙŠÙˆØ¬Ø¯ Ø·Ù„Ø¨ Ø£Ùˆ Ø§Ø±ØªØ¨Ø§Ø· Ù†Ø´Ø· Ø¨Ø§Ù„ÙØ¹Ù„' : 'âŒ An active proposal or couple already exists');
+            onNotification && onNotification(lang==='ar' ? '� ��جد ط�ب أ� ارتباط �شط با�فع�' : '� An active proposal or couple already exists');
             return { ok: false, err: 'Already exists' };
         }
 
@@ -181,8 +181,8 @@ var endProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message, on
             fromPhoto: fromData?.photoURL || null,
             type: 'couple_proposal',
             message: lang==='ar'
-                ? `ðŸ’ ${fromData?.displayName} Ø£Ø±Ø³Ù„ Ù„Ùƒ Ø·Ù„Ø¨ Ø§Ø±ØªØ¨Ø§Ø·!`
-                : `ðŸ’ ${fromData?.displayName} sent you a proposal!`,
+                ? `�� ${fromData?.displayName} أرس� �� ط�ب ارتباط!`
+                : `�� ${fromData?.displayName} sent you a proposal!`,
             ringId,
             giftId: giftId || null,
             proposalMessage: message || '',
@@ -203,11 +203,11 @@ var endProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message, on
             });
         }
 
-        onNotification && onNotification(lang==='ar' ? 'ðŸ’ ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨!' : 'ðŸ’ Proposal sent!');
+        onNotification && onNotification(lang==='ar' ? '�� ت� إرسا� ا�ط�ب!' : '�� Proposal sent!');
         return { ok: true, coupleDocId: coupleRef.id };
     } catch(e) {
         console.error('sendProposal error', e);
-        onNotification && onNotification(lang==='ar' ? 'âŒ Ø®Ø·Ø£' : 'âŒ Error');
+        onNotification && onNotification(lang==='ar' ? '� خطأ' : '� Error');
         return { ok: false, err: e.message };
     }
 };
@@ -228,12 +228,12 @@ var cceptProposal = async ({ coupleDocId, uid1, uid2, onNotification, lang }) =>
             toUserId: uid1,
             fromUserId: uid2,
             type: 'couple_accepted',
-            message: lang==='ar' ? 'ðŸ’– Ù‚Ø¨Ù„ÙˆØ§ Ø·Ù„Ø¨ Ø§Ø±ØªØ¨Ø§Ø·Ùƒ!' : 'ðŸ’– Your proposal was accepted!',
+            message: lang==='ar' ? '� �ب��ا ط�ب ارتباط�!' : '� Your proposal was accepted!',
             timestamp: TS(),
             read: false,
         });
 
-        onNotification && onNotification(lang==='ar' ? 'ðŸ’– Ù‚Ø¨Ù„Øª Ø§Ù„Ø·Ù„Ø¨!' : 'ðŸ’– Proposal accepted!');
+        onNotification && onNotification(lang==='ar' ? '� �ب�ت ا�ط�ب!' : '� Proposal accepted!');
         return { ok: true };
     } catch(e) {
         return { ok: false };
@@ -249,7 +249,7 @@ var eclineProposal = async ({ coupleDocId, fromUID, toUID, ringCost, giftCost, o
             currency: firebase.firestore.FieldValue.increment(ringCost + (giftCost || 0)),
         });
         await batch.commit();
-        onNotification && onNotification(lang==='ar' ? 'ØªÙ… Ø§Ù„Ø±ÙØ¶ ÙˆØ¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ø¥Ù†ØªÙ„' : 'Proposal declined & Intel refunded');
+        onNotification && onNotification(lang==='ar' ? 'ت� ا�رفض �إعادة ا�إ�ت�' : 'Proposal declined & Intel refunded');
         return { ok: true };
     } catch(e) {
         return { ok: false };
@@ -263,18 +263,18 @@ var ivorceCouple = async ({ coupleDocId, uid1, uid2, onNotification, lang }) => 
         batch.update(usersCollection.doc(uid1), { partnerId: null, isMarried: false });
         batch.update(usersCollection.doc(uid2), { partnerId: null, isMarried: false });
         await batch.commit();
-        onNotification && onNotification(lang==='ar' ? 'ðŸ’” ØªÙ… Ø¥Ù†Ù‡Ø§Ø¡ Ø§Ù„Ø§Ø±ØªØ¨Ø§Ø·' : 'ðŸ’” Relationship ended');
+        onNotification && onNotification(lang==='ar' ? '� ت� إ��اء ا�ارتباط' : '� Relationship ended');
         return { ok: true };
     } catch(e) {
         return { ok: false };
     }
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸ’« FLOATING HEARTS ANIMATION (pure JS canvas-free)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ���������������������������������������������
+// � FLOATING HEARTS ANIMATION (pure JS canvas-free)
+// ���������������������������������������������
 var loatingHearts = () => {
-    const HEARTS = ['â¤ï¸','ðŸ’•','ðŸ’—','ðŸ’–','ðŸ’˜','ðŸ’“'];
+    const HEARTS = ['❤️','�','�','�','�','�'];
     const items = Array.from({length:10}, (_,i) => ({
         id:i,
         emoji: HEARTS[i % HEARTS.length],
@@ -309,10 +309,10 @@ var loatingHearts = () => {
     );
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸ’ INCOMING PROPOSAL MODAL
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-var ncomingProposalModal = ({ show, coupleDoc, fromData, currentUID, lang, onAccept, onDecline }) => {
+// ���������������������������������������������
+// �� INCOMING PROPOSAL MODAL
+// ���������������������������������������������
+var IncomingProposalModal = ({ show, coupleDoc, fromData, currentUID, lang, onAccept, onDecline }) => {
     const [loading, setLoading] = useState(false);
     if (!show || !coupleDoc) return null;
 
@@ -357,12 +357,12 @@ var ncomingProposalModal = ({ show, coupleDoc, fromData, currentUID, lang, onAcc
                     borderBottom:'1px solid rgba(236,72,153,0.2)',
                 }
             },
-                React.createElement('div', { style:{ fontSize:'42px', marginBottom:'8px' }}, ring?.emoji || 'ðŸ’'),
+                React.createElement('div', { style:{ fontSize:'42px', marginBottom:'8px' }}, ring?.emoji || '��'),
                 React.createElement('div', { style:{ fontSize:'18px', fontWeight:900, color:'white', marginBottom:'4px' }},
-                    lang==='ar' ? 'ðŸ’ Ø·Ù„Ø¨ Ø§Ø±ØªØ¨Ø§Ø·!' : 'ðŸ’ Marriage Proposal!'),
+                    lang==='ar' ? '�� ط�ب ارتباط!' : '�� Marriage Proposal!'),
                 React.createElement('div', { style:{ fontSize:'12px', color:'rgba(249,168,212,0.8)' }},
                     fromData?.displayName || '...',
-                    lang==='ar' ? ' Ø£Ø±Ø³Ù„ Ù„Ùƒ Ø·Ù„Ø¨ Ø§Ø±ØªØ¨Ø§Ø·' : ' sent you a proposal')
+                    lang==='ar' ? ' أرس� �� ط�ب ارتباط' : ' sent you a proposal')
             ),
 
             /* Body */
@@ -374,12 +374,12 @@ var ncomingProposalModal = ({ show, coupleDoc, fromData, currentUID, lang, onAcc
                         border:'2px solid rgba(236,72,153,0.5)', flexShrink:0 }},
                         fromData?.photoURL
                             ? React.createElement('img', { src:fromData.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                            : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', background:'rgba(236,72,153,0.1)' }}, 'ðŸ˜Ž')
+                            : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', background:'rgba(236,72,153,0.1)' }}, '�')
                     ),
                     React.createElement('div', null,
-                        React.createElement('div', { style:{ fontSize:'14px', fontWeight:800, color:'white' }}, fromData?.displayName || 'â€”'),
+                        React.createElement('div', { style:{ fontSize:'14px', fontWeight:800, color:'white' }}, fromData?.displayName || '�'),
                         React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4' }},
-                            lang==='ar' ? 'ÙŠØ·Ù„Ø¨ Ø§Ø±ØªØ¨Ø§Ø·Ùƒ ðŸ’•' : 'is proposing to you ðŸ’•')
+                            lang==='ar' ? '�ط�ب ارتباط� �' : 'is proposing to you �')
                     )
                 ),
 
@@ -405,7 +405,7 @@ var ncomingProposalModal = ({ show, coupleDoc, fromData, currentUID, lang, onAcc
                 },
                     React.createElement('span', { style:{ fontSize:'20px' }}, gift.emoji),
                     React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4' }},
-                        lang==='ar' ? `Ù‡Ø¯ÙŠØ©: ${gift.name_ar}` : `Gift: ${gift.name_en}`)
+                        lang==='ar' ? `�د�ة: ${gift.name_ar}` : `Gift: ${gift.name_en}`)
                 ),
 
                 /* Message */
@@ -424,7 +424,7 @@ var ncomingProposalModal = ({ show, coupleDoc, fromData, currentUID, lang, onAcc
                         style:{ flex:1, padding:'12px', borderRadius:'12px', border:'1px solid rgba(239,68,68,0.4)',
                             background:'rgba(239,68,68,0.1)', color:'#f87171', fontSize:'13px', fontWeight:700,
                             cursor:'pointer', transition:'.2s' }
-                    }, loading ? 'â³' : (lang==='ar' ? 'âŒ Ø±ÙØ¶' : 'âŒ Decline')),
+                    }, loading ? '⏳' : (lang==='ar' ? '� رفض' : '� Decline')),
                     React.createElement('button', {
                         onClick: () => handle(true),
                         disabled: loading,
@@ -432,17 +432,17 @@ var ncomingProposalModal = ({ show, coupleDoc, fromData, currentUID, lang, onAcc
                             background:'linear-gradient(135deg,#ec4899,#a855f7)',
                             color:'white', fontSize:'13px', fontWeight:800,
                             cursor:'pointer', boxShadow:'0 4px 20px rgba(236,72,153,0.4)', transition:'.2s' }
-                    }, loading ? 'â³' : (lang==='ar' ? 'ðŸ’– Ù‚Ø¨ÙˆÙ„' : 'ðŸ’– Accept'))
+                    }, loading ? '⏳' : (lang==='ar' ? '� �ب��' : '� Accept'))
                 )
             )
         ))
     );
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸ“¨ PROPOSAL MODAL (proposer sends from shop)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, onSend, friendsData }) => {
+// ���������������������������������������������
+// � PROPOSAL MODAL (proposer sends from shop)
+// ���������������������������������������������
+var ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, onSend, friendsData }) => {
     const [selectedGift, setSelectedGift] = useState(null);
     const [message, setMessage]           = useState('');
     const [targetId, setTargetId]         = useState('');
@@ -458,7 +458,7 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
     const totalCost = ring.cost + giftCost;
     const canAfford = currency >= totalCost;
 
-    // Friends list filtered â€” not already married
+    // Friends list filtered � not already married
     const friends = (friendsData || []).filter(f => f && !f.isMarried && (f.id || f.uid) !== currentUID);
 
     const selectFriend = (friend) => {
@@ -473,13 +473,13 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
         try {
             const snap = await usersCollection.where('customId', '==', targetId.trim()).limit(1).get();
             if (snap.empty) {
-                setSearchErr(lang==='ar' ? 'Ù„Ù… ÙŠÙØ¹Ø«Ø± Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…' : 'User not found');
+                setSearchErr(lang==='ar' ? '�� �ُعثر ع�� ا��ستخد�' : 'User not found');
             } else {
                 const d = { id: snap.docs[0].id, ...snap.docs[0].data() };
                 if (d.id === currentUID) {
-                    setSearchErr(lang==='ar' ? 'Ù„Ø§ ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ù„Ù†ÙØ³Ùƒ' : 'Cannot propose to yourself');
+                    setSearchErr(lang==='ar' ? '�ا ����� إرسا� ط�ب ��فس�' : 'Cannot propose to yourself');
                 } else if (d.isMarried) {
-                    setSearchErr(lang==='ar' ? 'Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø±ØªØ¨Ø· Ø¨Ø§Ù„ÙØ¹Ù„' : 'This user is already in a relationship');
+                    setSearchErr(lang==='ar' ? '�ذا ا��ستخد� �رتبط با�فع�' : 'This user is already in a relationship');
                 } else {
                     setTargetData(d);
                 }
@@ -516,7 +516,7 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
         },
             React.createElement(FloatingHearts),
 
-            /* â”€â”€ Header: ring image/emoji + name â”€â”€ */
+            /* �� Header: ring image/emoji + name �� */
             React.createElement('div', {
                 style:{ position:'relative', zIndex:1, display:'flex', alignItems:'center',
                     justifyContent:'space-between', padding:'14px 18px',
@@ -535,7 +535,7 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
                         React.createElement('div', { style:{ fontSize:'15px', fontWeight:900, color:'white' }},
                             lang==='ar' ? ring.name_ar : ring.name_en),
                         React.createElement('div', { style:{ fontSize:'10px', color:'#f9a8d4', marginTop:'1px' }},
-                            lang==='ar' ? 'ðŸ’ Ø·Ù„Ø¨ Ø§Ù„Ø§Ø±ØªØ¨Ø§Ø·' : 'ðŸ’ Marriage Proposal')
+                            lang==='ar' ? '�� ط�ب ا�ارتباط' : '�� Marriage Proposal')
                     )
                 ),
                 React.createElement('button', {
@@ -543,10 +543,10 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
                     style:{ background:'rgba(255,255,255,0.07)', border:'none', borderRadius:'8px',
                         color:'#9ca3af', fontSize:'16px', width:'30px', height:'30px', cursor:'pointer',
                         display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, zIndex:1, position:'relative' }
-                }, 'âœ•')
+                }, '�')
             ),
 
-            /* â”€â”€ Scrollable body â”€â”€ */
+            /* �� Scrollable body �� */
             React.createElement('div', { style:{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:'14px', position:'relative', zIndex:1 }},
 
                 /* Ring summary card */
@@ -569,13 +569,13 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
                             lang==='ar' ? ring.desc_ar : ring.desc_en)
                     ),
                     React.createElement('div', { style:{ fontSize:'12px', fontWeight:800, color:'#fcd34d' }},
-                        `${ring.cost.toLocaleString()} ðŸ§ `)
+                        `${ring.cost.toLocaleString()} �`)
                 ),
 
-                /* â”€â”€ Friends quick-select (show if has friends) â”€â”€ */
+                /* �� Friends quick-select (show if has friends) �� */
                 friends.length > 0 && React.createElement('div', null,
                     React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4', marginBottom:'8px', fontWeight:700 }},
-                        lang==='ar' ? 'ðŸ‘¥ Ø£ØµØ¯Ù‚Ø§Ø¤Ùƒ:' : 'ðŸ‘¥ Your Friends:'),
+                        lang==='ar' ? '� أصد�اؤ�:' : '� Your Friends:'),
                     React.createElement('div', { style:{ display:'flex', gap:'8px', flexWrap:'wrap' }},
                         friends.slice(0, 8).map(friend => {
                             const fid = friend.id || friend.uid;
@@ -594,7 +594,7 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
                                 React.createElement('div', { style:{ width:'34px', height:'34px', borderRadius:'50%', overflow:'hidden', border:`1.5px solid ${isSelected ? 'rgba(236,72,153,0.7)' : 'rgba(255,255,255,0.15)'}` }},
                                     friend.photoURL
                                         ? React.createElement('img', { src:friend.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                                        : React.createElement('div', { style:{ width:'100%', height:'100%', background:'rgba(168,85,247,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' }}, 'ðŸ˜Ž')
+                                        : React.createElement('div', { style:{ width:'100%', height:'100%', background:'rgba(168,85,247,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' }}, '�')
                                 ),
                                 React.createElement('span', { style:{ fontSize:'8px', color: isSelected ? '#f9a8d4' : '#9ca3af', fontWeight:700,
                                     maxWidth:'52px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }},
@@ -604,16 +604,16 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
                     )
                 ),
 
-                /* â”€â”€ Target user search â”€â”€ */
+                /* �� Target user search �� */
                 React.createElement('div', null,
                     React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4', marginBottom:'8px', fontWeight:700 }},
-                        lang==='ar' ? 'ðŸ’Œ Ø£Ùˆ Ø§Ø¨Ø­Ø« Ø¨Ø§Ù„Ù€ ID:' : 'ðŸ’Œ Or search by ID:'),
+                        lang==='ar' ? '� أ� ابحث با�� ID:' : '� Or search by ID:'),
                     React.createElement('div', { style:{ display:'flex', gap:'8px' }},
                         React.createElement('input', {
                             value: targetId,
                             onChange: e => { setTargetId(e.target.value); setTargetData(null); setSearchErr(''); },
                             onKeyDown: e => e.key === 'Enter' && searchUser(),
-                            placeholder: lang==='ar' ? 'Ø§Ù„Ù€ ID Ø§Ù„Ø±Ù‚Ù…ÙŠ...' : 'Numeric ID...',
+                            placeholder: lang==='ar' ? 'ا�� ID ا�ر���...' : 'Numeric ID...',
                             style:{ flex:1, padding:'10px 12px', borderRadius:'10px',
                                 background:'rgba(255,255,255,0.06)', border:'1px solid rgba(236,72,153,0.3)',
                                 color:'white', fontSize:'13px', outline:'none' }
@@ -623,7 +623,7 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
                             style:{ padding:'10px 14px', borderRadius:'10px', border:'none',
                                 background:'linear-gradient(135deg,#ec4899,#a855f7)',
                                 color:'white', fontSize:'12px', fontWeight:700, cursor:'pointer' }
-                        }, searching ? 'â³' : (lang==='ar' ? 'Ø¨Ø­Ø«' : 'Find'))
+                        }, searching ? '⏳' : (lang==='ar' ? 'بحث' : 'Find'))
                     ),
                     searchErr && React.createElement('div', { style:{ fontSize:'11px', color:'#f87171', marginTop:'6px' }}, searchErr),
                     targetData && React.createElement('div', {
@@ -633,20 +633,20 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
                         React.createElement('div', { style:{ width:'32px', height:'32px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)' }},
                             targetData.photoURL
                                 ? React.createElement('img', { src:targetData.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                                : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px' }}, 'ðŸ˜Ž')
+                                : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px' }}, '�')
                         ),
                         React.createElement('div', { style:{ flex:1 }},
                             React.createElement('div', { style:{ fontSize:'12px', fontWeight:700, color:'#4ade80' }}, targetData.displayName),
                             React.createElement('div', { style:{ fontSize:'10px', color:'#6b7280' }}, `#${targetData.customId || ''}`)
                         ),
-                        React.createElement('span', { style:{ fontSize:'16px' }}, 'âœ…')
+                        React.createElement('span', { style:{ fontSize:'16px' }}, '�')
                     )
                 ),
 
-                /* â”€â”€ Gift selection â”€â”€ */
+                /* �� Gift selection �� */
                 React.createElement('div', null,
                     React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4', marginBottom:'8px', fontWeight:700 }},
-                        lang==='ar' ? 'ðŸŽ Ø£Ø¶Ù Ù‡Ø¯ÙŠØ© (Ø§Ø®ØªÙŠØ§Ø±ÙŠ):' : 'ðŸŽ Add a Gift (optional):'),
+                        lang==='ar' ? '�� أضف �د�ة (اخت�ار�):' : '�� Add a Gift (optional):'),
                     React.createElement('div', { style:{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px' }},
                         PROPOSAL_GIFTS.map(g =>
                             React.createElement('button', {
@@ -662,21 +662,21 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
                             },
                                 React.createElement('span', { style:{ fontSize:'20px' }}, g.emoji),
                                 React.createElement('span', { style:{ fontSize:'8px', color: selectedGift?.id===g.id ? '#f9a8d4' : '#6b7280', fontWeight:600 }},
-                                    `${g.cost}ðŸ§ `)
+                                    `${g.cost}�`)
                             )
                         )
                     )
                 ),
 
-                /* â”€â”€ Message â”€â”€ */
+                /* �� Message �� */
                 React.createElement('div', null,
                     React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4', marginBottom:'6px', fontWeight:700 }},
-                        lang==='ar' ? 'ðŸ’¬ Ø±Ø³Ø§Ù„Ø© Ø±ÙˆÙ…Ø§Ù†Ø³ÙŠØ©:' : 'ðŸ’¬ Romantic message:'),
+                        lang==='ar' ? '� رسا�ة ر��ا�س�ة:' : '� Romantic message:'),
                     React.createElement('textarea', {
                         value: message,
                         onChange: e => setMessage(e.target.value),
                         maxLength: 200, rows: 3,
-                        placeholder: lang==='ar' ? 'Ø§ÙƒØªØ¨ Ø±Ø³Ø§Ù„ØªÙƒ Ù‡Ù†Ø§... ðŸ’•' : 'Write your message here... ðŸ’•',
+                        placeholder: lang==='ar' ? 'ا�تب رسا�ت� ��ا... �' : 'Write your message here... �',
                         style:{ width:'100%', padding:'10px 12px', borderRadius:'12px',
                             background:'rgba(255,255,255,0.05)', border:'1px solid rgba(236,72,153,0.25)',
                             color:'white', fontSize:'12px', outline:'none', resize:'none', lineHeight:1.6,
@@ -687,26 +687,26 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
                         `${message.length}/200`)
                 ),
 
-                /* â”€â”€ Total cost + balance â”€â”€ */
+                /* �� Total cost + balance �� */
                 React.createElement('div', {
                     style:{ padding:'12px 14px', borderRadius:'12px',
                         background: canAfford ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
                         border:`1px solid ${canAfford ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.3)'}` }
                 },
                     React.createElement('div', { style:{ display:'flex', justifyContent:'space-between', fontSize:'12px', color:'#9ca3af', marginBottom:'4px' }},
-                        React.createElement('span', null, lang==='ar' ? 'Ø±ØµÙŠØ¯Ùƒ:' : 'Your balance:'),
-                        React.createElement('span', { style:{ color:'#fcd34d', fontWeight:700 }}, `${currency.toLocaleString()} ðŸ§ `)
+                        React.createElement('span', null, lang==='ar' ? 'رص�د�:' : 'Your balance:'),
+                        React.createElement('span', { style:{ color:'#fcd34d', fontWeight:700 }}, `${currency.toLocaleString()} �`)
                     ),
                     React.createElement('div', { style:{ display:'flex', justifyContent:'space-between', fontSize:'13px', fontWeight:800 }},
-                        React.createElement('span', { style:{ color:'white' }}, lang==='ar' ? 'Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ:' : 'Total cost:'),
+                        React.createElement('span', { style:{ color:'white' }}, lang==='ar' ? 'ا�إج�ا��:' : 'Total cost:'),
                         React.createElement('span', { style:{ color: canAfford ? '#4ade80' : '#f87171' }},
-                            `${totalCost.toLocaleString()} ðŸ§ `)
+                            `${totalCost.toLocaleString()} �`)
                     ),
                     !canAfford && React.createElement('div', { style:{ fontSize:'10px', color:'#f87171', marginTop:'4px' }},
-                        lang==='ar' ? `ØªØ­ØªØ§Ø¬ ${(totalCost - currency).toLocaleString()} Ø¥Ù†ØªÙ„ Ø¥Ø¶Ø§ÙÙŠØ©` : `Need ${(totalCost - currency).toLocaleString()} more Intel`)
+                        lang==='ar' ? `تحتاج ${(totalCost - currency).toLocaleString()} إ�ت� إضاف�ة` : `Need ${(totalCost - currency).toLocaleString()} more Intel`)
                 ),
 
-                /* â”€â”€ Send button â”€â”€ */
+                /* �� Send button �� */
                 React.createElement('button', {
                     onClick: handleSend,
                     disabled: !targetData || !canAfford || sending,
@@ -718,22 +718,22 @@ var roposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, on
                         boxShadow: (targetData && canAfford) ? '0 4px 24px rgba(236,72,153,0.45)' : 'none',
                         transition:'.2s', letterSpacing:'0.5px',
                     }
-                }, sending ? 'â³ ...' : (lang==='ar' ? 'ðŸ’ Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨' : 'ðŸ’ Send Proposal'))
+                }, sending ? '⏳ ...' : (lang==='ar' ? '�� إرسا� ا�ط�ب' : '�� Send Proposal'))
             )
         ))
     );
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸ’‘ COUPLE CARD MODAL  (v3 â€” with gifts, blessing, love, clickable avatars)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ���������������������������������������������
+// � COUPLE CARD MODAL  (v3 � with gifts, blessing, love, clickable avatars)
+// ���������������������������������������������
 var OVE_LEVELS = [
-    { days:0,   label_ar:'Ø­Ø¨ Ù†Ø§Ø´Ø¦ ðŸŒ±',   label_en:'Budding Love ðŸŒ±',   color:'#86efac' },
-    { days:7,   label_ar:'Ø­Ø¨ Ù…ØªÙ†Ø§Ù…ÙŠ ðŸ’›',  label_en:'Growing Love ðŸ’›',   color:'#fde68a' },
-    { days:30,  label_ar:'Ø­Ø¨ Ø¹Ù…ÙŠÙ‚ ðŸ’•',   label_en:'Deep Love ðŸ’•',      color:'#f9a8d4' },
-    { days:90,  label_ar:'Ø±Ø§Ø¨Ø·Ø© Ù‚ÙˆÙŠØ© ðŸ’‘', label_en:'Strong Bond ðŸ’‘',    color:'#c4b5fd' },
-    { days:180, label_ar:'Ø­Ø¨ Ø­Ù‚ÙŠÙ‚ÙŠ ðŸ’–',  label_en:'True Love ðŸ’–',      color:'#f0abfc' },
-    { days:365, label_ar:'Ø­Ø¨ Ø£Ø¨Ø¯ÙŠ ðŸ’Ž',   label_en:'Eternal Love ðŸ’Ž',   color:'#67e8f9' },
+    { days:0,   label_ar:'حب �اشئ �',   label_en:'Budding Love �',   color:'#86efac' },
+    { days:7,   label_ar:'حب �ت�ا�� �',  label_en:'Growing Love �',   color:'#fde68a' },
+    { days:30,  label_ar:'حب ع��� �',   label_en:'Deep Love �',      color:'#f9a8d4' },
+    { days:90,  label_ar:'رابطة ���ة �', label_en:'Strong Bond �',    color:'#c4b5fd' },
+    { days:180, label_ar:'حب ح���� �',  label_en:'True Love �',      color:'#f0abfc' },
+    { days:365, label_ar:'حب أبد� �',   label_en:'Eternal Love �',   color:'#67e8f9' },
 ];
 
 var etLoveLevel = (days) => {
@@ -744,10 +744,10 @@ var etLoveLevel = (days) => {
     return { ...lv, pct, nextDays: next?.days || null };
 };
 
-var oupleCardModal = ({
+var CoupleCardModal = ({
     show, onClose, coupleDoc, currentUID, partnerData, selfData,
     lang, onNotification, viewOnly,
-    onOpenProfile,    // (uid) => void â€” open someone's profile
+    onOpenProfile,    // (uid) => void � open someone's profile
     currentUserData,  // logged-in user's data (for gift sending)
 }) => {
     const [liveDoc, setLiveDoc]         = useState(null);   // real-time couple doc
@@ -758,7 +758,7 @@ var oupleCardModal = ({
     const [uploading, setUploading]     = useState(false);
     const [uploadErr, setUploadErr]     = useState('');
     const [photoExpanded, setPhotoExpanded] = useState(false);
-    const [ringTooltipId, setRingTooltipId] = useState(null); // ring click â†’ name tooltip
+    const [ringTooltipId, setRingTooltipId] = useState(null); // ring click � name tooltip
     const [showGiftRingPanel, setShowGiftRingPanel] = useState(false); // ring gifting panel
     const [giftingRing, setGiftingRing] = useState(false);
     const [giftRingOk, setGiftRingOk]   = useState('');
@@ -773,7 +773,7 @@ var oupleCardModal = ({
     const [showGiftPanel, setShowGiftPanel] = useState(false);
     const [switchingRing, setSwitchingRing] = useState(false);
 
-    // â”€â”€ Real-time listener for coupleDoc itself â”€â”€
+    // �� Real-time listener for coupleDoc itself ��
     useEffect(() => {
         if (!show || !coupleDoc?.id) { setLiveDoc(null); return; }
         let firstSnapshot = true;
@@ -783,7 +783,7 @@ var oupleCardModal = ({
                     setLiveDoc({ id: snap.id, ...snap.data() });
                 } else {
                     setLiveDoc(null);
-                    // Doc was deleted (divorce happened) â€” close modal after tiny delay
+                    // Doc was deleted (divorce happened) � close modal after tiny delay
                     if (!firstSnapshot) setTimeout(() => onClose(), 600);
                 }
                 firstSnapshot = false;
@@ -808,7 +808,7 @@ var oupleCardModal = ({
     }, [show, doc?.sharedBio]);
 
     if (!show) return null;
-    if (!doc) return null; // doc deleted (divorce) â€” onClose() will be called by listener
+    if (!doc) return null; // doc deleted (divorce) � onClose() will be called by listener
 
     const ring     = RINGS_DATA.find(r => r.id === doc.ringId) || RINGS_DATA[0];
     const uid1     = doc.uid1;
@@ -827,7 +827,7 @@ var oupleCardModal = ({
         try {
             await couplesCollection.doc(doc.id).update({ sharedBio: bioText });
             setEditingBio(false);
-            onNotification && onNotification(lang==='ar' ? 'âœ… ØªÙ… Ø§Ù„Ø­ÙØ¸' : 'âœ… Saved');
+            onNotification && onNotification(lang==='ar' ? '� ت� ا�حفظ' : '� Saved');
         } catch(e) {}
         setSavingBio(false);
     };
@@ -838,7 +838,7 @@ var oupleCardModal = ({
         if (!file || !doc?.id) return;
         setUploadErr('');
         if (!file.type.startsWith('image/')) {
-            setUploadErr(lang==='ar' ? 'ÙŠØ¬Ø¨ Ø£Ù† ÙŠÙƒÙˆÙ† Ù…Ù„Ù ØµÙˆØ±Ø©' : 'File must be an image');
+            setUploadErr(lang==='ar' ? '�جب أ� ���� ��ف ص�رة' : 'File must be an image');
             return;
         }
         setUploading(true);
@@ -856,13 +856,13 @@ var oupleCardModal = ({
             let base64 = canvas.toDataURL('image/jpeg', 0.82);
             if (base64.length > 400000) base64 = canvas.toDataURL('image/jpeg', 0.65);
             if (base64.length > 400000) {
-                setUploadErr(lang==='ar' ? 'Ø§Ù„ØµÙˆØ±Ø© ÙƒØ¨ÙŠØ±Ø© Ø¬Ø¯Ø§Ù‹ØŒ Ø§Ø®ØªØ± Ø£Ø®Ø±Ù‰' : 'Image too large, pick another');
+                setUploadErr(lang==='ar' ? 'ا�ص�رة �ب�رة جدا�� اختر أخر�' : 'Image too large, pick another');
                 setUploading(false); return;
             }
             await couplesCollection.doc(doc.id).update({ couplePhotoUrl: base64 });
-            onNotification && onNotification(lang==='ar' ? 'âœ… ØªÙ… Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø©' : 'âœ… Photo uploaded');
+            onNotification && onNotification(lang==='ar' ? '� ت� رفع ا�ص�رة' : '� Photo uploaded');
         } catch(err) {
-            setUploadErr(lang==='ar' ? 'ÙØ´Ù„ Ø§Ù„Ø±ÙØ¹ØŒ Ø­Ø§ÙˆÙ„ Ù…Ø¬Ø¯Ø¯Ø§Ù‹' : 'Upload failed, try again');
+            setUploadErr(lang==='ar' ? 'فش� ا�رفع� حا�� �جددا�' : 'Upload failed, try again');
         }
         setUploading(false);
         e.target.value = '';
@@ -883,7 +883,7 @@ var oupleCardModal = ({
         if (!ring) return;
         const myRings = currentUserData?.inventory?.rings || [];
         if (!myRings.includes(ringId)) {
-            setGiftRingErr(lang==='ar' ? 'âŒ Ù‡Ø°Ø§ Ø§Ù„Ø®Ø§ØªÙ… ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ ÙÙŠ Ù…Ø®Ø²ÙˆÙ†Ùƒ' : 'âŒ Ring not in your inventory');
+            setGiftRingErr(lang==='ar' ? '� �ذا ا�خات� غ�ر ��ج�د ف� �خز���' : '� Ring not in your inventory');
             return;
         }
         setGiftingRing(true); setGiftRingErr(''); setGiftRingOk('');
@@ -901,10 +901,10 @@ var oupleCardModal = ({
             await couplesCollection.doc(doc.id).update({
                 sharedRings: firebase.firestore.FieldValue.arrayUnion(newEntry),
             });
-            setGiftRingOk(lang==='ar' ? `âœ… Ø£Ù‡Ø¯ÙŠØª ${lang==='ar'?ring.name_ar:ring.name_en} ${ring.emoji}` : `âœ… Gifted ${ring.name_en} ${ring.emoji}`);
+            setGiftRingOk(lang==='ar' ? `� أ�د�ت ${lang==='ar'?ring.name_ar:ring.name_en} ${ring.emoji}` : `� Gifted ${ring.name_en} ${ring.emoji}`);
             setTimeout(() => { setGiftRingOk(''); setShowGiftRingPanel(false); }, 2200);
         } catch(e) {
-            setGiftRingErr(lang==='ar' ? 'âŒ Ø­Ø¯Ø« Ø®Ø·Ø£' : 'âŒ Error');
+            setGiftRingErr(lang==='ar' ? '� حدث خطأ' : '� Error');
         }
         setGiftingRing(false);
     };
@@ -916,7 +916,7 @@ var oupleCardModal = ({
         try {
             await couplesCollection.doc(doc.id).update({ ringId: newRingId });
         } catch(e) {
-            onNotification && onNotification(lang==='ar' ? 'âŒ Ø®Ø·Ø£ ÙÙŠ Ø§Ù„ØªØºÙŠÙŠØ±' : 'âŒ Switch error');
+            onNotification && onNotification(lang==='ar' ? '� خطأ ف� ا�تغ��ر' : '� Switch error');
         }
         setSwitchingRing(false);
     };
@@ -928,27 +928,27 @@ var oupleCardModal = ({
             const snap = await usersCollection.doc(currentUID).get();
             const balance = snap.exists ? (snap.data().currency || 0) : 0;
             if (balance < ring.cost) {
-                onNotification(lang==='ar' ? `âŒ Ø±ØµÙŠØ¯Ùƒ ØºÙŠØ± ÙƒØ§ÙÙ (${balance}ðŸ§ )` : `âŒ Insufficient balance (${balance}ðŸ§ )`);
+                onNotification(lang==='ar' ? `� رص�د� غ�ر �افٍ (${balance}�)` : `� Insufficient balance (${balance}�)`);
                 return;
             }
             await usersCollection.doc(currentUID).update({
                 currency: firebase.firestore.FieldValue.increment(-ring.cost),
                 'inventory.rings': firebase.firestore.FieldValue.arrayUnion(ring.id),
             });
-            onNotification(`âœ… ${lang==='ar'?ring.name_ar:ring.name_en} ${ring.emoji} ${lang==='ar'?'ØªÙ…Øª Ø§Ù„Ø¥Ø¶Ø§ÙØ© Ù„Ù„Ù…Ø®Ø²ÙˆÙ†':'added to inventory'}`);
+            onNotification(`� ${lang==='ar'?ring.name_ar:ring.name_en} ${ring.emoji} ${lang==='ar'?'ت�ت ا�إضافة ���خز��':'added to inventory'}`);
         } catch(e) {
-            onNotification(lang==='ar' ? 'âŒ Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø´Ø±Ø§Ø¡' : 'âŒ Purchase error');
+            onNotification(lang==='ar' ? '� خطأ ف� ا�شراء' : '� Purchase error');
         }
     };
     const sendBlessingGift = async (gift) => {
         if (sending || !currentUID || !doc?.id) return;
         setSending(true); setGiftErr(''); setGiftOk('');
         try {
-            // âœ… Validate balance from Firestore (prevents stale state bugs)
+            // � Validate balance from Firestore (prevents stale state bugs)
             const senderSnap = await usersCollection.doc(currentUID).get();
             const liveBal = senderSnap.exists ? (senderSnap.data().currency || 0) : 0;
             if (liveBal < gift.cost) {
-                setGiftErr(lang==='ar' ? `âŒ Ø±ØµÙŠØ¯Ùƒ ØºÙŠØ± ÙƒØ§ÙÙ (${liveBal} ðŸ§ )` : `âŒ Insufficient balance (${liveBal} ðŸ§ )`);
+                setGiftErr(lang==='ar' ? `� رص�د� غ�ر �افٍ (${liveBal} �)` : `� Insufficient balance (${liveBal} �)`);
                 setSending(false);
                 return;
             }
@@ -959,9 +959,9 @@ var oupleCardModal = ({
                 sn: currentUserData?.displayName || currentUserData?.name || '?',
                 sp: currentUserData?.photoURL || null,
                 su: currentUID,
-                ge: gift.emoji || 'ðŸŽ',
+                ge: gift.emoji || '��',
                 gn: gift.name_en || gift.name_ar || gift.id || 'Gift',
-                gna: gift.name_ar || gift.name_en || 'Ù‡Ø¯ÙŠØ©',
+                gna: gift.name_ar || gift.name_en || '�د�ة',
                 ts: Date.now(),
                 bp: gift.charisma,
             };
@@ -977,15 +977,15 @@ var oupleCardModal = ({
                 usersCollection.doc(uid1).update({ charisma: firebase.firestore.FieldValue.increment(half) }),
                 usersCollection.doc(uid2).update({ charisma: firebase.firestore.FieldValue.increment(half) }),
             ]);
-            setGiftOk(lang==='ar' ? `âœ¨ Ø£Ø±Ø³Ù„Øª ${gift.emoji} Ø¨Ø±ÙƒØ©!` : `âœ¨ Sent ${gift.emoji} blessing!`);
+            setGiftOk(lang==='ar' ? `� أرس�ت ${gift.emoji} بر�ة!` : `� Sent ${gift.emoji} blessing!`);
             setTimeout(() => setGiftOk(''), 2500);
         } catch(err) {
-            setGiftErr(lang==='ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£' : 'Error occurred');
+            setGiftErr(lang==='ar' ? 'حدث خطأ' : 'Error occurred');
         }
         setSending(false);
     };
 
-    /* Small circular avatar â€” clickable if onOpenProfile provided */
+    /* Small circular avatar � clickable if onOpenProfile provided */
     const Av = ({ user, uid, size=50 }) => React.createElement('div', {
         onClick: () => uid && onOpenProfile && onOpenProfile(uid),
         style:{ width:size, height:size, borderRadius:'50%', overflow:'hidden', flexShrink:0,
@@ -996,7 +996,7 @@ var oupleCardModal = ({
             transition:'.15s', }
     }, user?.photoURL
         ? React.createElement('img', { src:user.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-        : 'ðŸ˜Ž'
+        : '�'
     );
 
     return React.createElement(PortalModal, null,
@@ -1019,7 +1019,7 @@ var oupleCardModal = ({
         },
             React.createElement(FloatingHearts),
 
-            /* â•â• TOP NAV BAR (like WePlay) â•â• */
+            /* �� TOP NAV BAR (like WePlay) �� */
             React.createElement('div', {
                 style:{ position:'absolute', top:0, left:0, right:0, zIndex:30,
                     display:'flex', alignItems:'center', justifyContent:'space-between',
@@ -1030,17 +1030,17 @@ var oupleCardModal = ({
                         background:'rgba(0,0,0,0.55)', backdropFilter:'blur(8px)',
                         color:'white', fontSize:'16px', cursor:'pointer',
                         display:'flex', alignItems:'center', justifyContent:'center' }
-                }, 'â€¹'),
+                }, '�'),
                 React.createElement('div', { style:{ fontSize:'14px', fontWeight:900, color:'white',
                     textShadow:'0 1px 8px rgba(0,0,0,0.9)', letterSpacing:'-0.3px' }},
-                    lang==='ar' ? 'Ø¨ÙŠØªÙ†Ø§ ðŸ ' : 'My Home ðŸ '),
+                    lang==='ar' ? 'ب�ت�ا ���' : 'My Home ���'),
                 React.createElement('div', { style:{ fontSize:'11px', color:'rgba(255,255,255,0.7)',
                     background:'rgba(0,0,0,0.45)', backdropFilter:'blur(8px)', borderRadius:'12px',
                     padding:'4px 9px', cursor:'default', fontWeight:600 }},
-                    lang==='ar' ? 'Ø§Ù„Ù…Ø²ÙŠØ¯' : 'More')
+                    lang==='ar' ? 'ا��ز�د' : 'More')
             ),
 
-            /* â•â• HERO BANNER PHOTO (full-width, WePlay style) â•â• */
+            /* �� HERO BANNER PHOTO (full-width, WePlay style) �� */
             React.createElement('div', { style:{ position:'relative', width:'100%', height:'230px', flexShrink:0, background:'linear-gradient(135deg,#1a0530,#0c0414)' }},
                 /* BG image */
                 doc.couplePhotoUrl && React.createElement('img', {
@@ -1051,7 +1051,7 @@ var oupleCardModal = ({
                 React.createElement('div', { style:{ position:'absolute', inset:0,
                     background:'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.0) 40%, rgba(12,4,20,0.85) 100%)' }
                 }),
-                /* Camera upload icon â€” top-right corner */
+                /* Camera upload icon � top-right corner */
                 isMember && React.createElement('div', null,
                     React.createElement('input', { type:'file', ref:photoRef, style:{ display:'none' },
                         accept:'image/jpeg,image/png,image/webp', onChange: handlePhotoUpload }),
@@ -1064,7 +1064,7 @@ var oupleCardModal = ({
                             color:'white', fontSize:'16px', cursor:'pointer',
                             display:'flex', alignItems:'center', justifyContent:'center',
                             boxShadow:'0 2px 10px rgba(0,0,0,0.5)' }
-                    }, uploading ? 'â³' : 'ðŸ“·')
+                    }, uploading ? '⏳' : '�')
                 ),
                 uploadErr && React.createElement('div', { style:{ position:'absolute', bottom:'72px', left:'50%', transform:'translateX(-50%)',
                     fontSize:'10px', color:'#f87171', background:'rgba(0,0,0,0.7)', borderRadius:'6px', padding:'3px 8px', zIndex:20 }
@@ -1074,7 +1074,7 @@ var oupleCardModal = ({
                 React.createElement('div', { style:{ position:'absolute', bottom:0, left:0, right:0,
                     padding:'10px 16px 12px', display:'flex', alignItems:'flex-end', justifyContent:'space-between', zIndex:10 }
                 },
-                    /* â”€â”€ Left: avatars close together with ring in middle â”€â”€ */
+                    /* �� Left: avatars close together with ring in middle �� */
                     React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }},
                         React.createElement('div', { style:{ display:'flex', alignItems:'flex-end' }},
                             /* Left avatar */
@@ -1086,13 +1086,13 @@ var oupleCardModal = ({
                                     boxShadow:`0 0 12px ${ring.glow}` }},
                                     selfData?.photoURL
                                         ? React.createElement('img', { src:selfData.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                                        : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}, 'ðŸ˜Ž')
+                                        : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}, '�')
                                 ),
                                 React.createElement('div', { style:{ fontSize:'9px', fontWeight:700, color:'rgba(255,255,255,0.9)',
                                     maxWidth:'58px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                                    textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, selfData?.displayName || 'â€”')
+                                    textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, selfData?.displayName || '�')
                             ),
-                            /* Ring icon â€” centered between avatars, slightly overlapping */
+                            /* Ring icon � centered between avatars, slightly overlapping */
                             React.createElement('div', { style:{ zIndex:3, marginLeft:'-6px', marginRight:'-6px', marginBottom:'18px', cursor:'pointer', textAlign:'center' },
                                 onClick: () => setRingTooltipId(v => v ? null : ring.id)
                             },
@@ -1123,22 +1123,22 @@ var oupleCardModal = ({
                                     boxShadow:`0 0 12px ${ring.glow}` }},
                                     partnerData?.photoURL
                                         ? React.createElement('img', { src:partnerData.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                                        : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}, 'ðŸ’‘')
+                                        : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}, '�')
                                 ),
                                 React.createElement('div', { style:{ fontSize:'9px', fontWeight:700, color:'rgba(255,255,255,0.9)',
                                     maxWidth:'58px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                                    textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, partnerData?.displayName || 'â€”')
+                                    textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}, partnerData?.displayName || '�')
                             )
                         ),
                         /* Marriage duration text below avatars */
                         doc.marriageDate && React.createElement('div', { style:{ fontSize:'10px', color:'rgba(255,255,255,0.72)',
                             textShadow:'0 1px 6px rgba(0,0,0,0.9)', fontWeight:600, textAlign:'center' }},
                             lang==='ar'
-                                ? `Ù†Ø­Ù† Ù…Ø¹Ø§Ù‹ Ù…Ù†Ø° ${timer.days} ÙŠÙˆÙ… ðŸ’•`
+                                ? `�ح� �عا� ��ذ ${timer.days} ��� �`
                                 : `We have been married for ${timer.days} days`)
                     ),
 
-                    /* â”€â”€ Right: Love + Blessing pills â”€â”€ */
+                    /* �� Right: Love + Blessing pills �� */
                     React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'6px', paddingBottom:'22px' }},
                         React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px',
                             background:'rgba(0,0,0,0.6)', backdropFilter:'blur(6px)',
@@ -1146,12 +1146,12 @@ var oupleCardModal = ({
                         },
                             React.createElement('div', { style:{ width:'26px', height:'26px', borderRadius:'50%',
                                 background:'rgba(236,72,153,0.3)', display:'flex', alignItems:'center',
-                                justifyContent:'center', fontSize:'13px' }}, 'â¤ï¸'),
+                                justifyContent:'center', fontSize:'13px' }}, '❤️'),
                             React.createElement('div', { style:{ textAlign:'left' }},
                                 React.createElement('div', { style:{ fontSize:'13px', fontWeight:900, color:'white', lineHeight:1 }},
                                     (doc.blessingPoints || 0).toLocaleString()),
                                 React.createElement('div', { style:{ fontSize:'8px', color:'rgba(255,255,255,0.5)' }},
-                                    lang==='ar'?'Ø­Ø¨':'Love')
+                                    lang==='ar'?'حب':'Love')
                             )
                         ),
                         React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px',
@@ -1160,23 +1160,23 @@ var oupleCardModal = ({
                         },
                             React.createElement('div', { style:{ width:'26px', height:'26px', borderRadius:'50%',
                                 background:'rgba(168,85,247,0.25)', display:'flex', alignItems:'center',
-                                justifyContent:'center', fontSize:'13px' }}, 'ðŸŽ'),
+                                justifyContent:'center', fontSize:'13px' }}, '��'),
                             React.createElement('div', { style:{ textAlign:'left' }},
                                 React.createElement('div', { style:{ fontSize:'13px', fontWeight:900, color:'white', lineHeight:1 }},
                                     (doc.blessingPoints || 0)),
                                 React.createElement('div', { style:{ fontSize:'8px', color:'rgba(255,255,255,0.5)' }},
-                                    lang==='ar'?'Ø¨Ø±ÙƒØ©':'Blessing')
+                                    lang==='ar'?'بر�ة':'Blessing')
                             )
                         )
                     )
                 ),
             ),
 
-            /* â•â• SCROLLABLE BODY â•â• */
+            /* �� SCROLLABLE BODY �� */
             React.createElement('div', { style:{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column',
                 background:'linear-gradient(180deg,#0c0414,#100820)', position:'relative', zIndex:1 }},
 
-                /* â”€â”€ Shared Bio (compact, top of scroll) â”€â”€ */
+                /* �� Shared Bio (compact, top of scroll) �� */
                 React.createElement('div', { style:{ padding:'12px 16px', borderBottom:'1px solid rgba(255,255,255,0.06)' }},
                     React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'8px' }},
                         React.createElement('div', { style:{
@@ -1184,7 +1184,7 @@ var oupleCardModal = ({
                             wordBreak:'break-word', whiteSpace:'pre-wrap',
                             maxWidth:'100%', lineHeight:1.6,
                         }},
-                            doc.sharedBio || (lang==='ar' ? 'ðŸ’• Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø¨ÙŠÙˆ Ù…Ø´ØªØ±Ùƒ Ø¨Ø¹Ø¯' : 'ðŸ’• No shared bio yet')
+                            doc.sharedBio || (lang==='ar' ? '� �ا ��جد ب�� �شتر� بعد' : '� No shared bio yet')
                         ),
                         isMember && React.createElement('button', {
                             onClick: () => editingBio ? saveBio() : setEditingBio(true),
@@ -1192,7 +1192,7 @@ var oupleCardModal = ({
                             style:{ background:'rgba(236,72,153,0.15)', border:'1px solid rgba(236,72,153,0.3)',
                                 borderRadius:'6px', color:'#f9a8d4', fontSize:'10px', fontWeight:700,
                                 padding:'3px 10px', cursor:'pointer', flexShrink:0 }
-                        }, savingBio ? 'â³' : (editingBio ? (lang==='ar'?'ðŸ’¾':'ðŸ’¾') : (lang==='ar'?'âœï¸':'âœï¸')))
+                        }, savingBio ? '⏳' : (editingBio ? (lang==='ar'?'�':'�') : (lang==='ar'?'�️':'�️')))
                     ),
                     editingBio && isMember && React.createElement('div', { style:{ marginTop:'8px' }},
                         React.createElement('textarea', {
@@ -1212,14 +1212,14 @@ var oupleCardModal = ({
                         }),
                         React.createElement('div', { style:{ display:'flex', justifyContent:'space-between', marginTop:'4px' }},
                             React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280' }},
-                                lang==='ar' ? 'ðŸ’¡ ÙŠÙ†ÙƒØ³Ø± ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ ÙƒÙ„ 20 Ø­Ø±Ù' : 'ðŸ’¡ Wraps every 20 chars'),
+                                lang==='ar' ? '� ���سر ت��ائ�ا� �� 20 حرف' : '� Wraps every 20 chars'),
                             React.createElement('div', { style:{ fontSize:'9px', color: bioText.length >= 110 ? '#f87171' : '#6b7280' }},
                                 `${bioText.length}/120`)
                         )
                     )
                 ),
 
-                /* â”€â”€ Love Level bar â”€â”€ */
+                /* �� Love Level bar �� */
                 React.createElement('div', { style:{ padding:'10px 16px', display:'flex', alignItems:'center', gap:'12px',
                     borderBottom:'1px solid rgba(255,255,255,0.05)' }
                 },
@@ -1230,10 +1230,10 @@ var oupleCardModal = ({
                             background:`linear-gradient(90deg,#ec4899,${loveInfo.color})`, borderRadius:'3px', transition:'1s' }})
                     ),
                     loveInfo.nextDays && React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', flexShrink:0 }},
-                        lang==='ar' ? `${loveInfo.nextDays - timer.days}ÙŠ` : `${loveInfo.nextDays - timer.days}d`)
+                        lang==='ar' ? `${loveInfo.nextDays - timer.days}�` : `${loveInfo.nextDays - timer.days}d`)
                 ),
 
-                /* â”€â”€ RINGS POSTED section â”€â”€ */
+                /* �� RINGS POSTED section �� */
                 React.createElement('div', { style:{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.05)' }},
                     (() => {
                         // Merge sharedRings + inventory rings + proposal ring into unique display set
@@ -1253,7 +1253,7 @@ var oupleCardModal = ({
                             React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }},
                                 React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px' }},
                                     React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color:'white' }},
-                                        lang==='ar' ? 'Ø§Ù„Ø®ÙˆØ§ØªÙ… Ø§Ù„Ù…ÙÙ‡Ø¯Ø§Ø©' : 'Rings Posted'),
+                                        lang==='ar' ? 'ا�خ�ات� ا��ُ�داة' : 'Rings Posted'),
                                     React.createElement('div', { style:{ fontSize:'9px', color:'#a78bfa',
                                         background:'rgba(168,85,247,0.15)', borderRadius:'6px', padding:'1px 6px', fontWeight:700 }},
                                         totalCount)
@@ -1265,7 +1265,7 @@ var oupleCardModal = ({
                                 }, ring.imageURL
                                     ? React.createElement('img', { src:ring.imageURL, alt:'', style:{ width:'14px', height:'14px', objectFit:'contain', mixBlendMode:'screen' }})
                                     : ring.emoji,
-                                ' ', lang==='ar' ? 'Ø£Ù‡Ø¯Ù Ø®Ø§ØªÙ…' : 'Gift Ring')
+                                ' ', lang==='ar' ? 'أ�دِ خات�' : 'Gift Ring')
                             ),
 
                             /* Gift ring panel */
@@ -1273,12 +1273,12 @@ var oupleCardModal = ({
                                 background:'rgba(255,255,255,0.04)', borderRadius:'12px', border:`1px solid ${ring.color}30` }
                             },
                                 React.createElement('div', { style:{ fontSize:'10px', color:'#9ca3af', marginBottom:'8px' }},
-                                    lang==='ar' ? 'ðŸ’ Ø®ÙˆØ§ØªÙ…Ùƒ ÙÙŠ Ø§Ù„Ù…Ø®Ø²ÙˆÙ† â€” Ø§Ø¶ØºØ· Ù„Ø¥Ù‡Ø¯Ø§Ø¡ Ø´Ø±ÙŠÙƒÙƒ:' : 'ðŸ’ Rings in your inventory â€” tap to gift partner:'),
+                                    lang==='ar' ? '�� خ�ات�� ف� ا��خز�� � اضغط �إ�داء شر���:' : '�� Rings in your inventory � tap to gift partner:'),
                                 (() => {
                                     const uniqueMyRings = [...new Set(myInventoryRings)];
                                     if (uniqueMyRings.length === 0) return React.createElement('div', {
                                         style:{ fontSize:'10px', color:'#4b5563', textAlign:'center', padding:'8px 0' }
-                                    }, lang==='ar' ? 'ðŸ›’ Ù„Ø§ Ø®ÙˆØ§ØªÙ… ÙÙŠ Ù…Ø®Ø²ÙˆÙ†Ùƒ â€” Ø§Ø´ØªØ± Ù…Ù† Ù…ØªØ¬Ø± Ø§Ù„Ø²ÙˆØ¬ÙŠÙ†' : 'ðŸ›’ No rings in inventory â€” buy from couples shop');
+                                    }, lang==='ar' ? '� �ا خ�ات� ف� �خز��� � اشتر �� �تجر ا�ز�ج��' : '� No rings in inventory � buy from couples shop');
                                     return React.createElement('div', { style:{ display:'flex', gap:'8px', flexWrap:'wrap' }},
                                         uniqueMyRings.map(rid => {
                                             const rd = RINGS_DATA.find(r => r.id === rid);
@@ -1312,7 +1312,7 @@ var oupleCardModal = ({
                                         key: i,
                                         onClick: canSwitch ? () => switchActiveRing(rd.id) : undefined,
                                         title: canSwitch
-                                            ? (lang==='ar' ? `Ø§Ø¶ØºØ· Ù„ØªÙØ¹ÙŠÙ„ ${rd.name_ar}` : `Tap to activate ${rd.name_en}`)
+                                            ? (lang==='ar' ? `اضغط �تفع�� ${rd.name_ar}` : `Tap to activate ${rd.name_en}`)
                                             : (lang==='ar' ? rd.name_ar : rd.name_en),
                                         style:{
                                             display:'flex', flexDirection:'column', alignItems:'center', gap:'4px',
@@ -1339,7 +1339,7 @@ var oupleCardModal = ({
                                             isActive && React.createElement('div', { style:{
                                                 position:'absolute', top:'-9px', left:'50%', transform:'translateX(-50%)',
                                                 fontSize:'11px', lineHeight:1,
-                                            }}, 'âœ¨'),
+                                            }}, '�'),
                                             canSwitch && React.createElement('div', { style:{
                                                 position:'absolute', bottom:'-1px', right:'-1px',
                                                 width:'16px', height:'16px', borderRadius:'50%',
@@ -1347,7 +1347,7 @@ var oupleCardModal = ({
                                                 alignItems:'center', justifyContent:'center',
                                                 fontSize:'9px', fontWeight:900, color:'#000',
                                                 boxShadow:'0 1px 5px rgba(0,0,0,0.6)',
-                                            }}, 'â†º')
+                                            }}, '�')
                                         ),
                                         React.createElement('div', { style:{
                                             fontSize:'8px', fontWeight:700, textAlign:'center',
@@ -1356,7 +1356,7 @@ var oupleCardModal = ({
                                         }}, lang==='ar' ? rd.name_ar : rd.name_en),
                                         isActive && React.createElement('div', { style:{
                                             fontSize:'7px', color:'#4ade80', fontWeight:800,
-                                        }}, lang==='ar' ? 'â— Ù†Ø´Ø·' : 'â— Active')
+                                        }}, lang==='ar' ? '� �شط' : '� Active')
                                     );
                                 })
                             )
@@ -1364,7 +1364,7 @@ var oupleCardModal = ({
                     })()
                 ),
 
-                /* â”€â”€ GIFT LOG (Recent gifts list, WePlay style) â”€â”€ */
+                /* �� GIFT LOG (Recent gifts list, WePlay style) �� */
                 doc.giftLog && doc.giftLog.length > 0 && React.createElement('div', { style:{ padding:'0 16px 14px' }},
                     React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'0' }},
                         [...doc.giftLog].reverse().slice(0, 8).map((entry, i) =>
@@ -1375,7 +1375,7 @@ var oupleCardModal = ({
                                     overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.08)' }},
                                     entry.sp
                                         ? React.createElement('img', { src:entry.sp, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                                        : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' }}, 'ðŸ˜Ž')
+                                        : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' }}, '�')
                                 ),
                                 React.createElement('div', { style:{ flex:1, minWidth:0 }},
                                     React.createElement('div', { style:{ fontSize:'12px', fontWeight:700, color:'#e2e8f0' }},
@@ -1384,7 +1384,7 @@ var oupleCardModal = ({
                                         new Date(entry.ts || 0).toLocaleString(lang==='ar'?'ar-EG':'en-US', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }))
                                 ),
                                 React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0, gap:'2px' }},
-                                    React.createElement('span', { style:{ fontSize:'26px', lineHeight:1 }}, entry.ge || 'ðŸŽ'),
+                                    React.createElement('span', { style:{ fontSize:'26px', lineHeight:1 }}, entry.ge || '��'),
                                     React.createElement('span', { style:{ fontSize:'8px', color:'#c4b5fd', fontWeight:700 }},
                                         lang==='ar' ? (entry.gna || entry.gn || '') : (entry.gn || entry.gna || ''))
                                 )
@@ -1393,7 +1393,7 @@ var oupleCardModal = ({
                     )
                 ),
 
-                /* â”€â”€ GIFT PANEL (slides up when Send Gift tapped) â”€â”€ */
+                /* �� GIFT PANEL (slides up when Send Gift tapped) �� */
                 showGiftPanel && isMember && React.createElement('div', { style:{
                     padding:'16px', borderTop:'1px solid rgba(168,85,247,0.2)',
                     background:'linear-gradient(180deg,rgba(20,5,40,0.98),rgba(12,4,20,0.99))'
@@ -1401,15 +1401,15 @@ var oupleCardModal = ({
                     React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px' }},
                         React.createElement('div', null,
                             React.createElement('div', { style:{ fontSize:'13px', fontWeight:800, color:'white' }},
-                                lang==='ar' ? 'Ø£Ø±Ø³Ù„ Ù‡Ø¯ÙŠØ© ðŸŽ' : 'Send a Gift ðŸŽ'),
+                                lang==='ar' ? 'أرس� �د�ة ��' : 'Send a Gift ��'),
                             React.createElement('div', { style:{ fontSize:'9px', color:'#9ca3af', marginTop:'1px' }},
-                                lang==='ar' ? 'Ø§Ù„Ù‡Ø¯Ø§ÙŠØ§ ØªØ¶Ø§Ù ÙƒÙ†Ù‚Ø§Ø· Ø¨Ø±ÙƒØ©' : 'Gifts add as blessing points')
+                                lang==='ar' ? 'ا��دا�ا تضاف ���اط بر�ة' : 'Gifts add as blessing points')
                         ),
                         React.createElement('button', { onClick: () => setShowGiftPanel(false),
                             style:{ width:'28px', height:'28px', borderRadius:'50%', border:'none',
                                 background:'rgba(255,255,255,0.08)', color:'#9ca3af', fontSize:'18px',
                                 cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }
-                        }, 'Ã—')
+                        }, '�')
                     ),
                     React.createElement('div', { style:{ display:'flex', gap:'8px', flexWrap:'wrap', justifyContent:'center' }},
                         COUPLE_GIFTS.map(gift =>
@@ -1427,7 +1427,7 @@ var oupleCardModal = ({
                                 React.createElement('span', { style:{ fontSize:'8px', color:'#e2e8f0', fontWeight:700, textAlign:'center',
                                     maxWidth:'58px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }},
                                     lang==='ar' ? gift.name_ar : gift.name_en),
-                                React.createElement('span', { style:{ fontSize:'8px', color:'#fcd34d', fontWeight:800 }}, `${gift.cost}ðŸ§ `)
+                                React.createElement('span', { style:{ fontSize:'8px', color:'#fcd34d', fontWeight:800 }}, `${gift.cost}�`)
                             )
                         )
                     ),
@@ -1437,7 +1437,7 @@ var oupleCardModal = ({
 
             ) // end scrollable body
 
-            /* â”€â”€ FIXED BOTTOM: Send Gift button â”€â”€ */,
+            /* �� FIXED BOTTOM: Send Gift button �� */,
             isMember && React.createElement('div', { style:{
                 flexShrink:0, padding:'10px 16px', borderTop:'1px solid rgba(255,255,255,0.07)',
                 background:'rgba(12,4,20,0.98)', backdropFilter:'blur(12px)'
@@ -1455,8 +1455,8 @@ var oupleCardModal = ({
                         transition:'.2s'
                     }
                 },
-                    React.createElement('span', { style:{ fontSize:'18px' }}, 'ðŸŽ'),
-                    lang==='ar' ? 'Ø£Ø±Ø³Ù„ Ù‡Ø¯ÙŠØ©' : 'Send gift'
+                    React.createElement('span', { style:{ fontSize:'18px' }}, '��'),
+                    lang==='ar' ? 'أرس� �د�ة' : 'Send gift'
                 )
             )
 
@@ -1464,9 +1464,9 @@ var oupleCardModal = ({
     ); // end PortalModal
 };
 
-// â•â• RINGS SHOP SECTION (injected into ShopModal)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// RingsShopSection â€” allows buying multiple rings, adds to inventory, supports event/hidden rings
+// �� RINGS SHOP SECTION (injected into ShopModal)
+// ���������������������������������������������
+// RingsShopSection � allows buying multiple rings, adds to inventory, supports event/hidden rings
 var ingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification }) => {
     const currency    = userData?.currency || 0;
     const charismaLvl = getCharismaLevel(userData?.charisma || 0).currentLevel.level;
@@ -1481,16 +1481,16 @@ var ingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification }
             const snap = await usersCollection.doc(currentUID).get();
             const bal = snap.exists ? (snap.data().currency || 0) : 0;
             if (bal < ring.cost) {
-                setBuyMsg(lang==='ar' ? `âŒ Ø±ØµÙŠØ¯ ØºÙŠØ± ÙƒØ§ÙÙ (${bal.toLocaleString()}ðŸ§ )` : `âŒ Insufficient balance (${bal.toLocaleString()}ðŸ§ )`);
+                setBuyMsg(lang==='ar' ? `� رص�د غ�ر �افٍ (${bal.toLocaleString()}�)` : `� Insufficient balance (${bal.toLocaleString()}�)`);
                 setBuying(null); return;
             }
             await usersCollection.doc(currentUID).update({
                 currency: firebase.firestore.FieldValue.increment(-ring.cost),
                 'inventory.rings': firebase.firestore.FieldValue.arrayUnion(ring.id),
             });
-            setBuyMsg(lang==='ar' ? `âœ… ${ring.name_ar} ${ring.emoji} Ø£ÙØ¶ÙŠÙ Ù„Ù…Ø®Ø²ÙˆÙ†Ùƒ!` : `âœ… ${ring.name_en} ${ring.emoji} added to inventory!`);
+            setBuyMsg(lang==='ar' ? `� ${ring.name_ar} ${ring.emoji} أُض�ف ��خز���!` : `� ${ring.name_en} ${ring.emoji} added to inventory!`);
             setTimeout(() => setBuyMsg(''), 3000);
-        } catch(e) { setBuyMsg(lang==='ar' ? 'âŒ Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø´Ø±Ø§Ø¡' : 'âŒ Purchase error'); }
+        } catch(e) { setBuyMsg(lang==='ar' ? '� خطأ ف� ا�شراء' : '� Purchase error'); }
         setBuying(null);
     };
 
@@ -1504,10 +1504,10 @@ var ingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification }
                 border:'1px solid rgba(168,85,247,0.25)', fontSize:'11px', color:'#c4b5fd',
                 display:'flex', alignItems:'center', gap:'6px' }
         },
-            React.createElement('span', null, 'ðŸ’'),
+            React.createElement('span', null, '��'),
             lang==='ar'
-                ? `Ù…Ø®Ø²ÙˆÙ†Ùƒ: ${[...new Set(myRings)].map(id => { const r = RINGS_DATA.find(r2=>r2.id===id); return r ? (lang==='ar'?r.name_ar:r.name_en) : id; }).join(' Â· ')}`
-                : `Inventory: ${[...new Set(myRings)].map(id => { const r = RINGS_DATA.find(r2=>r2.id===id); return r ? r.name_en : id; }).join(' Â· ')}`
+                ? `�خز���: ${[...new Set(myRings)].map(id => { const r = RINGS_DATA.find(r2=>r2.id===id); return r ? (lang==='ar'?r.name_ar:r.name_en) : id; }).join(' · ')}`
+                : `Inventory: ${[...new Set(myRings)].map(id => { const r = RINGS_DATA.find(r2=>r2.id===id); return r ? r.name_en : id; }).join(' · ')}`
         ),
 
         /* Rings list */
@@ -1543,23 +1543,23 @@ var ingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification }
                             lang==='ar' ? ring.name_ar : ring.name_en),
                         ring.event && React.createElement('span', { style:{ fontSize:'8px', fontWeight:800, color:'#f43f5e',
                             background:'rgba(244,63,94,0.15)', border:'1px solid rgba(244,63,94,0.4)',
-                            borderRadius:'4px', padding:'1px 5px' }}, lang==='ar'?'Ø­Ø¯Ø«':'EVENT'),
+                            borderRadius:'4px', padding:'1px 5px' }}, lang==='ar'?'حدث':'EVENT'),
                         ring.limited && ring.limitedUntil && !limitExpired && React.createElement('span', { style:{ fontSize:'8px', fontWeight:700, color:'#f97316',
                             background:'rgba(249,115,22,0.12)', border:'1px solid rgba(249,115,22,0.35)',
                             borderRadius:'4px', padding:'1px 5px' }},
-                            lang==='ar'?`â³ Ø­ØªÙ‰ ${ring.limitedUntil}`: `â³ Until ${ring.limitedUntil}`),
-                        limitExpired && React.createElement('span', { style:{ fontSize:'8px', color:'#6b7280', fontWeight:700 }}, lang==='ar'?'Ø§Ù†ØªÙ‡Ù‰':'Expired')
+                            lang==='ar'?`⏳ حت� ${ring.limitedUntil}`: `⏳ Until ${ring.limitedUntil}`),
+                        limitExpired && React.createElement('span', { style:{ fontSize:'8px', color:'#6b7280', fontWeight:700 }}, lang==='ar'?'ا�ت��':'Expired')
                     ),
                     React.createElement('div', { style:{ fontSize:'10px', color: RARITY_COLORS_C[ring.rarity], fontWeight:700, marginTop:'1px' }}, ring.rarity),
                     React.createElement('div', { style:{ fontSize:'10px', color:'#6b7280', marginTop:'2px' }},
                         lang==='ar' ? ring.desc_ar : ring.desc_en),
                     !meetsLevel && React.createElement('div', { style:{ fontSize:'10px', color:'#f97316', marginTop:'3px', fontWeight:700 }},
-                        lang==='ar' ? `ÙŠØªØ·Ù„Ø¨ Ù…Ø³ØªÙˆÙ‰ ÙƒØ§Ø±ÙŠØ²Ù…Ø§ ${ring.levelReq}` : `Requires Charisma Lv${ring.levelReq}`)
+                        lang==='ar' ? `�تط�ب �ست�� �ار�ز�ا ${ring.levelReq}` : `Requires Charisma Lv${ring.levelReq}`)
                 ),
                 React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'4px', flexShrink:0 }},
                     React.createElement('div', { style:{ fontSize:'12px', fontWeight:800, color: canAfford ? '#fcd34d' : '#ef4444' }},
-                        `${ring.cost.toLocaleString()} ðŸ§ `),
-                    /* Buy button â€” can buy multiple */
+                        `${ring.cost.toLocaleString()} �`),
+                    /* Buy button � can buy multiple */
                     !disabled && !limitExpired && React.createElement('button', {
                         onClick: () => handleBuy(ring),
                         disabled: isBuying || !canAfford,
@@ -1570,28 +1570,28 @@ var ingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification }
                             color: !canAfford ? '#4b5563' : 'white',
                             boxShadow: canAfford ? '0 3px 14px rgba(236,72,153,0.4)' : 'none',
                         }
-                    }, isBuying ? 'â³' : (isMine ? (lang==='ar'?'ðŸ’ Ø§Ø´ØªØ± Ù…Ø±Ø© Ø£Ø®Ø±Ù‰':'ðŸ’ Buy Again') : (lang==='ar'?'ðŸ’ Ø´Ø±Ø§Ø¡':'ðŸ’ Buy'))),
+                    }, isBuying ? '⏳' : (isMine ? (lang==='ar'?'�� اشتر �رة أخر�':'�� Buy Again') : (lang==='ar'?'�� شراء':'�� Buy'))),
                     /* Use for proposal */
                     isMine && onPropose && React.createElement('button', {
                         onClick: () => onPropose(ring),
                         style:{ padding:'4px 10px', borderRadius:'8px', border:`1px solid ${ring.color}50`,
                             background:`${ring.color}15`, color:ring.color, fontSize:'9px', fontWeight:700, cursor:'pointer' }
-                    }, lang==='ar'?'ðŸ“¤ Ø§Ø³ØªØ®Ø¯Ù…':'ðŸ“¤ Use')
+                    }, lang==='ar'?'� استخد�':'� Use')
                 )
             );
         }),
         buyMsg && React.createElement('div', { style:{ padding:'8px 12px', borderRadius:'10px',
-            background: buyMsg.startsWith('âœ…') ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)',
-            border:`1px solid ${buyMsg.startsWith('âœ…') ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`,
-            fontSize:'12px', fontWeight:700, color: buyMsg.startsWith('âœ…') ? '#4ade80' : '#f87171',
+            background: buyMsg.startsWith('�') ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)',
+            border:`1px solid ${buyMsg.startsWith('�') ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`,
+            fontSize:'12px', fontWeight:700, color: buyMsg.startsWith('�') ? '#4ade80' : '#f87171',
             textAlign:'center' }
         }, buyMsg)
     );
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸ“© PROPOSAL ITEM â€” standalone so useState works correctly (no hooks-in-map)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ���������������������������������������������
+// � PROPOSAL ITEM � standalone so useState works correctly (no hooks-in-map)
+// ���������������������������������������������
 var roposalItem = ({ proposal, fromData, lang, onNotification }) => {
     const [handling, setHandling] = useState(false);
     const ring = RINGS_DATA.find(r => r.id === proposal.ringId) || RINGS_DATA[0];
@@ -1617,12 +1617,12 @@ var roposalItem = ({ proposal, fromData, lang, onNotification }) => {
             React.createElement('div', { style:{ width:'44px', height:'44px', borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(236,72,153,0.5)', flexShrink:0 }},
                 fromData?.photoURL
                     ? React.createElement('img', { src:fromData.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-                    : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', background:'rgba(236,72,153,0.1)' }}, 'ðŸ˜Ž')
+                    : React.createElement('div', { style:{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', background:'rgba(236,72,153,0.1)' }}, '�')
             ),
             React.createElement('div', { style:{ flex:1 }},
-                React.createElement('div', { style:{ fontSize:'14px', fontWeight:800, color:'white' }}, fromData?.displayName || 'â€”'),
+                React.createElement('div', { style:{ fontSize:'14px', fontWeight:800, color:'white' }}, fromData?.displayName || '�'),
                 React.createElement('div', { style:{ fontSize:'11px', color:'#f9a8d4' }},
-                    lang==='ar' ? 'ðŸ’ ÙŠØ·Ù„Ø¨ Ø§Ø±ØªØ¨Ø§Ø·Ùƒ' : 'ðŸ’ proposing to you')
+                    lang==='ar' ? '�� �ط�ب ارتباط�' : '�� proposing to you')
             ),
             /* Ring */
             React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px', background:`${ring.color}15`, border:`1px solid ${ring.color}40`, borderRadius:'10px', padding:'5px 10px' }},
@@ -1638,7 +1638,7 @@ var roposalItem = ({ proposal, fromData, lang, onNotification }) => {
         /* Gift */
         gift && React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'8px', padding:'6px 10px', borderRadius:'8px', background:'rgba(249,168,212,0.06)', border:'1px solid rgba(249,168,212,0.15)', marginBottom:'10px' }},
             React.createElement('span', { style:{ fontSize:'16px' }}, gift.emoji),
-            React.createElement('span', { style:{ fontSize:'11px', color:'#f9a8d4' }}, lang==='ar' ? `Ù‡Ø¯ÙŠØ©: ${gift.name_ar}` : `Gift: ${gift.name_en}`)
+            React.createElement('span', { style:{ fontSize:'11px', color:'#f9a8d4' }}, lang==='ar' ? `�د�ة: ${gift.name_ar}` : `Gift: ${gift.name_en}`)
         ),
         /* Message */
         proposal.proposalMessage && React.createElement('div', { style:{ padding:'8px 12px', borderRadius:'10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', fontSize:'12px', color:'#f3f4f6', fontStyle:'italic', marginBottom:'10px' }},
@@ -1648,19 +1648,19 @@ var roposalItem = ({ proposal, fromData, lang, onNotification }) => {
             React.createElement('button', {
                 onClick: () => handle(false), disabled: handling,
                 style:{ flex:1, padding:'11px', borderRadius:'12px', border:'1px solid rgba(239,68,68,0.4)', background:'rgba(239,68,68,0.1)', color:'#f87171', fontSize:'13px', fontWeight:700, cursor:'pointer' }
-            }, handling ? 'â³' : (lang==='ar' ? 'âŒ Ø±ÙØ¶' : 'âŒ Decline')),
+            }, handling ? '⏳' : (lang==='ar' ? '� رفض' : '� Decline')),
             React.createElement('button', {
                 onClick: () => handle(true), disabled: handling,
                 style:{ flex:1, padding:'11px', borderRadius:'12px', border:'none', background:'linear-gradient(135deg,#ec4899,#a855f7)', color:'white', fontSize:'13px', fontWeight:800, cursor:'pointer', boxShadow:'0 4px 16px rgba(236,72,153,0.4)' }
-            }, handling ? 'â³' : (lang==='ar' ? 'ðŸ’– Ù‚Ø¨ÙˆÙ„' : 'ðŸ’– Accept'))
+            }, handling ? '⏳' : (lang==='ar' ? '� �ب��' : '� Accept'))
         )
     );
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸ’’ WEDDING HALL MODAL
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-var eddingHallModal = ({
+// ���������������������������������������������
+// � WEDDING HALL MODAL
+// ���������������������������������������������
+var WeddingHallModal = ({
     show, onClose, lang,
     currentUID, currentUserData, coupleData, partnerData,
     onOpenPropose,      // opens ring shop
@@ -1671,7 +1671,7 @@ var eddingHallModal = ({
     const [tab, setTab]             = useState('feed');   // 'feed' | 'divorce' | 'proposals'
     const [couples, setCouples]     = useState([]);
     const [loadingFeed, setLoadingFeed] = useState(true);
-    const [coupleProfiles, setCoupleProfiles] = useState({}); // uid â†’ userData
+    const [coupleProfiles, setCoupleProfiles] = useState({}); // uid � userData
     const [viewCouple, setViewCouple]   = useState(null);
     const [viewSelf, setViewSelf]       = useState(null);
     const [viewPartner, setViewPartner] = useState(null);
@@ -1749,7 +1749,7 @@ var eddingHallModal = ({
         const u2 = coupleProfiles[coupleDoc.uid2];
         if (!u1 || !u2) return;
         if (coupleDoc.uid1 === currentUID || coupleDoc.uid2 === currentUID) {
-            // It's the viewer's own couple â€” open the actual interactive card
+            // It's the viewer's own couple � open the actual interactive card
             onOpenCoupleCard && onOpenCoupleCard();
             return;
         }
@@ -1781,7 +1781,7 @@ var eddingHallModal = ({
             display:'flex', alignItems:'center', justifyContent:'center', fontSize: Math.floor(size*0.45) }
     }, user?.photoURL
         ? React.createElement('img', { src:user.photoURL, alt:'', style:{ width:'100%', height:'100%', objectFit:'cover' }})
-        : 'ðŸ˜Ž'
+        : '�'
     );
 
     return React.createElement(PortalModal, null,
@@ -1805,30 +1805,30 @@ var eddingHallModal = ({
             }
         },
 
-            /* â”€â”€ Handle bar â”€â”€ */
+            /* �� Handle bar �� */
             React.createElement('div', { style:{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }},
                 React.createElement('div', { style:{ width:'40px', height:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.15)' }})
             ),
 
-            /* â”€â”€ Header â”€â”€ */
+            /* �� Header �� */
             React.createElement('div', { style:{
                 display:'flex', alignItems:'center', justifyContent:'space-between',
                 padding:'8px 18px 12px', flexShrink:0
             }},
                 React.createElement('div', null,
-                    React.createElement('div', { style:{ fontSize:'16px', fontWeight:900, color:'white' }}, 'ðŸ’’ ' + (lang==='ar' ? 'Ù‚Ø§Ø¹Ø© Ø§Ù„Ø£ÙØ±Ø§Ø­' : 'Wedding Hall')),
+                    React.createElement('div', { style:{ fontSize:'16px', fontWeight:900, color:'white' }}, '� ' + (lang==='ar' ? '�اعة ا�أفراح' : 'Wedding Hall')),
                     React.createElement('div', { style:{ fontSize:'10px', color:'#f9a8d4', marginTop:'2px' }},
-                        lang==='ar' ? 'Ø§ÙƒØªØ´Ù Ø§Ù„ÙƒØ§Ø¨Ù„Ø² ÙˆØ£Ø±Ø³Ù„ Ø·Ù„Ø¨Ùƒ' : 'Discover couples & send your proposal')
+                        lang==='ar' ? 'ا�تشف ا��اب�ز �أرس� ط�ب�' : 'Discover couples & send your proposal')
                 ),
                 React.createElement('button', {
                     onClick: onClose,
                     style:{ background:'rgba(255,255,255,0.07)', border:'none', borderRadius:'10px',
                         color:'#9ca3af', fontSize:'18px', width:'34px', height:'34px', cursor:'pointer',
                         display:'flex', alignItems:'center', justifyContent:'center' }
-                }, 'âœ•')
+                }, '�')
             ),
 
-            /* â”€â”€ 4 Action Buttons â”€â”€ */
+            /* �� 4 Action Buttons �� */
             React.createElement('div', { style:{
                 display:'flex', gap:'10px', padding:'0 16px 14px', flexShrink:0
             }},
@@ -1843,8 +1843,8 @@ var eddingHallModal = ({
                         display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
                     }
                 },
-                    React.createElement('span', { style:{ fontSize:'18px' }}, 'ðŸ’'),
-                    lang==='ar' ? 'Ø®Ø·Ø¨Ø©' : 'Propose'
+                    React.createElement('span', { style:{ fontSize:'18px' }}, '��'),
+                    lang==='ar' ? 'خطبة' : 'Propose'
                 ),
                 /* Incoming Proposals */
                 React.createElement('button', {
@@ -1862,7 +1862,7 @@ var eddingHallModal = ({
                     }
                 },
                     React.createElement('div', { style:{ position:'relative', display:'inline-block' }},
-                        React.createElement('span', { style:{ fontSize:'18px' }}, 'ðŸ“©'),
+                        React.createElement('span', { style:{ fontSize:'18px' }}, '�'),
                         pendingProposals.length > 0 && React.createElement('div', {
                             style:{ position:'absolute', top:'-3px', right:'-3px', width:'10px', height:'10px',
                                 borderRadius:'50%', background:'#ef4444',
@@ -1871,7 +1871,7 @@ var eddingHallModal = ({
                             }
                         })
                     ),
-                    lang==='ar' ? 'Ø·Ù„Ø¨Ø§ØªÙŠ' : 'Proposals',
+                    lang==='ar' ? 'ط�بات�' : 'Proposals',
                     pendingProposals.length > 0 && React.createElement('span', {
                         style:{ fontSize:'8px', background:'rgba(239,68,68,0.8)', borderRadius:'8px',
                             padding:'1px 5px', fontWeight:900 }
@@ -1891,8 +1891,8 @@ var eddingHallModal = ({
                         display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
                     }
                 },
-                    React.createElement('span', { style:{ fontSize:'18px' }}, 'ðŸ’’'),
-                    lang==='ar' ? 'Ø£ÙØ±Ø§Ø­' : 'Weddings'
+                    React.createElement('span', { style:{ fontSize:'18px' }}, '�'),
+                    lang==='ar' ? 'أفراح' : 'Weddings'
                 ),
                 /* Divorce */
                 React.createElement('button', {
@@ -1908,24 +1908,24 @@ var eddingHallModal = ({
                         display:'flex', flexDirection:'column', alignItems:'center', gap:'3px',
                     }
                 },
-                    React.createElement('span', { style:{ fontSize:'18px' }}, 'ðŸ’”'),
-                    lang==='ar' ? 'Ø·Ù„Ø§Ù‚' : 'Divorce'
+                    React.createElement('span', { style:{ fontSize:'18px' }}, '�'),
+                    lang==='ar' ? 'ط�ا�' : 'Divorce'
                 )
             ),
 
-            /* â”€â”€ Divider â”€â”€ */
+            /* �� Divider �� */
             React.createElement('div', { style:{ height:'1px', background:'rgba(255,255,255,0.07)', flexShrink:0 }}),
 
-            /* â”€â”€ Content â”€â”€ */
+            /* �� Content �� */
             React.createElement('div', { style:{ flex:1, overflowY:'auto', padding:'14px 16px' }},
 
-                /* â”€â”€â”€â”€ PROPOSALS TAB â”€â”€â”€â”€ */
+                /* ���� PROPOSALS TAB ���� */
                 tab === 'proposals' && (
                     pendingProposals.length === 0
                         ? React.createElement('div', { style:{ textAlign:'center', padding:'40px' }},
-                            React.createElement('div', { style:{ fontSize:'40px', marginBottom:'12px' }}, 'ðŸ“©'),
+                            React.createElement('div', { style:{ fontSize:'40px', marginBottom:'12px' }}, '�'),
                             React.createElement('div', { style:{ fontSize:'13px', color:'#6b7280' }},
-                                lang==='ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø·Ù„Ø¨Ø§Øª Ø§Ø±ØªØ¨Ø§Ø· Ø­Ø§Ù„ÙŠØ§Ù‹' : 'No pending proposals'))
+                                lang==='ar' ? '�ا ت�جد ط�بات ارتباط حا��ا�' : 'No pending proposals'))
                         : React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'14px' }},
                             pendingProposals.map(proposal =>
                                 React.createElement(ProposalItem, {
@@ -1939,15 +1939,15 @@ var eddingHallModal = ({
                         )
                 ),
 
-                /* â”€â”€â”€â”€ FEED TAB â”€â”€â”€â”€ */
+                /* ���� FEED TAB ���� */
                 tab === 'feed' && (
                     loadingFeed
-                        ? React.createElement('div', { style:{ textAlign:'center', padding:'40px', color:'#6b7280' }}, 'â³')
+                        ? React.createElement('div', { style:{ textAlign:'center', padding:'40px', color:'#6b7280' }}, '⏳')
                         : couples.length === 0
                             ? React.createElement('div', { style:{ textAlign:'center', padding:'40px' }},
-                                React.createElement('div', { style:{ fontSize:'48px', marginBottom:'12px' }}, 'ðŸ’’'),
+                                React.createElement('div', { style:{ fontSize:'48px', marginBottom:'12px' }}, '�'),
                                 React.createElement('div', { style:{ fontSize:'13px', color:'#6b7280' }},
-                                    lang==='ar' ? 'Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø£ÙØ±Ø§Ø­ Ø§Ù„ÙŠÙˆÙ…' : 'No weddings today'))
+                                    lang==='ar' ? '�ا ��جد أفراح ا����' : 'No weddings today'))
                             : React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'12px' }},
                                 couples.map(c => {
                                     const u1 = coupleProfiles[c.uid1];
@@ -1969,8 +1969,8 @@ var eddingHallModal = ({
                                         /* Title row */
                                         React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px' }},
                                             React.createElement('div', { style:{ fontSize:'12px', fontWeight:700, color: isMyCouple ? '#f9a8d4' : '#e2e8f0' }},
-                                                `${u1?.displayName || 'â€”'} ${lang==='ar'?'Ùˆ':'&'} ${u2?.displayName || 'â€”'}`,
-                                                isMyCouple && React.createElement('span', { style:{ marginLeft:'6px', fontSize:'10px', background:'rgba(236,72,153,0.2)', color:'#f9a8d4', border:'1px solid rgba(236,72,153,0.4)', borderRadius:'6px', padding:'1px 7px' }}, lang==='ar'?'Ø£Ù†ØªÙ…':'You')
+                                                `${u1?.displayName || '�'} ${lang==='ar'?'�':'&'} ${u2?.displayName || '�'}`,
+                                                isMyCouple && React.createElement('span', { style:{ marginLeft:'6px', fontSize:'10px', background:'rgba(236,72,153,0.2)', color:'#f9a8d4', border:'1px solid rgba(236,72,153,0.4)', borderRadius:'6px', padding:'1px 7px' }}, lang==='ar'?'أ�ت�':'You')
                                             ),
                                             React.createElement('div', { style:{ fontSize:'10px', color:'#6b7280', background:'rgba(255,255,255,0.06)', borderRadius:'8px', padding:'3px 8px' }},
                                                 fmtTime(c.marriageDate))
@@ -1992,24 +1992,24 @@ var eddingHallModal = ({
                             )
                 ),
 
-                /* â”€â”€â”€â”€ DIVORCE TAB â”€â”€â”€â”€ */
+                /* ���� DIVORCE TAB ���� */
                 tab === 'divorce' && React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'14px' }},
                     !coupleData
                         ? React.createElement('div', { style:{ textAlign:'center', padding:'40px' }},
-                            React.createElement('div', { style:{ fontSize:'40px', marginBottom:'12px' }}, 'ðŸ’”'),
+                            React.createElement('div', { style:{ fontSize:'40px', marginBottom:'12px' }}, '�'),
                             React.createElement('div', { style:{ fontSize:'13px', color:'#6b7280' }},
-                                lang==='ar' ? 'Ù„Ø³Øª Ù…Ø±ØªØ¨Ø·Ø§Ù‹ Ø­Ø§Ù„ÙŠØ§Ù‹' : 'You are not in a relationship'))
+                                lang==='ar' ? '�ست �رتبطا� حا��ا�' : 'You are not in a relationship'))
                         : React.createElement('div', null,
                             /* Current couple summary */
                             React.createElement('div', { style:{ padding:'16px', borderRadius:'16px', background:'rgba(236,72,153,0.08)', border:'1px solid rgba(236,72,153,0.2)', marginBottom:'14px', display:'flex', alignItems:'center', gap:'14px' }},
                                 React.createElement(Av, { user:currentUserData, size:44 }),
-                                React.createElement('span', { style:{ fontSize:'22px' }}, 'ðŸ’•'),
+                                React.createElement('span', { style:{ fontSize:'22px' }}, '�'),
                                 React.createElement(Av, { user:partnerData, size:44 }),
                                 React.createElement('div', { style:{ marginLeft:'8px', flex:1 }},
                                     React.createElement('div', { style:{ fontSize:'13px', fontWeight:700, color:'white' }},
-                                        partnerData?.displayName || 'â€”'),
+                                        partnerData?.displayName || '�'),
                                     React.createElement('div', { style:{ fontSize:'10px', color:'#f9a8d4' }},
-                                        (() => { const d = coupleTimeDiff(coupleData?.marriageDate); return d ? (lang==='ar' ? `Ù…Ø¹Ø§Ù‹ ${d.days} ÙŠÙˆÙ…` : `Together ${d.days} days`) : ''; })())
+                                        (() => { const d = coupleTimeDiff(coupleData?.marriageDate); return d ? (lang==='ar' ? `�عا� ${d.days} ���` : `Together ${d.days} days`) : ''; })())
                                 )
                             ),
                             !divorceConfirm
@@ -2019,15 +2019,15 @@ var eddingHallModal = ({
                                         background:'linear-gradient(135deg,#ef4444,#b91c1c)',
                                         color:'white', fontSize:'13px', fontWeight:800, cursor:'pointer',
                                         boxShadow:'0 4px 16px rgba(239,68,68,0.3)' }
-                                  }, lang==='ar' ? 'ðŸ’” Ø¥Ù†Ù‡Ø§Ø¡ Ø§Ù„Ø§Ø±ØªØ¨Ø§Ø·' : 'ðŸ’” End Relationship')
+                                  }, lang==='ar' ? '� إ��اء ا�ارتباط' : '� End Relationship')
                                 : React.createElement('div', { style:{ padding:'16px', borderRadius:'14px', border:'1px solid rgba(239,68,68,0.35)', background:'rgba(239,68,68,0.08)', textAlign:'center' }},
                                     React.createElement('div', { style:{ fontSize:'13px', color:'#f87171', fontWeight:700, marginBottom:'12px' }},
-                                        lang==='ar' ? 'âš ï¸ Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ØŸ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹!' : 'âš ï¸ Are you sure? This cannot be undone!'),
+                                        lang==='ar' ? '�️ �� أ�ت �تأ�د� �ا ���� ا�تراجع!' : '�️ Are you sure? This cannot be undone!'),
                                     React.createElement('div', { style:{ display:'flex', gap:'10px' }},
                                         React.createElement('button', { onClick:()=>setDivorceConfirm(false), style:{ flex:1, padding:'11px', borderRadius:'12px', border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.06)', color:'#9ca3af', fontSize:'12px', cursor:'pointer' }},
-                                            lang==='ar' ? 'ØªØ±Ø§Ø¬Ø¹' : 'Cancel'),
+                                            lang==='ar' ? 'تراجع' : 'Cancel'),
                                         React.createElement('button', { onClick:handleDivorce, disabled:divorcing, style:{ flex:1, padding:'11px', borderRadius:'12px', border:'none', background:'rgba(239,68,68,0.8)', color:'white', fontSize:'12px', fontWeight:700, cursor:'pointer' }},
-                                            divorcing ? 'â³' : (lang==='ar' ? 'ðŸ’” ØªØ£ÙƒÙŠØ¯' : 'ðŸ’” Confirm'))
+                                            divorcing ? '⏳' : (lang==='ar' ? '� تأ��د' : '� Confirm'))
                                     )
                                   )
                           )

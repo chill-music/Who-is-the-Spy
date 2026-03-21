@@ -1,7 +1,7 @@
-﻿// ==========================================
+// ==========================================
 
 var { useState, useEffect, useRef, useCallback, useMemo } = React;
-// ðŸŽ¯ Z-INDEX CONSTANTS - Layer Management
+// � Z-INDEX CONSTANTS - Layer Management
 var Z = {
     MODAL:      10000,  // Standard modals
     MODAL_HIGH: 12000,  // FunPass, BrowseRooms
@@ -11,7 +11,7 @@ var Z = {
     TOOLTIP:    999999, // Tooltips & dropdowns
 };
 
-// ðŸŽ¨ GRADIENT CONSTANTS - Reusable styles
+// � GRADIENT CONSTANTS - Reusable styles
 var GR = {
     DARK_CARD:  'linear-gradient(135deg, rgba(15,15,35,0.95), rgba(25,25,50,0.95))',
     NEON:       'linear-gradient(135deg, rgba(0,242,255,0.15), rgba(112,0,255,0.15))',
@@ -66,37 +66,37 @@ var redPacketsCollection      = db.collection('artifacts').doc(appId).collection
 var publicChatCollection      = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('public_chat');
 var helpFaqCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('help_faq');
 var feedbackCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('feedback');
-// â”€â”€ Collections added from scattered files (centralized here) â”€â”€
+// �� Collections added from scattered files (centralized here) ��
 var familiesCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('families');
 var couplesCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('couples');
 var groupsCollection          = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('group_chats');
 var staffLogCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('staff_activity_log');
 var ticketsCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('support_tickets');
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ§§ RED PACKETS SYSTEM CONFIG
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// � RED PACKETS SYSTEM CONFIG
+// ��������������������������������������������������������
 var RED_PACKETS_CONFIG = [
     {
         id: 'rp_600',
         amount: 600,
-        emoji: 'ðŸ§§',
-        name_ar: 'Ù…ØºÙ„Ù 600',
+        emoji: '�',
+        name_ar: '�غ�ف 600',
         name_en: 'Red Packet 600',
         color: '#ef4444',
         glow: 'rgba(239,68,68,0.6)',
         bg: 'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(185,28,28,0.12))',
         border: 'rgba(239,68,68,0.4)',
-        imageURL: null, // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„Ù…ØºÙ„Ù Ù‡Ù†Ø§
-        maxClaims: 5,   // Ø¹Ø¯Ø¯ Ø§Ù„Ø£Ø´Ø®Ø§Øµ Ø§Ù„Ù„ÙŠ ÙŠÙ‚Ø¯Ø±ÙˆØ§ ÙŠØ³ØªÙ„Ù…ÙˆØ§ Ù…Ù†Ù‡
-        desc_ar: 'Ù…ØºÙ„Ù Ø£Ø­Ù…Ø± ØµØºÙŠØ± â€” ÙŠÙˆØ²Ø¹ Ø¹Ù„Ù‰ 5 Ø£Ø´Ø®Ø§Øµ',
-        desc_en: 'Small red packet â€” shared among 5 people',
+        imageURL: null, // � ضع رابط ص�رة ا��غ�ف ��ا
+        maxClaims: 5,   // عدد ا�أشخاص ا��� ��در�ا �ست���ا ���
+        desc_ar: '�غ�ف أح�ر صغ�ر � ��زع ع�� 5 أشخاص',
+        desc_en: 'Small red packet � shared among 5 people',
     },
     {
         id: 'rp_1800',
         amount: 1800,
-        emoji: 'ðŸ§§',
-        name_ar: 'Ù…ØºÙ„Ù 1800',
+        emoji: '�',
+        name_ar: '�غ�ف 1800',
         name_en: 'Red Packet 1800',
         color: '#f97316',
         glow: 'rgba(249,115,22,0.6)',
@@ -104,14 +104,14 @@ var RED_PACKETS_CONFIG = [
         border: 'rgba(249,115,22,0.4)',
         imageURL: null,
         maxClaims: 8,
-        desc_ar: 'Ù…ØºÙ„Ù Ø£Ø­Ù…Ø± Ù…ØªÙˆØ³Ø· â€” ÙŠÙˆØ²Ø¹ Ø¹Ù„Ù‰ 8 Ø£Ø´Ø®Ø§Øµ',
-        desc_en: 'Medium red packet â€” shared among 8 people',
+        desc_ar: '�غ�ف أح�ر �ت�سط � ��زع ع�� 8 أشخاص',
+        desc_en: 'Medium red packet � shared among 8 people',
     },
     {
         id: 'rp_3000',
         amount: 3000,
-        emoji: 'ðŸ§§',
-        name_ar: 'Ù…ØºÙ„Ù 3000',
+        emoji: '�',
+        name_ar: '�غ�ف 3000',
         name_en: 'Red Packet 3000',
         color: '#fbbf24',
         glow: 'rgba(251,191,36,0.6)',
@@ -119,14 +119,14 @@ var RED_PACKETS_CONFIG = [
         border: 'rgba(251,191,36,0.4)',
         imageURL: null,
         maxClaims: 10,
-        desc_ar: 'Ù…ØºÙ„Ù Ø°Ù‡Ø¨ÙŠ â€” ÙŠÙˆØ²Ø¹ Ø¹Ù„Ù‰ 10 Ø£Ø´Ø®Ø§Øµ',
-        desc_en: 'Golden packet â€” shared among 10 people',
+        desc_ar: '�غ�ف ذ�ب� � ��زع ع�� 10 أشخاص',
+        desc_en: 'Golden packet � shared among 10 people',
     },
     {
         id: 'rp_10000',
         amount: 10000,
-        emoji: 'ðŸ§§',
-        name_ar: 'Ù…ØºÙ„Ù 10000',
+        emoji: '�',
+        name_ar: '�غ�ف 10000',
         name_en: 'Red Packet 10K',
         color: '#a78bfa',
         glow: 'rgba(167,139,250,0.7)',
@@ -134,14 +134,14 @@ var RED_PACKETS_CONFIG = [
         border: 'rgba(167,139,250,0.4)',
         imageURL: null,
         maxClaims: 15,
-        desc_ar: 'Ù…ØºÙ„Ù Ù…Ù„ÙƒÙŠ â€” ÙŠÙˆØ²Ø¹ Ø¹Ù„Ù‰ 15 Ø´Ø®Øµ',
-        desc_en: 'Royal packet â€” shared among 15 people',
+        desc_ar: '�غ�ف ���� � ��زع ع�� 15 شخص',
+        desc_en: 'Royal packet � shared among 15 people',
     },
     {
         id: 'rp_50000',
         amount: 50000,
-        emoji: 'ðŸ§§',
-        name_ar: 'Ù…ØºÙ„Ù 50000',
+        emoji: '�',
+        name_ar: '�غ�ف 50000',
         name_en: 'Red Packet 50K',
         color: '#00f2ff',
         glow: 'rgba(0,242,255,0.8)',
@@ -149,66 +149,66 @@ var RED_PACKETS_CONFIG = [
         border: 'rgba(0,242,255,0.4)',
         imageURL: null,
         maxClaims: 20,
-        desc_ar: 'Ù…ØºÙ„Ù Ø£Ø³Ø·ÙˆØ±ÙŠ â€” ÙŠÙˆØ²Ø¹ Ø¹Ù„Ù‰ 20 Ø´Ø®Øµ',
-        desc_en: 'Legendary packet â€” shared among 20 people',
+        desc_ar: '�غ�ف أسط�ر� � ��زع ع�� 20 شخص',
+        desc_en: 'Legendary packet � shared among 20 people',
     },
 ];
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ¤ BFF SYSTEM CONFIG
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// � BFF SYSTEM CONFIG
+// ��������������������������������������������������������
 var BFF_CONFIG = {
-    freeSlots: 3,           // Ø¹Ø¯Ø¯ Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª Ø§Ù„Ù…Ø¬Ø§Ù†ÙŠØ©
-    extraSlotCost: 1000,    // ØªÙƒÙ„ÙØ© ÙØªØ­ Ø®Ø§Ù†Ø© Ø¥Ø¶Ø§ÙÙŠØ© Ø¨Ø§Ù„Ø¹Ù…Ù„Ø©
-    // ØµÙˆØ± Ø§Ù„ÙƒØ§Ø±Øª Ø§Ù„Ø®Ù„ÙÙŠ Ù„ÙƒÙ„ Ù†ÙˆØ¹ Ø¹Ù„Ø§Ù‚Ø© â€” Ø¶Ø¹ Ø±ÙˆØ§Ø¨Ø· ØµÙˆØ± Ù‡Ù†Ø§
+    freeSlots: 3,           // عدد ا�ع�ا�ات ا��جا��ة
+    extraSlotCost: 1000,    // ت��فة فتح خا�ة إضاف�ة با�ع��ة
+    // ص�ر ا��ارت ا�خ�ف� ��� ��ع ع�ا�ة � ضع ر�ابط ص�ر ��ا
     cardImages: {
-        paper_plane: null,  // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„ÙƒØ§Ø±Øª Ù„Ù„Ø·ÙŠØ§Ø±Ø© Ø§Ù„ÙˆØ±Ù‚ÙŠØ©
-        airplane:    null,  // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„ÙƒØ§Ø±Øª Ù„Ù„Ø·ÙŠØ§Ø±Ø©
-        house:       null,  // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„ÙƒØ§Ø±Øª Ù„Ù„Ø¨ÙŠØª
-        car:         null,  // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„ÙƒØ§Ø±Øª Ù„Ù„Ø¹Ø±Ø¨ÙŠØ©
-        yacht:       null,  // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„ÙƒØ§Ø±Øª Ù„Ù„ÙŠØ®Øª
-        castle:      null,  // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„ÙƒØ§Ø±Øª Ù„Ù„Ù‚Ù„Ø¹Ø©
-        default:     null,  // â† Ø§Ù„ØµÙˆØ±Ø© Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠØ© Ù„Ù„ÙƒØ§Ø±Øª Ù„Ùˆ Ù…Ø§ ÙÙŠ Ù†ÙˆØ¹ Ù…Ø­Ø¯Ø¯
+        paper_plane: null,  // � ضع رابط ص�رة ا��ارت ��ط�ارة ا��ر��ة
+        airplane:    null,  // � ضع رابط ص�رة ا��ارت ��ط�ارة
+        house:       null,  // � ضع رابط ص�رة ا��ارت ��ب�ت
+        car:         null,  // � ضع رابط ص�رة ا��ارت ��عرب�ة
+        yacht:       null,  // � ضع رابط ص�رة ا��ارت ���خت
+        castle:      null,  // � ضع رابط ص�رة ا��ارت ����عة
+        default:     null,  // � ا�ص�رة ا�افتراض�ة ���ارت �� �ا ف� ��ع �حدد
     },
 };
 
-// BFF Token items â€” ØªÙØ¶Ø§Ù Ù„Ù„Ø´ÙˆØ¨ ÙˆØªÙØ³ØªØ®Ø¯Ù… Ù„Ø¥Ù†Ø´Ø§Ø¡ Ø¹Ù„Ø§Ù‚Ø©
+// BFF Token items � تُضاف ��ش�ب �تُستخد� �إ�شاء ع�ا�ة
 var BFF_TOKEN_ITEMS = [
-    { id:'bff_paper_plane', emoji:'âœˆï¸', name_en:'Paper Plane Relationship', name_ar:'Ø¹Ù„Ø§Ù‚Ø© Ø·ÙŠØ§Ø±Ø© ÙˆØ±Ù‚',   cost:500,  rarity:'Common',    cardType:'paper_plane', imageURL: null, color:'#60a5fa', glow:'rgba(96,165,250,0.5)',  desc_en:'A simple, sweet bond.',        desc_ar:'Ø±Ø§Ø¨Ø·Ø© Ø¨Ø³ÙŠØ·Ø© ÙˆØ­Ù„ÙˆØ©.' },
-    { id:'bff_airplane',    emoji:'ðŸ›«', name_en:'Airplane Relationship',    name_ar:'Ø¹Ù„Ø§Ù‚Ø© Ø·ÙŠØ§Ø±Ø©',       cost:1000, rarity:'Uncommon',  cardType:'airplane',    imageURL: null, color:'#4ade80', glow:'rgba(74,222,128,0.5)',  desc_en:'Soaring friendship.',          desc_ar:'ØµØ¯Ø§Ù‚Ø© ØªØ­Ù„Ù‚ ÙÙŠ Ø§Ù„Ø³Ù…Ø§Ø¡.' },
-    { id:'bff_house',       emoji:'ðŸ ', name_en:'House Relationship',       name_ar:'Ø¹Ù„Ø§Ù‚Ø© Ø¨ÙŠØª',         cost:1500, rarity:'Rare',      cardType:'house',       imageURL: null, color:'#f59e0b', glow:'rgba(245,158,11,0.5)',  desc_en:'A warm, homey bond.',          desc_ar:'Ø±Ø§Ø¨Ø·Ø© Ø¯Ø§ÙØ¦Ø© ÙƒØ§Ù„Ø¨ÙŠØª.' },
-    { id:'bff_car',         emoji:'ðŸš—', name_en:'Car Relationship',         name_ar:'Ø¹Ù„Ø§Ù‚Ø© Ø¹Ø±Ø¨ÙŠØ©',       cost:2500, rarity:'Epic',      cardType:'car',         imageURL: null, color:'#a78bfa', glow:'rgba(167,139,250,0.5)', desc_en:'Fast and exciting.',           desc_ar:'Ø³Ø±ÙŠØ¹Ø© ÙˆÙ…Ø«ÙŠØ±Ø©.' },
-    { id:'bff_yacht',       emoji:'ðŸ›¥ï¸', name_en:'Royal Yacht Relationship', name_ar:'Ø¹Ù„Ø§Ù‚Ø© ÙŠØ®Øª Ù…Ù„ÙƒÙŠ',   cost:5000, rarity:'Legendary', cardType:'yacht',       imageURL: null, color:'#ffd700', glow:'rgba(255,215,0,0.6)',   desc_en:'Luxury friendship at sea.',    desc_ar:'ØµØ¯Ø§Ù‚Ø© ÙØ§Ø®Ø±Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø¨Ø­Ø±.' },
-    { id:'bff_castle',      emoji:'ðŸ°', name_en:'Friends Castle',           name_ar:'Ù‚Ù„Ø¹Ø© Ø§Ù„Ø£ØµØ¯Ù‚Ø§Ø¡',     cost:8000, rarity:'Mythic',    cardType:'castle',      imageURL: null, color:'#f0abfc', glow:'rgba(240,171,252,0.7)', desc_en:'An unbreakable legendary bond.', desc_ar:'Ø±Ø§Ø¨Ø·Ø© Ø£Ø³Ø·ÙˆØ±ÙŠØ© Ù„Ø§ ØªÙ†ÙƒØ³Ø±.' },
+    { id:'bff_paper_plane', emoji:'�️', name_en:'Paper Plane Relationship', name_ar:'ع�ا�ة ط�ارة �ر�',   cost:500,  rarity:'Common',    cardType:'paper_plane', imageURL: null, color:'#60a5fa', glow:'rgba(96,165,250,0.5)',  desc_en:'A simple, sweet bond.',        desc_ar:'رابطة بس�طة �ح��ة.' },
+    { id:'bff_airplane',    emoji:'�', name_en:'Airplane Relationship',    name_ar:'ع�ا�ة ط�ارة',       cost:1000, rarity:'Uncommon',  cardType:'airplane',    imageURL: null, color:'#4ade80', glow:'rgba(74,222,128,0.5)',  desc_en:'Soaring friendship.',          desc_ar:'صدا�ة تح�� ف� ا�س�اء.' },
+    { id:'bff_house',       emoji:'���', name_en:'House Relationship',       name_ar:'ع�ا�ة ب�ت',         cost:1500, rarity:'Rare',      cardType:'house',       imageURL: null, color:'#f59e0b', glow:'rgba(245,158,11,0.5)',  desc_en:'A warm, homey bond.',          desc_ar:'رابطة دافئة �ا�ب�ت.' },
+    { id:'bff_car',         emoji:'�', name_en:'Car Relationship',         name_ar:'ع�ا�ة عرب�ة',       cost:2500, rarity:'Epic',      cardType:'car',         imageURL: null, color:'#a78bfa', glow:'rgba(167,139,250,0.5)', desc_en:'Fast and exciting.',           desc_ar:'سر�عة ��ث�رة.' },
+    { id:'bff_yacht',       emoji:'�️', name_en:'Royal Yacht Relationship', name_ar:'ع�ا�ة �خت ����',   cost:5000, rarity:'Legendary', cardType:'yacht',       imageURL: null, color:'#ffd700', glow:'rgba(255,215,0,0.6)',   desc_en:'Luxury friendship at sea.',    desc_ar:'صدا�ة فاخرة ع�� ا�بحر.' },
+    { id:'bff_castle',      emoji:'���', name_en:'Friends Castle',           name_ar:'��عة ا�أصد�اء',     cost:8000, rarity:'Mythic',    cardType:'castle',      imageURL: null, color:'#f0abfc', glow:'rgba(240,171,252,0.7)', desc_en:'An unbreakable legendary bond.', desc_ar:'رابطة أسط�ر�ة �ا ت��سر.' },
 ];
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ¤– OFFICIAL BOT CHATS CONFIG
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// � OFFICIAL BOT CHATS CONFIG
+// ��������������������������������������������������������
 var BOT_CHATS_CONFIG = [
     {
         id: 'detective_bot',
-        name_ar: 'Ø§Ù„Ù…Ø­Ù‚Ù‚',
+        name_ar: 'ا��ح��',
         name_en: 'The Detective',
-        emoji: 'ðŸ•µï¸',
-        description_ar: 'Ù†Ø¸Ø§Ù… Ø§Ù„Ø¨Ù„Ø§ØºØ§Øª Ø§Ù„Ø±Ø³Ù…ÙŠ â€” Ø§Ù„Ø¨Ù„Ø§ØºØ§Øª ÙˆØ§Ù„Ø±Ø¯ÙˆØ¯',
-        description_en: 'Official report system â€” reports & responses',
+        emoji: '�️',
+        description_ar: '�ظا� ا�ب�اغات ا�رس�� � ا�ب�اغات �ا�رد�د',
+        description_en: 'Official report system � reports & responses',
         color: '#00d4ff',
         glow: 'rgba(0,212,255,0.4)',
-        photoURL: null, // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„Ù…Ø­Ù‚Ù‚ Ù‡Ù†Ø§ (Ø§Ù„Ø£ÙˆÙ†Ø± ÙÙ‚Ø· ÙŠØºÙŠØ±Ù‡Ø§)
+        photoURL: null, // � ضع رابط ص�رة ا��ح�� ��ا (ا�أ��ر ف�ط �غ�ر�ا)
         official: true,
-        readOnly: true, // Ù„Ø§ ÙŠÙ…ÙƒÙ† Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† Ø§Ù„ÙƒØªØ§Ø¨Ø©
+        readOnly: true, // �ا ���� ���ستخد��� ا��تابة
     },
     {
         id: 'love_bot',
-        name_ar: 'Ø¨ÙˆØª Ø¯ÙˆØ§Ø¡',
+        name_ar: 'ب�ت د�اء',
         name_en: 'Dawa Bot',
-        emoji: 'ðŸ’Œ',
-        description_ar: 'Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„Ø²ÙˆØ§Ø¬ ÙˆØ¹Ù„Ø§Ù‚Ø§Øª BFF Ø§Ù„Ø±Ø³Ù…ÙŠØ©',
+        emoji: '�',
+        description_ar: 'إشعارات ا�ز�اج �ع�ا�ات BFF ا�رس��ة',
         description_en: 'Official wedding & BFF notifications',
         color: '#f9a8d4',
         glow: 'rgba(249,168,212,0.4)',
-        photoURL: null, // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„Ø¨ÙˆØª Ù‡Ù†Ø§ (Ø§Ù„Ø£ÙˆÙ†Ø± ÙÙ‚Ø· ÙŠØºÙŠØ±Ù‡Ø§)
+        photoURL: null, // � ضع رابط ص�رة ا�ب�ت ��ا (ا�أ��ر ف�ط �غ�ر�ا)
         official: true,
         readOnly: true,
     },
@@ -217,33 +217,33 @@ var BOT_CHATS_CONFIG = [
 // --- Constants ---
 var MAX_BADGES = 10;
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ”’ ADMIN SYSTEM â€” Ø¶Ø¹ Firebase UID Ø¨ØªØ§Ø¹Ùƒ Ù‡Ù†Ø§
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// � ADMIN SYSTEM � ضع Firebase UID بتاع� ��ا
+// ��������������������������������������������������������
 var ADMIN_UIDS = [
-    'PfZAViU4swQdbBZOfqJDnPZSs9l2', // â† Ø¶Ø¹ Ø§Ù„Ù€ UID Ø¨ØªØ§Ø¹Ùƒ Ù‡Ù†Ø§ (Owner)
+    'PfZAViU4swQdbBZOfqJDnPZSs9l2', // � ضع ا�� UID بتاع� ��ا (Owner)
 ];
-// Owner = Ø£ÙˆÙ„ UID ÙÙŠ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© â€” ØµÙ„Ø§Ø­ÙŠØ§Øª ÙƒØ§Ù…Ù„Ø© Ù„Ø§ ØªÙÙ†ØªØ²Ø¹
+// Owner = أ�� UID ف� ا��ائ�ة � ص�اح�ات �ا��ة �ا تُ�تزع
 var OWNER_UID = ADMIN_UIDS[0];
 var isAdmin = (uid) => uid && ADMIN_UIDS.includes(uid);
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ‘‘ STAFF ROLE SYSTEM
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// Ø§Ù„Ù‡ÙŠÙƒÙ„ ÙÙŠ Firestore: user.staffRole = { role: 'admin'|'moderator', assignedBy, assignedAt }
+// ��������������������������������������������������������
+// � STAFF ROLE SYSTEM
+// ��������������������������������������������������������
+// ا����� ف� Firestore: user.staffRole = { role: 'admin'|'moderator', assignedBy, assignedAt }
 //
-// Ø§Ù„ØªØ³Ù„Ø³Ù„ Ø§Ù„Ù‡Ø±Ù…ÙŠ:
-//   owner      â†’ ÙŠØ¹ÙŠÙ‘Ù† admin Ø£Ùˆ moderator
-//   admin      â†’ ÙŠØ¹ÙŠÙ‘Ù† moderator ÙÙ‚Ø·
-//   moderator  â†’ Ù„Ø§ ÙŠØ¹ÙŠÙ‘Ù† Ø£Ø­Ø¯
+// ا�تس�س� ا��ر��:
+//   owner      � �ع��� admin أ� moderator
+//   admin      � �ع��� moderator ف�ط
+//   moderator  � �ا �ع��� أحد
 //
-// Owner Ù…Ø­Ø¯Ø¯ Ø¨Ù€ OWNER_UID (hardcoded) â€” Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø¥Ø²Ø§Ù„ØªÙ‡
+// Owner �حدد ب� OWNER_UID (hardcoded) � �ا ���� إزا�ت�
 
 var OLE_CONFIG = {
     owner: {
-        label_ar: 'Ø§Ù„Ù…Ø§Ù„Ùƒ',
+        label_ar: 'ا��ا��',
         label_en: 'Owner',
-        icon: 'ðŸ‘‘',
+        icon: '�',
         color: '#ffd700',
         glow: 'rgba(255,215,0,0.8)',
         bg: 'linear-gradient(135deg,rgba(255,215,0,0.18),rgba(255,140,0,0.12))',
@@ -251,9 +251,9 @@ var OLE_CONFIG = {
         badgeClass: 'role-badge-owner',
     },
     admin: {
-        label_ar: 'Ø£Ø¯Ù…Ù†',
+        label_ar: 'أد��',
         label_en: 'Admin',
-        icon: 'ðŸ›¡ï¸',
+        icon: '�️',
         color: '#ef4444',
         glow: 'rgba(239,68,68,0.7)',
         bg: 'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(185,28,28,0.12))',
@@ -261,9 +261,9 @@ var OLE_CONFIG = {
         badgeClass: 'role-badge-admin',
     },
     moderator: {
-        label_ar: 'Ù…Ø´Ø±Ù',
+        label_ar: '�شرف',
         label_en: 'Mod',
-        icon: 'ðŸ”°',
+        icon: '�',
         color: '#3b82f6',
         glow: 'rgba(59,130,246,0.6)',
         bg: 'linear-gradient(135deg,rgba(59,130,246,0.18),rgba(29,78,216,0.12))',
@@ -272,7 +272,7 @@ var OLE_CONFIG = {
     },
 };
 
-// ÙŠØ±Ø¬Ø¹ 'owner' | 'admin' | 'moderator' | null
+// �رجع 'owner' | 'admin' | 'moderator' | null
 var getUserRole = (userData, uid) => {
     if (!uid && !userData) return null;
     var checkUid = uid || userData?.uid || userData?.id;
@@ -282,13 +282,13 @@ var getUserRole = (userData, uid) => {
     return null;
 };
 
-// Ù‡Ù„ ÙŠÙ‚Ø¯Ø± ÙŠØ¯ÙŠØ± Ø§Ù„Ø±ØªØ¨ØŸ (owner Ø£Ùˆ admin)
+// �� ��در �د�ر ا�رتب� (owner أ� admin)
 var canManageRoles = (viewerData, viewerUID) => {
     var role = getUserRole(viewerData, viewerUID);
     return role === 'owner' || role === 'admin';
 };
 
-// Ø£Ù‚ØµÙ‰ Ø±ØªØ¨Ø© ÙŠÙ‚Ø¯Ø± Ø§Ù„Ù€ viewer ÙŠØ¹ÙŠÙ‘Ù†Ù‡Ø§
+// أ�ص� رتبة ��در ا�� viewer �ع����ا
 var getAssignableRoles = (viewerData, viewerUID) => {
     var role = getUserRole(viewerData, viewerUID);
     if (role === 'owner') return ['admin', 'moderator'];
@@ -296,9 +296,9 @@ var getAssignableRoles = (viewerData, viewerUID) => {
     return [];
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸš« BAN SYSTEM HELPERS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// � BAN SYSTEM HELPERS
+// ��������������������������������������������������������
 var isBannedUser = (userData) => {
     var ban = userData?.ban;
     if (!ban?.isBanned) return false;
@@ -315,105 +315,105 @@ var getBanExpiry = (userData) => {
 
 var formatBanExpiry = (userData, lang) => {
     var expiry = getBanExpiry(userData);
-    if (!expiry) return lang === 'ar' ? 'Ø­Ø¸Ø± Ø¯Ø§Ø¦Ù…' : 'Permanent';
+    if (!expiry) return lang === 'ar' ? 'حظر دائ�' : 'Permanent';
     return expiry.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
         year: 'numeric', month: 'short', day: 'numeric',
         hour: '2-digit', minute: '2-digit'
     });
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ… FAMILY ECONOMY CONFIG â€” Centralized Constants
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-var FAMILY_COINS_SYMBOL = 'ðŸ…'; // Family Coins currency icon
+// ��������������������������������������������������������
+// �� FAMILY ECONOMY CONFIG � Centralized Constants
+// ��������������������������������������������������������
+var FAMILY_COINS_SYMBOL = '��'; // Family Coins currency icon
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ´ FAMILY SIGN IMAGES CONFIG â€” Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© ÙƒÙ„ Ø³Ø§ÙŠÙ† Ù‡Ù†Ø§
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// threshold = Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ø¯Ù†Ù‰ Ù…Ù† Ø§Ù„Ù†Ø´Ø§Ø· Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ÙŠ Ù„Ù„Ø­ØµÙˆÙ„ Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø³Ø§ÙŠÙ†
+// ��������������������������������������������������������
+// ��� FAMILY SIGN IMAGES CONFIG � ضع رابط ص�رة �� سا�� ��ا
+// ��������������������������������������������������������
+// threshold = ا�حد ا�أد�� �� ا��شاط ا�أسب�ع� ��حص�� ع�� �ذا ا�سا��
 var FAMILY_SIGN_IMAGES = [
-    { level: 1, threshold: 1000,   imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign1.png' }, // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„Ù…Ø³ØªÙˆÙ‰ 1 Ù‡Ù†Ø§
-    { level: 2, threshold: 10000,  imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign2.png' }, // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„Ù…Ø³ØªÙˆÙ‰ 2 Ù‡Ù†Ø§
-    { level: 3, threshold: 30000,  imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign3.png' }, // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„Ù…Ø³ØªÙˆÙ‰ 3 Ù‡Ù†Ø§
-    { level: 4, threshold: 100000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign4.png' }, // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„Ù…Ø³ØªÙˆÙ‰ 4 Ù‡Ù†Ø§
-    { level: 5, threshold: 300000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign5.png' }, // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø§Ù„Ù…Ø³ØªÙˆÙ‰ 5 Ù‡Ù†Ø§
+    { level: 1, threshold: 1000,   imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign1.png' }, // � ضع رابط ص�رة ا��ست�� 1 ��ا
+    { level: 2, threshold: 10000,  imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign2.png' }, // � ضع رابط ص�رة ا��ست�� 2 ��ا
+    { level: 3, threshold: 30000,  imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign3.png' }, // � ضع رابط ص�رة ا��ست�� 3 ��ا
+    { level: 4, threshold: 100000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign4.png' }, // � ضع رابط ص�رة ا��ست�� 4 ��ا
+    { level: 5, threshold: 300000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign5.png' }, // � ضع رابط ص�رة ا��ست�� 5 ��ا
 ];
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ“¦ FAMILY CHEST REWARDS CONFIG
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// � FAMILY CHEST REWARDS CONFIG
+// ��������������������������������������������������������
 var CHEST_CONFIG = {
     normal: {
-        name_en:'Normal Chest', name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ø¹Ø§Ø¯ÙŠ', icon:'ðŸ“¦', color:'#4ade80',
+        name_en:'Normal Chest', name_ar:'ص�د�� عاد�', icon:'�', color:'#4ade80',
         rewards: [
-            { type:'currency',  amount:1000, icon:'ðŸ§ ', label_en:'1000 Intel',        label_ar:'1000 Ø¥Ù†ØªÙ„' },
-            { type:'coins',     amount:1000, icon:'ðŸ…', label_en:'1000 Family Coins', label_ar:'1000 Ø¹Ù…Ù„Ø© Ù‚Ø¨ÙŠÙ„Ø©' },
-            { type:'gift',      giftId:'gift_cake',   qty:1, icon:'ðŸŽ‚', label_en:'Gift (Cake)', label_ar:'ÙƒÙŠÙƒØ©' },
-            { type:'gift',      giftId:'gift_rose',   qty:9, icon:'ðŸŒ¹', label_en:'9Ã— Rose',label_ar:'9Ã— ÙˆØ±Ø¯Ø©' },
+            { type:'currency',  amount:1000, icon:'�', label_en:'1000 Intel',        label_ar:'1000 إ�ت�' },
+            { type:'coins',     amount:1000, icon:'��', label_en:'1000 Family Coins', label_ar:'1000 ع��ة �ب��ة' },
+            { type:'gift',      giftId:'gift_cake',   qty:1, icon:'�', label_en:'Gift (Cake)', label_ar:'���ة' },
+            { type:'gift',      giftId:'gift_rose',   qty:9, icon:'�', label_en:'9� Rose',label_ar:'9� �ردة' },
         ],
     },
     advanced: {
-        name_en:'Advanced Chest', name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ù…ØªÙ‚Ø¯Ù…', icon:'ðŸŽ', color:'#60a5fa',
+        name_en:'Advanced Chest', name_ar:'ص�د�� �ت�د�', icon:'��', color:'#60a5fa',
         rewards: [
-            { type:'frame', frameId:'frame_neon',     duration:3,  icon:'ðŸ–¼ï¸', label_en:'Neon Frame 3d',  label_ar:'Ø¥Ø·Ø§Ø± Ù†ÙŠÙˆÙ† 3d' },
-            { type:'frame', frameId:'frame_fire',     duration:7,  icon:'ðŸ–¼ï¸', label_en:'Fire Frame 7d',  label_ar:'Ø¥Ø·Ø§Ø± Ù†Ø§Ø± 7d' },
-            { type:'gift',  giftId:'gift_racecar',    qty:2, icon:'ðŸŽï¸', label_en:'2Ã— Race Car', label_ar:'2Ã— Ø³ÙŠØ§Ø±Ø©' },
-            { type:'gift',  giftId:'gift_crown',      qty:2, icon:'ðŸ‘‘', label_en:'2Ã— Crown',  label_ar:'2Ã— ØªØ§Ø¬' },
+            { type:'frame', frameId:'frame_neon',     duration:3,  icon:'�️', label_en:'Neon Frame 3d',  label_ar:'إطار ���� 3d' },
+            { type:'frame', frameId:'frame_fire',     duration:7,  icon:'�️', label_en:'Fire Frame 7d',  label_ar:'إطار �ار 7d' },
+            { type:'gift',  giftId:'gift_racecar',    qty:2, icon:'��️', label_en:'2� Race Car', label_ar:'2� س�ارة' },
+            { type:'gift',  giftId:'gift_crown',      qty:2, icon:'�', label_en:'2� Crown',  label_ar:'2� تاج' },
         ],
     },
     rare: {
-        name_en:'Rare Chest', name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ù†Ø§Ø¯Ø±', icon:'ðŸ’ ', color:'#a78bfa',
+        name_en:'Rare Chest', name_ar:'ص�د�� �ادر', icon:'�', color:'#a78bfa',
         rewards: [
-            { type:'frame', frameId:'frame_gold',     duration:7,  icon:'ðŸ–¼ï¸', label_en:'Gold Frame 7d',  label_ar:'Ø¥Ø·Ø§Ø± Ø°Ù‡Ø¨ÙŠ 7d' },
-            { type:'frame', frameId:'frame_ice',      duration:3,  icon:'ðŸ–¼ï¸', label_en:'Ice Frame 3d',  label_ar:'Ø¥Ø·Ø§Ø± Ø¬Ù„ÙŠØ¯ 3d' },
-            { type:'frame', frameId:'frame_rainbow',  duration:15, icon:'ðŸ–¼ï¸', label_en:'Rainbow Frame 15d', label_ar:'Ø¥Ø·Ø§Ø± Ù‚ÙˆØ³ Ù‚Ø²Ø­ 15d' },
-            { type:'gift',  giftId:'gift_ring',       qty:1, icon:'ðŸ’', label_en:'Diamond Ring', label_ar:'Ø®Ø§ØªÙ… Ø£Ù„Ù…Ø§Ø³' },
-            { type:'gift',  giftId:'gift_coffee',     qty:2, icon:'â˜•', label_en:'2Ã— Coffee',  label_ar:'2Ã— Ù‚Ù‡ÙˆØ©' },
-            { type:'gift',  giftId:'gift_racecar',    qty:2, icon:'ðŸŽï¸', label_en:'2Ã— Race Car', label_ar:'2Ã— Ø³ÙŠØ§Ø±Ø©' },
-            { type:'currency', amount:7800, icon:'ðŸ§ ', label_en:'7800 Intel',        label_ar:'7800 Ø¥Ù†ØªÙ„' },
-            { type:'coins',    amount:7800, icon:'ðŸ…', label_en:'7800 Coins',        label_ar:'7800 Ø¹Ù…Ù„Ø©' },
+            { type:'frame', frameId:'frame_gold',     duration:7,  icon:'�️', label_en:'Gold Frame 7d',  label_ar:'إطار ذ�ب� 7d' },
+            { type:'frame', frameId:'frame_ice',      duration:3,  icon:'�️', label_en:'Ice Frame 3d',  label_ar:'إطار ج��د 3d' },
+            { type:'frame', frameId:'frame_rainbow',  duration:15, icon:'�️', label_en:'Rainbow Frame 15d', label_ar:'إطار ��س �زح 15d' },
+            { type:'gift',  giftId:'gift_ring',       qty:1, icon:'��', label_en:'Diamond Ring', label_ar:'خات� أ��اس' },
+            { type:'gift',  giftId:'gift_coffee',     qty:2, icon:'�', label_en:'2� Coffee',  label_ar:'2� ���ة' },
+            { type:'gift',  giftId:'gift_racecar',    qty:2, icon:'��️', label_en:'2� Race Car', label_ar:'2� س�ارة' },
+            { type:'currency', amount:7800, icon:'�', label_en:'7800 Intel',        label_ar:'7800 إ�ت�' },
+            { type:'coins',    amount:7800, icon:'��', label_en:'7800 Coins',        label_ar:'7800 ع��ة' },
         ],
     },
     epic: {
-        name_en:'Epic Chest', name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ù…Ù„Ø­Ù…ÙŠ', icon:'ðŸ’Ž', color:'#ffd700',
+        name_en:'Epic Chest', name_ar:'ص�د�� ��ح��', icon:'�', color:'#ffd700',
         rewards: [
-            { type:'currency', amount:10000, icon:'ðŸ§ ', label_en:'10K Intel',         label_ar:'10K Ø¥Ù†ØªÙ„' },
-            { type:'coins',    amount:10000, icon:'ðŸ…', label_en:'10K Coins',         label_ar:'10K Ø¹Ù…Ù„Ø©' },
-            { type:'gift',  giftId:'gift_ring',       qty:2, icon:'ðŸ’', label_en:'2Ã— Diamond Ring', label_ar:'2Ã— Ø®Ø§ØªÙ… Ø£Ù„Ù…Ø§Ø³' },
-            { type:'gift',  giftId:'gift_ultimate',   qty:1, icon:'ðŸ†', label_en:'Ultimate Gift', label_ar:'Ø§Ù„Ù‡Ø¯ÙŠØ© Ø§Ù„Ù…Ø·Ù„Ù‚Ø©' },
-            { type:'frame', frameId:'fp_frame_neon',  duration:7,  qty:3, icon:'ðŸ–¼ï¸', label_en:'3Ã— Neon Frame 7d', label_ar:'3Ã— Ø¥Ø·Ø§Ø± Ù†ÙŠÙˆÙ† 7d' },
-            { type:'frame', frameId:'fp_frame_gold',  duration:30, qty:1, icon:'ðŸ–¼ï¸', label_en:'Gold Frame 30d',   label_ar:'Ø¥Ø·Ø§Ø± Ø°Ù‡Ø¨ÙŠ 30d' },
+            { type:'currency', amount:10000, icon:'�', label_en:'10K Intel',         label_ar:'10K إ�ت�' },
+            { type:'coins',    amount:10000, icon:'��', label_en:'10K Coins',         label_ar:'10K ع��ة' },
+            { type:'gift',  giftId:'gift_ring',       qty:2, icon:'��', label_en:'2� Diamond Ring', label_ar:'2� خات� أ��اس' },
+            { type:'gift',  giftId:'gift_ultimate',   qty:1, icon:'��', label_en:'Ultimate Gift', label_ar:'ا��د�ة ا��ط��ة' },
+            { type:'frame', frameId:'fp_frame_neon',  duration:7,  qty:3, icon:'�️', label_en:'3� Neon Frame 7d', label_ar:'3� إطار ���� 7d' },
+            { type:'frame', frameId:'fp_frame_gold',  duration:30, qty:1, icon:'�️', label_en:'Gold Frame 30d',   label_ar:'إطار ذ�ب� 30d' },
         ],
     },
     super: {
-        name_en:'Super Chest', name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ø£Ø³Ø·ÙˆØ±ÙŠ', icon:'ðŸ‘‘', color:'#f97316',
+        name_en:'Super Chest', name_ar:'ص�د�� أسط�ر�', icon:'�', color:'#f97316',
         rewards: [
-            { type:'currency', amount:10000, icon:'ðŸ§ ', label_en:'10K Intel',         label_ar:'10K Ø¥Ù†ØªÙ„' },
-            { type:'coins',    amount:10000, icon:'ðŸ…', label_en:'10K Coins',         label_ar:'10K Ø¹Ù…Ù„Ø©' },
-            { type:'gift',  giftId:'gift_ring',       qty:2, icon:'ðŸ’', label_en:'2Ã— Diamond Ring', label_ar:'2Ã— Ø®Ø§ØªÙ… Ø£Ù„Ù…Ø§Ø³' },
-            { type:'frame', frameId:'fp_frame_mythic',duration:7,  qty:3, icon:'ðŸ–¼ï¸', label_en:'3Ã— Mythic Frame 7d', label_ar:'3Ã— Ø¥Ø·Ø§Ø± Ø®Ø±Ø§ÙÙŠ 7d' },
-            { type:'frame', frameId:'fp_frame_gold',  duration:30, qty:1, icon:'ðŸ–¼ï¸', label_en:'Gold Frame 30d',   label_ar:'Ø¥Ø·Ø§Ø± Ø°Ù‡Ø¨ÙŠ 30d' },
+            { type:'currency', amount:10000, icon:'�', label_en:'10K Intel',         label_ar:'10K إ�ت�' },
+            { type:'coins',    amount:10000, icon:'��', label_en:'10K Coins',         label_ar:'10K ع��ة' },
+            { type:'gift',  giftId:'gift_ring',       qty:2, icon:'��', label_en:'2� Diamond Ring', label_ar:'2� خات� أ��اس' },
+            { type:'frame', frameId:'fp_frame_mythic',duration:7,  qty:3, icon:'�️', label_en:'3� Mythic Frame 7d', label_ar:'3� إطار خراف� 7d' },
+            { type:'frame', frameId:'fp_frame_gold',  duration:30, qty:1, icon:'�️', label_en:'Gold Frame 30d',   label_ar:'إطار ذ�ب� 30d' },
         ],
     },
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸŽ° FAMILY GACHA CONFIG - LEVEL BASED
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// � FAMILY GACHA CONFIG - LEVEL BASED
+// ��������������������������������������������������������
 var GACHA_CONFIG_BASIC = {
     paidCostPerSpin: 200, maxPaidSpinsDaily: 50,
     rewards: [
         // Level 1-4: Basic rewards (Family Gold, Coins, Normal Chests)
-        { weight: 200, type: 'currency', amount: 50, rarity: 'common', icon: 'ðŸ§ ', label_en: '+50 Intel', label_ar: '+50 Ø¥Ù†ØªÙ„', rateDisplay: '20%' },
-        { weight: 150, type: 'currency', amount: 200, rarity: 'uncommon', icon: 'ðŸ§ ', label_en: '+200 Intel', label_ar: '+200 Ø¥Ù†ØªÙ„', rateDisplay: '15%' },
-        { weight: 200, type: 'coins', amount: 50, rarity: 'common', icon: 'ðŸ…', label_en: '+50 Coins', label_ar: '+50 Ø¹Ù…Ù„Ø©', rateDisplay: '20%' },
-        { weight: 150, type: 'coins', amount: 150, rarity: 'uncommon', icon: 'ðŸ…', label_en: '+150 Coins', label_ar: '+150 Ø¹Ù…Ù„Ø©', rateDisplay: '15%' },
-        { weight: 100, type: 'gift', giftId: 'gift_rose', qty: 5, rarity: 'common', icon: 'ðŸŒ¹', label_en: '5x Rose', label_ar: '5x ÙˆØ±Ø¯Ø©', rateDisplay: '10%' },
-        { weight: 100, type: 'gift', giftId: 'gift_coffee', qty: 1, rarity: 'uncommon', icon: 'â˜•', label_en: 'Coffee', label_ar: 'Ù‚Ù‡ÙˆØ©', rateDisplay: '10%' },
-        { weight: 80, type: 'gift', giftId: 'gift_cake', qty: 1, rarity: 'rare', icon: 'ðŸŽ‚', label_en: 'Cake', label_ar: 'ÙƒÙŠÙƒØ©', rateDisplay: '8%' },
-        { weight: 18, type: 'frame', frameId: 'frame_neon', duration: 1, rarity: 'rare', icon: 'ðŸ–¼ï¸', label_en: 'Neon Frame 1d', label_ar: 'Ø¥Ø·Ø§Ø± Ù†ÙŠÙˆÙ† 1 ÙŠÙˆÙ…', rateDisplay: '1.8%' },
+        { weight: 200, type: 'currency', amount: 50, rarity: 'common', icon: '�', label_en: '+50 Intel', label_ar: '+50 إ�ت�', rateDisplay: '20%' },
+        { weight: 150, type: 'currency', amount: 200, rarity: 'uncommon', icon: '�', label_en: '+200 Intel', label_ar: '+200 إ�ت�', rateDisplay: '15%' },
+        { weight: 200, type: 'coins', amount: 50, rarity: 'common', icon: '��', label_en: '+50 Coins', label_ar: '+50 ع��ة', rateDisplay: '20%' },
+        { weight: 150, type: 'coins', amount: 150, rarity: 'uncommon', icon: '��', label_en: '+150 Coins', label_ar: '+150 ع��ة', rateDisplay: '15%' },
+        { weight: 100, type: 'gift', giftId: 'gift_rose', qty: 5, rarity: 'common', icon: '�', label_en: '5x Rose', label_ar: '5x �ردة', rateDisplay: '10%' },
+        { weight: 100, type: 'gift', giftId: 'gift_coffee', qty: 1, rarity: 'uncommon', icon: '�', label_en: 'Coffee', label_ar: '���ة', rateDisplay: '10%' },
+        { weight: 80, type: 'gift', giftId: 'gift_cake', qty: 1, rarity: 'rare', icon: '�', label_en: 'Cake', label_ar: '���ة', rateDisplay: '8%' },
+        { weight: 18, type: 'frame', frameId: 'frame_neon', duration: 1, rarity: 'rare', icon: '�️', label_en: 'Neon Frame 1d', label_ar: 'إطار ���� 1 ���', rateDisplay: '1.8%' },
         // Strict 0.2% Normal Chest
-        { weight: 2, type: 'chest', chestType: 'normal', rarity: 'legendary', icon: 'ðŸ“¦', label_en: 'Normal Chest', label_ar: 'ØµÙ†Ø¯ÙˆÙ‚ Ø¹Ø§Ø¯ÙŠ', rateDisplay: '0.2%' }
+        { weight: 2, type: 'chest', chestType: 'normal', rarity: 'legendary', icon: '�', label_en: 'Normal Chest', label_ar: 'ص�د�� عاد�', rateDisplay: '0.2%' }
     ] // sum weights = 1000
 };
 
@@ -421,27 +421,27 @@ var GACHA_CONFIG_PREMIUM = {
     paidCostPerSpin: 200, maxPaidSpinsDaily: 50,
     rewards: [
         // Level 5+: Add Ring and Advanced/Rare chests
-        { weight: 200, type: 'currency', amount: 150, rarity: 'common', icon: 'ðŸ§ ', label_en: '+150 Intel', label_ar: '+150 Ø¥Ù†ØªÙ„', rateDisplay: '20%' },
-        { weight: 100, type: 'currency', amount: 500, rarity: 'uncommon', icon: 'ðŸ§ ', label_en: '+500 Intel', label_ar: '+500 Ø¥Ù†ØªÙ„', rateDisplay: '10%' },
-        { weight: 200, type: 'coins', amount: 150, rarity: 'common', icon: 'ðŸ…', label_en: '+150 Coins', label_ar: '+150 Ø¹Ù…Ù„Ø©', rateDisplay: '20%' },
-        { weight: 100, type: 'coins', amount: 300, rarity: 'uncommon', icon: 'ðŸ…', label_en: '+300 Coins', label_ar: '+300 Ø¹Ù…Ù„Ø©', rateDisplay: '10%' },
-        { weight: 150, type: 'gift', giftId: 'gift_cake', qty: 1, rarity: 'uncommon', icon: 'ðŸŽ‚', label_en: 'Cake', label_ar: 'ÙƒÙŠÙƒØ©', rateDisplay: '15%' },
-        { weight: 100, type: 'gift', giftId: 'gift_crown', qty: 1, rarity: 'rare', icon: 'ðŸ‘‘', label_en: 'Crown', label_ar: 'ØªØ§Ø¬', rateDisplay: '10%' },
-        { weight: 90, type: 'gift', giftId: 'gift_racecar', qty: 1, rarity: 'epic', icon: 'ðŸŽï¸', label_en: 'Race Car', label_ar: 'Ø³ÙŠØ§Ø±Ø©', rateDisplay: '9%' },
-        { weight: 50, type: 'frame', frameId: 'frame_gold', duration: 3, rarity: 'epic', icon: 'ðŸ–¼ï¸', label_en: 'Gold Frame 3d', label_ar: 'Ø¥Ø·Ø§Ø± Ø°Ù‡Ø¨ÙŠ 3 Ø£ÙŠØ§Ù…', rateDisplay: '5%' },
-        { weight: 4, type: 'chest', chestType: 'normal', rarity: 'rare', icon: 'ðŸ“¦', label_en: 'Normal Chest', label_ar: 'ØµÙ†Ø¯ÙˆÙ‚ Ø¹Ø§Ø¯ÙŠ', rateDisplay: '0.4%' },
+        { weight: 200, type: 'currency', amount: 150, rarity: 'common', icon: '�', label_en: '+150 Intel', label_ar: '+150 إ�ت�', rateDisplay: '20%' },
+        { weight: 100, type: 'currency', amount: 500, rarity: 'uncommon', icon: '�', label_en: '+500 Intel', label_ar: '+500 إ�ت�', rateDisplay: '10%' },
+        { weight: 200, type: 'coins', amount: 150, rarity: 'common', icon: '��', label_en: '+150 Coins', label_ar: '+150 ع��ة', rateDisplay: '20%' },
+        { weight: 100, type: 'coins', amount: 300, rarity: 'uncommon', icon: '��', label_en: '+300 Coins', label_ar: '+300 ع��ة', rateDisplay: '10%' },
+        { weight: 150, type: 'gift', giftId: 'gift_cake', qty: 1, rarity: 'uncommon', icon: '�', label_en: 'Cake', label_ar: '���ة', rateDisplay: '15%' },
+        { weight: 100, type: 'gift', giftId: 'gift_crown', qty: 1, rarity: 'rare', icon: '�', label_en: 'Crown', label_ar: 'تاج', rateDisplay: '10%' },
+        { weight: 90, type: 'gift', giftId: 'gift_racecar', qty: 1, rarity: 'epic', icon: '��️', label_en: 'Race Car', label_ar: 'س�ارة', rateDisplay: '9%' },
+        { weight: 50, type: 'frame', frameId: 'frame_gold', duration: 3, rarity: 'epic', icon: '�️', label_en: 'Gold Frame 3d', label_ar: 'إطار ذ�ب� 3 أ�ا�', rateDisplay: '5%' },
+        { weight: 4, type: 'chest', chestType: 'normal', rarity: 'rare', icon: '�', label_en: 'Normal Chest', label_ar: 'ص�د�� عاد�', rateDisplay: '0.4%' },
         // Strict 0.2% Advanced Chest
-        { weight: 2, type: 'chest', chestType: 'advanced', rarity: 'legendary', icon: 'ðŸŽ', label_en: 'Advanced Chest', label_ar: 'ØµÙ†Ø¯ÙˆÙ‚ Ù…ØªÙ‚Ø¯Ù…', rateDisplay: '0.2%' },
+        { weight: 2, type: 'chest', chestType: 'advanced', rarity: 'legendary', icon: '��', label_en: 'Advanced Chest', label_ar: 'ص�د�� �ت�د�', rateDisplay: '0.2%' },
         // Strict 0.2% Rare Chest
-        { weight: 2, type: 'chest', chestType: 'rare', rarity: 'legendary', icon: 'ðŸ’ ', label_en: 'Rare Chest', label_ar: 'ØµÙ†Ø¯ÙˆÙ‚ Ù†Ø§Ø¯Ø±', rateDisplay: '0.2%' },
+        { weight: 2, type: 'chest', chestType: 'rare', rarity: 'legendary', icon: '�', label_en: 'Rare Chest', label_ar: 'ص�د�� �ادر', rateDisplay: '0.2%' },
         // Strict 0.2% Ring (04-data-game.js gift_ring)
-        { weight: 2, type: 'gift', giftId: 'gift_ring', qty: 1, rarity: 'mythic', icon: 'ðŸ’', label_en: 'Diamond Ring', label_ar: 'Ø®Ø§ØªÙ… Ø£Ù„Ù…Ø§Ø³', rateDisplay: '0.2%' }
+        { weight: 2, type: 'gift', giftId: 'gift_ring', qty: 1, rarity: 'mythic', icon: '��', label_en: 'Diamond Ring', label_ar: 'خات� أ��اس', rateDisplay: '0.2%' }
     ] // sum weights = 1000
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ… DAILY TASKS CHEST MILESTONES
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// �� DAILY TASKS CHEST MILESTONES
+// ��������������������������������������������������������
 var DAILY_TASKS_MILESTONES = [
     { points: 20,  rewards: [ {type:'currency', id:'currency', qty:5}, {type:'coins', id:'coins', qty:5}, {type:'gift', id:'gift_rose', qty:5} ] },
     { points: 60,  rewards: [ {type:'currency', id:'currency', qty:10},{type:'coins', id:'coins', qty:10},{type:'gift', id:'gift_rose', qty:10} ] },
@@ -453,51 +453,51 @@ var GACHA_RARITY_COLORS = {
     epic: '#a78bfa', legendary: '#fbbf24',
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ… ACTIVENESS MILESTONES (Chests for leveling up)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// �� ACTIVENESS MILESTONES (Chests for leveling up)
+// ��������������������������������������������������������
 var ACTIVENESS_MILESTONES = [
-    { threshold:8000,   chestType:'normal',   icon:'ðŸ“¦', imageURL: null, name_en:'Normal Chest',   name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ø¹Ø§Ø¯ÙŠ' },
-    { threshold:24000,  chestType:'advanced', icon:'ðŸŽ', imageURL: null, name_en:'Advanced Chest', name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ù…ØªÙ‚Ø¯Ù…' },
-    { threshold:60000,  chestType:'rare',     icon:'ðŸ’ ', imageURL: null, name_en:'Rare Chest',     name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ù†Ø§Ø¯Ø±' },
-    { threshold:120000, chestType:'epic',     icon:'ðŸ’Ž', imageURL: null, name_en:'Epic Chest',     name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ù…Ù„Ø­Ù…ÙŠ' },
-    { threshold:280000, chestType:'super',    icon:'ðŸ‘‘', imageURL: null, name_en:'Super Chest',    name_ar:'ØµÙ†Ø¯ÙˆÙ‚ Ø£Ø³Ø·ÙˆØ±ÙŠ' },
+    { threshold:8000,   chestType:'normal',   icon:'�', imageURL: null, name_en:'Normal Chest',   name_ar:'ص�د�� عاد�' },
+    { threshold:24000,  chestType:'advanced', icon:'��', imageURL: null, name_en:'Advanced Chest', name_ar:'ص�د�� �ت�د�' },
+    { threshold:60000,  chestType:'rare',     icon:'�', imageURL: null, name_en:'Rare Chest',     name_ar:'ص�د�� �ادر' },
+    { threshold:120000, chestType:'epic',     icon:'�', imageURL: null, name_en:'Epic Chest',     name_ar:'ص�د�� ��ح��' },
+    { threshold:280000, chestType:'super',    icon:'�', imageURL: null, name_en:'Super Chest',    name_ar:'ص�د�� أسط�ر�' },
 ];
 
-// Family Shop Items â€” purchasable ONLY with Family Coins
+// Family Shop Items � purchasable ONLY with Family Coins
 var FAMILY_SHOP_ITEMS = [
-    { id:'fs1', emoji:'ðŸŽ–ï¸', name_en:'Warrior Badge',   name_ar:'Ø´Ø§Ø±Ø© Ø§Ù„Ù…Ø­Ø§Ø±Ø¨',    cost:30,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Exclusive family warrior badge', desc_ar:'Ø´Ø§Ø±Ø© Ù…Ø­Ø§Ø±Ø¨ Ø­ØµØ±ÙŠØ© Ù„Ù„Ø¹Ø§Ø¦Ù„Ø©' },
-    { id:'fs2', emoji:'ðŸ›¡ï¸', name_en:'Shield Badge',    name_ar:'Ø´Ø§Ø±Ø© Ø§Ù„Ø¯Ø±Ø¹',      cost:50,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Honor shield badge',             desc_ar:'Ø´Ø§Ø±Ø© Ø¯Ø±Ø¹ Ø§Ù„Ø´Ø±Ù' },
-    { id:'fs3', emoji:'ðŸ‘‘', name_en:'Crown Badge',     name_ar:'Ø´Ø§Ø±Ø© Ø§Ù„ØªØ§Ø¬',      cost:100, type:'badge',  rarity:'epic',       durationDays:7, desc_en:'Royal crown clan badge',         desc_ar:'Ø´Ø§Ø±Ø© ØªØ§Ø¬ Ù…Ù„ÙƒÙŠ' },
-    { id:'fs4', emoji:'ðŸ”¥', name_en:'Flame Badge',     name_ar:'Ø´Ø§Ø±Ø© Ø§Ù„Ù„Ù‡Ø¨',      cost:40,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Blazing fire badge',             desc_ar:'Ø´Ø§Ø±Ø© Ø§Ù„Ù„Ù‡Ø¨ Ø§Ù„Ù…Ø´ØªØ¹Ù„' },
-    { id:'fs5', emoji:'âš¡', name_en:'Thunder Badge',   name_ar:'Ø´Ø§Ø±Ø© Ø§Ù„Ø±Ø¹Ø¯',      cost:40,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Lightning thunder badge',        desc_ar:'Ø´Ø§Ø±Ø© ØµØ§Ø¹Ù‚Ø© Ø§Ù„Ø±Ø¹Ø¯' },
-    { id:'fs6', emoji:'ðŸŒŸ', name_en:'Star Badge',      name_ar:'Ø´Ø§Ø±Ø© Ø§Ù„Ù†Ø¬Ù…Ø©',     cost:75,  type:'badge',  rarity:'epic',       durationDays:7, desc_en:'Shining star clan badge',        desc_ar:'Ø´Ø§Ø±Ø© Ù†Ø¬Ù…Ø© Ø¹Ø§Ø¦Ù„Ø© Ù…Ø¶ÙŠØ¦Ø©' },
-    { id:'fs7', emoji:'ðŸ’Ž', name_en:'Diamond Badge',   name_ar:'Ø´Ø§Ø±Ø© Ø§Ù„Ø£Ù„Ù…Ø§Ø³',    cost:150, type:'badge',  rarity:'legendary',  durationDays:7, desc_en:'Legendary diamond badge',        desc_ar:'Ø´Ø§Ø±Ø© Ø£Ù„Ù…Ø§Ø³ Ø£Ø³Ø·ÙˆØ±ÙŠØ©' },
-    { id:'fs8', emoji:'ðŸ†', name_en:'Trophy Badge',    name_ar:'Ø´Ø§Ø±Ø© Ø§Ù„ÙƒØ£Ø³',      cost:200, type:'badge',  rarity:'legendary',  durationDays:7, desc_en:'Champion trophy badge',          desc_ar:'Ø´Ø§Ø±Ø© ÙƒØ£Ø³ Ø§Ù„Ø¨Ø·ÙˆÙ„Ø©' },
-    { id:'fs9', emoji:'ðŸ‰', name_en:'Dragon Title',    name_ar:'Ù„Ù‚Ø¨ Ø§Ù„ØªÙ†ÙŠÙ†',       cost:300, type:'title',  rarity:'legendary',  durationDays:7, desc_en:'Exclusive dragon clan title',    desc_ar:'Ù„Ù‚Ø¨ Ø§Ù„ØªÙ†ÙŠÙ† Ø§Ù„Ø­ØµØ±ÙŠ Ù„Ù„Ø¹Ø§Ø¦Ù„Ø©' },
-    { id:'fs10', emoji:'ðŸ¦', name_en:'Lion Title',     name_ar:'Ù„Ù‚Ø¨ Ø§Ù„Ø£Ø³Ø¯',        cost:250, type:'title',  rarity:'epic',       durationDays:7, desc_en:'Pride of the clan lion title',   desc_ar:'Ù„Ù‚Ø¨ Ø£Ø³Ø¯ ÙØ®Ø± Ø§Ù„Ø¹Ø§Ø¦Ù„Ø©' },
+    { id:'fs1', emoji:'�️', name_en:'Warrior Badge',   name_ar:'شارة ا��حارب',    cost:30,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Exclusive family warrior badge', desc_ar:'شارة �حارب حصر�ة ��عائ�ة' },
+    { id:'fs2', emoji:'�️', name_en:'Shield Badge',    name_ar:'شارة ا�درع',      cost:50,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Honor shield badge',             desc_ar:'شارة درع ا�شرف' },
+    { id:'fs3', emoji:'�', name_en:'Crown Badge',     name_ar:'شارة ا�تاج',      cost:100, type:'badge',  rarity:'epic',       durationDays:7, desc_en:'Royal crown clan badge',         desc_ar:'شارة تاج ����' },
+    { id:'fs4', emoji:'�', name_en:'Flame Badge',     name_ar:'شارة ا���ب',      cost:40,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Blazing fire badge',             desc_ar:'شارة ا���ب ا��شتع�' },
+    { id:'fs5', emoji:'�', name_en:'Thunder Badge',   name_ar:'شارة ا�رعد',      cost:40,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Lightning thunder badge',        desc_ar:'شارة صاع�ة ا�رعد' },
+    { id:'fs6', emoji:'�', name_en:'Star Badge',      name_ar:'شارة ا��ج�ة',     cost:75,  type:'badge',  rarity:'epic',       durationDays:7, desc_en:'Shining star clan badge',        desc_ar:'شارة �ج�ة عائ�ة �ض�ئة' },
+    { id:'fs7', emoji:'�', name_en:'Diamond Badge',   name_ar:'شارة ا�أ��اس',    cost:150, type:'badge',  rarity:'legendary',  durationDays:7, desc_en:'Legendary diamond badge',        desc_ar:'شارة أ��اس أسط�ر�ة' },
+    { id:'fs8', emoji:'��', name_en:'Trophy Badge',    name_ar:'شارة ا��أس',      cost:200, type:'badge',  rarity:'legendary',  durationDays:7, desc_en:'Champion trophy badge',          desc_ar:'شارة �أس ا�بط��ة' },
+    { id:'fs9', emoji:'�', name_en:'Dragon Title',    name_ar:'��ب ا�ت���',       cost:300, type:'title',  rarity:'legendary',  durationDays:7, desc_en:'Exclusive dragon clan title',    desc_ar:'��ب ا�ت��� ا�حصر� ��عائ�ة' },
+    { id:'fs10', emoji:'�', name_en:'Lion Title',     name_ar:'��ب ا�أسد',        cost:250, type:'title',  rarity:'epic',       durationDays:7, desc_en:'Pride of the clan lion title',   desc_ar:'��ب أسد فخر ا�عائ�ة' },
 ];
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸªª ID ICON CONFIG â€” Ø£ÙŠÙ‚ÙˆÙ†Ø© Ù‚Ø¨Ù„ Ø±Ù‚Ù… Ø§Ù„Ù€ ID ÙÙŠ Ø§Ù„Ø¨Ø±ÙˆÙØ§ÙŠÙ„
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// Ø§Ù„Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠØ© Ù„ÙƒÙ„ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† (Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø©/GIF Ø£Ùˆ null Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… ðŸªª)
-var ID_ICON_IMAGE_URL = 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idon.png'; // â† Ø¶Ø¹ Ø±Ø§Ø¨Ø· Ø§Ù„ØµÙˆØ±Ø© Ø§Ù„Ø¹Ø§Ù…Ø© Ù‡Ù†Ø§ (Ù„ÙƒÙ„ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ†)
+// ��������������������������������������������������������
+// � ID ICON CONFIG � أ����ة �ب� ر�� ا�� ID ف� ا�بر�فا��
+// ��������������������������������������������������������
+// ا�أ����ة ا�افتراض�ة ��� ا��ستخد��� (ضع رابط ص�رة/GIF أ� null �استخدا� �)
+var ID_ICON_IMAGE_URL = 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idon.png'; // � ضع رابط ا�ص�رة ا�عا�ة ��ا (��� ا��ستخد���)
 
-// Ø£ÙŠÙ‚ÙˆÙ†Ø§Øª Ù…Ù…ÙŠØ²Ø© Ø­ØµØ±ÙŠØ© Ù„Ù€ VIP 6 â†’ 10
-// Ù‡Ø°Ù‡ ØªÙØ¶Ø§Ù Ø£ÙŠØ¶Ø§Ù‹ ÙÙŠ VIP_CONFIG Ø¯Ø§Ø®Ù„ 17-vip.js Ø¨Ù†ÙØ³ Ø§Ù„Ø­Ù‚Ù„ idIconImageUrl
-// Ù„ÙƒÙ† ÙŠÙ…ÙƒÙ†Ùƒ ØªØ¹ÙŠÙŠÙ†Ù‡Ø§ Ù‡Ù†Ø§ Ù…Ø±ÙƒØ²ÙŠØ§Ù‹ Ù„Ù„Ø±Ø¬ÙˆØ¹ Ø¥Ù„ÙŠÙ‡Ø§ Ø¨Ø³Ù‡ÙˆÙ„Ø©
+// أ����ات ���زة حصر�ة �� VIP 6 � 10
+// �ذ� تُضاف أ�ضا� ف� VIP_CONFIG داخ� 17-vip.js ب�فس ا�ح�� idIconImageUrl
+// ��� ����� تع����ا ��ا �ر�ز�ا� ��رج�ع إ���ا بس���ة
 var VIP_ID_ICONS = {
-    6:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip.png', // â† VIP 6:  Ø¶Ø¹ Ø±Ø§Ø¨Ø· Ø§Ù„Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ø°Ù‡Ø¨ÙŠØ© Ù‡Ù†Ø§
-    7:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip6.png', // â† VIP 7:  Ø¶Ø¹ Ø±Ø§Ø¨Ø· Ø§Ù„Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ù…Ù…ÙŠØ²Ø© Ù‡Ù†Ø§
-    8:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip7.png', // â† VIP 8:  Ø¶Ø¹ Ø±Ø§Ø¨Ø· Ø§Ù„Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ù…Ù…ÙŠØ²Ø© Ù‡Ù†Ø§
-    9:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip8.png', // â† VIP 9:  Ø¶Ø¹ Ø±Ø§Ø¨Ø· Ø§Ù„Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ø£Ù†ÙŠÙ…Ø´Ù† Ù‡Ù†Ø§
-    10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip10.png', // â† VIP 10: Ø¶Ø¹ Ø±Ø§Ø¨Ø· Ø§Ù„Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ø£Ø³Ø·ÙˆØ±ÙŠØ© Ù‡Ù†Ø§
+    6:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip.png', // � VIP 6:  ضع رابط ا�أ����ة ا�ذ�ب�ة ��ا
+    7:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip6.png', // � VIP 7:  ضع رابط ا�أ����ة ا����زة ��ا
+    8:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip7.png', // � VIP 8:  ضع رابط ا�أ����ة ا����زة ��ا
+    9:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip8.png', // � VIP 9:  ضع رابط ا�أ����ة ا�أ���ش� ��ا
+    10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip10.png', // � VIP 10: ضع رابط ا�أ����ة ا�أسط�ر�ة ��ا
 };
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ”¢ fmtNum â€” Ø¯Ø§Ù„Ø© Ù…ÙˆØ­Ø¯Ø© Ù„ØªÙ†Ø³ÙŠÙ‚ Ø§Ù„Ø£Ø±Ù‚Ø§Ù… (K / M)
-// Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù…: fmtNum(1500) â†’ '1.5K' | fmtNum(2000000) â†’ '2.0M'
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// � fmtNum � دا�ة ��حدة �ت�س�� ا�أر�ا� (K / M)
+// ا�استخدا�: fmtNum(1500) � '1.5K' | fmtNum(2000000) � '2.0M'
+// ��������������������������������������������������������
 var fmtNum = (n) => {
     if (n === undefined || n === null) return '0';
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
@@ -505,11 +505,11 @@ var fmtNum = (n) => {
     return String(n);
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ´ getFamilySignURL â€” Ø¯Ø§Ù„Ø© Ù…ÙˆØ­Ø¯Ø© Ù„Ø¬Ù„Ø¨ ØµÙˆØ±Ø© Ø³Ø§ÙŠÙ† Ø§Ù„Ø¹Ø§Ø¦Ù„Ø©
-// Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù…: getFamilySignURL(userData) â†’ URL | null
-// ØªØ­Ù„ Ù…Ø­Ù„ 7 Ø£Ù…Ø§ÙƒÙ† ØªÙƒØ±Ø§Ø± Ù„Ù†ÙØ³ Ø§Ù„Ù…Ù†Ø·Ù‚ Ø¹Ø¨Ø± Ø§Ù„ÙƒÙˆØ¯
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// ��� getFamilySignURL � دا�ة ��حدة �ج�ب ص�رة سا�� ا�عائ�ة
+// ا�استخدا�: getFamilySignURL(userData) � URL | null
+// تح� �ح� 7 أ�ا�� ت�رار ��فس ا���ط� عبر ا���د
+// ��������������������������������������������������������
 var getFamilySignURL = (data) => {
     if (!data) return null;
     if (data.familySignImageURL) return data.familySignImageURL;
@@ -519,32 +519,32 @@ var getFamilySignURL = (data) => {
     return cfg?.imageURL || null;
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ‘‘ getVIPConfig â€” Ø¯Ø§Ù„Ø© Ù…ÙˆØ­Ø¯Ø© Ù„Ø¬Ù„Ø¨ Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª VIP
-// Ø¨Ø¯Ù„Ø§Ù‹ Ù…Ù†: VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)]
-// Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù…: const vipCfg = getVIPConfig(vipLevel)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// � getVIPConfig � دا�ة ��حدة �ج�ب إعدادات VIP
+// بد�ا� ��: VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)]
+// ا�استخدا�: const vipCfg = getVIPConfig(vipLevel)
+// ��������������������������������������������������������
 var getVIPConfig = (vipLevel) => {
     if (!vipLevel || vipLevel <= 0 || typeof VIP_CONFIG === 'undefined') return null;
     return VIP_CONFIG[Math.min(vipLevel - 1, VIP_CONFIG.length - 1)] || null;
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â±ï¸ TS â€” Ø§Ø®ØªØµØ§Ø± Ù„Ù€ firebase.firestore.FieldValue.serverTimestamp()
-// Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù…: createdAt: TS()
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ��������������������������������������������������������
+// ⏱️ TS � اختصار �� firebase.firestore.FieldValue.serverTimestamp()
+// ا�استخدا�: createdAt: TS()
+// ��������������������������������������������������������
 var TS = () => firebase.firestore.FieldValue.serverTimestamp();
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ðŸ‘¤ fetchMiniProfileData â€” Ø¯Ø§Ù„Ø© Ù…ÙˆØ­Ø¯Ø© Ù„Ø¬Ù„Ø¨ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…ÙŠÙ†ÙŠ Ø¨Ø±ÙˆÙØ§ÙŠÙ„
-// ØªØ­Ù„ Ù…Ø­Ù„ 4 Ù†Ø³Ø® Ù…ØªØ·Ø§Ø¨Ù‚Ø© ÙÙŠ: 09, 13, 14, 19
+// ��������������������������������������������������������
+// � fetchMiniProfileData � دا�ة ��حدة �ج�ب ب�ا�ات ا����� بر�فا��
+// تح� �ح� 4 �سخ �تطاب�ة ف�: 09, 13, 14, 19
 //
-// Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù…:
+// ا�استخدا�:
 //   const data = await fetchMiniProfileData(uid, myFriendsList);
 //   if (data) setMiniProfile(data);
 //
-// myFriendsList â€” Ù…ØµÙÙˆÙØ© Ø§Ù„Ù€ UIDs Ø§Ù„Ù„ÙŠ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø£ØµØ¯Ù‚Ø§Ø¤Ù‡Ù… (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// myFriendsList � �صف�فة ا�� UIDs ا��� ا��ستخد� أصد�اؤ�� (اخت�ار�)
+// ��������������������������������������������������������
 var fetchMiniProfileData = async (uid, myFriendsList = []) => {
     if (!uid) return null;
     try {
@@ -598,5 +598,5 @@ var fetchMiniProfileData = async (uid, myFriendsList = []) => {
     }
 };
 
-// ðŸ”Š AUDIO SYSTEM`
+// � AUDIO SYSTEM`
 

@@ -1,4 +1,4 @@
-﻿var unPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpenInventory }) => {
+var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpenInventory }) => {
     const [activeTab, setActiveTab] = useState('pass'); // 'pass' | 'missions'
     const [buying, setBuying] = useState(false);
     const [claiming, setClaiming] = useState(null);
@@ -30,9 +30,9 @@
 
     if (!show) return null;
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ������������������������������������������
     // MISSIONS SYSTEM - CLEAN REBUILD
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ������������������������������������������
     // Required values per mission
     const MISSION_REQUIRED = {
         d1:1, d2:1, d3:1, d4:1, d5:1, d6:1, d7:1,
@@ -45,7 +45,7 @@
         if (type === 'daily') {
             const dp = prog.daily || {};
             const today = new Date().toDateString();
-            if (dp.resetDate !== today) return 0; // day changed â†’ reset
+            if (dp.resetDate !== today) return 0; // day changed � reset
             const map = { d1: dp.gamesPlayed||0, d2: dp.gamesWon||0, d3: dp.spyGames||0,
                           d4: dp.giftsSent||0, d5: dp.friendsAdded||0,
                           d6: dp.momentsPosted||0, d7: dp.commentsPosted||0 };
@@ -56,7 +56,7 @@
             const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
             const currentWeek = `${now.getFullYear()}-W${weekNum}`;
             const wp = prog.weekly || {};
-            if (wp.resetWeek !== currentWeek) return 0; // week changed â†’ reset
+            if (wp.resetWeek !== currentWeek) return 0; // week changed � reset
             const map = { w1: wp.gamesPlayed||0, w2: wp.gamesWon||0, w3: wp.giftsSent||0,
                           w4: wp.momentsPosted||0, w5: wp.friendsAdded||0 };
             return map[mKey] || 0;
@@ -76,7 +76,7 @@
 
         // Double check - already claimed?
         if (isMissionAlreadyClaimed(mKey, type)) {
-            onNotification(lang==='ar'?'âœ… ØªÙ… Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… Ø¨Ø§Ù„ÙØ¹Ù„':'âœ… Already claimed');
+            onNotification(lang==='ar'?'� ت� ا�است�ا� با�فع�':'� Already claimed');
             return;
         }
 
@@ -84,7 +84,7 @@
         const currentVal = getMissionCurrentVal(mKey, type);
         const requiredVal = MISSION_REQUIRED[mKey] || 1;
         if (currentVal < requiredVal) {
-            onNotification(lang==='ar'?'âŒ Ù„Ù… ØªÙƒÙ…Ù„ Ø§Ù„Ù…Ù‡Ù…Ø© Ø¨Ø¹Ø¯':'âŒ Mission not completed yet');
+            onNotification(lang==='ar'?'� �� ت��� ا����ة بعد':'� Mission not completed yet');
             return;
         }
 
@@ -102,17 +102,17 @@
                 updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.missions.${mKey}.lastWeekCompleted`] = weekStr;
             }
             await usersCollection.doc(user.uid).update(updates);
-            onNotification(`ðŸŽ‰ +${finalXP} XP${vipMult > 1 ? ` (Ã—${vipMult} VIP)` : ''} ${lang==='ar'?'ØªÙ… Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…!':'Claimed!'}`);
+            onNotification(`� +${finalXP} XP${vipMult > 1 ? ` (�${vipMult} VIP)` : ''} ${lang==='ar'?'ت� ا�است�ا�!':'Claimed!'}`);
         } catch(e) {
             console.error('Mission claim error:', e);
-            onNotification(lang==='ar'?'âŒ Ø­Ø¯Ø« Ø®Ø·Ø£ØŒ Ø­Ø§ÙˆÙ„ Ù…Ø¬Ø¯Ø¯Ø§Ù‹':'âŒ Error, please try again');
+            onNotification(lang==='ar'?'� حدث خطأ� حا�� �جددا�':'� Error, please try again');
         }
         setClaiming(null);
     };
 
     const handleBuyPremium = async () => {
         if (!user || hasPremium || buying) return;
-        if (currency < FUN_PASS_PRICE) { onNotification(lang==='ar'?'Ø¥Ù†ØªÙ„ ØºÙŠØ± ÙƒØ§ÙÙ!':'Not enough Intel!'); return; }
+        if (currency < FUN_PASS_PRICE) { onNotification(lang==='ar'?'إ�ت� غ�ر �افٍ!':'Not enough Intel!'); return; }
         setBuying(true);
         try {
             await usersCollection.doc(user.uid).update({
@@ -120,8 +120,8 @@
                 [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true,
                 [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: TS()
             });
-            onNotification(lang==='ar'?'ðŸŽ« ØªÙ… Ø´Ø±Ø§Ø¡ Fun Pass!':'ðŸŽ« Fun Pass purchased!');
-        } catch(e) { onNotification(lang==='ar'?'Ø®Ø·Ø£':'Error'); }
+            onNotification(lang==='ar'?'� ت� شراء Fun Pass!':'� Fun Pass purchased!');
+        } catch(e) { onNotification(lang==='ar'?'خطأ':'Error'); }
         setBuying(false);
     };
 
@@ -130,8 +130,8 @@
         const key = `${type}_${level}`;
         const alreadyClaimed = type === 'free' ? claimedFree.includes(level) : claimedPremium.includes(level);
         if (alreadyClaimed) return;
-        if (type === 'premium' && !hasPremium) { onNotification(lang==='ar'?'Ø§Ø´ØªØ±Ù Fun Pass Ø£ÙˆÙ„Ø§Ù‹':'Buy Fun Pass first'); return; }
-        if (currentLevel < level) { onNotification(lang==='ar'?'Ù„Ù… ØªØµÙ„ Ù„Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø¨Ø¹Ø¯':'Level not reached yet'); return; }
+        if (type === 'premium' && !hasPremium) { onNotification(lang==='ar'?'اشترِ Fun Pass أ��ا�':'Buy Fun Pass first'); return; }
+        if (currentLevel < level) { onNotification(lang==='ar'?'�� تص� ��ذا ا��ست�� بعد':'Level not reached yet'); return; }
         const lvData = FUN_PASS_LEVELS.find(l => l.level === level);
         const reward = type === 'free' ? lvData.free : lvData.premium;
         setClaiming(key);
@@ -146,7 +146,7 @@
             } else if (reward.type === 'title') {
                 updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
             } else if (reward.type === 'gift') {
-                // âœ… Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù‡Ø¯ÙŠØ© Ù„Ù€ inventory.gifts Ù…Ø¹ Ø¹Ø¯Ø§Ø¯ Ø§Ù„ÙƒÙ…ÙŠØ©
+                // � إضافة ا��د�ة �� inventory.gifts �ع عداد ا����ة
                 const giftCounts = userData?.inventory?.giftCounts || {};
                 const currentCount = giftCounts[reward.itemId] || 0;
                 updates['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
@@ -158,8 +158,8 @@
                 updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.claimedPremium`] = firebase.firestore.FieldValue.arrayUnion(level);
             }
             await usersCollection.doc(user.uid).update(updates);
-            onNotification(`${lang==='ar'?'ØªÙ… Ø§Ø³ØªÙ„Ø§Ù…':'Claimed'} ${lang==='ar'?reward.name_ar:reward.name_en}! ðŸŽ‰`);
-            // ðŸ“¦ If reward is an item (frame/badge/title/gift), go to inventory
+            onNotification(`${lang==='ar'?'ت� است�ا�':'Claimed'} ${lang==='ar'?reward.name_ar:reward.name_en}! �`);
+            // � If reward is an item (frame/badge/title/gift), go to inventory
             if (reward.type === 'frame' || reward.type === 'badge' || reward.type === 'title' || reward.type === 'gift') {
                 setTimeout(() => { onClose(); if (onOpenInventory) onOpenInventory(); }, 400);
             }
@@ -190,7 +190,7 @@
                     display:'flex', alignItems:'center', justifyContent:'space-between'
                 }}>
                     <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                        <div style={{fontSize:'28px'}}>ðŸŽ«</div>
+                        <div style={{fontSize:'28px'}}>�</div>
                         <div>
                             <div style={{fontSize:'16px', fontWeight:900, background:'linear-gradient(135deg,#ffd700,#ff8800)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>
                                 FUN PASS
@@ -199,7 +199,7 @@
                                 {lang==='ar' ? FUN_PASS_SEASON_NAME_AR : FUN_PASS_SEASON_NAME_EN}
                             </div>
                             <div style={{fontSize:'8px', color:'#6b7280'}}>
-                                {lang==='ar'?'Ù…Ø³ØªÙˆÙ‰':'Lv'} {currentLevel}/50 Â· {currentXP} XP Â· {lang==='ar'?'ÙŠÙ†ØªÙ‡ÙŠ':'Ends'} {FUN_PASS_SEASON_END}
+                                {lang==='ar'?'�ست��':'Lv'} {currentLevel}/50 · {currentXP} XP · {lang==='ar'?'��ت��':'Ends'} {FUN_PASS_SEASON_END}
                             </div>
                         </div>
                     </div>
@@ -211,15 +211,15 @@
                                 color: currency >= FUN_PASS_PRICE ? '#000' : '#6b7280',
                                 opacity: buying ? 0.6 : 1
                             }}>
-                                {buying ? '...' : `ðŸŽ« ${FUN_PASS_PRICE}ðŸ§ `}
+                                {buying ? '...' : `� ${FUN_PASS_PRICE}�`}
                             </button>
                         )}
                         {hasPremium && (
                             <div style={{background:GR.GOLD, border:'1px solid rgba(255,215,0,0.4)', borderRadius:'8px', padding:'4px 10px', fontSize:'11px', color:'#ffd700', fontWeight:800}}>
-                                âœ“ PREMIUM
+                                � PREMIUM
                             </div>
                         )}
-                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'28px',height:'28px',cursor:'pointer'}}>âœ•</button>
+                        <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'28px',height:'28px',cursor:'pointer'}}>�</button>
                     </div>
                 </div>
 
@@ -227,7 +227,7 @@
                 <div style={{padding:'8px 16px', background:'rgba(0,0,0,0.3)', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                     <div style={{display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#6b7280', marginBottom:'4px'}}>
                         <span>XP: {currentXP}</span>
-                        <span>{xpForNext ? `${lang==='ar'?'Ø§Ù„ØªØ§Ù„ÙŠ:':'Next:'} ${xpForNext} XP` : (lang==='ar'?'Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø£Ù‚ØµÙ‰!':'Max Level!')}</span>
+                        <span>{xpForNext ? `${lang==='ar'?'ا�تا��:':'Next:'} ${xpForNext} XP` : (lang==='ar'?'ا��ست�� ا�أ�ص�!':'Max Level!')}</span>
                     </div>
                     <div style={{height:'6px', background:'rgba(255,255,255,0.08)', borderRadius:'3px', overflow:'hidden'}}>
                         <div style={{
@@ -241,8 +241,8 @@
                 {/* Tabs */}
                 <div style={{display:'flex', borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
                     {[
-                        {id:'pass',     icon:'ðŸŽ«', ar:'Ø§Ù„ØªÙ…Ø±ÙŠØ±',  en:'Pass'},
-                        {id:'missions', icon:'ðŸ“‹', ar:'Ø§Ù„Ù…Ù‡Ù…Ø§Øª',  en:'Missions'},
+                        {id:'pass',     icon:'�', ar:'ا�ت�ر�ر',  en:'Pass'},
+                        {id:'missions', icon:'�', ar:'ا����ات',  en:'Missions'},
                     ].map(tab => (
                         <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
                             flex:1, padding:'10px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none',
@@ -261,10 +261,10 @@
                         <>
                             {/* Legend */}
                             <div style={{display:'flex', gap:'10px', padding:'6px 0', fontSize:'9px', color:'#6b7280'}}>
-                                <span>â¬†ï¸ {lang==='ar'?'Ù…Ø¬Ø§Ù†ÙŠ':'Free'}</span>
-                                <span style={{color:'#ffd700'}}>ðŸŽ« {lang==='ar'?'Ø¨Ø±ÙŠÙ…ÙŠÙˆÙ…':'Premium'}</span>
-                                <span style={{color:'#4ade80'}}>âœ“ {lang==='ar'?'Ù…Ø³ØªÙ„Ù…':'Claimed'}</span>
-                                <span style={{color:'#3b82f6'}}>ðŸ”µ {lang==='ar'?'Ø­Ø§Ù„ÙŠ':'Current'}</span>
+                                <span>�️ {lang==='ar'?'�جا��':'Free'}</span>
+                                <span style={{color:'#ffd700'}}>� {lang==='ar'?'بر�����':'Premium'}</span>
+                                <span style={{color:'#4ade80'}}>� {lang==='ar'?'�ست��':'Claimed'}</span>
+                                <span style={{color:'#3b82f6'}}>� {lang==='ar'?'حا��':'Current'}</span>
                             </div>
                             {FUN_PASS_LEVELS.map(lv => {
                                 const isReached = currentLevel >= lv.level;
@@ -327,7 +327,7 @@
                                                 </div>
                                             </div>
                                             {claimedFree.includes(lv.level) ? (
-                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>âœ“</div>
+                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>�</div>
                                             ) : (
                                                 <button onClick={() => handleClaim(lv.level,'free')} disabled={!freeClaimable || claiming===freeKey} style={{
                                                     padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: freeClaimable?'pointer':'default', border:'none', flexShrink:0,
@@ -335,7 +335,7 @@
                                                     color: freeClaimable ? '#4ade80' : '#374151',
                                                     opacity: claiming===freeKey ? 0.6 : 1
                                                 }}>
-                                                    {claiming===freeKey ? '...' : freeClaimable ? (lang==='ar'?'Ø§Ø³ØªÙ„Ù…':'Claim') : 'ðŸ”’'}
+                                                    {claiming===freeKey ? '...' : freeClaimable ? (lang==='ar'?'است��':'Claim') : '�'}
                                                 </button>
                                             )}
                                         </div>
@@ -359,16 +359,16 @@
                                             <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0, opacity: hasPremium ? 1 : 0.4}}>
                                                 {hasPremium && lv.premium.imageUrl
                                     ? <img src={lv.premium.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
-                                    : <span style={{fontSize:'16px', flexShrink:0}}>{hasPremium ? lv.premium.icon : 'ðŸ”’'}</span>}
+                                    : <span style={{fontSize:'16px', flexShrink:0}}>{hasPremium ? lv.premium.icon : '�'}</span>}
                                                 <div style={{minWidth:0}}>
                                                     <div style={{fontSize:'10px', fontWeight:700, color: premRarity==='Mythic'?'#ff4488':premRarity==='Legendary'?'#fbbf24':premRarity==='Epic'?'#c084fc':'#9ca3af', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
                                                         {hasPremium ? (lang==='ar'?lv.premium.name_ar:lv.premium.name_en) : '???'}
                                                     </div>
-                                                    <div style={{fontSize:'8px', color:'#ffd700', fontWeight:600}}>ðŸŽ« PASS</div>
+                                                    <div style={{fontSize:'8px', color:'#ffd700', fontWeight:600}}>� PASS</div>
                                                 </div>
                                             </div>
                                             {claimedPremium.includes(lv.level) ? (
-                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>âœ“</div>
+                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>�</div>
                                             ) : (
                                                 <button onClick={() => handleClaim(lv.level,'premium')} disabled={!premClaimable || claiming===premKey} style={{
                                                     padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: premClaimable?'pointer':'default', border:'none', flexShrink:0,
@@ -376,7 +376,7 @@
                                                     color: premClaimable ? '#ffd700' : '#374151',
                                                     opacity: claiming===premKey ? 0.6 : 1
                                                 }}>
-                                                    {claiming===premKey ? '...' : premClaimable ? (lang==='ar'?'Ø§Ø³ØªÙ„Ù…':'Claim') : (hasPremium?'ðŸ”’':'ðŸŽ«')}
+                                                    {claiming===premKey ? '...' : premClaimable ? (lang==='ar'?'است��':'Claim') : (hasPremium?'�':'�')}
                                                 </button>
                                             )}
                                         </div>
@@ -388,14 +388,14 @@
 
                     {activeTab === 'missions' && (
                         <>
-                            {/* â”€â”€ DAILY MISSIONS â”€â”€ */}
+                            {/* �� DAILY MISSIONS �� */}
                             <div style={{display:'flex', alignItems:'center', gap:'8px', padding:'6px 0 4px'}}>
-                                <span style={{fontSize:'14px'}}>â˜€ï¸</span>
+                                <span style={{fontSize:'14px'}}>�️</span>
                                 <span style={{fontSize:'12px', fontWeight:900, color:'#fbbf24', letterSpacing:'0.5px'}}>
-                                    {lang==='ar'?'Ø§Ù„Ù…Ù‡Ù…Ø§Øª Ø§Ù„ÙŠÙˆÙ…ÙŠØ©':'DAILY MISSIONS'}
+                                    {lang==='ar'?'ا����ات ا�����ة':'DAILY MISSIONS'}
                                 </span>
                                 <span style={{fontSize:'9px', color:'#6b7280', marginLeft:'auto'}}>
-                                    {lang==='ar'?'ØªØªØ¬Ø¯Ø¯ ÙƒÙ„ ÙŠÙˆÙ…':'Resets daily'}
+                                    {lang==='ar'?'تتجدد �� ���':'Resets daily'}
                                 </span>
                             </div>
                             {FUN_PASS_DAILY_MISSIONS.map(m => {
@@ -453,7 +453,7 @@
                                                 background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)',
                                                 display:'flex', alignItems:'center', justifyContent:'center',
                                                 fontSize:'13px', fontWeight:900, color:'#4ade80'
-                                            }}>âœ“</div>
+                                            }}>�</div>
                                         ) : ready ? (
                                             <button
                                                 onClick={() => handleClaimMission(m, 'daily')}
@@ -466,26 +466,26 @@
                                                     boxShadow:'0 0 12px rgba(251,191,36,0.4)',
                                                     transition:'all 0.2s'
                                                 }}
-                                            >{isLoading ? '...' : (lang==='ar'?'Ø§Ø³ØªÙ„Ù…':'Claim')}</button>
+                                            >{isLoading ? '...' : (lang==='ar'?'است��':'Claim')}</button>
                                         ) : (
                                             <div style={{
                                                 padding:'5px 10px', borderRadius:'8px', flexShrink:0,
                                                 background:'rgba(107,114,128,0.1)', border:'1px solid rgba(107,114,128,0.15)',
                                                 fontSize:'9px', fontWeight:700, color:'#4b5563'
-                                            }}>{lang==='ar'?'Ø¬Ø§Ø±Ù':'Pending'}</div>
+                                            }}>{lang==='ar'?'جارٍ':'Pending'}</div>
                                         )}
                                     </div>
                                 );
                             })}
 
-                            {/* â”€â”€ WEEKLY MISSIONS â”€â”€ */}
+                            {/* �� WEEKLY MISSIONS �� */}
                             <div style={{display:'flex', alignItems:'center', gap:'8px', padding:'10px 0 4px'}}>
-                                <span style={{fontSize:'14px'}}>ðŸ“…</span>
+                                <span style={{fontSize:'14px'}}>�</span>
                                 <span style={{fontSize:'12px', fontWeight:900, color:'#c084fc', letterSpacing:'0.5px'}}>
-                                    {lang==='ar'?'Ø§Ù„Ù…Ù‡Ù…Ø§Øª Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ÙŠØ©':'WEEKLY MISSIONS'}
+                                    {lang==='ar'?'ا����ات ا�أسب�ع�ة':'WEEKLY MISSIONS'}
                                 </span>
                                 <span style={{fontSize:'9px', color:'#6b7280', marginLeft:'auto'}}>
-                                    {lang==='ar'?'ØªØªØ¬Ø¯Ø¯ ÙƒÙ„ Ø£Ø³Ø¨ÙˆØ¹':'Resets weekly'}
+                                    {lang==='ar'?'تتجدد �� أسب�ع':'Resets weekly'}
                                 </span>
                             </div>
                             {FUN_PASS_WEEKLY_MISSIONS.map(m => {
@@ -539,7 +539,7 @@
                                                 background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.35)',
                                                 display:'flex', alignItems:'center', justifyContent:'center',
                                                 fontSize:'13px', fontWeight:900, color:'#a78bfa'
-                                            }}>âœ“</div>
+                                            }}>�</div>
                                         ) : ready ? (
                                             <button
                                                 onClick={() => handleClaimMission(m, 'weekly')}
@@ -552,13 +552,13 @@
                                                     boxShadow:'0 0 12px rgba(192,132,252,0.4)',
                                                     transition:'all 0.2s'
                                                 }}
-                                            >{isLoading ? '...' : (lang==='ar'?'Ø§Ø³ØªÙ„Ù…':'Claim')}</button>
+                                            >{isLoading ? '...' : (lang==='ar'?'است��':'Claim')}</button>
                                         ) : (
                                             <div style={{
                                                 padding:'5px 10px', borderRadius:'8px', flexShrink:0,
                                                 background:'rgba(107,114,128,0.1)', border:'1px solid rgba(107,114,128,0.15)',
                                                 fontSize:'9px', fontWeight:700, color:'#4b5563'
-                                            }}>{lang==='ar'?'Ø¬Ø§Ø±Ù':'Pending'}</div>
+                                            }}>{lang==='ar'?'جارٍ':'Pending'}</div>
                                         )}
                                     </div>
                                 );

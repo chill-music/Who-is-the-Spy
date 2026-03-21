@@ -1,13 +1,13 @@
-﻿var elfChatModal = ({ show, onClose, currentUser, userData, lang, currency }) => {
+var SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency }) => {
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
     const [sending, setSending] = useState(false);
 
     const uid         = currentUser?.uid || null;
-    const displayName = currentUser?.displayName || userData?.displayName || (lang==='ar'?'Ø£Ù†Ø§':'Me');
+    const displayName = currentUser?.displayName || userData?.displayName || (lang==='ar'?'أ�ا':'Me');
     const photoURL    = currentUser?.photoURL || userData?.photoURL || null;
 
-    // â”€â”€ localStorage key per user â”€â”€
+    // �� localStorage key per user ��
     const _storageKey = uid ? `prospy_selfchat_${uid}` : null;
 
     const _load = () => {
@@ -21,7 +21,7 @@
         catch {}
     };
 
-    // â”€â”€ Load messages from localStorage when modal opens â”€â”€
+    // �� Load messages from localStorage when modal opens ��
     useEffect(() => {
         if (!show || !uid) return;
         setMessages(_load());
@@ -97,19 +97,19 @@
                                 {displayName}
                             </div>
                             <div style={{fontSize:'10px', color:'#4ade80', fontWeight:600}}>
-                                {lang==='ar' ? 'â— Ø´Ø§ØªÙŠ Ø§Ù„Ø´Ø®ØµÙŠ' : 'â— My Personal Chat'}
+                                {lang==='ar' ? '� شات� ا�شخص�' : '� My Personal Chat'}
                             </div>
                         </div>
                     </div>
-                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>âœ•</button>
+                    <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>�</button>
                 </div>
 
                 {/* Messages */}
                 <div style={{flex:1, overflowY:'auto', padding:'12px 14px', display:'flex', flexDirection:'column', gap:'10px', background:'rgba(0,0,0,0.2)'}}>
                     {messages.length === 0 && (
                         <div style={{textAlign:'center', marginTop:'50px', color:'#4b5563'}}>
-                            <div style={{fontSize:'40px', marginBottom:'8px'}}>ðŸ’¬</div>
-                            <div style={{fontSize:'12px', color:'#6b7280'}}>{lang==='ar' ? 'Ø§Ø¨Ø¯Ø£ Ù…Ø­Ø§Ø¯Ø«ØªÙƒ...' : 'Start chatting...'}</div>
+                            <div style={{fontSize:'40px', marginBottom:'8px'}}>�</div>
+                            <div style={{fontSize:'12px', color:'#6b7280'}}>{lang==='ar' ? 'ابدأ �حادثت�...' : 'Start chatting...'}</div>
                         </div>
                     )}
                     {messages.map(msg => (
@@ -124,12 +124,12 @@
                                     maxWidth:'85%'
                                 }}>
                                     <div style={{fontSize:'9px', color:'#fbbf24', fontWeight:700, marginBottom:'4px', textTransform:'uppercase', letterSpacing:'0.5px'}}>
-                                        ðŸŽ {lang==='ar' ? 'Ù‡Ø¯ÙŠØ© Ù„Ù†ÙØ³Ùƒ' : 'Self Gift'}
+                                        �� {lang==='ar' ? '�د�ة ��فس�' : 'Self Gift'}
                                     </div>
-                                    <div style={{fontSize:'20px', marginBottom:'4px'}}>{msg.giftEmoji || 'ðŸŽ'}</div>
+                                    <div style={{fontSize:'20px', marginBottom:'4px'}}>{msg.giftEmoji || '��'}</div>
                                     <div style={{fontSize:'12px', color:'#f3f4f6', fontWeight:700}}>{msg.giftName}</div>
-                                    <div style={{fontSize:'10px', color:'#9ca3af', marginTop:'2px'}}>{lang==='ar'?'ØªÙƒÙ„ÙØ©:':'Cost:'} {msg.giftCost} ðŸ§ </div>
-                                    <div style={{fontSize:'10px', color:'#9ca3af'}}>{lang==='ar'?'ÙƒØ§Ø±ÙŠØ²Ù…Ø§:':'Charisma:'} +{msg.charismaGain}</div>                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{formatMsgTime(msg.timestamp)}</div>
+                                    <div style={{fontSize:'10px', color:'#9ca3af', marginTop:'2px'}}>{lang==='ar'?'ت��فة:':'Cost:'} {msg.giftCost} �</div>
+                                    <div style={{fontSize:'10px', color:'#9ca3af'}}>{lang==='ar'?'�ار�ز�ا:':'Charisma:'} +{msg.charismaGain}</div>                                    <div style={{fontSize:'9px', color:'#4b5563', marginTop:'4px', textAlign:'right'}}>{formatMsgTime(msg.timestamp)}</div>
                                 </div>
                             ) : (
                                 /* Regular note bubble */
@@ -158,7 +158,7 @@
                         value={inputText}
                         onChange={e => setInputText(e.target.value)}
                         onKeyDown={e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendNote(); } }}
-                        placeholder={lang==='ar' ? 'Ø§ÙƒØªØ¨ Ø±Ø³Ø§Ù„Ø©...' : 'Write a message...'}
+                        placeholder={lang==='ar' ? 'ا�تب رسا�ة...' : 'Write a message...'}
                         style={{
                             flex:1, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)',
                             borderRadius:'10px', padding:'10px 12px', color:'white', fontSize:'13px', outline:'none'
@@ -175,7 +175,7 @@
                             opacity: sending ? 0.6 : 1
                         }}
                     >
-                        {sending ? '...' : 'âž¤'}
+                        {sending ? '...' : '�'}
                     </button>
                 </div>
             </div>
@@ -183,5 +183,5 @@
     );
 };
 
-// ðŸŽ« FUN PASS MODAL COMPONENT
+// � FUN PASS MODAL COMPONENT
 
