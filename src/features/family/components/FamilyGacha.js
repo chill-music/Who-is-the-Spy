@@ -1,7 +1,3 @@
-var { 
-    GACHA_CONFIG_BASIC, 
-    GACHA_CONFIG_PREMIUM, 
-} = window.FamilyConstants;
 var { Z, PortalModal } = window;
 var { fmtFamilyNum } = window;
 var FamilyService = window.FamilyService;
@@ -16,7 +12,7 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
 
     if (!show) return null;
 
-    var currentGachaConfig = (family?.level >= 5) ? GACHA_CONFIG_BASIC : GACHA_CONFIG_PREMIUM;
+    var currentGachaConfig = window.GACHA_CONFIG || {};
 
     var handleSpin = async (mode) => {
         if (spinning) return;

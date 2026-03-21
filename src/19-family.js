@@ -306,7 +306,7 @@ var FamilyMemberQuickCard = window.FamilyMemberQuickCard || (function() { return
 // ════════════════════════════════════════════════════════
 // 🏠 FAMILY MODAL — Main Component V2
 // ════════════════════════════════════════════════════════
-var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification, viewFamilyId, onSendGift, userData }) => {
+var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification, viewFamilyId, onSendGift, userData, onOpenChat }) => {
     const [activeTab, setActiveTab] = useState('profile');
     const [family, setFamily] = useState(null);
     const [loadingFamily, setLoadingFamily] = useState(true);
@@ -721,7 +721,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // TAB: MEMBERS
     // ─────────────────────────────────────────────
     const renderMembers = () => {
-        if (window.FamilyMembers) return <window.FamilyMembers family={family} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
+        if (window.FamilyMembers) return <window.FamilyMembers family={family} members={familyMembers} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
 
@@ -729,7 +729,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // TAB: TASKS
     // ─────────────────────────────────────────────
     const renderTasks = () => {
-        if (window.FamilyTasks) return <window.FamilyTasks family={family} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
+        if (window.FamilyTasks) return <window.FamilyTasks family={family} currentUserData={currentUserData} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
 
@@ -755,7 +755,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // TAB: NEWS
     // ─────────────────────────────────────────────
     const renderNews = () => {
-        if (window.FamilyNews) return <window.FamilyNews family={family} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
+        if (window.FamilyNews) return <window.FamilyNews family={family} currentUserData={currentUserData} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
 
@@ -763,7 +763,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // TAB: MANAGE
     // ─────────────────────────────────────────────
     const renderManage = () => {
-        if (window.FamilyManagement) return <window.FamilyManagement family={family} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
+        if (window.FamilyManagement) return <window.FamilyManagement family={family} currentUID={currentUID} lang={lang} canManage={myRole === 'owner' || myRole === 'admin'} myRole={myRole} familyMembers={familyMembers} joinRequesterProfiles={joinRequesterProfiles} S={S} Z={Z} onNotification={onNotification} onUpdateFamily={() => {}} onLeaveFamily={() => {}} onDeleteFamily={() => {}} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
 
@@ -948,12 +948,12 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                     {family && activeTab === 'profile' && (
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-around',padding:'8px 16px',background:'rgba(255,255,255,0.04)',borderTop:'1px solid #e5e7eb',flexShrink:0}}>
                             {/* Chat */}
-                            <button onClick={()=>setShowChatModal(true)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
+                            <button onClick={()=> onOpenChat ? onOpenChat() : setShowChatModal(true)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
                                 <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'rgba(107,114,128,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>💬</div>
                                 <span style={{fontSize:'9px',color:'#6b7280',fontWeight:600}}>{lang==='ar'?'شات':'Chat'}</span>
                             </button>
                             {/* Room (go to family chat full modal) */}
-                            <button onClick={()=>setShowChatModal(true)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
+                            <button onClick={()=> onOpenChat ? onOpenChat() : setShowChatModal(true)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
                                 <div style={{width:'50px',height:'50px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(0,242,255,0.15),rgba(112,0,255,0.15))',border:'2px solid rgba(0,242,255,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>🏠</div>
                                 <span style={{fontSize:'9px',color:'#00f2ff',fontWeight:800}}>{lang==='ar'?'الغرفة':'Room'}</span>
                             </button>

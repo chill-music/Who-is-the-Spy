@@ -12,6 +12,7 @@ var FamilyNews = ({ family, currentUserData, lang }) => {
         task_complete: '✅', 
         milestone: '🎁' 
     };
+    var newsLog = family?.newsLog || [];
 
     return (
         <div style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
