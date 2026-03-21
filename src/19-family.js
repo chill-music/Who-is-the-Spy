@@ -371,6 +371,9 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     const [allFamilies, setAllFamilies] = useState([]);
     const [loadingAllFamilies, setLoadingAllFamilies] = useState(false);
     const [showRankingModal, setShowRankingModal] = useState(false);
+    
+    // ── Family Chat Modal State ──
+    const [showChatModal, setShowChatModal] = useState(false);
 
     // Create/Join state
     const [view, setView] = useState('home');
@@ -713,15 +716,6 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
 
-    // ─────────────────────────────────────────────
-    // TAB: CHAT
-    // ─────────────────────────────────────────────
-    const renderChat = () => {
-        if (window.FamilyChatModal) {
-            return <window.FamilyChatModal family={family} familyData={family} familyId={family?.id} currentUID={currentUID} currentUserData={currentUserData} userData={userData} lang={lang} onNotification={onNotification} onSendGift={onSendGift} onOpenFamily={() => setActiveTab('profile')} S={S} myRole={myRole} show={true} />;
-        }
-        return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري تحميل الشات...':'Loading Chat...'}</div>;
-    };
 
     // ─────────────────────────────────────────────
     // TAB: MEMBERS
@@ -911,8 +905,8 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                         </div>
                     </div>
 
-                    {/* ── Tab Bar (only in family, hidden when profile tab active since it has own nav) ── */}
-                    {family && activeTab !== 'profile' && (
+                    {/* ── Tab Bar (always visible) ── */}
+                    {family && (
                         <div style={S.tabBar}>
                             {TABS.map(tab => (
                                 <button key={tab.id} onClick={()=>setActiveTab(tab.id)} style={{
@@ -940,7 +934,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                             <>
                                 {activeTab==='profile'  && renderProfile()}
                                 {activeTab==='members'  && renderMembers()}
-                                {activeTab==='chat'     && renderChat()}
+
                                 {activeTab==='tasks'    && renderTasks()}
                                 {activeTab==='shop'     && renderShop()}
                                 {activeTab==='ranking'  && renderRankingTab()}
@@ -954,12 +948,12 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                     {family && activeTab === 'profile' && (
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-around',padding:'8px 16px',background:'rgba(255,255,255,0.04)',borderTop:'1px solid #e5e7eb',flexShrink:0}}>
                             {/* Chat */}
-                            <button onClick={()=>setActiveTab('chat')} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
+                            <button onClick={()=>setShowChatModal(true)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
                                 <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'rgba(107,114,128,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>💬</div>
                                 <span style={{fontSize:'9px',color:'#6b7280',fontWeight:600}}>{lang==='ar'?'شات':'Chat'}</span>
                             </button>
                             {/* Room (go to family chat full modal) */}
-                            <button onClick={()=>setActiveTab('chat')} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
+                            <button onClick={()=>setShowChatModal(true)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
                                 <div style={{width:'50px',height:'50px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(0,242,255,0.15),rgba(112,0,255,0.15))',border:'2px solid rgba(0,242,255,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>🏠</div>
                                 <span style={{fontSize:'9px',color:'#00f2ff',fontWeight:800}}>{lang==='ar'?'الغرفة':'Room'}</span>
                             </button>
