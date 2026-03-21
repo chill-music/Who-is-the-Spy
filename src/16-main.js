@@ -1,7 +1,8 @@
-const AppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
+﻿var ppWithErrorBoundary = () => (<ErrorBoundary><App /></ErrorBoundary>);
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+var oot = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<AppWithErrorBoundary />);
 
-// ⚡ Hide loading screen as soon as React renders
+// âš¡ Hide loading screen as soon as React renders
 if (typeof window._hideLoader === 'function') window._hideLoader();
+

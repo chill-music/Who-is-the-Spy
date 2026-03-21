@@ -1,15 +1,15 @@
-const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
+﻿var mojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
     const t = TRANSLATIONS[lang];
     const [activeCategory, setActiveCategory] = useState('smiles');
 
     if (!show) return null;
 
     const categories = [
-        { id: 'smiles',   icon: '😀', label_ar: 'وجوه',   label_en: 'Faces' },
-        { id: 'gestures', icon: '👋', label_ar: 'إيماءات', label_en: 'Gestures' },
-        { id: 'hearts',   icon: '❤️', label_ar: 'قلوب',   label_en: 'Hearts' },
-        { id: 'objects',  icon: '🎉', label_ar: 'أشياء',   label_en: 'Objects' },
-        { id: 'nature',   icon: '🌸', label_ar: 'طبيعة',  label_en: 'Nature' },
+        { id: 'smiles',   icon: 'ðŸ˜€', label_ar: 'ÙˆØ¬ÙˆÙ‡',   label_en: 'Faces' },
+        { id: 'gestures', icon: 'ðŸ‘‹', label_ar: 'Ø¥ÙŠÙ…Ø§Ø¡Ø§Øª', label_en: 'Gestures' },
+        { id: 'hearts',   icon: 'â¤ï¸', label_ar: 'Ù‚Ù„ÙˆØ¨',   label_en: 'Hearts' },
+        { id: 'objects',  icon: 'ðŸŽ‰', label_ar: 'Ø£Ø´ÙŠØ§Ø¡',   label_en: 'Objects' },
+        { id: 'nature',   icon: 'ðŸŒ¸', label_ar: 'Ø·Ø¨ÙŠØ¹Ø©',  label_en: 'Nature' },
     ];
 
     const wrapperStyle = inline ? {} : undefined;
@@ -19,7 +19,7 @@ const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
             {!inline && (
                 <div className="emoji-picker-header">
                     <span className="emoji-picker-title">{t.selectEmojis || 'Emoji'}</span>
-                    <button className="emoji-picker-close" onClick={onClose}>✕</button>
+                    <button className="emoji-picker-close" onClick={onClose}>âœ•</button>
                 </div>
             )}
             <div className="emoji-categories" style={{marginBottom:'6px'}}>
@@ -61,15 +61,15 @@ const EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
     );
 };
 
-// 🎁 GIFT PREVIEW MODAL - IMPROVED
+// ðŸŽ GIFT PREVIEW MODAL - IMPROVED
 // Shows details for both sender and receiver
-const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData, user, directTarget = null }) => {
+var iftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData, user, directTarget = null }) => {
     const t = TRANSLATIONS[lang];
     const [showFriendSelect, setShowFriendSelect] = useState(false);
     const [selectedFriend, setSelectedFriend] = useState(null);
     const [sendMode, setSendMode] = useState(directTarget ? 'direct' : 'self');
     const [previewBonus, setPreviewBonus] = useState(0);
-    // ✅ Quantity system
+    // âœ… Quantity system
     const [selectedQty, setSelectedQty] = useState(1);
     const isGiftItem = gift?.type === 'gifts' || gift?.type === 'gifts_vip';
 
@@ -87,7 +87,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
 
     if (!show || !gift) return null;
 
-    // ── Quantity buy handler ──
+    // â”€â”€ Quantity buy handler â”€â”€
     const handleBuyWithQty = (qty) => {
         if (!onBuy) return;
         const target = directTarget
@@ -101,7 +101,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
 
     const handleBuy = () => handleBuyWithQty(selectedQty);
 
-    // ── Profile Effect special view ──
+    // â”€â”€ Profile Effect special view â”€â”€
     if (gift.type === 'profileEffects') {
         const rKey = gift.rarity || 'Common';
         const rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
@@ -116,7 +116,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                     <div className="modal-body text-center py-3">
                         {/* Effect Preview Box */}
                         {(() => {
-                            // ✅ Support: particles as URL, imageUrl, or emoji preview
+                            // âœ… Support: particles as URL, imageUrl, or emoji preview
                             const effectSrc = (typeof gift.particles === 'string' && gift.particles.startsWith('http'))
                                 ? gift.particles
                                 : (gift.imageUrl && gift.imageUrl.trim() !== '' ? gift.imageUrl : null);
@@ -154,31 +154,31 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         {/* Details */}
                         <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'10px',textAlign:'right',direction:'ltr'}}>
                             <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#9ca3af',padding:'6px 10px',background:'rgba(255,255,255,0.04)',borderRadius:'8px'}}>
-                                <span>💰 {lang==='ar'?'السعر':'Price'}</span>
-                                <span style={{color:'#facc15',fontWeight:700}}>{gift.cost} 🧠</span>
+                                <span>ðŸ’° {lang==='ar'?'Ø§Ù„Ø³Ø¹Ø±':'Price'}</span>
+                                <span style={{color:'#facc15',fontWeight:700}}>{gift.cost} ðŸ§ </span>
                             </div>
                             {Array.isArray(gift.particles) && gift.particles.length > 0 && (
                                 <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#9ca3af',padding:'6px 10px',background:'rgba(255,255,255,0.04)',borderRadius:'8px'}}>
-                                    <span>✨ {lang==='ar'?'الجزيئات':'Particles'}</span>
-                                    <span style={{color:'white',fontWeight:700}}>{gift.particles.map(p=>`${p.emoji}×${p.count}`).join(' ')}</span>
+                                    <span>âœ¨ {lang==='ar'?'Ø§Ù„Ø¬Ø²ÙŠØ¦Ø§Øª':'Particles'}</span>
+                                    <span style={{color:'white',fontWeight:700}}>{gift.particles.map(p=>`${p.emoji}Ã—${p.count}`).join(' ')}</span>
                                 </div>
                             )}
                             {gift.hasGlow && (
                                 <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#9ca3af',padding:'6px 10px',background:'rgba(255,255,255,0.04)',borderRadius:'8px'}}>
-                                    <span>🌟 {lang==='ar'?'توهج خاص':'Special Glow'}</span>
-                                    <span style={{color:'#00f2ff',fontWeight:700}}>✓ {lang==='ar'?'نعم':'Yes'}</span>
+                                    <span>ðŸŒŸ {lang==='ar'?'ØªÙˆÙ‡Ø¬ Ø®Ø§Øµ':'Special Glow'}</span>
+                                    <span style={{color:'#00f2ff',fontWeight:700}}>âœ“ {lang==='ar'?'Ù†Ø¹Ù…':'Yes'}</span>
                                 </div>
                             )}
                         </div>
                         <div className="modal-footer py-2">
                             <div className="flex gap-2">
-                                <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{lang==='ar'?'إغلاق':'Close'}</button>
+                                <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{lang==='ar'?'Ø¥ØºÙ„Ø§Ù‚':'Close'}</button>
                                 <button
                                     onClick={() => onBuy && onBuy(gift, null)}
                                     disabled={!owned}
                                     style={{flex:1,padding:'8px',borderRadius:'8px',background: owned ? rarity.color : 'rgba(100,100,100,0.2)',color: owned ? '#000' : '#6b7280',border:'none',fontWeight:800,fontSize:'12px',cursor: owned ? 'pointer' : 'not-allowed'}}
                                 >
-                                    {owned ? `${lang==='ar'?'شراء':'Buy'} (${gift.cost}🧠)` : (lang==='ar'?'إنتل غير كافٍ':'Not enough Intel')}
+                                    {owned ? `${lang==='ar'?'Ø´Ø±Ø§Ø¡':'Buy'} (${gift.cost}ðŸ§ )` : (lang==='ar'?'Ø¥Ù†ØªÙ„ ØºÙŠØ± ÙƒØ§ÙÙ':'Not enough Intel')}
                                 </button>
                             </div>
                         </div>
@@ -225,13 +225,13 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             <div className="gift-preview-stat">
                                 <div className="gift-preview-stat-label">{t.luckyBonus}</div>
                                 <div className="gift-preview-stat-value bonus" style={{color:'#facc15', fontStyle:'italic'}}>
-                                    🍀 {lang === 'ar' ? 'مفاجأة!' : 'Surprise!'}
+                                    ðŸ€ {lang === 'ar' ? 'Ù…ÙØ§Ø¬Ø£Ø©!' : 'Surprise!'}
                                 </div>
                             </div>
                             {/* VIP Required */}
                             {gift.vipMinLevel > 0 && (
                                 <div className="gift-preview-stat">
-                                    <div className="gift-preview-stat-label">👑 {lang === 'ar' ? 'يتطلب' : 'Requires'}</div>
+                                    <div className="gift-preview-stat-label">ðŸ‘‘ {lang === 'ar' ? 'ÙŠØªØ·Ù„Ø¨' : 'Requires'}</div>
                                     <div className="gift-preview-stat-value" style={{color: VIP_CONFIG[gift.vipMinLevel - 1]?.nameColor || '#ef4444', fontWeight:800}}>
                                         VIP {gift.vipMinLevel}+
                                     </div>
@@ -240,35 +240,35 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                             {/* Event */}
                             {gift.isEvent && (
                                 <div className="gift-preview-stat">
-                                    <div className="gift-preview-stat-label">⚡ {lang === 'ar' ? 'نوع' : 'Type'}</div>
+                                    <div className="gift-preview-stat-label">âš¡ {lang === 'ar' ? 'Ù†ÙˆØ¹' : 'Type'}</div>
                                     <div className="gift-preview-stat-value" style={{color:'#a78bfa', fontWeight:800}}>
-                                        {lang === 'ar' ? '🎉 إيفنت' : '🎉 Event'}
+                                        {lang === 'ar' ? 'ðŸŽ‰ Ø¥ÙŠÙÙ†Øª' : 'ðŸŽ‰ Event'}
                                     </div>
                                 </div>
                             )}
                             {/* Limited Time */}
                             {gift.limitedTime && (
                                 <div className="gift-preview-stat">
-                                    <div className="gift-preview-stat-label">⏳ {lang === 'ar' ? 'متاح' : 'Available'}</div>
+                                    <div className="gift-preview-stat-label">â³ {lang === 'ar' ? 'Ù…ØªØ§Ø­' : 'Available'}</div>
                                     <div className="gift-preview-stat-value" style={{color:'#f97316', fontWeight:800}}>
-                                        {lang === 'ar' ? 'لوقت محدود' : 'Limited Time'}
+                                        {lang === 'ar' ? 'Ù„ÙˆÙ‚Øª Ù…Ø­Ø¯ÙˆØ¯' : 'Limited Time'}
                                     </div>
                                 </div>
                             )}
-                            {/* ✅ FIX 4: Duration days info */}
+                            {/* âœ… FIX 4: Duration days info */}
                             {gift.durationDays && (
                                 <div className="gift-preview-stat">
-                                    <div className="gift-preview-stat-label">⏳ {lang === 'ar' ? 'تنتهي بعد' : 'Expires in'}</div>
+                                    <div className="gift-preview-stat-label">â³ {lang === 'ar' ? 'ØªÙ†ØªÙ‡ÙŠ Ø¨Ø¹Ø¯' : 'Expires in'}</div>
                                     <div className="gift-preview-stat-value" style={{color:'#f59e0b', fontWeight:800}}>
-                                        {gift.durationDays} {lang === 'ar' ? 'يوم' : 'days'}
+                                        {gift.durationDays} {lang === 'ar' ? 'ÙŠÙˆÙ…' : 'days'}
                                     </div>
                                 </div>
                             )}
                             {/* Price */}
                             <div className="gift-preview-stat">
-                                <div className="gift-preview-stat-label">💰 {lang === 'ar' ? 'السعر' : 'Price'}</div>
+                                <div className="gift-preview-stat-label">ðŸ’° {lang === 'ar' ? 'Ø§Ù„Ø³Ø¹Ø±' : 'Price'}</div>
                                 <div className="gift-preview-stat-value" style={{color:'#fbbf24', fontWeight:800}}>
-                                    {gift.cost.toLocaleString()} 🧠
+                                    {gift.cost.toLocaleString()} ðŸ§ 
                                 </div>
                             </div>
                         </div>
@@ -279,7 +279,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         <div className="flex items-center gap-2 mb-2 p-2 bg-yellow-500/10 rounded-lg">
                             <AvatarWithFrame photoURL={directTarget.photoURL} equipped={directTarget.equipped} size="sm" />
                             <div className="text-left">
-                                <div className="font-bold text-xs">{lang === 'ar' ? 'إرسال إلى' : 'Sending to'}</div>
+                                <div className="font-bold text-xs">{lang === 'ar' ? 'Ø¥Ø±Ø³Ø§Ù„ Ø¥Ù„Ù‰' : 'Sending to'}</div>
                                 <div className="text-[10px] text-primary">{directTarget.displayName}</div>
                             </div>
                         </div>
@@ -292,13 +292,13 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                                 onClick={() => setSendMode('self')}
                                 className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'self' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
                             >
-                                🎁 {t.sendToSelf}
+                                ðŸŽ {t.sendToSelf}
                             </button>
                             <button
                                 onClick={() => { setSendMode('others'); setShowFriendSelect(true); }}
                                 className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'others' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
                             >
-                                👥 {t.sendToOthers}
+                                ðŸ‘¥ {t.sendToOthers}
                             </button>
                         </div>
                     )}
@@ -320,7 +320,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                                                 {friend.isOnline ? t.online : t.offline}
                                             </div>
                                         </div>
-                                        {selectedFriend?.id === friend.id && <span className="text-primary">✓</span>}
+                                        {selectedFriend?.id === friend.id && <span className="text-primary">âœ“</span>}
                                     </div>
                                 ))
                             ) : (
@@ -329,7 +329,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         </div>
                     )}
                 </div>
-                {/* ✅ QUANTITY SELECTOR — يظهر فقط للهدايا التي maxSendOptions ليست null */}
+                {/* âœ… QUANTITY SELECTOR â€” ÙŠØ¸Ù‡Ø± ÙÙ‚Ø· Ù„Ù„Ù‡Ø¯Ø§ÙŠØ§ Ø§Ù„ØªÙŠ maxSendOptions Ù„ÙŠØ³Øª null */}
                 {isGiftItem && isSending && gift?.maxSendOptions !== null && gift?.maxSendOptions !== undefined && (
                     <div style={{
                         padding:'8px 14px',
@@ -337,7 +337,7 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                         display:'flex', flexDirection:'column', gap:'6px'
                     }}>
                         <div style={{ fontSize:'10px', color:'#9ca3af', fontWeight:600, textAlign:'center' }}>
-                            {lang === 'ar' ? '📦 كم هدية عايز تبعت؟' : '📦 How many to send?'}
+                            {lang === 'ar' ? 'ðŸ“¦ ÙƒÙ… Ù‡Ø¯ÙŠØ© Ø¹Ø§ÙŠØ² ØªØ¨Ø¹ØªØŸ' : 'ðŸ“¦ How many to send?'}
                         </div>
                         <div style={{ display:'flex', gap:'5px', justifyContent:'center' }}>
                             {[1, 3, 5, 10].map(qty => (
@@ -357,14 +357,14 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                                         transition: 'all 0.15s',
                                     }}
                                 >
-                                    ×{qty}
+                                    Ã—{qty}
                                 </button>
                             ))}
                         </div>
                         {selectedQty > 1 && (
                             <div style={{ textAlign:'center', fontSize:'10px', color:'#facc15', fontWeight:700 }}>
-                                💰 {(gift.cost * selectedQty).toLocaleString()} 🧠
-                                {' · '}⭐ +{formatCharisma(gift.charisma * selectedQty)}
+                                ðŸ’° {(gift.cost * selectedQty).toLocaleString()} ðŸ§ 
+                                {' Â· '}â­ +{formatCharisma(gift.charisma * selectedQty)}
                             </div>
                         )}
                     </div>
@@ -390,8 +390,8 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
                                 className={`flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost * selectedQty ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
                             >
                                 {isGiftItem && !directTarget && sendMode === 'self'
-                                    ? `🎒 ${lang === 'ar' ? 'أضف للمخزون' : 'Add to Inventory'} (${(gift.cost * selectedQty).toLocaleString()}🧠)`
-                                    : `${isSending || directTarget ? t.sendGift : t.buy}${selectedQty > 1 ? ` ×${selectedQty}` : ''} (${(gift.cost * selectedQty).toLocaleString()}🧠)`
+                                    ? `ðŸŽ’ ${lang === 'ar' ? 'Ø£Ø¶Ù Ù„Ù„Ù…Ø®Ø²ÙˆÙ†' : 'Add to Inventory'} (${(gift.cost * selectedQty).toLocaleString()}ðŸ§ )`
+                                    : `${isSending || directTarget ? t.sendGift : t.buy}${selectedQty > 1 ? ` Ã—${selectedQty}` : ''} (${(gift.cost * selectedQty).toLocaleString()}ðŸ§ )`
                                 }
                             </button>
                         </div>
@@ -402,11 +402,11 @@ const GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSendin
     );
 };
 
-// 🎁 SEND GIFT MODAL — New Design v3 (All fixes applied)
-const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency, friendsData }) => {
+// ðŸŽ SEND GIFT MODAL â€” New Design v3 (All fixes applied)
+var endGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency, friendsData }) => {
     const t = TRANSLATIONS[lang];
 
-    // ── ALL HOOKS FIRST — no early returns before hooks ──
+    // â”€â”€ ALL HOOKS FIRST â€” no early returns before hooks â”€â”€
     const [activeTab, setActiveTab]           = useState('gifts');
     const [selectedGift, setSelectedGift]     = useState(null);
     const [comboOverlay, setComboOverlay]     = useState(null);
@@ -444,16 +444,16 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
     const hasDirectTarget = targetUser && targetUser.uid !== 'self';
     const vipLevel  = currentUser ? (getVIPLevel ? getVIPLevel(currentUser) : 0) : 0;
     const inventory = currentUser?.inventory || {};
-    // fix #9: only require familyId — ignore level requirement
+    // fix #9: only require familyId â€” ignore level requirement
     const hasFamilyId = !!(currentUser?.familyId);
 
     const TABS = [
-        { id: 'inventory', icon: '🎒', label_ar: 'انفنتري',      label_en: 'Inventory' },
-        { id: 'gifts',     icon: '🎁', label_ar: 'هدايا',         label_en: 'Gifts'    },
-        { id: 'family',    icon: '🏰', label_ar: 'هدايا القبيلة', label_en: 'Family'   },
-        { id: 'special',   icon: '🎰', label_ar: 'سبيشيال',       label_en: 'Special'  },
-        { id: 'flag',      icon: '🚩', label_ar: 'أعلام',          label_en: 'Flag'     },
-        { id: 'vip',       icon: '👑', label_ar: 'VIP',            label_en: 'VIP'      },
+        { id: 'inventory', icon: 'ðŸŽ’', label_ar: 'Ø§Ù†ÙÙ†ØªØ±ÙŠ',      label_en: 'Inventory' },
+        { id: 'gifts',     icon: 'ðŸŽ', label_ar: 'Ù‡Ø¯Ø§ÙŠØ§',         label_en: 'Gifts'    },
+        { id: 'family',    icon: 'ðŸ°', label_ar: 'Ù‡Ø¯Ø§ÙŠØ§ Ø§Ù„Ù‚Ø¨ÙŠÙ„Ø©', label_en: 'Family'   },
+        { id: 'special',   icon: 'ðŸŽ°', label_ar: 'Ø³Ø¨ÙŠØ´ÙŠØ§Ù„',       label_en: 'Special'  },
+        { id: 'flag',      icon: 'ðŸš©', label_ar: 'Ø£Ø¹Ù„Ø§Ù…',          label_en: 'Flag'     },
+        { id: 'vip',       icon: 'ðŸ‘‘', label_ar: 'VIP',            label_en: 'VIP'      },
     ];
 
     const getGiftsForTab = () => {
@@ -483,11 +483,11 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
     const gifts = getGiftsForTab();
 
     const getGiftTag = (gift) => {
-        if (gift.specialType === 'lottery' || gift.isEvent)        return { label: lang==='ar'?'يانصيب':'Lottery',           bg:'#8b5cf6' };
-        if (gift.limitedTime)                                       return { label: lang==='ar'?'محدود':'Limited',             bg:'#f97316' };
+        if (gift.specialType === 'lottery' || gift.isEvent)        return { label: lang==='ar'?'ÙŠØ§Ù†ØµÙŠØ¨':'Lottery',           bg:'#8b5cf6' };
+        if (gift.limitedTime)                                       return { label: lang==='ar'?'Ù…Ø­Ø¯ÙˆØ¯':'Limited',             bg:'#f97316' };
         if (gift.type === 'gifts_vip' || gift.vipExclusive)        return { label: 'VIP',                                      bg:'#f59e0b' };
-        if (gift.type === 'gifts_family')                           return { label: lang==='ar'?'قبيلة':'Family',               bg:'#10b981' };
-        if ((gift.charisma||0) >= 400 || (gift.cost||0) >= 2000)   return { label: lang==='ar'?'مفاجأة الذهب':'Golds Surprise', bg:'#ef4444' };
+        if (gift.type === 'gifts_family')                           return { label: lang==='ar'?'Ù‚Ø¨ÙŠÙ„Ø©':'Family',               bg:'#10b981' };
+        if ((gift.charisma||0) >= 400 || (gift.cost||0) >= 2000)   return { label: lang==='ar'?'Ù…ÙØ§Ø¬Ø£Ø© Ø§Ù„Ø°Ù‡Ø¨':'Golds Surprise', bg:'#ef4444' };
         return null;
     };
 
@@ -520,18 +520,18 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                     <div style={{ textAlign:'center', marginBottom:'14px' }}>
                         {g.imageUrl && g.imageUrl.trim() !== ''
                             ? <img src={g.imageUrl} alt="" style={{ width:'80px', height:'80px', objectFit:'contain', borderRadius:'12px' }} />
-                            : <span style={{ fontSize:'52px', lineHeight:1 }}>{g.emoji||'🎁'}</span>
+                            : <span style={{ fontSize:'52px', lineHeight:1 }}>{g.emoji||'ðŸŽ'}</span>
                         }
                     </div>
                     <div style={{ fontSize:'15px', fontWeight:900, color:'white', textAlign:'center', marginBottom:'4px' }}>{lang==='ar'?(g.name_ar||g.name_en):g.name_en}</div>
                     {(g.desc_ar||g.desc_en) && <div style={{ fontSize:'11px', color:'#9ca3af', textAlign:'center', marginBottom:'12px', lineHeight:1.5 }}>{lang==='ar'?(g.desc_ar||g.desc_en):(g.desc_en||g.desc_ar)}</div>}
                     <div style={{ display:'flex', flexDirection:'column', gap:'6px', marginBottom:'14px' }}>
-                        {!g.fromInventory && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>💰 {lang==='ar'?'السعر':'Price'}</span><span style={{ color:'#facc15', fontWeight:800 }}>{(g.cost||0).toLocaleString()} 🧠</span></div>}
-                        {(g.charisma||0) > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>⭐ {lang==='ar'?'كاريزما':'Charisma'}</span><span style={{ color:'#fbbf24', fontWeight:800 }}>+{formatCharisma(g.charisma||0)}</span></div>}
-                        {(g.maxBonus||0) > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>🍀 {lang==='ar'?'مردود أقصى':'Max Bonus'}</span><span style={{ color:'#4ade80', fontWeight:800 }}>+{(g.maxBonus||0).toLocaleString()} 🧠</span></div>}
+                        {!g.fromInventory && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>ðŸ’° {lang==='ar'?'Ø§Ù„Ø³Ø¹Ø±':'Price'}</span><span style={{ color:'#facc15', fontWeight:800 }}>{(g.cost||0).toLocaleString()} ðŸ§ </span></div>}
+                        {(g.charisma||0) > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>â­ {lang==='ar'?'ÙƒØ§Ø±ÙŠØ²Ù…Ø§':'Charisma'}</span><span style={{ color:'#fbbf24', fontWeight:800 }}>+{formatCharisma(g.charisma||0)}</span></div>}
+                        {(g.maxBonus||0) > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>ðŸ€ {lang==='ar'?'Ù…Ø±Ø¯ÙˆØ¯ Ø£Ù‚ØµÙ‰':'Max Bonus'}</span><span style={{ color:'#4ade80', fontWeight:800 }}>+{(g.maxBonus||0).toLocaleString()} ðŸ§ </span></div>}
                         {g.specialType === 'lottery' && (g.possibleRewards||[]).length > 0 && (
                             <div style={{ padding:'8px 10px', background:'rgba(139,92,246,0.08)', border:'1px solid rgba(139,92,246,0.25)', borderRadius:'8px' }}>
-                                <div style={{ fontSize:'10px', fontWeight:800, color:'#a78bfa', marginBottom:'6px' }}>🎰 {lang==='ar'?'جوائز ممكنة':'Possible Rewards'}</div>
+                                <div style={{ fontSize:'10px', fontWeight:800, color:'#a78bfa', marginBottom:'6px' }}>ðŸŽ° {lang==='ar'?'Ø¬ÙˆØ§Ø¦Ø² Ù…Ù…ÙƒÙ†Ø©':'Possible Rewards'}</div>
                                 {(g.possibleRewards||[]).map((r, i) => (
                                     <div key={i} style={{ display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#d1d5db', marginBottom:'3px' }}>
                                         <span>{lang==='ar'?(r.desc_ar||r.desc_en):(r.desc_en||r.desc_ar)}</span>
@@ -540,11 +540,11 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                                 ))}
                             </div>
                         )}
-                        {g.durationDays && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>⏳ {lang==='ar'?'تنتهي بعد':'Expires in'}</span><span style={{ color:'#f59e0b', fontWeight:800 }}>{g.durationDays} {lang==='ar'?'يوم':'days'}</span></div>}
-                        {g.isEvent && <div style={{ fontSize:'10px', color:'#a78bfa', textAlign:'center', padding:'4px', background:'rgba(139,92,246,0.08)', borderRadius:'6px' }}>🎉 {lang==='ar'?'هدية إيفنت':'Event Gift'}</div>}
-                        {g.limitedTime && <div style={{ fontSize:'10px', color:'#f97316', textAlign:'center', padding:'4px', background:'rgba(249,115,22,0.08)', borderRadius:'6px' }}>⏰ {lang==='ar'?'لوقت محدود':'Limited Time'}</div>}
+                        {g.durationDays && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>â³ {lang==='ar'?'ØªÙ†ØªÙ‡ÙŠ Ø¨Ø¹Ø¯':'Expires in'}</span><span style={{ color:'#f59e0b', fontWeight:800 }}>{g.durationDays} {lang==='ar'?'ÙŠÙˆÙ…':'days'}</span></div>}
+                        {g.isEvent && <div style={{ fontSize:'10px', color:'#a78bfa', textAlign:'center', padding:'4px', background:'rgba(139,92,246,0.08)', borderRadius:'6px' }}>ðŸŽ‰ {lang==='ar'?'Ù‡Ø¯ÙŠØ© Ø¥ÙŠÙÙ†Øª':'Event Gift'}</div>}
+                        {g.limitedTime && <div style={{ fontSize:'10px', color:'#f97316', textAlign:'center', padding:'4px', background:'rgba(249,115,22,0.08)', borderRadius:'6px' }}>â° {lang==='ar'?'Ù„ÙˆÙ‚Øª Ù…Ø­Ø¯ÙˆØ¯':'Limited Time'}</div>}
                     </div>
-                    <button onClick={() => setShowGiftDetail(false)} style={{ width:'100%', padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>{lang==='ar'?'إغلاق':'Close'}</button>
+                    <button onClick={() => setShowGiftDetail(false)} style={{ width:'100%', padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>{lang==='ar'?'Ø¥ØºÙ„Ø§Ù‚':'Close'}</button>
                 </div>
             </div>
         );
@@ -556,25 +556,25 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
             <div style={{ position:'fixed', inset:0, zIndex: Z.MODAL_HIGH, background:'rgba(0,0,0,0.82)', display:'flex', alignItems:'flex-end', justifyContent:'center' }} onClick={onClose}>
                 <div style={{ width:'100%', maxWidth:'480px', background:'linear-gradient(180deg,#111122 0%,#0a0a18 100%)', borderRadius:'22px 22px 0 0', border:'1px solid rgba(255,255,255,0.1)', borderBottom:'none', overflow:'hidden', maxHeight:'88vh', display:'flex', flexDirection:'column', boxShadow:'0 -10px 60px rgba(0,0,0,0.8)' }} onClick={e => e.stopPropagation()}>
 
-                    {/* ── Header ── */}
+                    {/* â”€â”€ Header â”€â”€ */}
                     <div style={{ display:'flex', alignItems:'center', gap:'10px', padding:'14px 16px 10px', borderBottom:'1px solid rgba(255,255,255,0.07)', flexShrink:0 }}>
                         {hasDirectTarget && (
                             <>
                                 <img src={targetUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(targetUser.displayName||'U')}&background=6366f1&color=fff`} alt="" style={{ width:'32px', height:'32px', borderRadius:'50%', objectFit:'cover', border:'2px solid rgba(0,242,255,0.3)', flexShrink:0 }} />
                                 <div style={{ flex:1, minWidth:0 }}>
-                                    <div style={{ fontSize:'11px', color:'#9ca3af' }}>{lang==='ar'?'إرسال إلى':'Send to'}</div>
+                                    <div style={{ fontSize:'11px', color:'#9ca3af' }}>{lang==='ar'?'Ø¥Ø±Ø³Ø§Ù„ Ø¥Ù„Ù‰':'Send to'}</div>
                                     <div style={{ fontSize:'14px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{targetUser.displayName}</div>
                                 </div>
                             </>
                         )}
-                        {!hasDirectTarget && <div style={{ flex:1, fontSize:'15px', fontWeight:900, color:'white' }}>{lang==='ar'?'إرسال هدية':'Send Gift'}</div>}
-                        <button onClick={onClose} style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#9ca3af', fontSize:'14px', flexShrink:0 }}>✕</button>
+                        {!hasDirectTarget && <div style={{ flex:1, fontSize:'15px', fontWeight:900, color:'white' }}>{lang==='ar'?'Ø¥Ø±Ø³Ø§Ù„ Ù‡Ø¯ÙŠØ©':'Send Gift'}</div>}
+                        <button onClick={onClose} style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#9ca3af', fontSize:'14px', flexShrink:0 }}>âœ•</button>
                     </div>
 
-                    {/* ── Tabs with scroll arrows (fix #3) ── */}
+                    {/* â”€â”€ Tabs with scroll arrows (fix #3) â”€â”€ */}
                     <div style={{ display:'flex', alignItems:'center', padding:'8px 0 0', flexShrink:0, gap:0 }}>
                         <button onMouseDown={() => startScroll(-1)} onMouseUp={stopScroll} onMouseLeave={stopScroll} onTouchStart={() => startScroll(-1)} onTouchEnd={stopScroll}
-                            style={{ flexShrink:0, width:'28px', height:'28px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', marginLeft:'8px' }}>‹</button>
+                            style={{ flexShrink:0, width:'28px', height:'28px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', marginLeft:'8px' }}>â€¹</button>
                         <div ref={tabsRef} style={{ flex:1, display:'flex', overflowX:'auto', gap:'4px', scrollbarWidth:'none', WebkitOverflowScrolling:'touch', padding:'0 4px' }}>
                             {TABS.map(tab => (
                                 <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSelectedGift(null); setQty(1); setShowGiftDetail(false); }}
@@ -583,36 +583,36 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                             ))}
                         </div>
                         <button onMouseDown={() => startScroll(1)} onMouseUp={stopScroll} onMouseLeave={stopScroll} onTouchStart={() => startScroll(1)} onTouchEnd={stopScroll}
-                            style={{ flexShrink:0, width:'28px', height:'28px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', marginRight:'8px' }}>›</button>
+                            style={{ flexShrink:0, width:'28px', height:'28px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', marginRight:'8px' }}>â€º</button>
                     </div>
 
-                    {/* ── Info bar (fix #7: ? opens detail popup) ── */}
+                    {/* â”€â”€ Info bar (fix #7: ? opens detail popup) â”€â”€ */}
                     <div style={{ padding:'8px 12px 0', flexShrink:0 }}>
                         {showInfoBar && (
                             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 14px', margin:'0 0 4px', background:'rgba(255,215,0,0.07)', borderRadius:'10px', border:'1px solid rgba(255,215,0,0.18)', fontSize:'11px' }}>
                                 <span style={{ color:'#d1d5db', flex:1 }}>
-                                    {lang==='ar'?'كاريزما المستلم':"Receiver's Charm"}{' '}
+                                    {lang==='ar'?'ÙƒØ§Ø±ÙŠØ²Ù…Ø§ Ø§Ù„Ù…Ø³ØªÙ„Ù…':"Receiver's Charm"}{' '}
                                     <span style={{ color:'#facc15', fontWeight:800 }}>+{formatCharisma(charismaForBar)}</span>
-                                    {maxGoldForBar > 0 && <span style={{ color:'#9ca3af', marginLeft:'6px' }}>{lang==='ar'?`حصل على ما يصل إلى ${maxGoldForBar.toLocaleString()} 🧠`:`Gain up to ${maxGoldForBar.toLocaleString()} Intel 🧠`}</span>}
-                                    {selectedGift?.specialType==='lottery' && <span style={{ color:'#a78bfa', marginLeft:'6px' }}>🎰</span>}
+                                    {maxGoldForBar > 0 && <span style={{ color:'#9ca3af', marginLeft:'6px' }}>{lang==='ar'?`Ø­ØµÙ„ Ø¹Ù„Ù‰ Ù…Ø§ ÙŠØµÙ„ Ø¥Ù„Ù‰ ${maxGoldForBar.toLocaleString()} ðŸ§ `:`Gain up to ${maxGoldForBar.toLocaleString()} Intel ðŸ§ `}</span>}
+                                    {selectedGift?.specialType==='lottery' && <span style={{ color:'#a78bfa', marginLeft:'6px' }}>ðŸŽ°</span>}
                                 </span>
                                 <button onClick={() => setShowGiftDetail(true)} style={{ background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'50%', width:'22px', height:'22px', color:'#e2e8f0', fontSize:'12px', fontWeight:800, cursor:'pointer', lineHeight:1, flexShrink:0 }}>?</button>
                             </div>
                         )}
                     </div>
 
-                    {/* ── Family locked notice (fix #9) ── */}
+                    {/* â”€â”€ Family locked notice (fix #9) â”€â”€ */}
                     {activeTab==='family' && !hasFamilyId && (
                         <div style={{ margin:'8px 12px', padding:'10px 14px', borderRadius:'10px', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.25)', fontSize:'11px', color:'#34d399', textAlign:'center', flexShrink:0 }}>
-                            🏰 {lang==='ar'?'يجب أن تكون في قبيلة لاستخدام هدايا القبيلة':'You must be in a family to use Family Gifts'}
+                            ðŸ° {lang==='ar'?'ÙŠØ¬Ø¨ Ø£Ù† ØªÙƒÙˆÙ† ÙÙŠ Ù‚Ø¨ÙŠÙ„Ø© Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… Ù‡Ø¯Ø§ÙŠØ§ Ø§Ù„Ù‚Ø¨ÙŠÙ„Ø©':'You must be in a family to use Family Gifts'}
                         </div>
                     )}
 
-                    {/* ── Gift grid (fix #2 fixed name, fix #4 expiry, fix #8 GIF/img support) ── */}
+                    {/* â”€â”€ Gift grid (fix #2 fixed name, fix #4 expiry, fix #8 GIF/img support) â”€â”€ */}
                     <div style={{ flex:1, overflowY:'auto', padding:'10px 12px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px', alignContent:'start' }}>
                         {gifts.length === 0 ? (
                             <div style={{ gridColumn:'1/-1', textAlign:'center', padding:'40px', color:'#4b5563', fontSize:'12px' }}>
-                                {activeTab==='inventory'?(lang==='ar'?'لا توجد هدايا في الإنفنتري':'No gifts in inventory'):(lang==='ar'?'لا توجد هدايا':'No gifts available')}
+                                {activeTab==='inventory'?(lang==='ar'?'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù‡Ø¯Ø§ÙŠØ§ ÙÙŠ Ø§Ù„Ø¥Ù†ÙÙ†ØªØ±ÙŠ':'No gifts in inventory'):(lang==='ar'?'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù‡Ø¯Ø§ÙŠØ§':'No gifts available')}
                             </div>
                         ) : gifts.map(gift => {
                             const tag        = getGiftTag(gift);
@@ -627,7 +627,7 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                                 <button key={gift.id}
                                     onClick={() => { if (isVIPLocked||isFamLocked) return; setSelectedGift(isSelected?null:gift); setQty(1); setShowGiftDetail(false); }}
                                     style={{
-                                        // fix #2: fixed total height — nothing shifts
+                                        // fix #2: fixed total height â€” nothing shifts
                                         display:'flex', flexDirection:'column', alignItems:'center',
                                         height:'112px', padding:'0',
                                         borderRadius:'12px',
@@ -643,36 +643,36 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                                     onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}
                                 >
                                     {tag && <div style={{ position:'absolute', top:'4px', left:'4px', fontSize:'7px', fontWeight:800, color:'white', background:tag.bg, borderRadius:'6px', padding:'1px 5px', zIndex:2, lineHeight:1.4 }}>{tag.label}</div>}
-                                    {/* fix #8: image area — supports GIF + static + emoji */}
+                                    {/* fix #8: image area â€” supports GIF + static + emoji */}
                                     <div style={{ width:'100%', flex:1, position:'relative', borderRadius:'10px 10px 0 0', overflow:'hidden', background:'rgba(255,255,255,0.03)' }}>
                                         <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
                                             {gift.imageUrl && gift.imageUrl.trim()!==''
                                                 ? <img src={gift.imageUrl} alt="" style={{ width:'68%', height:'68%', objectFit:'contain' }} />
-                                                : <span style={{ fontSize:'26px', lineHeight:1 }}>{gift.emoji||'🎁'}</span>
+                                                : <span style={{ fontSize:'26px', lineHeight:1 }}>{gift.emoji||'ðŸŽ'}</span>
                                             }
                                         </div>
                                         {(isVIPLocked||isFamLocked) && (
                                             <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.65)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px' }}>
-                                                <span style={{ fontSize:'14px' }}>🔒</span>
-                                                <span style={{ fontSize:'7px', color:isVIPLocked?'#f59e0b':'#10b981', fontWeight:800 }}>{isVIPLocked?`VIP${vipRequired}+`:(lang==='ar'?'قبيلة':'Family')}</span>
+                                                <span style={{ fontSize:'14px' }}>ðŸ”’</span>
+                                                <span style={{ fontSize:'7px', color:isVIPLocked?'#f59e0b':'#10b981', fontWeight:800 }}>{isVIPLocked?`VIP${vipRequired}+`:(lang==='ar'?'Ù‚Ø¨ÙŠÙ„Ø©':'Family')}</span>
                                             </div>
                                         )}
                                     </div>
-                                    {/* fix #2: name ALWAYS fixed 14px height — never displaced */}
+                                    {/* fix #2: name ALWAYS fixed 14px height â€” never displaced */}
                                     <div style={{ fontSize:'9px', fontWeight:700, color:'white', height:'14px', lineHeight:'14px', textAlign:'center', padding:'0 3px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis', width:'100%', flexShrink:0, marginTop:'3px' }}>
                                         {lang==='ar'?(gift.name_ar||gift.name_en):gift.name_en}
                                     </div>
                                     {/* Price / qty */}
                                     <div style={{ height:'13px', lineHeight:'13px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', gap:'2px', marginBottom:'3px' }}>
                                         {gift.fromInventory
-                                            ? <span style={{ fontSize:'8px', color:'#10b981', fontWeight:800 }}>×{gift.qty||1}</span>
-                                            : <span style={{ fontSize:'8px', fontWeight:800, color:canAfford?'#facc15':'#6b7280' }}>🧠{fmtNum(gift.cost||0)}</span>
+                                            ? <span style={{ fontSize:'8px', color:'#10b981', fontWeight:800 }}>Ã—{gift.qty||1}</span>
+                                            : <span style={{ fontSize:'8px', fontWeight:800, color:canAfford?'#facc15':'#6b7280' }}>ðŸ§ {fmtNum(gift.cost||0)}</span>
                                         }
                                     </div>
                                     {/* fix #4: expiry date text below gift in inventory */}
                                     {gift.fromInventory && gift.daysLeft != null && (
                                         <div style={{ position:'absolute', bottom:'2px', left:0, right:0, fontSize:'7px', textAlign:'center', color:'rgba(249,115,22,0.55)', fontWeight:700 }}>
-                                            {lang==='ar'?`${gift.daysLeft} يوم`:`${gift.daysLeft} days`}
+                                            {lang==='ar'?`${gift.daysLeft} ÙŠÙˆÙ…`:`${gift.daysLeft} days`}
                                         </div>
                                     )}
                                 </button>
@@ -680,13 +680,13 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                         })}
                     </div>
 
-                    {/* ── Bottom bar ── */}
+                    {/* â”€â”€ Bottom bar â”€â”€ */}
                     <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.4)', flexShrink:0 }}>
-                        <div style={{ fontSize:'12px', fontWeight:700, color:'#facc15', flex:1 }}>🧠 {(currency||0).toLocaleString()}</div>
+                        <div style={{ fontSize:'12px', fontWeight:700, color:'#facc15', flex:1 }}>ðŸ§  {(currency||0).toLocaleString()}</div>
                         {/* fix #5: real Public/Private toggle */}
                         <button onClick={() => setIsPublic(v => !v)}
                             style={{ padding:'7px 12px', borderRadius:'20px', background:isPublic?'rgba(0,242,255,0.12)':'rgba(255,80,80,0.12)', border:`1px solid ${isPublic?'rgba(0,242,255,0.3)':'rgba(255,80,80,0.3)'}`, color:isPublic?'#00f2ff':'#f87171', fontSize:'11px', fontWeight:700, cursor:'pointer', flexShrink:0, transition:'all 0.15s' }}>
-                            {isPublic?(lang==='ar'?'🌐 عام':'🌐 Public'):(lang==='ar'?'🔒 خاص':'🔒 Private')}
+                            {isPublic?(lang==='ar'?'ðŸŒ Ø¹Ø§Ù…':'ðŸŒ Public'):(lang==='ar'?'ðŸ”’ Ø®Ø§Øµ':'ðŸ”’ Private')}
                         </button>
                         {/* fix #1: qty uses maxSendOptions from selected gift */}
                         <div style={{ position:'relative', flexShrink:0 }}>
@@ -694,7 +694,7 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                                 style={{ padding:'7px 24px 7px 12px', borderRadius:'20px', background:'rgba(15,15,30,0.9)', border:'1px solid rgba(255,255,255,0.15)', color:'white', fontSize:'11px', fontWeight:700, cursor:'pointer', appearance:'none', WebkitAppearance:'none', outline:'none' }}>
                                 {(selectedGift?.maxSendOptions || [1,3,5,10,20,50,99]).map(n => <option key={n} value={n}>{n}</option>)}
                             </select>
-                            <span style={{ position:'absolute', right:'8px', top:'50%', transform:'translateY(-50%)', fontSize:'8px', color:'#9ca3af', pointerEvents:'none' }}>▼</span>
+                            <span style={{ position:'absolute', right:'8px', top:'50%', transform:'translateY(-50%)', fontSize:'8px', color:'#9ca3af', pointerEvents:'none' }}>â–¼</span>
                         </div>
                         <button
                             onClick={() => {
@@ -704,7 +704,7 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
                             }}
                             disabled={!selectedGift}
                             style={{ padding:'9px 22px', borderRadius:'50px', flexShrink:0, background:selectedGift?'linear-gradient(135deg,#ec4899,#db2777)':'rgba(255,255,255,0.07)', border:'none', color:selectedGift?'white':'#4b5563', fontSize:'13px', fontWeight:900, cursor:selectedGift?'pointer':'default', boxShadow:selectedGift?'0 4px 14px rgba(236,72,153,0.45)':'none', transition:'all 0.2s' }}>
-                            {lang==='ar'?'إرسال':'Send'}{selectedGift&&qty>1?` ×${qty}`:''}
+                            {lang==='ar'?'Ø¥Ø±Ø³Ø§Ù„':'Send'}{selectedGift&&qty>1?` Ã—${qty}`:''}
                         </button>
                     </div>
                 </div>
@@ -715,13 +715,13 @@ const SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGif
     );
 }
 
-// ══════════════════════════════════════════════════
-// 🔥 COMBO SEND OVERLAY — bottom-right floating card, no backdrop
-// ══════════════════════════════════════════════════
-const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => {
-    const COMBO_DURATION = 3000; // ✅ 3 seconds
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ”¥ COMBO SEND OVERLAY â€” bottom-right floating card, no backdrop
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+var omboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => {
+    const COMBO_DURATION = 3000; // âœ… 3 seconds
 
-    // ─── ALL STATE ───
+    // â”€â”€â”€ ALL STATE â”€â”€â”€
     const [comboCount,    setComboCount]    = useState(0);
     const [ringProgress,  setRingProgress]  = useState(1);
     const [comboActive,   setComboActive]   = useState(true);
@@ -730,20 +730,20 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
     const [closing,       setClosing]       = useState(false);
     const [showFinalLog,  setShowFinalLog]  = useState(false);
 
-    // ─── ALL REFS — never go stale ───
+    // â”€â”€â”€ ALL REFS â€” never go stale â”€â”€â”€
     const ringIntervalRef  = React.useRef(null);
     const timerRef         = React.useRef(null);
     const ringStartRef     = React.useRef(null);
     const comboCountRef    = React.useRef(0);
-    const isClosedRef      = React.useRef(false);   // ✅ guard: prevent double-close
+    const isClosedRef      = React.useRef(false);   // âœ… guard: prevent double-close
     const onCloseRef       = React.useRef(onClose);
     const currencyRef      = React.useRef(currency);
     useEffect(() => { onCloseRef.current = onClose; },  [onClose]);
     useEffect(() => { currencyRef.current = currency; }, [currency]);
 
-    // ─── CLOSE — called only once ───
+    // â”€â”€â”€ CLOSE â€” called only once â”€â”€â”€
     const close = React.useCallback(() => {
-        if (isClosedRef.current) return;      // ✅ prevent double-fire
+        if (isClosedRef.current) return;      // âœ… prevent double-fire
         isClosedRef.current = true;
         clearInterval(ringIntervalRef.current);
         clearTimeout(timerRef.current);
@@ -754,9 +754,9 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
         } else {
             setTimeout(() => { onCloseRef.current && onCloseRef.current(); }, 350);
         }
-    }, []); // ✅ empty deps — never recreated, never stale
+    }, []); // âœ… empty deps â€” never recreated, never stale
 
-    // ─── COUNTDOWN ───
+    // â”€â”€â”€ COUNTDOWN â”€â”€â”€
     const startCountdown = React.useCallback(() => {
         clearInterval(ringIntervalRef.current);
         clearTimeout(timerRef.current);
@@ -780,7 +780,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
         }, COMBO_DURATION + 80);
     }, [close]);
 
-    // ─── MOUNT / UNMOUNT ───
+    // â”€â”€â”€ MOUNT / UNMOUNT â”€â”€â”€
     useEffect(() => {
         isClosedRef.current = false;
         startCountdown();
@@ -788,9 +788,9 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
             clearInterval(ringIntervalRef.current);
             clearTimeout(timerRef.current);
         };
-    }, []); // ✅ run only once on mount
+    }, []); // âœ… run only once on mount
 
-    // ─── TAP HANDLER — uses refs, never stale ───
+    // â”€â”€â”€ TAP HANDLER â€” uses refs, never stale â”€â”€â”€
     const handleTap = React.useCallback((e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -803,7 +803,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
         setTotalCharisma(prev => prev + charisma);
         comboCountRef.current += 1;
         setComboCount(comboCountRef.current);
-        startCountdown(); // ✅ reset timer on every tap
+        startCountdown(); // âœ… reset timer on every tap
     }, [gift, target, onSend, startCountdown]);
 
     const RING_R    = 42;
@@ -812,7 +812,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                     : comboCountRef.current >= 5  ? '#a78bfa'
                     : '#00d4ff';
 
-    // ─── FINAL LOG CARD ───
+    // â”€â”€â”€ FINAL LOG CARD â”€â”€â”€
     if (showFinalLog && comboCountRef.current > 0) {
         return (
             <div style={{
@@ -830,24 +830,24 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                         {gift.imageUrl?<img src={gift.imageUrl} alt="" style={{width:'34px',height:'34px',objectFit:'contain'}}/>:gift.emoji}
                     </div>
                     <div style={{fontSize:'15px',fontWeight:900,color:ringColor,textShadow:`0 0 12px ${ringColor}`}}>
-                        ×{comboCount} COMBO! 🎉
+                        Ã—{comboCount} COMBO! ðŸŽ‰
                     </div>
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
                     <div style={{background:'rgba(74,222,128,0.08)',border:'1px solid rgba(74,222,128,0.25)',borderRadius:'8px',padding:'6px',textAlign:'center'}}>
-                        <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'بونص':'Bonus'}</div>
-                        <div style={{fontSize:'13px',fontWeight:900,color:'#4ade80'}}>+{fmtNum(totalBonus)}🧠</div>
+                        <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'Ø¨ÙˆÙ†Øµ':'Bonus'}</div>
+                        <div style={{fontSize:'13px',fontWeight:900,color:'#4ade80'}}>+{fmtNum(totalBonus)}ðŸ§ </div>
                     </div>
                     <div style={{background:'rgba(251,191,36,0.08)',border:'1px solid rgba(251,191,36,0.25)',borderRadius:'8px',padding:'6px',textAlign:'center'}}>
-                        <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'نجوم':'Stars'}</div>
-                        <div style={{fontSize:'13px',fontWeight:900,color:'#fbbf24'}}>+{formatCharisma(totalCharisma)}⭐</div>
+                        <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'Ù†Ø¬ÙˆÙ…':'Stars'}</div>
+                        <div style={{fontSize:'13px',fontWeight:900,color:'#fbbf24'}}>+{formatCharisma(totalCharisma)}â­</div>
                     </div>
                 </div>
             </div>
         );
     }
 
-    // ─── MAIN COMBO CARD ───
+    // â”€â”€â”€ MAIN COMBO CARD â”€â”€â”€
     return (
         <div
             style={{
@@ -869,13 +869,13 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
             <div style={{textAlign:'center'}}>
                 {gift.imageUrl
                     ? <img src={gift.imageUrl} alt={gift.name_en} style={{width:'48px',height:'48px',objectFit:'contain'}}/>
-                    : <span style={{fontSize:'38px',lineHeight:1}}>{gift.emoji||'🎁'}</span>
+                    : <span style={{fontSize:'38px',lineHeight:1}}>{gift.emoji||'ðŸŽ'}</span>
                 }
                 <div style={{fontSize:'10px',fontWeight:800,color:'#f1f5f9',marginTop:'3px'}}>
                     {lang==='ar'?gift.name_ar:gift.name_en}
                 </div>
                 <div style={{fontSize:'9px',color:'#fbbf24',fontWeight:700}}>
-                    {gift.cost} 🧠 {lang==='ar'?'لكل إرسال':'each'}
+                    {gift.cost} ðŸ§  {lang==='ar'?'Ù„ÙƒÙ„ Ø¥Ø±Ø³Ø§Ù„':'each'}
                 </div>
             </div>
 
@@ -886,11 +886,11 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                     textShadow:`0 0 16px ${ringColor}`,
                     animation:comboCount>=5?'mythic-pulse 0.6s ease-in-out infinite':'none',
                 }}>
-                    ×{comboCount} COMBO!
+                    Ã—{comboCount} COMBO!
                 </div>
             )}
 
-            {/* ✅ FIX: entire 100×100 area tappable — not just the inner button */}
+            {/* âœ… FIX: entire 100Ã—100 area tappable â€” not just the inner button */}
             <div
                 onPointerDown={currency >= gift.cost ? handleTap : undefined}
                 style={{
@@ -902,7 +902,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                     WebkitTapHighlightColor:'transparent',
                 }}
             >
-                {/* SVG ring — pointer-events none so parent gets all taps */}
+                {/* SVG ring â€” pointer-events none so parent gets all taps */}
                 <svg width="100" height="100" style={{position:'absolute',top:0,left:0,transform:'rotate(-90deg)',pointerEvents:'none'}}>
                     <circle cx="50" cy="50" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5"/>
                     <circle
@@ -915,7 +915,7 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                         style={{filter:comboActive?`drop-shadow(0 0 6px ${ringColor})`:'none',transition:'stroke 0.3s'}}
                     />
                 </svg>
-                {/* Inner visual button — pointer-events none */}
+                {/* Inner visual button â€” pointer-events none */}
                 <div style={{
                     width:'76px', height:'76px', borderRadius:'50%',
                     background:comboActive
@@ -926,16 +926,16 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
                     pointerEvents:'none',
                     display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px',
                 }}>
-                    <span style={{fontSize:'20px',lineHeight:1}}>{gift.emoji||'🎁'}</span>
+                    <span style={{fontSize:'20px',lineHeight:1}}>{gift.emoji||'ðŸŽ'}</span>
                     <span style={{fontSize:'9px',fontWeight:800,color:'#fff',opacity:0.9}}>
-                        {lang==='ar'?'اضغط!':'TAP!'}
+                        {lang==='ar'?'Ø§Ø¶ØºØ·!':'TAP!'}
                     </span>
                 </div>
             </div>
 
             {totalBonus > 0 && (
                 <div style={{fontSize:'10px',fontWeight:800,color:'#4ade80',textAlign:'center'}}>
-                    +{fmtNum(totalBonus)} 🧠
+                    +{fmtNum(totalBonus)} ðŸ§ 
                 </div>
             )}
         </div>
@@ -943,4 +943,5 @@ const ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => 
 };
 
 
-// 🛒 SHOP MODAL
+// ðŸ›’ SHOP MODAL
+

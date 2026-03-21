@@ -1,17 +1,17 @@
-// ═══════════════════════════════════════════════════════════════
-// 🛒  SHOP MODAL — Premium Dark Gaming Store
-// ═══════════════════════════════════════════════════════════════
-const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard }) => {
+﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ›’  SHOP MODAL â€” Premium Dark Gaming Store
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+var hopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab] = useState('frames');
     const [selectedItem, setSelectedItem] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
-    // ✅ Gift filter state
+    // âœ… Gift filter state
     const [giftSort, setGiftSort] = useState('default');
     const [giftRarityFilter, setGiftRarityFilter] = useState('all');
     const [giftVIPOnly, setGiftVIPOnly] = useState(false);
     const [showGiftFilter, setShowGiftFilter] = useState(false);
-    // ✅ VIP confirmation dialog
+    // âœ… VIP confirmation dialog
     const [showVIPConfirm, setShowVIPConfirm] = useState(false);
 
     if (!show) return null;
@@ -61,18 +61,18 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                 ? <img src={src} alt={item.name_en} style={{width:'32px',height:'32px',objectFit:'contain',borderRadius:'6px'}} />
                 : <span style={{fontSize:'26px'}}>{item.preview}</span>;
         }
-        return <span style={{fontSize:'22px'}}>🎨</span>;
+        return <span style={{fontSize:'22px'}}>ðŸŽ¨</span>;
     };
 
-    // 🎁 تاب الهدايا أُزيل من الشوب — الهدايا متاحة فقط من البروفايل والشاتات
+    // ðŸŽ ØªØ§Ø¨ Ø§Ù„Ù‡Ø¯Ø§ÙŠØ§ Ø£ÙØ²ÙŠÙ„ Ù…Ù† Ø§Ù„Ø´ÙˆØ¨ â€” Ø§Ù„Ù‡Ø¯Ø§ÙŠØ§ Ù…ØªØ§Ø­Ø© ÙÙ‚Ø· Ù…Ù† Ø§Ù„Ø¨Ø±ÙˆÙØ§ÙŠÙ„ ÙˆØ§Ù„Ø´Ø§ØªØ§Øª
     const tabs = [
-        { id: 'red_packets',    icon: '🧧', label_ar: 'مغلفات',   label_en: 'Packets' },
-        { id: 'rings',          icon: '💍', label_ar: 'خواتم',     label_en: 'Rings'   },
-        { id: 'bff_tokens',     icon: '🤝', label_ar: 'BFF',       label_en: 'BFF'     },
-        { id: 'frames',         icon: '🖼️', label_ar: 'إطارات',   label_en: 'Frames'  },
-        { id: 'titles',         icon: '🏷️', label_ar: 'ألقاب',    label_en: 'Titles'  },
-        { id: 'badges',         icon: '🏅', label_ar: 'شارات',     label_en: 'Badges'  },
-        { id: 'profileEffects', icon: '✨', label_ar: 'تأثيرات',   label_en: 'Effects' },
+        { id: 'red_packets',    icon: 'ðŸ§§', label_ar: 'Ù…ØºÙ„ÙØ§Øª',   label_en: 'Packets' },
+        { id: 'rings',          icon: 'ðŸ’', label_ar: 'Ø®ÙˆØ§ØªÙ…',     label_en: 'Rings'   },
+        { id: 'bff_tokens',     icon: 'ðŸ¤', label_ar: 'BFF',       label_en: 'BFF'     },
+        { id: 'frames',         icon: 'ðŸ–¼ï¸', label_ar: 'Ø¥Ø·Ø§Ø±Ø§Øª',   label_en: 'Frames'  },
+        { id: 'titles',         icon: 'ðŸ·ï¸', label_ar: 'Ø£Ù„Ù‚Ø§Ø¨',    label_en: 'Titles'  },
+        { id: 'badges',         icon: 'ðŸ…', label_ar: 'Ø´Ø§Ø±Ø§Øª',     label_en: 'Badges'  },
+        { id: 'profileEffects', icon: 'âœ¨', label_ar: 'ØªØ£Ø«ÙŠØ±Ø§Øª',   label_en: 'Effects' },
     ];
 
     const getTabItems = (tab) => {
@@ -128,7 +128,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                 {/* Top accent line */}
                 <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:'linear-gradient(90deg,transparent,#00f2ff,#7c3aed,transparent)',zIndex:2}} />
 
-                {/* ══ HEADER ══ */}
+                {/* â•â• HEADER â•â• */}
                 <div style={{
                     background:'linear-gradient(135deg,rgba(0,242,255,0.055) 0%,rgba(112,0,255,0.055) 100%)',
                     borderBottom:'1px solid rgba(255,255,255,0.06)',
@@ -143,15 +143,15 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                             border:'1px solid rgba(0,242,255,0.2)',
                             display:'flex',alignItems:'center',justifyContent:'center',fontSize:'19px',
                             flexShrink:0,
-                        }}>🛒</div>
+                        }}>ðŸ›’</div>
                         <div>
                             <div style={{fontSize:'15px',fontWeight:900,color:'#f1f5f9',letterSpacing:'0.2px'}}>
-                                {t.shop || (lang==='ar'?'المتجر':'Store')}
+                                {t.shop || (lang==='ar'?'Ø§Ù„Ù…ØªØ¬Ø±':'Store')}
                             </div>
                             {vipLevel > 0 && (
                                 <div style={{fontSize:'9px',color:'#a78bfa',fontWeight:700,marginTop:'1px',display:'flex',alignItems:'center',gap:'4px'}}>
                                     <span style={{background:'rgba(124,58,237,0.22)',borderRadius:'4px',padding:'0 5px',lineHeight:'14px'}}>VIP {vipLevel}</span>
-                                    <span style={{color:'#4b5563'}}>{vipXpInfo.progress}% → VIP {vipLevel+1}</span>
+                                    <span style={{color:'#4b5563'}}>{vipXpInfo.progress}% â†’ VIP {vipLevel+1}</span>
                                 </div>
                             )}
                         </div>
@@ -163,26 +163,26 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                             border:'1px solid rgba(251,191,36,0.22)',
                             borderRadius:'10px',padding:'5px 10px',
                         }}>
-                            <span style={{fontSize:'13px'}}>🧠</span>
+                            <span style={{fontSize:'13px'}}>ðŸ§ </span>
                             <span style={{fontSize:'12px',fontWeight:800,color:'#fbbf24'}}>{currency.toLocaleString()}</span>
                         </div>
                         {onOpenInventory && (
                             <button onClick={() => { onClose(); setTimeout(onOpenInventory,100); }}
-                                title={lang==='ar'?'مخزوني':'My Inventory'}
+                                title={lang==='ar'?'Ù…Ø®Ø²ÙˆÙ†ÙŠ':'My Inventory'}
                                 style={{width:'34px',height:'34px',borderRadius:'10px',background:'rgba(0,242,255,0.07)',border:'1px solid rgba(0,242,255,0.18)',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
                                 onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,242,255,0.17)';e.currentTarget.style.transform='scale(1.06)';}}
                                 onMouseLeave={e=>{e.currentTarget.style.background='rgba(0,242,255,0.07)';e.currentTarget.style.transform='scale(1)';}}
-                            >🎒</button>
+                            >ðŸŽ’</button>
                         )}
                         <button onClick={onClose}
                             style={{width:'34px',height:'34px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',color:'#6b7280',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
                             onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.14)';e.currentTarget.style.color='#f87171';}}
                             onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.color='#6b7280';}}
-                        >✕</button>
+                        >âœ•</button>
                     </div>
                 </div>
 
-                {/* ══ TAB BAR ══ */}
+                {/* â•â• TAB BAR â•â• */}
                 <div style={{
                     display:'flex',overflowX:'auto',gap:'3px',
                     padding:'10px 10px 0',
@@ -209,13 +209,13 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                     })}
                 </div>
 
-                {/* ══ BODY ══ */}
+                {/* â•â• BODY â•â• */}
                 <div style={{
                     flex:1,overflowY:'auto',padding:'14px',
                     scrollbarWidth:'thin',scrollbarColor:'rgba(0,242,255,0.18) transparent',
                 }}>
 
-                    {/* ════ RINGS ════ */}
+                    {/* â•â•â•â• RINGS â•â•â•â• */}
                     {activeTab === 'rings' && (
                         <RingsShopSection
                             userData={userData} lang={lang} currentUID={currentUID}
@@ -224,7 +224,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                         />
                     )}
 
-                    {/* ════ BFF TOKENS ════ */}
+                    {/* â•â•â•â• BFF TOKENS â•â•â•â• */}
                     {activeTab === 'bff_tokens' && (
                         <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
                             {/* Info header */}
@@ -234,11 +234,11 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                 border:'1px solid rgba(167,139,250,0.3)',
                             }}>
                                 <div style={{fontSize:'13px',fontWeight:800,color:'#e9d5ff',marginBottom:'4px'}}>
-                                    🤝 {lang==='ar'?'توكنات BFF':'BFF Tokens'}
+                                    ðŸ¤ {lang==='ar'?'ØªÙˆÙƒÙ†Ø§Øª BFF':'BFF Tokens'}
                                 </div>
                                 <div style={{fontSize:'11px',color:'#9ca3af',lineHeight:1.5}}>
                                     {lang==='ar'
-                                        ? `اشترِ توكن لإنشاء علاقة صداقة. لديك ${BFF_CONFIG.freeSlots} خانات مجانية.`
+                                        ? `Ø§Ø´ØªØ±Ù ØªÙˆÙƒÙ† Ù„Ø¥Ù†Ø´Ø§Ø¡ Ø¹Ù„Ø§Ù‚Ø© ØµØ¯Ø§Ù‚Ø©. Ù„Ø¯ÙŠÙƒ ${BFF_CONFIG.freeSlots} Ø®Ø§Ù†Ø§Øª Ù…Ø¬Ø§Ù†ÙŠØ©.`
                                         : `Buy a token to create a friendship. You have ${BFF_CONFIG.freeSlots} free slots.`}
                                 </div>
                             </div>
@@ -275,14 +275,14 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                             </div>
                                             {myTokenCount > 0 && (
                                                 <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, marginTop:'3px'}}>
-                                                    ✅ {lang==='ar'?`لديك ${myTokenCount} توكن`:`You have ${myTokenCount} token(s)`}
+                                                    âœ… {lang==='ar'?`Ù„Ø¯ÙŠÙƒ ${myTokenCount} ØªÙˆÙƒÙ†`:`You have ${myTokenCount} token(s)`}
                                                 </div>
                                             )}
                                         </div>
                                         {/* Buy button */}
                                         <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
                                             <div style={{fontSize:'12px', fontWeight:800, color:'#fcd34d'}}>
-                                                {token.cost.toLocaleString()} 🧠
+                                                {token.cost.toLocaleString()} ðŸ§ 
                                             </div>
                                             <button
                                                 onClick={() => onPurchase && onPurchase(token)}
@@ -295,7 +295,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                     boxShadow:canAfford?`0 3px 12px ${token.glow}`:'none',
                                                     transition:'all 0.2s',
                                                 }}>
-                                                🤝 {lang==='ar'?'شراء':'Buy'}
+                                                ðŸ¤ {lang==='ar'?'Ø´Ø±Ø§Ø¡':'Buy'}
                                             </button>
                                         </div>
                                     </div>
@@ -304,12 +304,12 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                         </div>
                     )}
 
-                    {/* ════ RED PACKETS BUY ════ */}
+                    {/* â•â•â•â• RED PACKETS BUY â•â•â•â• */}
                     {activeTab === 'red_packets' && (
                         <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
                             <div style={{padding:'12px 14px',borderRadius:'14px',background:'linear-gradient(135deg,rgba(239,68,68,0.1),rgba(185,28,28,0.06))',border:'1px solid rgba(239,68,68,0.25)'}}>
-                                <div style={{fontSize:'13px',fontWeight:800,color:'#fca5a5',marginBottom:'4px'}}>🧧 {lang==='ar'?'مغلفات حمراء':'Red Packets'}</div>
-                                <div style={{fontSize:'11px',color:'#9ca3af',lineHeight:1.5}}>{lang==='ar'?'اشتر مغلفاً وأرسله لأصدقائك أو في الشات — يوزع الرصيد على المستلمين!':'Buy a packet and send it to friends or in chat — coins split among recipients!'}</div>
+                                <div style={{fontSize:'13px',fontWeight:800,color:'#fca5a5',marginBottom:'4px'}}>ðŸ§§ {lang==='ar'?'Ù…ØºÙ„ÙØ§Øª Ø­Ù…Ø±Ø§Ø¡':'Red Packets'}</div>
+                                <div style={{fontSize:'11px',color:'#9ca3af',lineHeight:1.5}}>{lang==='ar'?'Ø§Ø´ØªØ± Ù…ØºÙ„ÙØ§Ù‹ ÙˆØ£Ø±Ø³Ù„Ù‡ Ù„Ø£ØµØ¯Ù‚Ø§Ø¦Ùƒ Ø£Ùˆ ÙÙŠ Ø§Ù„Ø´Ø§Øª â€” ÙŠÙˆØ²Ø¹ Ø§Ù„Ø±ØµÙŠØ¯ Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø³ØªÙ„Ù…ÙŠÙ†!':'Buy a packet and send it to friends or in chat â€” coins split among recipients!'}</div>
                             </div>
                             {(typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : []).map(rp => {
                                 const canAfford = (userData?.currency || 0) >= rp.amount;
@@ -317,14 +317,14 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                     <div key={rp.id} style={{display:'flex',alignItems:'center',gap:'14px',padding:'14px 16px',borderRadius:'16px',background:rp.bg,border:`1px solid ${rp.border}`}}>
                                         {rp.imageURL
                                             ? <img src={rp.imageURL} alt="" style={{width:'50px',height:'50px',objectFit:'contain',flexShrink:0}}/>
-                                            : <div style={{width:'50px',height:'50px',borderRadius:'14px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',flexShrink:0}}>🧧</div>}
+                                            : <div style={{width:'50px',height:'50px',borderRadius:'14px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',flexShrink:0}}>ðŸ§§</div>}
                                         <div style={{flex:1,minWidth:0}}>
                                             <div style={{fontSize:'13px',fontWeight:800,color:rp.color,marginBottom:'2px'}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
                                             <div style={{fontSize:'10px',color:'#9ca3af',marginBottom:'2px'}}>{lang==='ar'?rp.desc_ar:rp.desc_en}</div>
-                                            <div style={{fontSize:'10px',color:'#fbbf24',fontWeight:700}}>{(rp.amount||0).toLocaleString()} 🧠 · {rp.maxClaims} {lang==='ar'?'استلام':'claims'}</div>
+                                            <div style={{fontSize:'10px',color:'#fbbf24',fontWeight:700}}>{(rp.amount||0).toLocaleString()} ðŸ§  Â· {rp.maxClaims} {lang==='ar'?'Ø§Ø³ØªÙ„Ø§Ù…':'claims'}</div>
                                         </div>
                                         <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
-                                            <div style={{fontSize:'12px',fontWeight:800,color:'#fbbf24'}}>{(rp.amount||0).toLocaleString()} 🧠</div>
+                                            <div style={{fontSize:'12px',fontWeight:800,color:'#fbbf24'}}>{(rp.amount||0).toLocaleString()} ðŸ§ </div>
                                             <button
                                                 onClick={async() => {
                                                     if(!canAfford||!currentUID) return;
@@ -338,7 +338,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                 }}
                                                 disabled={!canAfford}
                                                 style={{padding:'7px 14px',borderRadius:'10px',border:'none',cursor:canAfford?'pointer':'not-allowed',background:canAfford?`linear-gradient(135deg,${rp.color},${rp.color}88)`:'rgba(255,255,255,0.06)',color:canAfford?'#000':'#4b5563',fontSize:'11px',fontWeight:800,transition:'all 0.2s'}}>
-                                                🧧 {lang==='ar'?'شراء':'Buy'}
+                                                ðŸ§§ {lang==='ar'?'Ø´Ø±Ø§Ø¡':'Buy'}
                                             </button>
                                         </div>
                                     </div>
@@ -347,11 +347,11 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                         </div>
                     )}
 
-                    {/* ════ VIP ════ */}
+                    {/* â•â•â•â• VIP â•â•â•â• */}
                     {activeTab === 'vip' && (
                         <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
 
-                            {/* ── Hero banner ── */}
+                            {/* â”€â”€ Hero banner â”€â”€ */}
                             <div style={{
                                 borderRadius:'20px', overflow:'hidden', position:'relative',
                                 background:'linear-gradient(135deg,#1a0035 0%,#2d0060 40%,#1a0035 100%)',
@@ -374,11 +374,11 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                 display:'flex',alignItems:'center',justifyContent:'center',
                                                 fontSize:'28px',boxShadow:'0 4px 20px rgba(124,58,237,0.55)',
                                                 border:'2px solid rgba(196,181,253,0.3)',
-                                            }}>👑</div>
+                                            }}>ðŸ‘‘</div>
                                             <div>
                                                 <div style={{fontSize:'18px',fontWeight:900,color:'#f5f3ff',letterSpacing:'0.5px'}}>VIP</div>
                                                 <div style={{fontSize:'11px',color:'#a78bfa',fontWeight:600,marginTop:'1px'}}>
-                                                    {lang==='ar'?'نظام التميز الحصري':'Exclusive Premium System'}
+                                                    {lang==='ar'?'Ù†Ø¸Ø§Ù… Ø§Ù„ØªÙ…ÙŠØ² Ø§Ù„Ø­ØµØ±ÙŠ':'Exclusive Premium System'}
                                                 </div>
                                             </div>
                                         </div>
@@ -395,8 +395,8 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                     <div style={{marginBottom:'10px'}}>
                                         <div style={{display:'flex',justifyContent:'space-between',fontSize:'9px',color:'#7c3aed',fontWeight:700,marginBottom:'5px'}}>
                                             <span style={{color:'#a78bfa'}}>{(userData?.vip?.xp||0).toLocaleString()} XP</span>
-                                            {vipLevel<10&&<span style={{color:'#6b21a8'}}>{lang==='ar'?`الهدف: `:'Goal: '}{VIP_XP_THRESHOLDS[vipLevel+1]?.toLocaleString()} XP → VIP {vipLevel+1}</span>}
-                                            {vipLevel>=10&&<span style={{color:'#fbbf24',fontWeight:900}}>👑 MAX LEVEL</span>}
+                                            {vipLevel<10&&<span style={{color:'#6b21a8'}}>{lang==='ar'?`Ø§Ù„Ù‡Ø¯Ù: `:'Goal: '}{VIP_XP_THRESHOLDS[vipLevel+1]?.toLocaleString()} XP â†’ VIP {vipLevel+1}</span>}
+                                            {vipLevel>=10&&<span style={{color:'#fbbf24',fontWeight:900}}>ðŸ‘‘ MAX LEVEL</span>}
                                         </div>
                                         <div style={{height:'8px',borderRadius:'4px',background:'rgba(255,255,255,0.06)',overflow:'hidden',boxShadow:'inset 0 1px 3px rgba(0,0,0,0.4)'}}>
                                             <div style={{
@@ -414,12 +414,12 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                     {/* Feature pills */}
                                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
                                         {[
-                                            {icon:'🎨',ar:'اسم ملون مميز',en:'Colored VIP Name'},
-                                            {icon:'⚡',ar:'مضاعف XP ×1.2',en:'1.2× XP Multiplier'},
-                                            {icon:'🏅',ar:'بادج VIP حصري',en:'Exclusive VIP Badge'},
-                                            {icon:'🎁',ar:'هدايا VIP مقفلة',en:'Locked VIP Gifts'},
-                                            {icon:'🔥',ar:'ترقية حتى VIP 10',en:'Rank up to VIP 10'},
-                                            {icon:'💎',ar:'مزايا حصرية للمستوى',en:'Level-exclusive perks'},
+                                            {icon:'ðŸŽ¨',ar:'Ø§Ø³Ù… Ù…Ù„ÙˆÙ† Ù…Ù…ÙŠØ²',en:'Colored VIP Name'},
+                                            {icon:'âš¡',ar:'Ù…Ø¶Ø§Ø¹Ù XP Ã—1.2',en:'1.2Ã— XP Multiplier'},
+                                            {icon:'ðŸ…',ar:'Ø¨Ø§Ø¯Ø¬ VIP Ø­ØµØ±ÙŠ',en:'Exclusive VIP Badge'},
+                                            {icon:'ðŸŽ',ar:'Ù‡Ø¯Ø§ÙŠØ§ VIP Ù…Ù‚ÙÙ„Ø©',en:'Locked VIP Gifts'},
+                                            {icon:'ðŸ”¥',ar:'ØªØ±Ù‚ÙŠØ© Ø­ØªÙ‰ VIP 10',en:'Rank up to VIP 10'},
+                                            {icon:'ðŸ’Ž',ar:'Ù…Ø²Ø§ÙŠØ§ Ø­ØµØ±ÙŠØ© Ù„Ù„Ù…Ø³ØªÙˆÙ‰',en:'Level-exclusive perks'},
                                         ].map((f,i)=>(
                                             <div key={i} style={{
                                                 display:'flex',alignItems:'center',gap:'7px',
@@ -436,7 +436,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                 </div>
                             </div>
 
-                            {/* ── Status + Action card ── */}
+                            {/* â”€â”€ Status + Action card â”€â”€ */}
                             {vipLevel >= 1 ? (
                                 <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
                                     {vipDaysLeft !== null && (
@@ -454,13 +454,13 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                         width:'38px',height:'38px',borderRadius:'10px',
                                                         background:vipDaysLeft<=5?'rgba(239,68,68,0.18)':'rgba(74,222,128,0.15)',
                                                         display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',
-                                                    }}>{vipDaysLeft<=5?'⚠️':'🛡️'}</div>
+                                                    }}>{vipDaysLeft<=5?'âš ï¸':'ðŸ›¡ï¸'}</div>
                                                     <div>
                                                         <div style={{fontSize:'12px',color:vipDaysLeft<=5?'#f87171':'#4ade80',fontWeight:800}}>
-                                                            {lang==='ar'?'الوقت المتبقي':'Time Remaining'}
+                                                            {lang==='ar'?'Ø§Ù„ÙˆÙ‚Øª Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ':'Time Remaining'}
                                                         </div>
                                                         <div style={{fontSize:'9px',color:'#6b7280',marginTop:'1px'}}>
-                                                            {vipDaysLeft<=5?(lang==='ar'?'⚡ سينتهي قريباً!':'⚡ Expiring soon!'):(lang==='ar'?'✓ VIP نشط':'✓ VIP Active')}
+                                                            {vipDaysLeft<=5?(lang==='ar'?'âš¡ Ø³ÙŠÙ†ØªÙ‡ÙŠ Ù‚Ø±ÙŠØ¨Ø§Ù‹!':'âš¡ Expiring soon!'):(lang==='ar'?'âœ“ VIP Ù†Ø´Ø·':'âœ“ VIP Active')}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -470,7 +470,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                         color:vipDaysLeft<=5?'#f87171':'#4ade80',
                                                         textShadow:vipDaysLeft<=5?'0 0 16px rgba(239,68,68,0.6)':'0 0 16px rgba(74,222,128,0.5)',
                                                     }}>{vipDaysLeft}</span>
-                                                    <div style={{fontSize:'10px',color:'#9ca3af',fontWeight:700}}>{lang==='ar'?'يوم':'days'}</div>
+                                                    <div style={{fontSize:'10px',color:'#9ca3af',fontWeight:700}}>{lang==='ar'?'ÙŠÙˆÙ…':'days'}</div>
                                                 </div>
                                             </div>
                                             <div style={{height:'4px',background:'rgba(255,255,255,0.04)'}}>
@@ -484,9 +484,9 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                         background:(vipDaysLeft!==null&&vipDaysLeft>0)?'rgba(74,222,128,0.07)':'rgba(239,68,68,0.07)',
                                         border:(vipDaysLeft!==null&&vipDaysLeft>0)?'1px solid rgba(74,222,128,0.25)':'1px solid rgba(239,68,68,0.22)',
                                     }}>
-                                        <span style={{fontSize:'16px'}}>{(vipDaysLeft!==null&&vipDaysLeft>0)?'✅':'❌'}</span>
+                                        <span style={{fontSize:'16px'}}>{(vipDaysLeft!==null&&vipDaysLeft>0)?'âœ…':'âŒ'}</span>
                                         <span style={{fontWeight:900,fontSize:'13px',color:(vipDaysLeft!==null&&vipDaysLeft>0)?'#4ade80':'#f87171'}}>
-                                            {(vipDaysLeft!==null&&vipDaysLeft>0)?(lang==='ar'?'🔥 VIP مفعّل':'🔥 VIP ACTIVE'):(lang==='ar'?'VIP منتهي':'VIP EXPIRED')}
+                                            {(vipDaysLeft!==null&&vipDaysLeft>0)?(lang==='ar'?'ðŸ”¥ VIP Ù…ÙØ¹Ù‘Ù„':'ðŸ”¥ VIP ACTIVE'):(lang==='ar'?'VIP Ù…Ù†ØªÙ‡ÙŠ':'VIP EXPIRED')}
                                         </span>
                                     </div>
                                     <button
@@ -505,8 +505,8 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                         {currency>=50000&&<div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)',animation:'shimmer 2s infinite'}}/>}
                                         <span style={{position:'relative'}}>
                                             {currency>=50000
-                                                ?`🔄 ${lang==='ar'?'تجديد +30 يوم':'Renew +30 days'} — 50,000 🧠`
-                                                :`❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠`}
+                                                ?`ðŸ”„ ${lang==='ar'?'ØªØ¬Ø¯ÙŠØ¯ +30 ÙŠÙˆÙ…':'Renew +30 days'} â€” 50,000 ðŸ§ `
+                                                :`âŒ ${lang==='ar'?'ØªØ­ØªØ§Ø¬':'Need'} 50,000 ðŸ§ `}
                                         </span>
                                     </button>
                                 </div>
@@ -517,9 +517,9 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                         background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.18)',
                                         fontSize:'11px',color:'#fca5a5',textAlign:'center',lineHeight:1.6,
                                     }}>
-                                        🎁 {lang==='ar'
-                                            ?'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر ارتفع مستواك!'
-                                            :'Every gift you send earns VIP XP — the more you give, the higher you level!'}
+                                        ðŸŽ {lang==='ar'
+                                            ?'ÙƒÙ„ Ù‡Ø¯ÙŠØ© ØªØ±Ø³Ù„Ù‡Ø§ ØªÙ…Ù†Ø­Ùƒ VIP XP â€” ÙƒÙ„Ù…Ø§ Ø£Ø±Ø³Ù„Øª Ø£ÙƒØ«Ø± Ø§Ø±ØªÙØ¹ Ù…Ø³ØªÙˆØ§Ùƒ!'
+                                            :'Every gift you send earns VIP XP â€” the more you give, the higher you level!'}
                                     </div>
                                     <button
                                         onClick={()=>{ if(currency>=50000) setShowVIPConfirm(true); }}
@@ -536,14 +536,14 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                         {currency>=50000&&<div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)',animation:'shimmer 2s infinite'}}/>}
                                         <span style={{position:'relative'}}>
                                             {currency>=50000
-                                                ?`👑 ${lang==='ar'?'اشترِ VIP 1':'Buy VIP 1'} — 50,000 🧠`
-                                                :`❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠 (${lang==='ar'?'لديك':'Have'}: ${currency.toLocaleString()})`}
+                                                ?`ðŸ‘‘ ${lang==='ar'?'Ø§Ø´ØªØ±Ù VIP 1':'Buy VIP 1'} â€” 50,000 ðŸ§ `
+                                                :`âŒ ${lang==='ar'?'ØªØ­ØªØ§Ø¬':'Need'} 50,000 ðŸ§  (${lang==='ar'?'Ù„Ø¯ÙŠÙƒ':'Have'}: ${currency.toLocaleString()})`}
                                         </span>
                                     </button>
                                 </div>
                             )}
 
-                            {/* ── Level table ── */}
+                            {/* â”€â”€ Level table â”€â”€ */}
                             <div style={{borderRadius:'16px',overflow:'hidden',border:'1px solid rgba(124,58,237,0.2)',background:'rgba(0,0,0,0.22)'}}>
                                 <div style={{
                                     padding:'11px 16px',borderBottom:'1px solid rgba(124,58,237,0.15)',
@@ -551,7 +551,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                     display:'flex',alignItems:'center',gap:'7px',
                                     background:'rgba(124,58,237,0.06)',
                                 }}>
-                                    📊 {lang==='ar'?'جدول مستويات VIP':'VIP Level Table'}
+                                    ðŸ“Š {lang==='ar'?'Ø¬Ø¯ÙˆÙ„ Ù…Ø³ØªÙˆÙŠØ§Øª VIP':'VIP Level Table'}
                                 </div>
                                 {VIP_CONFIG.map(cfg => {
                                     const isCurrentLevel = vipLevel===cfg.level;
@@ -567,7 +567,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                 minWidth:'46px',fontWeight:900,fontSize:'11px',
                                                 color:isCurrentLevel?cfg.nameColor:isPassed?'#4ade80':'#2d3748',
                                             }}>
-                                                {isPassed?'✅':isCurrentLevel?'▶':''} VIP {cfg.level}
+                                                {isPassed?'âœ…':isCurrentLevel?'â–¶':''} VIP {cfg.level}
                                             </span>
                                             <div style={{flex:1,height:'5px',borderRadius:'3px',background:'rgba(255,255,255,0.04)',overflow:'hidden'}}>
                                                 <div style={{
@@ -588,7 +588,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                         </div>
                     )}
 
-                    {/* ════ ITEMS GRID ════ */}
+                    {/* â•â•â•â• ITEMS GRID â•â•â•â• */}
                     {activeTab !== 'vip' && activeTab !== 'rings' && activeTab !== 'bff_tokens' && activeTab !== 'red_packets' && (
                         <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
 
@@ -603,7 +603,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                             border:showGiftFilter?'1px solid rgba(0,242,255,0.28)':'1px solid rgba(255,255,255,0.07)',
                                             color:showGiftFilter?'#00f2ff':'#4b6070',cursor:'pointer',transition:'all 0.15s',
                                         }}>
-                                            🔍 {lang==='ar'?'فلتر':'Filter'}
+                                            ðŸ” {lang==='ar'?'ÙÙ„ØªØ±':'Filter'}
                                             {(giftRarityFilter!=='all'||giftVIPOnly||giftSort!=='default')&&(
                                                 <span style={{background:'#ef4444',color:'#fff',borderRadius:'50%',width:'14px',height:'14px',fontSize:'8px',fontWeight:900,display:'flex',alignItems:'center',justifyContent:'center'}}>!</span>
                                             )}
@@ -615,7 +615,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                 border:giftSort===s?'1px solid rgba(251,191,36,0.32)':'1px solid rgba(255,255,255,0.06)',
                                                 color:giftSort===s?'#fbbf24':'#4b6070',cursor:'pointer',transition:'all 0.15s',
                                             }}>
-                                                {s==='default'?(lang==='ar'?'افتراضي':'Default'):s==='price_asc'?'↑ '+(lang==='ar'?'سعر':'Price'):'↓ '+(lang==='ar'?'سعر':'Price')}
+                                                {s==='default'?(lang==='ar'?'Ø§ÙØªØ±Ø§Ø¶ÙŠ':'Default'):s==='price_asc'?'â†‘ '+(lang==='ar'?'Ø³Ø¹Ø±':'Price'):'â†“ '+(lang==='ar'?'Ø³Ø¹Ø±':'Price')}
                                             </button>
                                         ))}
                                     </div>
@@ -623,7 +623,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                         <div style={{background:'rgba(0,0,0,0.28)',border:'1px solid rgba(255,255,255,0.065)',borderRadius:'12px',padding:'12px',display:'flex',flexDirection:'column',gap:'10px'}}>
                                             <div>
                                                 <div style={{fontSize:'9px',color:'#4b6070',fontWeight:700,marginBottom:'5px',textTransform:'uppercase',letterSpacing:'0.5px'}}>
-                                                    {lang==='ar'?'🎨 النادرية':'🎨 Rarity'}
+                                                    {lang==='ar'?'ðŸŽ¨ Ø§Ù„Ù†Ø§Ø¯Ø±ÙŠØ©':'ðŸŽ¨ Rarity'}
                                                 </div>
                                                 <div style={{display:'flex',flexWrap:'wrap',gap:'4px'}}>
                                                     {['all','Common','Uncommon','Rare','Epic','Legendary','Mythic'].map(r=>{
@@ -635,7 +635,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                                 border:giftRarityFilter===r?`1px solid ${rc.border||'#00f2ff'}`:'1px solid rgba(255,255,255,0.06)',
                                                                 color:giftRarityFilter===r?(rc.color||'#00f2ff'):'#4b6070',
                                                             }}>
-                                                                {r==='all'?(lang==='ar'?'الكل':'All'):(rc.icon||'')+' '+(lang==='ar'?(RARITY_CONFIG[r]?.name_ar||r):(RARITY_CONFIG[r]?.name_en||r))}
+                                                                {r==='all'?(lang==='ar'?'Ø§Ù„ÙƒÙ„':'All'):(rc.icon||'')+' '+(lang==='ar'?(RARITY_CONFIG[r]?.name_ar||r):(RARITY_CONFIG[r]?.name_en||r))}
                                                             </button>
                                                         );
                                                     })}
@@ -648,14 +648,14 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                     border:giftVIPOnly?'1px solid rgba(239,68,68,0.3)':'1px solid rgba(255,255,255,0.06)',
                                                     color:giftVIPOnly?'#ef4444':'#4b6070',
                                                 }}>
-                                                    👑 {lang==='ar'?'هدايا VIP فقط':'VIP Gifts Only'}
+                                                    ðŸ‘‘ {lang==='ar'?'Ù‡Ø¯Ø§ÙŠØ§ VIP ÙÙ‚Ø·':'VIP Gifts Only'}
                                                 </button>
                                                 {(giftRarityFilter!=='all'||giftVIPOnly||giftSort!=='default')&&(
                                                     <button onClick={()=>{setGiftRarityFilter('all');setGiftVIPOnly(false);setGiftSort('default');}} style={{
                                                         padding:'4px 9px',borderRadius:'6px',fontSize:'9px',fontWeight:700,cursor:'pointer',
                                                         background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.22)',color:'#f87171',
                                                     }}>
-                                                        ✕ {lang==='ar'?'مسح الفلاتر':'Clear'}
+                                                        âœ• {lang==='ar'?'Ù…Ø³Ø­ Ø§Ù„ÙÙ„Ø§ØªØ±':'Clear'}
                                                     </button>
                                                 )}
                                             </div>
@@ -716,9 +716,9 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                 onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
                                             >
                                                 <span style={{position:'absolute',top:'3px',left:'3px',fontSize:'8px'}}>{rarity.icon}</span>
-                                                {isEventItem&&<span className="shop-event-tag">⚡</span>}
-                                                {isLimited  &&<span className="shop-limited-tag">⏳</span>}
-                                                {/* ✅ FIX 4: Show timer badge for durationDays gifts */}
+                                                {isEventItem&&<span className="shop-event-tag">âš¡</span>}
+                                                {isLimited  &&<span className="shop-limited-tag">â³</span>}
+                                                {/* âœ… FIX 4: Show timer badge for durationDays gifts */}
                                                 {item.durationDays&&!isLimited&&(
                                                     <span style={{position:'absolute',bottom:'3px',left:'3px',fontSize:'6px',fontWeight:900,background:'rgba(245,158,11,0.85)',color:'#000',padding:'1px 3px',borderRadius:'3px'}}>
                                                         {item.durationDays}d
@@ -733,18 +733,18 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                                     ?<img src={item.imageUrl} alt="" style={{width:'32px',height:'32px',objectFit:'contain',marginBottom:'2px'}}/>
                                                     :<span style={{fontSize:'26px',lineHeight:1,marginBottom:'2px'}}>{item.emoji}</span>
                                                 }
-                                                <div style={{fontSize:'9px',fontWeight:800,color:'#fbbf24'}}>{item.cost.toLocaleString()}🧠</div>
-                                                <div style={{fontSize:'8px',color:'#9ca3af'}}>+{formatCharisma(item.charisma)}⭐</div>
+                                                <div style={{fontSize:'9px',fontWeight:800,color:'#fbbf24'}}>{item.cost.toLocaleString()}ðŸ§ </div>
+                                                <div style={{fontSize:'8px',color:'#9ca3af'}}>+{formatCharisma(item.charisma)}â­</div>
                                                 <div style={{fontSize:'7px',color:'#a78bfa',fontWeight:700}}>+{getGiftVIPXP(item)} VXP</div>
                                                 {isVIPLocked&&(
                                                     <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.62)',borderRadius:'10px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'2px'}}>
-                                                        <span style={{fontSize:'16px'}}>🔒</span>
+                                                        <span style={{fontSize:'16px'}}>ðŸ”’</span>
                                                         <span style={{fontSize:'7px',color:vipGlowColor,fontWeight:800}}>VIP {vipRequired}+</span>
                                                     </div>
                                                 )}
                                                 {isEventOnly&&!isVIPLocked&&(
                                                     <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.55)',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                                                        <span style={{fontSize:'18px'}}>🔒</span>
+                                                        <span style={{fontSize:'18px'}}>ðŸ”’</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -771,21 +771,21 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
                                             onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
                                         >
                                             <span style={{position:'absolute',top:'3px',left:'3px',fontSize:'8px'}}>{rarity2.icon}</span>
-                                            {item.isEvent    &&<span className="shop-event-tag">⚡</span>}
-                                            {item.limitedTime&&<span className="shop-limited-tag">⏳</span>}
+                                            {item.isEvent    &&<span className="shop-event-tag">âš¡</span>}
+                                            {item.limitedTime&&<span className="shop-limited-tag">â³</span>}
                                             {equippedItem&&<div style={{position:'absolute',top:'4px',right:'4px',width:'7px',height:'7px',borderRadius:'50%',background:'#00f2ff',boxShadow:'0 0 6px #00f2ff'}}/>}
                                             <div style={{marginTop:'4px'}}>{renderPreview(item)}</div>
                                             <div style={{fontSize:'9px',fontWeight:700,color:equippedItem?'#00f2ff':'#d1d5db',textAlign:'center',lineHeight:1.3,maxWidth:'90px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                                                 {lang==='ar'?item.name_ar:item.name_en}
                                             </div>
                                             {item.eventOnly ? (
-                                                <div style={{fontSize:'8px',color:'#7c3aed',fontWeight:700}}>🔒 Event</div>
+                                                <div style={{fontSize:'8px',color:'#7c3aed',fontWeight:700}}>ðŸ”’ Event</div>
                                             ) : owned ? (
                                                 equippedItem
                                                     ?<button onClick={e=>{e.stopPropagation();onUnequip(item.type,item.id);}} style={{width:'100%',fontSize:'8px',padding:'3px 0',borderRadius:'5px',background:'rgba(239,68,68,0.13)',border:'1px solid rgba(239,68,68,0.32)',color:'#f87171',cursor:'pointer',fontWeight:700,transition:'all 0.12s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.22)';}} onMouseLeave={e=>{e.currentTarget.style.background='rgba(239,68,68,0.13)';}}>{t.unequip}</button>
                                                     :<button onClick={e=>{e.stopPropagation();onEquip(item);}} style={{width:'100%',fontSize:'8px',padding:'3px 0',borderRadius:'5px',background:'rgba(74,222,128,0.13)',border:'1px solid rgba(74,222,128,0.32)',color:'#4ade80',cursor:'pointer',fontWeight:700,transition:'all 0.12s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(74,222,128,0.22)';}} onMouseLeave={e=>{e.currentTarget.style.background='rgba(74,222,128,0.13)';}}>{t.equip}</button>
                                             ) : (
-                                                <div style={{fontSize:'9px',color:'#fbbf24',fontWeight:800}}>{item.cost.toLocaleString()}🧠</div>
+                                                <div style={{fontSize:'9px',color:'#fbbf24',fontWeight:800}}>{item.cost.toLocaleString()}ðŸ§ </div>
                                             )}
                                         </div>
                                     );
@@ -797,20 +797,20 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
             </div>
         </div>
 
-        {/* ── VIP Confirm Dialog ── */}
+        {/* â”€â”€ VIP Confirm Dialog â”€â”€ */}
         {showVIPConfirm && ReactDOM.createPortal(
             <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.76)',backdropFilter:'blur(7px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH}}
                 onClick={()=>setShowVIPConfirm(false)}>
                 <div style={{background:'linear-gradient(135deg,#1a0533,#0d0d2b)',border:'2px solid #a855f7',borderRadius:'20px',padding:'28px',maxWidth:'300px',width:'90%',textAlign:'center',boxShadow:'0 0 60px rgba(168,85,247,0.28)'}}
                     onClick={e=>e.stopPropagation()}>
-                    <div style={{fontSize:'44px',marginBottom:'10px'}}>👑</div>
+                    <div style={{fontSize:'44px',marginBottom:'10px'}}>ðŸ‘‘</div>
                     <div style={{color:'#e9d5ff',fontWeight:900,fontSize:'17px',marginBottom:'8px'}}>
                         {hasVIP?(t.renewVIP||'Renew VIP?'):(t.activateVIP||'Activate VIP?')}
                     </div>
                     <div style={{color:'#a78bfa',fontSize:'12px',marginBottom:'14px',lineHeight:1.6}}>
                         {hasVIP?(t.renewVIPDesc||'Add 30 more days to your VIP status.'):(t.activateVIPDesc||'Get 30 days of VIP perks + 5,000 XP bonus!')}
                     </div>
-                    <div style={{color:'#fbbf24',fontWeight:900,fontSize:'18px',marginBottom:'22px',textShadow:'0 0 12px rgba(251,191,36,0.38)'}}>50,000 🧠</div>
+                    <div style={{color:'#fbbf24',fontWeight:900,fontSize:'18px',marginBottom:'22px',textShadow:'0 0 12px rgba(251,191,36,0.38)'}}>50,000 ðŸ§ </div>
                     <div style={{display:'flex',gap:'10px',justifyContent:'center'}}>
                         <button onClick={()=>setShowVIPConfirm(false)} style={{padding:'10px 20px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'#9ca3af',fontWeight:600,cursor:'pointer'}}>{t.cancel||'Cancel'}</button>
                         <button onClick={()=>{setShowVIPConfirm(false);onBuyVIP();}} style={{padding:'10px 24px',borderRadius:'10px',border:'none',background:'linear-gradient(135deg,#7c3aed,#a855f7)',color:'#fff',fontWeight:800,cursor:'pointer',boxShadow:'0 0 20px rgba(168,85,247,0.45)',fontSize:'14px'}}>{t.confirm||'Confirm'}</button>
@@ -820,7 +820,7 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
             document.body
         )}
 
-        {/* ── Gift Preview Modal ── */}
+        {/* â”€â”€ Gift Preview Modal â”€â”€ */}
         {showPreview && selectedItem && ReactDOM.createPortal(
             <GiftPreviewModal
                 show={showPreview}
@@ -840,8 +840,8 @@ const ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequ
 };
 
 
-// ─── Reclaim Sent Packets Component ───
-const ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets, loadingSent, setLoadingSent }) => {
+// â”€â”€â”€ Reclaim Sent Packets Component â”€â”€â”€
+var eclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets, loadingSent, setLoadingSent }) => {
     const [loaded, setLoaded] = React.useState(false);
 
     const loadSent = async () => {
@@ -864,20 +864,20 @@ const ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets,
 
     if (!loaded) return (
         <button onClick={loadSent} disabled={loadingSent} style={{padding:'8px 14px',borderRadius:'10px',border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.06)',color:'#f87171',fontSize:'11px',fontWeight:700,cursor:'pointer',textAlign:'center',width:'100%'}}>
-            {loadingSent ? '⏳ ...' : `🔄 ${lang==='ar'?'عرض المغلفات المرسلة (استرداد)':'Show Sent Packets (Reclaim)'}`}
+            {loadingSent ? 'â³ ...' : `ðŸ”„ ${lang==='ar'?'Ø¹Ø±Ø¶ Ø§Ù„Ù…ØºÙ„ÙØ§Øª Ø§Ù„Ù…Ø±Ø³Ù„Ø© (Ø§Ø³ØªØ±Ø¯Ø§Ø¯)':'Show Sent Packets (Reclaim)'}`}
         </button>
     );
 
     if (sentPackets.length === 0) return (
         <div style={{textAlign:'center',fontSize:'10px',color:'#4b5563',padding:'6px'}}>
-            {lang==='ar'?'لا مغلفات مرسلة بانتظار الاستلام':'No sent packets awaiting claim'}
+            {lang==='ar'?'Ù„Ø§ Ù…ØºÙ„ÙØ§Øª Ù…Ø±Ø³Ù„Ø© Ø¨Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…':'No sent packets awaiting claim'}
         </div>
     );
 
     return (
         <div style={{display:'flex',flexDirection:'column',gap:'6px',marginTop:'4px'}}>
             <div style={{fontSize:'11px',fontWeight:700,color:'#f87171',marginBottom:'2px'}}>
-                🔄 {lang==='ar'?'مغلفات مرسلة — يمكنك استردادها':'Sent Packets — Reclaim if unclaimed'}
+                ðŸ”„ {lang==='ar'?'Ù…ØºÙ„ÙØ§Øª Ù…Ø±Ø³Ù„Ø© â€” ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ø³ØªØ±Ø¯Ø§Ø¯Ù‡Ø§':'Sent Packets â€” Reclaim if unclaimed'}
             </div>
             {sentPackets.map(sp => {
                 const RPC = typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
@@ -885,11 +885,11 @@ const ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets,
                 const color = cfg?.color || '#ef4444';
                 return (
                     <div key={sp.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'12px',background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.2)'}}>
-                        <div style={{fontSize:'22px'}}>🧧</div>
+                        <div style={{fontSize:'22px'}}>ðŸ§§</div>
                         <div style={{flex:1,minWidth:0}}>
-                            <div style={{fontSize:'11px',fontWeight:700,color}}>{sp.amount?.toLocaleString()} 🧠</div>
+                            <div style={{fontSize:'11px',fontWeight:700,color}}>{sp.amount?.toLocaleString()} ðŸ§ </div>
                             <div style={{fontSize:'9px',color:'#6b7280',marginTop:'1px'}}>
-                                {lang==='ar'?'لـ:':'To:'} {sp.targetType==='family'?(lang==='ar'?'شات القبيلة':'Family Chat'):sp.targetName||'DM'}
+                                {lang==='ar'?'Ù„Ù€:':'To:'} {sp.targetType==='family'?(lang==='ar'?'Ø´Ø§Øª Ø§Ù„Ù‚Ø¨ÙŠÙ„Ø©':'Family Chat'):sp.targetName||'DM'}
                             </div>
                         </div>
                         <button onClick={async()=>{
@@ -908,7 +908,7 @@ const ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets,
                                 setSentPackets(prev => prev.filter(p => p.id !== sp.id));
                             } catch(e){}
                         }} style={{padding:'5px 12px',borderRadius:'8px',background:'linear-gradient(135deg,rgba(239,68,68,0.2),rgba(185,28,28,0.15))',border:'1px solid rgba(239,68,68,0.35)',color:'#f87171',fontSize:'10px',fontWeight:800,cursor:'pointer',flexShrink:0}}>
-                            ↩ {lang==='ar'?'استرداد':'Reclaim'}
+                            â†© {lang==='ar'?'Ø§Ø³ØªØ±Ø¯Ø§Ø¯':'Reclaim'}
                         </button>
                     </div>
                 );
@@ -917,10 +917,10 @@ const ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets,
     );
 };
 
-// ═══════════════════════════════════════════════════════════════
-// 📦  INVENTORY MODAL — Premium Dark Collection Viewer
-// ═══════════════════════════════════════════════════════════════
-const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData, user, coupleData, onOpenCoupleCard, onPropose }) => {
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ“¦  INVENTORY MODAL â€” Premium Dark Collection Viewer
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+var nventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData, user, coupleData, onOpenCoupleCard, onPropose }) => {
     const t = TRANSLATIONS[lang];
     const [activeTab, setActiveTab]       = useState('frames');
     const [rpSendTarget, setRpSendTarget] = useState(null); // 'self' | 'family' | friendUID
@@ -929,7 +929,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     const [loadingSent, setLoadingSent]   = useState(false);
     const [selectedGift, setSelectedGift] = useState(null);
     const [showGiftPreview, setShowGiftPreview] = useState(false);
-    // ✅ FIX 2: item details popup
+    // âœ… FIX 2: item details popup
     const [detailItem, setDetailItem]     = useState(null);
 
     if (!show) return null;
@@ -958,7 +958,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     };
     const getEquippedBadgeCount = () => { const eb=equipped.badges||[]; return Array.isArray(eb)?eb.length:(equipped.badges?1:0); };
 
-    // ✅ FIX 2: days remaining helper
+    // âœ… FIX 2: days remaining helper
     const getDaysLeft = (itemId) => {
         const exp = expiry[itemId];
         if (!exp) return null;
@@ -978,10 +978,10 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
             const src=typeof item.particles==='string'&&item.particles.startsWith('http')?item.particles:(item.imageUrl||null);
             return src?<img src={src} alt={item.name_en} style={{width:'38px',height:'38px',objectFit:'contain',borderRadius:'6px'}}/>:<span style={{fontSize:'28px',lineHeight:1}}>{item.preview}</span>;
         }
-        return <span style={{fontSize:'24px'}}>🎨</span>;
+        return <span style={{fontSize:'24px'}}>ðŸŽ¨</span>;
     };
 
-    // ✅ FIX 2: Item Details Popup Component
+    // âœ… FIX 2: Item Details Popup Component
     const ItemDetailPopup = ({ item, onClose: closePopup }) => {
         if (!item) return null;
         const daysLeft = getDaysLeft(item.id);
@@ -1021,12 +1021,12 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                             background: daysLeft <= 3 ? 'rgba(239,68,68,0.1)' : daysLeft <= 7 ? 'rgba(245,158,11,0.1)' : 'rgba(74,222,128,0.08)',
                             border: daysLeft <= 3 ? '1px solid rgba(239,68,68,0.3)' : daysLeft <= 7 ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(74,222,128,0.22)',
                         }}>
-                            <span style={{fontSize:'14px'}}>{daysLeft===0?'❌':daysLeft<=3?'⚠️':daysLeft<=7?'⏳':'✅'}</span>
+                            <span style={{fontSize:'14px'}}>{daysLeft===0?'âŒ':daysLeft<=3?'âš ï¸':daysLeft<=7?'â³':'âœ…'}</span>
                             <span style={{fontSize:'11px',fontWeight:700,color:daysLeft===0?'#f87171':daysLeft<=3?'#f87171':daysLeft<=7?'#fbbf24':'#4ade80'}}>
                                 {daysLeft===0
-                                    ?(lang==='ar'?'انتهت الصلاحية':'Expired')
+                                    ?(lang==='ar'?'Ø§Ù†ØªÙ‡Øª Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ©':'Expired')
                                     :lang==='ar'
-                                        ?`تنتهي بعد ${daysLeft} يوم`
+                                        ?`ØªÙ†ØªÙ‡ÙŠ Ø¨Ø¹Ø¯ ${daysLeft} ÙŠÙˆÙ…`
                                         :`Expires in ${daysLeft} day${daysLeft===1?'':'s'}`}
                             </span>
                         </div>
@@ -1037,9 +1037,9 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                             padding:'6px 10px',borderRadius:'8px',marginBottom:'10px',
                             background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',
                         }}>
-                            <span style={{fontSize:'12px'}}>♾️</span>
+                            <span style={{fontSize:'12px'}}>â™¾ï¸</span>
                             <span style={{fontSize:'10px',color:'#a78bfa',fontWeight:600}}>
-                                {lang==='ar'?'دائم — لا ينتهي':'Permanent — never expires'}
+                                {lang==='ar'?'Ø¯Ø§Ø¦Ù… â€” Ù„Ø§ ÙŠÙ†ØªÙ‡ÙŠ':'Permanent â€” never expires'}
                             </span>
                         </div>
                     )}
@@ -1049,7 +1049,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                         background:'rgba(255,255,255,0.06)',color:'#9ca3af',
                         fontSize:'12px',fontWeight:700,cursor:'pointer',
                     }}>
-                        {lang==='ar'?'إغلاق':'Close'}
+                        {lang==='ar'?'Ø¥ØºÙ„Ø§Ù‚':'Close'}
                     </button>
                 </div>
             </div>
@@ -1057,13 +1057,13 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     };
 
     const TABS = [
-        {id:'red_packets',    icon:'🧧', label_ar:'مغلفاتي',  label_en:'Packets' },
-        {id:'frames',         icon:'🖼️', label_ar:'إطارات',   label_en:'Frames'  },
-        {id:'titles',         icon:'🏷️', label_ar:'ألقاب',    label_en:'Titles'  },
-        {id:'badges',         icon:'🏅', label_ar:'شارات',     label_en:'Badges'  },
-        {id:'profileEffects', icon:'✨', label_ar:'تأثيرات',   label_en:'Effects' },
-        {id:'gifts',          icon:'🎁', label_ar:'هدايا',     label_en:'Gifts'   },
-        {id:'rings',          icon:'💍', label_ar:'خواتم',     label_en:'Rings'   },
+        {id:'red_packets',    icon:'ðŸ§§', label_ar:'Ù…ØºÙ„ÙØ§ØªÙŠ',  label_en:'Packets' },
+        {id:'frames',         icon:'ðŸ–¼ï¸', label_ar:'Ø¥Ø·Ø§Ø±Ø§Øª',   label_en:'Frames'  },
+        {id:'titles',         icon:'ðŸ·ï¸', label_ar:'Ø£Ù„Ù‚Ø§Ø¨',    label_en:'Titles'  },
+        {id:'badges',         icon:'ðŸ…', label_ar:'Ø´Ø§Ø±Ø§Øª',     label_en:'Badges'  },
+        {id:'profileEffects', icon:'âœ¨', label_ar:'ØªØ£Ø«ÙŠØ±Ø§Øª',   label_en:'Effects' },
+        {id:'gifts',          icon:'ðŸŽ', label_ar:'Ù‡Ø¯Ø§ÙŠØ§',     label_en:'Gifts'   },
+        {id:'rings',          icon:'ðŸ’', label_ar:'Ø®ÙˆØ§ØªÙ…',     label_en:'Rings'   },
     ];
     const ownedItems = getOwnedItems(activeTab);
 
@@ -1084,7 +1084,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                 {/* Top accent line */}
                 <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:'linear-gradient(90deg,transparent,#00f2ff,#7c3aed,transparent)',zIndex:2}}/>
 
-                {/* ══ HEADER ══ */}
+                {/* â•â• HEADER â•â• */}
                 <div style={{
                     background:'linear-gradient(135deg,rgba(0,242,255,0.05) 0%,rgba(112,0,255,0.05) 100%)',
                     borderBottom:'1px solid rgba(255,255,255,0.055)',
@@ -1098,15 +1098,15 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                             background:'linear-gradient(135deg,rgba(0,242,255,0.11),rgba(112,0,255,0.11))',
                             border:'1px solid rgba(0,242,255,0.17)',
                             display:'flex',alignItems:'center',justifyContent:'center',fontSize:'19px',flexShrink:0,
-                        }}>🎒</div>
+                        }}>ðŸŽ’</div>
                         <div>
                             <div style={{fontSize:'15px',fontWeight:900,color:'#f1f5f9',letterSpacing:'0.2px'}}>
-                                {t.myInventory||(lang==='ar'?'مخزوني':'My Inventory')}
+                                {t.myInventory||(lang==='ar'?'Ù…Ø®Ø²ÙˆÙ†ÙŠ':'My Inventory')}
                             </div>
                             {activeTab==='badges'&&(
                                 <div style={{fontSize:'9px',color:'#9ca3af',marginTop:'1px'}}>
                                     <span style={{color:'#00f2ff',fontWeight:700}}>{getEquippedBadgeCount()}</span>
-                                    <span style={{color:'#374151'}}> / {MAX_BADGES} {lang==='ar'?'شارة مفعّلة':'equipped'}</span>
+                                    <span style={{color:'#374151'}}> / {MAX_BADGES} {lang==='ar'?'Ø´Ø§Ø±Ø© Ù…ÙØ¹Ù‘Ù„Ø©':'equipped'}</span>
                                 </div>
                             )}
                         </div>
@@ -1115,10 +1115,10 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                         style={{width:'34px',height:'34px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.065)',color:'#6b7280',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
                         onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.13)';e.currentTarget.style.color='#f87171';}}
                         onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.color='#6b7280';}}
-                    >✕</button>
+                    >âœ•</button>
                 </div>
 
-                {/* ══ TAB BAR ══ */}
+                {/* â•â• TAB BAR â•â• */}
                 <div style={{display:'flex',overflowX:'auto',gap:'3px',padding:'10px 10px 0',borderBottom:'1px solid rgba(255,255,255,0.048)',scrollbarWidth:'none',flexShrink:0,background:'rgba(0,0,0,0.13)'}}>
                     {TABS.map(tab=>{
                         const active=activeTab===tab.id;
@@ -1143,10 +1143,10 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                     })}
                 </div>
 
-                {/* ══ BODY ══ */}
+                {/* â•â• BODY â•â• */}
                 <div style={{flex:1,overflowY:'auto',padding:'12px',scrollbarWidth:'thin',scrollbarColor:'rgba(0,242,255,0.18) transparent'}}>
 
-                    {/* 🧧 Red Packets */}
+                    {/* ðŸ§§ Red Packets */}
                     {activeTab==='red_packets'&&(()=>{
                         const myPackets = (userData?.inventory?.red_packets || []);
                         const RPC = typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
@@ -1156,13 +1156,13 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                         return (
                             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
                                 <div style={{fontSize:'11px',color:'#6b7280',textAlign:'center',marginBottom:'4px'}}>
-                                    {lang==='ar'?'مغلفاتك الجاهزة للإرسال':'Your packets ready to send'}
+                                    {lang==='ar'?'Ù…ØºÙ„ÙØ§ØªÙƒ Ø§Ù„Ø¬Ø§Ù‡Ø²Ø© Ù„Ù„Ø¥Ø±Ø³Ø§Ù„':'Your packets ready to send'}
                                     <span style={{color:'#fbbf24',marginRight:'6px',marginLeft:'6px',fontWeight:700}}>{myPackets.length > 0 ? `(${myPackets.length})` : ''}</span>
                                 </div>
                                 {myPackets.length === 0 && (
                                     <div style={{textAlign:'center',padding:'32px',color:'#4b5563'}}>
-                                        <div style={{fontSize:'32px',marginBottom:'8px'}}>🧧</div>
-                                        <div style={{fontSize:'12px'}}>{lang==='ar'?'لا مغلفات بعد — اشتري من المتجر':'No packets yet — buy from shop'}</div>
+                                        <div style={{fontSize:'32px',marginBottom:'8px'}}>ðŸ§§</div>
+                                        <div style={{fontSize:'12px'}}>{lang==='ar'?'Ù„Ø§ Ù…ØºÙ„ÙØ§Øª Ø¨Ø¹Ø¯ â€” Ø§Ø´ØªØ±ÙŠ Ù…Ù† Ø§Ù„Ù…ØªØ¬Ø±':'No packets yet â€” buy from shop'}</div>
                                     </div>
                                 )}
                                 {myPackets.map((rpId, idx) => {
@@ -1172,20 +1172,20 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                         <div key={rpId+'-'+idx} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',background:rp.bg,border:`1px solid ${rp.border}`,boxSizing:'border-box'}}>
                                             {rp.imageURL
                                                 ? <img src={rp.imageURL} alt="" style={{width:'40px',height:'40px',objectFit:'contain',flexShrink:0}}/>
-                                                : <div style={{width:'40px',height:'40px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',flexShrink:0}}>🧧</div>}
+                                                : <div style={{width:'40px',height:'40px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',flexShrink:0}}>ðŸ§§</div>}
                                             <div style={{flex:1,minWidth:0}}>
                                                 <div style={{fontSize:'12px',fontWeight:800,color:rp.color}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
-                                                <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'2px'}}>{rp.amount.toLocaleString()} 🧠 · {rp.maxClaims} {lang==='ar'?'استلام':'claims'}</div>
+                                                <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'2px'}}>{rp.amount.toLocaleString()} ðŸ§  Â· {rp.maxClaims} {lang==='ar'?'Ø§Ø³ØªÙ„Ø§Ù…':'claims'}</div>
                                             </div>
                                             <button onClick={() => setRpSendModal({ ...rp, inventoryId: rpId })}
                                                 style={{padding:'7px 12px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,color:rp.color,fontSize:'11px',fontWeight:700,cursor:'pointer',flexShrink:0}}>
-                                                📤 {lang==='ar'?'إرسال':'Send'}
+                                                ðŸ“¤ {lang==='ar'?'Ø¥Ø±Ø³Ø§Ù„':'Send'}
                                             </button>
                                         </div>
                                     );
                                 })}
 
-                                {/* ── Reclaim sent packets ── */}
+                                {/* â”€â”€ Reclaim sent packets â”€â”€ */}
                                 {user && (
                                     <ReclaimSentPackets
                                         user={user} userData={userData} lang={lang}
@@ -1198,7 +1198,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                 {rpSendModal && (
                                     <div style={{position:'fixed',inset:0,zIndex:Z.TOOLTIP,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
                                         <div style={{background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'18px',padding:'20px',width:'100%',maxWidth:'340px'}} onClick={e=>e.stopPropagation()}>
-                                            <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444',marginBottom:'14px',textAlign:'center'}}>🧧 {lang==='ar'?'إرسال المغلف لمين؟':'Send Packet To?'}</div>
+                                            <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444',marginBottom:'14px',textAlign:'center'}}>ðŸ§§ {lang==='ar'?'Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ù…ØºÙ„Ù Ù„Ù…ÙŠÙ†ØŸ':'Send Packet To?'}</div>
                                             <div style={{display:'flex',flexDirection:'column',gap:'8px',maxHeight:'60vh',overflowY:'auto'}}>
                                                 {/* Send to self */}
                                                 <button onClick={async()=>{
@@ -1211,7 +1211,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                         setRpSendModal(null);
                                                     } catch(e) {}
                                                 }} style={{padding:'11px',borderRadius:'12px',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',color:'#00f2ff',fontSize:'12px',fontWeight:700,cursor:'pointer'}}>
-                                                    👤 {lang==='ar'?'أرسل لنفسي (استلم الرصيد)':'Send to myself (get coins)'}
+                                                    ðŸ‘¤ {lang==='ar'?'Ø£Ø±Ø³Ù„ Ù„Ù†ÙØ³ÙŠ (Ø§Ø³ØªÙ„Ù… Ø§Ù„Ø±ØµÙŠØ¯)':'Send to myself (get coins)'}
                                                 </button>
                                                 {/* Send to family chat */}
                                                 {myFamilyId && (
@@ -1233,12 +1233,12 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                                 type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount,
                                                                 rpConfigId:rpSendModal.id, maxClaims:rpSendModal.maxClaims||5,
                                                                 senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
-                                                                text:'🧧 '+rpSendModal.amount, timestamp:TS()
+                                                                text:'ðŸ§§ '+rpSendModal.amount, timestamp:TS()
                                                             });
                                                             setRpSendModal(null);
                                                         } catch(e){ console.error('Family RP send error',e); }
                                                     }} style={{padding:'11px',borderRadius:'12px',background:'rgba(251,191,36,0.1)',border:'1px solid rgba(251,191,36,0.3)',color:'#fbbf24',fontSize:'12px',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:'8px',justifyContent:'center'}}>
-                                                        🏠 {lang==='ar'?'أرسل لشات القبيلة':'Send to Family Chat'}
+                                                        ðŸ  {lang==='ar'?'Ø£Ø±Ø³Ù„ Ù„Ø´Ø§Øª Ø§Ù„Ù‚Ø¨ÙŠÙ„Ø©':'Send to Family Chat'}
                                                     </button>
                                                 )}
                                                 {/* Send to friends */}
@@ -1261,7 +1261,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                                     type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount,
                                                                     rpConfigId:rpSendModal.id, senderId:user.uid,
                                                                     senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
-                                                                    text:'🧧 '+rpSendModal.amount, timestamp:TS(), maxClaims:1
+                                                                    text:'ðŸ§§ '+rpSendModal.amount, timestamp:TS(), maxClaims:1
                                                                 });
                                                                 setRpSendModal(null);
                                                             } catch(e) {}
@@ -1272,7 +1272,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                     );
                                                 })}
                                             </div>
-                                            <button onClick={()=>setRpSendModal(null)} style={{width:'100%',marginTop:'12px',padding:'9px',borderRadius:'10px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',cursor:'pointer'}}>✕ {lang==='ar'?'إلغاء':'Cancel'}</button>
+                                            <button onClick={()=>setRpSendModal(null)} style={{width:'100%',marginTop:'12px',padding:'9px',borderRadius:'10px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',cursor:'pointer'}}>âœ• {lang==='ar'?'Ø¥Ù„ØºØ§Ø¡':'Cancel'}</button>
                                         </div>
                                     </div>
                                 )}
@@ -1285,9 +1285,9 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                         <div>
                             {myRings.length===0?(
                                 <div style={{textAlign:'center',padding:'40px 20px'}}>
-                                    <div style={{fontSize:'44px',marginBottom:'12px'}}>💍</div>
-                                    <div style={{fontSize:'13px',color:'#374151',fontWeight:600}}>{lang==='ar'?'لا خواتم في مخزونك':'No rings in your inventory'}</div>
-                                    <div style={{fontSize:'11px',color:'#1f2937',marginTop:'4px'}}>{lang==='ar'?'اشتر خواتم من متجر الخواتم':'Buy rings from the Rings shop'}</div>
+                                    <div style={{fontSize:'44px',marginBottom:'12px'}}>ðŸ’</div>
+                                    <div style={{fontSize:'13px',color:'#374151',fontWeight:600}}>{lang==='ar'?'Ù„Ø§ Ø®ÙˆØ§ØªÙ… ÙÙŠ Ù…Ø®Ø²ÙˆÙ†Ùƒ':'No rings in your inventory'}</div>
+                                    <div style={{fontSize:'11px',color:'#1f2937',marginTop:'4px'}}>{lang==='ar'?'Ø§Ø´ØªØ± Ø®ÙˆØ§ØªÙ… Ù…Ù† Ù…ØªØ¬Ø± Ø§Ù„Ø®ÙˆØ§ØªÙ…':'Buy rings from the Rings shop'}</div>
                                 </div>
                             ):(
                                 <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
@@ -1306,14 +1306,14 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                 <div style={{flex:1,minWidth:0}}>
                                                     <div style={{fontSize:'13px',fontWeight:800,color:rd.color}}>{lang==='ar'?rd.name_ar:rd.name_en}</div>
                                                     <div style={{fontSize:'10px',color:'#4b5563',marginTop:'2px'}}>{rd.rarity}</div>
-                                                    {count>1&&<div style={{fontSize:'10px',color:'#fcd34d',marginTop:'2px',fontWeight:700}}>×{count} {lang==='ar'?'نسخ':'copies'}</div>}
+                                                    {count>1&&<div style={{fontSize:'10px',color:'#fcd34d',marginTop:'2px',fontWeight:700}}>Ã—{count} {lang==='ar'?'Ù†Ø³Ø®':'copies'}</div>}
                                                 </div>
                                                 <button onClick={()=>{if(coupleData){onOpenCoupleCard&&onOpenCoupleCard();}else{onPropose&&onPropose(rd);}}}
                                                     style={{padding:'7px 14px',borderRadius:'10px',border:`1px solid ${rd.color}40`,background:`${rd.color}13`,color:rd.color,fontSize:'11px',fontWeight:800,cursor:'pointer',flexShrink:0,transition:'all 0.15s'}}
                                                     onMouseEnter={e=>{e.currentTarget.style.background=`${rd.color}26`;}}
                                                     onMouseLeave={e=>{e.currentTarget.style.background=`${rd.color}13`;}}
                                                 >
-                                                    {coupleData?(lang==='ar'?'💍 أهدِ':'💍 Gift'):(lang==='ar'?'📤 استخدم':'📤 Use')}
+                                                    {coupleData?(lang==='ar'?'ðŸ’ Ø£Ù‡Ø¯Ù':'ðŸ’ Gift'):(lang==='ar'?'ðŸ“¤ Ø§Ø³ØªØ®Ø¯Ù…':'ðŸ“¤ Use')}
                                                 </button>
                                             </div>
                                         );
@@ -1327,7 +1327,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                     {activeTab!=='rings'&&(
                         ownedItems.length===0?(
                             <div style={{textAlign:'center',padding:'40px 20px'}}>
-                                <div style={{fontSize:'40px',marginBottom:'10px'}}>📦</div>
+                                <div style={{fontSize:'40px',marginBottom:'10px'}}>ðŸ“¦</div>
                                 <div style={{fontSize:'12px',color:'#374151',fontWeight:600}}>{t.owned}: 0</div>
                             </div>
                         ):(
@@ -1344,10 +1344,10 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                 onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.transform='scale(1.04)';}}
                                                 onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.02)';e.currentTarget.style.transform='scale(1)';}}
                                             >
-                                                {cnt>0&&<div style={{position:'absolute',top:'4px',right:'4px',background:'linear-gradient(135deg,#7c3aed,#a855f7)',color:'#fff',fontWeight:900,fontSize:'8px',padding:'1px 5px',borderRadius:'8px',boxShadow:'0 0 6px rgba(124,58,237,0.45)',zIndex:1}}>×{cnt}</div>}
-                                                {/* ✅ FIX2: info button */}
+                                                {cnt>0&&<div style={{position:'absolute',top:'4px',right:'4px',background:'linear-gradient(135deg,#7c3aed,#a855f7)',color:'#fff',fontWeight:900,fontSize:'8px',padding:'1px 5px',borderRadius:'8px',boxShadow:'0 0 6px rgba(124,58,237,0.45)',zIndex:1}}>Ã—{cnt}</div>}
+                                                {/* âœ… FIX2: info button */}
                                                 <div onClick={()=>setDetailItem(item)} style={{position:'absolute',top:'4px',left:'4px',width:'14px',height:'14px',borderRadius:'50%',background:'rgba(0,242,255,0.18)',border:'1px solid rgba(0,242,255,0.3)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'8px',color:'#00f2ff',fontWeight:900,zIndex:2}}>i</div>
-                                                {/* ✅ FIX2: expiry badge */}
+                                                {/* âœ… FIX2: expiry badge */}
                                                 {daysLeft!==null&&daysLeft>0&&(
                                                     <div style={{position:'absolute',bottom:'28px',left:'2px',background:daysLeft<=3?'rgba(239,68,68,0.9)':daysLeft<=7?'rgba(245,158,11,0.9)':'rgba(74,222,128,0.8)',borderRadius:'4px',padding:'1px 4px',fontSize:'7px',fontWeight:800,color:'#fff',zIndex:2}}>
                                                         {daysLeft}d
@@ -1360,7 +1360,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                                     style={{width:'100%',padding:'4px 0',borderRadius:'6px',background:isExpired?'rgba(100,100,100,0.1)':'linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06))',border:isExpired?'1px solid rgba(100,100,100,0.2)':'1px solid rgba(251,191,36,0.26)',color:isExpired?'#4b5563':'#fbbf24',fontSize:'9px',fontWeight:800,cursor:isExpired?'not-allowed':'pointer',transition:'all 0.12s'}}
                                                     onMouseEnter={e=>{if(!isExpired)e.currentTarget.style.background='linear-gradient(135deg,rgba(251,191,36,0.22),rgba(245,158,11,0.12))';}}
                                                     onMouseLeave={e=>{if(!isExpired)e.currentTarget.style.background='linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06))';}}
-                                                >{isExpired?(lang==='ar'?'منتهي':'Expired'):t.sendGiftToFriend}</button>
+                                                >{isExpired?(lang==='ar'?'Ù…Ù†ØªÙ‡ÙŠ':'Expired'):t.sendGiftToFriend}</button>
                                             </div>
                                         );
                                     }
@@ -1380,9 +1380,9 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                         onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
                                         >
                                             {equippedItem&&<div style={{position:'absolute',top:'5px',right:'5px',width:'7px',height:'7px',borderRadius:'50%',background:'#00f2ff',boxShadow:'0 0 6px #00f2ff'}}/>}
-                                            {/* ✅ FIX2: info button on equippable items */}
+                                            {/* âœ… FIX2: info button on equippable items */}
                                             <div onClick={()=>setDetailItem(item)} style={{position:'absolute',top:'4px',left:'4px',width:'14px',height:'14px',borderRadius:'50%',background:'rgba(0,242,255,0.14)',border:'1px solid rgba(0,242,255,0.25)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'8px',color:'#00f2ff',fontWeight:900,zIndex:2}}>i</div>
-                                            {/* ✅ FIX2: expiry badge */}
+                                            {/* âœ… FIX2: expiry badge */}
                                             {daysLeft!==null&&daysLeft>0&&(
                                                 <div style={{position:'absolute',bottom:'28px',left:'2px',background:daysLeft<=3?'rgba(239,68,68,0.9)':daysLeft<=7?'rgba(245,158,11,0.9)':'rgba(74,222,128,0.8)',borderRadius:'4px',padding:'1px 4px',fontSize:'7px',fontWeight:800,color:'#fff',zIndex:2}}>
                                                     {daysLeft}d
@@ -1394,7 +1394,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
                                             </div>
                                             {isExpired ? (
                                                 <div style={{fontSize:'8px',color:'#f87171',fontWeight:700,textAlign:'center'}}>
-                                                    ❌ {lang==='ar'?'منتهي':'Expired'}
+                                                    âŒ {lang==='ar'?'Ù…Ù†ØªÙ‡ÙŠ':'Expired'}
                                                 </div>
                                             ) : equippedItem?(
                                                 <button onClick={()=>onUnequip(item.type,item.id)}
@@ -1429,7 +1429,7 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
             </div>
         </div>
 
-        {/* ✅ FIX2: Item Detail Popup */}
+        {/* âœ… FIX2: Item Detail Popup */}
         {detailItem && <ItemDetailPopup item={detailItem} onClose={()=>setDetailItem(null)} />}
 
         {/* Gift Preview Modal */}
@@ -1452,5 +1452,6 @@ const InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onS
     );
 };
 
-// 👤 USER PROFILE MODAL - WITH GIFT LOG
+// ðŸ‘¤ USER PROFILE MODAL - WITH GIFT LOG
 // Blocked User Item Component
+

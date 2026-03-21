@@ -1,16 +1,16 @@
-// ════════════════════════════════════════════════════════
-// 💬 PRIVATE CHAT MODAL — V3
-//    ✅ ALL users → Firestore (for real-time delivery)
-//    ✅ VIP10 → Typing indicator + ☁️ badge (permanent storage)
-//    ✅ Non-VIP10 → messages still go to Firestore (deliverable)
+﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ’¬ PRIVATE CHAT MODAL â€” V3
+//    âœ… ALL users â†’ Firestore (for real-time delivery)
+//    âœ… VIP10 â†’ Typing indicator + â˜ï¸ badge (permanent storage)
+//    âœ… Non-VIP10 â†’ messages still go to Firestore (deliverable)
 //                   localStorage used as local cache only
-//    ✅ Image upload (base64, max 400px)
-//    ✅ Send arrow only lights up when there's text
-//    ✅ Modern UI: avatars, names, timestamps, status
-// ════════════════════════════════════════════════════════
+//    âœ… Image upload (base64, max 400px)
+//    âœ… Send arrow only lights up when there's text
+//    âœ… Modern UI: avatars, names, timestamps, status
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ── Compress image to base64 ──
-const compressImageToBase64 = (file) => new Promise((resolve, reject) => {
+// â”€â”€ Compress image to base64 â”€â”€
+var ompressImageToBase64 = (file) => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
         const img = new Image();
@@ -33,18 +33,18 @@ const compressImageToBase64 = (file) => new Promise((resolve, reject) => {
     reader.readAsDataURL(file);
 });
 
-// ── LocalStorage helpers (cache only) ──
-const _chatCacheKey = (chatId) => `pro_spy_chat_cache_${chatId}`;
-const _saveChatCache = (chatId, msgs) => {
+// â”€â”€ LocalStorage helpers (cache only) â”€â”€
+var chatCacheKey = (chatId) => `pro_spy_chat_cache_${chatId}`;
+var saveChatCache = (chatId, msgs) => {
     try { localStorage.setItem(_chatCacheKey(chatId), JSON.stringify(msgs.slice(-80))); } catch {}
 };
-const _loadChatCache = (chatId) => {
+var loadChatCache = (chatId) => {
     try { const r = localStorage.getItem(_chatCacheKey(chatId)); return r ? JSON.parse(r) : []; }
     catch { return []; }
 };
 
-// ── Format timestamp ──
-const _fmtChatTs = (ts) => {
+// â”€â”€ Format timestamp â”€â”€
+var fmtChatTs = (ts) => {
     if (!ts) return '';
     let d;
     if (ts?.toDate) d = ts.toDate();
@@ -61,7 +61,7 @@ const _fmtChatTs = (ts) => {
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
-const PrivateChatModal = ({
+var rivateChatModal = ({
     show, onClose, friend, currentUser, user, lang,
     onSendNotification, onSendGift, currency,
     friendsData, onOpenProfile
@@ -76,32 +76,32 @@ const PrivateChatModal = ({
     const [blockedByTarget, setBlockedByTarget] = useState(false);
     const [friendTyping, setFriendTyping]   = useState(false);
     const [uploadingImg, setUploadingImg]   = useState(false);
-    // ── 3-dot menu ──
+    // â”€â”€ 3-dot menu â”€â”€
     const [showHeaderMenu, setShowHeaderMenu] = useState(false);
-    // ── Delete chat confirm ──
+    // â”€â”€ Delete chat confirm â”€â”€
     const [showDeleteChatConfirm, setShowDeleteChatConfirm] = useState(false);
     const [deletingChat, setDeletingChat]   = useState(false);
-    // ── Report modal ──
+    // â”€â”€ Report modal â”€â”€
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportStep, setReportStep]       = useState('reason');
     const [reportReason, setReportReason]   = useState('');
     const [reportDMMsg, setReportDMMsg]     = useState(null);
     const [submittingReport, setSubmittingReport] = useState(false);
-    // ── Message edit/delete ──
+    // â”€â”€ Message edit/delete â”€â”€
     const [editingMsgId, setEditingMsgId]   = useState(null);
     const [editMsgText, setEditMsgText]     = useState('');
-    const [msgMenuId, setMsgMenuId]         = useState(null); // قائمة القلم للرسالة
-    // ── @ Mention ──
+    const [msgMenuId, setMsgMenuId]         = useState(null); // Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù‚Ù„Ù… Ù„Ù„Ø±Ø³Ø§Ù„Ø©
+    // â”€â”€ @ Mention â”€â”€
     const [showMentionSuggestion, setShowMentionSuggestion] = useState(false);
-    // ── Mini Profile ──
+    // â”€â”€ Mini Profile â”€â”€
     const [miniProfile, setMiniProfile]     = useState(null);
     const [loadingMiniProfile, setLoadingMiniProfile] = useState(false);
     const [showMiniMenu, setShowMiniMenu]   = useState(false);
-    // ── Pen menu position (fixed) ──
+    // â”€â”€ Pen menu position (fixed) â”€â”€
     const [msgMenuPos, setMsgMenuPos]       = useState({ top: 0, right: 0 });
-    // ── 3-dot header button rect ──
+    // â”€â”€ 3-dot header button rect â”€â”€
     const [menuBtnRect, setMenuBtnRect]     = useState(null);
-    // ── 🧧 DM Red Packet ──
+    // â”€â”€ ðŸ§§ DM Red Packet â”€â”€
     const [showDMRedPacket, setShowDMRedPacket] = useState(false);
     const [sendingDMRedPacket, setSendingDMRedPacket] = useState(false);
 
@@ -121,7 +121,7 @@ const PrivateChatModal = ({
 
     const chatId = friend && user ? [user.uid, friend.uid].sort().join('_') : null;
 
-    // ── Blocked check ──
+    // â”€â”€ Blocked check â”€â”€
     useEffect(() => {
         if (!show || !friend || !currentUser) return;
         setIsBlocked((currentUser.blockedUsers || []).includes(friend.uid));
@@ -130,7 +130,7 @@ const PrivateChatModal = ({
         }).catch(() => {});
     }, [show, friend?.uid, currentUser?.uid, user?.uid]);
 
-    // ── Messages: ALWAYS from Firestore (real-time for both parties) ──
+    // â”€â”€ Messages: ALWAYS from Firestore (real-time for both parties) â”€â”€
     useEffect(() => {
         if (!show || !chatId) return;
 
@@ -159,7 +159,7 @@ const PrivateChatModal = ({
         return unsub;
     }, [show, chatId, user?.uid]);
 
-    // ── Typing listener (when typingEnabled) ──
+    // â”€â”€ Typing listener (when typingEnabled) â”€â”€
     useEffect(() => {
         if (!show || !chatId || !typingEnabled || !friend) return;
         const unsub = chatsCollection.doc(chatId).onSnapshot(snap => {
@@ -170,12 +170,12 @@ const PrivateChatModal = ({
         return unsub;
     }, [show, chatId, friend?.uid, typingEnabled]);
 
-    // ── Auto-scroll to bottom ──
+    // â”€â”€ Auto-scroll to bottom â”€â”€
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, friendTyping]);
 
-    // ── Typing indicator write (when typingEnabled) ──
+    // â”€â”€ Typing indicator write (when typingEnabled) â”€â”€
     const _setTyping = (val) => {
         if (!typingEnabled || !chatId || !user) return;
         chatsCollection.doc(chatId).set({ typing: { [user.uid]: val } }, { merge: true }).catch(() => {});
@@ -190,7 +190,7 @@ const PrivateChatModal = ({
         _setTyping(false);
     };
 
-    // ── Send text message ──
+    // â”€â”€ Send text message â”€â”€
     const handleSend = async () => {
         if (!newMsg.trim() || sending || isBlocked || blockedByTarget) return;
         clearTypingStatus();
@@ -207,7 +207,7 @@ const PrivateChatModal = ({
                 text,
                 timestamp:     TS(),
             };
-            // ✅ Always save to Firestore so the other person sees it
+            // âœ… Always save to Firestore so the other person sees it
             await chatsCollection.doc(chatId).collection('messages').add(msgData);
             await chatsCollection.doc(chatId).set({
                 members:  [user.uid, friend.uid],
@@ -229,7 +229,7 @@ const PrivateChatModal = ({
         setSending(false);
     };
 
-    // ── Send image ──
+    // â”€â”€ Send image â”€â”€
     const handleImageSelect = async (e) => {
         const file = e.target.files?.[0];
         if (!file || isBlocked || blockedByTarget || !file.type.startsWith('image/')) return;
@@ -243,13 +243,13 @@ const PrivateChatModal = ({
                 senderVipLevel: myVipLevel,
                 type:          'image',
                 imageData:     base64,
-                text:          '📷',
+                text:          'ðŸ“·',
                 timestamp:     TS(),
             };
             await chatsCollection.doc(chatId).collection('messages').add(msgData);
             await chatsCollection.doc(chatId).set({
                 members:  [user.uid, friend.uid],
-                lastMessage: '📷 Photo',
+                lastMessage: 'ðŸ“· Photo',
                 timestamp: TS(),
                 [`unread.${friend.uid}`]: firebase.firestore.FieldValue.increment(1),
             }, { merge: true });
@@ -271,17 +271,17 @@ const PrivateChatModal = ({
         setShowGiftModal(false);
     };
 
-    // ── حذف الشات ──
+    // â”€â”€ Ø­Ø°Ù Ø§Ù„Ø´Ø§Øª â”€â”€
     const handleDeleteChat = async () => {
         if (!chatId || deletingChat) return;
         setDeletingChat(true);
         try {
-            // حذف كل الرسائل
+            // Ø­Ø°Ù ÙƒÙ„ Ø§Ù„Ø±Ø³Ø§Ø¦Ù„
             const msgsSnap = await chatsCollection.doc(chatId).collection('messages').limit(500).get();
             const batch = db.batch();
             msgsSnap.docs.forEach(d => batch.delete(d.ref));
             await batch.commit().catch(() => {});
-            // حذف الـ chat doc
+            // Ø­Ø°Ù Ø§Ù„Ù€ chat doc
             await chatsCollection.doc(chatId).delete().catch(() => {});
             setShowDeleteChatConfirm(false);
             onClose();
@@ -289,7 +289,7 @@ const PrivateChatModal = ({
         setDeletingChat(false);
     };
 
-    // ── حظر المستخدم ──
+    // â”€â”€ Ø­Ø¸Ø± Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… â”€â”€
     const handleBlock = async () => {
         if (!user || !friend) return;
         try {
@@ -301,7 +301,7 @@ const PrivateChatModal = ({
         } catch (e) { console.error('Block error:', e); }
     };
 
-    // ── إلغاء الحظر ──
+    // â”€â”€ Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ø­Ø¸Ø± â”€â”€
     const handleUnblock = async () => {
         if (!user || !friend) return;
         try {
@@ -313,7 +313,7 @@ const PrivateChatModal = ({
         } catch (e) { console.error('Unblock error:', e); }
     };
 
-    // ── فتح ميني بروفايل لأي شخص ──
+    // â”€â”€ ÙØªØ­ Ù…ÙŠÙ†ÙŠ Ø¨Ø±ÙˆÙØ§ÙŠÙ„ Ù„Ø£ÙŠ Ø´Ø®Øµ â”€â”€
     const openMiniProfile = async (uid) => {
         if (!uid) return;
         setLoadingMiniProfile(true);
@@ -324,7 +324,7 @@ const PrivateChatModal = ({
         setLoadingMiniProfile(false);
     };
 
-    // ── تعديل رسالة ──
+    // â”€â”€ ØªØ¹Ø¯ÙŠÙ„ Ø±Ø³Ø§Ù„Ø© â”€â”€
     const handleEditMessage = async (msgId, newText) => {
         if (!newText.trim() || !chatId) return;
         try {
@@ -338,13 +338,13 @@ const PrivateChatModal = ({
         } catch (e) { console.error('Edit message error:', e); }
     };
 
-    // ── حذف رسالة ──
+    // â”€â”€ Ø­Ø°Ù Ø±Ø³Ø§Ù„Ø© â”€â”€
     const handleDeleteMessage = async (msgId) => {
         if (!chatId) return;
         try {
-            // استبدال الرسالة بـ "تم حذف هذه الرسالة"
+            // Ø§Ø³ØªØ¨Ø¯Ø§Ù„ Ø§Ù„Ø±Ø³Ø§Ù„Ø© Ø¨Ù€ "ØªÙ… Ø­Ø°Ù Ù‡Ø°Ù‡ Ø§Ù„Ø±Ø³Ø§Ù„Ø©"
             await chatsCollection.doc(chatId).collection('messages').doc(msgId).update({
-                text: lang === 'ar' ? '🗑️ تم حذف هذه الرسالة' : '🗑️ This message was deleted',
+                text: lang === 'ar' ? 'ðŸ—‘ï¸ ØªÙ… Ø­Ø°Ù Ù‡Ø°Ù‡ Ø§Ù„Ø±Ø³Ø§Ù„Ø©' : 'ðŸ—‘ï¸ This message was deleted',
                 isDeleted: true,
                 deletedAt: TS(),
                 imageData: firebase.firestore.FieldValue.delete(),
@@ -353,7 +353,7 @@ const PrivateChatModal = ({
         } catch (e) { console.error('Delete message error:', e); }
     };
 
-    // ── إرسال بلاغ مع DM كدليل ──
+    // â”€â”€ Ø¥Ø±Ø³Ø§Ù„ Ø¨Ù„Ø§Øº Ù…Ø¹ DM ÙƒØ¯Ù„ÙŠÙ„ â”€â”€
     const handleSubmitReport = async () => {
         if (!reportReason.trim() || !user || !friend) return;
         setSubmittingReport(true);
@@ -374,14 +374,14 @@ const PrivateChatModal = ({
                 resolved:      false,
                 createdAt:     TS(),
             });
-            // إشعار للمستخدم بإرسال البلاغ
+            // Ø¥Ø´Ø¹Ø§Ø± Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø¨Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø¨Ù„Ø§Øº
             await botChatsCollection.add({
                 botId: 'detective_bot',
                 toUserId: user.uid,
                 type: 'report_submitted',
                 message: lang === 'ar'
-                    ? `🕵️ تم استلام بلاغك ضد "${friend.displayName || 'المستخدم'}".\nسيقوم فريق الإدارة بمراجعة البلاغ والتحقيق فيه.\n\nشكراً لمساعدتنا في الحفاظ على سلامة المجتمع.`
-                    : `🕵️ Your report against "${friend.displayName || 'user'}" has been received.\nOur moderation team will review and investigate.\n\nThank you for helping keep the community safe.`,
+                    ? `ðŸ•µï¸ ØªÙ… Ø§Ø³ØªÙ„Ø§Ù… Ø¨Ù„Ø§ØºÙƒ Ø¶Ø¯ "${friend.displayName || 'Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…'}".\nØ³ÙŠÙ‚ÙˆÙ… ÙØ±ÙŠÙ‚ Ø§Ù„Ø¥Ø¯Ø§Ø±Ø© Ø¨Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¨Ù„Ø§Øº ÙˆØ§Ù„ØªØ­Ù‚ÙŠÙ‚ ÙÙŠÙ‡.\n\nØ´ÙƒØ±Ø§Ù‹ Ù„Ù…Ø³Ø§Ø¹Ø¯ØªÙ†Ø§ ÙÙŠ Ø§Ù„Ø­ÙØ§Ø¸ Ø¹Ù„Ù‰ Ø³Ù„Ø§Ù…Ø© Ø§Ù„Ù…Ø¬ØªÙ…Ø¹.`
+                    : `ðŸ•µï¸ Your report against "${friend.displayName || 'user'}" has been received.\nOur moderation team will review and investigate.\n\nThank you for helping keep the community safe.`,
                 read: false,
                 timestamp: TS(),
             }).catch(() => {});
@@ -392,15 +392,15 @@ const PrivateChatModal = ({
 
     if (!show || !friend) return null;
 
-    // ── Online status ──
+    // â”€â”€ Online status â”€â”€
     const friendInfo   = friendsData?.find(f => f.id === friend.uid) || friend;
     const isOnline     = friendInfo?.isOnline || friendInfo?.onlineStatus === 'online';
     const isAway       = friendInfo?.onlineStatus === 'away';
     const statusColor  = isOnline ? '#22c55e' : isAway ? '#f59e0b' : '#6b7280';
     const statusLabel  = isOnline
-        ? (lang === 'ar' ? 'متصل الآن' : 'Online')
-        : isAway ? (lang === 'ar' ? 'بعيد' : 'Away')
-        : (lang === 'ar' ? 'غير متصل' : 'Offline');
+        ? (lang === 'ar' ? 'Ù…ØªØµÙ„ Ø§Ù„Ø¢Ù†' : 'Online')
+        : isAway ? (lang === 'ar' ? 'Ø¨Ø¹ÙŠØ¯' : 'Away')
+        : (lang === 'ar' ? 'ØºÙŠØ± Ù…ØªØµÙ„' : 'Offline');
 
     const canSend = !sending && newMsg.trim().length > 0 && !isBlocked && !blockedByTarget;
 
@@ -424,7 +424,7 @@ const PrivateChatModal = ({
             margin: 'auto', boxSizing: 'border-box',
           }}>
 
-            {/* ══ HEADER ══ */}
+            {/* â•â• HEADER â•â• */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: '10px',
               padding: '11px 14px',
@@ -474,8 +474,8 @@ const PrivateChatModal = ({
                 </div>
                 <div style={{ fontSize: '10px', color: friendTyping ? '#00f2ff' : statusColor, fontWeight: 600 }}>
                   {friendTyping
-                    ? <span style={{ fontStyle: 'italic' }}>{lang === 'ar' ? '✏️ يكتب...' : '✏️ typing...'}</span>
-                    : <span><span style={{ fontSize: '7px' }}>● </span>{statusLabel}</span>
+                    ? <span style={{ fontStyle: 'italic' }}>{lang === 'ar' ? 'âœï¸ ÙŠÙƒØªØ¨...' : 'âœï¸ typing...'}</span>
+                    : <span><span style={{ fontSize: '7px' }}>â— </span>{statusLabel}</span>
                   }
                 </div>
               </div>
@@ -489,7 +489,7 @@ const PrivateChatModal = ({
                     background: 'rgba(167,139,250,0.1)',
                     padding: '2px 5px', borderRadius: '4px',
                     border: '1px solid rgba(167,139,250,0.22)',
-                  }}>☁️ {lang === 'ar' ? 'محفوظ' : 'Saved'}</div>
+                  }}>â˜ï¸ {lang === 'ar' ? 'Ù…Ø­ÙÙˆØ¸' : 'Saved'}</div>
                 )}
                 {/* Gift button */}
                 <button
@@ -501,9 +501,9 @@ const PrivateChatModal = ({
                     cursor: (isBlocked || blockedByTarget) ? 'not-allowed' : 'pointer',
                     opacity: (isBlocked || blockedByTarget) ? 0.4 : 1,
                   }}
-                >🎁</button>
+                >ðŸŽ</button>
 
-                {/* ── 3-dot menu button ── */}
+                {/* â”€â”€ 3-dot menu button â”€â”€ */}
                 <button
                   ref={headerMenuBtnRef}
                   onClick={e => { e.stopPropagation(); setShowHeaderMenu(v => !v); }}
@@ -515,7 +515,7 @@ const PrivateChatModal = ({
                     cursor: 'pointer', color: '#9ca3af', fontSize: '18px', fontWeight: 900,
                     letterSpacing: '-1px', lineHeight: 1,
                   }}
-                >⋮</button>
+                >â‹®</button>
 
                 <button
                   onClick={() => { setShowHeaderMenu(false); onClose(); }}
@@ -525,11 +525,11 @@ const PrivateChatModal = ({
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', color: '#9ca3af', fontSize: '14px',
                   }}
-                >✕</button>
+                >âœ•</button>
               </div>
             </div>
 
-            {/* ══ BLOCKED NOTICE ══ */}
+            {/* â•â• BLOCKED NOTICE â•â• */}
             {(isBlocked || blockedByTarget) && (
               <div style={{
                 background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.18)',
@@ -537,13 +537,13 @@ const PrivateChatModal = ({
                 padding: '7px 12px', fontSize: '11px', color: '#f87171',
                 display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0,
               }}>
-                🚫 {isBlocked
-                  ? (lang === 'ar' ? 'حظرت هذا المستخدم. إلغاء الحظر للمراسلة.' : 'You blocked this user. Unblock to message.')
-                  : (lang === 'ar' ? 'هذا المستخدم حظرك. لا يمكنك الإرسال.' : 'This user has blocked you.')}
+                ðŸš« {isBlocked
+                  ? (lang === 'ar' ? 'Ø­Ø¸Ø±Øª Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…. Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ø­Ø¸Ø± Ù„Ù„Ù…Ø±Ø§Ø³Ù„Ø©.' : 'You blocked this user. Unblock to message.')
+                  : (lang === 'ar' ? 'Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø­Ø¸Ø±Ùƒ. Ù„Ø§ ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„.' : 'This user has blocked you.')}
               </div>
             )}
 
-            {/* ══ MESSAGES AREA ══ */}
+            {/* â•â• MESSAGES AREA â•â• */}
             <div style={{
               flex: 1, overflowY: 'auto', padding: '12px 10px',
               display: 'flex', flexDirection: 'column', gap: '5px',
@@ -555,9 +555,9 @@ const PrivateChatModal = ({
                   alignItems: 'center', justifyContent: 'center',
                   gap: '8px', opacity: 0.35, paddingTop: '50px',
                 }}>
-                  <span style={{ fontSize: '40px' }}>💬</span>
+                  <span style={{ fontSize: '40px' }}>ðŸ’¬</span>
                   <span style={{ fontSize: '12px', color: '#6b7280' }}>
-                    {lang === 'ar' ? 'لا توجد رسائل بعد' : 'No messages yet'}
+                    {lang === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø±Ø³Ø§Ø¦Ù„ Ø¨Ø¹Ø¯' : 'No messages yet'}
                   </span>
                 </div>
               ) : messages.map((msg, idx) => {
@@ -567,7 +567,7 @@ const PrivateChatModal = ({
                 const isRedPacket = msg.type === 'red_packet';
                 const prevSender  = idx > 0 ? messages[idx - 1]?.senderId : null;
                 const nextSender  = idx < messages.length - 1 ? messages[idx + 1]?.senderId : null;
-                // show avatar for BOTH mine and others — on first message of each group
+                // show avatar for BOTH mine and others â€” on first message of each group
                 const showAvatar  = prevSender !== msg.senderId;
                 const showName    = prevSender !== msg.senderId;
                 const isLastGroup = nextSender !== msg.senderId;
@@ -575,7 +575,7 @@ const PrivateChatModal = ({
                 const msgVipLevel = msg.senderVipLevel || 0;
                 const msgVipCfg = getVIPConfig(msgVipLevel);
 
-                // 🧧 Red Packet bubble
+                // ðŸ§§ Red Packet bubble
                 if(isRedPacket) {
                   const isClaimed = msg.claimedBy?.includes(user?.uid) || msg.rpStatus === 'exhausted';
                   return (
@@ -598,7 +598,7 @@ const PrivateChatModal = ({
                         <div onClick={()=>openMiniProfile(msg.senderId)} style={{fontSize:'10px',fontWeight:700,color:isMine?'#00f2ff':'#a78bfa',paddingLeft:'4px',cursor:'pointer',display:'flex',alignItems:'center',gap:'3px'}}>
                           {msgVipCfg&&<span style={{fontSize:'7px',fontWeight:900,background:msgVipCfg.nameColor,color:'#000',padding:'0 3px',borderRadius:'2px'}}>VIP{msgVipLevel}</span>}
                           {isMine ? (currentUser?.displayName||msg.senderName||'You') : msg.senderName}
-                          {isMine&&<span style={{fontSize:'8px',color:'#4b5563'}}> ({lang==='ar'?'أنت':'you'})</span>}
+                          {isMine&&<span style={{fontSize:'8px',color:'#4b5563'}}> ({lang==='ar'?'Ø£Ù†Øª':'you'})</span>}
                         </div>
                       )}
                       <button onClick={async()=>{
@@ -608,11 +608,11 @@ const PrivateChatModal = ({
                           const rpDoc = await redPacketsCollection.doc(msg.rpId).get();
                           if(!rpDoc.exists){return;}
                           const rp=rpDoc.data();
-                          // ❌ المرسل لا يستطيع استلام مغلفه في البرايفت
-                          if(rp.senderId===user.uid){alert(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet');return;}
-                          if(rp.claimedBy?.includes(user.uid)){alert(lang==='ar'?'استلمته من قبل':'Already claimed');return;}
-                          if((rp.claimedBy?.length||0)>=rp.maxClaims){alert(lang==='ar'?'المغلف نفد':'Packet exhausted');return;}
-                          if(rp.status!=='active'){alert(lang==='ar'?'المغلف منتهي':'Packet expired');return;}
+                          // âŒ Ø§Ù„Ù…Ø±Ø³Ù„ Ù„Ø§ ÙŠØ³ØªØ·ÙŠØ¹ Ø§Ø³ØªÙ„Ø§Ù… Ù…ØºÙ„ÙÙ‡ ÙÙŠ Ø§Ù„Ø¨Ø±Ø§ÙŠÙØª
+                          if(rp.senderId===user.uid){alert(lang==='ar'?'âŒ Ù„Ø§ ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ø³ØªÙ„Ø§Ù… Ù…ØºÙ„ÙÙƒ Ø§Ù„Ø®Ø§Øµ':'âŒ You cannot claim your own packet');return;}
+                          if(rp.claimedBy?.includes(user.uid)){alert(lang==='ar'?'Ø§Ø³ØªÙ„Ù…ØªÙ‡ Ù…Ù† Ù‚Ø¨Ù„':'Already claimed');return;}
+                          if((rp.claimedBy?.length||0)>=rp.maxClaims){alert(lang==='ar'?'Ø§Ù„Ù…ØºÙ„Ù Ù†ÙØ¯':'Packet exhausted');return;}
+                          if(rp.status!=='active'){alert(lang==='ar'?'Ø§Ù„Ù…ØºÙ„Ù Ù…Ù†ØªÙ‡ÙŠ':'Packet expired');return;}
                           // DM packet: recipient gets full amount
                           const claimAmt = rp.remaining || rp.amount;
                           await redPacketsCollection.doc(msg.rpId).update({
@@ -621,7 +621,7 @@ const PrivateChatModal = ({
                             status:'exhausted',
                           });
                           await usersCollection.doc(user.uid).update({currency:firebase.firestore.FieldValue.increment(claimAmt)});
-                          alert((lang==='ar'?'🎉 استلمت ':'🎉 You got ')+claimAmt+' Intel!');
+                          alert((lang==='ar'?'ðŸŽ‰ Ø§Ø³ØªÙ„Ù…Øª ':'ðŸŽ‰ You got ')+claimAmt+' Intel!');
                         } catch(e){console.error(e);}
                       }} disabled={isClaimed} style={{
                         display:'flex',alignItems:'center',gap:'10px',padding:'12px 16px',borderRadius:'16px',
@@ -635,12 +635,12 @@ const PrivateChatModal = ({
                         opacity: isClaimed ? 0.55 : 1,
                         transition:'all 0.2s',
                       }}>
-                        <div style={{fontSize:'32px',filter: isClaimed ? 'grayscale(1) opacity(0.5)' : 'drop-shadow(0 0 8px rgba(239,68,68,0.7))'}}>🧧</div>
+                        <div style={{fontSize:'32px',filter: isClaimed ? 'grayscale(1) opacity(0.5)' : 'drop-shadow(0 0 8px rgba(239,68,68,0.7))'}}>ðŸ§§</div>
                         <div style={{flex:1}}>
-                          <div style={{fontSize:'12px',fontWeight:800,color: isClaimed ? '#6b7280' : '#ffd700'}}>{lang==='ar'?'مغلف أحمر':'Red Packet'}</div>
-                          <div style={{fontSize:'10px',color: isClaimed ? '#4b5563' : '#fca5a5',marginTop:'2px'}}>{msg.rpAmount?.toLocaleString()} 🧠</div>
+                          <div style={{fontSize:'12px',fontWeight:800,color: isClaimed ? '#6b7280' : '#ffd700'}}>{lang==='ar'?'Ù…ØºÙ„Ù Ø£Ø­Ù…Ø±':'Red Packet'}</div>
+                          <div style={{fontSize:'10px',color: isClaimed ? '#4b5563' : '#fca5a5',marginTop:'2px'}}>{msg.rpAmount?.toLocaleString()} ðŸ§ </div>
                           <div style={{fontSize:'9px',color: isClaimed ? '#374151' : 'rgba(252,165,165,0.7)',marginTop:'2px'}}>
-                            {isClaimed ? (lang==='ar'?'✅ تم الاستلام':'✅ Claimed') : (lang==='ar'?'اضغط للاستلام':'Tap to claim') + ' 🎁'}
+                            {isClaimed ? (lang==='ar'?'âœ… ØªÙ… Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…':'âœ… Claimed') : (lang==='ar'?'Ø§Ø¶ØºØ· Ù„Ù„Ø§Ø³ØªÙ„Ø§Ù…':'Tap to claim') + ' ðŸŽ'}
                           </div>
                         </div>
                       </button>
@@ -658,7 +658,7 @@ const PrivateChatModal = ({
                     gap: '6px',
                     marginBottom: isLastGroup ? '4px' : '1px',
                   }}>
-                    {/* Avatar — shown for BOTH sides */}
+                    {/* Avatar â€” shown for BOTH sides */}
                     <div style={{ width: '28px', flexShrink: 0, alignSelf: 'flex-end' }}>
                       {showAvatar ? (
                         <img
@@ -683,7 +683,7 @@ const PrivateChatModal = ({
                       alignItems: isMine ? 'flex-end' : 'flex-start',
                       maxWidth: '72%', gap: '2px',
                     }}>
-                      {/* Sender name — shown for BOTH, clickable to open mini profile */}
+                      {/* Sender name â€” shown for BOTH, clickable to open mini profile */}
                       {showName && (
                         <div
                           onClick={() => openMiniProfile(msg.senderId)}
@@ -697,7 +697,7 @@ const PrivateChatModal = ({
                           }}>
                           {msgVipCfg && <span style={{fontSize:'7px',fontWeight:900,background:msgVipCfg.nameColor,color:'#000',padding:'0 3px',borderRadius:'2px',flexShrink:0}}>VIP{msgVipLevel}</span>}
                           {isMine ? (currentUser?.displayName || msg.senderName || 'You') : msg.senderName}
-                          {isMine && <span style={{fontSize:'8px',color:'#4b5563',fontWeight:500}}> ({lang==='ar'?'أنت':'you'})</span>}
+                          {isMine && <span style={{fontSize:'8px',color:'#4b5563',fontWeight:500}}> ({lang==='ar'?'Ø£Ù†Øª':'you'})</span>}
                           {msg.senderVipLevel > 0 && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && (
                             <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt=""
                               style={{ height: '13px', objectFit: 'contain' }} />
@@ -715,7 +715,7 @@ const PrivateChatModal = ({
                           fontSize: '11px', color: '#4b5563',
                           fontStyle: 'italic',
                         }}>
-                          🗑️ {lang === 'ar' ? 'تم حذف هذه الرسالة' : 'This message was deleted'}
+                          ðŸ—‘ï¸ {lang === 'ar' ? 'ØªÙ… Ø­Ø°Ù Ù‡Ø°Ù‡ Ø§Ù„Ø±Ø³Ø§Ù„Ø©' : 'This message was deleted'}
                         </div>
                       ) : isGift ? (
                         <div style={{
@@ -729,14 +729,14 @@ const PrivateChatModal = ({
                         }}>
                           {msg.giftImageUrl
                             ? <img src={msg.giftImageUrl} alt="" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
-                            : <span style={{ fontSize: '30px' }}>{msg.giftEmoji || '🎁'}</span>}
+                            : <span style={{ fontSize: '30px' }}>{msg.giftEmoji || 'ðŸŽ'}</span>}
                           <span style={{ fontSize: '11px', fontWeight: 700, color: '#fbbf24' }}>
-                            {lang === 'ar' ? (msg.giftNameAr || 'هدية') : (msg.giftNameEn || 'Gift')}
-                            {msg.giftQty > 1 && ` ×${msg.giftQty}`}
+                            {lang === 'ar' ? (msg.giftNameAr || 'Ù‡Ø¯ÙŠØ©') : (msg.giftNameEn || 'Gift')}
+                            {msg.giftQty > 1 && ` Ã—${msg.giftQty}`}
                           </span>
                           <div style={{ display: 'flex', gap: '6px', fontSize: '10px' }}>
-                            <span style={{ color: '#facc15', fontWeight: 700 }}>+{formatCharisma(msg.giftCharisma || 0)} ⭐</span>
-                            {msg.giftBonus > 0 && <span style={{ color: '#4ade80', fontWeight: 700 }}>+{msg.giftBonus} 🧠</span>}
+                            <span style={{ color: '#facc15', fontWeight: 700 }}>+{formatCharisma(msg.giftCharisma || 0)} â­</span>
+                            {msg.giftBonus > 0 && <span style={{ color: '#4ade80', fontWeight: 700 }}>+{msg.giftBonus} ðŸ§ </span>}
                           </div>
                         </div>
                       ) : isImage ? (
@@ -753,11 +753,11 @@ const PrivateChatModal = ({
                             width: 'min(260px, calc(100vw - 80px))',
                           }}
                         >
-                          <img src={msg.imageData} alt="📷"
+                          <img src={msg.imageData} alt="ðŸ“·"
                             style={{ display: 'block', width: '100%', maxHeight: '260px', objectFit: 'cover' }} />
                         </div>
                       ) : editingMsgId === msg.id ? (
-                        /* ── Edit input ── */
+                        /* â”€â”€ Edit input â”€â”€ */
                         <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
                           <input
                             autoFocus
@@ -776,9 +776,9 @@ const PrivateChatModal = ({
                             }}
                           />
                           <button onClick={() => handleEditMessage(msg.id, editMsgText)}
-                            style={{ background: 'rgba(0,242,255,0.2)', border: '1px solid rgba(0,242,255,0.4)', borderRadius: '8px', padding: '5px 8px', color: '#00f2ff', cursor: 'pointer', fontSize: '12px', fontWeight: 800 }}>✓</button>
+                            style={{ background: 'rgba(0,242,255,0.2)', border: '1px solid rgba(0,242,255,0.4)', borderRadius: '8px', padding: '5px 8px', color: '#00f2ff', cursor: 'pointer', fontSize: '12px', fontWeight: 800 }}>âœ“</button>
                           <button onClick={() => { setEditingMsgId(null); setEditMsgText(''); }}
-                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '5px 8px', color: '#9ca3af', cursor: 'pointer', fontSize: '12px' }}>✕</button>
+                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '5px 8px', color: '#9ca3af', cursor: 'pointer', fontSize: '12px' }}>âœ•</button>
                         </div>
                       ) : (
                         <div style={{
@@ -821,10 +821,10 @@ const PrivateChatModal = ({
                         }}>
                           <div style={{ fontSize: '9px', color: '#374151' }}>
                             {_fmtChatTs(msg.timestamp)}
-                            {msg.isEdited && <span style={{ marginLeft: '3px', color: '#4b5563', fontStyle: 'italic' }}>{lang === 'ar' ? '(معدّل)' : '(edited)'}</span>}
-                            {isMine && <span style={{ marginLeft: '3px', color: '#374151' }}>✓</span>}
+                            {msg.isEdited && <span style={{ marginLeft: '3px', color: '#4b5563', fontStyle: 'italic' }}>{lang === 'ar' ? '(Ù…Ø¹Ø¯Ù‘Ù„)' : '(edited)'}</span>}
+                            {isMine && <span style={{ marginLeft: '3px', color: '#374151' }}>âœ“</span>}
                           </div>
-                          {/* ✏️ قلم التعديل/الحذف */}
+                          {/* âœï¸ Ù‚Ù„Ù… Ø§Ù„ØªØ¹Ø¯ÙŠÙ„/Ø§Ù„Ø­Ø°Ù */}
                           {isMine && !isGift && !isImage && msg.type !== 'deleted' && (
                             <button
                               onClick={e => {
@@ -843,9 +843,9 @@ const PrivateChatModal = ({
                               }}
                               onMouseEnter={e => e.currentTarget.style.color = '#9ca3af'}
                               onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
-                            >✏️</button>
+                            >âœï¸</button>
                           )}
-                          {/* ── DM evidence select ── */}
+                          {/* â”€â”€ DM evidence select â”€â”€ */}
                           {showReportModal && reportStep === 'dm' && !isMine && !isGift && !isImage && (
                             <button
                               onClick={() => setReportDMMsg(reportDMMsg?.id === msg.id ? null : msg)}
@@ -856,7 +856,7 @@ const PrivateChatModal = ({
                                 fontSize: '10px', color: reportDMMsg?.id === msg.id ? '#f87171' : '#9ca3af',
                                 cursor: 'pointer', fontWeight: 700,
                               }}
-                            >{reportDMMsg?.id === msg.id ? '✓' : lang === 'ar' ? 'اختر' : 'Select'}</button>
+                            >{reportDMMsg?.id === msg.id ? 'âœ“' : lang === 'ar' ? 'Ø§Ø®ØªØ±' : 'Select'}</button>
                           )}
                         </div>
                       )}
@@ -898,7 +898,7 @@ const PrivateChatModal = ({
               <div ref={messagesEndRef} />
             </div>
 
-            {/* ══ INPUT BAR ══ */}
+            {/* â•â• INPUT BAR â•â• */}
             <div style={{
               padding: '9px 11px',
               borderTop: '1px solid rgba(255,255,255,0.07)',
@@ -922,12 +922,12 @@ const PrivateChatModal = ({
                     paddingBottom: '6px',
                   }}>
                     <span style={{ fontSize: '11px', fontWeight: 700, color: '#00f2ff' }}>
-                      {lang === 'ar' ? 'اختر إيموجي' : 'Select Emoji'}
+                      {lang === 'ar' ? 'Ø§Ø®ØªØ± Ø¥ÙŠÙ…ÙˆØ¬ÙŠ' : 'Select Emoji'}
                     </span>
                     <button
                       onClick={() => setShowEmojiPicker(false)}
                       style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}
-                    >✕</button>
+                    >âœ•</button>
                   </div>
                   {React.createElement(EmojiPicker, {
                     show: true,
@@ -953,13 +953,13 @@ const PrivateChatModal = ({
                       cursor: 'pointer', fontSize: '17px', flexShrink: 0,
                       transition: 'all 0.2s',
                     }}
-                  >😀</button>
+                  >ðŸ˜€</button>
 
                   {/* Image upload */}
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingImg}
-                    title={lang === 'ar' ? 'إرسال صورة' : 'Send image'}
+                    title={lang === 'ar' ? 'Ø¥Ø±Ø³Ø§Ù„ ØµÙˆØ±Ø©' : 'Send image'}
                     style={{
                       background: 'rgba(255,255,255,0.05)',
                       border: '1px solid rgba(255,255,255,0.08)',
@@ -969,14 +969,14 @@ const PrivateChatModal = ({
                       fontSize: '15px', flexShrink: 0,
                       opacity: uploadingImg ? 0.5 : 1,
                     }}
-                  >{uploadingImg ? '⏳' : '🖼️'}</button>
+                  >{uploadingImg ? 'â³' : 'ðŸ–¼ï¸'}</button>
 
-                  {/* 🧧 Red Packet button */}
+                  {/* ðŸ§§ Red Packet button */}
                   <button
                     onClick={() => {
                       if (typeof setShowDMRedPacket === 'function') setShowDMRedPacket(true);
                     }}
-                    title={lang === 'ar' ? 'مغلف أحمر' : 'Red Packet'}
+                    title={lang === 'ar' ? 'Ù…ØºÙ„Ù Ø£Ø­Ù…Ø±' : 'Red Packet'}
                     style={{
                       background: 'rgba(239,68,68,0.1)',
                       border: '1px solid rgba(239,68,68,0.3)',
@@ -984,13 +984,13 @@ const PrivateChatModal = ({
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: 'pointer', fontSize: '16px', flexShrink: 0,
                     }}
-                  >🧧</button>
+                  >ðŸ§§</button>
 
                   {/* Text input */}
                   <input
                     ref={inputRef}
                     type="text"
-                    placeholder={t.typeMessage || (lang === 'ar' ? 'اكتب رسالة...' : 'Type a message...')}
+                    placeholder={t.typeMessage || (lang === 'ar' ? 'Ø§ÙƒØªØ¨ Ø±Ø³Ø§Ù„Ø©...' : 'Type a message...')}
                     value={newMsg}
                     onChange={e => {
                         const val = e.target.value;
@@ -1020,7 +1020,7 @@ const PrivateChatModal = ({
                     onFocus={e => e.target.style.borderColor = 'rgba(0,242,255,0.3)'}
                   />
 
-                  {/* @ Mention dropdown — self + friend */}
+                  {/* @ Mention dropdown â€” self + friend */}
                   {showMentionSuggestion && (
                     <div style={{
                       position: 'absolute', bottom: 'calc(100% + 4px)', left: '50px', right: '50px',
@@ -1050,13 +1050,13 @@ const PrivateChatModal = ({
                           <img src={p.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name||'U')}&background=6366f1&color=fff&size=40`}
                             alt="" style={{ width:'24px', height:'24px', borderRadius:'50%', objectFit:'cover' }} />
                           <span style={{ fontSize:'12px', fontWeight:700, color:'#00f2ff' }}>@{p.name}</span>
-                          {p.uid === user?.uid && <span style={{ fontSize:'10px', color:'#6b7280' }}>{lang==='ar'?'(أنت)':'(you)'}</span>}
+                          {p.uid === user?.uid && <span style={{ fontSize:'10px', color:'#6b7280' }}>{lang==='ar'?'(Ø£Ù†Øª)':'(you)'}</span>}
                         </div>
                       ))}
                     </div>
                   )}
 
-                  {/* Send button — ONLY lights up when there's text */}
+                  {/* Send button â€” ONLY lights up when there's text */}
                   <button
                     onClick={handleSend}
                     disabled={!canSend}
@@ -1069,37 +1069,37 @@ const PrivateChatModal = ({
                         : '1px solid rgba(255,255,255,0.06)',
                       borderRadius: '10px', width: '36px', height: '36px',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      // ✅ cursor changes ONLY when there's text
+                      // âœ… cursor changes ONLY when there's text
                       cursor: canSend ? 'pointer' : 'default',
                       color: canSend ? '#00f2ff' : '#2d3748',
                       fontSize: '15px', flexShrink: 0,
                       transition: 'all 0.2s',
-                      // ✅ No glow/box-shadow unless canSend
+                      // âœ… No glow/box-shadow unless canSend
                       boxShadow: canSend ? '0 0 10px rgba(0,242,255,0.2)' : 'none',
                     }}
-                  >➤</button>
+                  >âž¤</button>
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', fontSize: '11px', color: '#4b5563', padding: '8px' }}>
-                  {lang === 'ar' ? 'لا يمكنك الإرسال' : 'Cannot send messages'}
+                  {lang === 'ar' ? 'Ù„Ø§ ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„' : 'Cannot send messages'}
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* 🧧 DM Red Packet Modal */}
+        {/* ðŸ§§ DM Red Packet Modal */}
         {showDMRedPacket && (
           <div style={{position:'fixed',inset:0,zIndex:Z.TOOLTIP,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'flex-end',justifyContent:'center'}}>
             <div style={{width:'100%',maxWidth:'min(440px, 100vw)',background:'linear-gradient(160deg,#0e0e22,#13122a)',borderRadius:'20px 20px 0 0',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
-                <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444'}}>🧧 {lang==='ar'?'أرسل مغلف أحمر':'Send Red Packet'}</div>
-                <button onClick={()=>setShowDMRedPacket(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>✕</button>
+                <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444'}}>ðŸ§§ {lang==='ar'?'Ø£Ø±Ø³Ù„ Ù…ØºÙ„Ù Ø£Ø­Ù…Ø±':'Send Red Packet'}</div>
+                <button onClick={()=>setShowDMRedPacket(false)} style={{background:'none',border:'none',color:'#9ca3af',fontSize:'20px',cursor:'pointer'}}>âœ•</button>
               </div>
               <div style={{padding:'14px'}}>
                 <div style={{fontSize:'11px',color:'#6b7280',marginBottom:'12px',textAlign:'center'}}>
-                  {lang==='ar'?'إلى':'To'}: <span style={{color:'#a78bfa',fontWeight:700}}>{friend?.displayName}</span>
-                  {' · '}{lang==='ar'?'رصيدك':'Balance'}: <span style={{color:'#ffd700',fontWeight:700}}>{(currency||0).toLocaleString()} 🧠</span>
+                  {lang==='ar'?'Ø¥Ù„Ù‰':'To'}: <span style={{color:'#a78bfa',fontWeight:700}}>{friend?.displayName}</span>
+                  {' Â· '}{lang==='ar'?'Ø±ØµÙŠØ¯Ùƒ':'Balance'}: <span style={{color:'#ffd700',fontWeight:700}}>{(currency||0).toLocaleString()} ðŸ§ </span>
                 </div>
                 <div style={{display:'flex',flexDirection:'column',gap:'8px',maxHeight:'320px',overflowY:'auto'}}>
                   {(typeof RED_PACKETS_CONFIG!=='undefined'?RED_PACKETS_CONFIG:[]).map(rp=>(
@@ -1118,13 +1118,13 @@ const PrivateChatModal = ({
                         await chatsCollection.doc(chatId).collection('messages').add({
                           type:'red_packet', rpId:rpRef.id, rpAmount:rp.amount, rpConfigId:rp.id,
                           senderId:user.uid, senderName:currentUser?.displayName||'User', senderPhoto:currentUser?.photoURL||null,
-                          text:`🧧 ${rp.amount}`, timestamp:TS(), maxClaims:1,
+                          text:`ðŸ§§ ${rp.amount}`, timestamp:TS(), maxClaims:1,
                         });
                         // Announce
                         await publicChatCollection.add({
                           type:'red_packet_announce', senderId:user.uid, senderName:currentUser?.displayName||'User',
                           amount:rp.amount, targetType:'dm', targetName:friend.displayName,
-                          text:lang==='ar'?`🧧 ${currentUser?.displayName} أرسل مغلف ${rp.amount} إلى ${friend.displayName}`:`🧧 ${currentUser?.displayName} sent a ${rp.amount} packet to ${friend.displayName}`,
+                          text:lang==='ar'?`ðŸ§§ ${currentUser?.displayName} Ø£Ø±Ø³Ù„ Ù…ØºÙ„Ù ${rp.amount} Ø¥Ù„Ù‰ ${friend.displayName}`:`ðŸ§§ ${currentUser?.displayName} sent a ${rp.amount} packet to ${friend.displayName}`,
                           createdAt:TS(),
                         });
                         setShowDMRedPacket(false);
@@ -1132,12 +1132,12 @@ const PrivateChatModal = ({
                       setSendingDMRedPacket(false);
                     }} disabled={sendingDMRedPacket||(currency||0)<rp.amount}
                     style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 16px',borderRadius:'14px',background:rp.bg,border:`1px solid ${rp.border}`,cursor:(currency||0)<rp.amount?'not-allowed':'pointer',opacity:(currency||0)<rp.amount?0.4:1,textAlign:'left'}}>
-                      {rp.imageURL?<img src={rp.imageURL} alt="" style={{width:'42px',height:'42px',objectFit:'contain'}}/>:<div style={{width:'42px',height:'42px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>🧧</div>}
+                      {rp.imageURL?<img src={rp.imageURL} alt="" style={{width:'42px',height:'42px',objectFit:'contain'}}/>:<div style={{width:'42px',height:'42px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>ðŸ§§</div>}
                       <div style={{flex:1}}>
                         <div style={{fontSize:'13px',fontWeight:800,color:rp.color}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
                         <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'2px'}}>{lang==='ar'?rp.desc_ar:rp.desc_en}</div>
                       </div>
-                      <div style={{fontSize:'13px',fontWeight:800,color:rp.color}}>{rp.amount.toLocaleString()} 🧠</div>
+                      <div style={{fontSize:'13px',fontWeight:800,color:rp.color}}>{rp.amount.toLocaleString()} ðŸ§ </div>
                     </button>
                   ))}
                 </div>
@@ -1160,7 +1160,7 @@ const PrivateChatModal = ({
           />
         )}
 
-        {/* ── Header 3-dot dropdown — rendered as fixed overlay ── */}
+        {/* â”€â”€ Header 3-dot dropdown â€” rendered as fixed overlay â”€â”€ */}
         {showHeaderMenu && (() => {
           const rect = headerMenuBtnRef.current?.getBoundingClientRect();
           const dropTop = rect ? rect.bottom + 4 : 60;
@@ -1181,23 +1181,23 @@ const PrivateChatModal = ({
                   style={{ width:'100%', padding:'10px 13px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', fontSize:'13px', fontWeight:700, color:'#f87171', textAlign:'left' }}
                   onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.12)'}
                   onMouseLeave={e => e.currentTarget.style.background='none'}
-                >🗑️ {lang==='ar'?'حذف المحادثة':'Delete Chat'}</button>
+                >ðŸ—‘ï¸ {lang==='ar'?'Ø­Ø°Ù Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø©':'Delete Chat'}</button>
                 <button onClick={() => { isBlocked ? handleUnblock() : handleBlock(); }}
                   style={{ width:'100%', padding:'10px 13px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', fontSize:'13px', fontWeight:700, color: isBlocked?'#4ade80':'#f59e0b', textAlign:'left' }}
                   onMouseEnter={e => e.currentTarget.style.background = isBlocked?'rgba(74,222,128,0.1)':'rgba(245,158,11,0.1)'}
                   onMouseLeave={e => e.currentTarget.style.background='none'}
-                >{isBlocked?`✅ ${lang==='ar'?'إلغاء الحظر':'Unblock'}`:`🚫 ${lang==='ar'?'حظر المستخدم':'Block User'}`}</button>
+                >{isBlocked?`âœ… ${lang==='ar'?'Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ø­Ø¸Ø±':'Unblock'}`:`ðŸš« ${lang==='ar'?'Ø­Ø¸Ø± Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…':'Block User'}`}</button>
                 <button onClick={() => { setShowHeaderMenu(false); setReportStep('reason'); setReportReason(''); setReportDMMsg(null); setShowReportModal(true); }}
                   style={{ width:'100%', padding:'10px 13px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', fontSize:'13px', fontWeight:700, color:'#9ca3af', textAlign:'left' }}
                   onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.07)'}
                   onMouseLeave={e => e.currentTarget.style.background='none'}
-                >🚨 {lang==='ar'?'إبلاغ':'Report'}</button>
+                >ðŸš¨ {lang==='ar'?'Ø¥Ø¨Ù„Ø§Øº':'Report'}</button>
               </div>
             </div>
           );
         })()}
 
-        {/* ── Pen message menu — fixed overlay ── */}
+        {/* â”€â”€ Pen message menu â€” fixed overlay â”€â”€ */}
         {msgMenuId && (() => {
           const activeMsg = messages.find(m => m.id === msgMenuId);
           if (!activeMsg) return null;
@@ -1220,19 +1220,19 @@ const PrivateChatModal = ({
                   style={{ width:'100%', padding:'7px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', fontSize:'12px', color:'#00f2ff', fontWeight:700, textAlign:'left', display:'flex', alignItems:'center', gap:'7px' }}
                   onMouseEnter={e => e.currentTarget.style.background='rgba(0,242,255,0.1)'}
                   onMouseLeave={e => e.currentTarget.style.background='none'}
-                >✏️ {lang==='ar'?'تعديل':'Edit'}</button>
+                >âœï¸ {lang==='ar'?'ØªØ¹Ø¯ÙŠÙ„':'Edit'}</button>
                 <button
                   onClick={e => { e.stopPropagation(); setMsgMenuId(null); handleDeleteMessage(msgMenuId); }}
                   style={{ width:'100%', padding:'7px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', fontSize:'12px', color:'#f87171', fontWeight:700, textAlign:'left', display:'flex', alignItems:'center', gap:'7px' }}
                   onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}
                   onMouseLeave={e => e.currentTarget.style.background='none'}
-                >🗑️ {lang==='ar'?'حذف':'Delete'}</button>
+                >ðŸ—‘ï¸ {lang==='ar'?'Ø­Ø°Ù':'Delete'}</button>
               </div>
             </div>
           );
         })()}
 
-        {/* ── Mini Profile Modal — Enhanced Design ── */}
+        {/* â”€â”€ Mini Profile Modal â€” Enhanced Design â”€â”€ */}
         {miniProfile && (
           <MiniProfilePopup
             profile={miniProfile}
@@ -1249,7 +1249,7 @@ const PrivateChatModal = ({
         )}
 
 
-        {/* ── Delete Chat Confirm Modal ── */}
+        {/* â”€â”€ Delete Chat Confirm Modal â”€â”€ */}
         {showDeleteChatConfirm && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: Z.OVERLAY,
@@ -1265,30 +1265,30 @@ const PrivateChatModal = ({
               textAlign: 'center',
               boxShadow: '0 0 40px rgba(239,68,68,0.2)',
             }} onClick={e => e.stopPropagation()}>
-              <div style={{ fontSize: '40px', marginBottom: '10px' }}>🗑️</div>
+              <div style={{ fontSize: '40px', marginBottom: '10px' }}>ðŸ—‘ï¸</div>
               <div style={{ fontSize: '15px', fontWeight: 900, color: '#f87171', marginBottom: '8px' }}>
-                {lang === 'ar' ? 'حذف المحادثة' : 'Delete Chat'}
+                {lang === 'ar' ? 'Ø­Ø°Ù Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø©' : 'Delete Chat'}
               </div>
               <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '20px', lineHeight: 1.6 }}>
                 {lang === 'ar'
-                  ? 'سيتم حذف كل الرسائل نهائياً. هل أنت متأكد؟'
+                  ? 'Ø³ÙŠØªÙ… Ø­Ø°Ù ÙƒÙ„ Ø§Ù„Ø±Ø³Ø§Ø¦Ù„ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹. Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ØŸ'
                   : 'All messages will be permanently deleted. Are you sure?'}
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setShowDeleteChatConfirm(false)}
                   style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                  {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                  {lang === 'ar' ? 'Ø¥Ù„ØºØ§Ø¡' : 'Cancel'}
                 </button>
                 <button onClick={handleDeleteChat} disabled={deletingChat}
                   style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'linear-gradient(135deg,#dc2626,#991b1b)', border: 'none', color: 'white', fontSize: '13px', fontWeight: 800, cursor: deletingChat ? 'wait' : 'pointer', opacity: deletingChat ? 0.7 : 1 }}>
-                  {deletingChat ? '⏳' : `🗑️ ${lang === 'ar' ? 'حذف' : 'Delete'}`}
+                  {deletingChat ? 'â³' : `ðŸ—‘ï¸ ${lang === 'ar' ? 'Ø­Ø°Ù' : 'Delete'}`}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* ── Report Modal ── */}
+        {/* â”€â”€ Report Modal â”€â”€ */}
         {showReportModal && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: Z.OVERLAY,
@@ -1306,16 +1306,16 @@ const PrivateChatModal = ({
 
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
-                <span style={{ fontSize: '22px' }}>🚨</span>
+                <span style={{ fontSize: '22px' }}>ðŸš¨</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '14px', fontWeight: 900, color: '#f87171' }}>
-                    {lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'}
+                    {lang === 'ar' ? 'Ø¥Ø¨Ù„Ø§Øº Ø¹Ù† Ù…Ø³ØªØ®Ø¯Ù…' : 'Report User'}
                   </div>
                   <div style={{ fontSize: '11px', color: '#6b7280' }}>{friend?.displayName}</div>
                 </div>
                 {reportStep !== 'done' && (
                   <button onClick={() => setShowReportModal(false)}
-                    style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+                    style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px' }}>âœ•</button>
                 )}
               </div>
 
@@ -1323,14 +1323,14 @@ const PrivateChatModal = ({
               {reportStep === 'reason' && (
                 <>
                   <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '10px' }}>
-                    {lang === 'ar' ? 'سبب البلاغ:' : 'Reason for report:'}
+                    {lang === 'ar' ? 'Ø³Ø¨Ø¨ Ø§Ù„Ø¨Ù„Ø§Øº:' : 'Reason for report:'}
                   </div>
                   {[
-                    { en: 'Harassment / Bullying', ar: 'مضايقة / تنمر' },
-                    { en: 'Inappropriate content', ar: 'محتوى غير لائق' },
-                    { en: 'Spam / Advertising', ar: 'سبام / إعلانات' },
-                    { en: 'Fake account', ar: 'حساب مزيف' },
-                    { en: 'Other', ar: 'أخرى' },
+                    { en: 'Harassment / Bullying', ar: 'Ù…Ø¶Ø§ÙŠÙ‚Ø© / ØªÙ†Ù…Ø±' },
+                    { en: 'Inappropriate content', ar: 'Ù…Ø­ØªÙˆÙ‰ ØºÙŠØ± Ù„Ø§Ø¦Ù‚' },
+                    { en: 'Spam / Advertising', ar: 'Ø³Ø¨Ø§Ù… / Ø¥Ø¹Ù„Ø§Ù†Ø§Øª' },
+                    { en: 'Fake account', ar: 'Ø­Ø³Ø§Ø¨ Ù…Ø²ÙŠÙ' },
+                    { en: 'Other', ar: 'Ø£Ø®Ø±Ù‰' },
                   ].map(r => (
                     <button key={r.en} onClick={() => setReportReason(lang === 'ar' ? r.ar : r.en)}
                       style={{
@@ -1346,11 +1346,11 @@ const PrivateChatModal = ({
                   <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
                     <button onClick={() => setShowReportModal(false)}
                       style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                      {lang === 'ar' ? 'Ø¥Ù„ØºØ§Ø¡' : 'Cancel'}
                     </button>
                     <button onClick={() => setReportStep('dm')} disabled={!reportReason}
                       style={{ flex: 1, padding: '10px', borderRadius: '10px', background: reportReason ? 'linear-gradient(135deg,rgba(239,68,68,0.3),rgba(185,28,28,0.2))' : 'rgba(255,255,255,0.03)', border: reportReason ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.06)', color: reportReason ? '#f87171' : '#374151', fontSize: '12px', fontWeight: 700, cursor: reportReason ? 'pointer' : 'not-allowed' }}>
-                      {lang === 'ar' ? 'التالي →' : 'Next →'}
+                      {lang === 'ar' ? 'Ø§Ù„ØªØ§Ù„ÙŠ â†’' : 'Next â†’'}
                     </button>
                   </div>
                 </>
@@ -1360,26 +1360,26 @@ const PrivateChatModal = ({
               {reportStep === 'dm' && (
                 <>
                   <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '8px' }}>
-                    {lang === 'ar' ? 'أضف دليلاً من الرسائل (اختياري):' : 'Add message evidence (optional):'}
+                    {lang === 'ar' ? 'Ø£Ø¶Ù Ø¯Ù„ÙŠÙ„Ø§Ù‹ Ù…Ù† Ø§Ù„Ø±Ø³Ø§Ø¦Ù„ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ):' : 'Add message evidence (optional):'}
                   </div>
                   <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '12px', lineHeight: 1.5 }}>
                     {lang === 'ar'
-                      ? 'أغلق هذه النافذة واضغط على "اختر" بجانب الرسالة التي تريد إرفاقها كدليل، ثم عد هنا.'
+                      ? 'Ø£ØºÙ„Ù‚ Ù‡Ø°Ù‡ Ø§Ù„Ù†Ø§ÙØ°Ø© ÙˆØ§Ø¶ØºØ· Ø¹Ù„Ù‰ "Ø§Ø®ØªØ±" Ø¨Ø¬Ø§Ù†Ø¨ Ø§Ù„Ø±Ø³Ø§Ù„Ø© Ø§Ù„ØªÙŠ ØªØ±ÙŠØ¯ Ø¥Ø±ÙØ§Ù‚Ù‡Ø§ ÙƒØ¯Ù„ÙŠÙ„ØŒ Ø«Ù… Ø¹Ø¯ Ù‡Ù†Ø§.'
                       : 'Close this dialog and tap "Select" next to the message you want as evidence, then come back.'}
                   </div>
                   {reportDMMsg && (
                     <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '10px', marginBottom: '12px', fontSize: '12px', color: '#fca5a5' }}>
-                      📎 {lang === 'ar' ? 'دليل مرفق:' : 'Evidence attached:'} "{reportDMMsg.text?.slice(0, 60)}{reportDMMsg.text?.length > 60 ? '...' : ''}"
+                      ðŸ“Ž {lang === 'ar' ? 'Ø¯Ù„ÙŠÙ„ Ù…Ø±ÙÙ‚:' : 'Evidence attached:'} "{reportDMMsg.text?.slice(0, 60)}{reportDMMsg.text?.length > 60 ? '...' : ''}"
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => setReportStep('reason')}
                       style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      ← {lang === 'ar' ? 'رجوع' : 'Back'}
+                      â† {lang === 'ar' ? 'Ø±Ø¬ÙˆØ¹' : 'Back'}
                     </button>
                     <button onClick={handleSubmitReport} disabled={submittingReport}
                       style={{ flex: 1, padding: '10px', borderRadius: '10px', background: 'linear-gradient(135deg,rgba(239,68,68,0.35),rgba(185,28,28,0.25))', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171', fontSize: '12px', fontWeight: 800, cursor: submittingReport ? 'wait' : 'pointer', opacity: submittingReport ? 0.7 : 1 }}>
-                      {submittingReport ? '⏳' : `🚨 ${lang === 'ar' ? 'إرسال البلاغ' : 'Submit Report'}`}
+                      {submittingReport ? 'â³' : `ðŸš¨ ${lang === 'ar' ? 'Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø¨Ù„Ø§Øº' : 'Submit Report'}`}
                     </button>
                   </div>
                 </>
@@ -1388,18 +1388,18 @@ const PrivateChatModal = ({
               {/* Step: done */}
               {reportStep === 'done' && (
                 <div style={{ textAlign: 'center', padding: '10px 0' }}>
-                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
+                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>âœ…</div>
                   <div style={{ fontSize: '14px', fontWeight: 800, color: '#4ade80', marginBottom: '8px' }}>
-                    {lang === 'ar' ? 'تم إرسال البلاغ' : 'Report Submitted'}
+                    {lang === 'ar' ? 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø¨Ù„Ø§Øº' : 'Report Submitted'}
                   </div>
                   <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '20px', lineHeight: 1.6 }}>
                     {lang === 'ar'
-                      ? 'شكراً لمساعدتنا. سيتم مراجعة البلاغ قريباً وستصلك رسالة من المحقق.'
+                      ? 'Ø´ÙƒØ±Ø§Ù‹ Ù„Ù…Ø³Ø§Ø¹Ø¯ØªÙ†Ø§. Ø³ÙŠØªÙ… Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¨Ù„Ø§Øº Ù‚Ø±ÙŠØ¨Ø§Ù‹ ÙˆØ³ØªØµÙ„Ùƒ Ø±Ø³Ø§Ù„Ø© Ù…Ù† Ø§Ù„Ù…Ø­Ù‚Ù‚.'
                       : 'Thank you. Your report will be reviewed soon and you will receive a message from The Detective.'}
                   </div>
                   <button onClick={() => setShowReportModal(false)}
                     style={{ padding: '10px 28px', borderRadius: '10px', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                    {lang === 'ar' ? 'إغلاق' : 'Close'}
+                    {lang === 'ar' ? 'Ø¥ØºÙ„Ø§Ù‚' : 'Close'}
                   </button>
                 </div>
               )}
@@ -1418,4 +1418,5 @@ const PrivateChatModal = ({
     );
 };
 
-// 📅 LOGIN REWARDS COMPONENT
+// ðŸ“… LOGIN REWARDS COMPONENT
+

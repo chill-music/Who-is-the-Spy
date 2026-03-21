@@ -1,36 +1,36 @@
-// ════════════════════════════════════════════════════════════════════
-// 🤝 BFF SYSTEM — Friendship Relationship System  (21-bff.js)
-// ════════════════════════════════════════════════════════════════════
+﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ¤ BFF SYSTEM â€” Friendship Relationship System  (21-bff.js)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // Load order: after 20-couples.js
 // Exposes: BFFStripProfile, BFFModal, BFFCardModal
 // Collections: bffCollection (defined in 01-config.js)
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ─────────────────────────────────────────────
-// 🎨 RARITY COLORS
-// ─────────────────────────────────────────────
-const BFF_RARITY_COLORS = {
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ðŸŽ¨ RARITY COLORS
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var FF_RARITY_COLORS = {
     Common: '#9ca3af', Uncommon: '#4ade80', Rare: '#60a5fa',
     Epic: '#a78bfa', Legendary: '#ffd700', Mythic: '#f0abfc',
 };
 
-const BFF_RARITY_TO_LEVEL = {
+var FF_RARITY_TO_LEVEL = {
     Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5, Mythic: 6,
 };
 
-// ─────────────────────────────────────────────
-// ⭐ BFF LEVEL SYSTEM — gift-point based
-// ─────────────────────────────────────────────
-const BFF_LEVELS = [
-    { level: 1, minPts: 0,     name_en: 'Friends',        name_ar: 'أصدقاء',          color: '#60a5fa', glow: 'rgba(96,165,250,0.5)',   icon: '🤝', stars: 1 },
-    { level: 2, minPts: 500,   name_en: 'Close Friends',  name_ar: 'أصدقاء مقربون',   color: '#4ade80', glow: 'rgba(74,222,128,0.5)',   icon: '💚', stars: 2 },
-    { level: 3, minPts: 2000,  name_en: 'Best Friends',   name_ar: 'أعز الأصدقاء',    color: '#f59e0b', glow: 'rgba(245,158,11,0.5)',   icon: '⭐', stars: 3 },
-    { level: 4, minPts: 6000,  name_en: 'Soulmates',      name_ar: 'أرواح توأم',       color: '#a78bfa', glow: 'rgba(167,139,250,0.5)', icon: '💜', stars: 4 },
-    { level: 5, minPts: 15000, name_en: 'Legendary Bond', name_ar: 'رابطة أسطورية',   color: '#ffd700', glow: 'rgba(255,215,0,0.6)',    icon: '👑', stars: 5 },
-    { level: 6, minPts: 40000, name_en: 'Eternal Bond',   name_ar: 'رابطة أبدية',     color: '#f0abfc', glow: 'rgba(240,171,252,0.7)', icon: '💎', stars: 6 },
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â­ BFF LEVEL SYSTEM â€” gift-point based
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var FF_LEVELS = [
+    { level: 1, minPts: 0,     name_en: 'Friends',        name_ar: 'Ø£ØµØ¯Ù‚Ø§Ø¡',          color: '#60a5fa', glow: 'rgba(96,165,250,0.5)',   icon: 'ðŸ¤', stars: 1 },
+    { level: 2, minPts: 500,   name_en: 'Close Friends',  name_ar: 'Ø£ØµØ¯Ù‚Ø§Ø¡ Ù…Ù‚Ø±Ø¨ÙˆÙ†',   color: '#4ade80', glow: 'rgba(74,222,128,0.5)',   icon: 'ðŸ’š', stars: 2 },
+    { level: 3, minPts: 2000,  name_en: 'Best Friends',   name_ar: 'Ø£Ø¹Ø² Ø§Ù„Ø£ØµØ¯Ù‚Ø§Ø¡',    color: '#f59e0b', glow: 'rgba(245,158,11,0.5)',   icon: 'â­', stars: 3 },
+    { level: 4, minPts: 6000,  name_en: 'Soulmates',      name_ar: 'Ø£Ø±ÙˆØ§Ø­ ØªÙˆØ£Ù…',       color: '#a78bfa', glow: 'rgba(167,139,250,0.5)', icon: 'ðŸ’œ', stars: 4 },
+    { level: 5, minPts: 15000, name_en: 'Legendary Bond', name_ar: 'Ø±Ø§Ø¨Ø·Ø© Ø£Ø³Ø·ÙˆØ±ÙŠØ©',   color: '#ffd700', glow: 'rgba(255,215,0,0.6)',    icon: 'ðŸ‘‘', stars: 5 },
+    { level: 6, minPts: 40000, name_en: 'Eternal Bond',   name_ar: 'Ø±Ø§Ø¨Ø·Ø© Ø£Ø¨Ø¯ÙŠØ©',     color: '#f0abfc', glow: 'rgba(240,171,252,0.7)', icon: 'ðŸ’Ž', stars: 6 },
 ];
 
-const getBFFLevel = (giftPoints = 0) => {
+var etBFFLevel = (giftPoints = 0) => {
     let lv = BFF_LEVELS[0];
     for (const l of BFF_LEVELS) { if (giftPoints >= l.minPts) lv = l; else break; }
     const nextIdx = BFF_LEVELS.findIndex(l => l.level === lv.level) + 1;
@@ -41,10 +41,10 @@ const getBFFLevel = (giftPoints = 0) => {
     return { ...lv, pct, nextMinPts: next?.minPts || null, giftPoints };
 };
 
-// ─────────────────────────────────────────────
-// 🎁 Update BFF gift points when gift is sent
-// ─────────────────────────────────────────────
-const updateBFFGiftPoints = async (senderUID, receiverUID, charismaPoints) => {
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ðŸŽ Update BFF gift points when gift is sent
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var pdateBFFGiftPoints = async (senderUID, receiverUID, charismaPoints) => {
     try {
         const [snap1, snap2] = await Promise.all([
             bffCollection.where('uid1', '==', senderUID).where('uid2', '==', receiverUID).where('status', '==', 'active').limit(1).get(),
@@ -64,22 +64,22 @@ const updateBFFGiftPoints = async (senderUID, receiverUID, charismaPoints) => {
     }
 };
 
-// ─────────────────────────────────────────────
-// 🔧 FIRESTORE HELPERS
-// ─────────────────────────────────────────────
-const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotification, lang }) => {
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ðŸ”§ FIRESTORE HELPERS
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var endBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotification, lang }) => {
     const token = BFF_TOKEN_ITEMS.find(t => t.id === tokenId);
     if (!token) return { ok: false, err: 'No token selected' };
 
     // Check token in inventory
     const myBffTokens = fromData?.inventory?.bff_tokens || [];
     if (!myBffTokens.includes(tokenId)) {
-        onNotification && onNotification(lang === 'ar' ? '❌ ليس لديك هذا التوكن' : '❌ You do not have this token');
+        onNotification && onNotification(lang === 'ar' ? 'âŒ Ù„ÙŠØ³ Ù„Ø¯ÙŠÙƒ Ù‡Ø°Ø§ Ø§Ù„ØªÙˆÙƒÙ†' : 'âŒ You do not have this token');
         return { ok: false };
     }
 
     try {
-        // ── Simple single-field queries only (no composite index needed) ──
+        // â”€â”€ Simple single-field queries only (no composite index needed) â”€â”€
         const [myAsUid1, myAsUid2] = await Promise.all([
             bffCollection.where('uid1', '==', fromUID).get(),
             bffCollection.where('uid2', '==', fromUID).get(),
@@ -95,7 +95,7 @@ const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotificatio
             (r.status === 'pending' || r.status === 'active')
         );
         if (alreadyExists) {
-            onNotification && onNotification(lang === 'ar' ? '❌ يوجد علاقة نشطة بالفعل' : '❌ Relationship already exists');
+            onNotification && onNotification(lang === 'ar' ? 'âŒ ÙŠÙˆØ¬Ø¯ Ø¹Ù„Ø§Ù‚Ø© Ù†Ø´Ø·Ø© Ø¨Ø§Ù„ÙØ¹Ù„' : 'âŒ Relationship already exists');
             return { ok: false };
         }
 
@@ -105,12 +105,12 @@ const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotificatio
         const maxSlots = BFF_CONFIG.freeSlots + extraSlots;
         if (totalActive >= maxSlots) {
             onNotification && onNotification(lang === 'ar'
-                ? `❌ وصلت للحد الأقصى (${maxSlots} علاقات). اشترِ خانة جديدة بـ ${BFF_CONFIG.extraSlotCost} 🧠`
-                : `❌ Max relationships (${maxSlots}). Buy extra slot for ${BFF_CONFIG.extraSlotCost} 🧠`);
+                ? `âŒ ÙˆØµÙ„Øª Ù„Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰ (${maxSlots} Ø¹Ù„Ø§Ù‚Ø§Øª). Ø§Ø´ØªØ±Ù Ø®Ø§Ù†Ø© Ø¬Ø¯ÙŠØ¯Ø© Ø¨Ù€ ${BFF_CONFIG.extraSlotCost} ðŸ§ `
+                : `âŒ Max relationships (${maxSlots}). Buy extra slot for ${BFF_CONFIG.extraSlotCost} ðŸ§ `);
             return { ok: false };
         }
 
-        // ── Write: update inventory + create BFF doc separately (no batch to avoid permission complexity) ──
+        // â”€â”€ Write: update inventory + create BFF doc separately (no batch to avoid permission complexity) â”€â”€
         // Remove token from inventory
         const newTokens = [...myBffTokens];
         const idx = newTokens.indexOf(tokenId);
@@ -137,8 +137,8 @@ const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotificatio
             fromPhoto: fromData?.photoURL || null,
             type: 'bff_request',
             message: lang === 'ar'
-                ? `🤝 ${fromData?.displayName} أرسل لك طلب صداقة ${token.name_ar}!`
-                : `🤝 ${fromData?.displayName} sent you a ${token.name_en} friendship request!`,
+                ? `ðŸ¤ ${fromData?.displayName} Ø£Ø±Ø³Ù„ Ù„Ùƒ Ø·Ù„Ø¨ ØµØ¯Ø§Ù‚Ø© ${token.name_ar}!`
+                : `ðŸ¤ ${fromData?.displayName} sent you a ${token.name_en} friendship request!`,
             tokenId,
             bffDocId: bffRef.id,
             timestamp: TS(),
@@ -157,29 +157,29 @@ const sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotificatio
             lang,
         });
 
-        onNotification && onNotification(lang === 'ar' ? '🤝 تم إرسال طلب الصداقة!' : '🤝 Friendship request sent!');
+        onNotification && onNotification(lang === 'ar' ? 'ðŸ¤ ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ø§Ù„ØµØ¯Ø§Ù‚Ø©!' : 'ðŸ¤ Friendship request sent!');
         return { ok: true, bffDocId: bffRef.id };
     } catch (e) {
         console.error('sendBFFRequest error', e);
-        onNotification && onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
+        onNotification && onNotification(lang === 'ar' ? 'âŒ Ø®Ø·Ø£' : 'âŒ Error');
         return { ok: false };
     }
 };
 
-const acceptBFFRequest = async ({ bffDocId, uid1, uid2, onNotification, lang }) => {
+var cceptBFFRequest = async ({ bffDocId, uid1, uid2, onNotification, lang }) => {
     try {
         await bffCollection.doc(bffDocId).update({
             status: 'active',
             acceptedAt: TS(),
         });
-        onNotification && onNotification(lang === 'ar' ? '🤝 تم قبول طلب الصداقة!' : '🤝 Friendship accepted!');
+        onNotification && onNotification(lang === 'ar' ? 'ðŸ¤ ØªÙ… Ù‚Ø¨ÙˆÙ„ Ø·Ù„Ø¨ Ø§Ù„ØµØ¯Ø§Ù‚Ø©!' : 'ðŸ¤ Friendship accepted!');
         return { ok: true };
     } catch (e) {
         return { ok: false };
     }
 };
 
-const declineBFFRequest = async ({ bffDocId, fromUID, tokenId, onNotification, lang }) => {
+var eclineBFFRequest = async ({ bffDocId, fromUID, tokenId, onNotification, lang }) => {
     try {
         // Refund token
         const token = BFF_TOKEN_ITEMS.find(t => t.id === tokenId);
@@ -189,27 +189,27 @@ const declineBFFRequest = async ({ bffDocId, fromUID, tokenId, onNotification, l
             }).catch(() => {});
         }
         await bffCollection.doc(bffDocId).delete();
-        onNotification && onNotification(lang === 'ar' ? 'تم الرفض وإعادة التوكن' : 'Declined & token refunded');
+        onNotification && onNotification(lang === 'ar' ? 'ØªÙ… Ø§Ù„Ø±ÙØ¶ ÙˆØ¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªÙˆÙƒÙ†' : 'Declined & token refunded');
         return { ok: true };
     } catch (e) {
         return { ok: false };
     }
 };
 
-const endBFFRelationship = async ({ bffDocId, onNotification, lang }) => {
+var ndBFFRelationship = async ({ bffDocId, onNotification, lang }) => {
     try {
         await bffCollection.doc(bffDocId).delete();
-        onNotification && onNotification(lang === 'ar' ? '💔 تم إنهاء العلاقة' : '💔 Relationship ended');
+        onNotification && onNotification(lang === 'ar' ? 'ðŸ’” ØªÙ… Ø¥Ù†Ù‡Ø§Ø¡ Ø§Ù„Ø¹Ù„Ø§Ù‚Ø©' : 'ðŸ’” Relationship ended');
         return { ok: true };
     } catch (e) {
         return { ok: false };
     }
 };
 
-const buyBFFExtraSlot = async ({ uid, userData, onNotification, lang }) => {
+var uyBFFExtraSlot = async ({ uid, userData, onNotification, lang }) => {
     const cost = BFF_CONFIG.extraSlotCost;
     if ((userData?.currency || 0) < cost) {
-        onNotification && onNotification(lang === 'ar' ? `❌ تحتاج ${cost} 🧠` : `❌ Need ${cost} 🧠`);
+        onNotification && onNotification(lang === 'ar' ? `âŒ ØªØ­ØªØ§Ø¬ ${cost} ðŸ§ ` : `âŒ Need ${cost} ðŸ§ `);
         return { ok: false };
     }
     try {
@@ -217,17 +217,17 @@ const buyBFFExtraSlot = async ({ uid, userData, onNotification, lang }) => {
             currency: firebase.firestore.FieldValue.increment(-cost),
             bffExtraSlots: firebase.firestore.FieldValue.increment(1),
         });
-        onNotification && onNotification(lang === 'ar' ? '✅ تم فتح خانة جديدة!' : '✅ New slot unlocked!');
+        onNotification && onNotification(lang === 'ar' ? 'âœ… ØªÙ… ÙØªØ­ Ø®Ø§Ù†Ø© Ø¬Ø¯ÙŠØ¯Ø©!' : 'âœ… New slot unlocked!');
         return { ok: true };
     } catch (e) {
         return { ok: false };
     }
 };
 
-// ─────────────────────────────────────────────
-// 🤖 Love Bot message sender
-// ─────────────────────────────────────────────
-const sendLoveBotMessage = async (toUID, data) => {
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ðŸ¤– Love Bot message sender
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var endLoveBotMessage = async (toUID, data) => {
     try {
         await botChatsCollection.add({
             botId: 'love_bot',
@@ -238,12 +238,12 @@ const sendLoveBotMessage = async (toUID, data) => {
             fromUID: data.fromUID || null,
             message: data.type === 'bff_request'
                 ? (data.lang === 'ar'
-                    ? `🤝 ${data.fromName} أرسل لك طلب علاقة "${data.tokenName_ar}"! اضغط للرد.`
-                    : `🤝 ${data.fromName} sent you a "${data.tokenName_en}" relationship request! Tap to respond.`)
+                    ? `ðŸ¤ ${data.fromName} Ø£Ø±Ø³Ù„ Ù„Ùƒ Ø·Ù„Ø¨ Ø¹Ù„Ø§Ù‚Ø© "${data.tokenName_ar}"! Ø§Ø¶ØºØ· Ù„Ù„Ø±Ø¯.`
+                    : `ðŸ¤ ${data.fromName} sent you a "${data.tokenName_en}" relationship request! Tap to respond.`)
                 : (data.type === 'proposal'
                     ? (data.lang === 'ar'
-                        ? `💍 ${data.fromName} أرسل لك طلب ارتباط! اضغط للرد.`
-                        : `💍 ${data.fromName} sent you a marriage proposal! Tap to respond.`)
+                        ? `ðŸ’ ${data.fromName} Ø£Ø±Ø³Ù„ Ù„Ùƒ Ø·Ù„Ø¨ Ø§Ø±ØªØ¨Ø§Ø·! Ø§Ø¶ØºØ· Ù„Ù„Ø±Ø¯.`
+                        : `ðŸ’ ${data.fromName} sent you a marriage proposal! Tap to respond.`)
                     : (data.message || '')),
             bffDocId: data.bffDocId || null,
             coupleDocId: data.coupleDocId || null,
@@ -253,10 +253,10 @@ const sendLoveBotMessage = async (toUID, data) => {
     } catch (e) {}
 };
 
-// ─────────────────────────────────────────────
-// 👁️ BFF CARD MODAL — shows when clicking BFF strip
-// ─────────────────────────────────────────────
-const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID, lang, onNotification, viewOnly = false }) => {
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ðŸ‘ï¸ BFF CARD MODAL â€” shows when clicking BFF strip
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var FFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID, lang, onNotification, viewOnly = false }) => {
     const [ending, setEnding] = useState(false);
     const [confirmEnd, setConfirmEnd] = useState(false);
 
@@ -287,7 +287,7 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
                     fontSize: '11px',
                     filter: i < count ? `drop-shadow(0 0 4px ${color})` : 'none',
                     opacity: i < count ? 1 : 0.2,
-                }}>★</span>
+                }}>â˜…</span>
             ))}
         </div>
     );
@@ -307,7 +307,7 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
                     border: `1.5px solid ${lvInfo.color}50`,
                 }}>
 
-                    {/* ── Top gradient header ── */}
+                    {/* â”€â”€ Top gradient header â”€â”€ */}
                     <div style={{
                         padding: '18px 18px 14px',
                         background: `linear-gradient(135deg,${lvInfo.color}28,${lvInfo.color}10,transparent)`,
@@ -344,13 +344,13 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
                                 background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '9px',
                                 color: '#9ca3af', fontSize: '16px', width: '30px', height: '30px', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                            }}>✕</button>
+                            }}>âœ•</button>
                         </div>
                     </div>
 
                     <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-                        {/* ── Relationship Card ── */}
+                        {/* â”€â”€ Relationship Card â”€â”€ */}
                         <div style={{
                             borderRadius: '18px', overflow: 'hidden', position: 'relative',
                             background: `linear-gradient(145deg,${token.color}35,${token.color}15)`,
@@ -379,10 +379,10 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
                                     }}>
                                         {me?.photoURL
                                             ? <img src={me.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', background: 'rgba(255,255,255,0.05)' }}>😎</div>}
+                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', background: 'rgba(255,255,255,0.05)' }}>ðŸ˜Ž</div>}
                                     </div>
                                     <span style={{ fontSize: '11px', fontWeight: 800, color: 'white', textAlign: 'center', maxWidth: '72px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>
-                                        {me?.displayName || '—'}
+                                        {me?.displayName || 'â€”'}
                                     </span>
                                 </div>
 
@@ -410,16 +410,16 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
                                     }}>
                                         {other?.photoURL
                                             ? <img src={other.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', background: 'rgba(255,255,255,0.05)' }}>😎</div>}
+                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', background: 'rgba(255,255,255,0.05)' }}>ðŸ˜Ž</div>}
                                     </div>
                                     <span style={{ fontSize: '11px', fontWeight: 800, color: 'white', textAlign: 'center', maxWidth: '72px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>
-                                        {other?.displayName || '—'}
+                                        {other?.displayName || 'â€”'}
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* ── Level Progress ── */}
+                        {/* â”€â”€ Level Progress â”€â”€ */}
                         <div style={{
                             borderRadius: '16px',
                             background: 'rgba(255,255,255,0.03)',
@@ -431,7 +431,7 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <span style={{ fontSize: '15px' }}>{lvInfo.icon}</span>
                                     <span style={{ fontSize: '12px', fontWeight: 800, color: lvInfo.color }}>
-                                        {lang === 'ar' ? `المستوى ${lvInfo.level}` : `Level ${lvInfo.level}`}
+                                        {lang === 'ar' ? `Ø§Ù„Ù…Ø³ØªÙˆÙ‰ ${lvInfo.level}` : `Level ${lvInfo.level}`}
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -440,7 +440,7 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
                                     </span>
                                     {lvInfo.nextMinPts && (
                                         <span style={{ fontSize: '10px', color: '#4b5563' }}>
-                                            / {lvInfo.nextMinPts.toLocaleString()} ⭐
+                                            / {lvInfo.nextMinPts.toLocaleString()} â­
                                         </span>
                                     )}
                                     {!lvInfo.nextMinPts && (
@@ -496,8 +496,8 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
                             {lvInfo.nextMinPts && (
                                 <div style={{ marginTop: '8px', fontSize: '9px', color: '#4b5563', textAlign: 'center' }}>
                                     {lang === 'ar'
-                                        ? `🎁 تحتاج ${(lvInfo.nextMinPts - (bffDoc.giftPoints || 0)).toLocaleString()} نقطة للمستوى التالي`
-                                        : `🎁 ${(lvInfo.nextMinPts - (bffDoc.giftPoints || 0)).toLocaleString()} pts needed for next level`}
+                                        ? `ðŸŽ ØªØ­ØªØ§Ø¬ ${(lvInfo.nextMinPts - (bffDoc.giftPoints || 0)).toLocaleString()} Ù†Ù‚Ø·Ø© Ù„Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„ØªØ§Ù„ÙŠ`
+                                        : `ðŸŽ ${(lvInfo.nextMinPts - (bffDoc.giftPoints || 0)).toLocaleString()} pts needed for next level`}
                                 </div>
                             )}
                         </div>
@@ -511,19 +511,19 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
                                         border: '1px solid rgba(239,68,68,0.3)',
                                         background: 'rgba(239,68,68,0.08)',
                                         color: '#f87171', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
-                                    }}>💔 {lang === 'ar' ? 'إنهاء العلاقة' : 'End Relationship'}</button>
+                                    }}>ðŸ’” {lang === 'ar' ? 'Ø¥Ù†Ù‡Ø§Ø¡ Ø§Ù„Ø¹Ù„Ø§Ù‚Ø©' : 'End Relationship'}</button>
                                     : <div style={{ display: 'flex', gap: '10px' }}>
                                         <button onClick={() => setConfirmEnd(false)} style={{
                                             flex: 1, padding: '10px', borderRadius: '11px',
                                             border: '1px solid rgba(255,255,255,0.1)',
                                             background: 'rgba(255,255,255,0.05)', color: '#9ca3af',
                                             fontSize: '12px', cursor: 'pointer',
-                                        }}>{lang === 'ar' ? 'تراجع' : 'Cancel'}</button>
+                                        }}>{lang === 'ar' ? 'ØªØ±Ø§Ø¬Ø¹' : 'Cancel'}</button>
                                         <button onClick={handleEnd} disabled={ending} style={{
                                             flex: 1, padding: '10px', borderRadius: '11px', border: 'none',
                                             background: 'rgba(239,68,68,0.7)', color: 'white',
                                             fontSize: '12px', fontWeight: 700, cursor: 'pointer',
-                                        }}>{ending ? '⏳' : (lang === 'ar' ? '💔 تأكيد' : '💔 Confirm')}</button>
+                                        }}>{ending ? 'â³' : (lang === 'ar' ? 'ðŸ’” ØªØ£ÙƒÙŠØ¯' : 'ðŸ’” Confirm')}</button>
                                     </div>
                                 }
                             </div>
@@ -535,10 +535,10 @@ const BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID
     );
 };
 
-// ─────────────────────────────────────────────
-// 📋 INCOMING BFF REQUEST ITEM — standalone component
-// ─────────────────────────────────────────────
-const BFFRequestItem = ({ bffDoc, fromData, lang, onNotification, onDone }) => {
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ðŸ“‹ INCOMING BFF REQUEST ITEM â€” standalone component
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var FFRequestItem = ({ bffDoc, fromData, lang, onNotification, onDone }) => {
     const [handling, setHandling] = useState(false);
     const token = BFF_TOKEN_ITEMS.find(t => t.id === bffDoc.tokenId) || BFF_TOKEN_ITEMS[0];
 
@@ -564,11 +564,11 @@ const BFFRequestItem = ({ bffDoc, fromData, lang, onNotification, onDone }) => {
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', overflow: 'hidden', border: `2px solid ${token.color}60`, flexShrink: 0 }}>
                     {fromData?.photoURL
                         ? <img src={fromData.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>😎</div>}
+                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>ðŸ˜Ž</div>}
                 </div>
                 <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: 'white' }}>{fromData?.displayName || '—'}</div>
-                    <div style={{ fontSize: '11px', color: token.color }}>🤝 {lang === 'ar' ? 'يريد صداقتك' : 'wants to be your BFF'}</div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: 'white' }}>{fromData?.displayName || 'â€”'}</div>
+                    <div style={{ fontSize: '11px', color: token.color }}>ðŸ¤ {lang === 'ar' ? 'ÙŠØ±ÙŠØ¯ ØµØ¯Ø§Ù‚ØªÙƒ' : 'wants to be your BFF'}</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: `${token.color}15`, border: `1px solid ${token.color}40`, borderRadius: '10px', padding: '5px 10px' }}>
                     <span style={{ fontSize: '18px' }}>{token.emoji}</span>
@@ -583,22 +583,22 @@ const BFFRequestItem = ({ bffDoc, fromData, lang, onNotification, onDone }) => {
                     flex: 1, padding: '10px', borderRadius: '11px',
                     border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)',
                     color: '#f87171', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
-                }}>{handling ? '⏳' : (lang === 'ar' ? '❌ رفض' : '❌ Decline')}</button>
+                }}>{handling ? 'â³' : (lang === 'ar' ? 'âŒ Ø±ÙØ¶' : 'âŒ Decline')}</button>
                 <button onClick={() => handle(true)} disabled={handling} style={{
                     flex: 1, padding: '10px', borderRadius: '11px', border: 'none',
                     background: `linear-gradient(135deg,${token.color},${token.color}88)`,
                     color: '#000', fontSize: '12px', fontWeight: 800, cursor: 'pointer',
                     boxShadow: `0 4px 16px ${token.glow}`,
-                }}>{handling ? '⏳' : (lang === 'ar' ? '🤝 قبول' : '🤝 Accept')}</button>
+                }}>{handling ? 'â³' : (lang === 'ar' ? 'ðŸ¤ Ù‚Ø¨ÙˆÙ„' : 'ðŸ¤ Accept')}</button>
             </div>
         </div>
     );
 };
 
-// ─────────────────────────────────────────────
-// 🤝 BFF MODAL — Full BFF management screen
-// ─────────────────────────────────────────────
-const BFFModal = ({
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ðŸ¤ BFF MODAL â€” Full BFF management screen
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var FFModal = ({
     show, onClose, lang,
     currentUID, currentUserData,
     onNotification,
@@ -627,7 +627,7 @@ const BFFModal = ({
         if (!show || !currentUID) return;
         setLoading(true);
 
-        // ── Single-field queries only (no composite indexes needed) ──
+        // â”€â”€ Single-field queries only (no composite indexes needed) â”€â”€
         const unsub1 = bffCollection
             .where('uid1', '==', currentUID)
             .onSnapshot(snap => {
@@ -698,11 +698,11 @@ const BFFModal = ({
         try {
             const snap = await usersCollection.where('customId', '==', targetId.trim()).limit(1).get();
             if (snap.empty) {
-                setSearchErr(lang === 'ar' ? 'لم يُعثر على المستخدم' : 'User not found');
+                setSearchErr(lang === 'ar' ? 'Ù„Ù… ÙŠÙØ¹Ø«Ø± Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…' : 'User not found');
             } else {
                 const d = { id: snap.docs[0].id, ...snap.docs[0].data() };
                 if (d.id === currentUID) {
-                    setSearchErr(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself');
+                    setSearchErr(lang === 'ar' ? 'Ù„Ø§ ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ø¶Ø§ÙØ© Ù†ÙØ³Ùƒ' : 'Cannot add yourself');
                 } else { setTargetData(d); }
             }
         } catch (e) { setSearchErr('Error'); }
@@ -753,24 +753,24 @@ const BFFModal = ({
                     {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 18px 12px', flexShrink: 0 }}>
                         <div>
-                            <div style={{ fontSize: '16px', fontWeight: 900, color: 'white' }}>❤️ {lang === 'ar' ? 'BFF الخاص بي' : 'My BFF'}</div>
+                            <div style={{ fontSize: '16px', fontWeight: 900, color: 'white' }}>â¤ï¸ {lang === 'ar' ? 'BFF Ø§Ù„Ø®Ø§Øµ Ø¨ÙŠ' : 'My BFF'}</div>
                             <div style={{ fontSize: '10px', color: '#a78bfa', marginTop: '2px' }}>
-                                {myRelationships.length}/{maxSlots} {lang === 'ar' ? 'علاقات' : 'relationships'}
+                                {myRelationships.length}/{maxSlots} {lang === 'ar' ? 'Ø¹Ù„Ø§Ù‚Ø§Øª' : 'relationships'}
                             </div>
                         </div>
                         <button onClick={onClose} style={{
                             background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '10px',
                             color: '#9ca3af', fontSize: '18px', width: '34px', height: '34px', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>✕</button>
+                        }}>âœ•</button>
                     </div>
 
                     {/* Tabs */}
                     <div style={{ display: 'flex', gap: '8px', padding: '0 16px 12px', flexShrink: 0 }}>
                         {[
-                            { id: 'relationships', label_ar: 'علاقاتي', label_en: 'My BFFs', icon: '🤝' },
-                            { id: 'requests', label_ar: 'طلبات', label_en: 'Requests', icon: '📩', badge: pendingRequests.length },
-                            { id: 'send', label_ar: 'إرسال', label_en: 'Send', icon: '➕' },
+                            { id: 'relationships', label_ar: 'Ø¹Ù„Ø§Ù‚Ø§ØªÙŠ', label_en: 'My BFFs', icon: 'ðŸ¤' },
+                            { id: 'requests', label_ar: 'Ø·Ù„Ø¨Ø§Øª', label_en: 'Requests', icon: 'ðŸ“©', badge: pendingRequests.length },
+                            { id: 'send', label_ar: 'Ø¥Ø±Ø³Ø§Ù„', label_en: 'Send', icon: 'âž•' },
                         ].map(t => (
                             <button key={t.id} onClick={() => setTab(t.id)} style={{
                                 flex: 1, padding: '9px 4px', borderRadius: '12px', cursor: 'pointer',
@@ -796,13 +796,13 @@ const BFFModal = ({
                     {/* Content */}
                     <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 16px' }}>
 
-                        {/* ── Relationships Tab ── */}
+                        {/* â”€â”€ Relationships Tab â”€â”€ */}
                         {tab === 'relationships' && (
                             loading
-                                ? <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>⏳</div>
+                                ? <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>â³</div>
                                 : <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-                                    {/* ── CP Banner ── */}
+                                    {/* â”€â”€ CP Banner â”€â”€ */}
                                     {coupleData && couplePartnerData && (() => {
                                         const ring = typeof RINGS_DATA !== 'undefined'
                                             ? RINGS_DATA.find(r => r.id === coupleData.ringId)
@@ -825,10 +825,10 @@ const BFFModal = ({
                                                 position: 'relative',
                                             }}>
                                                 {/* Decorative sparkles */}
-                                                <div style={{ position: 'absolute', top: 6, left: 10, fontSize: '10px', opacity: 0.6 }}>✦</div>
-                                                <div style={{ position: 'absolute', top: 8, right: 14, fontSize: '8px', opacity: 0.5 }}>✦</div>
-                                                <div style={{ position: 'absolute', bottom: 10, left: 20, fontSize: '7px', opacity: 0.4 }}>✦</div>
-                                                <div style={{ position: 'absolute', bottom: 8, right: 10, fontSize: '9px', opacity: 0.5 }}>✦</div>
+                                                <div style={{ position: 'absolute', top: 6, left: 10, fontSize: '10px', opacity: 0.6 }}>âœ¦</div>
+                                                <div style={{ position: 'absolute', top: 8, right: 14, fontSize: '8px', opacity: 0.5 }}>âœ¦</div>
+                                                <div style={{ position: 'absolute', bottom: 10, left: 20, fontSize: '7px', opacity: 0.4 }}>âœ¦</div>
+                                                <div style={{ position: 'absolute', bottom: 8, right: 10, fontSize: '9px', opacity: 0.5 }}>âœ¦</div>
 
                                                 {/* CP Level badge */}
                                                 <div style={{ textAlign: 'center', marginBottom: '10px' }}>
@@ -852,7 +852,7 @@ const BFFModal = ({
                                                         }}>
                                                             {currentUserData?.photoURL
                                                                 ? <img src={currentUserData.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>😊</div>}
+                                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>ðŸ˜Š</div>}
                                                         </div>
                                                         <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)', maxWidth: '70px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                             {currentUserData?.displayName || '...'}
@@ -864,10 +864,10 @@ const BFFModal = ({
                                                         <div style={{ fontSize: '32px', filter: 'drop-shadow(0 2px 8px rgba(255,255,255,0.5))' }}>
                                                             {ring?.imageURL
                                                                 ? <img src={ring.imageURL} alt="" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
-                                                                : (ring?.emoji || '💍')}
+                                                                : (ring?.emoji || 'ðŸ’')}
                                                         </div>
                                                         <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.85)', fontWeight: 600, textAlign: 'center' }}>
-                                                            {lang === 'ar' ? `معاً ${diff} يوم` : `Be together ${diff} days`}
+                                                            {lang === 'ar' ? `Ù…Ø¹Ø§Ù‹ ${diff} ÙŠÙˆÙ…` : `Be together ${diff} days`}
                                                         </div>
                                                     </div>
 
@@ -881,7 +881,7 @@ const BFFModal = ({
                                                         }}>
                                                             {couplePartnerData?.photoURL
                                                                 ? <img src={couplePartnerData.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>😊</div>}
+                                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>ðŸ˜Š</div>}
                                                         </div>
                                                         <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)', maxWidth: '70px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                             {couplePartnerData?.displayName || '...'}
@@ -892,12 +892,12 @@ const BFFModal = ({
                                         );
                                     })()}
 
-                                    {/* ── BFF Cards Grid ── */}
+                                    {/* â”€â”€ BFF Cards Grid â”€â”€ */}
                                     {myRelationships.length === 0 && !coupleData
                                         ? <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                                            <div style={{ fontSize: '48px', marginBottom: '12px' }}>🤝</div>
+                                            <div style={{ fontSize: '48px', marginBottom: '12px' }}>ðŸ¤</div>
                                             <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                                                {lang === 'ar' ? 'لا علاقات بعد — أرسل طلب صداقة!' : 'No relationships yet — send a request!'}
+                                                {lang === 'ar' ? 'Ù„Ø§ Ø¹Ù„Ø§Ù‚Ø§Øª Ø¨Ø¹Ø¯ â€” Ø£Ø±Ø³Ù„ Ø·Ù„Ø¨ ØµØ¯Ø§Ù‚Ø©!' : 'No relationships yet â€” send a request!'}
                                             </div>
                                         </div>
                                         : <div style={{
@@ -931,7 +931,7 @@ const BFFModal = ({
                                                                 background: `repeating-linear-gradient(45deg, ${token.color}0a 0, transparent 10px, ${token.color}05 10px, transparent 20px)`,
                                                                 overflow: 'hidden', pointerEvents: 'none',
                                                             }} />
-                                                            {/* LV badge — real earned level */}
+                                                            {/* LV badge â€” real earned level */}
                                                             <div style={{
                                                                 position: 'absolute', top: '6px', left: '6px',
                                                                 background: `linear-gradient(135deg,${lvInfo.color},${lvInfo.color}aa)`,
@@ -960,7 +960,7 @@ const BFFModal = ({
                                                             }}>
                                                                 {partner?.photoURL
                                                                     ? <img src={partner.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>😎</div>}
+                                                                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>ðŸ˜Ž</div>}
                                                             </div>
                                                         </div>
                                                         {/* Name */}
@@ -977,7 +977,7 @@ const BFFModal = ({
                                                 );
                                             })}
 
-                                            {/* ── Locked slots ── */}
+                                            {/* â”€â”€ Locked slots â”€â”€ */}
                                             {Array.from({ length: Math.max(0, maxSlots - myRelationships.length) }).map((_, i) => (
                                                 <div key={`locked-${i}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                     <div style={{
@@ -988,9 +988,9 @@ const BFFModal = ({
                                                         display: 'flex', flexDirection: 'column',
                                                         alignItems: 'center', justifyContent: 'center', gap: '6px',
                                                     }}>
-                                                        <div style={{ fontSize: '20px', opacity: 0.25 }}>🔒</div>
+                                                        <div style={{ fontSize: '20px', opacity: 0.25 }}>ðŸ”’</div>
                                                         <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.28)', textAlign: 'center', padding: '0 6px', lineHeight: 1.4 }}>
-                                                            {lang === 'ar' ? 'اضغط لفتح مزيد من الخانات' : 'Tap to unlock more slots for your BFF'}
+                                                            {lang === 'ar' ? 'Ø§Ø¶ØºØ· Ù„ÙØªØ­ Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„Ø®Ø§Ù†Ø§Øª' : 'Tap to unlock more slots for your BFF'}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1007,19 +1007,19 @@ const BFFModal = ({
                                             color: currency >= BFF_CONFIG.extraSlotCost ? 'white' : '#4b5563',
                                             fontSize: '11px', fontWeight: 700,
                                         }}>
-                                        {buyingSlot ? '⏳' : `+ ${lang === 'ar' ? 'فتح خانة جديدة' : 'Unlock New Slot'} (${BFF_CONFIG.extraSlotCost} 🧠)`}
+                                        {buyingSlot ? 'â³' : `+ ${lang === 'ar' ? 'ÙØªØ­ Ø®Ø§Ù†Ø© Ø¬Ø¯ÙŠØ¯Ø©' : 'Unlock New Slot'} (${BFF_CONFIG.extraSlotCost} ðŸ§ )`}
                                     </button>
                                 </div>
                         )}
 
-                        {/* ── Requests Tab ── */}
+                        {/* â”€â”€ Requests Tab â”€â”€ */}
                         {tab === 'requests' && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {pendingRequests.length === 0
                                     ? <div style={{ textAlign: 'center', padding: '40px' }}>
-                                        <div style={{ fontSize: '40px', marginBottom: '12px' }}>📩</div>
+                                        <div style={{ fontSize: '40px', marginBottom: '12px' }}>ðŸ“©</div>
                                         <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                                            {lang === 'ar' ? 'لا طلبات واردة' : 'No pending requests'}
+                                            {lang === 'ar' ? 'Ù„Ø§ Ø·Ù„Ø¨Ø§Øª ÙˆØ§Ø±Ø¯Ø©' : 'No pending requests'}
                                         </div>
                                     </div>
                                     : pendingRequests.map(req => (
@@ -1036,14 +1036,14 @@ const BFFModal = ({
                             </div>
                         )}
 
-                        {/* ── Send Tab ── */}
+                        {/* â”€â”€ Send Tab â”€â”€ */}
                         {tab === 'send' && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                                 {/* My tokens */}
                                 <div>
                                     <div style={{ fontSize: '11px', color: '#a78bfa', fontWeight: 700, marginBottom: '8px' }}>
-                                        🎟️ {lang === 'ar' ? 'توكناتي:' : 'My tokens:'}
-                                        {myTokens.length === 0 && <span style={{ color: '#6b7280', fontWeight: 400, marginRight: '6px' }}> ({lang === 'ar' ? 'لا توكنات — اشترِ من المتجر' : 'No tokens — buy from Shop'})</span>}
+                                        ðŸŽŸï¸ {lang === 'ar' ? 'ØªÙˆÙƒÙ†Ø§ØªÙŠ:' : 'My tokens:'}
+                                        {myTokens.length === 0 && <span style={{ color: '#6b7280', fontWeight: 400, marginRight: '6px' }}> ({lang === 'ar' ? 'Ù„Ø§ ØªÙˆÙƒÙ†Ø§Øª â€” Ø§Ø´ØªØ±Ù Ù…Ù† Ø§Ù„Ù…ØªØ¬Ø±' : 'No tokens â€” buy from Shop'})</span>}
                                     </div>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                         {BFF_TOKEN_ITEMS.filter(t => myTokens.includes(t.id)).map(token => (
@@ -1066,7 +1066,7 @@ const BFFModal = ({
                                 {friendsData?.length > 0 && (
                                     <div>
                                         <div style={{ fontSize: '11px', color: '#a78bfa', fontWeight: 700, marginBottom: '8px' }}>
-                                            👥 {lang === 'ar' ? 'أصدقاؤك:' : 'Your Friends:'}
+                                            ðŸ‘¥ {lang === 'ar' ? 'Ø£ØµØ¯Ù‚Ø§Ø¤Ùƒ:' : 'Your Friends:'}
                                         </div>
                                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                             {friendsData.slice(0, 8).map(f => {
@@ -1083,7 +1083,7 @@ const BFFModal = ({
                                                         <div style={{ width: '34px', height: '34px', borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${isSelected ? 'rgba(167,139,250,0.7)' : 'rgba(255,255,255,0.15)'}` }}>
                                                             {f.photoURL
                                                                 ? <img src={f.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                : <div style={{ width: '100%', height: '100%', background: 'rgba(167,139,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>😎</div>}
+                                                                : <div style={{ width: '100%', height: '100%', background: 'rgba(167,139,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>ðŸ˜Ž</div>}
                                                         </div>
                                                         <span style={{ fontSize: '8px', color: isSelected ? '#e9d5ff' : '#9ca3af', fontWeight: 700, maxWidth: '52px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                             {f.displayName || '?'}
@@ -1098,18 +1098,18 @@ const BFFModal = ({
                                 {/* Search by ID */}
                                 <div>
                                     <div style={{ fontSize: '11px', color: '#a78bfa', fontWeight: 700, marginBottom: '8px' }}>
-                                        🔍 {lang === 'ar' ? 'أو ابحث بالـ ID:' : 'Or search by ID:'}
+                                        ðŸ” {lang === 'ar' ? 'Ø£Ùˆ Ø§Ø¨Ø­Ø« Ø¨Ø§Ù„Ù€ ID:' : 'Or search by ID:'}
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <input value={targetId} onChange={e => { setTargetId(e.target.value); setTargetData(null); setSearchErr(''); }}
                                             onKeyDown={e => e.key === 'Enter' && searchUser()}
-                                            placeholder={lang === 'ar' ? 'الـ ID الرقمي...' : 'Numeric ID...'}
+                                            placeholder={lang === 'ar' ? 'Ø§Ù„Ù€ ID Ø§Ù„Ø±Ù‚Ù…ÙŠ...' : 'Numeric ID...'}
                                             style={{ flex: 1, padding: '10px 12px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(167,139,250,0.3)', color: 'white', fontSize: '13px', outline: 'none' }} />
                                         <button onClick={searchUser} disabled={searching} style={{
                                             padding: '10px 14px', borderRadius: '10px', border: 'none',
                                             background: 'linear-gradient(135deg,#a78bfa,#7c3aed)',
                                             color: 'white', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
-                                        }}>{searching ? '⏳' : (lang === 'ar' ? 'بحث' : 'Find')}</button>
+                                        }}>{searching ? 'â³' : (lang === 'ar' ? 'Ø¨Ø­Ø«' : 'Find')}</button>
                                     </div>
                                     {searchErr && <div style={{ fontSize: '11px', color: '#f87171', marginTop: '6px' }}>{searchErr}</div>}
                                     {targetData && (
@@ -1117,7 +1117,7 @@ const BFFModal = ({
                                             <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
                                                 {targetData.photoURL
                                                     ? <img src={targetData.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>😎</div>}
+                                                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>ðŸ˜Ž</div>}
                                             </div>
                                             <div style={{ fontSize: '12px', fontWeight: 700, color: '#4ade80' }}>{targetData.displayName}</div>
                                         </div>
@@ -1135,7 +1135,7 @@ const BFFModal = ({
                                         fontSize: '13px', fontWeight: 800,
                                         boxShadow: selectedToken && targetData ? `0 4px 20px ${selectedToken?.glow}` : 'none',
                                     }}>
-                                    {sending ? '⏳' : `🤝 ${lang === 'ar' ? 'إرسال طلب الصداقة' : 'Send Friendship Request'}`}
+                                    {sending ? 'â³' : `ðŸ¤ ${lang === 'ar' ? 'Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ø§Ù„ØµØ¯Ø§Ù‚Ø©' : 'Send Friendship Request'}`}
                                 </button>
                             </div>
                         )}
@@ -1160,10 +1160,10 @@ const BFFModal = ({
     );
 };
 
-// ─────────────────────────────────────────────
-// 📋 BFF PROFILE LIST MODAL — full card grid view
-// ─────────────────────────────────────────────
-const BFFProfileListModal = ({ show, onClose, relationships, partnerProfiles, targetUID, lang }) => {
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ðŸ“‹ BFF PROFILE LIST MODAL â€” full card grid view
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var FFProfileListModal = ({ show, onClose, relationships, partnerProfiles, targetUID, lang }) => {
     if (!show) return null;
 
     return (
@@ -1190,16 +1190,16 @@ const BFFProfileListModal = ({ show, onClose, relationships, partnerProfiles, ta
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 18px 14px', flexShrink: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ fontSize: '16px', fontWeight: 900, color: 'white' }}>
-                                {lang === 'ar' ? 'علاقات BFF' : 'My BFF'}
+                                {lang === 'ar' ? 'Ø¹Ù„Ø§Ù‚Ø§Øª BFF' : 'My BFF'}
                             </span>
-                            <span style={{ fontSize: '14px' }}>❤️</span>
+                            <span style={{ fontSize: '14px' }}>â¤ï¸</span>
                             <span style={{ fontSize: '16px', fontWeight: 900, color: '#f472b6' }}>{relationships.length}</span>
                         </div>
                         <button onClick={onClose} style={{
                             background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '10px',
                             color: '#9ca3af', fontSize: '18px', width: '34px', height: '34px', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>✕</button>
+                        }}>âœ•</button>
                     </div>
 
                     {/* Cards grid */}
@@ -1268,7 +1268,7 @@ const BFFProfileListModal = ({ show, onClose, relationships, partnerProfiles, ta
                                             }}>
                                                 {partner?.photoURL
                                                     ? <img src={partner.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>😎</div>}
+                                                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>ðŸ˜Ž</div>}
                                             </div>
                                         </div>
 
@@ -1292,10 +1292,10 @@ const BFFProfileListModal = ({ show, onClose, relationships, partnerProfiles, ta
     );
 };
 
-// ─────────────────────────────────────────────
-// 📌 BFF STRIP — shown in profile above Guard
-// ─────────────────────────────────────────────
-const BFFStripProfile = ({
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ðŸ“Œ BFF STRIP â€” shown in profile above Guard
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var FFStripProfile = ({
     targetUID, currentUID, currentUserData, lang,
     onNotification, friendsData,
     onOpenBFFModal,  // opens BFF modal from outside (for own profile)
@@ -1304,14 +1304,14 @@ const BFFStripProfile = ({
     const [partnerProfiles, setPartnerProfiles] = useState({});
     const [targetData, setTargetData] = useState(null);
     const [showListModal, setShowListModal] = useState(false);
-    // ✅ FIX 1: state to open card modal when ring image clicked
+    // âœ… FIX 1: state to open card modal when ring image clicked
     const [cardModal, setCardModal] = useState(null); // { rel, self, partner }
 
     const isOwnProfile = targetUID === currentUID;
 
     useEffect(() => {
         if (!targetUID) return;
-        // Single-field queries only — filter active client-side
+        // Single-field queries only â€” filter active client-side
         const unsub1 = bffCollection.where('uid1', '==', targetUID)
             .onSnapshot(snap => {
                 const active = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.status === 'active');
@@ -1361,7 +1361,7 @@ const BFFStripProfile = ({
         }
     };
 
-    // ✅ FIX 1: open card modal when token image clicked
+    // âœ… FIX 1: open card modal when token image clicked
     const handleTokenClick = (e, rel) => {
         e.stopPropagation();
         const partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
@@ -1372,13 +1372,13 @@ const BFFStripProfile = ({
 
     return (
         <>
-            {/* ── BFF SECTION ── */}
+            {/* â”€â”€ BFF SECTION â”€â”€ */}
             <div style={{
                 background: 'linear-gradient(135deg, rgba(167,139,250,0.06), rgba(112,0,255,0.04))',
                 borderTop: '1px solid rgba(167,139,250,0.1)',
                 borderBottom: '1px solid rgba(167,139,250,0.1)',
             }}>
-                {/* Header row: BFF ❤️ [count] + arrow */}
+                {/* Header row: BFF â¤ï¸ [count] + arrow */}
                 <div
                     onClick={handleClick}
                     style={{
@@ -1390,7 +1390,7 @@ const BFFStripProfile = ({
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 900, color: '#e5e7eb' }}>BFF</span>
-                        <span style={{ fontSize: '13px' }}>❤️</span>
+                        <span style={{ fontSize: '13px' }}>â¤ï¸</span>
                         <span style={{ fontSize: '13px', fontWeight: 900, color: '#f472b6' }}>{myRelationships.length}</span>
                         {isOwnProfile && (
                             <span style={{
@@ -1399,11 +1399,11 @@ const BFFStripProfile = ({
                                 background: 'rgba(167,139,250,0.18)',
                                 border: '1px solid rgba(167,139,250,0.3)', color: '#a78bfa',
                             }}>
-                                {lang === 'ar' ? 'إدارة' : 'Manage'}
+                                {lang === 'ar' ? 'Ø¥Ø¯Ø§Ø±Ø©' : 'Manage'}
                             </span>
                         )}
                     </div>
-                    <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.3)' }}>›</span>
+                    <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.3)' }}>â€º</span>
                 </div>
 
                 {/* 3 mini-cards row */}
@@ -1426,7 +1426,7 @@ const BFFStripProfile = ({
                                         display: 'flex', flexDirection: 'column', alignItems: 'center',
                                         cursor: 'pointer',
                                         WebkitTapHighlightColor: 'transparent',
-                                        // ✅ FIX 2: minimum touch target for mobile
+                                        // âœ… FIX 2: minimum touch target for mobile
                                         minHeight: '44px',
                                     }}
                                 >
@@ -1447,7 +1447,7 @@ const BFFStripProfile = ({
                                             pointerEvents: 'none', overflow: 'hidden',
                                         }} />
 
-                                        {/* LV badge top-left — real earned level */}
+                                        {/* LV badge top-left â€” real earned level */}
                                         <div style={{
                                             position: 'absolute', top: '4px', left: '4px',
                                             background: `linear-gradient(135deg,${lvInfo.color},${lvInfo.color}99)`,
@@ -1460,7 +1460,7 @@ const BFFStripProfile = ({
                                             <span>LV{lvInfo.level}</span>
                                         </div>
 
-                                        {/* ✅ FIX 1: Token emoji/image — clicking opens BFFCardModal */}
+                                        {/* âœ… FIX 1: Token emoji/image â€” clicking opens BFFCardModal */}
                                         <span
                                             onClick={(e) => handleTokenClick(e, rel)}
                                             style={{
@@ -1469,7 +1469,7 @@ const BFFStripProfile = ({
                                                 padding: '4px',
                                                 WebkitTapHighlightColor: 'transparent',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                // ✅ FIX 2: bigger touch target on mobile
+                                                // âœ… FIX 2: bigger touch target on mobile
                                                 minWidth: '36px', minHeight: '36px',
                                             }}
                                         >
@@ -1489,7 +1489,7 @@ const BFFStripProfile = ({
                                         }}>
                                             {partner?.photoURL
                                                 ? <img src={partner.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>😎</div>}
+                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>ðŸ˜Ž</div>}
                                         </div>
                                     </div>
 
@@ -1513,7 +1513,7 @@ const BFFStripProfile = ({
                         textAlign: 'center', fontSize: '11px', color: '#6b7280',
                         WebkitTapHighlightColor: 'transparent',
                     }}>
-                        {lang === 'ar' ? '+ أضف علاقة BFF' : '+ Add BFF Relationship'}
+                        {lang === 'ar' ? '+ Ø£Ø¶Ù Ø¹Ù„Ø§Ù‚Ø© BFF' : '+ Add BFF Relationship'}
                     </div>
                 ) : null}
             </div>
@@ -1530,7 +1530,7 @@ const BFFStripProfile = ({
                 />
             )}
 
-            {/* ✅ FIX 1: BFF card modal opened when ring image is clicked */}
+            {/* âœ… FIX 1: BFF card modal opened when ring image is clicked */}
             {cardModal && (
                 <BFFCardModal
                     show={!!cardModal}
@@ -1548,10 +1548,10 @@ const BFFStripProfile = ({
     );
 };
 
-// ─────────────────────────────────────────────
-// 🤖 BOT CHAT MODAL — Official read-only chat channels
-// ─────────────────────────────────────────────
-const BotChatModal = ({
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ðŸ¤– BOT CHAT MODAL â€” Official read-only chat channels
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var otChatModal = ({
     show, onClose, botId, currentUID, currentUserData, lang,
     onOpenWeddingHall, onOpenBFFModal,
 }) => {
@@ -1564,7 +1564,7 @@ const BotChatModal = ({
     useEffect(() => {
         if (!show || !currentUID || !botId) return;
         setLoading(true);
-        // Single-field query — filter by botId client-side
+        // Single-field query â€” filter by botId client-side
         const unsub = botChatsCollection
             .where('toUserId', '==', currentUID)
             .onSnapshot(snap => {
@@ -1600,10 +1600,10 @@ const BotChatModal = ({
         if (!ts) return '';
         const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
         const diff = Date.now() - d.getTime();
-        if (diff < 60000) return lang === 'ar' ? 'الآن' : 'now';
-        if (diff < 3600000) return `${Math.floor(diff / 60000)}${lang === 'ar' ? 'د' : 'm'}`;
-        if (diff < 86400000) return `${Math.floor(diff / 3600000)}${lang === 'ar' ? 'س' : 'h'}`;
-        return `${Math.floor(diff / 86400000)}${lang === 'ar' ? 'ي' : 'd'}`;
+        if (diff < 60000) return lang === 'ar' ? 'Ø§Ù„Ø¢Ù†' : 'now';
+        if (diff < 3600000) return `${Math.floor(diff / 60000)}${lang === 'ar' ? 'Ø¯' : 'm'}`;
+        if (diff < 86400000) return `${Math.floor(diff / 3600000)}${lang === 'ar' ? 'Ø³' : 'h'}`;
+        return `${Math.floor(diff / 86400000)}${lang === 'ar' ? 'ÙŠ' : 'd'}`;
     };
 
     return (
@@ -1647,7 +1647,7 @@ const BotChatModal = ({
                                 width: '14px', height: '14px',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 border: '2px solid rgba(5,5,18,1)', fontSize: '8px',
-                            }}>✓</div>
+                            }}>âœ“</div>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1657,7 +1657,7 @@ const BotChatModal = ({
                                 <span style={{
                                     fontSize: '8px', fontWeight: 900, background: botCfg.color,
                                     color: '#000', padding: '1px 5px', borderRadius: '4px',
-                                }}>{lang === 'ar' ? 'رسمي' : 'OFFICIAL'}</span>
+                                }}>{lang === 'ar' ? 'Ø±Ø³Ù…ÙŠ' : 'OFFICIAL'}</span>
                             </div>
                             <div style={{ fontSize: '10px', color: '#6b7280' }}>
                                 {lang === 'ar' ? botCfg.description_ar : botCfg.description_en}
@@ -1667,17 +1667,17 @@ const BotChatModal = ({
                             background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)',
                             borderRadius: '8px', width: '30px', height: '30px', display: 'flex', alignItems: 'center',
                             justifyContent: 'center', cursor: 'pointer', color: '#9ca3af', fontSize: '14px',
-                        }}>✕</button>
+                        }}>âœ•</button>
                     </div>
 
                     {/* Messages */}
                     <div style={{ flex: 1, overflowY: 'auto', padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {loading && <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>⏳</div>}
+                        {loading && <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>â³</div>}
                         {!loading && messages.length === 0 && (
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: 0.35, paddingTop: '50px' }}>
                                 <span style={{ fontSize: '40px' }}>{botCfg.emoji}</span>
                                 <span style={{ fontSize: '12px', color: '#6b7280' }}>
-                                    {lang === 'ar' ? 'لا رسائل بعد' : 'No messages yet'}
+                                    {lang === 'ar' ? 'Ù„Ø§ Ø±Ø³Ø§Ø¦Ù„ Ø¨Ø¹Ø¯' : 'No messages yet'}
                                 </span>
                             </div>
                         )}
@@ -1734,7 +1734,7 @@ const BotChatModal = ({
                                                     background: `linear-gradient(135deg,${botCfg.color},${botCfg.color}88)`,
                                                     color: '#000', fontSize: '11px', fontWeight: 800, cursor: 'pointer',
                                                 }}>
-                                                {lang === 'ar' ? '👉 الرد الآن' : '👉 Respond Now'}
+                                                {lang === 'ar' ? 'ðŸ‘‰ Ø§Ù„Ø±Ø¯ Ø§Ù„Ø¢Ù†' : 'ðŸ‘‰ Respond Now'}
                                             </button>
                                         )}
                                     </div>
@@ -1753,10 +1753,11 @@ const BotChatModal = ({
                         background: 'rgba(0,0,0,0.3)', flexShrink: 0, textAlign: 'center',
                         fontSize: '10px', color: '#4b5563',
                     }}>
-                        🔒 {lang === 'ar' ? 'هذا شات رسمي للقراءة فقط' : 'This is an official read-only channel'}
+                        ðŸ”’ {lang === 'ar' ? 'Ù‡Ø°Ø§ Ø´Ø§Øª Ø±Ø³Ù…ÙŠ Ù„Ù„Ù‚Ø±Ø§Ø¡Ø© ÙÙ‚Ø·' : 'This is an official read-only channel'}
                     </div>
                 </div>
             </div>
         </PortalModal>
     );
 };
+
