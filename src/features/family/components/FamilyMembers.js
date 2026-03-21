@@ -25,31 +25,31 @@ var FamilyMembers = ({
 
     if (!family || !members) return null;
 
-    const myRole = getFamilyRole(family, currentUID);
-    const canManage = myRole === 'owner' || myRole === 'admin';
+    var myRole = getFamilyRole(family, currentUID);
+    var canManage = myRole === 'owner' || myRole === 'admin';
 
     // Sorting & Filtering
-    const sorted = [...members].sort((a, b) => {
+    var sorted = [...members].sort((a, b) => {
         let aV, bV;
-        const donData = family.memberDonations || {};
+        var donData = family.memberDonations || {};
         if (donationSort === 'intel') {
-            const aD = donData[a.id] || {};
-            const bD = donData[b.id] || {};
+            var aD = donData[a.id] || {};
+            var bD = donData[b.id] || {};
             aV = aD.totalIntel || aD.total || 0;
             bV = bD.totalIntel || bD.total || 0;
         } else {
-            const aD = donData[a.id] || {};
-            const bD = donData[b.id] || {};
+            var aD = donData[a.id] || {};
+            var bD = donData[b.id] || {};
             aV = aD.weekly || 0;
             bV = bD.weekly || 0;
         }
-        const aOwner = getFamilyRole(family, a.id) === 'owner' ? 1 : 0;
-        const bOwner = getFamilyRole(family, b.id) === 'owner' ? 1 : 0;
+        var aOwner = getFamilyRole(family, a.id) === 'owner' ? 1 : 0;
+        var bOwner = getFamilyRole(family, b.id) === 'owner' ? 1 : 0;
         if (aOwner !== bOwner) return bOwner - aOwner;
         return bV - aV;
     }).filter(m => !memberSearch || m.displayName?.toLowerCase().includes(memberSearch.toLowerCase()));
 
-    const handleKick = async (uid) => {
+    var handleKick = async (uid) => {
         try {
             if (onKick) await onKick(uid);
             setGearMenuUid(null);
@@ -58,7 +58,7 @@ var FamilyMembers = ({
         }
     };
 
-    const handleSetRole = async (uid, role) => {
+    var handleSetRole = async (uid, role) => {
         try {
             if (onSetRole) await onSetRole(uid, role);
             setGearMenuUid(null);
@@ -97,27 +97,27 @@ var FamilyMembers = ({
             {/* List */}
             <div style={{ flex: 1, overflowY: 'auto' }} onClick={() => gearMenuUid && setGearMenuUid(null)}>
                 {sorted.map((m, i) => {
-                    const role = getFamilyRole(family, m.id);
-                    const rCfg = FAMILY_ROLE_CONFIG[role] || FAMILY_ROLE_CONFIG.member;
-                    const donData = family.memberDonations || {};
-                    const don = donData[m.id] || {};
+                    var role = getFamilyRole(family, m.id);
+                    var rCfg = FAMILY_ROLE_CONFIG[role] || FAMILY_ROLE_CONFIG.member;
+                    var donData = family.memberDonations || {};
+                    var don = donData[m.id] || {};
                     
-                    const weeklyDon = don.weeklyIntel || don.weekly || 0;
-                    const totalDon = don.totalIntel || don.total || 0;
-                    const weeklyAct = don.weekly || 0;
-                    const totalAct = don.total || 0;
+                    var weeklyDon = don.weeklyIntel || don.weekly || 0;
+                    var totalDon = don.totalIntel || don.total || 0;
+                    var weeklyAct = don.weekly || 0;
+                    var totalAct = don.total || 0;
 
-                    const isTop3 = i < 3;
-                    const topColors = ['rgba(255,215,0,0.06)', 'rgba(192,192,192,0.04)', 'rgba(205,127,50,0.04)'];
-                    const isGearOpen = gearMenuUid === m.id;
+                    var isTop3 = i < 3;
+                    var topColors = ['rgba(255,215,0,0.06)', 'rgba(192,192,192,0.04)', 'rgba(205,127,50,0.04)'];
+                    var isGearOpen = gearMenuUid === m.id;
 
-                    const targetRole = getFamilyRole(family, m.id);
-                    const canKick = canManage && m.id !== currentUID && targetRole !== 'owner' && !(myRole === 'admin' && targetRole === 'admin');
-                    const canSetAdmin = myRole === 'owner' && m.id !== currentUID && targetRole !== 'owner';
-                    const canSetMod = canManage && m.id !== currentUID && targetRole !== 'owner' && !(myRole === 'admin' && targetRole === 'admin');
-                    const showGear = canKick || canSetAdmin || canSetMod;
+                    var targetRole = getFamilyRole(family, m.id);
+                    var canKick = canManage && m.id !== currentUID && targetRole !== 'owner' && !(myRole === 'admin' && targetRole === 'admin');
+                    var canSetAdmin = myRole === 'owner' && m.id !== currentUID && targetRole !== 'owner';
+                    var canSetMod = canManage && m.id !== currentUID && targetRole !== 'owner' && !(myRole === 'admin' && targetRole === 'admin');
+                    var showGear = canKick || canSetAdmin || canSetMod;
 
-                    const signData = getFamilySignLevelData(family.lastWeekActiveness || 0) || { level: 0 };
+                    var signData = getFamilySignLevelData(family.lastWeekActiveness || 0) || { level: 0 };
 
                     return (
                         <div key={m.id} style={{ position: 'relative', display: 'flex', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.04)', background: isTop3 ? topColors[i] : 'transparent' }}>

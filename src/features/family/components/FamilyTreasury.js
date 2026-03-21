@@ -41,8 +41,8 @@ var FamilyTreasury = ({
     const [history, setHistory] = React.useState([]);
     const [historyLoading, setHistoryLoading] = React.useState(false);
     const [internalShowDonate, setInternalShowDonate] = React.useState(false);
-    const showDonate = (typeof showDonatePanel !== 'undefined') ? showDonatePanel : internalShowDonate;
-    const setShowDonate = setShowDonatePanel || setInternalShowDonate;
+    var showDonate = (typeof showDonatePanel !== 'undefined') ? showDonatePanel : internalShowDonate;
+    var setShowDonate = setShowDonatePanel || setInternalShowDonate;
     
     const [donateAmount, setDonateAmount] = React.useState('');
     const [showChestModal, setShowChestModal] = React.useState(false);
@@ -54,11 +54,11 @@ var FamilyTreasury = ({
     const [assigningLoading, setAssigningLoading] = React.useState(false);
 
     const { treasury, treasuryInventory, level, activeness: totalAct } = family || {};
-    const fLvl = FamilyService.getFamilyLevelConfig(level || 1);
-    const nextLvl = FamilyService.getFamilyLevelConfig((level || 1) + 1);
+    var fLvl = FamilyService.getFamilyLevelConfig(level || 1);
+    var nextLvl = FamilyService.getFamilyLevelConfig((level || 1) + 1);
 
-    const handleDonate = async () => {
-        const amt = parseInt(donateAmount);
+    var handleDonate = async () => {
+        var amt = parseInt(donateAmount);
         if (isNaN(amt) || amt <= 0) return;
         if ((currentUserData?.currency || 0) < amt) {
             onNotification(lang === 'ar' ? '❌ رصيدك غير كافٍ' : '❌ Insufficient balance');
@@ -74,9 +74,9 @@ var FamilyTreasury = ({
         }
     };
 
-    const handleClaimChest = async (idx) => {
+    var handleClaimChest = async (idx) => {
         try {
-            const res = await FamilyService.handleClaimChest({ family, chestIdx: idx, currentUID, lang, onNotification });
+            var res = await FamilyService.handleClaimChest({ family, chestIdx: idx, currentUID, lang, onNotification });
             if (res) {
                 onNotification(lang === 'ar' ? `🎁 تم استلام ${res.cfg.name_ar} في الخزينة!` : `🎁 ${res.cfg.name_en} added to treasury!`);
             }
@@ -85,7 +85,7 @@ var FamilyTreasury = ({
         }
     };
 
-    const assignChest = async () => {
+    var assignChest = async () => {
         if (!assigningChest || selectedAssignees.length === 0) return;
         setAssigningLoading(true);
         try {
@@ -107,9 +107,9 @@ var FamilyTreasury = ({
         }
     };
 
-    const openAssignedChest = async (idx) => {
+    var openAssignedChest = async (idx) => {
         try {
-            const res = await FamilyService.openAssignedChest({
+            var res = await FamilyService.openAssignedChest({
                 family,
                 currentUID,
                 currentUserData,
@@ -127,7 +127,7 @@ var FamilyTreasury = ({
         }
     };
 
-    const upgradeClan = async () => {
+    var upgradeClan = async () => {
         if (!family?.id || !canManage) return;
         if (totalAct < (nextLvl?.activeness || 0)) {
             onNotification(lang === 'ar' ? `❌ تحتاج ${fmtFamilyNum(nextLvl?.activeness)} نشاط أولاً` : `❌ Need ${fmtFamilyNum(nextLvl?.activeness)} activeness first`);
@@ -156,9 +156,9 @@ var FamilyTreasury = ({
                 </div>
                 <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
                     {ACTIVENESS_MILESTONES.map((ms, idx) => {
-                        const isReached = totalAct >= ms.threshold;
-                        const isClaimed = (family?.activenessClaimedMilestones || []).includes(idx);
-                        const cfg = CHEST_CONFIG[ms.chestType];
+                        var isReached = totalAct >= ms.threshold;
+                        var isClaimed = (family?.activenessClaimedMilestones || []).includes(idx);
+                        var cfg = CHEST_CONFIG[ms.chestType];
                         return (
                             <div key={idx} style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '72px', opacity: isReached ? 1 : 0.5, filter: isReached ? 'none' : 'grayscale(0.6)', cursor: (isReached && !isClaimed && canManage) ? 'pointer' : 'default' }}
                                 onClick={() => { if (isReached && !isClaimed && canManage) handleClaimChest(idx); }}>
@@ -238,18 +238,18 @@ var FamilyTreasury = ({
 
                 {/* Chest inventory */}
                 {(() => {
-                    const visibleInventory = (treasuryInventory || []).map((item, i) => ({ item, i }));
+                    var visibleInventory = (treasuryInventory || []).map((item, i) => ({ item, i }));
                     return visibleInventory.length > 0 ? (
                         <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
                             {visibleInventory.map(({ item, i }) => {
-                                const cfg = CHEST_CONFIG[item.chestType];
+                                var cfg = CHEST_CONFIG[item.chestType];
                                 if (!cfg) return null;
-                                const ms = ACTIVENESS_MILESTONES.find(m => m.chestType === item.chestType);
-                                const chestImg = ms?.imageURL || null;
-                                const myAssigned = (item.assignedTo || []).includes(currentUID);
-                                const myClaimCount = (item.claimedBy || {})[currentUID] || 0;
-                                const canClaim = myAssigned && myClaimCount < (item.maxClaimsPerMember || 1);
-                                const remainingClaims = myAssigned ? Math.max(0, (item.maxClaimsPerMember || 1) - myClaimCount) : 0;
+                                var ms = ACTIVENESS_MILESTONES.find(m => m.chestType === item.chestType);
+                                var chestImg = ms?.imageURL || null;
+                                var myAssigned = (item.assignedTo || []).includes(currentUID);
+                                var myClaimCount = (item.claimedBy || {})[currentUID] || 0;
+                                var canClaim = myAssigned && myClaimCount < (item.maxClaimsPerMember || 1);
+                                var remainingClaims = myAssigned ? Math.max(0, (item.maxClaimsPerMember || 1) - myClaimCount) : 0;
                                 return (
                                     <div key={i} style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '72px', padding: '8px 4px', borderRadius: '12px', background: `${cfg.color}14`, border: `1px solid ${cfg.color}44`, cursor: 'pointer', position: 'relative' }}
                                         onClick={() => {
@@ -345,7 +345,7 @@ var FamilyTreasury = ({
 
                             <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
                                 {(familyMembers || []).map(m => {
-                                    const isSelected = selectedAssignees.includes(m.id);
+                                    var isSelected = selectedAssignees.includes(m.id);
                                     return (
                                         <div key={m.id} onClick={() => {
                                             if (isSelected) setSelectedAssignees(selectedAssignees.filter(id => id !== m.id));

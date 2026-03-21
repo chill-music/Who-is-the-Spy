@@ -1,7 +1,7 @@
 var { FAMILY_ROLE_CONFIG } = window.FamilyConstants || {};
 
 var FamilyRoleBadge = ({ role, lang, small = false }) => {
-    const cfg = FAMILY_ROLE_CONFIG[role] || FAMILY_ROLE_CONFIG.member;
+    var cfg = FAMILY_ROLE_CONFIG[role] || FAMILY_ROLE_CONFIG.member;
     return (
         <span style={{
             display:'inline-flex', alignItems:'center', gap:'2px',

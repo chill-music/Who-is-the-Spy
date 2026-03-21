@@ -20,12 +20,12 @@ var FamilyRankingInline = ({ currentUID, lang, currentFamilyId, onOpenFamily }) 
     return (
         <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
             {rankings.map((fam, i) => {
-                const fl = getFamilyLevelConfig(fam.level || 1);
-                const sign = getFamilySignLevelData(fam.weeklyActiveness || 0);
-                const signColor = sign?.color || '#6b7280';
-                const signLevel = sign?.level || 0;
-                const isMine = fam.id === currentFamilyId;
-                const medals = ['🥇','🥈','🥉'];
+                var fl = getFamilyLevelConfig(fam.level || 1);
+                var sign = getFamilySignLevelData(fam.weeklyActiveness || 0);
+                var signColor = sign?.color || '#6b7280';
+                var signLevel = sign?.level || 0;
+                var isMine = fam.id === currentFamilyId;
+                var medals = ['🥇','🥈','🥉'];
                 return (
                     <div key={fam.id}
                         onClick={() => onOpenFamily && onOpenFamily(fam.id)}

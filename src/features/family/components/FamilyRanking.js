@@ -5,7 +5,7 @@ var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
     React.useEffect(() => {
         setLoading(true);
         // Using global firebase and db for now, but following FamilyService pattern
-        const familiesCollection = db.collection('families');
+        var familiesCollection = db.collection('families');
         familiesCollection.orderBy('xp', 'desc').limit(50).get().then(snap => {
             setRankings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
@@ -14,17 +14,17 @@ var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
 
     if (loading) return <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>⏳</div>;
 
-    const medals = ['🥇', '🥈', '🥉'];
+    var medals = ['🥇', '🥈', '🥉'];
 
     return (
         <div style={{ flex: 1, overflowY: 'auto', padding: '14px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {rankings.map((fam, i) => {
-                    const fl = FamilyService.getFamilyLevelConfig(fam.level || 1);
-                    const sign = FamilyService.getFamilySignLevelData(fam.weeklyActiveness || 0);
-                    const signColor = sign?.color || '#6b7280';
-                    const signLevel = sign?.level || 0;
-                    const isMine = fam.id === currentFamilyId;
+                    var fl = FamilyService.getFamilyLevelConfig(fam.level || 1);
+                    var sign = FamilyService.getFamilySignLevelData(fam.weeklyActiveness || 0);
+                    var signColor = sign?.color || '#6b7280';
+                    var signLevel = sign?.level || 0;
+                    var isMine = fam.id === currentFamilyId;
 
                     return (
                         <div key={fam.id}

@@ -1,6 +1,6 @@
 var FamilyMemberQuickCard = ({ member, role, isMe, lang, onOpenProfile }) => {
     if (!member) return null;
-    const isSelf = member.uid === currentUID;
+    var isSelf = member.uid === currentUID;
     return (
         <div style={{
             position:'absolute', inset:0, zIndex:10,

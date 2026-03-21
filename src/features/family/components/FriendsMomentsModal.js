@@ -14,24 +14,24 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
     const [createImage, setCreateImage] = React.useState(null);
     const [createImageFile, setCreateImageFile] = React.useState(null);
     const [creating, setCreating] = React.useState(false);
-    const fileRef = React.useRef(null);
+    var fileRef = React.useRef(null);
 
     React.useEffect(() => {
         if (!show || !currentUID) return;
         setLoading(true);
-        const friendUIDs = (friendsData || []).map(f => f.id || f.uid).filter(Boolean);
+        var friendUIDs = (friendsData || []).map(f => f.id || f.uid).filter(Boolean);
         if (friendUIDs.length === 0) { setMoments([]); setLoading(false); return; }
-        const chunks = [];
-        for (let i = 0; i < friendUIDs.length; i += 10) chunks.push(friendUIDs.slice(i, i + 10));
+        var chunks = [];
+        for (var i = 0; i < friendUIDs.length; i += 10) chunks.push(friendUIDs.slice(i, i + 10));
         Promise.all(chunks.map(chunk =>
             momentsCollection.where('authorUID', 'in', chunk).limit(30).get()
                 .catch(() => ({ docs: [] }))
         )).then(results => {
-            const all = [];
+            var all = [];
             results.forEach(snap => snap.docs && snap.docs.forEach(d => all.push({ id: d.id, ...d.data() })));
             all.sort((a, b) => {
-                const aT = a.createdAt?.toMillis?.() || (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
-                const bT = b.createdAt?.toMillis?.() || (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
+                var aT = a.createdAt?.toMillis?.() || (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
+                var bT = b.createdAt?.toMillis?.() || (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
                 return bT - aT;
             });
             setMoments(all.slice(0, 60));
@@ -42,9 +42,9 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
     // Real-time update for selected moment
     React.useEffect(() => {
         if (!selectedMoment?.id) return;
-        const unsub = momentsCollection.doc(selectedMoment.id).onSnapshot(snap => {
+        var unsub = momentsCollection.doc(selectedMoment.id).onSnapshot(snap => {
             if (snap.exists) {
-                const updated = { id: snap.id, ...snap.data() };
+                var updated = { id: snap.id, ...snap.data() };
                 setSelectedMoment(updated);
                 setMoments(prev => prev.map(m => m.id === updated.id ? updated : m));
             }
@@ -52,13 +52,13 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
         return () => unsub();
     }, [selectedMoment?.id]);
 
-    const handleLike = async (moment, e) => {
+    var handleLike = async (moment, e) => {
         e?.stopPropagation();
         if (!currentUID || likingId === moment.id) return;
         setLikingId(moment.id);
         try {
-            const likes = moment.likes || [];
-            const alreadyLiked = likes.includes(currentUID);
+            var likes = moment.likes || [];
+            var alreadyLiked = likes.includes(currentUID);
             await momentsCollection.doc(moment.id).update({
                 likes: alreadyLiked
                     ? firebase.firestore.FieldValue.arrayRemove(currentUID)
@@ -78,11 +78,11 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
         setLikingId(null);
     };
 
-    const handleComment = async () => {
+    var handleComment = async () => {
         if (!commentText.trim() || !selectedMoment?.id || !currentUID || submittingComment) return;
         setSubmittingComment(true);
         try {
-            const newComment = {
+            var newComment = {
                 authorUID: currentUID,
                 authorName: currentUserData?.displayName || 'User',
                 authorPhoto: currentUserData?.photoURL || null,
@@ -97,10 +97,10 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
         setSubmittingComment(false);
     };
 
-    const fmtMomentTime = (ts) => {
+    var fmtMomentTime = (ts) => {
         if (!ts) return '';
-        const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
-        const diff = Date.now() - d.getTime();
+        var d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+        var diff = Date.now() - d.getTime();
         if (diff < 60000) return lang === 'ar' ? 'الآن' : 'now';
         if (diff < 3600000) return `${Math.floor(diff / 60000)}${lang === 'ar' ? 'د' : 'm'}`;
         if (diff < 86400000) return `${Math.floor(diff / 3600000)}${lang === 'ar' ? 'س' : 'h'}`;
@@ -120,13 +120,13 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
             .catch(() => {});
     }, [show, currentUID, showBell]);
 
-    const handleCreateMoment = async () => {
+    var handleCreateMoment = async () => {
         if (creating || (!createText.trim() && !createImageFile)) return;
         setCreating(true);
         try {
-            let mediaUrl = null;
+            var mediaUrl = null;
             if (createImageFile) {
-                const ref = firebase.storage().ref(`moments/${currentUID}/${Date.now()}_${createImageFile.name}`);
+                var ref = firebase.storage().ref(`moments/${currentUID}/${Date.now()}_${createImageFile.name}`);
                 await ref.put(createImageFile);
                 mediaUrl = await ref.getDownloadURL();
             }
@@ -184,7 +184,7 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
                             )}
                             {/* Hidden file input */}
                             <input type="file" ref={fileRef} accept="image/*" style={{display:'none'}} onChange={e => {
-                                const f = e.target.files[0];
+                                var f = e.target.files[0];
                                 if (!f) return;
                                 setCreateImageFile(f);
                                 setCreateImage(URL.createObjectURL(f));
@@ -253,9 +253,9 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
                         ) : (
                             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                                 {moments.map(moment => {
-                                    const likes = moment.likes || [];
-                                    const isLiked = likes.includes(currentUID);
-                                    const commentsCount = moment.comments?.length || 0;
+                                    var likes = moment.likes || [];
+                                    var isLiked = likes.includes(currentUID);
+                                    var commentsCount = moment.comments?.length || 0;
                                     return (
                                         <div key={moment.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'14px',overflow:'hidden'}}>
                                             {/* Author row */}

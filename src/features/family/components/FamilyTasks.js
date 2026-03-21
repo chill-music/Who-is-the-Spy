@@ -19,14 +19,14 @@ var FamilyTasks = ({
 }) => {
     if (!family) return null;
     
-    const taskProgress = family.taskProgress || {};
-    const today = new Date().toDateString();
-    const dailyPtsKey = `dailyPts_${today}_${currentUID}`;
-    const myDailyPoints = family[dailyPtsKey] || 0;
-    const FAMILY_COINS_SYMBOL = '🏅';
+    var taskProgress = family.taskProgress || {};
+    var today = new Date().toDateString();
+    var dailyPtsKey = `dailyPts_${today}_${currentUID}`;
+    var myDailyPoints = family[dailyPtsKey] || 0;
+    var FAMILY_COINS_SYMBOL = '🏅';
 
     // ── Claim Daily Milestone Chest ──
-    const handleClaimDailyChest = async (msIdx, ms) => {
+    var handleClaimDailyChest = async (msIdx, ms) => {
         await window.FamilyService.claimDailyMilestoneChest({
             family,
             currentUID,
@@ -38,7 +38,7 @@ var FamilyTasks = ({
     };
 
     // ── Claim Task ──
-    const claimTask = async (task) => {
+    var claimTask = async (task) => {
         await window.FamilyService.claimTask({
             family,
             currentUID,
@@ -49,7 +49,7 @@ var FamilyTasks = ({
     };
 
     // ── Daily Check-in ──
-    const handleCheckIn = async () => {
+    var handleCheckIn = async () => {
         await window.FamilyService.handleCheckIn({
             family,
             currentUID,
@@ -58,8 +58,8 @@ var FamilyTasks = ({
         });
     };
 
-    const maxPts = DAILY_TASKS_MILESTONES[DAILY_TASKS_MILESTONES.length - 1]?.points || 1600;
-    const barWidth = Math.min(100, (myDailyPoints / maxPts) * 100);
+    var maxPts = DAILY_TASKS_MILESTONES[DAILY_TASKS_MILESTONES.length - 1]?.points || 1600;
+    var barWidth = Math.min(100, (myDailyPoints / maxPts) * 100);
 
     return (
         <div style={{flex:1, overflowY:'auto', padding:'14px', display:'flex', flexDirection:'column', gap:'10px'}}>
@@ -92,10 +92,10 @@ var FamilyTasks = ({
                     
                     {/* The Chest Nodes */}
                     {DAILY_TASKS_MILESTONES.map((ms, idx) => {
-                        const nodePct = (ms.points / maxPts) * 100;
-                        const isReached = myDailyPoints >= ms.points;
-                        const claimKey = `dailyChestClaim_${today}_${currentUID}_${idx}`;
-                        const isClaimed = family[claimKey] === true;
+                        var nodePct = (ms.points / maxPts) * 100;
+                        var isReached = myDailyPoints >= ms.points;
+                        var claimKey = `dailyChestClaim_${today}_${currentUID}_${idx}`;
+                        var isClaimed = family[claimKey] === true;
                         
                         return (
                             <div key={idx} 
@@ -135,20 +135,20 @@ var FamilyTasks = ({
 
             {/* Task List */}
             {FAMILY_TASKS_CONFIG.map(task => {
-                const key = `${task.id}_${currentUID}`;
-                const prog = taskProgress[key] || { current: 0, claimed: false };
+                var key = `${task.id}_${currentUID}`;
+                var prog = taskProgress[key] || { current: 0, claimed: false };
 
                 // Daily task reset logic
-                const isDaily = task.daily;
-                const effectiveProg = isDaily && prog.lastCheckIn !== today ? { current: 0, claimed: false } : prog;
+                var isDaily = task.daily;
+                var effectiveProg = isDaily && prog.lastCheckIn !== today ? { current: 0, claimed: false } : prog;
 
-                const pct = Math.min(100, Math.round((effectiveProg.current / task.target) * 100));
-                const isDone = effectiveProg.current >= task.target;
-                const isClaimed = effectiveProg.claimed;
+                var pct = Math.min(100, Math.round((effectiveProg.current / task.target) * 100));
+                var isDone = effectiveProg.current >= task.target;
+                var isClaimed = effectiveProg.claimed;
 
                 // ft4 special check-in state
-                const isFt4 = task.id === 'ft4';
-                const alreadyCheckedIn = isFt4 && prog.lastCheckIn === today;
+                var isFt4 = task.id === 'ft4';
+                var alreadyCheckedIn = isFt4 && prog.lastCheckIn === today;
 
                 return (
                     <div key={task.id} style={{...S.card, border:`1px solid ${isClaimed?'rgba(16,185,129,0.25)':isDone?'rgba(0,242,255,0.2)':'rgba(255,255,255,0.07)'}`}}>

@@ -2,22 +2,22 @@ var { FAMILY_SIGN_LEVELS, getFamilySignImage } = window.FamilyConstants || {};
 
 // Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
 var FamilySignBadge = ({ level, size = 40, lang }) => {
-    const imgSrc = imageURL || (typeof getFamilySignImage === 'function' ? getFamilySignImage(signLevel) : null);
+    var imgSrc = imageURL || (typeof getFamilySignImage === 'function' ? getFamilySignImage(signLevel) : null);
     // استخدم hasGlow من بيانات المستوى نفسه
-    const signLevelData = typeof FAMILY_SIGN_LEVELS !== 'undefined'
+    var signLevelData = typeof FAMILY_SIGN_LEVELS !== 'undefined'
         ? FAMILY_SIGN_LEVELS.find(s => s.level === signLevel)
         : null;
-    const hasGlow = signLevelData?.hasGlow || signLevel >= 4;
-    const glowColor = signLevelData?.glow || `${color}88`;
-    const displayTag = tag || 'FAM';
+    var hasGlow = signLevelData?.hasGlow || signLevel >= 4;
+    var glowColor = signLevelData?.glow || `${color}88`;
+    var displayTag = tag || 'FAM';
 
     // لو في صورة: تظهر مع التاج مكتوب فوقها
     if (imgSrc) {
-        const imgW = small
+        var imgW = small
             ? 28 + (displayTag.length * 4)   // small: 3→40  4→44  5→48
             : 44 + (displayTag.length * 6);   // normal: 3→62 4→68  5→74
-        const imgH = Math.round(imgW * 0.55);
-        const fontSize = small
+        var imgH = Math.round(imgW * 0.55);
+        var fontSize = small
             ? (displayTag.length <= 3 ? 8 : displayTag.length === 4 ? 7 : 6)
             : (displayTag.length <= 3 ? 11 : displayTag.length === 4 ? 10 : 9);
 

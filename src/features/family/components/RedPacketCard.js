@@ -15,29 +15,29 @@ var RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user, 
         if (!rpId) return;
         redPacketsCollection.doc(rpId).get().then(doc => {
             if (doc.exists) {
-                const d = doc.data();
+                var d = doc.data();
                 setRpData(d);
                 if (d.claimedBy?.includes(user?.uid)) setSelfClaimed(true);
             }
         }).catch(()=>{});
     }, [rpId, user?.uid]);
 
-    const fetchDetails = async () => {
+    var fetchDetails = async () => {
         if (rpData) { setShowDetails(true); return; }
         setLoading(true);
         try {
-            const doc = await redPacketsCollection.doc(rpId).get();
+            var doc = await redPacketsCollection.doc(rpId).get();
             if (doc.exists) setRpData(doc.data());
         } catch(e) {}
         setLoading(false);
         setShowDetails(true);
     };
 
-    const claimed = selfClaimed || rpData?.claimedBy?.includes(user?.uid);
-    const isReclaimed = rpData?.status === 'reclaimed';
-    const exhausted = isReclaimed || (rpData?.claimedBy?.length||0) >= (rpData?.maxClaims||maxClaims||1);
-    const remaining = rpData?.remaining ?? rpAmount;
-    const claimedCount = rpData?.claimedBy?.length || 0;
+    var claimed = selfClaimed || rpData?.claimedBy?.includes(user?.uid);
+    var isReclaimed = rpData?.status === 'reclaimed';
+    var exhausted = isReclaimed || (rpData?.claimedBy?.length||0) >= (rpData?.maxClaims||maxClaims||1);
+    var remaining = rpData?.remaining ?? rpAmount;
+    var claimedCount = rpData?.claimedBy?.length || 0;
 
     if (showDetails && rpData) return (
         <React.Fragment>

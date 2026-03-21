@@ -3,11 +3,11 @@ var { renderMsgText } = {
         if (!text) return '';
         
         // Simple mention regex: @Name
-        const parts = text.split(/(@\w[\w\s]*?)(?=\s|$)/g);
+        var parts = text.split(/(@\w[\w\s]*?)(?=\s|$)/g);
         
         return parts.map((part, i) => {
             if (part.startsWith('@')) {
-                const mentionName = part.slice(1).trim().toLowerCase();
+                var mentionName = part.slice(1).trim().toLowerCase();
                 return React.createElement('span', {
                     key: i,
                     style: { 
@@ -18,7 +18,7 @@ var { renderMsgText } = {
                     },
                     onClick: (e) => {
                         e.stopPropagation();
-                        const allMbrs = [...(familyMembers || [])];
+                        var allMbrs = [...(familyMembers || [])];
                         if (currentUserData) {
                             allMbrs.push({ 
                                 id: currentUID, 
@@ -26,7 +26,7 @@ var { renderMsgText } = {
                                 photoURL: currentUserData.photoURL 
                             });
                         }
-                        const found = allMbrs.find(m => (m.displayName || '').toLowerCase() === mentionName);
+                        var found = allMbrs.find(m => (m.displayName || '').toLowerCase() === mentionName);
                         if (found) {
                             openMiniProfile(found.id, { name: found.displayName, photo: found.photoURL });
                         }

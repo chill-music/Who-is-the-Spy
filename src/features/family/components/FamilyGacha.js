@@ -16,9 +16,9 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
 
     if (!show) return null;
 
-    const currentGachaConfig = (family?.level >= 5) ? GACHA_CONFIG_BASIC : GACHA_CONFIG_PREMIUM;
+    var currentGachaConfig = (family?.level >= 5) ? GACHA_CONFIG_BASIC : GACHA_CONFIG_PREMIUM;
 
-    const handleSpin = async (mode) => {
+    var handleSpin = async (mode) => {
         if (spinning) return;
         setSpinMode(mode);
         setSpinning(true);
@@ -28,7 +28,7 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
             // Simulate spin delay
             await new Promise(r => setTimeout(r, 2000));
             
-            const res = await window.FamilyService.handleGachaRoll({ 
+            var res = await window.FamilyService.handleGachaRoll({ 
                 family, 
                 currentUID, 
                 currentUserData, 

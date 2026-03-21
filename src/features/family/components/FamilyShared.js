@@ -4,7 +4,7 @@
 var { FAMILY_ROLE_CONFIG, FAMILY_SIGN_LEVELS } = window.FamilyConstants || {};
 
 var FamilyRoleBadge = ({ role, lang, small = false }) => {
-    const cfg = FAMILY_ROLE_CONFIG[role] || FAMILY_ROLE_CONFIG.member;
+    var cfg = FAMILY_ROLE_CONFIG[role] || FAMILY_ROLE_CONFIG.member;
     return (
         <span style={{
             display:'inline-flex', alignItems:'center', gap:'2px',
@@ -20,16 +20,16 @@ var FamilyRoleBadge = ({ role, lang, small = false }) => {
 };
 
 var FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = null, signLevel = 1 }) => {
-    const displayTag = tag || 'FAM';
-    const signLevelData = FAMILY_SIGN_LEVELS.find(s => s.level === signLevel);
-    const hasGlow = signLevelData?.hasGlow || signLevel >= 4;
+    var displayTag = tag || 'FAM';
+    var signLevelData = FAMILY_SIGN_LEVELS.find(s => s.level === signLevel);
+    var hasGlow = signLevelData?.hasGlow || signLevel >= 4;
     
     if (imageURL) {
-        const imgW = small
+        var imgW = small
             ? 28 + (displayTag.length * 4)
             : 44 + (displayTag.length * 6);
-        const imgH = Math.round(imgW * 0.55);
-        const fontSize = small
+        var imgH = Math.round(imgW * 0.55);
+        var fontSize = small
             ? (displayTag.length <= 3 ? 8 : displayTag.length === 4 ? 7 : 6)
             : (displayTag.length <= 3 ? 11 : displayTag.length === 4 ? 10 : 9);
 

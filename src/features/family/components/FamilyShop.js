@@ -11,12 +11,12 @@ var FamilyShop = ({
 }) => {
     if (!family) return null;
 
-    const coins = family.familyCoins || 0;
-    const purchases = family.shopPurchases || {};
-    const RARITY_COLORS = { rare: '#60a5fa', epic: '#a78bfa', legendary: '#ffd700' };
-    const FALLBACK_COINS_SYMBOL = '🏅';
+    var coins = family.familyCoins || 0;
+    var purchases = family.shopPurchases || {};
+    var RARITY_COLORS = { rare: '#60a5fa', epic: '#a78bfa', legendary: '#ffd700' };
+    var FALLBACK_COINS_SYMBOL = '🏅';
 
-    const handleBuy = async (item) => {
+    var handleBuy = async (item) => {
         if (window.FamilyService && window.FamilyService.buyShopItem) {
             await window.FamilyService.buyShopItem({
                 currentUID,
@@ -28,11 +28,11 @@ var FamilyShop = ({
         }
     };
 
-    const shopItems = (typeof window.FAMILY_SHOP_ITEMS !== 'undefined') 
+    var shopItems = (typeof window.FAMILY_SHOP_ITEMS !== 'undefined') 
         ? window.FAMILY_SHOP_ITEMS 
         : [];
         
-    const coinsSymbol = (typeof window.FAMILY_COINS_SYMBOL !== 'undefined')
+    var coinsSymbol = (typeof window.FAMILY_COINS_SYMBOL !== 'undefined')
         ? window.FAMILY_COINS_SYMBOL
         : FALLBACK_COINS_SYMBOL;
 
@@ -56,10 +56,10 @@ var FamilyShop = ({
             {/* Shop Items Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px' }}>
                 {shopItems.map(item => {
-                    const key = `${currentUID}_${item.id}`;
-                    const owned = purchases[key];
-                    const canAfford = coins >= item.cost;
-                    const rColor = RARITY_COLORS[item.rarity] || '#9ca3af';
+                    var key = `${currentUID}_${item.id}`;
+                    var owned = purchases[key];
+                    var canAfford = coins >= item.cost;
+                    var rColor = RARITY_COLORS[item.rarity] || '#9ca3af';
                     
                     return (
                         <div key={item.id} style={{

@@ -25,7 +25,7 @@ var useFamilyData = () => {
     const [error, setError] = React.useState(null);
 
     React.useEffect(() => {
-        const unsubAuth = auth.onAuthStateChanged(user => {
+        var unsubAuth = auth.onAuthStateChanged(user => {
             setCurrentUID(user?.uid || null);
         });
 
@@ -35,10 +35,10 @@ var useFamilyData = () => {
         }
 
         // 1. Listen to user doc for familyId
-        const unsubUser = usersCollection.doc(currentUID).onSnapshot(snap => {
-            const userData = snap.data();
+        var unsubUser = usersCollection.doc(currentUID).onSnapshot(snap => {
+            var userData = snap.data();
             setCurrentUserData(userData);
-            const familyId = userData?.familyId;
+            var familyId = userData?.familyId;
 
             if (!familyId) {
                 setFamily(null);
@@ -48,7 +48,7 @@ var useFamilyData = () => {
             }
 
             // 2. Listen to family doc
-            const unsubFam = familiesCollection.doc(familyId).onSnapshot(fSnap => {
+            var unsubFam = familiesCollection.doc(familyId).onSnapshot(fSnap => {
                 if (fSnap.exists) {
                     setFamily({ id: fSnap.id, ...fSnap.data() });
                 } else {
@@ -63,7 +63,7 @@ var useFamilyData = () => {
 
             // 3. Listen to members (Commented out if using field-based membersData or if permissions are missing)
             /*
-            const unsubMbrs = familiesCollection.doc(familyId).collection('membersData').onSnapshot(mSnap => {
+            var unsubMbrs = familiesCollection.doc(familyId).collection('membersData').onSnapshot(mSnap => {
                 // ...
             }, err => console.error("Members listener error:", err));
             */
@@ -128,7 +128,7 @@ var getFamilySignImage = (level) => {
 };
 
 var getFamilySignLevelData = (weeklyActiveness = 0) => {
-    let cfg = null;
+    var cfg = null;
     for (var i = FAMILY_SIGN_LEVELS.length - 1; i >= 0; i--) {
         if (weeklyActiveness >= FAMILY_SIGN_LEVELS[i].threshold) { 
             cfg = FAMILY_SIGN_LEVELS[i]; 
@@ -159,52 +159,52 @@ var getFamilySignProgress = (weeklyActiveness = 0) => {
  */
 var openAssignedChest = async ({ family, currentUID, currentUserData, inventoryIdx, lang, onNotification }) => {
     if (!family?.id || !currentUID) return null;
-    const inv = family.treasuryInventory || [];
-    const chest = inv[inventoryIdx];
+    var inv = family.treasuryInventory || [];
+    var chest = inv[inventoryIdx];
     if (!chest || !(chest.assignedTo || []).includes(currentUID)) return null;
 
-    const cfg = CHEST_CONFIG[chest.chestType];
+    var cfg = CHEST_CONFIG[chest.chestType];
     if (!cfg) return null;
 
-    const claims = chest.claimedBy || {};
-    const myClaimCount = claims[currentUID] || 0;
+    var claims = chest.claimedBy || {};
+    var myClaimCount = claims[currentUID] || 0;
     if (myClaimCount >= (chest.maxClaimsPerMember || 1)) {
         onNotification(lang === 'ar' ? '✅ استلمت حصتك بالكامل' : '✅ You already claimed your share');
         return null;
     }
 
     try {
-        const familyRef = familiesCollection.doc(family.id);
-        let myBundle = { currency: 0, coins: 0, charisma: 0, items: [] };
+        var familyRef = familiesCollection.doc(family.id);
+        var myBundle = { currency: 0, coins: 0, charisma: 0, items: [] };
 
         await db.runTransaction(async (transaction) => {
-            const famDoc = await transaction.get(familyRef);
+            var famDoc = await transaction.get(familyRef);
             if (!famDoc.exists) throw new Error('Family not found');
-            const famData = famDoc.data();
-            const freshInv = famData.treasuryInventory || [];
-            const freshChest = freshInv[inventoryIdx];
+            var famData = famDoc.data();
+            var freshInv = famData.treasuryInventory || [];
+            var freshChest = freshInv[inventoryIdx];
             if (!freshChest || !(freshChest.assignedTo || []).includes(currentUID)) throw new Error('Not assigned');
             
-            const freshClaims = freshChest.claimedBy || {};
-            const freshClaimCount = freshClaims[currentUID] || 0;
+            var freshClaims = freshChest.claimedBy || {};
+            var freshClaimCount = freshClaims[currentUID] || 0;
             if (freshClaimCount >= (freshChest.maxClaimsPerMember || 1)) throw new Error('Already claimed');
 
-            const totalParticipants = freshChest.assignedTo.length;
-            const remainingParticipants = totalParticipants - Object.keys(freshClaims).length;
-            let numClaimsNow = remainingParticipants > 0 ? remainingParticipants : 1;
+            var totalParticipants = freshChest.assignedTo.length;
+            var remainingParticipants = totalParticipants - Object.keys(freshClaims).length;
+            var numClaimsNow = remainingParticipants > 0 ? remainingParticipants : 1;
             
-            let updatedRewards = [];
-            const rewardsToGive = { currency: 0, coins: 0, charisma: 0, items: [] };
+            var updatedRewards = [];
+            var rewardsToGive = { currency: 0, coins: 0, charisma: 0, items: [] };
 
             (freshChest.availableRewards || []).forEach(r => {
-                let newR = { ...r };
+                var newR = { ...r };
                 if (r.type === 'currency' || r.type === 'familyCoins' || r.type === 'coins' || r.type === 'charisma') {
-                    let total = r.amountRemaining || 0;
-                    let myShare = Math.floor(total / numClaimsNow);
+                    var total = r.amountRemaining || 0;
+                    var myShare = Math.floor(total / numClaimsNow);
                     if (numClaimsNow === 1) {
                         myShare = total;
                     } else {
-                        let remainder = total % numClaimsNow;
+                        var remainder = total % numClaimsNow;
                         if (remainder > 0 && Math.random() < 0.5) myShare += 1;
                     }
                     if (myShare > total) myShare = total;
@@ -232,16 +232,16 @@ var openAssignedChest = async ({ family, currentUID, currentUserData, inventoryI
             freshInv[inventoryIdx] = freshChest;
 
             // Calculate and apply rewards inside the transaction
-            const userRef = usersCollection.doc(currentUID);
-            const userUpdate = {};
+            var userRef = usersCollection.doc(currentUID);
+            var userUpdate = {};
             
             if (rewardsToGive.currency > 0) userUpdate.currency = firebase.firestore.FieldValue.increment(rewardsToGive.currency);
             if (rewardsToGive.charisma > 0) userUpdate.charisma = firebase.firestore.FieldValue.increment(rewardsToGive.charisma);
             
-            const arrayUnion = firebase.firestore.FieldValue.arrayUnion;
+            var arrayUnion = firebase.firestore.FieldValue.arrayUnion;
             rewardsToGive.items.forEach(r => {
                 if (r.type === 'frame') {
-                    const expiresAt = r.duration ? Date.now() + r.duration * 86400000 : null;
+                    var expiresAt = r.duration ? Date.now() + r.duration * 86400000 : null;
                     userUpdate[`inventory.expiry.${r.frameId}`] = expiresAt;
                     userUpdate['inventory.frames'] = arrayUnion(r.frameId);
                 } else if (r.type === 'title') {
@@ -260,7 +260,7 @@ var openAssignedChest = async ({ family, currentUID, currentUserData, inventoryI
                 }
             });
 
-            const familyUpdates = { treasuryInventory: freshInv };
+            var familyUpdates = { treasuryInventory: freshInv };
             if (rewardsToGive.coins > 0) {
                 familyUpdates.familyCoins = firebase.firestore.FieldValue.increment(rewardsToGive.coins);
             }
@@ -275,19 +275,19 @@ var openAssignedChest = async ({ family, currentUID, currentUserData, inventoryI
 
 
         // Detailed receipt text
-        const receiptParts = [];
+        var receiptParts = [];
         if (myBundle.currency > 0) receiptParts.push(`${myBundle.currency} 🧠`);
         if (myBundle.coins > 0) receiptParts.push(`${myBundle.coins} ${FAMILY_COINS_SYMBOL}`);
         if (myBundle.charisma > 0) receiptParts.push(`${myBundle.charisma} ⭐`);
         myBundle.items.forEach(r => {
-            let rIcon = r.icon || '🎁';
+            var rIcon = r.icon || '🎁';
             if (r.type === 'frame') receiptParts.push(`${rIcon} ${r.duration || '?'}d`);
             else receiptParts.push(`${r.qty || 1}× ${rIcon}`);
         });
-        const receiptText = receiptParts.join(' • ') || (lang==='ar'?'لا شيء':'Nothing');
+        var receiptText = receiptParts.join(' • ') || (lang==='ar'?'لا شيء':'Nothing');
 
         // Post to chat
-        const chestIcon = ACTIVENESS_MILESTONES.find(m => m.chestType === chest.chestType)?.icon || '📦';
+        var chestIcon = ACTIVENESS_MILESTONES.find(m => m.chestType === chest.chestType)?.icon || '📦';
         await familiesCollection.doc(family.id).collection('messages').add({
             senderId: currentUID,
             senderName: currentUserData?.displayName || 'Member',
@@ -316,8 +316,8 @@ var openAssignedChest = async ({ family, currentUID, currentUserData, inventoryI
  */
 var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, lang }) => {
     if (!family?.id || !canManageFamily(family, currentUID)) throw new Error('Unauthorized');
-    const inv = [...(family.treasuryInventory || [])];
-    const chest = inv[chestIdx];
+    var inv = [...(family.treasuryInventory || [])];
+    var chest = inv[chestIdx];
     if (!chest || chest.assignedTo) return;
 
     inv[chestIdx] = {
@@ -332,9 +332,9 @@ var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, 
     await familiesCollection.doc(family.id).update({ treasuryInventory: inv });
 
     // Announcement in chat
-    const cfg = CHEST_CONFIG[chest.chestType];
-    const chestIcon = cfg?.icon || '📦';
-    const names = (family.membersData || [])
+    var cfg = CHEST_CONFIG[chest.chestType];
+    var chestIcon = cfg?.icon || '📦';
+    var names = (family.membersData || [])
         .filter(m => selectedUIDs.includes(m.id))
         .map(m => m.displayName)
         .join(', ');
@@ -359,26 +359,26 @@ var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, 
 var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free', lang, onNotification }) => {
     if (!family?.id || !currentUID) throw new Error('Invalid context');
     
-    const currentGachaConfig = (family?.level >= 5) ? GACHA_CONFIG_PREMIUM : GACHA_CONFIG_BASIC;
-    const today = new Date().toDateString();
-    const HARD_COST_CAP = 200;
+    var currentGachaConfig = (family?.level >= 5) ? GACHA_CONFIG_PREMIUM : GACHA_CONFIG_BASIC;
+    var today = new Date().toDateString();
+    var HARD_COST_CAP = 200;
 
     if (mode === 'free') {
-        const lastFree = family.gachaFreeLastUsed;
+        var lastFree = family.gachaFreeLastUsed;
         if (lastFree) {
-            const lastDate = lastFree.toDate ? lastFree.toDate() : new Date(lastFree.seconds * 1000);
+            var lastDate = lastFree.toDate ? lastFree.toDate() : new Date(lastFree.seconds * 1000);
             if (lastDate.toDateString() === today) {
                 onNotification(lang === 'ar' ? '⏳ استخدمت السحبة المجانية اليوم' : '⏳ Free spin already used today');
                 return null;
             }
         }
     } else {
-        const costPerSpin = Math.min(currentGachaConfig.paidCostPerSpin, HARD_COST_CAP);
+        var costPerSpin = Math.min(currentGachaConfig.paidCostPerSpin, HARD_COST_CAP);
         if ((currentUserData?.currency || 0) < costPerSpin) {
             onNotification(lang === 'ar' ? `❌ تحتاج ${costPerSpin} إنتل` : `❌ Need ${costPerSpin} Intel`);
             return null;
         }
-        const spinsToday = family.gachaPaidSpins?.[today] || 0;
+        var spinsToday = family.gachaPaidSpins?.[today] || 0;
         if (spinsToday >= currentGachaConfig.maxPaidSpinsDaily) {
             onNotification(lang === 'ar' ? `❌ وصلت الحد اليومي (${currentGachaConfig.maxPaidSpinsDaily} سحبة)` : `❌ Daily limit reached (${currentGachaConfig.maxPaidSpinsDaily} spins)`);
             return null;
@@ -386,25 +386,25 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
     }
 
     try {
-        const total = currentGachaConfig.rewards.reduce((s, r) => s + r.weight, 0);
-        let rand = Math.random() * total;
-        let picked = currentGachaConfig.rewards[currentGachaConfig.rewards.length - 1];
+        var total = currentGachaConfig.rewards.reduce((s, r) => s + r.weight, 0);
+        var rand = Math.random() * total;
+        var picked = currentGachaConfig.rewards[currentGachaConfig.rewards.length - 1];
         for (const r of currentGachaConfig.rewards) {
             rand -= r.weight;
             if (rand <= 0) { picked = r; break; }
         }
 
-        const rewardUpdates = {};
+        var rewardUpdates = {};
 
         if (mode === 'free') {
             rewardUpdates.gachaFreeLastUsed = TS();
         } else {
-            const costPerSpin = Math.min(currentGachaConfig.paidCostPerSpin, HARD_COST_CAP);
-            const userRef = usersCollection.doc(currentUID);
+            var costPerSpin = Math.min(currentGachaConfig.paidCostPerSpin, HARD_COST_CAP);
+            var userRef = usersCollection.doc(currentUID);
             await db.runTransaction(async (transaction) => {
-                const userDoc = await transaction.get(userRef);
+                var userDoc = await transaction.get(userRef);
                 if (!userDoc.exists) throw new Error('User not found');
-                const currentBalance = userDoc.data()?.currency || 0;
+                var currentBalance = userDoc.data()?.currency || 0;
                 if (currentBalance < costPerSpin) throw new Error('Insufficient balance');
                 transaction.update(userRef, {
                     currency: firebase.firestore.FieldValue.increment(-costPerSpin),
@@ -414,7 +414,7 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
         }
 
         // Apply reward to user document
-        const userRewardUpdate = {};
+        var userRewardUpdate = {};
         if (picked.type === 'currency') {
             userRewardUpdate.currency = firebase.firestore.FieldValue.increment(picked.amount);
         } else if (picked.type === 'charisma') {
@@ -422,7 +422,7 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
         } else if (picked.type === 'coins') {
             rewardUpdates.familyCoins = firebase.firestore.FieldValue.increment(picked.amount);
         } else if (picked.type === 'frame' || picked.type === 'frame_anim') {
-            const expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
+            var expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
             userRewardUpdate[`inventory.frames`] = firebase.firestore.FieldValue.arrayUnion(picked.frameId);
             userRewardUpdate[`inventory.expiry.${picked.frameId}`] = expiresAt;
         } else if (picked.type === 'gift') {
@@ -432,7 +432,7 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
                 userRewardUpdate[`inventory.expiry.${picked.giftId}`] = Date.now() + 30 * 86400000;
             }
         } else if (picked.type === 'chest') {
-            const chestItem = { chestType: picked.chestType, gachaWon: true, wonAt: Date.now(), wonBy: currentUID };
+            var chestItem = { chestType: picked.chestType, gachaWon: true, wonAt: Date.now(), wonBy: currentUID };
             rewardUpdates.treasuryInventory = firebase.firestore.FieldValue.arrayUnion(chestItem);
         }
 
@@ -455,13 +455,13 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
  */
 var handleClaimChest = async ({ family, chestIdx, currentUID, lang, onNotification }) => {
     if (!family?.id || !canManageFamily(family, currentUID)) return null;
-    const ms = ACTIVENESS_MILESTONES[chestIdx];
+    var ms = ACTIVENESS_MILESTONES[chestIdx];
     if (!ms || (family.activeness || 0) < ms.threshold) return null;
-    const claimed = family.activenessClaimedMilestones || [];
+    var claimed = family.activenessClaimedMilestones || [];
     if (claimed.includes(chestIdx)) return null;
 
     try {
-        const chestItem = { chestType: ms.chestType, idx: chestIdx, claimedAt: Date.now(), claimedBy: currentUID };
+        var chestItem = { chestType: ms.chestType, idx: chestIdx, claimedAt: Date.now(), claimedBy: currentUID };
         await familiesCollection.doc(family.id).update({
             activenessClaimedMilestones: firebase.firestore.FieldValue.arrayUnion(chestIdx),
             treasuryInventory: firebase.firestore.FieldValue.arrayUnion(chestItem),
@@ -482,13 +482,13 @@ var handleClaimChest = async ({ family, chestIdx, currentUID, lang, onNotificati
  */
 var createFamily = async ({ tribeName, tribeTag, tribeDesc, tribeEmblem, currentUID, currentUserData, lang }) => {
     if (!tribeName.trim() || !tribeTag.trim() || !currentUID) return null;
-    const cleanTag = tribeTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
-    const cleanName = tribeName.trim().slice(0, 10);
+    var cleanTag = tribeTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+    var cleanName = tribeName.trim().slice(0, 10);
     
-    const tagCheck = await familiesCollection.where('tag', '==', cleanTag).get();
+    var tagCheck = await familiesCollection.where('tag', '==', cleanTag).get();
     if (!tagCheck.empty) throw new Error('Tag already taken');
 
-    const ref = await familiesCollection.add({
+    var ref = await familiesCollection.add({
         name: cleanName, tag: cleanTag, description: tribeDesc.trim(),
         emblem: tribeEmblem, announcement: '',
         photoURL: null, signImageURL: null,
@@ -525,10 +525,10 @@ var createFamily = async ({ tribeName, tribeTag, tribeDesc, tribeEmblem, current
  */
 var joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
     if (!currentUID || !familyId) return null;
-    const snap = await familiesCollection.doc(familyId).get();
+    var snap = await familiesCollection.doc(familyId).get();
     if (!snap.exists) throw new Error('Family not found');
-    const fd = snap.data();
-    const lvl = getFamilyLevelConfig(fd.level || 1);
+    var fd = snap.data();
+    var lvl = getFamilyLevelConfig(fd.level || 1);
     if ((fd.members || []).length >= lvl.maxMembers) throw new Error('Family is full');
 
     if (fd.joinMode === 'approval') {
@@ -545,7 +545,7 @@ var joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
         lastActivity: TS(),
     });
 
-    const signData = getFamilySignLevelData(fd.lastWeekActiveness || 0);
+    var signData = getFamilySignLevelData(fd.lastWeekActiveness || 0);
     await usersCollection.doc(currentUID).update({
         familyId, familyName: fd.name, familyTag: fd.tag,
         familySignLevel: signData?.level || null,
@@ -564,14 +564,14 @@ var joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
  */
 var leaveFamily = async ({ family, currentUID, currentUserData, lang }) => {
     if (!family?.id || !currentUID) return;
-    const role = getFamilyRole(family, currentUID);
+    var role = getFamilyRole(family, currentUID);
     if (role === 'owner' && (family.members || []).length > 1) throw new Error('Assign another leader first');
 
     if ((family.members || []).length <= 1) {
         await familiesCollection.doc(family.id).delete();
     } else {
-        const updRoles = { ...family.memberRoles }; delete updRoles[currentUID];
-        const updDons = { ...family.memberDonations }; delete updDons[currentUID];
+        var updRoles = { ...family.memberRoles }; delete updRoles[currentUID];
+        var updDons = { ...family.memberDonations }; delete updDons[currentUID];
         await familiesCollection.doc(family.id).update({
             members: firebase.firestore.FieldValue.arrayRemove(currentUID),
             memberRoles: updRoles, memberDonations: updDons,
@@ -591,8 +591,8 @@ var leaveFamily = async ({ family, currentUID, currentUserData, lang }) => {
  */
 var deleteFamily = async ({ family, currentUID }) => {
     if (!family?.id || getFamilyRole(family, currentUID) !== 'owner') throw new Error('Unauthorized');
-    const memberIds = family.members || [];
-    const batch = db.batch();
+    var memberIds = family.members || [];
+    var batch = db.batch();
     memberIds.forEach(uid => {
         batch.update(usersCollection.doc(uid), {
             familyId: null, familyName: null, familyTag: null,
@@ -608,10 +608,10 @@ var deleteFamily = async ({ family, currentUID }) => {
  */
 var handleDonate = async ({ family, amount, currentUID, currentUserData, lang }) => {
     if (!amount || amount <= 0 || !family?.id) return;
-    const don = family.memberDonations?.[currentUID] || { weekly:0, total:0, weeklyIntel:0, totalIntel:0 };
-    const ft3Key = `ft3_${currentUID}`;
-    const ft3Prog = family.taskProgress?.[ft3Key] || { current:0, claimed:false };
-    const newFt3 = ft3Prog.claimed ? ft3Prog.current : Math.min(500, (ft3Prog.current || 0) + amount);
+    var don = family.memberDonations?.[currentUID] || { weekly:0, total:0, weeklyIntel:0, totalIntel:0 };
+    var ft3Key = `ft3_${currentUID}`;
+    var ft3Prog = family.taskProgress?.[ft3Key] || { current:0, claimed:false };
+    var newFt3 = ft3Prog.claimed ? ft3Prog.current : Math.min(500, (ft3Prog.current || 0) + amount);
 
     await familiesCollection.doc(family.id).update({
         treasury: firebase.firestore.FieldValue.increment(amount),
@@ -674,12 +674,12 @@ var kickMember = async ({ family, targetUID, currentUID, lang }) => {
     if (!family?.id || targetUID === family.createdBy) return;
     
     // Authorization check
-    const myRole = getFamilyRole(family, currentUID);
+    var myRole = getFamilyRole(family, currentUID);
     if (!['owner', 'admin'].includes(myRole)) throw new Error('Unauthorized');
     if (myRole === 'admin' && getFamilyRole(family, targetUID) === 'admin') throw new Error('Admins cannot kick admins');
 
-    const updRoles = { ...family.memberRoles }; delete updRoles[targetUID];
-    const updDons = { ...family.memberDonations }; delete updDons[targetUID];
+    var updRoles = { ...family.memberRoles }; delete updRoles[targetUID];
+    var updDons = { ...family.memberDonations }; delete updDons[targetUID];
     
     await familiesCollection.doc(family.id).update({
         members: firebase.firestore.FieldValue.arrayRemove(targetUID),
@@ -700,7 +700,7 @@ var kickMember = async ({ family, targetUID, currentUID, lang }) => {
  */
 var setMemberRole = async ({ family, targetUID, newRole, currentUID, lang }) => {
     if (!family?.id || targetUID === family.createdBy) return;
-    const myRole = getFamilyRole(family, currentUID);
+    var myRole = getFamilyRole(family, currentUID);
     
     // Valid roles: admin, moderator, member
     if (newRole === 'admin' && myRole !== 'owner') return;
@@ -716,7 +716,7 @@ var setMemberRole = async ({ family, targetUID, newRole, currentUID, lang }) => 
  */
 var handleJoinRequest = async ({ family, targetUID, accept, lang }) => {
     if (!family?.id) return;
-    const updates = { joinRequests: firebase.firestore.FieldValue.arrayRemove(targetUID) };
+    var updates = { joinRequests: firebase.firestore.FieldValue.arrayRemove(targetUID) };
     
     if (accept) {
         updates[`memberRoles.${targetUID}`] = 'member';
@@ -726,7 +726,7 @@ var handleJoinRequest = async ({ family, targetUID, accept, lang }) => {
         await familiesCollection.doc(family.id).update(updates);
         
         // Update user document
-        const signData = getFamilySignLevelData(family.lastWeekActiveness || 0);
+        var signData = getFamilySignLevelData(family.lastWeekActiveness || 0);
         await usersCollection.doc(targetUID).update({
             familyId: family.id, familyName: family.name, familyTag: family.tag,
             familySignLevel: signData?.level || null,
@@ -745,17 +745,17 @@ var handleJoinRequest = async ({ family, targetUID, accept, lang }) => {
  */
 var saveTag = async ({ family, newTag, currentUID }) => {
     if (!family?.id || !canManageFamily(family, currentUID)) return;
-    const clean = newTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+    var clean = newTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
     if (clean.length < 3) throw new Error('Tag too short');
     
-    const tagCheck = await familiesCollection.where('tag', '==', clean).get();
-    const alreadyMine = tagCheck.docs.some(d => d.id === family.id);
+    var tagCheck = await familiesCollection.where('tag', '==', clean).get();
+    var alreadyMine = tagCheck.docs.some(d => d.id === family.id);
     if (!tagCheck.empty && !alreadyMine) throw new Error('Tag already taken');
     
     await familiesCollection.doc(family.id).update({ tag: clean });
     
     // Propagate to all members
-    const batch = db.batch();
+    var batch = db.batch();
     (family.members || []).forEach(uid => {
         batch.update(usersCollection.doc(uid), { familyTag: clean });
     });
@@ -777,7 +777,7 @@ var saveInfo = async ({ family, updates, currentUID }) => {
  * Loads family list for discovery.
  */
 var loadFamilies = async (limit = 30) => {
-    const snap = await familiesCollection.orderBy('activeness', 'desc').limit(limit).get();
+    var snap = await familiesCollection.orderBy('activeness', 'desc').limit(limit).get();
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };
 
@@ -785,8 +785,8 @@ var loadFamilies = async (limit = 30) => {
  * Searches for a family by tag.
  */
 var searchFamilyByTag = async (tag) => {
-    const clean = tag.trim().toUpperCase();
-    const snap = await familiesCollection.where('tag', '==', clean).limit(1).get();
+    var clean = tag.trim().toUpperCase();
+    var snap = await familiesCollection.where('tag', '==', clean).limit(1).get();
     if (snap.empty) return null;
     return { id: snap.docs[0].id, ...snap.docs[0].data() };
 };
@@ -801,7 +801,7 @@ var searchFamilyByTag = async (tag) => {
 var sendMessage = async ({ familyId, currentUID, currentUserData, text, image, type = 'text' }) => {
     if (!familyId || (!text?.trim() && !image)) return;
     
-    const msgData = {
+    var msgData = {
         senderId: currentUID,
         senderName: currentUserData?.displayName || 'Member',
         senderPhoto: currentUserData?.photoURL || null,
@@ -833,13 +833,13 @@ var sendMessage = async ({ familyId, currentUID, currentUserData, text, image, t
 var handleImageUpload = (file) => {
     return new Promise((resolve, reject) => {
         if (!file) { reject('No file'); return; }
-        const reader = new FileReader();
+        var reader = new FileReader();
         reader.onload = (e) => {
-            const img = new Image();
+            var img = new Image();
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let { width, height } = img;
-                const MAX_SIZE = 800;
+                var canvas = document.createElement('canvas');
+                var { width, height } = img;
+                var MAX_SIZE = 800;
                 if (width > height) {
                     if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
                 } else {
@@ -863,12 +863,12 @@ var handleImageUpload = (file) => {
  */
 var claimDailyMilestoneChest = async ({ family, currentUID, msIdx, ms, lang, onNotification }) => {
     if (!family?.id || !currentUID) return;
-    const today = new Date().toDateString();
-    const dailyPtsKey = `dailyPts_${today}_${currentUID}`;
-    const myDailyPoints = family[dailyPtsKey] || 0;
+    var today = new Date().toDateString();
+    var dailyPtsKey = `dailyPts_${today}_${currentUID}`;
+    var myDailyPoints = family[dailyPtsKey] || 0;
     if (myDailyPoints < ms.points) return;
 
-    const claimKey = `dailyChestClaim_${today}_${currentUID}_${msIdx}`;
+    var claimKey = `dailyChestClaim_${today}_${currentUID}_${msIdx}`;
     if (family[claimKey]) return;
 
     try {
@@ -878,8 +878,8 @@ var claimDailyMilestoneChest = async ({ family, currentUID, msIdx, ms, lang, onN
         });
 
         // Give rewards (simplified logic for now)
-        const userRef = usersCollection.doc(currentUID);
-        const updates = {};
+        var userRef = usersCollection.doc(currentUID);
+        var updates = {};
         if (ms.reward?.intel) updates.currency = firebase.firestore.FieldValue.increment(ms.reward.intel);
         if (Object.keys(updates).length > 0) await userRef.update(updates);
 
@@ -894,14 +894,14 @@ var claimDailyMilestoneChest = async ({ family, currentUID, msIdx, ms, lang, onN
  */
 var claimTask = async ({ family, currentUID, task, lang, onNotification }) => {
     if (!family?.id || !currentUID) return;
-    const key = `${task.id}_${currentUID}`;
-    const taskProgress = family.taskProgress || {};
-    const prog = taskProgress[key] || { current: 0, claimed: false };
+    var key = `${task.id}_${currentUID}`;
+    var taskProgress = family.taskProgress || {};
+    var prog = taskProgress[key] || { current: 0, claimed: false };
     if (prog.current < task.target || prog.claimed) return;
 
     try {
-        const today = new Date().toDateString();
-        const dailyPtsKey = `dailyPts_${today}_${currentUID}`;
+        var today = new Date().toDateString();
+        var dailyPtsKey = `dailyPts_${today}_${currentUID}`;
         
         await familiesCollection.doc(family.id).update({
             [`taskProgress.${key}.claimed`]: true,
@@ -913,8 +913,8 @@ var claimTask = async ({ family, currentUID, task, lang, onNotification }) => {
             lastActivity: TS(),
         });
 
-        const userRef = usersCollection.doc(currentUID);
-        const userUpdates = {};
+        var userRef = usersCollection.doc(currentUID);
+        var userUpdates = {};
         if (task.reward?.intel) userUpdates.currency = firebase.firestore.FieldValue.increment(task.reward.intel);
         if (task.reward?.xp) userUpdates.xp = firebase.firestore.FieldValue.increment(task.reward.xp);
         if (Object.keys(userUpdates).length > 0) await userRef.update(userUpdates);
@@ -930,10 +930,10 @@ var claimTask = async ({ family, currentUID, task, lang, onNotification }) => {
  */
 var handleCheckIn = async ({ family, currentUID, lang, onNotification }) => {
     if (!family?.id || !currentUID) return;
-    const today = new Date().toDateString();
-    const key = `ft4_${currentUID}`;
-    const taskProgress = family.taskProgress || {};
-    const prog = taskProgress[key] || { current: 0, claimed: false, lastCheckIn: '' };
+    var today = new Date().toDateString();
+    var key = `ft4_${currentUID}`;
+    var taskProgress = family.taskProgress || {};
+    var prog = taskProgress[key] || { current: 0, claimed: false, lastCheckIn: '' };
     
     if (prog.lastCheckIn === today) {
         if (onNotification) onNotification(lang === 'ar' ? '✅ قمت بتسجيل الحضور اليوم' : '✅ Already checked in today');
@@ -957,8 +957,8 @@ var handleCheckIn = async ({ family, currentUID, lang, onNotification }) => {
  */
 var buyShopItem = async ({ currentUID, family, item, lang, onNotification }) => {
     if (!currentUID || !family?.id || !item) return;
-    const coins = family.familyCoins || 0;
-    const purchases = family.shopPurchases || {};
+    var coins = family.familyCoins || 0;
+    var purchases = family.shopPurchases || {};
 
     if (coins < item.cost) {
         onNotification(lang==='ar' ? `❌ تحتاج ${item.cost}${FAMILY_COINS_SYMBOL}` : `❌ Need ${item.cost}${FAMILY_COINS_SYMBOL}`);
@@ -966,7 +966,7 @@ var buyShopItem = async ({ currentUID, family, item, lang, onNotification }) => 
     }
 
     try {
-        const key = `${currentUID}_${item.id}`;
+        var key = `${currentUID}_${item.id}`;
         if (purchases[key]) {
             onNotification(lang==='ar' ? '✅ اشتريت هذا بالفعل' : '✅ Already purchased');
             return;
@@ -978,7 +978,7 @@ var buyShopItem = async ({ currentUID, family, item, lang, onNotification }) => 
         });
 
         // Grant to user inventory based on type
-        const inventoryKey = 
+        var inventoryKey = 
             item.type === 'badge' ? 'inventory.badges' : 
             item.type === 'title' ? 'inventory.titles' : 
             item.type === 'theme' ? 'inventory.themes' : 
@@ -987,20 +987,20 @@ var buyShopItem = async ({ currentUID, family, item, lang, onNotification }) => 
             item.type === 'gift' ? 'inventory.gifts' : null;
 
         if (inventoryKey) {
-            const updatePayload = {
+            var updatePayload = {
                 [inventoryKey]: firebase.firestore.FieldValue.arrayUnion(item.id),
             };
             if (item.type === 'gift') {
                 updatePayload[`inventory.giftCounts.${item.id}`] = firebase.firestore.FieldValue.increment(item.qty || 1);
             }
             if (item.id !== 'gift_ring') {
-                const dDays = item.durationDays || 30;
+                var dDays = item.durationDays || 30;
                 updatePayload[`inventory.expiry.${item.id}`] = Date.now() + (dDays * 86400000);
             }
             await usersCollection.doc(currentUID).update(updatePayload);
         }
 
-        const typeLabel = lang === 'ar'
+        var typeLabel = lang === 'ar'
             ? { badge:'بادج', title:'لقب', theme:'ثيم', frame:'إطار', profileEffect:'تأثير', gift:'هدية' }[item.type] || 'عنصر'
             : { badge:'Badge', title:'Title', theme:'Theme', frame:'Frame', profileEffect:'Effect', gift:'Gift' }[item.type] || 'Item';
         

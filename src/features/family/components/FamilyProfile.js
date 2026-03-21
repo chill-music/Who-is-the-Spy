@@ -11,18 +11,18 @@ var FamilyProfile = ({
     if (!family) return null;
 
     const [showDonatePanel, setShowDonatePanel] = React.useState(false);
-    const photoFileRef = React.useRef(null);
-    const onNotification = window.showNotification || (() => {});
+    var photoFileRef = React.useRef(null);
+    var onNotification = window.showNotification || (() => {});
 
-    const fLvl = window.FamilyConstants.getFamilyLevelConfig(family.level || 1);
-    const myRole = window.FamilyConstants.getFamilyRole(family, currentUID);
-    const canManage = myRole === 'owner' || myRole === 'admin';
+    var fLvl = window.FamilyConstants.getFamilyLevelConfig(family.level || 1);
+    var myRole = window.FamilyConstants.getFamilyRole(family, currentUID);
+    var canManage = myRole === 'owner' || myRole === 'admin';
 
-    const handlePhotoUpload = async (e) => {
-        const file = e.target.files[0];
+    var handlePhotoUpload = async (e) => {
+        var file = e.target.files[0];
         if (!file) return;
         try {
-            const dataUrl = await window.FamilyService.handleImageUpload(file);
+            var dataUrl = await window.FamilyService.handleImageUpload(file);
             await window.FamilyService.saveInfo({ family, updates: { photoURL: dataUrl }, currentUID });
             onNotification(lang === 'ar' ? '✅ تم تحديث الصورة' : '✅ Photo updated');
         } catch (err) {
@@ -31,9 +31,9 @@ var FamilyProfile = ({
     };
     
     // signData: based on lastWeekActiveness (last week's activity → this week's sign)
-    const SIGN_FALLBACK = { level: 0, color: '#4b5563', glow: 'rgba(75,85,99,0.3)', defaultIcon: '🏠', bg: 'rgba(75,85,99,0.1)', name_ar: 'بدون ساين', name_en: 'No Sign', threshold: 0 };
-    const lastWeekAct = family.lastWeekActiveness !== undefined ? family.lastWeekActiveness : (family.weeklyActiveness || 0);
-    const signData = window.FamilyConstants.getFamilySignLevelData(lastWeekAct) || SIGN_FALLBACK;
+    var SIGN_FALLBACK = { level: 0, color: '#4b5563', glow: 'rgba(75,85,99,0.3)', defaultIcon: '🏠', bg: 'rgba(75,85,99,0.1)', name_ar: 'بدون ساين', name_en: 'No Sign', threshold: 0 };
+    var lastWeekAct = family.lastWeekActiveness !== undefined ? family.lastWeekActiveness : (family.weeklyActiveness || 0);
+    var signData = window.FamilyConstants.getFamilySignLevelData(lastWeekAct) || SIGN_FALLBACK;
 
     return (
         <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', background:'#0d0d1f'}}>

@@ -4,7 +4,7 @@
 var { fmtFamilyTime, fmtFamilyNum } = window;
 
 var FamilyNews = ({ family, currentUserData, lang }) => {
-    const newsTypeIcon = { 
+    var newsTypeIcon = { 
         join: '🎉', 
         leave: '👋', 
         donation: '💰', 

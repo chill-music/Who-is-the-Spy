@@ -40,9 +40,9 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
     const [chatInput, setChatInput] = React.useState('');
     const [sendingMsg, setSendingMsg] = React.useState(false);
     const [prevMsgCount, setPrevMsgCount] = React.useState(0);
-    const chatEndRef = React.useRef(null);
-    const imgInputRef = React.useRef(null);
-    const chatInputRef = React.useRef(null);
+    var chatEndRef = React.useRef(null);
+    var imgInputRef = React.useRef(null);
+    var chatInputRef = React.useRef(null);
     const [openingChest, setOpeningChest] = React.useState(false);
     const [chestDetailMsg, setChestDetailMsg] = React.useState(null);
     // ── Gift modal ──
@@ -58,19 +58,19 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
     const [familyMembers, setFamilyMembers] = React.useState([]);
 
     // ── فتح ميني بروفايل في شات القبيلة ──
-    const openFamilyChatMiniProfile = async function(uid, basicData) {
+    var openFamilyChatMiniProfile = async function(uid, basicData) {
         if (!uid) return;
         setMiniProfile({ uid, name: (basicData && basicData.name) || '...', photo: (basicData && basicData.photo) || null, loading: true });
-        const data = await fetchMiniProfileData(uid, (userData && userData.friends) || []);
+        var data = await fetchMiniProfileData(uid, (userData && userData.friends) || []);
         if (data) setMiniProfile(data);
     };
 
     // جلب أعضاء العائلة للمنشن
     React.useEffect(() => {
         if (!show || !familyId) return;
-        const unsub = familiesCollection.doc(familyId).onSnapshot(snap => {
+        var unsub = familiesCollection.doc(familyId).onSnapshot(snap => {
             if (!snap.exists) return;
-            const memberIds = snap.data().members || [];
+            var memberIds = snap.data().members || [];
             if (memberIds.length === 0) return;
             // جلب بيانات الأعضاء (أول 10 للمنشن)
             usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', memberIds.slice(0,10))
@@ -82,18 +82,18 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
 
     React.useEffect(() => {
         if (!show || !familyId) return;
-        const unsub = familiesCollection.doc(familyId).collection('messages')
+        var unsub = familiesCollection.doc(familyId).collection('messages')
             .orderBy('timestamp', 'desc').limit(80)
             .onSnapshot(snap => {
-                const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+                var msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
                 // صوت + نوتيفيكيشن لما تيجي رسالة جديدة
                 if (prevMsgCount > 0 && msgs.length > prevMsgCount) {
-                    const newest = msgs[msgs.length - 1];
+                    var newest = msgs[msgs.length - 1];
                     if (newest && newest.senderId !== currentUID) {
                         try { playNotificationSound(); } catch(e) {}
                         if (onNotification) {
-                            const senderName = newest.senderName || (lang==='ar'?'عضو':'Member');
-                            const preview = newest.type === 'image' ? '📷' : (newest.text || '').slice(0, 40);
+                            var senderName = newest.senderName || (lang==='ar'?'عضو':'Member');
+                            var preview = newest.type === 'image' ? '📷' : (newest.text || '').slice(0, 40);
                             onNotification(`💬 ${senderName}: ${preview}`);
                         }
                     }
@@ -108,15 +108,15 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
         if (show) setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 120);
     }, [messages.length, show]);
 
-    const canManageFamilyChat = familyData ? canManageFamily(familyData, currentUID) : false;
+    var canManageFamilyChat = familyData ? canManageFamily(familyData, currentUID) : false;
 
     // ── معالجة @ Mention ──
-    const handleInputChange = function(e) {
-        const val = e.target.value;
+    var handleInputChange = function(e) {
+        var val = e.target.value;
         setChatInput(val);
-        const lastAt = val.lastIndexOf('@');
+        var lastAt = val.lastIndexOf('@');
         if (lastAt !== -1) {
-            const after = val.slice(lastAt + 1);
+            var after = val.slice(lastAt + 1);
             if (!after.includes(' ')) {
                 setMentionSearch(after.toLowerCase());
                 setShowMentionList(true);
@@ -126,20 +126,20 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
         setShowMentionList(false);
     };
 
-    const selectMention = function(member) {
-        const lastAt = chatInput.lastIndexOf('@');
-        const newVal = chatInput.slice(0, lastAt) + '@' + member.displayName + ' ';
+    var selectMention = function(member) {
+        var lastAt = chatInput.lastIndexOf('@');
+        var newVal = chatInput.slice(0, lastAt) + '@' + member.displayName + ' ';
         setChatInput(newVal);
         setShowMentionList(false);
         setTimeout(function() { chatInputRef.current && chatInputRef.current.focus(); }, 50);
     };
 
     // ── Open assigned chest from family chat ──
-    const openAssignedChest = async (inventoryIdx) => {
+    var openAssignedChest = async (inventoryIdx) => {
         if (!familyId || !currentUID || openingChest) return;
         setOpeningChest(true);
         try {
-            const result = await FamilyService.openAssignedChest({
+            var result = await FamilyService.openAssignedChest({
                 family: familyData,
                 currentUID,
                 currentUserData,
@@ -161,11 +161,11 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
         }
     };
 
-    const selfMember = currentUserData ? [{ id: currentUID, displayName: currentUserData.displayName, photoURL: currentUserData.photoURL }] : [];
-    const mentionMembers = [...selfMember, ...familyMembers.filter(function(m) { return m.id !== currentUID; })]
+    var selfMember = currentUserData ? [{ id: currentUID, displayName: currentUserData.displayName, photoURL: currentUserData.photoURL }] : [];
+    var mentionMembers = [...selfMember, ...familyMembers.filter(function(m) { return m.id !== currentUID; })]
         .filter(function(m) { return !mentionSearch || (m.displayName || '').toLowerCase().includes(mentionSearch); });
 
-    const sendMessage = async (text, type, extra) => {
+    var sendMessage = async (text, type, extra) => {
         type = type || 'text';
         extra = extra || {};
         if ((!text || !text.trim()) && type === 'text') return;
@@ -203,11 +203,11 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
         setSendingMsg(false);
     };
 
-    const handleImageUpload = async function(e) {
+    var handleImageUpload = async function(e) {
         var file = e.target.files && e.target.files[0];
         if (!file) return;
         try {
-            const base64 = await serviceHandleImageUpload(file);
+            var base64 = await serviceHandleImageUpload(file);
             sendMessage('', 'image', { imageUrl: base64 });
         } catch(e) { console.error('Image upload failed:', e); }
         e.target.value = '';
@@ -224,7 +224,7 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
     };
 
     // --- Using the extracted utility ---
-    const renderMsgText = (text) => utilRenderMsgText(text, familyMembers, currentUserData, currentUID, openFamilyChatMiniProfile);
+    var renderMsgText = (text) => utilRenderMsgText(text, familyMembers, currentUserData, currentUID, openFamilyChatMiniProfile);
 
     if (!show) return null;
 
@@ -320,19 +320,19 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
                     var isDonation = msg.type === 'donation';
                     // 📦 Chest assign/open messages
                     if (msg.type === 'chest_assign' || msg.type === 'chest_opened') {
-                        const cfg2 = CHEST_CONFIG[msg.chestType];
-                        const msObj = ACTIVENESS_MILESTONES.find(m=>m.chestType===msg.chestType);
-                        const liveChest = (familyData?.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo&&inv.inventoryIdx===msg.inventoryIdx);
-                        const isAssigned = msg.type === 'chest_assign' && (liveChest?.assignedTo || msg.assignedTo || []).includes(currentUID);
-                        const liveClaimedBy = liveChest?.claimedBy || msg.claimedBy || {};
-                        const myClaimCount = isAssigned ? (liveClaimedBy[currentUID] || 0) : 0;
-                        const maxClaims = msg.maxClaimsPerMember || 1;
-                        const totalAssigned = (msg.assignedTo||[]).length;
-                        const totalClaimed = Object.keys(liveClaimedBy).length;
-                        const isOpened = msg.type === 'chest_opened';
-                        const chestColor = cfg2?.color || '#9ca3af';
-                        const isDetailOpen = chestDetailMsg === msg.id;
-                        const liveDrops = liveChest?.assignedDrops || msg.assignedDrops || {};
+                        var cfg2 = CHEST_CONFIG[msg.chestType];
+                        var msObj = ACTIVENESS_MILESTONES.find(m=>m.chestType===msg.chestType);
+                        var liveChest = (familyData?.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo&&inv.inventoryIdx===msg.inventoryIdx);
+                        var isAssigned = msg.type === 'chest_assign' && (liveChest?.assignedTo || msg.assignedTo || []).includes(currentUID);
+                        var liveClaimedBy = liveChest?.claimedBy || msg.claimedBy || {};
+                        var myClaimCount = isAssigned ? (liveClaimedBy[currentUID] || 0) : 0;
+                        var maxClaims = msg.maxClaimsPerMember || 1;
+                        var totalAssigned = (msg.assignedTo||[]).length;
+                        var totalClaimed = Object.keys(liveClaimedBy).length;
+                        var isOpened = msg.type === 'chest_opened';
+                        var chestColor = cfg2?.color || '#9ca3af';
+                        var isDetailOpen = chestDetailMsg === msg.id;
+                        var liveDrops = liveChest?.assignedDrops || msg.assignedDrops || {};
 
                         return React.createElement('div', { key: msg.id, style:{ textAlign:'center', padding:'10px 14px', margin:'4px 0' } },
                             React.createElement('div', { style:{ display:'inline-flex', flexDirection:'column', alignItems:'center', gap:'6px', background:`${chestColor}14`, border:`1px solid ${chestColor}44`, borderRadius:'14px', padding:'12px 20px', maxWidth:'320px', width:'100%' } },
@@ -346,7 +346,7 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
                                 ),
                                 isAssigned && myClaimCount < maxClaims && React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px', background:chestColor+'22', border:'1px solid '+chestColor+'55', borderRadius:'10px', padding:'5px 12px', cursor:'pointer' },
                                     onClick:()=>{
-                                        const invIdx = (familyData?.treasuryInventory||[]).findIndex(inv=>inv.chestType===msg.chestType&&(inv.assignedTo||[]).includes(currentUID)&&(inv.claimedBy?.[currentUID]||0)<(inv.maxClaimsPerMember||1));
+                                        var invIdx = (familyData?.treasuryInventory||[]).findIndex(inv=>inv.chestType===msg.chestType&&(inv.assignedTo||[]).includes(currentUID)&&(inv.claimedBy?.[currentUID]||0)<(inv.maxClaimsPerMember||1));
                                         if(invIdx>=0) openAssignedChest(invIdx);
                                     }},
                                     React.createElement('span', { style:{ fontSize:'14px' } }, '🎰'),
@@ -609,7 +609,7 @@ var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onS
                 lang: lang,
                 onSendGift: async function(gift, target, qty) {
                     if (target && target.uid) {
-                        const targetDoc = target.uid === currentUID
+                        var targetDoc = target.uid === currentUID
                             ? { uid: target.uid, ...target }
                             : await usersCollection.doc(target.uid).get().then(d => d.exists ? { uid: target.uid, ...d.data() } : target).catch(() => target);
                         await onSendGift(gift, targetDoc, qty || 1, false, familyId);

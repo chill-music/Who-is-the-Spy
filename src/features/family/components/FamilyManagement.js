@@ -18,11 +18,11 @@ var FamilyManagement = ({
     onLeaveFamily,
     onDeleteFamily
 }) => {
-    const myRole = propMyRole || window.FamilyConstants.getFamilyRole(family, currentUID);
-    const canManage = propCanManage || (myRole === 'owner' || myRole === 'admin');
+    var myRole = propMyRole || window.FamilyConstants.getFamilyRole(family, currentUID);
+    var canManage = propCanManage || (myRole === 'owner' || myRole === 'admin');
     
     // Fallback notification if not provided
-    const notify = onNotification || window.showNotification || (() => {});
+    var notify = onNotification || window.showNotification || (() => {});
     const [editName, setEditName] = React.useState(family?.name || '');
     const [editTag, setEditTag] = React.useState(family?.tag || '');
     const [editDesc, setEditDesc] = React.useState(family?.description || '');
@@ -33,7 +33,7 @@ var FamilyManagement = ({
     const [savingTag, setSavingTag] = React.useState(false);
     const [savingAnn, setSavingAnn] = React.useState(false);
     const [showDeleteFamilyConfirm, setShowDeleteFamilyConfirm] = React.useState(false);
-    const photoFileRef = React.useRef(null);
+    var photoFileRef = React.useRef(null);
 
     React.useEffect(() => {
         if (family) {
@@ -45,12 +45,12 @@ var FamilyManagement = ({
         }
     }, [family]);
 
-    const handlePhotoUpload = async (e) => {
-        const file = e.target.files?.[0];
+    var handlePhotoUpload = async (e) => {
+        var file = e.target.files?.[0];
         if (!file || !family?.id || !canManage) return;
         setUploadingPhoto(true);
         try {
-            const base64 = await FamilyService.handleImageUpload(file);
+            var base64 = await FamilyService.handleImageUpload(file);
             await FamilyService.saveInfo({
                 family,
                 updates: { photoURL: base64 },
@@ -63,7 +63,7 @@ var FamilyManagement = ({
         setUploadingPhoto(false);
     };
 
-    const saveInfo = async () => {
+    var saveInfo = async () => {
         if (!family?.id || !canManage || !editName.trim()) return;
         setSavingInfo(true);
         try {
@@ -83,7 +83,7 @@ var FamilyManagement = ({
         setSavingInfo(false);
     };
 
-    const handleSaveTag = async () => {
+    var handleSaveTag = async () => {
         if (!family?.id || !canManage || !editTag.trim()) return;
         if (editTag.length < 3) {
             onNotification(lang === 'ar' ? '❌ الوسم 3 أحرف على الأقل' : '❌ Tag: min 3 chars');
@@ -99,7 +99,7 @@ var FamilyManagement = ({
         setSavingTag(false);
     };
 
-    const saveAnnouncement = async () => {
+    var saveAnnouncement = async () => {
         if (!family?.id || !canManage) return;
         setSavingAnn(true);
         try {
@@ -115,7 +115,7 @@ var FamilyManagement = ({
         setSavingAnn(false);
     };
 
-    const handleJoinRequest = async (targetUID, accept) => {
+    var handleJoinRequest = async (targetUID, accept) => {
         try {
             await FamilyService.handleJoinRequest({ family, targetUID, accept, lang });
             onNotification(accept ? (lang === 'ar' ? '✅ تم قبول العضو' : '✅ Member accepted') : (lang === 'ar' ? '❌ تم رفض الطلب' : '❌ Request rejected'));
@@ -124,7 +124,7 @@ var FamilyManagement = ({
         }
     };
 
-    const handleKickMember = async (targetUID) => {
+    var handleKickMember = async (targetUID) => {
         if (!window.confirm(lang === 'ar' ? 'هل أنت متأكد من طرد هذا العضو؟' : 'Are you sure you want to kick this member?')) return;
         try {
             await FamilyService.kickMember({ family, targetUID, currentUID, lang });
@@ -134,7 +134,7 @@ var FamilyManagement = ({
         }
     };
 
-    const handleDeleteFamily = async () => {
+    var handleDeleteFamily = async () => {
         try {
             await FamilyService.deleteFamily({ family, currentUID });
             onNotification(lang === 'ar' ? '✅ تم حذف العائلة' : '✅ Family deleted');
@@ -144,7 +144,7 @@ var FamilyManagement = ({
         }
     };
 
-    const handleLeaveFamily = async () => {
+    var handleLeaveFamily = async () => {
         if (!window.confirm(lang === 'ar' ? 'هل أنت متأكد من مغادرة العائلة؟' : 'Are you sure you want to leave the family?')) return;
         try {
             await FamilyService.leaveFamily({ family, currentUID, currentUserData: familyMembers.find(m => m.id === currentUID), lang });
@@ -155,9 +155,9 @@ var FamilyManagement = ({
         }
     };
 
-    const requests = family?.joinRequests || [];
-    const fLvl = FamilyService.getFamilyLevelConfig(family.level || 1);
-    const signData = FamilyService.getFamilySignLevelData(family.lastWeekActiveness || 0) || { level: 0, color: '#4b5563', name_ar: 'بدون شارة', name_en: 'No Sign', threshold: 0 };
+    var requests = family?.joinRequests || [];
+    var fLvl = FamilyService.getFamilyLevelConfig(family.level || 1);
+    var signData = FamilyService.getFamilySignLevelData(family.lastWeekActiveness || 0) || { level: 0, color: '#4b5563', name_ar: 'بدون شارة', name_en: 'No Sign', threshold: 0 };
 
     return (
         <div style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -263,11 +263,11 @@ var FamilyManagement = ({
                 {/* 5 sign levels */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
                     {FAMILY_SIGN_LEVELS.map(sl => {
-                        const slImg = FamilyService.getFamilySignImage(sl.level);
-                        const wAct = family.weeklyActiveness || 0;
-                        const isEarned = wAct >= sl.threshold;
-                        const isCurrent = signData && signData.level === sl.level;
-                        const isNext = signData ? sl.level === signData.level + 1 : sl.level === 1;
+                        var slImg = FamilyService.getFamilySignImage(sl.level);
+                        var wAct = family.weeklyActiveness || 0;
+                        var isEarned = wAct >= sl.threshold;
+                        var isCurrent = signData && signData.level === sl.level;
+                        var isNext = signData ? sl.level === signData.level + 1 : sl.level === 1;
                         return (
                             <div key={sl.level} style={{
                                 display: 'flex', alignItems: 'center', gap: '10px',

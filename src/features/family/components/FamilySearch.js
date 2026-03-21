@@ -33,10 +33,10 @@ var FamilySearch = ({
         }
     }, [view]);
 
-    const handleLoadFamilies = async () => {
+    var handleLoadFamilies = async () => {
         setLoadingFamilies(true);
         try {
-            const data = await loadFamilies();
+            var data = await loadFamilies();
             setFamilies(data);
         } catch (e) {
             console.error(e);
@@ -44,17 +44,17 @@ var FamilySearch = ({
         setLoadingFamilies(false);
     };
 
-    const handleSearch = async () => {
+    var handleSearch = async () => {
         if (!searchQuery.trim()) return handleLoadFamilies();
         setLoadingFamilies(true);
         try {
-            const data = await searchFamilyByTag(searchQuery);
+            var data = await searchFamilyByTag(searchQuery);
             setFamilies(data);
         } catch(e) {}
         setLoadingFamilies(false);
     };
 
-    const handleCreate = async () => {
+    var handleCreate = async () => {
         if (!tagName.trim() || creating) return;
         setCreating(true);
         try {
@@ -166,7 +166,7 @@ var FamilySearch = ({
                     ) : (
                         <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
                             {families.map(f => {
-                                const levelData = getFamilyLevelConfig(f.level || 1);
+                                var levelData = getFamilyLevelConfig(f.level || 1);
                                 return (
                                     <div key={f.id} onClick={() => { /* Detail view or join */ }} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'14px',padding:'12px',display:'flex',alignItems:'center',gap:'12px',cursor:'pointer'}}>
                                         <div style={{width:'45px',height:'45px',borderRadius:'12px',background:'linear-gradient(135deg,#1a1a2e,#16213e)',border:'1px solid rgba(0,242,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>
