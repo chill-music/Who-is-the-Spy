@@ -3,9 +3,9 @@ var {
     ACTIVENESS_MILESTONES, 
     Z, 
     PortalModal,
-    FAMILY_COINS_SYMBOL,
-    getFamilyLevelConfig
-} = window.FamilyConstants || window;
+    FAMILY_COINS_SYMBOL
+} = window;
+var { getFamilyLevelConfig } = window.FamilyConstants || window;
 var { 
     familiesCollection, 
     db, 

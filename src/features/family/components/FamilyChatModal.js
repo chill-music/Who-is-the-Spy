@@ -6,7 +6,7 @@ var {
     ACTIVENESS_MILESTONES, 
     PortalModal, 
     fetchMiniProfileData 
-} = window.FamilyConstants || window;
+} = window;
 var { 
     getFamilySignLevelData, 
     getFamilyLevelConfig 
