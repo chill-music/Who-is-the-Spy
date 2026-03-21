@@ -473,4 +473,67 @@ var fetchMiniProfileData = async (uid, myFriendsList = []) => {
     }
 };
 
-// 🔊 AUDIO SYSTEM`
+// 🔊 AUDIO SYSTEM
+
+// ====== FORCE GLOBAL EXPORTS TO PREVENT BABEL SCOPING BUGS ======
+window.Z = Z;
+window.GR = GR;
+window.firebaseConfig = firebaseConfig;
+window.auth = auth;
+window.db = db;
+window.appId = appId;
+window.usersCollection = usersCollection;
+window.guestsCollection = guestsCollection;
+window.reportsCollection = reportsCollection;
+window.chatsCollection = chatsCollection;
+window.roomsCollection = roomsCollection;
+window.historyCollection = historyCollection;
+window.notificationsCollection = notificationsCollection;
+window.giftsLogCollection = giftsLogCollection;
+window.guardLogCollection = guardLogCollection;
+window.momentsCollection = momentsCollection;
+window.vip10RequestsCollection = vip10RequestsCollection;
+window.vip10IdRequestsCollection = vip10IdRequestsCollection;
+window.bffCollection = bffCollection;
+window.botChatsCollection = botChatsCollection;
+window.redPacketsCollection = redPacketsCollection;
+window.publicChatCollection = publicChatCollection;
+window.helpFaqCollection = helpFaqCollection;
+window.feedbackCollection = feedbackCollection;
+window.familiesCollection = familiesCollection;
+window.couplesCollection = couplesCollection;
+window.groupsCollection = groupsCollection;
+window.staffLogCollection = staffLogCollection;
+window.ticketsCollection = ticketsCollection;
+window.RED_PACKETS_CONFIG = RED_PACKETS_CONFIG;
+window.BFF_CONFIG = BFF_CONFIG;
+window.BFF_TOKEN_ITEMS = BFF_TOKEN_ITEMS;
+window.BOT_CHATS_CONFIG = BOT_CHATS_CONFIG;
+window.MAX_BADGES = MAX_BADGES;
+window.ADMIN_UIDS = ADMIN_UIDS;
+window.OWNER_UID = OWNER_UID;
+window.isAdmin = isAdmin;
+window.ROLE_CONFIG = ROLE_CONFIG;
+window.getUserRole = getUserRole;
+window.canManageRoles = canManageRoles;
+window.getAssignableRoles = getAssignableRoles;
+window.isBannedUser = isBannedUser;
+window.getBanExpiry = getBanExpiry;
+window.formatBanExpiry = formatBanExpiry;
+window.FAMILY_COINS_SYMBOL = FAMILY_COINS_SYMBOL;
+window.FAMILY_SIGN_IMAGES = FAMILY_SIGN_IMAGES;
+window.CHEST_CONFIG = CHEST_CONFIG;
+window.GACHA_CONFIG_BASIC = GACHA_CONFIG_BASIC;
+window.GACHA_CONFIG_PREMIUM = GACHA_CONFIG_PREMIUM;
+window.DAILY_TASKS_MILESTONES = DAILY_TASKS_MILESTONES;
+window.GACHA_RARITY_COLORS = GACHA_RARITY_COLORS;
+window.ACTIVENESS_MILESTONES = ACTIVENESS_MILESTONES;
+window.FAMILY_SHOP_ITEMS = FAMILY_SHOP_ITEMS;
+window.ID_ICON_IMAGE_URL = ID_ICON_IMAGE_URL;
+window.VIP_ID_ICONS = VIP_ID_ICONS;
+window.fmtNum = fmtNum;
+window.getFamilySignURL = getFamilySignURL;
+window.getVIPConfig = getVIPConfig;
+window.TS = TS;
+window.fetchMiniProfileData = fetchMiniProfileData;
+window.PortalModal = PortalModal;

@@ -865,7 +865,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     return (
         <>
         <PortalModal>
-            <div className="modal-overlay" onClick={onClose} style={{zIndex: Z.MODAL_HIGH}}>
+            <div className="modal-overlay" onClick={onClose} style={{zIndex: window.Z ? window.Z.MODAL_HIGH : 12000}}>
                 <div style={S.modal} onClick={e => e.stopPropagation()}>
 
                     {/* ── Top Header ── */}
