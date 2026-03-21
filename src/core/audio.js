@@ -13,9 +13,8 @@ const initAudioContext = () => {
     }
 };
 
-const playSound = (type) => {
+export const playSound = (type) => {
     try {
-        // Check if sound is muted
         if (typeof window !== 'undefined' && window.proSpySoundMuted) return;
         if (localStorage.getItem('pro_spy_sound_muted') === 'true') return;
 
@@ -46,16 +45,6 @@ const playSound = (type) => {
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
                 oscillator.start(now);
                 oscillator.stop(now + 0.3);
-                break;
-            case 'gift':
-                oscillator.frequency.setValueAtTime(523, now);
-                oscillator.type = 'sine';
-                oscillator.frequency.linearRampToValueAtTime(784, now + 0.15);
-                oscillator.frequency.linearRampToValueAtTime(1047, now + 0.3);
-                gainNode.gain.setValueAtTime(0.2, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                oscillator.start(now);
-                oscillator.stop(now + 0.4);
                 break;
             case 'notification':
                 oscillator.frequency.setValueAtTime(880, now);
@@ -88,40 +77,11 @@ const playSound = (type) => {
                 oscillator.stop(now + 0.15);
                 break;
         }
-    } catch (e) {
-    }
+    } catch (e) {}
 };
-
-const initAudioOnFirstInteraction = () => {
-    if (!isAudioInitialized) {
-        initAudioContext();
-        playSound('click');
-    }
-};
-
-// Initialize sound mute state from localStorage
-if (typeof window !== 'undefined') {
-    window.proSpySoundMuted = localStorage.getItem('pro_spy_sound_muted') === 'true';
-}
-
-if (typeof window !== 'undefined') {
-    const initEvents = ['click', 'touchstart', 'keydown'];
-    const initHandler = () => {
-        initAudioOnFirstInteraction();
-        initEvents.forEach(event => document.removeEventListener(event, initHandler));
-    };
-    initEvents.forEach(event => document.addEventListener(event, initHandler, { once: true }));
-}
 
 export const playNotificationSound = () => playSound('notification');
-const playRewardSound = () => playSound('reward');
-// playGiftSound removed — was never called anywhere in the project
-
-// LOGIN REWARDS - 30 DAYS
-
-// 🎫 FUN PASS SYSTEM - 50 levels, daily/weekly missions
-
-// 🔧 FUN PASS SEASON CONFIG - بتتجدد كل 3 شهور
-//    عشان تجدد السيزون:
-//    1. غير FUN_PASS_SEASON_ID لرقم جديد (مثلاً: '2', '3', '4')
-//    2. كل المستخدمين هيتصفر تقدمهم تلقائياً في السيزون الجديد
+export const playRewardSound = () => playSound('reward');
+export const playMessageSound = () => playSound('message');
+export const playSuccessSound = () => playSound('success');
+export const playClickSound = () => playSound('click');
