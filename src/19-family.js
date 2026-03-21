@@ -708,7 +708,8 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // TAB: PROFILE (redesigned to match reference image)
     // ─────────────────────────────────────────────
     const renderProfile = () => {
-        if (window.FamilyProfile) return <window.FamilyProfile family={family} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
+        const isReadOnly = !!viewFamilyId && viewFamilyId !== currentUserData?.familyId;
+        if (window.FamilyProfile) return <window.FamilyProfile family={family} familyMembers={familyMembers} currentUID={currentUID} currentUserData={currentUserData} userData={userData} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} isReadOnly={isReadOnly} showDonatePanel={showDonatePanel} setShowDonatePanel={setShowDonatePanel} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
 
@@ -717,7 +718,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ─────────────────────────────────────────────
     const renderChat = () => {
         if (window.FamilyChatModal) {
-            return <window.FamilyChatModal family={family} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} />;
+            return <window.FamilyChatModal family={family} familyData={family} familyId={family?.id} currentUID={currentUID} currentUserData={currentUserData} userData={userData} lang={lang} onNotification={onNotification} onSendGift={onSendGift} onOpenFamily={() => setActiveTab('profile')} S={S} myRole={myRole} show={true} />;
         }
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري تحميل الشات...':'Loading Chat...'}</div>;
     };
@@ -968,7 +969,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                                 <span style={{fontSize:'9px',color:'#a78bfa',fontWeight:600}}>{lang==='ar'?'جاتشه':'Gacha'}</span>
                             </button>
                             {/* Plus - donate shortcut */}
-                            {!isReadOnly && (
+                            {!(!!viewFamilyId && viewFamilyId !== currentUserData?.familyId) && (
                                 <button onClick={()=>setShowDonatePanel(v=>!v)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
                                     <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'rgba(16,185,129,0.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',fontWeight:900,color:'#10b981'}}>+</div>
                                     <span style={{fontSize:'9px',color:'#10b981',fontWeight:600}}>{lang==='ar'?'تبرع':'Donate'}</span>
@@ -979,6 +980,19 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                 </div>
             </div>
         </PortalModal>
+
+        {/* ── GACHA MODAL ── */}
+        {showGachaModal && window.FamilyGacha && (
+            <window.FamilyGacha 
+                family={family} 
+                currentUID={currentUID} 
+                currentUserData={currentUserData}
+                lang={lang} 
+                onNotification={onNotification} 
+                onClose={() => setShowGachaModal(false)}
+                S={S}
+            />
+        )}
         </>
     );
 };
