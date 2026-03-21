@@ -1,5 +1,5 @@
-const FamilyRanking = ({ lang, currentFamilyId, onOpenFamily, S }) => {
-    const [rankings, setRankings] = React.useState([]);
+var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
+    const [rankings, setRankRankings] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {

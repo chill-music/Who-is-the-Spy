@@ -2,7 +2,7 @@
  * FamilyShop Component
  * Displays the family shop with items purchasable via Family Coins.
  */
-const FamilyShop = ({ 
+var FamilyShop = ({ 
     family, 
     currentUID, 
     lang, 

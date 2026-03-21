@@ -1,13 +1,12 @@
 /**
  * FamilyProfile.js - Component for displaying the family's profile/home tab.
  */
-const FamilyProfile = ({
+var FamilyProfile = ({
     family,
-    familyMembers,
     currentUID,
     currentUserData,
     lang,
-    onTabChange
+    onUpdateInfo
 }) => {
     if (!family) return null;
 

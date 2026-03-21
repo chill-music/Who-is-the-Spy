@@ -1,9 +1,9 @@
-const { familiesCollection } = window;
-const { getFamilyLevelConfig, getFamilySignLevelData } = window.FamilyConstants || {};
-const { fmtFamilyNum } = window;
-const FamilySignBadge = window.FamilySignBadge;
+var { familiesCollection } = window;
+var { getFamilyLevelConfig, getFamilySignLevelData } = window.FamilyConstants || {};
+var { fmtFamilyNum } = window;
+var FamilySignBadge = window.FamilySignBadge;
 
-const FamilyRankingInline = ({ lang, currentFamilyId, onOpenFamily }) => {
+var FamilyRankingInline = ({ currentUID, lang, currentFamilyId, onOpenFamily }) => {
     const [rankings, setRankings] = useState([]);
     const [loading, setLoading] = useState(true);
 

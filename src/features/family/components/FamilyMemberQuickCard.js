@@ -1,5 +1,4 @@
-
-const FamilyMemberQuickCard = ({ member, currentUID, lang, onSendGift, onClose }) => {
+var FamilyMemberQuickCard = ({ member, role, isMe, lang, onOpenProfile }) => {
     if (!member) return null;
     const isSelf = member.uid === currentUID;
     return (

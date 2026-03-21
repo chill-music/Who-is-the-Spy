@@ -1,4 +1,4 @@
-const { 
+var { 
     CHEST_CONFIG, 
     ACTIVENESS_MILESTONES, 
     Z, 
@@ -6,14 +6,14 @@ const {
     FAMILY_COINS_SYMBOL,
     getFamilyLevelConfig
 } = window.FamilyConstants || window;
-const { 
+var { 
     familiesCollection, 
     db, 
     firebase 
 } = window;
 var FamilyService = window.FamilyService;
-const fmtFamilyNum = window.fmtFamilyNum || ((n) => n?.toLocaleString() || '0');
-const S = window.FamilyShared?.S || {};
+var fmtFamilyNum = window.fmtFamilyNum || ((n) => n?.toLocaleString() || '0');
+var S = window.FamilyShared?.S || {};
 
 /**
  * FamilyTreasury - Component for managing family funds, chests, and upgrades.

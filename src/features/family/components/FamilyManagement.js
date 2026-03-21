@@ -1,9 +1,9 @@
 var FamilyService = window.FamilyService;
 var FamilyConstants = window.FamilyConstants;
-const { FAMILY_ROLE_CONFIG, FAMILY_SIGN_LEVELS } = FamilyConstants;
-const { useState, useEffect, useRef } = React;
+var { FAMILY_ROLE_CONFIG, FAMILY_SIGN_LEVELS } = FamilyConstants;
+var { useState, useEffect, useRef } = React;
 
-const FamilyManagement = ({
+var FamilyManagement = ({
     family,
     currentUID,
     lang,

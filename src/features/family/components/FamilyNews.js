@@ -3,7 +3,7 @@
  */
 const { fmtFamilyTime, fmtFamilyNum } = window;
 
-const FamilyNews = ({ newsLog, lang, S }) => {
+var FamilyNews = ({ family, currentUserData, lang }) => {
     const newsTypeIcon = { 
         join: '🎉', 
         leave: '👋', 

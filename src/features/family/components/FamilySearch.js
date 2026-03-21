@@ -7,7 +7,7 @@ const {
 const { FAMILY_COINS_SYMBOL } = window.FamilyConstants;
 const { useState, useEffect } = React;
 
-const FamilySearch = ({ 
+var FamilySearch = ({ 
     view, // 'home', 'create', 'join'
     setView, 
     currentUID, 

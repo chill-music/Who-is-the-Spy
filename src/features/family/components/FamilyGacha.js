@@ -1,23 +1,15 @@
-const { 
+var { 
     GACHA_CONFIG_BASIC, 
     GACHA_CONFIG_PREMIUM, 
 } = window.FamilyConstants;
-const { Z, PortalModal } = window;
-const { fmtFamilyNum } = window;
+var { Z, PortalModal } = window;
+var { fmtFamilyNum } = window;
 var FamilyService = window.FamilyService;
 
 /**
  * FamilyGacha - Modal component for family gacha spins.
  */
-var FamilyGacha = ({ 
-    show, 
-    onClose, 
-    family, 
-    currentUID, 
-    currentUserData, 
-    lang, 
-    onNotification 
-}) => {
+var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, show, onClose }) => {
     const [spinning, setSpinning] = React.useState(false);
     const [result, setResult] = React.useState(null);
     const [spinMode, setSpinMode] = React.useState('free'); // 'free' or 'paid'

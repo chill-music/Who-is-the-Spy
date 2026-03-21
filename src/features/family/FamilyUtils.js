@@ -1,4 +1,4 @@
-const { renderMsgText } = {
+var { renderMsgText } = {
     renderMsgText: (text, familyMembers, currentUserData, currentUID, openMiniProfile) => {
         if (!text) return '';
         

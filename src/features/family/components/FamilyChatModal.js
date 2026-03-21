@@ -35,7 +35,7 @@ var { SendGiftModal } = window;
 /**
  * FamilyChatModal - Extracted component for family chat functionality.
  */
-var FamilyChatModal = ({ show, onClose, familyId, familyData, currentUID, currentUserData, lang, onOpenFamily, onSendGift, userData, onNotification, onOpenProfile }) => {
+var FamilyChatModal = ({ isOpen, onClose, currentUID, currentUserData, lang, onSendGift, userData, onNotification, onOpenProfile }) => {
     const [messages, setMessages] = React.useState([]);
     const [chatInput, setChatInput] = React.useState('');
     const [sendingMsg, setSendingMsg] = React.useState(false);

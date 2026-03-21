@@ -1,9 +1,9 @@
 /**
  * FamilyShared.js - Shared UI components for the Family System.
  */
-const { FAMILY_ROLE_CONFIG, FAMILY_SIGN_LEVELS } = window.FamilyConstants || {};
+var { FAMILY_ROLE_CONFIG, FAMILY_SIGN_LEVELS } = window.FamilyConstants || {};
 
-const FamilyRoleBadge = ({ role, lang, small = false }) => {
+var FamilyRoleBadge = ({ role, lang, small = false }) => {
     const cfg = FAMILY_ROLE_CONFIG[role] || FAMILY_ROLE_CONFIG.member;
     return (
         <span style={{
@@ -19,7 +19,7 @@ const FamilyRoleBadge = ({ role, lang, small = false }) => {
     );
 };
 
-const FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = null, signLevel = 1 }) => {
+var FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = null, signLevel = 1 }) => {
     const displayTag = tag || 'FAM';
     const signLevelData = FAMILY_SIGN_LEVELS.find(s => s.level === signLevel);
     const hasGlow = signLevelData?.hasGlow || signLevel >= 4;

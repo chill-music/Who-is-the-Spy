@@ -1,6 +1,6 @@
-const { db, auth, usersCollection, familiesCollection, redPacketsCollection, newsLogCollection, firebase } = window;
-const { TS } = window;
-const { 
+var { db, auth, usersCollection, familiesCollection, redPacketsCollection, newsLogCollection, firebase } = window;
+var { TS } = window;
+var { 
     FAMILY_CREATE_COST,
     FAMILY_LEVEL_CONFIG, 
     FAMILY_SIGN_LEVELS,
@@ -16,7 +16,7 @@ const {
 /**
  * useFamilyData - React hook for real-time family data in the FamilyModal.
  */
-const useFamilyData = () => {
+var useFamilyData = () => {
     const [currentUID, setCurrentUID] = React.useState(auth.currentUser?.uid || null);
     const [currentUserData, setCurrentUserData] = React.useState(null);
     const [family, setFamily] = React.useState(null);
@@ -61,25 +61,16 @@ const useFamilyData = () => {
                 setLoadingFamily(false);
             });
 
-            // 3. Listen to members
+            // 3. Listen to members (Commented out if using field-based membersData or if permissions are missing)
+            /*
             const unsubMbrs = familiesCollection.doc(familyId).collection('membersData').onSnapshot(mSnap => {
-                // Actually, members might be in the main users collection
-                // or a subcollection. Based on createFamily, they are in families subcollection?
-                // Let's check createFamily line 420.
-                // It doesn't show a subcollection.
-                // But FamilyService.js handleJoinRequest (line 651) updates families doc.
-                // Wait, membersData is used in line 266: (family.membersData || [])
+                // ...
             }, err => console.error("Members listener error:", err));
+            */
 
-            // Actually, many systems store membersData as a field or subcollection.
-            // In this specific project, it seems family.members is an array of UIDs.
-            // And family.membersData might be populated by a cloud function or listener.
-            
-            // For now, let's assume familyMembers comes from family.membersData field
-            // if it exists, or we fetch them.
-            
             return () => {
                 unsubFam();
+                // if (typeof unsubMbrs === 'function') unsubMbrs();
             };
         }, err => {
             console.error("User listener error:", err);
@@ -105,40 +96,40 @@ const useFamilyData = () => {
 // 💡 LOGIC HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-const getFamilyRole = (family, uid) => {
+var getFamilyRole = (family, uid) => {
     if (!family || !uid) return 'member';
     if (family.createdBy === uid) return 'owner';
-    const roles = family.memberRoles || {};
+    var roles = family.memberRoles || {};
     return roles[uid] || 'member';
 };
 
-const canManageFamily = (family, uid) => {
-    const role = getFamilyRole(family, uid);
+var canManageFamily = (family, uid) => {
+    var role = getFamilyRole(family, uid);
     return role === 'owner' || role === 'admin';
 };
 
-const getFamilyLevelConfig = (level = 1) => {
+var getFamilyLevelConfig = (level = 1) => {
     return FAMILY_LEVEL_CONFIG.find(c => c.level === level) || FAMILY_LEVEL_CONFIG[0];
 };
 
-const getFamilyLevelProgress = (activeness = 0, currentLevel = 1) => {
-    const cur = getFamilyLevelConfig(currentLevel);
-    const next = FAMILY_LEVEL_CONFIG.find(c => c.level === currentLevel + 1);
+var getFamilyLevelProgress = (activeness = 0, currentLevel = 1) => {
+    var cur = getFamilyLevelConfig(currentLevel);
+    var next = FAMILY_LEVEL_CONFIG.find(c => c.level === currentLevel + 1);
     if (!next) return 100;
-    const progress = Math.max(0, activeness - cur.activeness);
-    const range = next.activeness - cur.activeness;
+    var progress = Math.max(0, activeness - cur.activeness);
+    var range = next.activeness - cur.activeness;
     return Math.max(0, Math.min(100, Math.round((progress / range) * 100)));
 };
 
-const getFamilySignImage = (level) => {
+var getFamilySignImage = (level) => {
     if (typeof FAMILY_SIGN_IMAGES === 'undefined') return null;
-    const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === level);
+    var cfg = FAMILY_SIGN_IMAGES.find(s => s.level === level);
     return cfg?.imageURL || null;
 };
 
-const getFamilySignLevelData = (weeklyActiveness = 0) => {
+var getFamilySignLevelData = (weeklyActiveness = 0) => {
     let cfg = null;
-    for (let i = FAMILY_SIGN_LEVELS.length - 1; i >= 0; i--) {
+    for (var i = FAMILY_SIGN_LEVELS.length - 1; i >= 0; i--) {
         if (weeklyActiveness >= FAMILY_SIGN_LEVELS[i].threshold) { 
             cfg = FAMILY_SIGN_LEVELS[i]; 
             break; 
@@ -148,13 +139,13 @@ const getFamilySignLevelData = (weeklyActiveness = 0) => {
     return { ...cfg, imageURL: getFamilySignImage(cfg.level) };
 };
 
-const getFamilySignProgress = (weeklyActiveness = 0) => {
-    const cur = getFamilySignLevelData(weeklyActiveness);
+var getFamilySignProgress = (weeklyActiveness = 0) => {
+    var cur = getFamilySignLevelData(weeklyActiveness);
     if (!cur) {
-        const first = FAMILY_SIGN_LEVELS[0];
+        var first = FAMILY_SIGN_LEVELS[0];
         return Math.min(99, Math.round((weeklyActiveness / first.threshold) * 100));
     }
-    const next = FAMILY_SIGN_LEVELS.find(s => s.level === cur.level + 1);
+    var next = FAMILY_SIGN_LEVELS.find(s => s.level === cur.level + 1);
     if (!next) return 100;
     return Math.min(100, Math.round(((weeklyActiveness - cur.threshold) / (next.threshold - cur.threshold)) * 100));
 };
@@ -166,7 +157,7 @@ const getFamilySignProgress = (weeklyActiveness = 0) => {
 /**
  * Claims a share from an assigned chest.
  */
-const openAssignedChest = async ({ family, currentUID, currentUserData, inventoryIdx, lang, onNotification }) => {
+var openAssignedChest = async ({ family, currentUID, currentUserData, inventoryIdx, lang, onNotification }) => {
     if (!family?.id || !currentUID) return null;
     const inv = family.treasuryInventory || [];
     const chest = inv[inventoryIdx];
@@ -323,7 +314,7 @@ const openAssignedChest = async ({ family, currentUID, currentUserData, inventor
 /**
  * Assigns a chest from the treasury to specific members.
  */
-const assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, lang }) => {
+var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, lang }) => {
     if (!family?.id || !canManageFamily(family, currentUID)) throw new Error('Unauthorized');
     const inv = [...(family.treasuryInventory || [])];
     const chest = inv[chestIdx];
@@ -365,7 +356,7 @@ const assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID
 // 🎰 GACHA SYSTEM
 // ─────────────────────────────────────────────────────────────────────────────
 
-const handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free', lang, onNotification }) => {
+var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free', lang, onNotification }) => {
     if (!family?.id || !currentUID) throw new Error('Invalid context');
     
     const currentGachaConfig = (family?.level >= 5) ? GACHA_CONFIG_PREMIUM : GACHA_CONFIG_BASIC;
@@ -462,7 +453,7 @@ const handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'fr
 /**
  * Claims a milestone chest from activeness.
  */
-const handleClaimChest = async ({ family, chestIdx, currentUID, lang, onNotification }) => {
+var handleClaimChest = async ({ family, chestIdx, currentUID, lang, onNotification }) => {
     if (!family?.id || !canManageFamily(family, currentUID)) return null;
     const ms = ACTIVENESS_MILESTONES[chestIdx];
     if (!ms || (family.activeness || 0) < ms.threshold) return null;
@@ -489,7 +480,7 @@ const handleClaimChest = async ({ family, chestIdx, currentUID, lang, onNotifica
 /**
  * Creates a new family.
  */
-const createFamily = async ({ tribeName, tribeTag, tribeDesc, tribeEmblem, currentUID, currentUserData, lang }) => {
+var createFamily = async ({ tribeName, tribeTag, tribeDesc, tribeEmblem, currentUID, currentUserData, lang }) => {
     if (!tribeName.trim() || !tribeTag.trim() || !currentUID) return null;
     const cleanTag = tribeTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
     const cleanName = tribeName.trim().slice(0, 10);
@@ -532,7 +523,7 @@ const createFamily = async ({ tribeName, tribeTag, tribeDesc, tribeEmblem, curre
 /**
  * Join an existing family.
  */
-const joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
+var joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
     if (!currentUID || !familyId) return null;
     const snap = await familiesCollection.doc(familyId).get();
     if (!snap.exists) throw new Error('Family not found');
@@ -571,7 +562,7 @@ const joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
 /**
  * Leave the current family.
  */
-const leaveFamily = async ({ family, currentUID, currentUserData, lang }) => {
+var leaveFamily = async ({ family, currentUID, currentUserData, lang }) => {
     if (!family?.id || !currentUID) return;
     const role = getFamilyRole(family, currentUID);
     if (role === 'owner' && (family.members || []).length > 1) throw new Error('Assign another leader first');
@@ -598,7 +589,7 @@ const leaveFamily = async ({ family, currentUID, currentUserData, lang }) => {
 /**
  * Atomic deletion of family (Owner only).
  */
-const deleteFamily = async ({ family, currentUID }) => {
+var deleteFamily = async ({ family, currentUID }) => {
     if (!family?.id || getFamilyRole(family, currentUID) !== 'owner') throw new Error('Unauthorized');
     const memberIds = family.members || [];
     const batch = db.batch();
@@ -615,7 +606,7 @@ const deleteFamily = async ({ family, currentUID }) => {
 /**
  * Logic for member donations.
  */
-const handleDonate = async ({ family, amount, currentUID, currentUserData, lang }) => {
+var handleDonate = async ({ family, amount, currentUID, currentUserData, lang }) => {
     if (!amount || amount <= 0 || !family?.id) return;
     const don = family.memberDonations?.[currentUID] || { weekly:0, total:0, weeklyIntel:0, totalIntel:0 };
     const ft3Key = `ft3_${currentUID}`;
@@ -653,7 +644,7 @@ const handleDonate = async ({ family, amount, currentUID, currentUserData, lang 
 // 📰 NEWS & SYSTEM MESSAGES
 // ─────────────────────────────────────────────────────────────────────────────
 
-const postNews = async (familyId, type, text, amount = 0) => {
+var postNews = async (familyId, type, text, amount = 0) => {
     if (!familyId) return;
     try {
         await newsLogCollection.add({
@@ -664,7 +655,7 @@ const postNews = async (familyId, type, text, amount = 0) => {
     }
 };
 
-const postSystemMessage = async (familyId, text) => {
+var postSystemMessage = async (familyId, text) => {
     if (!familyId) return;
     try {
         await familiesCollection.doc(familyId).collection('messages').add({
@@ -679,7 +670,7 @@ const postSystemMessage = async (familyId, text) => {
 /**
  * Kicks a member from the family.
  */
-const kickMember = async ({ family, targetUID, currentUID, lang }) => {
+var kickMember = async ({ family, targetUID, currentUID, lang }) => {
     if (!family?.id || targetUID === family.createdBy) return;
     
     // Authorization check
@@ -707,7 +698,7 @@ const kickMember = async ({ family, targetUID, currentUID, lang }) => {
 /**
  * Sets a member's role (Manager only).
  */
-const setMemberRole = async ({ family, targetUID, newRole, currentUID, lang }) => {
+var setMemberRole = async ({ family, targetUID, newRole, currentUID, lang }) => {
     if (!family?.id || targetUID === family.createdBy) return;
     const myRole = getFamilyRole(family, currentUID);
     
@@ -723,7 +714,7 @@ const setMemberRole = async ({ family, targetUID, newRole, currentUID, lang }) =
 /**
  * Handles join requests (Accept/Reject).
  */
-const handleJoinRequest = async ({ family, targetUID, accept, lang }) => {
+var handleJoinRequest = async ({ family, targetUID, accept, lang }) => {
     if (!family?.id) return;
     const updates = { joinRequests: firebase.firestore.FieldValue.arrayRemove(targetUID) };
     
@@ -752,7 +743,7 @@ const handleJoinRequest = async ({ family, targetUID, accept, lang }) => {
 /**
  * Updates family tag (Leader only).
  */
-const saveTag = async ({ family, newTag, currentUID }) => {
+var saveTag = async ({ family, newTag, currentUID }) => {
     if (!family?.id || !canManageFamily(family, currentUID)) return;
     const clean = newTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
     if (clean.length < 3) throw new Error('Tag too short');
@@ -774,7 +765,7 @@ const saveTag = async ({ family, newTag, currentUID }) => {
 /**
  * Updates general family info (Description, Announcement, Emblem, Photo).
  */
-const saveInfo = async ({ family, updates, currentUID }) => {
+var saveInfo = async ({ family, updates, currentUID }) => {
     if (!family?.id || !canManageFamily(family, currentUID)) return;
     await familiesCollection.doc(family.id).update({
         ...updates,
@@ -785,7 +776,7 @@ const saveInfo = async ({ family, updates, currentUID }) => {
 /**
  * Loads family list for discovery.
  */
-const loadFamilies = async (limit = 30) => {
+var loadFamilies = async (limit = 30) => {
     const snap = await familiesCollection.orderBy('activeness', 'desc').limit(limit).get();
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };
@@ -793,7 +784,7 @@ const loadFamilies = async (limit = 30) => {
 /**
  * Searches for a family by tag.
  */
-const searchFamilyByTag = async (tag) => {
+var searchFamilyByTag = async (tag) => {
     const clean = tag.trim().toUpperCase();
     const snap = await familiesCollection.where('tag', '==', clean).limit(1).get();
     if (snap.empty) return null;

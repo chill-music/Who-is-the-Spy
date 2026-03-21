@@ -2,14 +2,14 @@
  * FamilyTasks.js - Component for family daily and weekly tasks.
  */
 
-const { 
+var { 
     FAMILY_TASKS_CONFIG, 
     DAILY_TASKS_MILESTONES 
 } = window.FamilyConstants;
 var FamilyService = window.FamilyService;
-const { useState, useEffect } = React;
+var { useState, useEffect } = React;
 
-const FamilyTasks = ({ 
+var FamilyTasks = ({ 
     family, 
     currentUserData, 
     currentUID, 
