@@ -388,7 +388,7 @@ var FamilyManagement = ({
                                     {m.photoURL ? <img src={m.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>😎</span>}
                                 </div>
                                 <div style={{ flex: 1, fontSize: '12px', fontWeight: 600, color: '#d1d5db' }}>{m.displayName}</div>
-                                <window.FamilyShared.FamilyRoleBadge role={FamilyService.getFamilyRole(family, m.id)} lang={lang} small />
+                                {window.FamilyRoleBadge ? <window.FamilyRoleBadge role={FamilyService.getFamilyRole(family, m.id)} lang={lang} small /> : <span style={{fontSize:'10px', color:'#9ca3af'}}>{FamilyService.getFamilyRole(family, m.id)}</span>}
                                 <button onClick={() => handleKickMember(m.id)} style={{ ...S.btn, padding: '4px 10px', fontSize: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}>
                                     {lang === 'ar' ? 'طرد' : 'Kick'}
                                 </button>

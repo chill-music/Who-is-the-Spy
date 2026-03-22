@@ -679,9 +679,9 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     };
 
     // هل المستخدم بيشوف قبيلة من الخارج (مش عضو فيها)؟
-    const isExternalView = !!(viewFamilyId && (!currentUserData?.familyId || currentUserData?.familyId !== viewFamilyId));
     const isMemberOfThisFamily = family ? (family.members || []).includes(currentUID) : false;
-    const isReadOnly = isExternalView && !isMemberOfThisFamily;
+    const isExternalView = !!(viewFamilyId && (!currentUserData?.familyId || currentUserData?.familyId !== viewFamilyId) && !isMemberOfThisFamily);
+    const isReadOnly = !isMemberOfThisFamily;
 
     const TABS = isReadOnly ? [
         { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
@@ -952,11 +952,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                                 <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'rgba(107,114,128,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>💬</div>
                                 <span style={{fontSize:'9px',color:'#6b7280',fontWeight:600}}>{lang==='ar'?'شات':'Chat'}</span>
                             </button>
-                            {/* Room (go to family chat full modal) */}
-                            <button onClick={()=> onOpenChat ? onOpenChat() : setShowChatModal(true)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
-                                <div style={{width:'50px',height:'50px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(0,242,255,0.15),rgba(112,0,255,0.15))',border:'2px solid rgba(0,242,255,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>🏠</div>
-                                <span style={{fontSize:'9px',color:'#00f2ff',fontWeight:800}}>{lang==='ar'?'الغرفة':'Room'}</span>
-                            </button>
+                            {/* Room button removed as requested */}
                             {/* Gacha */}
                             <button onClick={()=>setShowGachaModal(true)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'4px 12px'}}>
                                 <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'rgba(167,139,250,0.15)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>🎰</div>
@@ -978,6 +974,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         {/* ── GACHA MODAL ── */}
         {showGachaModal && window.FamilyGacha && (
             <window.FamilyGacha 
+                show={true}
                 family={family} 
                 currentUID={currentUID} 
                 currentUserData={currentUserData}

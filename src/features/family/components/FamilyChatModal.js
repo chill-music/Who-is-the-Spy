@@ -532,7 +532,7 @@ var FamilyChatModal = (props) => {
                         if (e.key === 'Enter' && !e.shiftKey && !showMentionList) { e.preventDefault(); sendMessage(chatInput); }
                     },
                     maxLength: 400,
-                    style: { flex:1, padding:'9px 12px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'13px', outline:'none' },
+                    style: { flex:1, padding:'9px 12px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'13px', outline:'none', minWidth:0, width:'100%' },
                     placeholder: lang==='ar'?'اكتب رسالة... أو @ للمنشن':'Type a message... or @ to mention'
                 }),
                 React.createElement('button', {

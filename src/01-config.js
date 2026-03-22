@@ -1,4 +1,4 @@
-// ==========================================
+﻿// ==========================================
 
 var { useState, useEffect, useRef, useCallback, useMemo } = React;
 // 🎯 Z-INDEX CONSTANTS - Layer Management
@@ -339,18 +339,38 @@ var FAMILY_SIGN_IMAGES = [
     { level: 5, threshold: 300000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign5.png' }, // ← ضع رابط صورة المستوى 5 هنا
 ];
 
-// Family Shop Items — purchasable ONLY with Family Coins
+// Family Shop Items -- purchasable ONLY with Family Coins (medal)
+// IDs must match real item IDs in SHOP_ITEMS (04-data-game.js)
+// types: badge | title | frame | profileEffect  |  durationDays: null = permanent, N = expires in N days
 var FAMILY_SHOP_ITEMS = [
-    { id:'fs1', emoji:'🎖️', name_en:'Warrior Badge',   name_ar:'شارة المحارب',    cost:30,  type:'badge',  rarity:'rare',       desc_en:'Exclusive family warrior badge', desc_ar:'شارة محارب حصرية للعائلة' },
-    { id:'fs2', emoji:'🛡️', name_en:'Shield Badge',    name_ar:'شارة الدرع',      cost:50,  type:'badge',  rarity:'rare',       desc_en:'Honor shield badge',             desc_ar:'شارة درع الشرف' },
-    { id:'fs3', emoji:'👑', name_en:'Crown Badge',     name_ar:'شارة التاج',      cost:100, type:'badge',  rarity:'epic',       desc_en:'Royal crown clan badge',         desc_ar:'شارة تاج ملكي' },
-    { id:'fs4', emoji:'🔥', name_en:'Flame Badge',     name_ar:'شارة اللهب',      cost:40,  type:'badge',  rarity:'rare',       desc_en:'Blazing fire badge',             desc_ar:'شارة اللهب المشتعل' },
-    { id:'fs5', emoji:'⚡', name_en:'Thunder Badge',   name_ar:'شارة الرعد',      cost:40,  type:'badge',  rarity:'rare',       desc_en:'Lightning thunder badge',        desc_ar:'شارة صاعقة الرعد' },
-    { id:'fs6', emoji:'🌟', name_en:'Star Badge',      name_ar:'شارة النجمة',     cost:75,  type:'badge',  rarity:'epic',       desc_en:'Shining star clan badge',        desc_ar:'شارة نجمة عائلة مضيئة' },
-    { id:'fs7', emoji:'💎', name_en:'Diamond Badge',   name_ar:'شارة الألماس',    cost:150, type:'badge',  rarity:'legendary',  desc_en:'Legendary diamond badge',        desc_ar:'شارة ألماس أسطورية' },
-    { id:'fs8', emoji:'🏆', name_en:'Trophy Badge',    name_ar:'شارة الكأس',      cost:200, type:'badge',  rarity:'legendary',  desc_en:'Champion trophy badge',          desc_ar:'شارة كأس البطولة' },
-    { id:'fs9', emoji:'🐉', name_en:'Dragon Title',    name_ar:'لقب التنين',       cost:300, type:'title',  rarity:'legendary',  desc_en:'Exclusive dragon clan title',    desc_ar:'لقب التنين الحصري للعائلة' },
-    { id:'fs10', emoji:'🦁', name_en:'Lion Title',     name_ar:'لقب الأسد',        cost:250, type:'title',  rarity:'epic',       desc_en:'Pride of the clan lion title',   desc_ar:'لقب أسد فخر العائلة' },
+    // -- Badges
+    { id:'badge_leaf',    emoji:'🌿', name_en:'Leaf Badge',    name_ar:'شارة الورقة',   cost:20,  type:'badge',         rarity:'uncommon',  durationDays:null, desc_en:'Fresh family badge',         desc_ar:'شارة عائلة منعشة' },
+    { id:'badge_fire',    emoji:'🔥', name_en:'Fire Badge',    name_ar:'شارة النار',    cost:60,  type:'badge',         rarity:'rare',      durationDays:null, desc_en:'Blazing family badge',       desc_ar:'شارة اللهب الحصرية' },
+    { id:'badge_ice',     emoji:'❄️', name_en:'Ice Badge',     name_ar:'شارة الجليد',   cost:60,  type:'badge',         rarity:'rare',      durationDays:null, desc_en:'Cool ice badge',             desc_ar:'شارة الجليد الرائعة' },
+    { id:'badge_star',    emoji:'🌟', name_en:'Star Badge',    name_ar:'شارة النجمة',   cost:100, type:'badge',         rarity:'epic',      durationDays:null, desc_en:'Shining star badge',         desc_ar:'شارة نجمة مضيئة' },
+    { id:'badge_vip',     emoji:'⭐', name_en:'VIP Badge',     name_ar:'شارة VIP',      cost:150, type:'badge',         rarity:'epic',      durationDays:null, desc_en:'Exclusive VIP badge',        desc_ar:'شارة VIP حصرية' },
+    { id:'badge_diamond', emoji:'💎', name_en:'Diamond Badge', name_ar:'شارة الألماس',  cost:200, type:'badge',         rarity:'legendary', durationDays:null, desc_en:'Legendary diamond badge',    desc_ar:'شارة ألماس أسطورية' },
+    { id:'badge_pro',     emoji:'🏆', name_en:'Pro Badge',     name_ar:'شارة المحترف',  cost:250, type:'badge',         rarity:'legendary', durationDays:null, desc_en:'Champion badge',             desc_ar:'شارة البطولة' },
+    { id:'badge_legend',  emoji:'👑', name_en:'Legend Badge',  name_ar:'شارة الأسطورة', cost:400, type:'badge',         rarity:'legendary', durationDays:null, desc_en:'Legendary clan badge',       desc_ar:'شارة الأسطورة الحصرية' },
+    // -- Titles
+    { id:'title_rookie',  emoji:'🌱', name_en:'Rookie',        name_ar:'مبتدئ',         cost:25,  type:'title',         rarity:'uncommon',  durationDays:null, desc_en:'Family rookie title',        desc_ar:'لقب المبتدئ في العائلة' },
+    { id:'title_hunter',  emoji:'🎯', name_en:'Hunter',        name_ar:'صياد',          cost:80,  type:'title',         rarity:'rare',      durationDays:null, desc_en:'Clan hunter title',          desc_ar:'لقب الصياد للعائلة' },
+    { id:'title_spy',     emoji:'🕵️', name_en:'Mr. Spy',      name_ar:'سيد جاسوس',    cost:150, type:'title',         rarity:'epic',      durationDays:null, desc_en:'Spy clan title',             desc_ar:'لقب الجاسوس للعائلة' },
+    { id:'title_pro',     emoji:'⭐', name_en:'Pro Player',    name_ar:'محترف',          cost:200, type:'title',         rarity:'legendary', durationDays:null, desc_en:'Pro player clan title',      desc_ar:'لقب المحترف للعائلة' },
+    { id:'title_legend',  emoji:'👑', name_en:'Legend',        name_ar:'أسطورة',         cost:350, type:'title',         rarity:'legendary', durationDays:null, desc_en:'Legendary clan title',       desc_ar:'لقب الأسطورة الحصري' },
+    // -- Frames
+    { id:'frame_mint',    emoji:'🪟', name_en:'Mint Frame',    name_ar:'إطار نعناعي',   cost:50,  type:'frame',         rarity:'uncommon',  durationDays:null, desc_en:'Refreshing mint frame',      desc_ar:'إطار نعناعي منعش' },
+    { id:'frame_ice',     emoji:'🧊', name_en:'Ice Frame',     name_ar:'إطار الجليد',   cost:120, type:'frame',         rarity:'rare',      durationDays:null, desc_en:'Cool ice frame',             desc_ar:'إطار الجليد البارد' },
+    { id:'frame_fire',    emoji:'🔥', name_en:'Fire Frame',    name_ar:'إطار نار',      cost:200, type:'frame',         rarity:'epic',      durationDays:null, desc_en:'Blazing fire frame',         desc_ar:'إطار النار المشتعل' },
+    { id:'frame_gold',    emoji:'🥇', name_en:'Gold Frame',    name_ar:'إطار ذهبي',     cost:300, type:'frame',         rarity:'legendary', durationDays:null, desc_en:'Shining gold frame',         desc_ar:'إطار ذهبي لامع' },
+    // -- Profile Effects (7 days)
+    { id:'effect_sakura', emoji:'🌸', name_en:'Sakura 7d',     name_ar:'زهور 7 أيام',       cost:80,  type:'profileEffect', rarity:'rare',      durationDays:7,    desc_en:'Sakura particles (7 days)',  desc_ar:'تأثير كرز (7 أيام)' },
+    { id:'effect_hearts', emoji:'💖', name_en:'Hearts 7d',     name_ar:'قلوب 7 أيام',        cost:80,  type:'profileEffect', rarity:'rare',      durationDays:7,    desc_en:'Heart shower (7 days)',      desc_ar:'مطر قلوب (7 أيام)' },
+    { id:'effect_stars',  emoji:'⭐', name_en:'Stars 7d',      name_ar:'نجوم 7 أيام',        cost:80,  type:'profileEffect', rarity:'rare',      durationDays:7,    desc_en:'Star burst (7 days)',        desc_ar:'انفجار نجوم (7 أيام)' },
+    { id:'effect_fire',   emoji:'🔥', name_en:'Fire 7d',       name_ar:'نار 7 أيام',          cost:80,  type:'profileEffect', rarity:'rare',      durationDays:7,    desc_en:'Fire storm (7 days)',        desc_ar:'عاصفة نارية (7 أيام)' },
+    { id:'effect_crown',  emoji:'👑', name_en:'Crown 7d',      name_ar:'تاج 7 أيام',           cost:120, type:'profileEffect', rarity:'epic',      durationDays:7,    desc_en:'Royal crown (7 days)',       desc_ar:'تاج ملكي (7 أيام)' },
+    { id:'effect_money',  emoji:'💰', name_en:'Money Rain 7d', name_ar:'مطر مال 7 أيام',   cost:120, type:'profileEffect', rarity:'epic',      durationDays:7,    desc_en:'Money rain (7 days)',        desc_ar:'مطر أموال (7 أيام)' },
+    { id:'effect_galaxy', emoji:'🌌', name_en:'Galaxy 7d',     name_ar:'مجرة 7 أيام',         cost:180, type:'profileEffect', rarity:'legendary', durationDays:7,    desc_en:'Galaxy effect (7 days)',     desc_ar:'تأثير مجرة (7 أيام)' },
 ];
 
 // ════════════════════════════════════════════════════════

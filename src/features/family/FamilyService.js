@@ -967,7 +967,8 @@ var buyShopItem = async ({ currentUID, family, item, lang, onNotification }) => 
 
     try {
         var key = `${currentUID}_${item.id}`;
-        if (purchases[key]) {
+        // Permanent items: block re-purchase. Time-limited items: allow re-purchase (renew)
+        if (purchases[key] && !item.durationDays) {
             onNotification(lang==='ar' ? '✅ اشتريت هذا بالفعل' : '✅ Already purchased');
             return;
         }
@@ -993,9 +994,9 @@ var buyShopItem = async ({ currentUID, family, item, lang, onNotification }) => 
             if (item.type === 'gift') {
                 updatePayload[`inventory.giftCounts.${item.id}`] = firebase.firestore.FieldValue.increment(item.qty || 1);
             }
-            if (item.id !== 'gift_ring') {
-                var dDays = item.durationDays || 30;
-                updatePayload[`inventory.expiry.${item.id}`] = Date.now() + (dDays * 86400000);
+            // Only set expiry for time-limited items (durationDays is a positive number)
+            if (item.durationDays && item.durationDays > 0 && item.type !== 'gift') {
+                updatePayload[`inventory.expiry.${item.id}`] = Date.now() + (item.durationDays * 86400000);
             }
             await usersCollection.doc(currentUID).update(updatePayload);
         }

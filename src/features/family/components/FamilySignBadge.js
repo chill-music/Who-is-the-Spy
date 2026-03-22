@@ -1,7 +1,7 @@
 var { FAMILY_SIGN_LEVELS, getFamilySignImage } = window.FamilyConstants || {};
 
 // Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
-var FamilySignBadge = ({ level, size = 40, lang }) => {
+var FamilySignBadge = ({ level, size = 40, lang, tag, color, small, signLevel, imageURL }) => {
     var imgSrc = imageURL || (typeof getFamilySignImage === 'function' ? getFamilySignImage(signLevel) : null);
     // استخدم hasGlow من بيانات المستوى نفسه
     var signLevelData = typeof FAMILY_SIGN_LEVELS !== 'undefined'
