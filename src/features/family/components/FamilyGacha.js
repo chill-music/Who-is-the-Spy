@@ -25,26 +25,22 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
         setResult(null);
 
         try {
-            // Simulate spin delay
             await new Promise(r => setTimeout(r, 2000));
-            
-            var res = await window.FamilyService.handleGachaRoll({ 
-                family, 
-                currentUID, 
-                currentUserData, 
-                mode, 
-                lang, 
-                onNotification 
+
+            var res = await window.FamilyService.handleGachaRoll({
+                family,
+                currentUID,
+                currentUserData,
+                mode,
+                lang,
+                onNotification
             });
 
-            if (res) {
-                setResult(res);
-            } else {
-                setSpinning(false);
-            }
+            if (res) setResult(res);
         } catch (e) {
             console.error(e);
             onNotification(lang === 'ar' ? '❌ فشل السحب' : '❌ Spin failed');
+        } finally {
             setSpinning(false);
         }
     };

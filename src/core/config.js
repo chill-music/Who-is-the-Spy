@@ -1,5 +1,9 @@
 // --- Global Configuration Constants ---
 // This file contains shared constants for UI, Systems, and Features.
+//
+// NOTE: The live browser app does NOT load this file. Entry HTML uses src/01-config.js
+// only. Treat this as a reference copy or for a future bundler setup — keep it in sync
+// manually if you care about duplicate definitions.
 
 // 🎯 Z-INDEX CONSTANTS - Layer Management
 var Z = {

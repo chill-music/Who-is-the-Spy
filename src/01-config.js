@@ -1,4 +1,4 @@
-﻿// ==========================================
+// ==========================================
 
 var { useState, useEffect, useRef, useCallback, useMemo } = React;
 // 🎯 Z-INDEX CONSTANTS - Layer Management
@@ -68,6 +68,8 @@ var helpFaqCollection         = db.collection('artifacts').doc(appId).collection
 var feedbackCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('feedback');
 // ── Collections added from scattered files (centralized here) ──
 var familiesCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('families');
+/** Family news feed (FamilyService.postNews, FamilyModal news tab). Required for tribe news to save/load. */
+var newsLogCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('family_news_log');
 var couplesCollection         = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('couples');
 var groupsCollection          = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('group_chats');
 var staffLogCollection        = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('staff_activity_log');
@@ -525,6 +527,7 @@ window.couplesCollection = couplesCollection;
 window.groupsCollection = groupsCollection;
 window.staffLogCollection = staffLogCollection;
 window.ticketsCollection = ticketsCollection;
+window.newsLogCollection = newsLogCollection;
 window.RED_PACKETS_CONFIG = RED_PACKETS_CONFIG;
 window.BFF_CONFIG = BFF_CONFIG;
 window.BFF_TOKEN_ITEMS = BFF_TOKEN_ITEMS;

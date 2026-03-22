@@ -228,6 +228,8 @@ var GACHA_CONFIG = {
     ],
 };
 window.GACHA_CONFIG = GACHA_CONFIG;
+window.GACHA_CONFIG_BASIC = GACHA_CONFIG;
+window.GACHA_CONFIG_PREMIUM = GACHA_CONFIG;
 
 
 // ── ألوان نادرية الجاتشه ──
@@ -479,9 +481,9 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         return () => unsub();
     }, [family?.id, activeTab]);
 
-    // ── Load family news log (real-time) ──
+    // ── Load family news log (real-time) — keep synced whenever family is open (not only on News tab) ──
     useEffect(() => {
-        if (!family?.id || activeTab !== 'news') return;
+        if (!family?.id) return;
         var nlColl = window.newsLogCollection;
         if (!nlColl) return;
         const unsub = nlColl
@@ -492,7 +494,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                 setNewsLog(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             }, () => {});
         return () => unsub();
-    }, [family?.id, activeTab]);
+    }, [family?.id]);
 
     // Auto-scroll chat
     useEffect(() => {
@@ -516,14 +518,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         }).catch(() => {});
     }, [family?.members?.join(',')]);
 
-    // ── Load news ──
-    useEffect(() => {
-        if (!family?.id || activeTab !== 'news') return;
-        const unsub = familiesCollection.doc(family.id).collection('news')
-            .orderBy('createdAt', 'desc').limit(30)
-            .onSnapshot(snap => setNewsLog(snap.docs.map(d => ({ id: d.id, ...d.data() }))), () => {});
-        return () => unsub();
-    }, [family?.id, activeTab]);
+    // ── news is loaded by the newsLogCollection listener above ──
 
     // ── Load join requester profiles ──
     useEffect(() => {
@@ -746,7 +741,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // TAB: TASKS
     // ─────────────────────────────────────────────
     const renderTasks = () => {
-        if (window.FamilyTasks) return <window.FamilyTasks family={family} currentUserData={currentUserData} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
+        if (window.FamilyTasks) return <window.FamilyTasks family={family} currentUserData={currentUserData} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} setActiveTab={setActiveTab} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
 

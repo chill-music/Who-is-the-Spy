@@ -1,4 +1,4 @@
-var { db, auth, usersCollection, familiesCollection, redPacketsCollection, newsLogCollection, firebase } = window;
+var { db, auth, usersCollection, familiesCollection, redPacketsCollection, firebase } = window;
 var { TS } = window;
 var { 
     FAMILY_CREATE_COST,
@@ -360,77 +360,82 @@ var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, 
 
 var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free', lang, onNotification }) => {
     if (!family?.id || !currentUID) throw new Error('Invalid context');
-    
+
     var cBasic = window.FamilyConstants?.GACHA_CONFIG_BASIC || window.GACHA_CONFIG_BASIC || window.GACHA_CONFIG || {};
     var cPrem = window.FamilyConstants?.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG || {};
     var currentGachaConfig = (family?.level >= 5) ? cPrem : cBasic;
+    var rewards = currentGachaConfig.rewards || [];
+    if (!rewards.length) {
+        if (onNotification) onNotification(lang === 'ar' ? '❌ إعدادات الجاتشه غير جاهزة' : '❌ Gacha not configured');
+        return null;
+    }
+
     var today = new Date().toDateString();
     var HARD_COST_CAP = 200;
+    var costPerSpin = Math.min(Number(currentGachaConfig.paidCostPerSpin) || 200, HARD_COST_CAP);
+    var maxPaid = Number(currentGachaConfig.maxPaidSpinsDaily) || 50;
 
     if (mode === 'free') {
         var lastFree = family.gachaFreeLastUsed;
         if (lastFree) {
             var lastDate = lastFree.toDate ? lastFree.toDate() : new Date(typeof lastFree === 'number' ? lastFree : (lastFree.seconds || 0) * 1000);
-            if (lastDate.toDateString() === today) {
+            if (!isNaN(lastDate.getTime()) && lastDate.toDateString() === today) {
                 onNotification(lang === 'ar' ? '⏳ استخدمت السحبة المجانية اليوم' : '⏳ Free spin already used today');
                 return null;
             }
         }
     } else {
-        var costPerSpin = Math.min(currentGachaConfig.paidCostPerSpin, HARD_COST_CAP);
         if ((currentUserData?.currency || 0) < costPerSpin) {
             onNotification(lang === 'ar' ? `❌ تحتاج ${costPerSpin} إنتل` : `❌ Need ${costPerSpin} Intel`);
             return null;
         }
         var spinsToday = family.gachaPaidSpins?.[today] || 0;
-        if (spinsToday >= currentGachaConfig.maxPaidSpinsDaily) {
-            onNotification(lang === 'ar' ? `❌ وصلت الحد اليومي (${currentGachaConfig.maxPaidSpinsDaily} سحبة)` : `❌ Daily limit reached (${currentGachaConfig.maxPaidSpinsDaily} spins)`);
+        if (spinsToday >= maxPaid) {
+            onNotification(lang === 'ar' ? `❌ وصلت الحد اليومي (${maxPaid} سحبة)` : `❌ Daily limit reached (${maxPaid} spins)`);
             return null;
         }
     }
 
     try {
-        var total = currentGachaConfig.rewards.reduce((s, r) => s + r.weight, 0);
+        var total = rewards.reduce((s, r) => s + (r.weight || 0), 0);
+        if (total <= 0) return null;
         var rand = Math.random() * total;
-        var picked = currentGachaConfig.rewards[currentGachaConfig.rewards.length - 1];
-        for (const r of currentGachaConfig.rewards) {
-            rand -= r.weight;
-            if (rand <= 0) { picked = r; break; }
+        var picked = rewards[rewards.length - 1];
+        for (var i = 0; i < rewards.length; i++) {
+            var rw = rewards[i];
+            rand -= (rw.weight || 0);
+            if (rand <= 0) { picked = rw; break; }
         }
 
+        var famRef = familiesCollection.doc(family.id);
+        var userRef = usersCollection.doc(currentUID);
         var rewardUpdates = {};
-
         if (mode === 'free') {
             rewardUpdates.gachaFreeLastUsed = TS();
         } else {
-            var costPerSpin = Math.min(currentGachaConfig.paidCostPerSpin, HARD_COST_CAP);
-            var userRef = usersCollection.doc(currentUID);
-            await db.runTransaction(async (transaction) => {
-                var userDoc = await transaction.get(userRef);
-                if (!userDoc.exists) throw new Error('User not found');
-                var currentBalance = userDoc.data()?.currency || 0;
-                if (currentBalance < costPerSpin) throw new Error('Insufficient balance');
-                transaction.update(userRef, {
-                    currency: firebase.firestore.FieldValue.increment(-costPerSpin),
-                });
-            });
             rewardUpdates[`gachaPaidSpins.${today}`] = firebase.firestore.FieldValue.increment(1);
         }
 
-        // Apply reward to user document
         var userRewardUpdate = {};
+        var currencyDelta = 0;
+        if (mode === 'paid') currencyDelta -= costPerSpin;
         if (picked.type === 'currency') {
-            userRewardUpdate.currency = firebase.firestore.FieldValue.increment(picked.amount);
-        } else if (picked.type === 'charisma') {
-            userRewardUpdate.charisma = firebase.firestore.FieldValue.increment(picked.amount);
+            currencyDelta += picked.amount || 0;
+        }
+        if (currencyDelta !== 0) {
+            userRewardUpdate.currency = firebase.firestore.FieldValue.increment(currencyDelta);
+        }
+
+        if (picked.type === 'charisma') {
+            userRewardUpdate.charisma = firebase.firestore.FieldValue.increment(picked.amount || 0);
         } else if (picked.type === 'coins') {
-            rewardUpdates.familyCoins = firebase.firestore.FieldValue.increment(picked.amount);
+            rewardUpdates.familyCoins = firebase.firestore.FieldValue.increment(picked.amount || 0);
         } else if (picked.type === 'frame' || picked.type === 'frame_anim') {
             var expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
-            userRewardUpdate[`inventory.frames`] = firebase.firestore.FieldValue.arrayUnion(picked.frameId);
+            userRewardUpdate['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(picked.frameId);
             userRewardUpdate[`inventory.expiry.${picked.frameId}`] = expiresAt;
         } else if (picked.type === 'gift') {
-            userRewardUpdate[`inventory.gifts`] = firebase.firestore.FieldValue.arrayUnion(picked.giftId);
+            userRewardUpdate['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(picked.giftId);
             userRewardUpdate[`inventory.giftCounts.${picked.giftId}`] = firebase.firestore.FieldValue.increment(picked.qty || 1);
             if (picked.giftId !== 'gift_ring') {
                 userRewardUpdate[`inventory.expiry.${picked.giftId}`] = Date.now() + 30 * 86400000;
@@ -440,12 +445,12 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
             rewardUpdates.treasuryInventory = firebase.firestore.FieldValue.arrayUnion(chestItem);
         }
 
+        var batch = db.batch();
+        batch.update(famRef, rewardUpdates);
         if (Object.keys(userRewardUpdate).length > 0) {
-            await usersCollection.doc(currentUID).update(userRewardUpdate);
+            batch.update(userRef, userRewardUpdate);
         }
-        if (Object.keys(rewardUpdates).length) {
-            await familiesCollection.doc(family.id).update(rewardUpdates);
-        }
+        await batch.commit();
 
         return picked;
     } catch (e) {
@@ -558,7 +563,6 @@ var joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
     });
 
     await postSystemMessage(familyId, lang === 'ar' ? `🎉 ${currentUserData?.displayName} انضم للعائلة!` : `🎉 ${currentUserData?.displayName} joined the family!`);
-    await postNews(familyId, 'join', lang === 'ar' ? `🎉 ${currentUserData?.displayName} انضم للعائلة!` : `🎉 ${currentUserData?.displayName} joined the family!`);
     
     return { status: 'joined' };
 };
@@ -581,7 +585,6 @@ var leaveFamily = async ({ family, currentUID, currentUserData, lang }) => {
             memberRoles: updRoles, memberDonations: updDons,
         });
         await postSystemMessage(family.id, lang === 'ar' ? `👋 ${currentUserData?.displayName} غادر العائلة` : `👋 ${currentUserData?.displayName} left the family`);
-        await postNews(family.id, 'leave', lang === 'ar' ? `${currentUserData?.displayName} غادر العائلة` : `${currentUserData?.displayName} left the family`);
     }
 
     await usersCollection.doc(currentUID).update({
@@ -613,11 +616,12 @@ var deleteFamily = async ({ family, currentUID }) => {
 var handleDonate = async ({ family, amount, currentUID, currentUserData, lang }) => {
     if (!amount || amount <= 0 || !family?.id) return;
     var don = family.memberDonations?.[currentUID] || { weekly:0, total:0, weeklyIntel:0, totalIntel:0 };
+
+    // ft3 = "Donate to Clan" task — target:1 means "did at least one donation"
     var ft3Key = `ft3_${currentUID}`;
     var ft3Prog = family.taskProgress?.[ft3Key] || { current:0, claimed:false };
-    var newFt3 = ft3Prog.claimed ? ft3Prog.current : Math.min(500, (ft3Prog.current || 0) + amount);
 
-    await familiesCollection.doc(family.id).update({
+    var familyUpdates = {
         treasury: firebase.firestore.FieldValue.increment(amount),
         activeness: firebase.firestore.FieldValue.increment(amount),
         weeklyActiveness: firebase.firestore.FieldValue.increment(amount),
@@ -625,9 +629,14 @@ var handleDonate = async ({ family, amount, currentUID, currentUserData, lang })
         [`memberDonations.${currentUID}.total`]: (don.total || 0) + amount,
         [`memberDonations.${currentUID}.weeklyIntel`]: (don.weeklyIntel || 0) + amount,
         [`memberDonations.${currentUID}.totalIntel`]: (don.totalIntel || 0) + amount,
-        ...(ft3Prog.claimed ? {} : { [`taskProgress.${ft3Key}.current`]: newFt3 }),
         lastActivity: TS(),
-    });
+    };
+    // Mark donate task progress (target = 1, so first donation completes it)
+    if (!ft3Prog.claimed) {
+        familyUpdates[`taskProgress.${ft3Key}.current`] = 1;
+    }
+
+    await familiesCollection.doc(family.id).update(familyUpdates);
     await usersCollection.doc(currentUID).update({
         currency: firebase.firestore.FieldValue.increment(-amount),
     });
@@ -641,19 +650,40 @@ var handleDonate = async ({ family, amount, currentUID, currentUserData, lang })
         text: lang === 'ar' ? `💰 ${currentUserData?.displayName} تبرع بـ ${amount} إنتل 🧠` : `💰 ${currentUserData?.displayName} donated ${amount} Intel 🧠`,
         timestamp: TS(),
     });
-    await postNews(family.id, 'donation', lang === 'ar' ? `${currentUserData?.displayName} تبرع بـ ${amount} إنتل` : `${currentUserData?.displayName} donated ${amount} Intel`, amount);
+    await postNews(family.id, 'donation',
+        lang === 'ar'
+            ? `${currentUserData?.displayName || 'عضو'} تبرع بـ ${amount} إنتل`
+            : `${currentUserData?.displayName || 'Member'} donated ${amount} Intel`,
+        amount,
+        { uid: currentUID, name: currentUserData?.displayName, photo: currentUserData?.photoURL }
+    );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 📰 NEWS & SYSTEM MESSAGES
 // ─────────────────────────────────────────────────────────────────────────────
 
-var postNews = async (familyId, type, text, amount = 0) => {
+var postNews = async (familyId, type, text, amount = 0, actor) => {
     if (!familyId) return;
+    var coll = window.newsLogCollection;
+    if (!coll) {
+        console.warn('FamilyService.postNews: newsLogCollection missing (define in 01-config.js)');
+        return;
+    }
     try {
-        await newsLogCollection.add({
-            familyId, type, text, amount: amount || 0, timestamp: TS(),
-        });
+        var doc = {
+            familyId,
+            type,
+            text,
+            amount: amount || 0,
+            timestamp: TS(),
+        };
+        if (actor && typeof actor === 'object') {
+            if (actor.uid != null) doc.actorUID = actor.uid;
+            if (actor.name) doc.actorName = actor.name;
+            if (actor.photo) doc.actorPhoto = actor.photo;
+        }
+        await coll.add(doc);
     } catch (e) {
         console.error('FamilyService.postNews:', e);
     }
@@ -696,7 +726,6 @@ var kickMember = async ({ family, targetUID, currentUID, lang }) => {
     });
     
     await postSystemMessage(family.id, lang === 'ar' ? `🚪 تم طرد أحد الأعضاء` : `🚪 A member was kicked`);
-    await postNews(family.id, 'leave', lang === 'ar' ? `🚪 تم طرد أحد الأعضاء` : `🚪 A member was kicked`);
 };
 
 /**
@@ -881,15 +910,38 @@ var claimDailyMilestoneChest = async ({ family, currentUID, msIdx, ms, lang, onN
             lastActivity: TS(),
         });
 
-        // Give rewards (simplified logic for now)
+        // Award rewards from ms.rewards array (currency = Intel, coins = Family Coins)
         var userRef = usersCollection.doc(currentUID);
-        var updates = {};
-        if (ms.reward?.intel) updates.currency = firebase.firestore.FieldValue.increment(ms.reward.intel);
-        if (Object.keys(updates).length > 0) await userRef.update(updates);
+        var userUpdates = {};
+        var familyUpdates = {};
+        var earnedParts = [];
 
-        if (onNotification) onNotification(lang === 'ar' ? '✅ تم استلام الصندوق!' : '✅ Chest claimed!');
+        var rewards = ms.rewards || [];
+        // Also support legacy ms.intel shorthand
+        if (!rewards.length && ms.intel) rewards = [{ type: 'currency', amount: ms.intel }];
+
+        rewards.forEach(r => {
+            if (r.type === 'currency') {
+                userUpdates.currency = firebase.firestore.FieldValue.increment(r.amount || 0);
+                earnedParts.push(`+${r.amount} 🧠`);
+            } else if (r.type === 'coins') {
+                familyUpdates.familyCoins = firebase.firestore.FieldValue.increment(r.amount || 0);
+                earnedParts.push(`+${r.amount} 🏅`);
+            } else if (r.type === 'xp') {
+                userUpdates.xp = firebase.firestore.FieldValue.increment(r.amount || 0);
+                earnedParts.push(`+${r.amount} XP`);
+            }
+        });
+
+        if (Object.keys(userUpdates).length > 0) await userRef.update(userUpdates);
+        if (Object.keys(familyUpdates).length > 0) await familiesCollection.doc(family.id).update(familyUpdates);
+
+        var earned = earnedParts.join(' • ');
+        if (onNotification) onNotification(earned
+            ? (lang === 'ar' ? `✅ الصندوق: ${earned}` : `✅ Chest: ${earned}`)
+            : (lang === 'ar' ? '✅ تم استلام الصندوق!' : '✅ Chest claimed!'));
     } catch (e) {
-        console.error(e);
+        console.error('claimDailyMilestoneChest:', e);
     }
 };
 
@@ -906,53 +958,72 @@ var claimTask = async ({ family, currentUID, task, lang, onNotification }) => {
     try {
         var today = new Date().toDateString();
         var dailyPtsKey = `dailyPts_${today}_${currentUID}`;
+        // task.points is the daily activity bar increment; fallback to intel value
+        var pointsToAdd = task.points || task.reward?.intel || 0;
         
-        await familiesCollection.doc(family.id).update({
+        var familyUpdates = {
             [`taskProgress.${key}.claimed`]: true,
-            [dailyPtsKey]: firebase.firestore.FieldValue.increment(task.reward?.points || 0),
-            treasury: firebase.firestore.FieldValue.increment(task.reward?.intel || 0),
-            activeness: firebase.firestore.FieldValue.increment(task.reward?.intel || 0),
-            weeklyActiveness: firebase.firestore.FieldValue.increment(task.reward?.intel || 0),
-            familyCoins: firebase.firestore.FieldValue.increment(task.reward?.coins || 0),
+            [dailyPtsKey]: firebase.firestore.FieldValue.increment(pointsToAdd),
             lastActivity: TS(),
-        });
+        };
+        // Tribe tasks: Intel reward → Family Coins (pool), not site currency. Coins field stacks too.
+        var fcAdd = (task.reward?.coins || 0) + (task.reward?.intel || 0);
+        if (fcAdd) {
+            familyUpdates.familyCoins = firebase.firestore.FieldValue.increment(fcAdd);
+        }
+        await familiesCollection.doc(family.id).update(familyUpdates);
 
         var userRef = usersCollection.doc(currentUID);
         var userUpdates = {};
-        if (task.reward?.intel) userUpdates.currency = firebase.firestore.FieldValue.increment(task.reward.intel);
         if (task.reward?.xp) userUpdates.xp = firebase.firestore.FieldValue.increment(task.reward.xp);
         if (Object.keys(userUpdates).length > 0) await userRef.update(userUpdates);
 
-        if (onNotification) onNotification(lang === 'ar' ? '✅ تم استلام المكافأة!' : '✅ Reward claimed!');
+        var earnedText = [];
+        if (fcAdd) earnedText.push(`+${fcAdd} ${window.FAMILY_COINS_SYMBOL || FAMILY_COINS_SYMBOL || '🏅'}`);
+        if (task.reward?.xp) earnedText.push(`+${task.reward.xp} XP`);
+        var msg = earnedText.join(' • ');
+        if (onNotification) onNotification(msg
+            ? (lang === 'ar' ? `✅ ${msg}` : `✅ ${msg}`)
+            : (lang === 'ar' ? '✅ تم استلام المكافأة!' : '✅ Reward claimed!'));
+
     } catch (e) {
-        console.error(e);
+        console.error('claimTask:', e);
     }
 };
 
 /**
  * Handles daily check-in task.
  */
-var handleCheckIn = async ({ family, currentUID, lang, onNotification }) => {
+var handleCheckIn = async ({ family, currentUID, currentUserData, lang, onNotification }) => {
     if (!family?.id || !currentUID) return;
     var today = new Date().toDateString();
-    var key = `ft4_${currentUID}`;
+    var key = `ft1_${currentUID}`; // ft1 = Daily Check-in task
     var taskProgress = family.taskProgress || {};
     var prog = taskProgress[key] || { current: 0, claimed: false, lastCheckIn: '' };
     
+    // Already checked in today?
     if (prog.lastCheckIn === today) {
-        if (onNotification) onNotification(lang === 'ar' ? '✅ قمت بتسجيل الحضور اليوم' : '✅ Already checked in today');
+        if (!prog.claimed) {
+            // Already checked in but not yet claimed — notify they can collect
+            if (onNotification) onNotification(lang === 'ar' ? '🎁 يمكنك اجمع المكافأة!' : '🎁 You can collect the reward!');
+        } else {
+            if (onNotification) onNotification(lang === 'ar' ? '✅ قمت بتسجيل الحضور اليوم' : '✅ Already checked in today');
+        }
         return;
     }
 
     try {
+        // Mark checked in — set current to 1 (target=1, so task is done)
         await familiesCollection.doc(family.id).update({
-            [`taskProgress.${key}.current`]: firebase.firestore.FieldValue.increment(1),
+            [`taskProgress.${key}.current`]: 1,
             [`taskProgress.${key}.lastCheckIn`]: today,
+            [`taskProgress.${key}.claimed`]: false, // reset daily claimed
             lastActivity: TS(),
         });
-        if (onNotification) onNotification(lang === 'ar' ? '✅ تم تسجيل الحضور!' : '✅ Checked in!');
+
+        if (onNotification) onNotification(lang === 'ar' ? '📅 تم تسجيل الحضور! اجمع المكافأة' : '📅 Checked in! Collect your reward');
     } catch (e) {
-        console.error(e);
+        console.error('handleCheckIn:', e);
     }
 };
 

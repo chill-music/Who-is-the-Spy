@@ -24,7 +24,9 @@ var FamilyProfile = ({
     // ── Activeness modal state ──
     var [showActModal, setShowActModal] = React.useState(false);
     var [buyingAct, setBuyingAct] = React.useState(false);
+    var [upgradingClan, setUpgradingClan] = React.useState(false);
 
+    var fmtFamilyNum = window.fmtFamilyNum || ((n) => (n >= 1000 ? (n / 1000).toFixed(1) + 'K' : String(n)));
     var fLvl = window.FamilyConstants.getFamilyLevelConfig(family.level || 1);
     var myRole = window.FamilyConstants.getFamilyRole(family, currentUID);
     var canManage = myRole === 'owner' || myRole === 'admin';
@@ -46,8 +48,7 @@ var FamilyProfile = ({
     ];
 
     // Level progress
-    var nextLvl = window.FamilyConstants.getFamilyLevelConfig ? null : null;
-    var FAMILY_LEVEL_CONFIGS = window.FAMILY_LEVEL_CONFIG || [];
+    var FAMILY_LEVEL_CONFIGS = window.FamilyConstants?.FAMILY_LEVEL_CONFIG || window.FAMILY_LEVEL_CONFIG || [];
     var nextLevelCfg = FAMILY_LEVEL_CONFIGS.find(c => c.level === (fLvl.level + 1));
     var lvlProgress = nextLevelCfg
         ? Math.min(100, Math.round(((totalActiveness - fLvl.activeness) / (nextLevelCfg.activeness - fLvl.activeness)) * 100))
@@ -70,7 +71,8 @@ var FamilyProfile = ({
 
     // Treasury chests claimed
     var treasuryInv = family.treasuryInventory || [];
-    var myCoins = (currentUserData && currentUserData.familyCoins) || 0;
+    var familyTreasury = family.treasury || 0;
+    var myIntel = (currentUserData && currentUserData.currency) || 0;
 
     // ── Photo upload ──
     var handlePhotoUpload = async (e) => {
@@ -92,17 +94,17 @@ var FamilyProfile = ({
 
     var handleBuyActiveness = async (gift) => {
         if (buyingAct) return;
-        if (myCoins < gift.cost) {
-            onNotification(lang === 'ar' ? '❌ عملات القبيلة غير كافية' : '❌ Not enough Family Coins');
+        if (myIntel < gift.cost) {
+            onNotification(lang === 'ar' ? '❌ إنتل غير كافٍ' : '❌ Not enough Intel');
             return;
         }
         setBuyingAct(true);
         try {
-            var { db, auth, firebase, familiesCollection, usersCollection } = window;
+            var { firebase, familiesCollection, usersCollection } = window;
             var uid = currentUID;
             var fid = family.id;
             await usersCollection.doc(uid).update({
-                familyCoins: firebase.firestore.FieldValue.increment(-gift.cost),
+                currency: firebase.firestore.FieldValue.increment(-gift.cost),
             });
             await familiesCollection.doc(fid).update({
                 activeness: firebase.firestore.FieldValue.increment(gift.activeness),
@@ -115,6 +117,42 @@ var FamilyProfile = ({
             onNotification(lang === 'ar' ? '❌ خطأ في الشراء' : '❌ Purchase failed');
         }
         setBuyingAct(false);
+    };
+
+    var upgradeClan = async () => {
+        if (!family?.id || !canManage || !nextLevelCfg || upgradingClan) return;
+        if (totalActiveness < nextLevelCfg.activeness) {
+            onNotification(lang === 'ar' ? `❌ تحتاج ${fmtFamilyNum(nextLevelCfg.activeness)} نشاطاً` : `❌ Need ${fmtFamilyNum(nextLevelCfg.activeness)} activeness`);
+            return;
+        }
+        if ((nextLevelCfg.upgradeCost || 0) > 0 && familyTreasury < nextLevelCfg.upgradeCost) {
+            onNotification(lang === 'ar' ? '❌ خزينة القبيلة غير كافية' : '❌ Clan treasury too low');
+            return;
+        }
+        setUpgradingClan(true);
+        try {
+            var firebase = window.firebase;
+            var familiesCollection = window.familiesCollection;
+            var newLevel = (fLvl.level || 1) + 1;
+            await familiesCollection.doc(family.id).update({
+                treasury: firebase.firestore.FieldValue.increment(-(nextLevelCfg.upgradeCost || 0)),
+                level: newLevel,
+            });
+            if (window.FamilyService?.postNews) {
+                await window.FamilyService.postNews(family.id, 'level_up',
+                    lang === 'ar'
+                        ? `⬆️ ترقية للمستوى ${newLevel}: ${nextLevelCfg.name_ar}`
+                        : `⬆️ Leveled up to ${newLevel}: ${nextLevelCfg.name_en}`,
+                    0,
+                    { uid: currentUID, name: currentUserData?.displayName, photo: currentUserData?.photoURL }
+                );
+            }
+            onNotification(`🆙 ${lang === 'ar' ? 'مبروك! ارتفع مستوى القبيلة!' : 'Congrats! Clan leveled up!'}`);
+        } catch (e) {
+            console.error(e);
+            onNotification(lang === 'ar' ? '❌ فشل الترقية' : '❌ Upgrade failed');
+        }
+        setUpgradingClan(false);
     };
 
     // ── Chest status ──
@@ -212,9 +250,42 @@ var FamilyProfile = ({
                     </div>
                 </div>
                 {/* Progress bar */}
-                <div style={{ height: '8px', background: 'rgba(255,255,255,0.07)', borderRadius: '10px', overflow: 'hidden' }}>
+                <div style={{ height: '8px', background: 'rgba(255,255,255,0.07)', borderRadius: '10px', overflow: 'hidden', marginBottom: nextLevelCfg ? '12px' : 0 }}>
                     <div style={{ height: '100%', width: `${nextLevelCfg ? lvlProgress : 100}%`, background: 'linear-gradient(90deg,#00f2ff,#7000ff)', borderRadius: '10px', transition: 'width 0.6s ease', boxShadow: '0 0 8px rgba(0,242,255,0.5)' }} />
                 </div>
+
+                {/* Next level requirements (inside Activeness card) */}
+                {nextLevelCfg && (
+                    <div style={{ padding: '10px 12px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                        <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '6px' }}>
+                            🔒 {lang === 'ar' ? 'متطلبات المستوى التالي' : 'Next Level Requirements'}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '10px', color: '#6b7280' }}>🔥 {lang === 'ar' ? 'النشاط الكلي' : 'Total Activeness'}</span>
+                            <span style={{ fontSize: '10px', fontWeight: 800, color: totalActiveness >= nextLevelCfg.activeness ? '#10b981' : '#f97316' }}>
+                                {fmtFamilyNum(totalActiveness)} / {fmtFamilyNum(nextLevelCfg.activeness)} {totalActiveness >= nextLevelCfg.activeness ? '✅' : ''}
+                            </span>
+                        </div>
+                        {nextLevelCfg.upgradeCost > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '10px', color: '#6b7280' }}>🏅 {lang === 'ar' ? 'خزينة القبيلة' : 'Treasury'}</span>
+                                <span style={{ fontSize: '10px', fontWeight: 800, color: familyTreasury >= nextLevelCfg.upgradeCost ? '#10b981' : '#f97316' }}>
+                                    {fmtFamilyNum(familyTreasury)} / {fmtFamilyNum(nextLevelCfg.upgradeCost)} {familyTreasury >= nextLevelCfg.upgradeCost ? '✅' : ''}
+                                </span>
+                            </div>
+                        )}
+                        {canManage && totalActiveness >= nextLevelCfg.activeness && familyTreasury >= (nextLevelCfg.upgradeCost || 0) && nextLevelCfg.upgradeCost > 0 && (
+                            <button type="button" onClick={upgradeClan} disabled={upgradingClan} style={{ width: '100%', padding: '9px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg,#00f2ff,#7000ff)', color: 'white', fontSize: '12px', fontWeight: 900, cursor: upgradingClan ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', opacity: upgradingClan ? 0.7 : 1 }}>
+                                🆙 {lang === 'ar' ? 'ترقية القبيلة' : 'Upgrade Clan'} → {lang === 'ar' ? nextLevelCfg.name_ar : nextLevelCfg.name_en}
+                            </button>
+                        )}
+                        {canManage && (totalActiveness < nextLevelCfg.activeness || familyTreasury < (nextLevelCfg.upgradeCost || 0)) && nextLevelCfg.upgradeCost > 0 && (
+                            <div style={{ fontSize: '10px', color: '#4b5563', textAlign: 'center', fontStyle: 'italic' }}>
+                                {lang === 'ar' ? 'أكمل المتطلبات لترقية القبيلة' : 'Complete requirements to upgrade clan'}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* ══ WEEKLY ACTIVENESS ══ */}
@@ -327,12 +398,12 @@ var FamilyProfile = ({
                         </div>
                         {/* Balance */}
                         <div style={{ textAlign: 'center', padding: '10px 16px 4px', fontSize: '11px', color: '#9ca3af' }}>
-                            {lang === 'ar' ? 'عملاتك:' : 'Your Coins:'} <span style={{ color: '#ffd700', fontWeight: 800 }}>{myCoins.toLocaleString()} 🏅</span>
+                            {lang === 'ar' ? 'رصيدك (إنتل):' : 'Your Intel:'} <span style={{ color: '#00f2ff', fontWeight: 800 }}>{myIntel.toLocaleString()} 🧠</span>
                         </div>
                         {/* Gift options */}
                         <div style={{ padding: '12px 14px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             {ACTIVENESS_GIFTS.map((gift, i) => {
-                                var canAfford = myCoins >= gift.cost;
+                                var canAfford = myIntel >= gift.cost;
                                 return (
                                     <button
                                         key={i}
@@ -345,7 +416,7 @@ var FamilyProfile = ({
                                             <div style={{ fontSize: '13px', fontWeight: 800, color: gift.color }}>{lang === 'ar' ? gift.label_ar : gift.label_en}</div>
                                             <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>⚡ +{gift.activeness.toLocaleString()} {lang === 'ar' ? 'نشاط' : 'Activeness'}</div>
                                         </div>
-                                        <div style={{ fontSize: '13px', fontWeight: 800, color: gift.color, flexShrink: 0 }}>{gift.cost.toLocaleString()} 🏅</div>
+                                        <div style={{ fontSize: '13px', fontWeight: 800, color: gift.color, flexShrink: 0 }}>{gift.cost.toLocaleString()} 🧠</div>
                                     </button>
                                 );
                             })}

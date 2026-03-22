@@ -18,6 +18,8 @@ var S = window.FamilyShared?.S || {};
 /**
  * FamilyTreasury - Component for managing family funds, chests, and upgrades.
  */
+var MIN_DONATE_INTEL = 10;
+
 var FamilyTreasury = ({ 
     family, 
     currentUID, 
@@ -55,11 +57,13 @@ var FamilyTreasury = ({
 
     const { treasury, treasuryInventory, level, activeness: totalAct } = family || {};
     var fLvl = FamilyService.getFamilyLevelConfig(level || 1);
-    var nextLvl = FamilyService.getFamilyLevelConfig((level || 1) + 1);
 
     var handleDonate = async () => {
-        var amt = parseInt(donateAmount);
-        if (isNaN(amt) || amt <= 0) return;
+        var amt = parseInt(donateAmount, 10);
+        if (isNaN(amt) || amt < MIN_DONATE_INTEL) {
+            onNotification(lang === 'ar' ? `❌ أقل تبرع ${MIN_DONATE_INTEL} إنتل` : `❌ Minimum donation is ${MIN_DONATE_INTEL} Intel`);
+            return;
+        }
         if ((currentUserData?.currency || 0) < amt) {
             onNotification(lang === 'ar' ? '❌ رصيدك غير كافٍ' : '❌ Insufficient balance');
             return;
@@ -70,6 +74,7 @@ var FamilyTreasury = ({
             setShowDonate(false);
             onNotification(lang === 'ar' ? '✅ تم التبرع بنجاح' : '✅ Donation successful');
         } catch (e) {
+            console.error(e);
             onNotification(lang === 'ar' ? '❌ فشل التبرع' : '❌ Donation failed');
         }
     };
@@ -127,23 +132,6 @@ var FamilyTreasury = ({
         }
     };
 
-    var upgradeClan = async () => {
-        if (!family?.id || !canManage) return;
-        if (totalAct < (nextLvl?.activeness || 0)) {
-            onNotification(lang === 'ar' ? `❌ تحتاج ${fmtFamilyNum(nextLvl?.activeness)} نشاط أولاً` : `❌ Need ${fmtFamilyNum(nextLvl?.activeness)} activeness first`);
-            return;
-        }
-        try {
-            await familiesCollection.doc(family.id).update({
-                treasury: firebase.firestore.FieldValue.increment(-(nextLvl?.upgradeCost || 0)),
-                level: (level || 1) + 1,
-            });
-            onNotification(`🆙 ${lang === 'ar' ? 'مبروك! ارتفع مستوى القبيلة!' : 'Congrats! Clan leveled up!'}`);
-        } catch (e) {
-            onNotification(lang === 'ar' ? '❌ فشل الترقية' : '❌ Upgrade failed');
-        }
-    };
-
     return (
         <React.Fragment>
             {/* ── Milestones Section ── */}
@@ -191,48 +179,13 @@ var FamilyTreasury = ({
                 {showDonate && (
                     <div style={{ marginBottom: '12px', padding: '12px', borderRadius: '12px', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.1)' }}>
                         <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '8px' }}>{lang === 'ar' ? 'تبرع بالبصيرة للقبيلة' : 'Donate Intel to Family'}</div>
+                        <div style={{ fontSize: '10px', color: '#6b7280', marginBottom: '8px' }}>{lang === 'ar' ? `الحد الأدنى ${MIN_DONATE_INTEL} إنتل 🧠` : `Minimum ${MIN_DONATE_INTEL} Intel 🧠`}</div>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                            <input type="number" value={donateAmount} onChange={(e) => setDonateAmount(e.target.value)} placeholder="0" style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', padding: '8px', fontSize: '13px' }} />
+                            <input type="number" value={donateAmount} onChange={(e) => setDonateAmount(e.target.value)} min={MIN_DONATE_INTEL} placeholder={String(MIN_DONATE_INTEL)} style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', padding: '8px', fontSize: '13px' }} />
                             <button onClick={handleDonate} style={{ background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', padding: '0 16px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
                                 {lang === 'ar' ? 'تبرع' : 'Donate'}
                             </button>
                         </div>
-                    </div>
-                )}
-
-                {/* Barrier (next level — requires activeness + treasury) */}
-                {nextLvl && (
-                    <div style={{ padding: '10px 12px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', marginBottom: '10px' }}>
-                        <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '6px' }}>
-                            🔒 {lang === 'ar' ? 'متطلبات المستوى التالي' : 'Next Level Requirements'}
-                        </div>
-                        {/* Activeness requirement */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                            <span style={{ fontSize: '10px', color: '#6b7280' }}>🔥 {lang === 'ar' ? 'النشاط الكلي' : 'Total Activeness'}</span>
-                            <span style={{ fontSize: '10px', fontWeight: 800, color: totalAct >= nextLvl.activeness ? '#10b981' : '#f97316' }}>
-                                {fmtFamilyNum(totalAct)} / {fmtFamilyNum(nextLvl.activeness)} {totalAct >= nextLvl.activeness ? '✅' : ''}
-                            </span>
-                        </div>
-                        {/* Treasury requirement */}
-                        {nextLvl.upgradeCost > 0 && (
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '10px', color: '#6b7280' }}>🏅 {lang === 'ar' ? 'خزينة القبيلة' : 'Treasury'}</span>
-                                <span style={{ fontSize: '10px', fontWeight: 800, color: treasury >= nextLvl.upgradeCost ? '#10b981' : '#f97316' }}>
-                                    {fmtFamilyNum(treasury)} / {fmtFamilyNum(nextLvl.upgradeCost)} {treasury >= nextLvl.upgradeCost ? '✅' : ''}
-                                </span>
-                            </div>
-                        )}
-                        {/* Upgrade button */}
-                        {canManage && totalAct >= nextLvl.activeness && treasury >= (nextLvl.upgradeCost || 0) && nextLvl.upgradeCost > 0 && (
-                            <button onClick={upgradeClan} style={{ width: '100%', padding: '9px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg,#00f2ff,#7000ff)', color: 'white', fontSize: '12px', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                🆙 {lang === 'ar' ? 'ترقية القبيلة' : 'Upgrade Clan'} → {lang === 'ar' ? nextLvl.name_ar : nextLvl.name_en}
-                            </button>
-                        )}
-                        {canManage && (totalAct < nextLvl.activeness || treasury < (nextLvl.upgradeCost || 0)) && (
-                            <div style={{ fontSize: '10px', color: '#4b5563', textAlign: 'center', fontStyle: 'italic' }}>
-                                {lang === 'ar' ? 'أكمل المتطلبات لترقية القبيلة' : 'Complete requirements to upgrade clan'}
-                            </div>
-                        )}
                     </div>
                 )}
 
