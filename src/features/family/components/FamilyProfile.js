@@ -83,7 +83,7 @@ var FamilyProfile = ({
                         <span style={{color:fLvl.color,fontSize:'10px',fontWeight:900}}>LV.{fLvl.level} {lang==='ar'?fLvl.name_ar:fLvl.name_en}</span>
                     </div>
                     <div style={{fontSize:'9px',color:'rgba(255,255,255,0.5)'}}>👥 {family.members?.length||0}/{fLvl.maxMembers}</div>
-                    {myRole && <window.FamilyRoleBadge role={myRole} lang={lang} small />}
+                    {myRole && window.FamilyRoleBadge && <window.FamilyRoleBadge role={myRole} lang={lang} small />}
                 </div>
             </div>
 

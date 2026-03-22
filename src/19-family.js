@@ -738,7 +738,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ─────────────────────────────────────────────
     const renderShop = () => {
         if (window.FamilyShop) {
-            return <window.FamilyShop family={family} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} />;
+            return <window.FamilyShop family={family} currentUID={currentUID} currentUserData={currentUserData} lang={lang} onNotification={onNotification} S={S} />;
         }
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري تحميل المتجر...':'Loading Shop...'}</div>;
     };
