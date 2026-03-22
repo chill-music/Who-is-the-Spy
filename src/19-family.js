@@ -477,6 +477,21 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         return () => unsub();
     }, [family?.id, activeTab]);
 
+    // ── Load family news log (real-time) ──
+    useEffect(() => {
+        if (!family?.id || activeTab !== 'news') return;
+        var nlColl = window.newsLogCollection;
+        if (!nlColl) return;
+        const unsub = nlColl
+            .where('familyId', '==', family.id)
+            .orderBy('timestamp', 'desc')
+            .limit(30)
+            .onSnapshot(snap => {
+                setNewsLog(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            }, () => {});
+        return () => unsub();
+    }, [family?.id, activeTab]);
+
     // Auto-scroll chat
     useEffect(() => {
         if (activeTab === 'chat') {
@@ -755,7 +770,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // TAB: NEWS
     // ─────────────────────────────────────────────
     const renderNews = () => {
-        if (window.FamilyNews) return <window.FamilyNews family={family} currentUserData={currentUserData} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
+        if (window.FamilyNews) return <window.FamilyNews family={family} newsLog={newsLog} currentUserData={currentUserData} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
 

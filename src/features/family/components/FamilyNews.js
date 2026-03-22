@@ -3,7 +3,7 @@
  */
 var { fmtFamilyTime, fmtFamilyNum } = window;
 
-var FamilyNews = ({ family, currentUserData, lang, S }) => {
+var FamilyNews = ({ family, newsLog: newsLogProp, currentUserData, lang, S }) => {
     // Fallback styles if S is not passed as prop
     var localS = S || {
         card: { background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'14px', padding:'14px' },
@@ -18,7 +18,7 @@ var FamilyNews = ({ family, currentUserData, lang, S }) => {
         task_complete: '✅', 
         milestone: '🎁' 
     };
-    var newsLog = family?.newsLog || [];
+    var newsLog = newsLogProp || family?.newsLog || [];
 
     return (
         <div style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>

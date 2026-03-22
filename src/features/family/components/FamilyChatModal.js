@@ -466,7 +466,7 @@ var FamilyChatModal = (props) => {
                             style: { width:'28px', height:'28px', borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'rgba(255,255,255,0.1)', cursor:'pointer' }
                         }, msg.senderPhoto ? React.createElement('img', { src: msg.senderPhoto, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'}})
                         : React.createElement('div', { style:{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}, '😎')),
-                        React.createElement('div', { style: { maxWidth:'72%' } },
+                        React.createElement('div', { style: { maxWidth:'min(72%, calc(100vw - 100px))' } },
                             React.createElement('div', {
                                 onClick: function() { openFamilyChatMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }); },
                                 style: { fontSize:'10px', color: isMe?'#00f2ff':'#9ca3af', marginBottom:'3px', fontWeight:700, paddingLeft: isMe?'0':'4px', paddingRight: isMe?'4px':'0', cursor:'pointer', textAlign: isMe?'right':'left' },
@@ -505,7 +505,7 @@ var FamilyChatModal = (props) => {
             ),
             // Input bar
             React.createElement('div', {
-                style: { padding:'10px 12px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.3)', display:'flex', gap:'8px', alignItems:'center', flexShrink:0 }
+                style: { padding:'10px 12px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.3)', display:'flex', gap:'8px', alignItems:'center', flexShrink:0, boxSizing:'border-box', width:'100%' }
             },
                 React.createElement('input', { ref: imgInputRef, type:'file', accept:'image/*', style:{display:'none'}, onChange: handleImageUpload }),
                 React.createElement('button', {
@@ -532,7 +532,7 @@ var FamilyChatModal = (props) => {
                         if (e.key === 'Enter' && !e.shiftKey && !showMentionList) { e.preventDefault(); sendMessage(chatInput); }
                     },
                     maxLength: 400,
-                    style: { flex:1, padding:'9px 12px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'13px', outline:'none', minWidth:0, width:'100%' },
+                    style: { flex:1, padding:'9px 12px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'13px', outline:'none', minWidth:0, width:'100%', boxSizing:'border-box', wordBreak:'break-word', overflowWrap:'break-word' },
                     placeholder: lang==='ar'?'اكتب رسالة... أو @ للمنشن':'Type a message... or @ to mention'
                 }),
                 React.createElement('button', {

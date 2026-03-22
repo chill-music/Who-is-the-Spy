@@ -2705,8 +2705,8 @@ function App() {
                                 )}
                                 {/* ── Family Chat Entry ── */}
                                 {isLoggedIn && userFamily && (() => {
-                                    const signLevel = userFamily.activeness || 0;
-                                    const signData = typeof getFamilySignLevelData === 'function' ? getFamilySignLevelData(signLevel) : null;
+                                    const familyWeeklyAct = userFamily.lastWeekActiveness !== undefined ? userFamily.lastWeekActiveness : (userFamily.weeklyActiveness || 0);
+                                    const signData = typeof getFamilySignLevelData === 'function' ? getFamilySignLevelData(familyWeeklyAct) : null;
                                     const readAt = userFamily.chatReadBy?.[currentUID];
                                     const lastChatAt = userFamily.lastChatAt;
                                     const hasUnread = lastChatAt && readAt
@@ -2723,9 +2723,9 @@ function App() {
                                             <div style={{flex:1,minWidth:0}}>
                                                 <div style={{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}}>
                                                     <span style={{fontSize:'13px',fontWeight:hasUnread?800:600,color:hasUnread?'#f97316':'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'120px'}}>{userFamily.name}</span>
-                                                    {typeof FamilySignBadge !== 'undefined' ? (
+                                                    {window.FamilySignBadge && signData ? (
                                                         <div style={{transform:'scale(0.85)',transformOrigin:'left center'}}>
-                                                            <FamilySignBadge tag={userFamily.tag||'FAM'} color={signData?.color || '#00f2ff'} signLevel={signLevel} imageURL={userFamily.signImageURL} small={true} />
+                                                            <window.FamilySignBadge tag={userFamily.tag||'FAM'} color={signData.color} signLevel={signData.level} imageURL={userFamily.signImageURL} small={true} />
                                                         </div>
                                                     ) : signData && <span style={{fontSize:'9px',fontWeight:800,color:signData.color,background:`${signData.color}20`,border:`1px solid ${signData.color}44`,borderRadius:'4px',padding:'1px 5px'}}>{userFamily.tag||'FAM'}</span>}
                                                 </div>

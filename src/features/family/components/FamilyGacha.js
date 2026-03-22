@@ -1,6 +1,7 @@
-var { Z, PortalModal } = window;
-var { fmtFamilyNum } = window;
-var FamilyService = window.FamilyService;
+// Lazy access — avoids crash if PortalModal / Z not yet on window at parse time
+var getZ = () => window.Z || {};
+var getPortalModal = () => window.PortalModal || (({ children }) => children);
+var fmtFamilyNum = (...args) => (window.fmtFamilyNum || (n => String(n)))(...args);
 
 /**
  * FamilyGacha - Modal component for family gacha spins.
@@ -45,6 +46,8 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
         }
     };
 
+    var PortalModal = getPortalModal();
+    var Z = getZ();
     return (
         <PortalModal>
             <div className="modal-overlay" onClick={onClose} style={{ zIndex: Z.MODAL_HIGH + 10 }}>
