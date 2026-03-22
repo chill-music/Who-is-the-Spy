@@ -122,16 +122,18 @@ var getFamilyLevelProgress = (activeness = 0, currentLevel = 1) => {
 };
 
 var getFamilySignImage = (level) => {
-    if (typeof FAMILY_SIGN_IMAGES === 'undefined') return null;
-    var cfg = FAMILY_SIGN_IMAGES.find(s => s.level === level);
+    var signs = window.FamilyConstants?.FAMILY_SIGN_IMAGES || window.FAMILY_SIGN_IMAGES;
+    if (!signs) return null;
+    var cfg = signs.find(s => s.level === level);
     return cfg?.imageURL || null;
 };
 
 var getFamilySignLevelData = (weeklyActiveness = 0) => {
+    var levels = window.FamilyConstants?.FAMILY_SIGN_LEVELS || window.FAMILY_SIGN_LEVELS || [];
     var cfg = null;
-    for (var i = FAMILY_SIGN_LEVELS.length - 1; i >= 0; i--) {
-        if (weeklyActiveness >= FAMILY_SIGN_LEVELS[i].threshold) { 
-            cfg = FAMILY_SIGN_LEVELS[i]; 
+    for (var i = levels.length - 1; i >= 0; i--) {
+        if (weeklyActiveness >= levels[i].threshold) { 
+            cfg = levels[i]; 
             break; 
         }
     }
@@ -359,14 +361,16 @@ var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, 
 var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free', lang, onNotification }) => {
     if (!family?.id || !currentUID) throw new Error('Invalid context');
     
-    var currentGachaConfig = (family?.level >= 5) ? GACHA_CONFIG_PREMIUM : GACHA_CONFIG_BASIC;
+    var cBasic = window.FamilyConstants?.GACHA_CONFIG_BASIC || window.GACHA_CONFIG_BASIC || {};
+    var cPrem = window.FamilyConstants?.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG_PREMIUM || {};
+    var currentGachaConfig = (family?.level >= 5) ? cPrem : cBasic;
     var today = new Date().toDateString();
     var HARD_COST_CAP = 200;
 
     if (mode === 'free') {
         var lastFree = family.gachaFreeLastUsed;
         if (lastFree) {
-            var lastDate = lastFree.toDate ? lastFree.toDate() : new Date(lastFree.seconds * 1000);
+            var lastDate = lastFree.toDate ? lastFree.toDate() : new Date(typeof lastFree === 'number' ? lastFree : (lastFree.seconds || 0) * 1000);
             if (lastDate.toDateString() === today) {
                 onNotification(lang === 'ar' ? '⏳ استخدمت السحبة المجانية اليوم' : '⏳ Free spin already used today');
                 return null;

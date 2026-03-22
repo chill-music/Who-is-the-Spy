@@ -13,7 +13,10 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
 
     if (!show) return null;
 
-    var currentGachaConfig = window.GACHA_CONFIG || {};
+    var cBasic = window.FamilyConstants?.GACHA_CONFIG_BASIC || window.GACHA_CONFIG_BASIC || {};
+    var cPrem = window.FamilyConstants?.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG_PREMIUM || {};
+    var currentGachaConfig = (family?.level >= 5) ? cPrem : cBasic;
+    var rewards = currentGachaConfig.rewards || [];
 
     var handleSpin = async (mode) => {
         if (spinning) return;
@@ -132,6 +135,63 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
                         >
                             💎 {lang === 'ar' ? `سحبة بـ ${currentGachaConfig.paidCostPerSpin} إنتل` : `Spin for ${currentGachaConfig.paidCostPerSpin} Intel`}
                         </button>
+                    </div>
+
+                    {/* Rewards Preview Section */}
+                    <div style={{
+                        marginTop: '24px',
+                        background: 'rgba(255,255,255,0.05)',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        textAlign: 'left'
+                    }}>
+                        <div style={{
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'
+                        }}>
+                            <span style={{ color: '#e2e8f0', fontWeight: 'bold', fontSize: '14px' }}>
+                                {lang === 'ar' ? 'الجوائز المتاحة' : 'Available Rewards'}
+                            </span>
+                            <span style={{ fontSize: '12px', color: '#a78bfa' }}>
+                                {lang === 'ar' ? 'النسب المئوية التقريبية' : 'Estimated Rates'}
+                            </span>
+                        </div>
+                        
+                        <div style={{
+                            maxHeight: '120px',
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px',
+                            paddingRight: '6px'
+                        }}>
+                            {rewards.map((r, i) => (
+                                <div key={i} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    background: 'rgba(0,0,0,0.3)',
+                                    borderRadius: '8px',
+                                    padding: '8px 12px'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <span style={{ fontSize: '18px' }}>{r.icon}</span>
+                                        <span style={{ color: '#e2e8f0', fontSize: '13px' }}>
+                                            {lang === 'ar' ? r.label_ar : r.label_en}
+                                        </span>
+                                    </div>
+                                    <span style={{ 
+                                        color: r.rarity === 'legendary' ? '#fbbf24' : 
+                                               r.rarity === 'epic' ? '#a78bfa' : 
+                                               r.rarity === 'rare' ? '#60a5fa' : 
+                                               r.rarity === 'uncommon' ? '#4ade80' : '#9ca3af',
+                                        fontSize: '12px',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {r.rateDisplay}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     <button 

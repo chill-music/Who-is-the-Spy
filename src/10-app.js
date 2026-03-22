@@ -2725,7 +2725,7 @@ function App() {
                                                     <span style={{fontSize:'13px',fontWeight:hasUnread?800:600,color:hasUnread?'#f97316':'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'120px'}}>{userFamily.name}</span>
                                                     {window.FamilySignBadge && signData ? (
                                                         <div style={{transform:'scale(0.85)',transformOrigin:'left center'}}>
-                                                            <window.FamilySignBadge tag={userFamily.tag||'FAM'} color={signData.color} signLevel={signData.level} imageURL={userFamily.signImageURL} small={true} />
+                                                            <window.FamilySignBadge tag={userFamily.tag||'FAM'} color={signData.color} signLevel={signData.level} imageURL={signData.imageURL} small={true} />
                                                         </div>
                                                     ) : signData && <span style={{fontSize:'9px',fontWeight:800,color:signData.color,background:`${signData.color}20`,border:`1px solid ${signData.color}44`,borderRadius:'4px',padding:'1px 5px'}}>{userFamily.tag||'FAM'}</span>}
                                                 </div>

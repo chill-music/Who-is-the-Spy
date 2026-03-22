@@ -65,7 +65,7 @@ var getFamilySignLevelData = (activeness) => {
 var FAMILY_EMBLEMS = ['🏠', '⚔️', '🛡️', '👑', '🔥', '💎', '🚀', '🌌', '🍀', '🏆'];
 
 // Global access for legacy scripts
-window.FamilyConstants = {
+window.FamilyConstants = Object.assign(window.FamilyConstants || {}, {
     FAMILY_CREATE_COST,
     FAMILY_LEVEL_CONFIG,
     FAMILY_SIGN_LEVELS,
@@ -76,4 +76,4 @@ window.FamilyConstants = {
     getFamilyLevelConfig,
     getFamilyRole,
     getFamilySignLevelData
-};
+});

@@ -56,6 +56,7 @@ var FamilyManagement = ({
                 updates: { photoURL: base64 },
                 currentUID
             });
+            FamilyService.postNews(family.id, 'update', lang === 'ar' ? 'تم تحديث صورة العائلة 🖼️' : 'Family photo updated 🖼️');
             onNotification(lang === 'ar' ? '✅ تم تحديث صورة العائلة' : '✅ Family photo updated');
         } catch (err) {
             onNotification(lang === 'ar' ? '❌ خطأ في الرفع' : '❌ Upload error');
@@ -76,6 +77,7 @@ var FamilyManagement = ({
                 },
                 currentUID
             });
+            FamilyService.postNews(family.id, 'update', lang === 'ar' ? 'تم تحديث معلومات العائلة 📝' : 'Family info updated 📝');
             onNotification(lang === 'ar' ? '✅ تم الحفظ' : '✅ Saved');
         } catch (e) {
             onNotification(lang === 'ar' ? '❌ خطأ في الحفظ' : '❌ Save error');
@@ -92,6 +94,7 @@ var FamilyManagement = ({
         setSavingTag(true);
         try {
             await FamilyService.saveTag({ family, newTag: editTag, currentUID });
+            FamilyService.postNews(family.id, 'update', lang === 'ar' ? `تم تغيير وسم العائلة إلى ${editTag} 🏷️` : `Family tag changed to ${editTag} 🏷️`);
             onNotification(lang === 'ar' ? '✅ تم تغيير الوسم' : '✅ Tag updated');
         } catch (e) {
             onNotification(lang === 'ar' ? '❌ الوسم مستخدم بالفعل' : '❌ Tag already taken');
@@ -108,6 +111,7 @@ var FamilyManagement = ({
                 updates: { announcement: editAnnouncement.trim(), announcementBy: familyMembers.find(m => m.id === currentUID)?.displayName || 'Admin' },
                 currentUID
             });
+            FamilyService.postNews(family.id, 'announcement', lang === 'ar' ? 'تم تحديث إعلان العائلة 📢' : 'Family announcement updated 📢');
             onNotification(lang === 'ar' ? '✅ تم حفظ الإعلان' : '✅ Announcement saved');
         } catch (e) {
             onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error');
