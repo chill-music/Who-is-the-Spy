@@ -25,6 +25,7 @@ var FamilyProfile = ({
     var [showActModal, setShowActModal] = React.useState(false);
     var [buyingAct, setBuyingAct] = React.useState(false);
     var [upgradingClan, setUpgradingClan] = React.useState(false);
+    var [weeklyChestBusy, setWeeklyChestBusy] = React.useState(false);
 
     var fmtFamilyNum = window.fmtFamilyNum || ((n) => (n >= 1000 ? (n / 1000).toFixed(1) + 'K' : String(n)));
     var fLvl = window.FamilyConstants.getFamilyLevelConfig(family.level || 1);
@@ -139,13 +140,17 @@ var FamilyProfile = ({
                 level: newLevel,
             });
             if (window.FamilyService?.postNews) {
-                await window.FamilyService.postNews(family.id, 'level_up',
-                    lang === 'ar'
-                        ? `⬆️ ترقية للمستوى ${newLevel}: ${nextLevelCfg.name_ar}`
-                        : `⬆️ Leveled up to ${newLevel}: ${nextLevelCfg.name_en}`,
-                    0,
-                    { uid: currentUID, name: currentUserData?.displayName, photo: currentUserData?.photoURL }
-                );
+                try {
+                    await window.FamilyService.postNews(family.id, 'level_up',
+                        lang === 'ar'
+                            ? `⬆️ ترقية للمستوى ${newLevel}: ${nextLevelCfg.name_ar}`
+                            : `⬆️ Leveled up to ${newLevel}: ${nextLevelCfg.name_en}`,
+                        0,
+                        { uid: currentUID, name: currentUserData?.displayName, photo: currentUserData?.photoURL }
+                    );
+                } catch (e) {
+                    console.warn('postNews after level up failed', e);
+                }
             }
             onNotification(`🆙 ${lang === 'ar' ? 'مبروك! ارتفع مستوى القبيلة!' : 'Congrats! Clan leveled up!'}`);
         } catch (e) {
@@ -164,6 +169,60 @@ var FamilyProfile = ({
         var maxClaims = myAssigned.maxClaimsPerMember || 1;
         if (claimedCount >= maxClaims) return 'claimed';
         return 'unclaimed';
+    };
+
+    var onWeeklyChestClick = async (ms, milestoneIdx) => {
+        if (weeklyChestBusy || isReadOnly) return;
+        setWeeklyChestBusy(true);
+        try {
+            var claimedList = family.activenessClaimedMilestones || [];
+            var milestoneClaimed = claimedList.includes(milestoneIdx);
+            var reachedTotal = totalActiveness >= ms.threshold;
+
+            if (canManage && reachedTotal && !milestoneClaimed) {
+                var res = await window.FamilyService.handleClaimChest({
+                    family, chestIdx: milestoneIdx, currentUID, lang, onNotification,
+                });
+                if (res) {
+                    onNotification(lang === 'ar' ? `🎁 ${res.cfg.name_ar} في الخزينة` : `🎁 ${res.cfg.name_en} added to treasury`);
+                }
+                return;
+            }
+
+            var inv = family.treasuryInventory || [];
+            for (var i = 0; i < inv.length; i++) {
+                if (inv[i].chestType !== ms.chestType) continue;
+                var assigned = inv[i].assignedTo || [];
+                if (!assigned.includes(currentUID)) continue;
+                var claimedN = (inv[i].claimedBy || {})[currentUID] || 0;
+                if (claimedN >= (inv[i].maxClaimsPerMember || 1)) continue;
+                var openRes = await window.FamilyService.openAssignedChest({
+                    family,
+                    currentUID,
+                    currentUserData,
+                    inventoryIdx: i,
+                    lang,
+                    onNotification,
+                });
+                if (openRes && openRes.receiptText) {
+                    onNotification(openRes.receiptText);
+                } else if (openRes) {
+                    onNotification(lang === 'ar' ? '✅ تم الاستلام' : '✅ Claimed');
+                }
+                return;
+            }
+
+            if (reachedTotal && milestoneClaimed) {
+                onNotification(lang === 'ar' ? '📦 الصندوق في الخزينة — اطلب من المسؤول التوزيع' : '📦 Chest is in treasury — ask admin to assign');
+            } else if (!reachedTotal) {
+                onNotification(lang === 'ar' ? '⏳ لم يصل النشاط الكلي للحد بعد' : '⏳ Total activeness not at threshold yet');
+            }
+        } catch (e) {
+            console.error(e);
+            onNotification(lang === 'ar' ? '❌ حدث خطأ' : '❌ Something went wrong');
+        } finally {
+            setWeeklyChestBusy(false);
+        }
     };
 
     return (
@@ -274,64 +333,79 @@ var FamilyProfile = ({
                                 </span>
                             </div>
                         )}
-                        {canManage && totalActiveness >= nextLevelCfg.activeness && familyTreasury >= (nextLevelCfg.upgradeCost || 0) && nextLevelCfg.upgradeCost > 0 && (
+                        {canManage && totalActiveness >= nextLevelCfg.activeness && familyTreasury >= (nextLevelCfg.upgradeCost || 0) && (
                             <button type="button" onClick={upgradeClan} disabled={upgradingClan} style={{ width: '100%', padding: '9px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg,#00f2ff,#7000ff)', color: 'white', fontSize: '12px', fontWeight: 900, cursor: upgradingClan ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', opacity: upgradingClan ? 0.7 : 1 }}>
                                 🆙 {lang === 'ar' ? 'ترقية القبيلة' : 'Upgrade Clan'} → {lang === 'ar' ? nextLevelCfg.name_ar : nextLevelCfg.name_en}
                             </button>
                         )}
-                        {canManage && (totalActiveness < nextLevelCfg.activeness || familyTreasury < (nextLevelCfg.upgradeCost || 0)) && nextLevelCfg.upgradeCost > 0 && (
+                        {canManage && (totalActiveness < nextLevelCfg.activeness || familyTreasury < (nextLevelCfg.upgradeCost || 0)) && (
                             <div style={{ fontSize: '10px', color: '#4b5563', textAlign: 'center', fontStyle: 'italic' }}>
-                                {lang === 'ar' ? 'أكمل المتطلبات لترقية القبيلة' : 'Complete requirements to upgrade clan'}
+                                {lang === 'ar' ? 'أكمل متطلبات النشاط والخزينة للترقية' : 'Meet activeness & treasury to upgrade'}
                             </div>
                         )}
                     </div>
                 )}
             </div>
 
-            {/* ══ WEEKLY ACTIVENESS ══ */}
+            {/* ══ WEEKLY ACTIVENESS + TOTAL MILESTONE CHESTS ══ */}
             <div style={{ margin: '10px 12px 0', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '12px 14px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#00f2ff', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
-                    📅 {lang === 'ar' ? 'النشاط الأسبوعي' : 'Weekly Activeness'}
+                <div style={{ marginBottom: '6px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#00f2ff', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        📅 {lang === 'ar' ? 'النشاط الأسبوعي وصناديق الإنجاز' : 'Weekly & milestone chests'}
+                    </div>
+                    <div style={{ fontSize: '9px', color: '#6b7280', marginTop: '4px' }}>
+                        {lang === 'ar' ? 'الصناديق حسب النشاط الكلي للقبيلة — اضغط للمطالبة أو الاستلام' : 'Chests unlock by total clan activeness — tap to claim to treasury or open your share'}
+                    </div>
                 </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
-                    {/* Left: weekly count + reset time */}
-                    <div style={{ background: 'rgba(0,242,255,0.06)', border: '1px solid rgba(0,242,255,0.2)', borderRadius: '12px', padding: '10px 12px', minWidth: '90px', display: 'flex', flexDirection: 'column', gap: '4px', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch', flexWrap: 'wrap' }}>
+                    <div style={{ background: 'rgba(0,242,255,0.06)', border: '1px solid rgba(0,242,255,0.2)', borderRadius: '12px', padding: '10px 12px', minWidth: '88px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '4px', justifyContent: 'center' }}>
+                        <div style={{ fontSize: '9px', color: '#9ca3af', fontWeight: 700 }}>{lang === 'ar' ? 'أسبوعي' : 'Weekly'}</div>
                         <div style={{ fontSize: '18px', fontWeight: 900, color: '#00f2ff', letterSpacing: '-0.5px' }}>{weeklyActiveness.toLocaleString()}</div>
-                        <div style={{ fontSize: '8px', color: '#6b7280', lineHeight: 1.3 }}>
-                            {lang === 'ar' ? '🔄 إعادة:' : '🔄 Reset:'}
-                        </div>
+                        <div style={{ fontSize: '8px', color: '#6b7280', lineHeight: 1.3 }}>{lang === 'ar' ? '🔄 إعادة:' : '🔄 Reset:'}</div>
                         <div style={{ fontSize: '9px', color: '#9ca3af', fontWeight: 700 }}>{getNextSunday()}</div>
-                        <div style={{ fontSize: '8px', color: '#4b5563' }}>{lang === 'ar' ? '(الأحد)' : '(Sunday)'}</div>
                     </div>
 
-                    {/* Right: milestone chests */}
-                    <div style={{ flex: 1, display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-                        {WEEKLY_MILESTONES.map((ms) => {
-                            var reached = weeklyActiveness >= ms.threshold;
+                    <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: '8px', alignContent: 'start' }}>
+                        {WEEKLY_MILESTONES.map((ms, idx) => {
+                            var reached = totalActiveness >= ms.threshold;
                             var status = getChestStatus(ms.chestType);
                             var isClaimed = status === 'claimed';
                             var isUnclaimed = status === 'unclaimed';
+                            var milestoneDone = (family.activenessClaimedMilestones || []).includes(idx);
+                            var chestCfg = (window.CHEST_CONFIG && window.CHEST_CONFIG[ms.chestType]) || {};
+                            var accent = chestCfg.color || '#f97316';
                             return (
-                                <div key={ms.chestType} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', minWidth: '46px' }}>
-                                    <div style={{
-                                        width: '40px', height: '40px', borderRadius: '10px',
-                                        background: isClaimed ? 'rgba(16,185,129,0.15)' : reached ? 'rgba(255,215,0,0.1)' : 'rgba(255,255,255,0.04)',
-                                        border: `1.5px solid ${isClaimed ? '#10b981' : reached ? 'rgba(255,215,0,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px',
-                                        filter: !reached ? 'grayscale(0.8) opacity(0.4)' : 'none',
-                                        position: 'relative',
-                                        boxShadow: isUnclaimed ? '0 0 10px rgba(255,215,0,0.4)' : 'none',
-                                    }}>
-                                        {ms.imageURL
-                                            ? <img src={ms.imageURL} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
-                                            : ms.icon}
-                                        {isClaimed && <div style={{ position: 'absolute', top: '-4px', right: '-4px', width: '14px', height: '14px', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px' }}>✓</div>}
-                                        {isUnclaimed && <div style={{ position: 'absolute', top: '-4px', right: '-4px', width: '14px', height: '14px', borderRadius: '50%', background: '#ffd700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px' }}>!</div>}
-                                    </div>
-                                    <div style={{ fontSize: '8px', color: reached ? '#ffd700' : '#4b5563', textAlign: 'center', lineHeight: 1.2, fontWeight: reached ? 700 : 400 }}>
+                                <button
+                                    type="button"
+                                    key={ms.chestType + '-' + idx}
+                                    onClick={() => onWeeklyChestClick(ms, idx)}
+                                    disabled={weeklyChestBusy}
+                                    style={{
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px 4px',
+                                        minHeight: '88px', borderRadius: '12px', border: `1.5px solid ${isClaimed ? '#10b981' : reached ? accent + '99' : 'rgba(255,255,255,0.1)'}`,
+                                        background: isClaimed ? 'rgba(16,185,129,0.1)' : reached ? accent + '18' : 'rgba(255,255,255,0.03)',
+                                        cursor: weeklyChestBusy ? 'wait' : 'pointer',
+                                        filter: !reached ? 'grayscale(0.75) opacity(0.45)' : 'none',
+                                        position: 'relative', boxShadow: isUnclaimed ? '0 0 12px rgba(255,215,0,0.35)' : 'none',
+                                    }}
+                                >
+                                    <div style={{ fontSize: '26px', lineHeight: 1 }}>{ms.imageURL ? <img src={ms.imageURL} alt="" style={{ width: '32px', height: '32px', objectFit: 'contain' }} /> : ms.icon}</div>
+                                    <div style={{ fontSize: '8px', fontWeight: 800, color: reached ? accent : '#6b7280', textAlign: 'center', lineHeight: 1.15 }}>
                                         {ms.threshold >= 1000 ? (ms.threshold / 1000) + 'K' : ms.threshold}
                                     </div>
-                                </div>
+                                    <div style={{ fontSize: '7px', color: '#6b7280', textAlign: 'center', lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {lang === 'ar' ? (chestCfg.name_ar || ms.name_ar) : (chestCfg.name_en || ms.name_en)}
+                                    </div>
+                                    {canManage && reached && !milestoneDone && (
+                                        <div style={{ fontSize: '7px', color: '#22d3ee', fontWeight: 800 }}>{lang === 'ar' ? 'لمّ للخزينة' : 'Claim'}</div>
+                                    )}
+                                    {isUnclaimed && (
+                                        <div style={{ position: 'absolute', top: '2px', right: '2px', width: '14px', height: '14px', borderRadius: '50%', background: '#ffd700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 900, color: '#111' }}>!</div>
+                                    )}
+                                    {isClaimed && (
+                                        <div style={{ position: 'absolute', top: '2px', right: '2px', width: '14px', height: '14px', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', color: '#fff' }}>✓</div>
+                                    )}
+                                </button>
                             );
                         })}
                     </div>

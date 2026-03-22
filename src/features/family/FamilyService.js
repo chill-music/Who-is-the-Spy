@@ -320,7 +320,9 @@ var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, 
     if (!family?.id || !canManageFamily(family, currentUID)) throw new Error('Unauthorized');
     var inv = [...(family.treasuryInventory || [])];
     var chest = inv[chestIdx];
-    if (!chest || chest.assignedTo) return;
+    if (!chest) return;
+    var already = chest.assignedTo;
+    if (Array.isArray(already) && already.length > 0) return;
 
     inv[chestIdx] = {
         ...chest,
@@ -336,7 +338,11 @@ var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, 
     // Announcement in chat
     var cfg = CHEST_CONFIG[chest.chestType];
     var chestIcon = cfg?.icon || '📦';
-    var names = (family.membersData || [])
+    var memberList = family.membersData || [];
+    if (!memberList.length && family.members && family.members.length) {
+        memberList = family.members.map(uid => ({ id: uid, displayName: uid.slice(-6) }));
+    }
+    var names = memberList
         .filter(m => selectedUIDs.includes(m.id))
         .map(m => m.displayName)
         .join(', ');
@@ -650,13 +656,17 @@ var handleDonate = async ({ family, amount, currentUID, currentUserData, lang })
         text: lang === 'ar' ? `💰 ${currentUserData?.displayName} تبرع بـ ${amount} إنتل 🧠` : `💰 ${currentUserData?.displayName} donated ${amount} Intel 🧠`,
         timestamp: TS(),
     });
-    await postNews(family.id, 'donation',
-        lang === 'ar'
-            ? `${currentUserData?.displayName || 'عضو'} تبرع بـ ${amount} إنتل`
-            : `${currentUserData?.displayName || 'Member'} donated ${amount} Intel`,
-        amount,
-        { uid: currentUID, name: currentUserData?.displayName, photo: currentUserData?.photoURL }
-    );
+    try {
+        await postNews(family.id, 'donation',
+            lang === 'ar'
+                ? `${currentUserData?.displayName || 'عضو'} تبرع بـ ${amount} إنتل`
+                : `${currentUserData?.displayName || 'Member'} donated ${amount} Intel`,
+            amount,
+            { uid: currentUID, name: currentUserData?.displayName, photo: currentUserData?.photoURL }
+        );
+    } catch (e) {
+        console.warn('FamilyService.handleDonate: postNews failed (donation still applied)', e);
+    }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

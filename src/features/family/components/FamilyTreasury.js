@@ -55,7 +55,7 @@ var FamilyTreasury = ({
     const [selectedAssignees, setSelectedAssignees] = React.useState([]);
     const [assigningLoading, setAssigningLoading] = React.useState(false);
 
-    const { treasury, treasuryInventory, level, activeness: totalAct } = family || {};
+    const { treasury, treasuryInventory, level } = family || {};
     var fLvl = FamilyService.getFamilyLevelConfig(level || 1);
 
     var handleDonate = async () => {
@@ -79,17 +79,6 @@ var FamilyTreasury = ({
         }
     };
 
-    var handleClaimChest = async (idx) => {
-        try {
-            var res = await FamilyService.handleClaimChest({ family, chestIdx: idx, currentUID, lang, onNotification });
-            if (res) {
-                onNotification(lang === 'ar' ? `🎁 تم استلام ${res.cfg.name_ar} في الخزينة!` : `🎁 ${res.cfg.name_en} added to treasury!`);
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
     var assignChest = async () => {
         if (!assigningChest || selectedAssignees.length === 0) return;
         setAssigningLoading(true);
@@ -106,6 +95,7 @@ var FamilyTreasury = ({
             setSelectedAssignees([]);
             onNotification(lang === 'ar' ? '✅ تم توزيع الصندوق بنجاح' : '✅ Chest assigned successfully');
         } catch (e) {
+            console.error('assignChest', e);
             onNotification(lang === 'ar' ? '❌ فشل التوزيع' : '❌ Assignment failed');
         } finally {
             setAssigningLoading(false);
@@ -134,35 +124,7 @@ var FamilyTreasury = ({
 
     return (
         <React.Fragment>
-            {/* ── Milestones Section ── */}
-            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '16px', padding: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#e2e8f0', borderLeft: '3px solid #f97316', paddingLeft: '8px' }}>
-                        🔥 {lang === 'ar' ? 'إنجازات النشاط' : 'Activeness Milestones'}
-                    </span>
-                    <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 700 }}>{fmtFamilyNum(totalAct)} pts</div>
-                </div>
-                <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
-                    {ACTIVENESS_MILESTONES.map((ms, idx) => {
-                        var isReached = totalAct >= ms.threshold;
-                        var isClaimed = (family?.activenessClaimedMilestones || []).includes(idx);
-                        var cfg = CHEST_CONFIG[ms.chestType];
-                        return (
-                            <div key={idx} style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '72px', opacity: isReached ? 1 : 0.5, filter: isReached ? 'none' : 'grayscale(0.6)', cursor: (isReached && !isClaimed && canManage) ? 'pointer' : 'default' }}
-                                onClick={() => { if (isReached && !isClaimed && canManage) handleClaimChest(idx); }}>
-                                <div style={{ position: 'relative', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isClaimed ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.05)', borderRadius: '14px', border: isClaimed ? '1px solid #10b981' : isReached ? `1px solid ${cfg.color}` : '1px solid rgba(255,255,255,0.1)', transition: 'all 0.2s' }}>
-                                    {ms.imageURL ? <img src={ms.imageURL} alt="" style={{ width: '38px', height: '38px', objectFit: 'contain' }} /> : <div style={{ fontSize: '28px' }}>{ms.icon}</div>}
-                                    {isClaimed && <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', background: '#10b981', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #0d0d1f', fontSize: '9px', color: 'white' }}>✓</div>}
-                                </div>
-                                <div style={{ fontSize: '9px', fontWeight: 700, color: isClaimed ? '#10b981' : isReached ? cfg.color : '#6b7280', textAlign: 'center' }}>{fmtFamilyNum(ms.threshold)}</div>
-                                <div style={{ fontSize: '7px', color: '#6b7280', textAlign: 'center', lineHeight: 1.2 }}>{lang === 'ar' ? ms.name_ar : ms.name_en}</div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* ── Treasury Section ── */}
+            {/* ── Treasury Section (milestone chests are on Profile → Weekly & milestone chests) ── */}
             <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '16px', padding: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.4)', marginTop: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <span style={{ fontSize: '14px', fontWeight: 800, color: '#e2e8f0', borderLeft: '3px solid #10b981', paddingLeft: '8px' }}>🛡️ {lang === 'ar' ? 'الخزينة' : 'Treasury'}</span>
