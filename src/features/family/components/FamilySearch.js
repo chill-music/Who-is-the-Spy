@@ -31,6 +31,7 @@ var FamilySearch = ({
     const [tribeDesc, setFamilyDesc] = useState('');
     const [joinMode, setJoinMode] = useState('open');
     const [creating, setCreating] = useState(false);
+    const [previewSignLevel, setPreviewSignLevel] = useState(1);
 
     useEffect(() => {
         if (view === 'home' || view === 'join') {
@@ -79,10 +80,10 @@ var FamilySearch = ({
             await createFamily({
                 currentUID,
                 currentUserData,
-                emblem: tribeEmblem,
-                name: tribeName.trim(),
-                tagName: tribeTag.trim(),
-                info: tribeDesc.trim(),
+                tribeEmblem: tribeEmblem,
+                tribeName: tribeName.trim(),
+                tribeTag: tribeTag.trim(),
+                tribeDesc: tribeDesc.trim(),
                 joinMode,
                 lang,
                 onNotification
@@ -118,18 +119,18 @@ var FamilySearch = ({
     if (view === 'home' || view === 'join') {
         const isSearch = view === 'join';
         return (
-            <div style={{display:'flex', flexDirection:'column', height:'100%', background:'#f8f9fa'}}>
+            <div style={{display:'flex', flexDirection:'column', height:'100%', background:'linear-gradient(135deg, #0b0f19 0%, #1a2235 100%)', color:'white'}}>
                 {/* Header */}
-                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px', background:'white', borderBottom:'1px solid #e5e7eb'}}>
+                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px', background:'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                     <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
-                        <button onClick={onClose} style={{background:'none', border:'none', fontSize:'24px', cursor:'pointer', color:'#111827', padding:0}}>‹</button>
-                        <span style={{fontSize:'18px', fontWeight:800, color:'#111827'}}>{lang==='ar'?'القبائل':'Family Square'}</span>
+                        <button onClick={onClose} style={{background:'none', border:'none', fontSize:'24px', cursor:'pointer', color:'white', padding:0}}>‹</button>
+                        <span style={{fontSize:'18px', fontWeight:800}}>{lang==='ar'?'القبائل':'Family Square'}</span>
                     </div>
                     <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
-                        <button onClick={() => setView(isSearch ? 'home' : 'join')} style={{background:'none', border:'none', fontSize:'20px', cursor:'pointer', color:'#4b5563', padding:0}}>
+                        <button onClick={() => setView(isSearch ? 'home' : 'join')} style={{background:'none', border:'none', fontSize:'20px', cursor:'pointer', color:'#9ca3af', padding:0}}>
                             {isSearch ? '✕' : '🔍'}
                         </button>
-                        <button onClick={() => setView('create')} style={{padding:'6px 16px', borderRadius:'20px', background:'white', border:'1px solid #e5e7eb', color:'#111827', fontSize:'14px', fontWeight:600, cursor:'pointer', boxShadow:'0 2px 4px rgba(0,0,0,0.05)'}}>
+                        <button onClick={() => setView('create')} style={{padding:'6px 16px', borderRadius:'20px', background:'rgba(0,219,222,0.1)', border:'1px solid #00dbde', color:'#00dbde', fontSize:'14px', fontWeight:600, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,219,222,0.15)'}}>
                             {lang==='ar'?'إنشاء':'Create'}
                         </button>
                     </div>
@@ -137,9 +138,9 @@ var FamilySearch = ({
 
                 {/* Search Input (if in join view) */}
                 {isSearch && (
-                    <div style={{padding:'16px', background:'white', borderBottom:'1px solid #e5e7eb'}}>
+                    <div style={{padding:'16px', background:'rgba(255,255,255,0.02)', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                         <div style={{display:'flex', position:'relative'}}>
-                            <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleSearch()} placeholder={lang==='ar'?'ابحث بالتاج للقبيلة...':'Search family tag...'} style={{width:'100%', padding:'12px 40px 12px 16px', borderRadius:'24px', border:'1px solid #e5e7eb', background:'#f3f4f6', fontSize:'14px', outline:'none'}} />
+                            <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleSearch()} placeholder={lang==='ar'?'ابحث بالتاج للقبيلة...':'Search family tag...'} style={{width:'100%', padding:'12px 40px 12px 16px', borderRadius:'24px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(0,0,0,0.2)', color:'white', fontSize:'14px', outline:'none'}} />
                             <button onClick={handleSearch} style={{position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', fontSize:'18px', cursor:'pointer', color:'#9ca3af'}}>🔍</button>
                         </div>
                     </div>
@@ -147,11 +148,11 @@ var FamilySearch = ({
 
                 {/* Tabs (only when not searching) */}
                 {!isSearch && (
-                    <div style={{display:'flex', background:'white', borderBottom:'1px solid #e5e7eb'}}>
-                        <button onClick={() => setHomeTab('new')} style={{flex:1, padding:'16px', fontSize:'15px', fontWeight: homeTab==='new'?800:500, color: homeTab==='new'?'#111827':'#9ca3af', border:'none', background:'none', borderBottom: homeTab==='new'?'3px solid #00dbde':'3px solid transparent', cursor:'pointer', transition:'all 0.2s'}}>
+                    <div style={{display:'flex', background:'rgba(255,255,255,0.02)', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                        <button onClick={() => setHomeTab('new')} style={{flex:1, padding:'16px', fontSize:'15px', fontWeight: homeTab==='new'?800:500, color: homeTab==='new'?'#00dbde':'#9ca3af', border:'none', background:'none', borderBottom: homeTab==='new'?'3px solid #00dbde':'3px solid transparent', cursor:'pointer', transition:'all 0.2s'}}>
                             {lang==='ar'?'قبائل جديدة':'New Recommend'}
                         </button>
-                        <button onClick={() => setHomeTab('active')} style={{flex:1, padding:'16px', fontSize:'15px', fontWeight: homeTab==='active'?800:500, color: homeTab==='active'?'#111827':'#9ca3af', border:'none', background:'none', borderBottom: homeTab==='active'?'3px solid #00dbde':'3px solid transparent', cursor:'pointer', transition:'all 0.2s'}}>
+                        <button onClick={() => setHomeTab('active')} style={{flex:1, padding:'16px', fontSize:'15px', fontWeight: homeTab==='active'?800:500, color: homeTab==='active'?'#fc00ff':'#9ca3af', border:'none', background:'none', borderBottom: homeTab==='active'?'3px solid #fc00ff':'3px solid transparent', cursor:'pointer', transition:'all 0.2s'}}>
                             {lang==='ar'?'توصيات نشطة':'Active Recommend'}
                         </button>
                     </div>
@@ -168,29 +169,29 @@ var FamilySearch = ({
                             var levelData = getFamilyLevelConfig(f.level || 1);
                             // Ranks presentation
                             var rankIcon = i === 0 ? '🏆' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`;
-                            var rankBg = i === 0 ? '#fef3c7' : i === 1 ? '#f3f4f6' : i === 2 ? '#ffedd5' : 'transparent';
-                            var rankColor = i === 0 ? '#d97706' : i === 1 ? '#4b5563' : i === 2 ? '#c2410c' : '#9ca3af';
+                            var rankBg = i === 0 ? 'rgba(251,191,36,0.1)' : i === 1 ? 'rgba(156,163,175,0.1)' : i === 2 ? 'rgba(234,88,12,0.1)' : 'transparent';
+                            var rankColor = i === 0 ? '#fbbf24' : i === 1 ? '#d1d5db' : i === 2 ? '#ea580c' : '#9ca3af';
 
                             return (
-                                <div key={f.id} style={{display:'flex', alignItems:'center', gap:'12px', background:'white', padding:'12px', borderRadius:'16px', boxShadow:'0 2px 8px rgba(0,0,0,0.03)'}}>
-                                    <div style={{width:'32px', display:'flex', justifyContent:'center', fontSize:'18px', fontWeight:800, color:rankColor, background:rankBg, borderRadius:'50%', width:'36px', height:'36px', alignItems:'center'}}>
+                                <div key={f.id} style={{display:'flex', alignItems:'center', gap:'12px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.05)', padding:'12px', borderRadius:'16px', boxShadow:'0 4px 12px rgba(0,0,0,0.2)'}}>
+                                    <div style={{width:'36px', height:'36px', display:'flex', justifyContent:'center', fontSize:'18px', fontWeight:800, color:rankColor, background:rankBg, borderRadius:'50%', alignItems:'center'}}>
                                         {rankIcon}
                                     </div>
-                                    <div style={{width:'56px', height:'56px', borderRadius:'16px', background:'linear-gradient(135deg, #f3f4f6, #e5e7eb)', border:`2px solid ${levelData.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'28px', overflow:'hidden', flexShrink:0}}>
+                                    <div style={{width:'56px', height:'56px', borderRadius:'16px', background:'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))', border:`2px solid ${levelData.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'28px', overflow:'hidden', flexShrink:0}}>
                                         {f.photoURL ? <img src={f.photoURL} style={{width:'100%', height:'100%', objectFit:'cover'}} alt=""/> : (f.emblem || '🛡️')}
                                     </div>
                                     <div style={{flex:1, minWidth:0}}>
                                         <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
-                                            <span style={{fontSize:'16px', fontWeight:800, color:'#111827', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{f.name}</span>
-                                            <span style={{fontSize:'10px', fontWeight:700, padding:'2px 6px', borderRadius:'4px', background:`${levelData.color}22`, color:levelData.color}}>{f.tag} · Lv.{f.level || 1}</span>
+                                            <span style={{fontSize:'16px', fontWeight:800, color:'white', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{f.name}</span>
+                                            <span style={{fontSize:'10px', fontWeight:700, padding:'2px 6px', borderRadius:'4px', background:`${levelData.color}22`, color:levelData.color, flexShrink:0}}>{f.tag} · Lv.{f.level || 1}</span>
                                         </div>
-                                        <div style={{fontSize:'12px', color:'#6b7280', margin:'4px 0', display:'flex', alignItems:'center', gap:'6px'}}>
+                                        <div style={{fontSize:'12px', color:'#9ca3af', margin:'4px 0', display:'flex', alignItems:'center', gap:'6px'}}>
                                             <span style={{display:'flex', alignItems:'center', gap:'4px'}}><span style={{fontSize:'14px', color:'#3b82f6'}}>🛡️</span> {f.activeness || 0}</span>
                                             <span>·</span>
                                             <span style={{display:'flex', alignItems:'center', gap:'4px'}}>👥 {f.members?.length || 0}/{levelData.maxMembers}</span>
                                         </div>
                                         {/* Optional badges for top active etc */}
-                                        {i === 0 && <span style={{display:'inline-block', fontSize:'10px', fontWeight:800, color:'#d97706', background:'#fef3c7', padding:'2px 8px', borderRadius:'10px'}}>Top1 active</span>}
+                                        {i === 0 && <span style={{display:'inline-block', fontSize:'10px', fontWeight:800, color:'#fbbf24', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.2)', padding:'2px 8px', borderRadius:'10px'}}>Top1 active</span>}
                                     </div>
                                     <button onClick={(e)=>{e.stopPropagation(); alert('طلب انضمام غير متصل حالياً للمعاينة');}} style={{padding:'8px 20px', borderRadius:'20px', background:'linear-gradient(135deg, #00dbde, #fc00ff)', border:'none', color:'white', fontSize:'14px', fontWeight:800, cursor:'pointer', boxShadow:'0 4px 10px rgba(0,0,0,0.15)'}}>
                                         {lang==='ar'?'انضمام':'Join'}
@@ -209,7 +210,7 @@ var FamilySearch = ({
         const canCreate = charismaLvl >= 4;
 
         return (
-            <div style={{display:'flex', flexDirection:'column', height:'100%', background:'#111827', color:'white'}}>
+            <div style={{display:'flex', flexDirection:'column', height:'100%', background:'linear-gradient(135deg, #0b0f19 0%, #1a2235 100%)', color:'white'}}>
                 {/* Header */}
                 <div style={{display:'flex', alignItems:'center', padding:'16px', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                     <button onClick={() => setView('home')} style={{background:'none', border:'none', fontSize:'24px', cursor:'pointer', color:'white', padding:0, marginRight:'16px'}}>‹</button>
@@ -225,13 +226,20 @@ var FamilySearch = ({
                         </div>
                         <div style={{fontSize:'22px', fontWeight:900, marginBottom:'8px', minHeight:'26px'}}>{tribeName || (lang==='ar'?'اسم القبيلة':'Family Name')}</div>
                         {tribeTag ? (
-                            <div style={{display:'flex', alignItems:'center', gap:'6px', justifyContent:'center'}}>
-                                <FamilySignBadge tag={tribeTag} color="#a78bfa" small signLevel={1} />
+                            <div style={{display:'flex', alignItems:'center', gap:'16px', justifyContent:'center'}}>
+                                <button onClick={() => setPreviewSignLevel(Math.max(1, previewSignLevel - 1))} style={{background:'rgba(255,255,255,0.1)', border:'none', color:'white', width:'30px', height:'30px', borderRadius:'50%', cursor:previewSignLevel>1?'pointer':'not-allowed', opacity:previewSignLevel>1?1:0.3, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', fontWeight:800}}>‹</button>
+                                
+                                <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:'4px'}}>
+                                    <FamilySignBadge tag={tribeTag} color="#a78bfa" small={false} signLevel={previewSignLevel} />
+                                    <span style={{fontSize:'10px', color:'#9ca3af', fontWeight:700}}>Lv.{previewSignLevel}</span>
+                                </div>
+                                
+                                <button onClick={() => setPreviewSignLevel(Math.min(5, previewSignLevel + 1))} style={{background:'rgba(255,255,255,0.1)', border:'none', color:'white', width:'30px', height:'30px', borderRadius:'50%', cursor:previewSignLevel<5?'pointer':'not-allowed', opacity:previewSignLevel<5?1:0.3, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', fontWeight:800}}>›</button>
                             </div>
                         ) : (
                             <div style={{fontSize:'12px', color:'#6b7280'}}>{lang==='ar'?'أدخل تاج القبيلة لرؤية الشكل':'Enter family tag to preview sign'}</div>
                         )}
-                        <div style={{marginTop:'16px', fontSize:'13px', color:'#9ca3af', maxWidth:'240px', lineHeight:1.5}}>
+                        <div style={{marginTop:'16px', fontSize:'12px', color:'#9ca3af', width:'100%', wordBreak:'break-word', whiteSpace:'pre-wrap', lineHeight:1.5}}>
                             {tribeDesc || (lang==='ar'?'الوصف الخاص بالقبيلة سيظهر هنا...':'Family description will appear here...')}
                         </div>
                     </div>
@@ -241,7 +249,7 @@ var FamilySearch = ({
                         <div>
                             <div style={{fontSize:'13px', fontWeight:700, color:'#9ca3af', marginBottom:'8px'}}>{lang==='ar'?'اختر صورة القبيلة':'Select Family Emblem'}</div>
                             <div style={{display:'flex', flexWrap:'wrap', gap:'8px'}}>
-                                {(FAMILY_EMBLEMS||['🛡️','🦅','🦁','👑','⚔️','🐺','🐉','🎯','⚓','⚡']).map(e => (
+                                {['🛡️','🦅','🦁','👑','⚔️','🐺','🐉','🎯','⚓','⚡'].map(e => (
                                     <button key={e} onClick={()=>setFamilyEmblem(e)} style={{width:'46px', height:'46px', borderRadius:'14px', border:tribeEmblem===e?'2px solid #00dbde':'1px solid rgba(255,255,255,0.1)', background:tribeEmblem===e?'rgba(0,219,222,0.1)':'rgba(255,255,255,0.03)', fontSize:'24px', cursor:'pointer', transition:'all 0.2s'}}>
                                         {e}
                                     </button>
@@ -251,7 +259,7 @@ var FamilySearch = ({
 
                         <div>
                             <div style={{fontSize:'13px', fontWeight:700, color:'#9ca3af', marginBottom:'8px'}}>{lang==='ar'?'اسم القبيلة *':'Family Name *'}</div>
-                            <input value={tribeName} onChange={e=>setFamilyName(e.target.value)} maxLength={14} placeholder={lang==='ar'?'اسم مميز...':'Unique name...'} style={{width:'100%', padding:'16px', borderRadius:'14px', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'15px', outline:'none', boxSizing:'border-box'}} />
+                            <input value={tribeName} onChange={e=>setFamilyName(e.target.value.replace(/[^a-zA-Z\u0600-\u06FF\s]/g, ''))} maxLength={14} placeholder={lang==='ar'?'اسم مميز (حروف فقط)...':'Unique name (letters only)...'} style={{width:'100%', padding:'16px', borderRadius:'14px', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'15px', outline:'none', boxSizing:'border-box'}} />
                         </div>
 
                         <div>
@@ -309,3 +317,5 @@ var FamilySearch = ({
 
     return null;
 };
+
+window.FamilySearch = FamilySearch;
