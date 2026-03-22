@@ -13,8 +13,8 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
 
     if (!show) return null;
 
-    var cBasic = window.FamilyConstants?.GACHA_CONFIG_BASIC || window.GACHA_CONFIG_BASIC || {};
-    var cPrem = window.FamilyConstants?.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG_PREMIUM || {};
+    var cBasic = window.FamilyConstants?.GACHA_CONFIG_BASIC || window.GACHA_CONFIG_BASIC || window.GACHA_CONFIG || {};
+    var cPrem = window.FamilyConstants?.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG || {};
     var currentGachaConfig = (family?.level >= 5) ? cPrem : cBasic;
     var rewards = currentGachaConfig.rewards || [];
 

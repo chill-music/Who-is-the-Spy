@@ -227,6 +227,8 @@ var GACHA_CONFIG = {
           label_en:'Rare Chest', label_ar:'صندوق نادر', rateDisplay:'0.34%' },
     ],
 };
+window.GACHA_CONFIG = GACHA_CONFIG;
+
 
 // ── ألوان نادرية الجاتشه ──
 var GACHA_RARITY_COLORS = {

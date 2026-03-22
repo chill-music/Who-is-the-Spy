@@ -361,8 +361,8 @@ var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, 
 var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free', lang, onNotification }) => {
     if (!family?.id || !currentUID) throw new Error('Invalid context');
     
-    var cBasic = window.FamilyConstants?.GACHA_CONFIG_BASIC || window.GACHA_CONFIG_BASIC || {};
-    var cPrem = window.FamilyConstants?.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG_PREMIUM || {};
+    var cBasic = window.FamilyConstants?.GACHA_CONFIG_BASIC || window.GACHA_CONFIG_BASIC || window.GACHA_CONFIG || {};
+    var cPrem = window.FamilyConstants?.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG || {};
     var currentGachaConfig = (family?.level >= 5) ? cPrem : cBasic;
     var today = new Date().toDateString();
     var HARD_COST_CAP = 200;
