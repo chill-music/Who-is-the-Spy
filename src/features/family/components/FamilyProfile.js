@@ -40,13 +40,13 @@ var FamilyProfile = ({
     // ── Activeness progress ──
     var totalActiveness = family.activeness || 0;
     var weeklyActiveness = family.weeklyActiveness || 0;
-    var WEEKLY_MILESTONES = window.ACTIVENESS_MILESTONES || [
+    var WEEKLY_MILESTONES = (window.ACTIVENESS_MILESTONES || [
         { threshold: 8000,   chestType: 'normal',   icon: '📦', name_en: 'Normal Chest',   name_ar: 'صندوق عادي' },
         { threshold: 24000,  chestType: 'advanced', icon: '🎁', name_en: 'Advanced Chest', name_ar: 'صندوق متقدم' },
         { threshold: 60000,  chestType: 'rare',     icon: '💠', name_en: 'Rare Chest',     name_ar: 'صندوق نادر' },
         { threshold: 120000, chestType: 'epic',     icon: '💎', name_en: 'Epic Chest',     name_ar: 'صندوق ملحمي' },
         { threshold: 280000, chestType: 'super',    icon: '👑', name_en: 'Super Chest',    name_ar: 'صندوق أسطوري' },
-    ];
+    ]).sort((a, b) => a.threshold - b.threshold); // Sort by threshold (lowest to highest)
 
     // Level progress
     var FAMILY_LEVEL_CONFIGS = window.FamilyConstants?.FAMILY_LEVEL_CONFIG || window.FAMILY_LEVEL_CONFIG || [];
@@ -358,14 +358,14 @@ var FamilyProfile = ({
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch', flexWrap: 'wrap' }}>
-                    <div style={{ background: 'rgba(0,242,255,0.06)', border: '1px solid rgba(0,242,255,0.2)', borderRadius: '12px', padding: '10px 12px', minWidth: '88px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '4px', justifyContent: 'center' }}>
-                        <div style={{ fontSize: '9px', color: '#9ca3af', fontWeight: 700 }}>{lang === 'ar' ? 'أسبوعي' : 'Weekly'}</div>
-                        <div style={{ fontSize: '18px', fontWeight: 900, color: '#00f2ff', letterSpacing: '-0.5px' }}>{weeklyActiveness.toLocaleString()}</div>
-                        <div style={{ fontSize: '8px', color: '#6b7280', lineHeight: 1.3 }}>{lang === 'ar' ? '🔄 إعادة:' : '🔄 Reset:'}</div>
-                        <div style={{ fontSize: '9px', color: '#9ca3af', fontWeight: 700 }}>{getNextSunday()}</div>
+                    <div style={{ background: 'rgba(0,242,255,0.06)', border: '1px solid rgba(0,242,255,0.2)', borderRadius: '12px', padding: '8px 10px', minWidth: '70px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}>
+                        <div style={{ fontSize: '8px', color: '#9ca3af', fontWeight: 700 }}>{lang === 'ar' ? 'أسبوعي' : 'Weekly'}</div>
+                        <div style={{ fontSize: '16px', fontWeight: 900, color: '#00f2ff', letterSpacing: '-0.5px' }}>{weeklyActiveness.toLocaleString()}</div>
+                        <div style={{ fontSize: '7px', color: '#6b7280', lineHeight: 1.2 }}>{lang === 'ar' ? '🔄 إعادة:' : '🔄 Reset:'}</div>
+                        <div style={{ fontSize: '8px', color: '#9ca3af', fontWeight: 700 }}>{getNextSunday()}</div>
                     </div>
 
-                    <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: '8px', alignContent: 'start' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))', gap: '6px', alignContent: 'start' }}>
                         {WEEKLY_MILESTONES.map((ms, idx) => {
                             var reached = totalActiveness >= ms.threshold;
                             var status = getChestStatus(ms.chestType);
@@ -374,6 +374,11 @@ var FamilyProfile = ({
                             var milestoneDone = (family.activenessClaimedMilestones || []).includes(idx);
                             var chestCfg = (window.CHEST_CONFIG && window.CHEST_CONFIG[ms.chestType]) || {};
                             var accent = chestCfg.color || '#f97316';
+                            // Dynamic sizing based on threshold - smaller chests for lower thresholds
+                            var chestSize = ms.threshold <= 24000 ? 'small' : ms.threshold <= 120000 ? 'medium' : 'large';
+                            var iconSize = chestSize === 'small' ? '20px' : chestSize === 'medium' ? '26px' : '32px';
+                            var minHeight = chestSize === 'small' ? '76px' : chestSize === 'medium' ? '84px' : '92px';
+                            var fontSize = chestSize === 'small' ? '7px' : chestSize === 'medium' ? '8px' : '9px';
                             return (
                                 <button
                                     type="button"
@@ -381,29 +386,32 @@ var FamilyProfile = ({
                                     onClick={() => onWeeklyChestClick(ms, idx)}
                                     disabled={weeklyChestBusy}
                                     style={{
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px 4px',
-                                        minHeight: '88px', borderRadius: '12px', border: `1.5px solid ${isClaimed ? '#10b981' : reached ? accent + '99' : 'rgba(255,255,255,0.1)'}`,
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', padding: '6px 3px',
+                                        minHeight: minHeight, borderRadius: '12px', border: `1.5px solid ${isClaimed ? '#10b981' : reached ? accent + '99' : 'rgba(255,255,255,0.1)'}`,
                                         background: isClaimed ? 'rgba(16,185,129,0.1)' : reached ? accent + '18' : 'rgba(255,255,255,0.03)',
                                         cursor: weeklyChestBusy ? 'wait' : 'pointer',
                                         filter: !reached ? 'grayscale(0.75) opacity(0.45)' : 'none',
                                         position: 'relative', boxShadow: isUnclaimed ? '0 0 12px rgba(255,215,0,0.35)' : 'none',
+                                        transform: chestSize === 'large' ? 'scale(1.05)' : 'scale(1)',
                                     }}
                                 >
-                                    <div style={{ fontSize: '26px', lineHeight: 1 }}>{ms.imageURL ? <img src={ms.imageURL} alt="" style={{ width: '32px', height: '32px', objectFit: 'contain' }} /> : ms.icon}</div>
-                                    <div style={{ fontSize: '8px', fontWeight: 800, color: reached ? accent : '#6b7280', textAlign: 'center', lineHeight: 1.15 }}>
+                                    <div style={{ fontSize: '20px', lineHeight: 1, width: iconSize, height: iconSize, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {ms.imageURL ? <img src={ms.imageURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : ms.icon}
+                                    </div>
+                                    <div style={{ fontSize: fontSize, fontWeight: 800, color: reached ? accent : '#6b7280', textAlign: 'center', lineHeight: 1.15 }}>
                                         {ms.threshold >= 1000 ? (ms.threshold / 1000) + 'K' : ms.threshold}
                                     </div>
-                                    <div style={{ fontSize: '7px', color: '#6b7280', textAlign: 'center', lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    <div style={{ fontSize: '6px', color: '#6b7280', textAlign: 'center', lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {lang === 'ar' ? (chestCfg.name_ar || ms.name_ar) : (chestCfg.name_en || ms.name_en)}
                                     </div>
                                     {canManage && reached && !milestoneDone && (
-                                        <div style={{ fontSize: '7px', color: '#22d3ee', fontWeight: 800 }}>{lang === 'ar' ? 'لمّ للخزينة' : 'Claim'}</div>
+                                        <div style={{ fontSize: '6px', color: '#22d3ee', fontWeight: 800 }}>{lang === 'ar' ? 'لمّ للخزينة' : 'Claim'}</div>
                                     )}
                                     {isUnclaimed && (
-                                        <div style={{ position: 'absolute', top: '2px', right: '2px', width: '14px', height: '14px', borderRadius: '50%', background: '#ffd700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 900, color: '#111' }}>!</div>
+                                        <div style={{ position: 'absolute', top: '2px', right: '2px', width: chestSize === 'small' ? '12px' : '14px', height: chestSize === 'small' ? '12px' : '14px', borderRadius: '50%', background: '#ffd700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: chestSize === 'small' ? '6px' : '8px', fontWeight: 900, color: '#111' }}>!</div>
                                     )}
                                     {isClaimed && (
-                                        <div style={{ position: 'absolute', top: '2px', right: '2px', width: '14px', height: '14px', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', color: '#fff' }}>✓</div>
+                                        <div style={{ position: 'absolute', top: '2px', right: '2px', width: chestSize === 'small' ? '12px' : '14px', height: chestSize === 'small' ? '12px' : '14px', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: chestSize === 'small' ? '6px' : '8px', color: '#fff' }}>✓</div>
                                     )}
                                 </button>
                             );

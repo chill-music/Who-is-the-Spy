@@ -324,11 +324,11 @@ var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, 
     var already = chest.assignedTo;
     if (Array.isArray(already) && already.length > 0) return;
 
-    // Firestore forbids FieldValue.serverTimestamp() inside array elements — use a concrete Timestamp.
+    // Use FieldValue.serverTimestamp() for proper server-side timestamp
     inv[chestIdx] = {
         ...chest,
         assignedTo: selectedUIDs,
-        assignedAt: firebase.firestore.Timestamp.now(),
+        assignedAt: firebase.firestore.FieldValue.serverTimestamp(),
         assignedBy: currentUID,
         maxClaimsPerMember: 1,
         claimedBy: {},
