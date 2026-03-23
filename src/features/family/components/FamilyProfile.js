@@ -378,7 +378,7 @@ var FamilyProfile = ({
                 </div>
 
                 {/* Right Side: Chests Row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                     {WEEKLY_MILESTONES.map((ms, idx) => {
                         var reached = weeklyActiveness >= ms.threshold;
                         var status = getChestStatus(ms.chestType);
@@ -402,7 +402,7 @@ var FamilyProfile = ({
                                     cursor: weeklyChestBusy ? 'wait' : 'pointer',
                                     filter: !reached ? 'grayscale(0.8) opacity(0.5)' : 'none',
                                     position: 'relative',
-                                    flex: 1
+                                    flexShrink: 0
                                 }}
                             >
                                 <div style={{ position: 'relative', width: `${chestSize}px`, height: `${chestSize}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
