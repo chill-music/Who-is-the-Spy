@@ -25,7 +25,7 @@ var FamilyNews = ({ family, newsLog: newsLogProp, currentUserData, lang, S }) =>
         announcement:   { icon:'📢', color:'#fbbf24',  label_ar:'إعلان',        label_en:'Announcement' },
     };
 
-    var NEWS_FEED_TYPES = { donation: 1, level_up: 1, settings_change: 1 };
+    var NEWS_FEED_TYPES = { donation: 1, level_up: 1, settings_change: 1, milestone: 1 };
 
     // Use prop newsLog (from parent), fallback to family.newsLog for backward compat
     var rawLog = newsLogProp || family?.newsLog || [];
@@ -59,8 +59,8 @@ var FamilyNews = ({ family, newsLog: newsLogProp, currentUserData, lang, S }) =>
                     </div>
                     <div style={{ fontSize: '10px', color: '#4b5563', lineHeight: 1.5 }}>
                         {lang === 'ar'
-                            ? 'يُعرض: التبرعات، ترقية المستوى، وتعديلات المسؤولين على الإعدادات.'
-                            : 'Shows: donations, level ups, and owner/admin settings changes.'}
+                            ? 'يُعرض: التبرعات، ترقية المستوى، الصناديق المضافة للخزينة، وتعديلات المسؤولين على الإعدادات.'
+                            : 'Shows: donations, level ups, treasury chest updates, and owner/admin settings changes.'}
                     </div>
                 </div>
             ) : newsLog.map((item, idx) => {

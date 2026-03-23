@@ -324,15 +324,15 @@ var FamilyChatModal = (props) => {
                     var isSystem = msg.senderId === 'system' || msg.type === 'system';
                     var isDonation = msg.type === 'donation';
                     // 📦 Chest assign/open messages
-                    if (msg.type === 'chest_assign' || msg.type === 'chest_opened') {
+                    if (msg.type === 'chest_assigned' || msg.type === 'chest_opened') {
                         var cfg2 = CHEST_CONFIG[msg.chestType];
                         var msObj = ACTIVENESS_MILESTONES.find(m=>m.chestType===msg.chestType);
-                        var liveChest = (familyData?.treasuryInventory || []).find(inv=>inv.chestType===msg.chestType&&inv.assignedTo&&inv.inventoryIdx===msg.inventoryIdx);
-                        var isAssigned = msg.type === 'chest_assign' && (liveChest?.assignedTo || msg.assignedTo || []).includes(currentUID);
+                        var liveChest = (familyData?.treasuryInventory || []).find(inv => (msg.chestId && inv.chestId === msg.chestId) || (inv.chestType === msg.chestType && inv.sourceMilestoneIdx === msg.sourceMilestoneIdx));
+                        var isAssigned = msg.type === 'chest_assigned' && (liveChest?.assignedTo || msg.assignedTo || []).includes(currentUID);
                         var liveClaimedBy = liveChest?.claimedBy || msg.claimedBy || {};
                         var myClaimCount = isAssigned ? (liveClaimedBy[currentUID] || 0) : 0;
-                        var maxClaims = msg.maxClaimsPerMember || 1;
-                        var totalAssigned = (msg.assignedTo||[]).length;
+                        var maxClaims = liveChest?.maxClaimsPerMember || msg.maxClaimsPerMember || 1;
+                        var totalAssigned = (liveChest?.assignedTo || msg.assignedTo || []).length;
                         var totalClaimed = Object.keys(liveClaimedBy).length;
                         var isOpened = msg.type === 'chest_opened';
                         var chestColor = cfg2?.color || '#9ca3af';
@@ -351,7 +351,7 @@ var FamilyChatModal = (props) => {
                                 ),
                                 isAssigned && myClaimCount < maxClaims && React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px', background:chestColor+'22', border:'1px solid '+chestColor+'55', borderRadius:'10px', padding:'5px 12px', cursor:'pointer' },
                                     onClick:()=>{
-                                        var invIdx = (familyData?.treasuryInventory||[]).findIndex(inv=>inv.chestType===msg.chestType&&(inv.assignedTo||[]).includes(currentUID)&&(inv.claimedBy?.[currentUID]||0)<(inv.maxClaimsPerMember||1));
+                                        var invIdx = (familyData?.treasuryInventory||[]).findIndex(inv => ((msg.chestId && inv.chestId === msg.chestId) || inv.chestType === msg.chestType) && (inv.assignedTo||[]).includes(currentUID) && (inv.claimedBy?.[currentUID]||0) < (inv.maxClaimsPerMember||1));
                                         if(invIdx>=0) openAssignedChest(invIdx);
                                     }},
                                     React.createElement('span', { style:{ fontSize:'14px' } }, '🎰'),
@@ -382,10 +382,11 @@ var FamilyChatModal = (props) => {
                                         Object.entries(liveDrops).map(function(entry) {
                                             var uid = entry[0]; var drop = entry[1];
                                             var hasClaimed = !!liveClaimedBy[uid];
-                                            var memberName = familyMembers.find(function(m){ return m.id === uid; })?.displayName || uid.slice(0,8);
+                                            var memberName = msg.assignedMemberNames?.[uid] || familyMembers.find(function(m){ return m.id === uid; })?.displayName || uid.slice(0,8);
                                             var shareParts = [];
                                             if (drop.currency > 0) shareParts.push(drop.currency + ' 🧠');
                                             if (drop.coins > 0) shareParts.push(drop.coins + ' ' + FAMILY_COINS_SYMBOL);
+                                            if (drop.charisma > 0) shareParts.push(drop.charisma + ' ⭐');
                                             (drop.items||[]).forEach(function(it) { shareParts.push((it.qty||1) + '× ' + (it.icon||'🎁')); });
                                             return React.createElement('div', { key: uid, style:{ display:'flex', alignItems:'center', gap:'6px', padding:'4px 8px', marginBottom:'3px', borderRadius:'6px', background: hasClaimed ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.03)', border: '1px solid ' + (hasClaimed ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.06)') } },
                                                 React.createElement('span', { style:{ fontSize:'11px', flex:1, color: hasClaimed ? '#10b981' : '#e2e8f0', fontWeight:700 } }, (hasClaimed ? '✅ ' : '⏳ ') + memberName),

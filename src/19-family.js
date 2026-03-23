@@ -487,12 +487,18 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         var nlColl = window.newsLogCollection;
         if (!nlColl) return;
         const unsub = nlColl
-            .where('familyId', '==', family.id)
             .orderBy('timestamp', 'desc')
-            .limit(30)
+            .limit(80)
             .onSnapshot(snap => {
-                setNewsLog(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            }, () => {});
+                setNewsLog(
+                    snap.docs
+                        .map(d => ({ id: d.id, ...d.data() }))
+                        .filter(item => item.familyId === family.id)
+                        .slice(0, 30)
+                );
+            }, (err) => {
+                console.error('family news listener failed', err);
+            });
         return () => unsub();
     }, [family?.id]);
 

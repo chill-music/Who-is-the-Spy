@@ -152,6 +152,61 @@ var getFamilySignProgress = (weeklyActiveness = 0) => {
     return Math.min(100, Math.round(((weeklyActiveness - cur.threshold) / (next.threshold - cur.threshold)) * 100));
 };
 
+var makeChestId = (prefix) => `${prefix || 'chest'}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+var cloneChestRewards = (rewards = []) => rewards.map((reward) => {
+    var cloned = { ...reward };
+    if (['currency', 'coins', 'familyCoins', 'charisma'].includes(cloned.type)) {
+        cloned.amountRemaining = Number(cloned.amount || 0);
+    }
+    if (cloned.qty == null) cloned.qty = 1;
+    return cloned;
+});
+
+var buildAssignedDrops = (rewards = [], selectedUIDs = []) => {
+    var memberIds = (selectedUIDs || []).filter(Boolean);
+    var drops = {};
+    memberIds.forEach(uid => {
+        drops[uid] = { currency: 0, coins: 0, charisma: 0, items: [] };
+    });
+    if (!memberIds.length) return drops;
+
+    rewards.forEach((reward) => {
+        if (!reward) return;
+        if (reward.type === 'currency' || reward.type === 'coins' || reward.type === 'familyCoins' || reward.type === 'charisma') {
+            var total = Number(reward.amountRemaining != null ? reward.amountRemaining : reward.amount || 0);
+            var perMember = Math.floor(total / memberIds.length);
+            var remainder = total % memberIds.length;
+            memberIds.forEach((uid, index) => {
+                var share = perMember + (index < remainder ? 1 : 0);
+                if (!share) return;
+                if (reward.type === 'currency') drops[uid].currency += share;
+                else if (reward.type === 'charisma') drops[uid].charisma += share;
+                else drops[uid].coins += share;
+            });
+            return;
+        }
+
+        var totalQty = Math.max(1, Number(reward.qty || 1));
+        for (var copyIdx = 0; copyIdx < totalQty; copyIdx++) {
+            var targetUID = memberIds[copyIdx % memberIds.length];
+            drops[targetUID].items.push({ ...reward, qty: 1 });
+        }
+    });
+
+    return drops;
+};
+
+var formatAssignedDropSummary = (drop, lang) => {
+    if (!drop) return lang === 'ar' ? 'لا شيء' : 'Nothing';
+    var parts = [];
+    if (drop.currency > 0) parts.push(`${drop.currency} 🧠`);
+    if (drop.coins > 0) parts.push(`${drop.coins} ${FAMILY_COINS_SYMBOL}`);
+    if (drop.charisma > 0) parts.push(`${drop.charisma} ⭐`);
+    (drop.items || []).forEach(item => parts.push(`${item.qty || 1}× ${item.icon || '🎁'}`));
+    return parts.join(' • ') || (lang === 'ar' ? 'لا شيء' : 'Nothing');
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 📦 TREASURY & CHESTS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -191,45 +246,7 @@ var openAssignedChest = async ({ family, currentUID, currentUserData, inventoryI
             var freshClaimCount = freshClaims[currentUID] || 0;
             if (freshClaimCount >= (freshChest.maxClaimsPerMember || 1)) throw new Error('Already claimed');
 
-            var totalParticipants = freshChest.assignedTo.length;
-            var remainingParticipants = totalParticipants - Object.keys(freshClaims).length;
-            var numClaimsNow = remainingParticipants > 0 ? remainingParticipants : 1;
-            
-            var updatedRewards = [];
-            var rewardsToGive = { currency: 0, coins: 0, charisma: 0, items: [] };
-
-            (freshChest.availableRewards || []).forEach(r => {
-                var newR = { ...r };
-                if (r.type === 'currency' || r.type === 'familyCoins' || r.type === 'coins' || r.type === 'charisma') {
-                    var total = r.amountRemaining || 0;
-                    var myShare = Math.floor(total / numClaimsNow);
-                    if (numClaimsNow === 1) {
-                        myShare = total;
-                    } else {
-                        var remainder = total % numClaimsNow;
-                        if (remainder > 0 && Math.random() < 0.5) myShare += 1;
-                    }
-                    if (myShare > total) myShare = total;
-                    
-                    if (myShare > 0) {
-                        if (r.type === 'currency') rewardsToGive.currency += myShare;
-                        else if (r.type === 'charisma') rewardsToGive.charisma += myShare;
-                        else rewardsToGive.coins += myShare;
-                    }
-                    newR.amountRemaining = total - myShare;
-                    updatedRewards.push(newR);
-                } else {
-                    if (!r.claimedBy) {
-                        if (Math.random() < 1 / numClaimsNow) {
-                            rewardsToGive.items.push({ ...r, qty: 1 });
-                            newR.claimedBy = currentUID;
-                        }
-                    }
-                    updatedRewards.push(newR);
-                }
-            });
-
-            freshChest.availableRewards = updatedRewards;
+            var rewardsToGive = freshChest.assignedDrops?.[currentUID] || { currency: 0, coins: 0, charisma: 0, items: [] };
             freshChest.claimedBy = { ...freshClaims, [currentUID]: freshClaimCount + 1 };
             freshInv[inventoryIdx] = freshChest;
 
@@ -241,7 +258,7 @@ var openAssignedChest = async ({ family, currentUID, currentUserData, inventoryI
             if (rewardsToGive.charisma > 0) userUpdate.charisma = firebase.firestore.FieldValue.increment(rewardsToGive.charisma);
             
             var arrayUnion = firebase.firestore.FieldValue.arrayUnion;
-            rewardsToGive.items.forEach(r => {
+            (rewardsToGive.items || []).forEach(r => {
                 if (r.type === 'frame') {
                     var expiresAt = r.duration ? Date.now() + r.duration * 86400000 : null;
                     userUpdate[`inventory.expiry.${r.frameId}`] = expiresAt;
@@ -295,6 +312,8 @@ var openAssignedChest = async ({ family, currentUID, currentUserData, inventoryI
             senderName: currentUserData?.displayName || 'Member',
             senderPhoto: currentUserData?.photoURL || null,
             type: 'chest_opened',
+            chestId: chest.chestId || null,
+            inventoryIdx,
             chestType: chest.chestType,
             chestIcon,
             rewardLabel: lang === 'ar' ? 'نصيبك من الصندوق' : 'Your Share',
@@ -324,14 +343,18 @@ var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, 
     var already = chest.assignedTo;
     if (Array.isArray(already) && already.length > 0) return;
 
-    // Use FieldValue.serverTimestamp() for proper server-side timestamp
+    var assignedDrops = buildAssignedDrops(
+        chest.availableRewards || cloneChestRewards((CHEST_CONFIG[chest.chestType] || {}).rewards || []),
+        selectedUIDs
+    );
     inv[chestIdx] = {
         ...chest,
         assignedTo: selectedUIDs,
-        assignedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        assignedAtMs: Date.now(),
         assignedBy: currentUID,
         maxClaimsPerMember: 1,
         claimedBy: {},
+        assignedDrops,
     };
 
     await familiesCollection.doc(family.id).update({ treasuryInventory: inv });
@@ -350,9 +373,16 @@ var assignChestToMembers = async ({ family, chestIdx, selectedUIDs, currentUID, 
 
     await familiesCollection.doc(family.id).collection('messages').add({
         type: 'chest_assigned',
+        chestId: inv[chestIdx].chestId || null,
+        inventoryIdx: chestIdx,
         chestType: chest.chestType,
         chestIcon,
         assignedTo: selectedUIDs,
+        assignedMemberNames: memberList
+            .filter(m => selectedUIDs.includes(m.id))
+            .reduce((acc, m) => { acc[m.id] = m.displayName; return acc; }, {}),
+        assignedDrops,
+        maxClaimsPerMember: 1,
         text: lang === 'ar'
             ? `🎁 تم تخصيص ${chestIcon} ${cfg.name_ar} لـ: ${names}`
             : `🎁 ${chestIcon} ${cfg.name_en} assigned to: ${names}`,
@@ -448,7 +478,14 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
                 userRewardUpdate[`inventory.expiry.${picked.giftId}`] = Date.now() + 30 * 86400000;
             }
         } else if (picked.type === 'chest') {
-            var chestItem = { chestType: picked.chestType, gachaWon: true, wonAt: Date.now(), wonBy: currentUID };
+            var chestItem = {
+                chestId: makeChestId('gacha'),
+                chestType: picked.chestType,
+                gachaWon: true,
+                wonAt: Date.now(),
+                wonBy: currentUID,
+                availableRewards: cloneChestRewards((CHEST_CONFIG[picked.chestType] || {}).rewards || []),
+            };
             rewardUpdates.treasuryInventory = firebase.firestore.FieldValue.arrayUnion(chestItem);
         }
 
@@ -477,12 +514,34 @@ var handleClaimChest = async ({ family, chestIdx, currentUID, lang, onNotificati
     if (claimed.includes(chestIdx)) return null;
 
     try {
-        var chestItem = { chestType: ms.chestType, idx: chestIdx, claimedAt: Date.now(), claimedBy: currentUID };
+        var chestCfg = CHEST_CONFIG[ms.chestType] || {};
+        var chestItem = {
+            chestId: makeChestId('milestone'),
+            chestType: ms.chestType,
+            sourceMilestoneIdx: chestIdx,
+            claimedAtMs: Date.now(),
+            claimedByManager: currentUID,
+            availableRewards: cloneChestRewards(chestCfg.rewards || []),
+        };
         await familiesCollection.doc(family.id).update({
             activenessClaimedMilestones: firebase.firestore.FieldValue.arrayUnion(chestIdx),
             treasuryInventory: firebase.firestore.FieldValue.arrayUnion(chestItem),
+            lastActivity: TS(),
         });
-        return { ms, cfg: CHEST_CONFIG[ms.chestType] };
+        try {
+            await postNews(
+                family.id,
+                'milestone',
+                lang === 'ar'
+                    ? `🎁 تمت إضافة ${chestCfg.name_ar || ms.name_ar} إلى خزينة القبيلة`
+                    : `🎁 ${chestCfg.name_en || ms.name_en} was added to the family treasury`,
+                0,
+                { uid: currentUID }
+            );
+        } catch (newsError) {
+            console.warn('FamilyService.handleClaimChest postNews failed', newsError);
+        }
+        return { ms, cfg: chestCfg };
     } catch (e) {
         console.error('FamilyService.handleClaimChest:', e);
         throw e;

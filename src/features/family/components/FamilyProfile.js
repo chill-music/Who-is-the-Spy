@@ -84,6 +84,17 @@ var FamilyProfile = ({
         try {
             var dataUrl = await window.FamilyService.handleImageUpload(file);
             await window.FamilyService.saveInfo({ family, updates: { photoURL: dataUrl }, currentUID });
+            if (window.FamilyService?.postNews) {
+                await window.FamilyService.postNews(
+                    family.id,
+                    'settings_change',
+                    lang === 'ar'
+                        ? `${currentUserData?.displayName || 'المسؤول'} عدّل صورة القبيلة 🖼️`
+                        : `${currentUserData?.displayName || 'Admin'} updated the family photo 🖼️`,
+                    0,
+                    { uid: currentUID, name: currentUserData?.displayName, photo: currentUserData?.photoURL }
+                );
+            }
             onNotification(lang === 'ar' ? '✅ تم تحديث الصورة' : '✅ Photo updated');
         } catch (err) { console.error(err); }
     };
@@ -368,7 +379,7 @@ var FamilyProfile = ({
                         <div style={{ fontSize: '8px', color: '#9ca3af', fontWeight: 700 }}>{getNextSunday()}</div>
                     </div>
 
-                    <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))', gap: '6px', alignContent: 'start' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(74px, 1fr))', gap: '8px', alignContent: 'start' }}>
                         {WEEKLY_MILESTONES.map((ms, idx) => {
                             var reached = totalActiveness >= ms.threshold;
                             var status = getChestStatus(ms.chestType);
@@ -377,11 +388,11 @@ var FamilyProfile = ({
                             var milestoneDone = (family.activenessClaimedMilestones || []).includes(ms.originalIdx);
                             var chestCfg = (window.CHEST_CONFIG && window.CHEST_CONFIG[ms.chestType]) || {};
                             var accent = chestCfg.color || '#f97316';
-                            // Dynamic sizing based on threshold - smaller chests for lower thresholds
-                            var chestSize = ms.threshold <= 24000 ? 'small' : ms.threshold <= 120000 ? 'medium' : 'large';
-                            var iconSize = chestSize === 'small' ? '20px' : chestSize === 'medium' ? '26px' : '32px';
-                            var minHeight = chestSize === 'small' ? '76px' : chestSize === 'medium' ? '84px' : '92px';
-                            var fontSize = chestSize === 'small' ? '7px' : chestSize === 'medium' ? '8px' : '9px';
+                            var showDone = milestoneDone || isClaimed;
+                            var chestSize = 'compact';
+                            var iconSize = '28px';
+                            var minHeight = '92px';
+                            var fontSize = '10px';
                             return (
                                 <button
                                     type="button"
@@ -389,31 +400,30 @@ var FamilyProfile = ({
                                     onClick={() => onWeeklyChestClick(ms, idx)}
                                     disabled={weeklyChestBusy}
                                     style={{
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', padding: '6px 3px',
-                                        minHeight: minHeight, borderRadius: '12px', border: `1.5px solid ${isClaimed ? '#10b981' : reached ? accent + '99' : 'rgba(255,255,255,0.1)'}`,
-                                        background: isClaimed ? 'rgba(16,185,129,0.1)' : reached ? accent + '18' : 'rgba(255,255,255,0.03)',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '10px 6px',
+                                        minHeight: '92px', borderRadius: '14px', border: `1.5px solid ${showDone ? '#10b981' : reached ? accent + '99' : 'rgba(255,255,255,0.1)'}`,
+                                        background: showDone ? 'rgba(16,185,129,0.1)' : reached ? accent + '14' : 'rgba(255,255,255,0.03)',
                                         cursor: weeklyChestBusy ? 'wait' : 'pointer',
                                         filter: !reached ? 'grayscale(0.75) opacity(0.45)' : 'none',
-                                        position: 'relative', boxShadow: isUnclaimed ? '0 0 12px rgba(255,215,0,0.35)' : 'none',
-                                        transform: chestSize === 'large' ? 'scale(1.05)' : 'scale(1)',
+                                        position: 'relative', boxShadow: isUnclaimed ? '0 0 12px rgba(255,215,0,0.28)' : 'none',
                                     }}
                                 >
-                                    <div style={{ fontSize: '20px', lineHeight: 1, width: iconSize, height: iconSize, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div style={{ fontSize: '22px', lineHeight: 1, width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         {ms.imageURL ? <img src={ms.imageURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : ms.icon}
                                     </div>
-                                    <div style={{ fontSize: fontSize, fontWeight: 800, color: reached ? accent : '#6b7280', textAlign: 'center', lineHeight: 1.15 }}>
+                                    <div style={{ fontSize: '10px', fontWeight: 800, color: reached ? accent : '#6b7280', textAlign: 'center', lineHeight: 1.15 }}>
                                         {ms.threshold >= 1000 ? (ms.threshold / 1000) + 'K' : ms.threshold}
                                     </div>
-                                    <div style={{ fontSize: '6px', color: '#6b7280', textAlign: 'center', lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    <div style={{ fontSize: '8px', color: '#cbd5e1', textAlign: 'center', lineHeight: 1.25 }}>
                                         {lang === 'ar' ? (chestCfg.name_ar || ms.name_ar) : (chestCfg.name_en || ms.name_en)}
                                     </div>
                                     {canManage && reached && !milestoneDone && (
                                         <div style={{ fontSize: '6px', color: '#22d3ee', fontWeight: 800 }}>{lang === 'ar' ? 'لمّ للخزينة' : 'Claim'}</div>
                                     )}
                                     {isUnclaimed && (
-                                        <div style={{ position: 'absolute', top: '2px', right: '2px', width: chestSize === 'small' ? '12px' : '14px', height: chestSize === 'small' ? '12px' : '14px', borderRadius: '50%', background: '#ffd700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: chestSize === 'small' ? '6px' : '8px', fontWeight: 900, color: '#111' }}>!</div>
+                                        <div style={{ position: 'absolute', top: '6px', right: '6px', width: '16px', height: '16px', borderRadius: '50%', background: '#ffd700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 900, color: '#111' }}>!</div>
                                     )}
-                                    {isClaimed && (
+                                    {showDone && (
                                         <div style={{ position: 'absolute', top: '2px', right: '2px', width: chestSize === 'small' ? '12px' : '14px', height: chestSize === 'small' ? '12px' : '14px', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: chestSize === 'small' ? '6px' : '8px', color: '#fff' }}>✓</div>
                                     )}
                                 </button>
