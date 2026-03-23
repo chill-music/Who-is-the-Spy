@@ -362,7 +362,7 @@ var FamilyProfile = ({
             </div>
 
             {/* ══ WEEKLY ACTIVENESS + TOTAL MILESTONE CHESTS ══ */}
-            <div style={{ margin: '10px 12px 0', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '10px', display: 'flex', alignItems: 'center', gap: '14px', overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+            <div style={{ flexShrink: 0, margin: '10px 12px 0', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '10px', display: 'flex', alignItems: 'center', gap: '14px', overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
                 {/* Left Side: Small Box Info */}
                 <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '12px', padding: '14px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, minWidth: '90px' }}>
                     <div style={{ fontSize: '10px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
