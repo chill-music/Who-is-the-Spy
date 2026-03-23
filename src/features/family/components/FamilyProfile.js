@@ -40,13 +40,15 @@ var FamilyProfile = ({
     // ── Activeness progress ──
     var totalActiveness = family.activeness || 0;
     var weeklyActiveness = family.weeklyActiveness || 0;
-    var WEEKLY_MILESTONES = (window.ACTIVENESS_MILESTONES || [
+    var ORIGINAL_MILESTONES = window.ACTIVENESS_MILESTONES || [
         { threshold: 8000,   chestType: 'normal',   icon: '📦', name_en: 'Normal Chest',   name_ar: 'صندوق عادي' },
         { threshold: 24000,  chestType: 'advanced', icon: '🎁', name_en: 'Advanced Chest', name_ar: 'صندوق متقدم' },
         { threshold: 60000,  chestType: 'rare',     icon: '💠', name_en: 'Rare Chest',     name_ar: 'صندوق نادر' },
         { threshold: 120000, chestType: 'epic',     icon: '💎', name_en: 'Epic Chest',     name_ar: 'صندوق ملحمي' },
         { threshold: 280000, chestType: 'super',    icon: '👑', name_en: 'Super Chest',    name_ar: 'صندوق أسطوري' },
-    ]).sort((a, b) => a.threshold - b.threshold); // Sort by threshold (lowest to highest)
+    ];
+    // Create sorted version for display while keeping original indices for functionality
+    var WEEKLY_MILESTONES = ORIGINAL_MILESTONES.map((ms, originalIdx) => ({ ...ms, originalIdx })).sort((a, b) => a.threshold - b.threshold);
 
     // Level progress
     var FAMILY_LEVEL_CONFIGS = window.FamilyConstants?.FAMILY_LEVEL_CONFIG || window.FAMILY_LEVEL_CONFIG || [];
@@ -176,12 +178,13 @@ var FamilyProfile = ({
         setWeeklyChestBusy(true);
         try {
             var claimedList = family.activenessClaimedMilestones || [];
-            var milestoneClaimed = claimedList.includes(milestoneIdx);
+            var originalIdx = ms.originalIdx !== undefined ? ms.originalIdx : milestoneIdx;
+            var milestoneClaimed = claimedList.includes(originalIdx);
             var reachedTotal = totalActiveness >= ms.threshold;
 
             if (canManage && reachedTotal && !milestoneClaimed) {
                 var res = await window.FamilyService.handleClaimChest({
-                    family, chestIdx: milestoneIdx, currentUID, lang, onNotification,
+                    family, chestIdx: originalIdx, currentUID, lang, onNotification,
                 });
                 if (res) {
                     onNotification(lang === 'ar' ? `🎁 ${res.cfg.name_ar} في الخزينة` : `🎁 ${res.cfg.name_en} added to treasury`);
@@ -371,7 +374,7 @@ var FamilyProfile = ({
                             var status = getChestStatus(ms.chestType);
                             var isClaimed = status === 'claimed';
                             var isUnclaimed = status === 'unclaimed';
-                            var milestoneDone = (family.activenessClaimedMilestones || []).includes(idx);
+                            var milestoneDone = (family.activenessClaimedMilestones || []).includes(ms.originalIdx);
                             var chestCfg = (window.CHEST_CONFIG && window.CHEST_CONFIG[ms.chestType]) || {};
                             var accent = chestCfg.color || '#f97316';
                             // Dynamic sizing based on threshold - smaller chests for lower thresholds
