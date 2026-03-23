@@ -509,7 +509,7 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
 var handleClaimChest = async ({ family, chestIdx, currentUID, lang, onNotification }) => {
     if (!family?.id || !canManageFamily(family, currentUID)) return null;
     var ms = ACTIVENESS_MILESTONES[chestIdx];
-    if (!ms || (family.activeness || 0) < ms.threshold) return null;
+    if (!ms || (family.weeklyActiveness || 0) < ms.threshold) return null;
     var claimed = family.activenessClaimedMilestones || [];
     if (claimed.includes(chestIdx)) return null;
 

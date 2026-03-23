@@ -191,7 +191,7 @@ var FamilyProfile = ({
             var claimedList = family.activenessClaimedMilestones || [];
             var originalIdx = ms.originalIdx !== undefined ? ms.originalIdx : milestoneIdx;
             var milestoneClaimed = claimedList.includes(originalIdx);
-            var reachedTotal = totalActiveness >= ms.threshold;
+            var reachedTotal = weeklyActiveness >= ms.threshold;
 
             if (canManage && reachedTotal && !milestoneClaimed) {
                 var res = await window.FamilyService.handleClaimChest({
@@ -229,7 +229,7 @@ var FamilyProfile = ({
             if (reachedTotal && milestoneClaimed) {
                 onNotification(lang === 'ar' ? '📦 الصندوق في الخزينة — اطلب من المسؤول التوزيع' : '📦 Chest is in treasury — ask admin to assign');
             } else if (!reachedTotal) {
-                onNotification(lang === 'ar' ? '⏳ لم يصل النشاط الكلي للحد بعد' : '⏳ Total activeness not at threshold yet');
+                onNotification(lang === 'ar' ? '⏳ لم يصل النشاط الأسبوعي للحد بعد' : '⏳ Weekly activeness not at threshold yet');
             }
         } catch (e) {
             console.error(e);
@@ -380,7 +380,7 @@ var FamilyProfile = ({
                 {/* Right Side: Chests Row */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                     {WEEKLY_MILESTONES.map((ms, idx) => {
-                        var reached = totalActiveness >= ms.threshold;
+                        var reached = weeklyActiveness >= ms.threshold;
                         var status = getChestStatus(ms.chestType);
                         var isClaimed = status === 'claimed';
                         var isUnclaimed = status === 'unclaimed';
