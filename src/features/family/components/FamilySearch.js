@@ -2,7 +2,8 @@ var {
     getFamilyLevelConfig, 
     createFamily, 
     loadFamilies, 
-    searchFamilyByTag 
+    searchFamilyByTag,
+    joinFamily
 } = window.FamilyService;
 var { FAMILY_CREATE_COST, FAMILY_EMBLEMS } = window.FamilyConstants || { FAMILY_CREATE_COST: 1000, FAMILY_EMBLEMS: ['🛡️','🦅','🦁','👑','⚔️','🐺','🐉'] };
 var FamilySignBadge = window.FamilySignBadge;
@@ -58,6 +59,52 @@ var FamilySearch = ({
             setFamilies(data || []);
         } catch(e) {}
         setLoadingFamilies(false);
+    };
+
+    var handleJoin = async (family) => {
+        if (!family?.id) return;
+        
+        try {
+            var res = await joinFamily({
+                familyId: family.id,
+                currentUID,
+                currentUserData,
+                lang
+            });
+
+            if (res?.status === 'pending') {
+                window.Swal.fire({
+                    icon: 'info',
+                    title: lang === 'ar' ? 'تم إرسال الطلب' : 'Request Sent',
+                    text: lang === 'ar' ? 'القبيلة تطلب موافقة للانضمام. تم إرسال طلبك للقائد.' : 'This family requires approval. Your request has been sent to the leaders.',
+                    confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
+                    background: '#1a1a2e', color: '#fff', confirmButtonColor: '#fc00ff'
+                });
+            } else if (res?.status === 'joined') {
+                window.Swal.fire({
+                    icon: 'success',
+                    title: lang === 'ar' ? 'تم الانضمام' : 'Joined Successfully',
+                    text: lang === 'ar' ? 'مرحباً بك في القبيلة!' : 'Welcome to the family!',
+                    confirmButtonText: lang === 'ar' ? 'دخول' : 'Enter',
+                    background: '#1a1a2e', color: '#fff', confirmButtonColor: '#00dbde'
+                }).then(() => {
+                    if (onClose) onClose();
+                });
+            }
+        } catch (e) {
+            console.error(e);
+            let errorMsg = lang === 'ar' ? 'حدث خطأ أثناء الانضمام' : 'Error joining family';
+            if (e.message === 'Family is full') errorMsg = lang === 'ar' ? 'القبيلة ممتلئة' : 'Family is full';
+            else if (e.message === 'Already requested') errorMsg = lang === 'ar' ? 'تم إرسال طلب سابقاً' : 'Request already sent';
+            
+            window.Swal.fire({
+                icon: 'error',
+                title: lang === 'ar' ? 'عفواً' : 'Oops',
+                text: errorMsg,
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
+                background: '#1a1a2e', color: '#fff', confirmButtonColor: '#ef4444'
+            });
+        }
     };
 
     var handleCreate = async () => {
@@ -193,7 +240,7 @@ var FamilySearch = ({
                                         {/* Optional badges for top active etc */}
                                         {i === 0 && <span style={{display:'inline-block', fontSize:'10px', fontWeight:800, color:'#fbbf24', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.2)', padding:'2px 8px', borderRadius:'10px'}}>Top1 active</span>}
                                     </div>
-                                    <button onClick={(e)=>{e.stopPropagation(); alert('طلب انضمام غير متصل حالياً للمعاينة');}} style={{padding:'8px 20px', borderRadius:'20px', background:'linear-gradient(135deg, #00dbde, #fc00ff)', border:'none', color:'white', fontSize:'14px', fontWeight:800, cursor:'pointer', boxShadow:'0 4px 10px rgba(0,0,0,0.15)'}}>
+                                    <button onClick={(e)=>{e.stopPropagation(); handleJoin(f);}} style={{padding:'8px 20px', borderRadius:'20px', background:'linear-gradient(135deg, #00dbde, #fc00ff)', border:'none', color:'white', fontSize:'14px', fontWeight:800, cursor:'pointer', boxShadow:'0 4px 10px rgba(0,0,0,0.15)'}}>
                                         {lang==='ar'?'انضمام':'Join'}
                                     </button>
                                 </div>
