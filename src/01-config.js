@@ -607,6 +607,7 @@ var CHEST_CONFIG = {
             { type: 'charisma', amount: 40000 },
             { type: 'frame', frameId: 'frame_temp_7d', duration: 7, qty: 3 },
             { type: 'frame', frameId: 'frame_temp_30d', duration: 30, qty: 1 },
+            { type: 'ring', ringId: 'kingshehab', qty: 1 },
         ],
     },
 };
@@ -655,6 +656,14 @@ var resolveRewardItem = function (reward) {
             resolved.icon = badge.preview || badge.imageUrl || '🏅';
             resolved.label_en = resolved.label_en || badge.name_en;
             resolved.label_ar = resolved.label_ar || badge.name_ar;
+        }
+    } else if (resolved.type === 'ring' && resolved.ringId && window.SHOP_ITEMS) {
+        var ring = (window.SHOP_ITEMS.rings || []).find(r => r.id === resolved.ringId);
+        if (ring) {
+            resolved.icon = ring.emoji || ring.icon || '💍';
+            if (ring.imageURL || ring.imageUrl) resolved.imageURL = ring.imageURL || ring.imageUrl;
+            resolved.label_en = resolved.label_en || ring.name_en;
+            resolved.label_ar = resolved.label_ar || ring.name_ar;
         }
     }
 

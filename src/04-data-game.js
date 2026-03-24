@@ -221,6 +221,20 @@ var SHOP_ITEMS = {
         { id: 'lightning_woman', name_en: "lightning woman",      name_ar: "امرأة البرق",  cost: 3500, type: 'profileEffects', rarity: 'Mythic',    preview: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/main/icos/profileEffects/lightning%20woman.gif', imageUrl: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/main/icos/profileEffects/lightning%20woman.gif', particles: [], duration: 2, loopEvery: 9999999, displayDuration: 2000, showOnce: true, opacity: 0.88, blendMode: 'screen', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: 3, season: null, maxSendOptions: null },
 
     ],
+    // ════════════════════════════════════════════════════════════════════════
+    // 💍 COUPLES RINGS
+    // ════════════════════════════════════════════════════════════════════════
+    rings: [
+        { id:'ring_bronze',   emoji:'💍', imageURL:null, name_en:'Bronze Ring',      name_ar:'خاتم برونزي',     cost:500,   levelReq:0,  rarity:'Common',    color:'#cd7f32', glow:'rgba(205,127,50,0.4)',  desc_en:'A warm start to forever.',    desc_ar:'بداية دافئة للأبدية.',   event:false, hidden:false, limited:false, limitedUntil:null, type: 'rings' },
+        { id:'kingshehab',    emoji:null, imageURL:'https://res.cloudinary.com/dqewgiqsh/image/upload/v1773406707/ringking_lxnly9.gif', name_en:'King Ring',     name_ar:'خاتم الملك',      cost:500,   levelReq:0,  rarity:'Mythic',    color:'#f0abfc', glow:'rgba(240,171,252,0.6)', desc_en:'The ring of kings — a royal bond.',  desc_ar:'خاتم الملوك — رابطة ملكية أبدية.',  event:true, hidden:false, limited:false, limitedUntil:null, type: 'rings' },
+        { id:'ring_silver',   emoji:'💍', imageURL:null, name_en:'Silver Ring',      name_ar:'خاتم فضي',        cost:1500,  levelReq:3,  rarity:'Uncommon',  color:'#c0c0c0', glow:'rgba(192,192,192,0.4)', desc_en:'Elegant and timeless.',       desc_ar:'أناقة خالدة.',            event:false, hidden:false, limited:false, limitedUntil:null, type: 'rings' },
+        { id:'ring_gold',     emoji:'💍', imageURL:null, name_en:'Gold Ring',        name_ar:'خاتم ذهبي',       cost:3000,  levelReq:5,  rarity:'Rare',      color:'#ffd700', glow:'rgba(255,215,0,0.5)',   desc_en:'Golden love, golden future.', desc_ar:'حب ذهبي، مستقبل ذهبي.',   event:false, hidden:false, limited:false, limitedUntil:null, type: 'rings' },
+        { id:'ring_rose',     emoji:'💍', imageURL:null, name_en:'Rose Gold Ring',   name_ar:'خاتم ذهبي وردي',  cost:5000,  levelReq:7,  rarity:'Epic',      color:'#f9a8d4', glow:'rgba(249,168,212,0.5)', desc_en:'Blush pink, bold love.',      desc_ar:'وردي رقيق، حب جريء.',     event:false, hidden:false, limited:false, limitedUntil:null, type: 'rings' },
+        { id:'ring_diamond',  emoji:'💎', imageURL:null, name_en:'Diamond Ring',     name_ar:'خاتم الماس',      cost:10000, levelReq:10, rarity:'Legendary', color:'#00d4ff', glow:'rgba(0,212,255,0.6)',   desc_en:'Forever brilliant.',          desc_ar:'لامع إلى الأبد.',         event:false, hidden:false, limited:false, limitedUntil:null, type: 'rings' },
+        { id:'ring_eternal',  emoji:'✨', imageURL:null, name_en:'Eternal Ring',     name_ar:'خاتم الأبدية',    cost:25000, levelReq:15, rarity:'Mythic',    color:'#a855f7', glow:'rgba(168,85,247,0.7)',  desc_en:'Beyond time and space.',      desc_ar:'أبعد من الزمان والمكان.', event:false, hidden:false, limited:false, limitedUntil:null, type: 'rings' },
+        // ── EVENT RINGS (hidden by default, revealed via admin/events) ──
+        { id:'ring_valentine',emoji:'💝', imageURL:null, name_en:"Valentine's Ring", name_ar:'خاتم الفالنتاين', cost:8000,  levelReq:0,  rarity:'Epic',      color:'#f43f5e', glow:'rgba(244,63,94,0.6)',   desc_en:'Limited edition love ring.',  desc_ar:'خاتم حب محدود.',          event:true,  hidden:true,  limited:true,  limitedUntil:null, type: 'rings' }
+    ],
     // ✅ BFF TOKENS — purchased to create relationships
     bff_tokens: [], // populated from BFF_TOKEN_ITEMS in 01-config.js at runtime
     // ════════════════════════════════════════════════════════════════════════

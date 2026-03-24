@@ -96,6 +96,7 @@ var FamilySearch = ({
             let errorMsg = lang === 'ar' ? 'حدث خطأ أثناء الانضمام' : 'Error joining family';
             if (e.message === 'Family is full') errorMsg = lang === 'ar' ? 'القبيلة ممتلئة' : 'Family is full';
             else if (e.message === 'Already requested') errorMsg = lang === 'ar' ? 'تم إرسال طلب سابقاً' : 'Request already sent';
+            else if (e.message === 'Family not found') errorMsg = lang === 'ar' ? 'هذه القبيلة لم تعد موجودة (تم الحذف)' : 'This family no longer exists (deleted)';
             
             window.Swal.fire({
                 icon: 'error',
