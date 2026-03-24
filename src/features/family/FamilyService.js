@@ -1,4 +1,5 @@
-var useFamilyData = () => {
+var { CHEST_CONFIG, ACTIVENESS_MILESTONES } = window;
+var useFamilyData = () => {
     const [currentUID, setCurrentUID] = React.useState(auth.currentUser?.uid || null);
     const [currentUserData, setCurrentUserData] = React.useState(null);
     const [family, setFamily] = React.useState(null);
