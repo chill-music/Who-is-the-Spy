@@ -226,15 +226,18 @@ var FamilyTreasury = ({
                                     </div>
                                 ) : (
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '24px' }}>
-                                        {(selectedChest.item?.availableRewards || selectedChest.cfg.rewards).map((r, idx) => (
-                                            <div key={idx} style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <span style={{ fontSize: '18px' }}>{r.icon}</span>
-                                                <div style={{ textAlign: 'left' }}>
-                                                    <div style={{ fontSize: '11px', fontWeight: 800, color: 'white' }}>{r.amountRemaining !== undefined ? fmtFamilyNum(r.amountRemaining) : (r.amount ? fmtFamilyNum(r.amount) : '1×')}</div>
-                                                    <div style={{ fontSize: '9px', color: '#6b7280' }}>{lang === 'ar' ? r.label_ar : r.label_en}</div>
+                                        {(selectedChest.item?.availableRewards || selectedChest.cfg.rewards).map((r, idx) => {
+                                            const resolved = typeof window.resolveRewardItem === 'function' ? window.resolveRewardItem(r) : r;
+                                            return (
+                                                <div key={idx} style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span style={{ fontSize: '18px' }}>{resolved.icon}</span>
+                                                    <div style={{ textAlign: 'left' }}>
+                                                        <div style={{ fontSize: '11px', fontWeight: 800, color: 'white' }}>{resolved.amountRemaining !== undefined ? fmtFamilyNum(resolved.amountRemaining) : (resolved.amount ? fmtFamilyNum(resolved.amount) : (resolved.qty ? resolved.qty + '×' : '1×'))}</div>
+                                                        <div style={{ fontSize: '9px', color: '#6b7280' }}>{lang === 'ar' ? resolved.label_ar : resolved.label_en}</div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
 
