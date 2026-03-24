@@ -40,13 +40,7 @@ var FamilyProfile = ({
     // ── Activeness progress ──
     var totalActiveness = family.activeness || 0;
     var weeklyActiveness = family.weeklyActiveness || 0;
-    var ORIGINAL_MILESTONES = window.ACTIVENESS_MILESTONES || [
-        { threshold: 8000,   chestType: 'normal',   icon: '📦', name_en: 'Normal Chest',   name_ar: 'صندوق عادي' },
-        { threshold: 24000,  chestType: 'advanced', icon: '🎁', name_en: 'Advanced Chest', name_ar: 'صندوق متقدم' },
-        { threshold: 60000,  chestType: 'rare',     icon: '💠', name_en: 'Rare Chest',     name_ar: 'صندوق نادر' },
-        { threshold: 120000, chestType: 'epic',     icon: '💎', name_en: 'Epic Chest',     name_ar: 'صندوق ملحمي' },
-        { threshold: 280000, chestType: 'super',    icon: '👑', name_en: 'Super Chest',    name_ar: 'صندوق أسطوري' },
-    ];
+    var ORIGINAL_MILESTONES = window.ACTIVENESS_MILESTONES || [];
     // Create sorted version for display while keeping original indices for functionality
     var WEEKLY_MILESTONES = ORIGINAL_MILESTONES.map((ms, originalIdx) => ({ ...ms, originalIdx })).sort((a, b) => a.threshold - b.threshold);
 

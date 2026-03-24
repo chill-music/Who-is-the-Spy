@@ -75,13 +75,6 @@ var ROLE_CONFIG = {
     moderator: { label_ar: 'مشرف', label_en: 'Mod', icon: '🔰', color: '#3b82f6', glow: 'rgba(59,130,246,0.6)', bg: 'linear-gradient(135deg,rgba(59,130,246,0.18),rgba(29,78,216,0.12))', border: 'rgba(59,130,246,0.5)', badgeClass: 'role-badge-mod' },
 };
 
-var CHEST_CONFIG = {
-    normal: { name_en:'Normal Chest', name_ar:'صندوق عادي', icon:'📦', color:'#4ade80', rewards: [ { type:'currency', amount:1000, icon:'🧠', label_en:'1000 Intel', label_ar:'1000 إنتل' }, { type:'coins', amount:1000, icon:'🏅', label_en:'1000 Family Coins', label_ar:'1000 عملة قبيلة' }, { type:'gift', giftId:'gift_cake', qty:1, icon:'🎂', label_en:'Gift (Cake)', label_ar:'كيكة' }, { type:'gift', giftId:'gift_rose', qty:9, icon:'🌹', label_en:'9× Rose',label_ar:'9× وردة' } ] },
-    advanced: { name_en:'Advanced Chest', name_ar:'صندوق متقدم', icon:'🎁', color:'#60a5fa', rewards: [ { type:'frame', frameId:'frame_neon', duration:3, icon:'🖼️', label_en:'Neon Frame 3d', label_ar:'إطار نيون 3d' }, { type:'frame', frameId:'frame_fire', duration:7, icon:'🖼️', label_en:'Fire Frame 7d', label_ar:'إطار نار 7d' }, { type:'gift', giftId:'gift_racecar', qty:2, icon:'🏎️', label_en:'2× Race Car', label_ar:'2× سيارة' }, { type:'gift', giftId:'gift_crown', qty:2, icon:'👑', label_en:'2× Crown', label_ar:'2× تاج' } ] },
-    rare: { name_en:'Rare Chest', name_ar:'صندوق نادر', icon:'💠', color:'#a78bfa', rewards: [ { type:'frame', frameId:'frame_gold', duration:7, icon:'🖼️', label_en:'Gold Frame 7d', label_ar:'إطار ذهبي 7d' }, { type:'frame', frameId:'frame_ice', duration:3, icon:'🖼️', label_en:'Ice Frame 3d', label_ar:'إطار جليد 3d' }, { type:'frame', frameId:'frame_rainbow', duration:15, icon:'🖼️', label_en:'Rainbow Frame 15d', label_ar:'إطار قوس قزح 15d' }, { type:'gift', giftId:'gift_ring', qty:1, icon:'💍', label_en:'Diamond Ring', label_ar:'خاتم ألماس' }, { type:'gift', giftId:'gift_coffee', qty:2, icon:'☕', label_en:'2× Coffee', label_ar:'2× قهوة' }, { type:'gift', giftId:'gift_racecar', qty:2, icon:'🏎️', label_en:'2× Race Car', label_ar:'2× سيارة' }, { type:'currency', amount:7800, icon:'🧠', label_en:'7800 Intel', label_ar:'7800 إنتل' }, { type:'coins', amount:7800, icon:'🏅', label_en:'7800 Coins', label_ar:'7800 عملة' } ] },
-    epic: { name_en:'Epic Chest', name_ar:'صندوق ملحمي', icon:'💎', color:'#ffd700', rewards: [ { type:'currency', amount:10000, icon:'🧠', label_en:'10K Intel', label_ar:'10K إنتل' }, { type:'coins', amount:10000, icon:'🏅', label_en:'10K Coins', label_ar:'10K عملة' }, { type:'gift', giftId:'gift_ring', qty:2, icon:'💍', label_en:'2× Diamond Ring', label_ar:'2× خاتم ألماس' }, { type:'gift', giftId:'gift_ultimate', qty:1, icon:'🏆', label_en:'Ultimate Gift', label_ar:'الهدية المطلقة' }, { type:'frame', frameId:'fp_frame_neon', duration:7, qty:3, icon:'🖼️', label_en:'3× Neon Frame 7d', label_ar:'3× إطار نيون 7d' }, { type:'frame', frameId:'fp_frame_gold', duration:30, qty:1, icon:'🖼️', label_en:'Gold Frame 30d', label_ar:'إطار ذهبي 30d' } ] },
-    super: { name_en:'Super Chest', name_ar:'صندوق أسطوري', icon:'👑', color:'#f97316', rewards: [ { type:'currency', amount:10000, icon:'🧠', label_en:'10K Intel', label_ar:'10K إنتل' }, { type:'coins', amount:10000, icon:'🏅', label_en:'10K Coins', label_ar:'10K عملة' }, { type:'gift', giftId:'gift_ring', qty:2, icon:'💍', label_en:'2× Diamond Ring', label_ar:'2× خاتم ألماس' }, { type:'frame', frameId:'fp_frame_mythic',duration:7,  qty:3, icon:'🖼️', label_en:'3× Mythic Frame 7d', label_ar:'3× إطار خرافي 7d' }, { type:'frame', frameId:'fp_frame_gold',  duration:30, qty:1, icon:'🖼️', label_en:'Gold Frame 30d',   label_ar:'إطار ذهبي 30d' } ] },
-};
 
 var GACHA_CONFIG_BASIC = {
     paidCostPerSpin: 200, maxPaidSpinsDaily: 50,
@@ -127,13 +120,7 @@ var DAILY_TASKS_MILESTONES = [
     { points: 100, rewards: [ {type:'currency', id:'currency', qty:15},{type:'coins', id:'coins', qty:15},{type:'gift', id:'gift_rose', qty:15} ] }
 ];
 
-var ACTIVENESS_MILESTONES = [
-    { threshold:8000,   chestType:'normal',   icon:'📦', imageURL: null, name_en:'Normal Chest',   name_ar:'صندوق عادي' },
-    { threshold:24000,  chestType:'advanced', icon:'🎁', imageURL: null, name_en:'Advanced Chest', name_ar:'صندوق متقدم' },
-    { threshold:60000,  chestType:'rare',     icon:'💠', imageURL: null, name_en:'Rare Chest',     name_ar:'صندوق نادر' },
-    { threshold:120000, chestType:'epic',     icon:'💎', imageURL: null, name_en:'Epic Chest',     name_ar:'صندوق ملحمي' },
-    { threshold:280000, chestType:'super',    icon:'👑', imageURL: null, name_en:'Super Chest',    name_ar:'صندوق أسطوري' },
-];
+
 
 var FAMILY_SHOP_ITEMS = [
     { id:'fs1', emoji:'🎖️', name_en:'Warrior Badge',   name_ar:'شارة المحارب',    cost:30,  type:'badge',  rarity:'rare',       durationDays:7, desc_en:'Exclusive family warrior badge', desc_ar:'شارة محارب حصرية للعائلة' },
@@ -241,8 +228,8 @@ var getFamilyLevelConfig = (level = 1) => {
 
 // Expose to window
 window.FamilyConstants = {
-    OWNER_UID, ADMIN_UIDS, ROLE_CONFIG, Z, CHEST_CONFIG, GACHA_CONFIG_BASIC, GACHA_CONFIG_PREMIUM, 
-    DAILY_TASKS_MILESTONES, ACTIVENESS_MILESTONES, FAMILY_SHOP_ITEMS, FAMILY_SIGN_IMAGES,
+    OWNER_UID, ADMIN_UIDS, ROLE_CONFIG, Z, GACHA_CONFIG_BASIC, GACHA_CONFIG_PREMIUM, 
+    DAILY_TASKS_MILESTONES, FAMILY_SHOP_ITEMS, FAMILY_SIGN_IMAGES,
     VIP_ID_ICONS, ID_ICON_IMAGE_URL, FAMILY_COINS_SYMBOL, MAX_BADGES, FAMILY_CREATE_COST,
     FAMILY_LEVEL_CONFIG, FAMILY_SIGN_LEVELS, FAMILY_TASKS_CONFIG, FAMILY_ROLE_CONFIG,
     FAMILY_EMBLEMS, PortalModal, getFamilySignImage, getFamilySignLevelData, getFamilyLevelConfig

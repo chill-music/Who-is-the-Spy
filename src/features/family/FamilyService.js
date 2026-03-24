@@ -1,22 +1,3 @@
-var { db, auth, usersCollection, familiesCollection, redPacketsCollection, firebase } = window;
-var { TS } = window;
-var { 
-    FAMILY_CREATE_COST,
-    FAMILY_LEVEL_CONFIG, 
-    FAMILY_SIGN_LEVELS,
-    FAMILY_TASKS_CONFIG,
-    CHEST_CONFIG, 
-    FAMILY_SIGN_IMAGES,
-    GACHA_CONFIG_BASIC,
-    GACHA_CONFIG_PREMIUM,
-    ACTIVENESS_MILESTONES,
-    FAMILY_COINS_SYMBOL
-} = window.FamilyConstants || {};
-
-/**
- * useFamilyData - React hook for real-time family data in the FamilyModal.
- */
-var useFamilyData = () => {
     const [currentUID, setCurrentUID] = React.useState(auth.currentUser?.uid || null);
     const [currentUserData, setCurrentUserData] = React.useState(null);
     const [family, setFamily] = React.useState(null);
@@ -160,6 +141,9 @@ var cloneChestRewards = (rewards = []) => rewards.map((reward) => {
         cloned.amountRemaining = Number(cloned.amount || 0);
     }
     if (cloned.qty == null) cloned.qty = 1;
+    if (typeof window.resolveRewardItem === 'function') {
+        cloned = window.resolveRewardItem(cloned);
+    }
     return cloned;
 });
 
