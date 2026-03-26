@@ -6,7 +6,11 @@
  * Part of Phase 4: Batch 5 modularization.
  */
 
-var { useState, useEffect, useRef, useMemo } = React;
+if (!window.useState) {
+    var { useState, useEffect, useRef, useMemo, useCallback } = React;
+} else {
+    var { useState, useEffect, useRef, useMemo, useCallback } = window;
+}
 
 // Max file size: 2MB images, 5MB videos (10 sec max)
 var MAX_IMAGE_SIZE = 2 * 1024 * 1024;
@@ -80,7 +84,7 @@ var VIP_MOMENT_BG_URLS = [
     'https://firebasestorage.googleapis.com/v0/b/super-spy-88.appspot.com/o/moments-bg%2Fvip3.jpg?alt=media'
 ];
 
-var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfile, lang }) => {
+var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfile, lang, onOpenProfile }) => {
     const [moments, setMoments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
@@ -130,7 +134,7 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
             ) : (
                 <div style={{display:'flex', flexDirection:'column', gap:'8px', padding:'0 10px'}}>
                     {moments.map(m => (
-                        <MomentCard key={m.id} moment={m} currentUser={currentUser} lang={lang} onSelect={() => setSelectedMoment(m)} />
+                        <MomentCard key={m.id} moment={m} currentUser={currentUser} lang={lang} onSelect={() => setSelectedMoment(m)} onOpenProfile={onOpenProfile} />
                     ))}
                     {moments.length >= 3 && (
                         <button onClick={() => setShowAll(true)} style={{width:'100%', padding:'8px', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', color:'#9ca3af', fontSize:'11px', fontWeight:700, cursor:'pointer', marginTop:'4px'}}>
@@ -154,6 +158,7 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
                 lang={lang}
                 onSelectMoment={m => setSelectedMoment(m)}
                 onClose={() => setShowAll(false)}
+                onOpenProfile={onOpenProfile}
             />
             <MomentDetailModal
                 show={!!selectedMoment}
@@ -161,6 +166,7 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
                 currentUser={currentUser}
                 lang={lang}
                 onClose={() => setSelectedMoment(null)}
+                onOpenProfile={onOpenProfile}
             />
         </div>
     );
@@ -322,7 +328,7 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
                              <div style={{display:'flex', gap:'10px'}}>
                                 <input 
                                     value={commentText}
-                                    onChange={setCommentText ? (e => setCommentText(e.target.value)) : undefined}
+                                    onChange={e => setCommentText(e.target.value)}
                                     placeholder={lang==='ar'?'أكتب تعليقاً...':'Write a comment...'}
                                     style={{flex:1, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'12px', color:'white', padding:'10px 14px', fontSize:'13px', outline:'none'}}
                                 />
@@ -429,8 +435,20 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
         if (momentType === 'text' && !textContent.trim()) return;
         if ((momentType === 'image' || momentType === 'video') && !mediaFile) return;
         setUploading(true);
+        setError('');
 
         try {
+            let finalMediaUrl = null;
+            
+            // Upload to Storage if not text
+            if (momentType === 'image' || momentType === 'video') {
+                const fileExt = mediaFile.name.split('.').pop();
+                const fileName = `${currentUser.uid}_${Date.now()}.${fileExt}`;
+                const storageRef = storage.ref(`moments/${fileName}`);
+                const snapshot = await storageRef.put(mediaFile);
+                finalMediaUrl = await snapshot.ref.getDownloadURL();
+            }
+
             const momentData = {
                 authorUID: currentUser.uid,
                 authorName: currentUser.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
@@ -438,7 +456,7 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
                 authorVipLevel: getVIPLevel(currentUser) || 0,
                 type: momentType,
                 content: textContent.trim(),
-                mediaUrl: (momentType === 'image' || momentType === 'video') ? mediaPreview : null,
+                mediaUrl: finalMediaUrl,
                 likesCount: 0,
                 likedBy: [],
                 commentsCount: 0,

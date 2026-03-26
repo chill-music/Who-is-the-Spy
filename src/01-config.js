@@ -45,6 +45,7 @@ var firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
+var storage = firebase.storage();
 var appId = 'pro_spy_v25_final_fix_complete';
 
 // COLLECTIONS

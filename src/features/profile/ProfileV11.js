@@ -6,7 +6,11 @@
  * Part of Phase 5: Final Modularization.
  */
 
-var { useState, useEffect, useRef, useMemo } = React;
+if (!window.useState) {
+    var { useState, useEffect, useRef, useMemo, useCallback } = React;
+} else {
+    var { useState, useEffect, useRef, useMemo, useCallback } = window;
+}
 
 var ProfileV11 = ({
     show,
