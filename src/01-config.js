@@ -227,7 +227,7 @@ var ADMIN_UIDS = [
 ];
 // Owner = أول UID في القائمة — صلاحيات كاملة لا تُنتزع
 var OWNER_UID = ADMIN_UIDS[0];
-var isAdmin = (uid) => uid && ADMIN_UIDS.includes(uid);
+// isAdmin moved to ProfileHelpers.js
 
 // ════════════════════════════════════════════════════════
 // 👑 STAFF ROLE SYSTEM
@@ -275,54 +275,20 @@ var ROLE_CONFIG = {
 };
 
 // يرجع 'owner' | 'admin' | 'moderator' | null
-var getUserRole = (userData, uid) => {
-    if (!uid && !userData) return null;
-    const checkUid = uid || userData?.uid || userData?.id;
-    if (checkUid && checkUid === OWNER_UID) return 'owner';
-    const role = userData?.staffRole?.role;
-    if (role === 'admin' || role === 'moderator') return role;
-    return null;
-};
+// getUserRole moved to ProfileHelpers.js
 
 // هل يقدر يدير الرتب؟ (owner أو admin)
-var canManageRoles = (viewerData, viewerUID) => {
-    const role = getUserRole(viewerData, viewerUID);
-    return role === 'owner' || role === 'admin';
-};
+// canManageRoles moved to ProfileHelpers.js
 
 // أقصى رتبة يقدر الـ viewer يعيّنها
-var getAssignableRoles = (viewerData, viewerUID) => {
-    const role = getUserRole(viewerData, viewerUID);
-    if (role === 'owner') return ['admin', 'moderator'];
-    if (role === 'admin') return ['moderator'];
-    return [];
-};
+// getAssignableRoles moved to ProfileHelpers.js
 
 // ════════════════════════════════════════════════════════
 // 🚫 BAN SYSTEM HELPERS
 // ════════════════════════════════════════════════════════
-var isBannedUser = (userData) => {
-    const ban = userData?.ban;
-    if (!ban?.isBanned) return false;
-    if (!ban.expiresAt) return true; // permanent
-    const expiry = ban.expiresAt?.toDate?.() || new Date(ban.expiresAt);
-    return new Date() < expiry;
-};
+// isBannedUser moved to ProfileHelpers.js
 
-var getBanExpiry = (userData) => {
-    const ban = userData?.ban;
-    if (!ban?.expiresAt) return null;
-    return ban.expiresAt?.toDate?.() || new Date(ban.expiresAt);
-};
-
-var formatBanExpiry = (userData, lang) => {
-    const expiry = getBanExpiry(userData);
-    if (!expiry) return lang === 'ar' ? 'حظر دائم' : 'Permanent';
-    return expiry.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
-        year: 'numeric', month: 'short', day: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-    });
-};
+// getBanExpiry and formatBanExpiry moved to ProfileHelpers.js
 
 // ════════════════════════════════════════════════════════
 // 🏅 FAMILY ECONOMY CONFIG — Centralized Constants
@@ -535,14 +501,7 @@ window.BOT_CHATS_CONFIG = BOT_CHATS_CONFIG;
 window.MAX_BADGES = MAX_BADGES;
 window.ADMIN_UIDS = ADMIN_UIDS;
 window.OWNER_UID = OWNER_UID;
-window.isAdmin = isAdmin;
 window.ROLE_CONFIG = ROLE_CONFIG;
-window.getUserRole = getUserRole;
-window.canManageRoles = canManageRoles;
-window.getAssignableRoles = getAssignableRoles;
-window.isBannedUser = isBannedUser;
-window.getBanExpiry = getBanExpiry;
-window.formatBanExpiry = formatBanExpiry;
 window.FAMILY_COINS_SYMBOL = FAMILY_COINS_SYMBOL;
 window.FAMILY_SIGN_IMAGES = FAMILY_SIGN_IMAGES;
 // ── Family Chest & Activeness Configuration ──

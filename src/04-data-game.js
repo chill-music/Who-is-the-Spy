@@ -433,13 +433,7 @@ var getItemRarity = (item) => {
     return 'Common';
 };
 
-var getGiftRarity = (cost) => {
-    if (cost >= 10000) return 'Mythic';
-    if (cost >= 500)   return 'Legendary';
-    if (cost >= 50)    return 'Epic';
-    if (cost >= 15)    return 'Uncommon';
-    return 'Common';
-};
+// (getGiftRarity moved to ProfileHelpers.js)
 
 // 🏆 ACHIEVEMENTS SYSTEM — Leveled (4 tiers per group)
 // tier 1: Bronze/Normal | tier 2: Silver/Natural | tier 3: Red/Legendary | tier 4: Multi-color Glow/Ultimate
