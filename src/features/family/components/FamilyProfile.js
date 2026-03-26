@@ -259,7 +259,7 @@ var FamilyProfile = ({
                         {/* Name + Sign */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '3px' }}>
                             <span style={{ fontSize: '18px', fontWeight: 900, color: 'white', fontStyle: 'italic', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '150px' }}>{family.name}</span>
-                            {signData.level >= 1 && window.FamilySignBadge && <window.FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={window.FamilyConstants.getFamilySignImage(0, signData.level)} />}
+                            {signData.level >= 1 && window.FamilySignBadge && <window.FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={signData.imageURL} />}
                         </div>
                         {/* Level badge + Member count */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '3px' }}>

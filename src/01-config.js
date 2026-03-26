@@ -376,10 +376,13 @@ var fmtNum = (n) => {
 // ════════════════════════════════════════════════════════
 var getFamilySignURL = (data) => {
     if (!data) return null;
+    // Priority 1: cached image URL stored on user doc
     if (data.familySignImageURL) return data.familySignImageURL;
+    // Priority 2: resolve from level using FamilyConstants (has imageURL baked in)
     const level = data.familySignLevel;
-    if (!level || typeof FAMILY_SIGN_IMAGES === 'undefined') return null;
-    const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === level);
+    if (!level) return null;
+    const levels = (window.FamilyConstants && window.FamilyConstants.FAMILY_SIGN_LEVELS) || [];
+    const cfg = levels.find(s => s.level === level);
     return cfg?.imageURL || null;
 };
 

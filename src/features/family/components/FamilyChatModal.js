@@ -254,7 +254,7 @@ var FamilyChatModal = (props) => {
 
     if (!show) return null;
 
-    var signData = (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0) : null) || { level:0, color:'#4b5563', glow:'rgba(75,85,99,0.3)', defaultIcon:'🏠' };
+    var signData = (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0) : null) || { level:1, color:'#6b7280', glow:'rgba(107,114,128,0.3)', defaultIcon:'🏠', imageURL:'icos/Family Sign1.png' };
     var fLvl = familyData ? getFamilyLevelConfig(familyData.level || 1) : null;
 
     return React.createElement(PortalModal, null,
@@ -281,7 +281,7 @@ var FamilyChatModal = (props) => {
                 },
                     React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' } },
                         React.createElement('span', { style: { fontSize:'14px', fontWeight:800, color: onOpenFamily ? '#00f2ff' : 'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: onOpenFamily ? 'underline dotted rgba(0,242,255,0.4)' : 'none' } }, (familyData && familyData.name) || (lang==='ar'?'شات العائلة':'Family Chat')),
-                        familyData && signData.level >= 1 && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: window.FamilyConstants.getFamilySignImage(0, signData.level) })
+                        familyData && signData.level >= 1 && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: signData.imageURL })
                     ),
                     React.createElement('div', { style: { fontSize:'10px', color:'#6b7280' } },
                         ((familyData && familyData.members && familyData.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members'),
