@@ -1,7 +1,7 @@
 {
   "name": "PRO SPY | Covert Arena",
   "short_name": "PRO SPY",
-  "description": "The ultimate social spy game experience.",
+  "description": "PRO SPY | The ultimate social spy game experience.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0f0f1a",
