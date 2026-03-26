@@ -68,6 +68,7 @@ function App() {
     const [viewFamilyId, setViewFamilyId] = useState(null); // for viewing external families
     const [userFamily, setUserFamily] = useState(null);
     const [showFamilyChat, setShowFamilyChat] = useState(false);
+    const [hasNewMoments, setHasNewMoments] = useState(false);
 
     // ── 💍 COUPLES SYSTEM STATE ──
     const [coupleData, setCoupleData]                   = useState(null); // my active couple doc
@@ -1093,7 +1094,28 @@ function App() {
         setShowIncomingProposal(false);
     }, [lang]);
 
-    // Claim Login Reward
+        // Claim Login Reward
+    useEffect(() => {
+        if (!user || !friendsData) return;
+        const lastViewed = parseInt(localStorage.getItem('last_moments_view') || '0');
+        const friendUIDs = (friendsData || []).map(f => f.id).filter(Boolean);
+        const allUIDs = [...new Set([...friendUIDs, user.uid])];
+        if (allUIDs.length === 0) return;
+
+        // Listen for the absolute latest moment from this group (limited to first 10 for performance)
+        const unsub = momentsCollection
+            .where('authorUID', 'in', allUIDs.slice(0, 10))
+            .orderBy('createdAt', 'desc')
+            .limit(1)
+            .onSnapshot(snap => {
+                if (!snap.empty) {
+                    const latest = snap.docs[0].data().createdAt?.toMillis?.() || 0;
+                    if (latest > lastViewed) setHasNewMoments(true);
+                }
+            });
+        return unsub;
+    }, [user, friendsData]);
+
     const handleClaimLoginReward = useCallback(async (day) => {
         if (!user || !isLoggedIn) return;
         // Safety: re-read current day from Firestore to avoid stale data
@@ -2850,22 +2872,24 @@ function App() {
                                 <span className="sec-title-new">🔥 {lang==='ar'?'اكتشف':'Discover'}</span>
                             </div>
 
-                            {/* Square grid — Moments + Couples + Family */}
-                            <div className="discover-grid" style={{gridTemplateColumns:'repeat(3,1fr)'}}>
-
-                                {/* Moments square */}
-                                <div
-                                    className="discover-sq"
-                                    style={{
-                                        '--dsq-bg':'linear-gradient(145deg,rgba(0,242,255,0.12),rgba(112,0,255,0.08))',
-                                        '--dsq-border':'rgba(0,242,255,0.3)',
-                                        padding:'18px 12px',
-                                    }}
-                                    onClick={()=>setShowFriendsMoments(true)}
-                                >
-                                    <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(0,242,255,0.22),rgba(112,0,255,0.15))'}}>📸</div>
-                                    <div className="dsq-label">{lang==='ar'?'اللحظات':'Moments'}</div>
+                            {/* Moments — wide banner card */}
+                            <div className="discover-card-cs" 
+                                style={{'--dc-color':'rgba(0,242,255,0.08)','--dc-border':'rgba(0,242,255,0.18)',cursor:'pointer', position:'relative'}} 
+                                onClick={() => { setShowFriendsMoments(true); setHasNewMoments(false); localStorage.setItem('last_moments_view', Date.now().toString()); }}
+                            >
+                                {hasNewMoments && <div className="dc-dot" style={{position:'absolute',top:'12px',right:'12px',width:'10px',height:'10px',background:'#ff4b4b',borderRadius:'50%',boxShadow:'0 0 10px #ff4b4b', zIndex:2}}/>}
+                                <div className="dc-left">
+                                    <div className="dc-icon" style={{background:'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.15))', fontSize:'22px'}}>📸</div>
                                 </div>
+                                <div className="dc-body">
+                                    <div className="dc-title">{lang==='ar'?'مومنت الأصدقاء':'Friends Moments'}</div>
+                                    <div className="dc-desc">{lang==='ar'?'شارك لحظاتك مع أصدقائك':'Share moments with friends'}</div>
+                                </div>
+                                <div style={{fontSize:'16px',color:'#00f2ff',flexShrink:0}}>›</div>
+                            </div>
+
+                            {/* Square grid — Couples + Family */}
+                            <div className="discover-grid" style={{gridTemplateColumns:'repeat(2,1fr)'}}>
 
                                 {/* Couples square */}
                                 <div
