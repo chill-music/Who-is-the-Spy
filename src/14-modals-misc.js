@@ -865,6 +865,23 @@ var SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotific
                         </div>
                     </div>
 
+                    {/* ── PWA Install Button ── */}
+                    <div style={{marginBottom:'10px',background:'linear-gradient(135deg,rgba(0,242,255,0.04),rgba(112,0,255,0.02))',border:'1px solid rgba(0,242,255,0.15)',borderRadius:'14px',padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                            <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(0,242,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>📱</div>
+                            <div>
+                                <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>{lang === 'ar' ? 'تثبيت التطبيق' : 'Install App'}</div>
+                                <div style={{fontSize:'10px',color:'#00f2ff',marginTop:'1px'}}>{lang === 'ar' ? 'للوصول السريع والمريح' : 'For fast & easy access'}</div>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => { if(window.triggerPWAInstall) window.triggerPWAInstall(); }}
+                            style={{padding:'6px 14px', borderRadius:'10px', background:'rgba(0,242,255,0.15)', border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff', fontSize:'11px', fontWeight:800, cursor:'pointer'}}
+                        >
+                            {lang === 'ar' ? 'تثبيت' : 'Install'}
+                        </button>
+                    </div>
+
                     {/* ── Block Users ── */}
                     {user && !isGuestPropForSettings && (
                     <div style={{marginBottom:'10px',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'14px',padding:'14px 16px'}}>

@@ -96,6 +96,7 @@ function App() {
     const [showVIPCenter, setShowVIPCenter]             = useState(false);
     const [showHelpCenter, setShowHelpCenter]           = useState(false);
     const [showPublicChat, setShowPublicChat]           = useState(false);
+    const [showPWAInstall, setShowPWAInstall]           = useState(false);
 
     // ── 👤 GUEST AVATAR MENU ──
     const [showGuestMenu, setShowGuestMenu]             = useState(false);
@@ -104,6 +105,13 @@ function App() {
     const [gameChatInput, setGameChatInput]             = useState('');
     const [showGameChat, setShowGameChat]               = useState(true);
     const gameChatRef                                   = useRef(null);
+
+    // ── PWA Install Listener ──
+    useEffect(() => {
+        const handler = () => setShowPWAInstall(true);
+        window.addEventListener('pwa-available', handler);
+        return () => window.removeEventListener('pwa-available', handler);
+    }, []);
 
     // Close guest menu when clicking outside
     useEffect(() => {
@@ -3493,6 +3501,56 @@ function App() {
                         <div className="nav-label-new">{lang==='ar'?'أنا':'Me'}</div>
                     </div>
                 </nav>
+            )}
+            {/* ── PWA Install Popup ── */}
+            {showPWAInstall && (
+                <div style={{
+                    position:'fixed', bottom:'80px', left:'16px', right:'16px', zIndex:2000,
+                    background:'rgba(20,20,30,0.95)', backdropFilter:'blur(12px)',
+                    border:'1px solid rgba(0,242,255,0.3)', borderRadius:'20px',
+                    padding:'20px', boxShadow:'0 10px 40px rgba(0,0,0,0.5)',
+                    animation:'slideUp 0.4s ease-out'
+                }}>
+                    <div style={{display:'flex', gap:'15px', alignItems:'start', textAlign: lang === 'ar' ? 'right' : 'left', flexDirection: lang === 'ar' ? 'row-reverse' : 'row'}}>
+                        <div style={{width:'50px', height:'50px', background:'rgba(0,242,255,0.1)', borderRadius:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', flexShrink:0}}>
+                            🚀
+                        </div>
+                        <div style={{flex:1}}>
+                            <div style={{fontSize:'16px', fontWeight:800, color:'white', marginBottom:'4px'}}>
+                                {lang === 'ar' ? 'ثبّت التطبيق الآن!' : 'Install App Now!'}
+                            </div>
+                            <div style={{fontSize:'12px', color:'rgba(255,255,255,0.6)', lineHeight:'1.4'}}>
+                                {lang === 'ar' ? 'استمتع بتجربة أسرع وأسهل بالوصول من الشاشة الرئيسية.' : 'Enjoy a faster and easier experience by accessing from your home screen.'}
+                            </div>
+                        </div>
+                        <button onClick={() => setShowPWAInstall(false)} style={{background:'none', border:'none', color:'rgba(255,255,255,0.4)', padding:0, cursor:'pointer', fontSize:'18px'}}>✕</button>
+                    </div>
+                    
+                    <div style={{marginTop:'20px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px', flexDirection: lang === 'ar' ? 'row-reverse' : 'row'}}>
+                        <label style={{display:'flex', alignItems:'center', gap:'8px', cursor:'pointer', userSelect:'none', flexDirection: lang === 'ar' ? 'row-reverse' : 'row'}}>
+                            <input type="checkbox" id="pwa-dont-show" style={{width:'16px', height:'16px', cursor:'pointer'}} />
+                            <span style={{fontSize:'11px', color:'rgba(255,255,255,0.5)'}}>{lang === 'ar' ? 'لا تظهر مجدداً' : "Don't show again"}</span>
+                        </label>
+                        <button 
+                            onClick={() => {
+                                const dontShow = document.getElementById('pwa-dont-show')?.checked;
+                                if (dontShow && window.setPWAUserPreference) {
+                                    window.setPWAUserPreference('hidden');
+                                }
+                                if (window.triggerPWAInstall) window.triggerPWAInstall();
+                                setShowPWAInstall(false);
+                            }}
+                            style={{
+                                padding:'10px 24px', borderRadius:'12px', 
+                                background:'linear-gradient(135deg,#00f2ff,#7000ff)',
+                                border:'none', color:'white', fontSize:'14px', fontWeight:800, 
+                                cursor:'pointer', boxShadow:'0 4px 15px rgba(0,242,255,0.3)'
+                            }}
+                        >
+                            {lang === 'ar' ? 'تثبيت' : 'Install'}
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );
