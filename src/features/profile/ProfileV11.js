@@ -88,15 +88,23 @@ var ProfileV11 = ({
 
     useEffect(() => {
         if (!show || !targetUID) {
-            setLoading(true);
+            setLoading(false); // ← was setLoading(true) — caused permanent freeze when no targetUID
             return;
         }
 
+        let isMounted = true;
         setLoading(true);
         setRequestSent(false);
         setShowOptionsMenu(false);
 
+        // Safety timeout: never stay loading > 10 seconds
+        const safetyTimer = setTimeout(() => {
+            if (isMounted) { setLoading(false); }
+        }, 10000);
+
         usersCollection.doc(targetUID).get().then(doc => {
+            if (!isMounted) return;
+            clearTimeout(safetyTimer);
             if (doc.exists) {
                 const data = doc.data();
                 setTargetData({ id: doc.id, ...data, isGuest: false });
@@ -106,6 +114,7 @@ var ProfileV11 = ({
                 setLoading(false);
             } else {
                 guestsCollection.doc(targetUID).get().then(guestDoc => {
+                    if (!isMounted) return;
                     if (guestDoc.exists) {
                         setTargetData({ id: guestDoc.id, ...guestDoc.data(), isGuest: true });
                     } else {
@@ -113,14 +122,15 @@ var ProfileV11 = ({
                     }
                     setLoading(false);
                 }).catch(() => {
-                    setTargetData(null);
-                    setLoading(false);
+                    if (isMounted) { setTargetData(null); setLoading(false); }
                 });
             }
         }).catch(() => {
-            setLoading(false);
-            setTargetData(null);
+            if (isMounted) { setLoading(false); setTargetData(null); }
+            clearTimeout(safetyTimer);
         });
+
+        return () => { isMounted = false; clearTimeout(safetyTimer); };
     }, [show, targetUID, currentUserUID]);
 
     useEffect(() => {

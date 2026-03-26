@@ -118,7 +118,10 @@ var ProfileEffectOverlay = ({ effectId }) => {
     const timerRef = React.useRef(null);
     const loopRef  = React.useRef(null);
 
-    const effect = (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId);
+    // useMemo prevents new object reference on every render (was causing infinite loop)
+    const effect = React.useMemo(() =>
+        (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId),
+    [effectId]);
 
     const loopEvery       = effect?.loopEvery       || 4000;
     const displayDuration = effect?.displayDuration || (effect?.duration || 2200);
@@ -140,7 +143,7 @@ var ProfileEffectOverlay = ({ effectId }) => {
         setAlive(true);
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => setAlive(false), displayDuration + 1200);
-    }, [effect, effectId, displayDuration]);
+    }, [effect, displayDuration]);
 
     React.useEffect(() => {
         if (!effect) return;
@@ -152,7 +155,7 @@ var ProfileEffectOverlay = ({ effectId }) => {
             if (timerRef.current) clearTimeout(timerRef.current);
             if (loopRef.current) clearInterval(loopRef.current);
         };
-    }, [effect, effectId, loopEvery, triggerBurst]);
+    }, [effect, loopEvery, triggerBurst]);
 
     if (!effect) return null;
 
