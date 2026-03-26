@@ -74,12 +74,12 @@ var ProfileIdentity = ({
                         );
                     })()}
                     {/* فاميلي ساين جنب الكاريزما على الشمال */}
-                    {targetData?.familyTag && targetData?.familySignLevel > 0 && window.FamilySignBadge && (
+                    {targetData?.familyTag && window.FamilySignBadge && (
                         <div style={{transform:'scale(0.9)', transformOrigin:'left center'}}>
                             <window.FamilySignBadge
                                 tag={targetData.familyTag}
                                 color={targetData.familySignColor || '#6b7280'}
-                                signLevel={targetData.familySignLevel}
+                                signLevel={targetData.familySignLevel || 1}
                                 small={true}
                                 onClick={onOpenFamily ? () => onOpenFamily(targetData?.familyId) : undefined}
                             />
