@@ -2850,20 +2850,22 @@ function App() {
                                 <span className="sec-title-new">🔥 {lang==='ar'?'اكتشف':'Discover'}</span>
                             </div>
 
-                            {/* Moments — wide banner card */}
-                            <div className="discover-card-cs" style={{'--dc-color':'rgba(0,242,255,0.08)','--dc-border':'rgba(0,242,255,0.18)',cursor:'pointer'}} onClick={()=>setShowFriendsMoments(true)}>
-                                <div className="dc-left">
-                                    <div className="dc-icon" style={{background:'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.15))', fontSize:'22px'}}>📸</div>
-                                </div>
-                                <div className="dc-body">
-                                    <div className="dc-title">{lang==='ar'?'مومنت الأصدقاء':'Friends Moments'}</div>
-                                    <div className="dc-desc">{lang==='ar'?'شارك لحظاتك مع أصدقائك':'Share moments with friends'}</div>
-                                </div>
-                                <div style={{fontSize:'16px',color:'#00f2ff',flexShrink:0}}>›</div>
-                            </div>
+                            {/* Square grid — Moments + Couples + Family */}
+                            <div className="discover-grid" style={{gridTemplateColumns:'repeat(3,1fr)'}}>
 
-                            {/* Square grid — Couples + Family */}
-                            <div className="discover-grid" style={{gridTemplateColumns:'repeat(2,1fr)'}}>
+                                {/* Moments square */}
+                                <div
+                                    className="discover-sq"
+                                    style={{
+                                        '--dsq-bg':'linear-gradient(145deg,rgba(0,242,255,0.12),rgba(112,0,255,0.08))',
+                                        '--dsq-border':'rgba(0,242,255,0.3)',
+                                        padding:'18px 12px',
+                                    }}
+                                    onClick={()=>setShowFriendsMoments(true)}
+                                >
+                                    <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(0,242,255,0.22),rgba(112,0,255,0.15))'}}>📸</div>
+                                    <div className="dsq-label">{lang==='ar'?'اللحظات':'Moments'}</div>
+                                </div>
 
                                 {/* Couples square */}
                                 <div
