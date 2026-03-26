@@ -229,9 +229,10 @@ var FamilySearch = ({
                                         {f.photoURL ? <img src={f.photoURL} style={{width:'100%', height:'100%', objectFit:'cover'}} alt=""/> : (f.emblem || '🛡️')}
                                     </div>
                                     <div style={{flex:1, minWidth:0}}>
-                                        <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
-                                            <span style={{fontSize:'16px', fontWeight:800, color:'white', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{f.name}</span>
-                                            <span style={{fontSize:'10px', fontWeight:700, padding:'2px 6px', borderRadius:'4px', background:`${levelData.color}22`, color:levelData.color, flexShrink:0}}>{f.tag} · Lv.{f.level || 1}</span>
+                                        <div style={{display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'4px'}}>
+                                            <span style={{fontSize:'16px', fontWeight:800, color:'white', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'140px'}}>{f.name}</span>
+                                            {FamilySignBadge && <FamilySignBadge tag={f.tag} color={levelData.color} small={true} signLevel={f.familyNameSignLevel || 1} />}
+                                            <span style={{fontSize:'11px', fontWeight:700, color:levelData.color, opacity:0.8}}>Lv.{f.level || 1}</span>
                                         </div>
                                         <div style={{fontSize:'12px', color:'#9ca3af', margin:'4px 0', display:'flex', alignItems:'center', gap:'6px'}}>
                                             <span style={{display:'flex', alignItems:'center', gap:'4px'}}><span style={{fontSize:'14px', color:'#3b82f6'}}>🛡️</span> {f.activeness || 0}</span>

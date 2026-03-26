@@ -21,10 +21,15 @@ var FamilyRoleBadge = ({ role, lang, small = false }) => {
 
 var FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = null, signLevel = 1 }) => {
     var displayTag = tag || 'FAM';
-    var signLevelData = FAMILY_SIGN_LEVELS.find(s => s.level === signLevel);
+    var signLevelData = (FAMILY_SIGN_LEVELS || []).find(s => s.level === signLevel);
     var hasGlow = signLevelData?.hasGlow || signLevel >= 4;
     
-    if (imageURL) {
+    // Attempt to get image from constants if not provided
+    var imgSrc = imageURL || (window.FamilyConstants?.getFamilySignImage ? window.FamilyConstants.getFamilySignImage(0, signLevel) : null);
+    // Note: getFamilySignImage(activeness) or getFamilySignImage(activeness, level)
+    // Actually our new helper in FamilyConstants.js is getFamilySignImage(activeness)
+    
+    if (imgSrc) {
         var imgW = small
             ? 28 + (displayTag.length * 4)
             : 44 + (displayTag.length * 6);
@@ -42,19 +47,39 @@ var FamilySignBadge = ({ tag, color = '#7000ff', small = false, imageURL = null,
                 filter: hasGlow
                     ? `drop-shadow(0 0 6px ${color}dd) drop-shadow(0 0 14px ${color}88) drop-shadow(0 0 22px ${color}44)`
                     : 'none',
+                transition:'all 0.2s',
             }}>
-                <img src={imageURL} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'contain' }} />
-                <span style={{ position:'relative', zIndex:1, fontSize:`${fontSize}px`, fontWeight:900, color:'white', textShadow:'0 1px 3px rgba(0,0,0,0.8)', letterSpacing: small ? '0px' : '0.5px', marginBottom:'2px' }}>
+                <img src={imgSrc} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'contain', display:'block' }} />
+                <span style={{
+                    position:'relative', zIndex:1,
+                    fontSize:`${fontSize}px`, fontWeight:900, fontStyle:'italic',
+                    letterSpacing:'1.5px', color:'#fff', marginTop:'2px',
+                    textShadow:`
+                        0 0 6px rgba(0,0,0,0.9),
+                        0 0 12px rgba(0,0,0,0.7),
+                        1px 1px 0 rgba(0,0,0,0.8),
+                        -1px -1px 0 rgba(0,0,0,0.8),
+                        1px -1px 0 rgba(0,0,0,0.8),
+                        -1px 1px 0 rgba(0,0,0,0.8),
+                        0 0 16px ${color}cc
+                    `,
+                    userSelect:'none', lineHeight:1
+                }}>
                     {displayTag}
                 </span>
             </span>
         );
     }
 
-    // Fallback if no imageURL
     return (
         <span style={{
-            padding:'2px 6px', borderRadius:'4px', background:color, color:'white', fontSize: small?'9px':'10px', fontWeight:900
+            display:'inline-flex', alignItems:'center', gap:'3px',
+            padding: small ? '1px 5px' : '2px 8px',
+            borderRadius:'5px', fontSize: small ? '8px' : '10px',
+            fontWeight:800, fontStyle:'italic',
+            background:`${color}20`, border:`1px solid ${color}55`,
+            color:color, letterSpacing:'0.5px', whiteSpace:'nowrap', flexShrink:0,
+            boxShadow: hasGlow ? `0 0 10px ${color}55, 0 0 20px ${color}33` : 'none',
         }}>
             {displayTag}
         </span>

@@ -190,6 +190,11 @@ var getFamilySignLevelData = (activeness) => {
     return reversed.find(s => activeness >= s.threshold) || null;
 };
 
+var getFamilySignImage = (activeness = 0, level = null) => {
+    var signLevel = level !== null ? level : (activeness <= 10 ? activeness : getFamilySignLevelData(activeness)?.level);
+    return window.getFamilySignURL ? window.getFamilySignURL({ familySignLevel: signLevel }) : null;
+};
+
 var FAMILY_EMBLEMS = ['🏠', '⚔️', '🛡️', '👑', '🔥', '💎', '🚀', '🌌', '🍀', '🏆'];
 
 // Global access for legacy scripts
@@ -204,4 +209,5 @@ window.FamilyConstants = Object.assign(window.FamilyConstants || {}, {
     getFamilyLevelConfig,
     getFamilyRole,
     getFamilySignLevelData,
+    getFamilySignImage,
 });

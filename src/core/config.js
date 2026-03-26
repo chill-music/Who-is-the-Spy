@@ -135,13 +135,6 @@ var FAMILY_SHOP_ITEMS = [
     { id:'fs10', emoji:'🦁', name_en:'Lion Title',     name_ar:'لقب الأسد',        cost:250, type:'title',  rarity:'epic',       durationDays:7, desc_en:'Pride of the clan lion title',   desc_ar:'لقب أسد فخر العائلة' },
 ];
 
-var FAMILY_SIGN_IMAGES = [
-    { level: 1, threshold: 1000,   imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign1.png' },
-    { level: 2, threshold: 10000,  imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign2.png' },
-    { level: 3, threshold: 30000,  imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign3.png' },
-    { level: 4, threshold: 100000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign4.png' },
-    { level: 5, threshold: 300000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign5.png' },
-];
 
 var VIP_ID_ICONS = {
     6:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip.png',
@@ -210,12 +203,6 @@ var PortalModal = ({ children }) => {
     return ReactDOM.createPortal(children, el.current);
 };
 
-var getFamilySignImage = (activeness = 0) => {
-    // Find the highest level where threshold <= activeness
-    var signs = [...FAMILY_SIGN_IMAGES].sort((a,b) => b.threshold - a.threshold);
-    var matched = signs.find(s => activeness >= s.threshold);
-    return matched ? matched.imageURL : null;
-};
 
 var getFamilySignLevelData = (activeness = 0) => {
     var levels = [...FAMILY_SIGN_LEVELS].sort((a,b) => b.threshold - a.threshold);
@@ -229,8 +216,8 @@ var getFamilyLevelConfig = (level = 1) => {
 // Expose to window
 window.FamilyConstants = {
     OWNER_UID, ADMIN_UIDS, ROLE_CONFIG, Z, GACHA_CONFIG_BASIC, GACHA_CONFIG_PREMIUM, 
-    DAILY_TASKS_MILESTONES, FAMILY_SHOP_ITEMS, FAMILY_SIGN_IMAGES,
+    DAILY_TASKS_MILESTONES, FAMILY_SHOP_ITEMS,
     VIP_ID_ICONS, ID_ICON_IMAGE_URL, FAMILY_COINS_SYMBOL, MAX_BADGES, FAMILY_CREATE_COST,
     FAMILY_LEVEL_CONFIG, FAMILY_SIGN_LEVELS, FAMILY_TASKS_CONFIG, FAMILY_ROLE_CONFIG,
-    FAMILY_EMBLEMS, PortalModal, getFamilySignImage, getFamilySignLevelData, getFamilyLevelConfig
+    FAMILY_EMBLEMS, PortalModal, getFamilySignLevelData, getFamilyLevelConfig
 };
