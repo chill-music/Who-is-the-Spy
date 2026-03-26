@@ -1,0 +1,37 @@
+/**
+ * MODULARIZED MODALS & MISC COMPONENTS
+ * Source: 14-modals-misc.js
+ * Decomposition in progress (Phase 3)
+ */
+
+// LoginRewards is now modularized in src/components/modals/LoginRewards.js
+// BrowseRoomsModal is now modularized in src/components/modals/BrowseRoomsModal.js
+// TutorialModal is now modularized in src/components/modals/TutorialModal.js
+
+// SupportTicketSection is now modularized in src/components/modals/SupportTicketSection.js
+
+
+// [MODULARIZED] SettingsModal is now in src/components/modals/SettingsModal.js
+// var SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle, onOpenAdminPanel }) => { ... }
+
+// 🎯 PROFILE V11 - NEW PREMIUM DESIGN COMPONENTS
+
+
+
+
+// [MODULARIZED] LobbyPublicChatBox is now in src/components/lobby/LobbyPublicChatBox.js
+// var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, currentUID, onOpenFull }) => { ... }
+
+
+// [MODULARIZED] VIPCenterModal is now in src/components/modals/VIPCenterModal.js
+// var VIPCenterModal = ({ show, onClose, userData, user, lang, onNotification, onOpenShop }) => { ... }
+
+
+// [MODULARIZED] HelpCenterModal is now in src/components/modals/HelpCenterModal.js
+// var HelpCenterModal = ({ show, onClose, user, userData, lang, onNotification, isLoggedIn }) => { ... }
+
+
+// [MODULARIZED] PublicChatModal is now in src/components/modals/PublicChatModal.js
+// var PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification, isLoggedIn, onOpenProfile, currentUID }) => { ... }
+
+// 📊 WIN RATE CIRCLE COMPONENT

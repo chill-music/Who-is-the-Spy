@@ -1,0 +1,186 @@
+/**
+ * ProfileIdentityElements.js
+ * Modular components for user identity elements: Avatar, Frame, User Title, and Badges.
+ * Part of Phase 4: Batch 4 modularization.
+ */
+
+/**
+ * UserTitleV11 Component
+ * Renders the equipped user title (Image or Text).
+ * 
+ * @param {Object} props
+ * @param {Object} props.equipped - Equipped items object.
+ * @param {string} props.lang - Language code ('ar' or 'en').
+ */
+var UserTitleV11 = ({ equipped, lang }) => {
+    const titleId = equipped?.titles;
+    if (!titleId) return null;
+
+    const title = SHOP_ITEMS.titles.find(t => t.id === titleId);
+    if (!title) return null;
+
+    // If title has an image URL, show the image
+    if (title.imageUrl && title.imageUrl.trim() !== '') {
+        return (
+            <div className="profile-user-title has-image">
+                <img src={title.imageUrl} alt={title.name_en} />
+            </div>
+        );
+    }
+
+    // Otherwise show text with emoji/preview
+    return (
+        <span className="profile-user-title">
+            {title.preview} {lang === 'ar' ? title.name_ar : title.name_en}
+        </span>
+    );
+};
+
+/**
+ * UserBadgesV11 Component
+ * Displays up to 10 equipped badges.
+ * 
+ * @param {Object} props
+ * @param {Object} props.equipped - Equipped items object.
+ * @param {string} props.lang - Language code ('ar' or 'en').
+ */
+var UserBadgesV11 = ({ equipped, lang }) => {
+    const badges = equipped?.badges || [];
+    if (badges.length === 0) return null;
+
+    return (
+        <div className="profile-badges-row">
+            {badges.slice(0, 10).map((badgeId, idx) => {
+                const badge = SHOP_ITEMS.badges.find(b => b.id === badgeId);
+                if (!badge) return null;
+
+                return (
+                    <div key={idx} className={`profile-badge-chip${badge.imageUrl ? ' has-image' : ''}`}>
+                        {badge.imageUrl ? (
+                            <img src={badge.imageUrl} alt="" style={{ width: 18, height: 18, objectFit:'contain', background:'transparent' }} />
+                        ) : (
+                            <span>{badge.preview}</span>
+                        )}
+                        {!badge.imageUrl && <span>{lang === 'ar' ? badge.name_ar : badge.name_en}</span>}
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+/**
+ * AvatarWithFrameV11 Component
+ * Fixed circular avatar display with an optional frame around it.
+ * 
+ * @param {Object} props
+ * @param {string} props.photoURL - User avatar URL.
+ * @param {Object} props.equipped - Equipped items object.
+ * @param {string} [props.size='lg'] - Size preset ('sm', 'md', 'lg', 'xl').
+ * @param {boolean} props.isOnline - Whether the user is online.
+ * @param {string} [props.effectId] - Optional override for effect ID.
+ * @param {Object} props.banData - User ban status data.
+ * @param {string} props.lang - Language code ('ar' or 'en').
+ */
+var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId, banData, lang }) => {
+    const sizeMap = {
+        sm: { wrapper: 64, avatar: 36, frameSize: 56 },
+        md: { wrapper: 80, avatar: 48, frameSize: 72 },
+        lg: { wrapper: 96, avatar: 58, frameSize: 90 },
+        xl: { wrapper: 150, avatar: 90, frameSize: 140 }
+    };
+
+    const s = sizeMap[size] || sizeMap.lg;
+    const frame = equipped?.frames;
+    const frameStyle = frame ? SHOP_ITEMS.frames.find(f => f.id === frame) : null;
+
+    // Resolve profile effect (from prop or equipped)
+    const resolvedEffectId = effectId || equipped?.profileEffects;
+    const effect = resolvedEffectId ? (SHOP_ITEMS.profileEffects || []).find(e => e.id === resolvedEffectId) : null;
+    const hasImageEffect = effect && effect.imageUrl && effect.imageUrl.trim() !== '';
+
+    const showBan = banData?.isBanned && (
+        !banData.expiresAt ||
+        new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))
+    );
+
+    return (
+        <div className="profile-avatar-container" style={{
+            position: 'relative',
+            width: s.wrapper,
+            height: s.wrapper,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        }}>
+            {/* Frame layer - AROUND the avatar (larger than avatar) */}
+            {frameStyle && frameStyle.preview && (
+                <div
+                    className="profile-avatar-frame"
+                    style={{
+                        position: 'absolute',
+                        width: s.frameSize,
+                        height: s.frameSize,
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        zIndex: 1
+                    }}
+                >
+                    {frameStyle.preview.startsWith('http') ? (
+                        <img src={frameStyle.preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                        <div style={{
+                            width: '100%',
+                            height: '100%',
+                            background: frameStyle.preview,
+                            borderRadius: '50%'
+                        }} />
+                    )}
+                </div>
+            )}
+
+            {/* Avatar image - CENTERED inside frame */}
+            <div style={{ position:'relative', width: s.avatar, height: s.avatar, zIndex: 10, borderRadius:'50%', overflow: hasImageEffect ? 'hidden' : 'visible' }}>
+                <img
+                    src={photoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`}
+                    alt=""
+                    className="profile-avatar"
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        display: 'block',
+                        filter: showBan ? 'grayscale(70%) brightness(0.45)' : 'none',
+                    }}
+                />
+                {hasImageEffect && effect && (
+                    <ProfileEffectOverlayInline effectId={resolvedEffectId} />
+                )}
+                {/* 🚫 Ban Overlay on Profile Avatar */}
+                {showBan && (
+                    <div style={{
+                        position: 'absolute', inset: 0, borderRadius: '50%',
+                        background: 'rgba(200,0,0,0.6)',
+                        border: '2.5px solid rgba(255,60,60,0.95)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexDirection: 'column', zIndex: 11,
+                    }}>
+                        <span style={{ fontSize: '10px', fontWeight: 900, color: '#fff', textAlign: 'center', lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.9)', letterSpacing: '0px' }}>
+                            {lang === 'ar' ? 'محظور' : 'BANNED'}
+                        </span>
+                    </div>
+                )}
+            </div>
+
+            {isOnline !== undefined && (
+                <div className={`profile-status-dot ${isOnline ? '' : 'offline'}`}></div>
+            )}
+        </div>
+    );
+};
+
+// Export to global scope
+window.UserTitleV11 = UserTitleV11;
+window.UserBadgesV11 = UserBadgesV11;
+window.AvatarWithFrameV11 = AvatarWithFrameV11;
