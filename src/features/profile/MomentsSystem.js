@@ -96,11 +96,19 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
         setLoading(true);
         const q = momentsCollection
             .where('authorUID', '==', ownerUID)
-            .orderBy('createdAt', 'desc')
-            .limit(3);
+            .limit(50);
+
         const unsub = q.onSnapshot(snap => {
             const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setMoments(list);
+            
+            // Replicate original JS sort logic (Descending by createdAt)
+            list.sort((a, b) => {
+                const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
+                const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+                return tb - ta;
+            });
+
+            setMoments(list); 
             setLoading(false);
         }, err => {
             console.error('MomentsSection error:', err);
@@ -108,6 +116,8 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
         });
         return () => unsub();
     }, [ownerUID]);
+
+    const previewMoments = moments.slice(0, 3);
 
     return (
         <div style={{padding:'4px 2px'}}>
@@ -133,7 +143,7 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
                 </div>
             ) : (
                 <div style={{display:'flex', flexDirection:'column', gap:'8px', padding:'0 10px'}}>
-                    {moments.map(m => (
+                    {previewMoments.map(m => (
                         <MomentCard key={m.id} moment={m} currentUser={currentUser} lang={lang} onSelect={() => setSelectedMoment(m)} onOpenProfile={onOpenProfile} />
                     ))}
                     {moments.length >= 3 && (
