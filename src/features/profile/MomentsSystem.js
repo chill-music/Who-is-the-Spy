@@ -6,7 +6,7 @@
  * Part of Phase 4: Batch 5 modularization.
  */
 
-const { useState, useEffect, useRef, useMemo } = React;
+var { useState, useEffect, useRef, useMemo } = React;
 
 // Max file size: 2MB images, 5MB videos (10 sec max)
 var MAX_IMAGE_SIZE = 2 * 1024 * 1024;
