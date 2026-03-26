@@ -1631,10 +1631,10 @@
                 <div className="bg-blob-item bg-blob-2"></div>
                 <div className="bg-blob-item bg-blob-3"></div>
             </div>
-            <NotificationToast message={notification} onClose={() => setNotification(null)} />
+            <window.NotificationToast message={notification} onClose={() => setNotification(null)} />
 
             {showOnboarding && (
-                <OnboardingModal
+                <window.OnboardingModal
                     show={showOnboarding}
                     googleUser={onboardingGoogleUser}
                     onComplete={handleOnboardingComplete}
@@ -1646,7 +1646,7 @@
             {showLoginAlert && !isLoggedIn && (
                 <div className="modal-overlay" onClick={() => setShowLoginAlert(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
-                        <div className="modal-header"><h2 className="modal-title">{t.loginRequired}</h2><ModalCloseBtn onClose={() => setShowLoginAlert(false)} /></div>
+                        <div className="modal-header"><h2 className="modal-title">{t.loginRequired}</h2><window.ModalCloseBtn onClose={() => setShowLoginAlert(false)} /></div>
                         <div className="modal-body text-center">
                             <div className="text-4xl mb-4">🔐</div>
                             <p className="text-sm text-gray-300 mb-4">{t.guestDesc}</p>
@@ -1656,13 +1656,13 @@
                 </div>
             )}
 
-            <TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
-            <LoginRewards show={showLoginRewards} onClose={() => setShowLoginRewards(false)} userData={userData} onClaim={handleClaimLoginReward} lang={lang} onOpenInventory={() => { setShowLoginRewards(false); setShowInventory(true); }} />
+            <window.TutorialModal show={showTutorial} onClose={() => { setShowTutorial(false); localStorage.setItem('pro_spy_tutorial_v2', 'true'); }} lang={lang} />
+            <window.LoginRewards show={showLoginRewards} onClose={() => setShowLoginRewards(false)} userData={userData} onClaim={handleClaimLoginReward} lang={lang} onOpenInventory={() => { setShowLoginRewards(false); setShowInventory(true); }} />
 
             {showSummary && room && (
                 <div className="modal-overlay" onClick={() => setShowSummary(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><h2 className="modal-title">{t.summaryTitle}</h2><ModalCloseBtn onClose={() => setShowSummary(false)} /></div>
+                        <div className="modal-header"><h2 className="modal-title">{t.summaryTitle}</h2><window.ModalCloseBtn onClose={() => setShowSummary(false)} /></div>
                         <div className="modal-body text-center">
                             <div className="text-4xl mb-3">{room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'}</div>
                             <h2 className="text-xl font-bold mb-3">{room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin}</h2>
@@ -1684,13 +1684,13 @@
                 </div>
             )}
 
-            <ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} onOpenInventory={() => { setShowShop(false); setShowInventory(true); }} currentUID={currentUID} onPropose={(ring) => { setProposalRing(ring); setShowShop(false); setShowProposalModal(true); }} coupleData={coupleData} onOpenCoupleCard={() => { setShowShop(false); setShowCoupleCard(true); }} />
-            <InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} coupleData={coupleData} onOpenCoupleCard={() => { setShowInventory(false); setShowCoupleCard(true); }} onPropose={(ring) => { setProposalRing(ring); setShowInventory(false); setShowProposalModal(true); }} />
-            <SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} onSetLang={(nl) => { setLang(nl); localStorage.setItem('pro_spy_lang', nl); if(user) usersCollection.doc(user.uid).update({lang:nl}).catch(()=>{}); }} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} onOpenAdminPanel={() => setShowAdminPanel(true)} />
+            <window.ShopModal show={showShop} onClose={() => setShowShop(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onPurchase={handlePurchase} onEquip={handleEquip} onUnequip={handleUnequip} onBuyVIP={handleBuyVIP} onOpenInventory={() => { setShowShop(false); setShowInventory(true); }} currentUID={currentUID} onPropose={(ring) => { setProposalRing(ring); setShowShop(false); setShowProposalModal(true); }} coupleData={coupleData} onOpenCoupleCard={() => { setShowShop(false); setShowCoupleCard(true); }} />
+            <window.InventoryModal show={showInventory} onClose={() => setShowInventory(false)} userData={isLoggedIn ? userData : guestData} lang={lang} onEquip={handleEquip} onUnequip={handleUnequip} onSendGift={(gift, target) => handleSendGiftToUser(gift, target, 1, true)} friendsData={friendsData} isLoggedIn={isLoggedIn} currentUserData={currentUserData} user={user} coupleData={coupleData} onOpenCoupleCard={() => { setShowInventory(false); setShowCoupleCard(true); }} onPropose={(ring) => { setProposalRing(ring); setShowInventory(false); setShowProposalModal(true); }} />
+            <window.SettingsModal show={showSettings} onClose={() => setShowSettings(false)} lang={lang} onSetLang={(nl) => { setLang(nl); localStorage.setItem('pro_spy_lang', nl); if(user) usersCollection.doc(user.uid).update({lang:nl}).catch(()=>{}); }} userData={userData} user={user} onNotification={setNotification} isGuest={isGuest} onLoginGoogle={handleGoogleLogin} onOpenAdminPanel={() => setShowAdminPanel(true)} />
 
             {/* 👑 VIP Center Modal */}
             {showVIPCenter && (
-                <VIPCenterModal
+                <window.VIPCenterModal
                     show={showVIPCenter}
                     onClose={() => setShowVIPCenter(false)}
                     userData={userData}
@@ -1703,7 +1703,7 @@
 
             {/* 💬 Help Center Modal */}
             {showHelpCenter && (
-                <HelpCenterModal
+                <window.HelpCenterModal
                     show={showHelpCenter}
                     onClose={() => setShowHelpCenter(false)}
                     user={user}
@@ -1716,7 +1716,7 @@
 
             {/* 🌍 Public Chat Modal */}
             {showPublicChat && (
-                <PublicChatModal
+                <window.PublicChatModal
                     show={showPublicChat}
                     onClose={() => setShowPublicChat(false)}
                     currentUser={userData}
@@ -1730,7 +1730,7 @@
             )}
 
             {/* 💒 Wedding Hall Modal */}
-            <WeddingHallModal
+            <window.WeddingHallModal
                 show={showWeddingHall}
                 onClose={() => setShowWeddingHall(false)}
                 lang={lang}
@@ -1745,7 +1745,7 @@
             />
 
             {/* 💍 Proposal Modal */}
-            <ProposalModal
+            <window.ProposalModal
                 show={showProposalModal}
                 onClose={() => setShowProposalModal(false)}
                 ring={proposalRing}
@@ -1757,7 +1757,7 @@
             />
 
             {/* 💑 Couple Card Modal */}
-            <CoupleCardModal
+            <window.CoupleCardModal
                 show={showCoupleCard}
                 onClose={() => setShowCoupleCard(false)}
                 coupleDoc={coupleData}
@@ -1771,7 +1771,7 @@
             />
 
             {/* 💌 Incoming Proposal Modal */}
-            <IncomingProposalModal
+            <window.IncomingProposalModal
                 show={showIncomingProposal}
                 coupleDoc={incomingProposal}
                 fromData={incomingProposalFrom}
@@ -1782,7 +1782,7 @@
             />
 
             {/* 🛡️ Admin Panel */}
-            <AdminPanel
+            <window.AdminPanel
                 show={showAdminPanel}
                 onClose={() => setShowAdminPanel(false)}
                 currentUser={user}
@@ -1793,7 +1793,7 @@
 
             {/* 📸 Friends Moments Modal */}
             {showFriendsMoments && (
-                <FriendsMomentsModal
+                <window.FriendsMomentsModal
                     show={showFriendsMoments}
                     onClose={() => setShowFriendsMoments(false)}
                     currentUser={user}
@@ -1807,7 +1807,7 @@
 
             {/* 🏠 Family Modal */}
             {showFamilyModal && (
-                <FamilyModal
+                <window.FamilyModal
                     show={showFamilyModal}
                     onClose={() => { setShowFamilyModal(false); setViewFamilyId(null); }}
                     currentUser={user}
@@ -1825,7 +1825,7 @@
 
             {/* Family Chat (from friends list) */}
             {showFamilyChat && userFamily && (
-                <FamilyChatModal
+                <window.FamilyChatModal
                     show={showFamilyChat}
                     onClose={() => setShowFamilyChat(false)}
                     familyId={userFamily.id}
@@ -1843,7 +1843,7 @@
 
             {/* 🤝 BFF Modal */}
             {showBFFModal && (
-                <BFFModal
+                <window.BFFModal
                     show={showBFFModal}
                     onClose={() => setShowBFFModal(false)}
                     lang={lang}
@@ -1858,7 +1858,7 @@
 
             {/* 🕵️ Detective Bot Chat */}
             {showDetectiveBot && (
-                <BotChatModal
+                <window.BotChatModal
                     show={showDetectiveBot}
                     onClose={() => setShowDetectiveBot(false)}
                     botId="detective_bot"
@@ -1870,7 +1870,7 @@
 
             {/* 💌 Love Bot Chat */}
             {showLoveBot && (
-                <BotChatModal
+                <window.BotChatModal
                     show={showLoveBot}
                     onClose={() => setShowLoveBot(false)}
                     botId="love_bot"
@@ -1883,7 +1883,7 @@
             )}
 
             {showMyAccount && currentUID && (
-                <ProfileV11
+                <window.ProfileV11
                     show={showMyAccount}
                     onClose={() => setShowMyAccount(false)}
                     targetUID={currentUID}
@@ -1922,7 +1922,7 @@
                 />
             )}
 
-            <ProfileV11
+            <window.ProfileV11
                 show={showUserProfile}
                 onClose={() => setShowUserProfile(false)}
                 targetUID={targetProfileUID}
@@ -1944,10 +1944,10 @@
                     setShowUserProfile(false);
                 }}
             />
-            <BrowseRoomsModal show={showBrowseRooms} onClose={() => setShowBrowseRooms(false)} onJoin={handleJoinGame} nickname={nickname} currentUID={currentUID} currentUserData={currentUserData} lang={lang} />
+            <window.BrowseRoomsModal show={showBrowseRooms} onClose={() => setShowBrowseRooms(false)} onJoin={handleJoinGame} nickname={nickname} currentUID={currentUID} currentUserData={currentUserData} lang={lang} />
 
             {showPrivateChat && chatFriend && user && (
-                <PrivateChatModal
+                <window.PrivateChatModal
                     show={showPrivateChat}
                     onClose={closePrivateChat}
                     friend={chatFriend}
@@ -1963,7 +1963,7 @@
             )}
 
             {showSelfChat && user && (
-                <SelfChatModal
+                <window.SelfChatModal
                     show={showSelfChat}
                     onClose={() => setShowSelfChat(false)}
                     currentUser={currentUserData}
@@ -1974,7 +1974,7 @@
             )}
 
             {showFunPass && (
-                <FunPassModal
+                <window.FunPassModal
                     show={showFunPass}
                     onClose={() => setShowFunPass(false)}
                     userData={userData || currentUserData}
@@ -1985,12 +1985,12 @@
                 />
             )}
 
-            {alertMessage && (<div className="alert-modal" onClick={() => setAlertMessage(null)}><div className="modal-content animate-pop" onClick={e => e.stopPropagation()}><div className="modal-header"><span></span><ModalCloseBtn onClose={() => setAlertMessage(null)} /></div><div className="modal-body text-center"><div className="text-2xl mb-2">🚫</div><p className="font-bold mb-4">{alertMessage}</p><button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button></div></div></div>)}
+            {alertMessage && (<div className="alert-modal" onClick={() => setAlertMessage(null)}><div className="modal-content animate-pop" onClick={e => e.stopPropagation()}><div className="modal-header"><span></span><window.ModalCloseBtn onClose={() => setAlertMessage(null)} /></div><div className="modal-body text-center"><div className="text-2xl mb-2">🚫</div><p className="font-bold mb-4">{alertMessage}</p><button onClick={() => setAlertMessage(null)} className="btn-ghost px-4 py-2 rounded-lg text-sm">{t.ok}</button></div></div></div>)}
 
             {showSetupModal && (
                 <div className="modal-overlay" onClick={()=>setShowSetupModal(false)}>
                     <div className="modal-content animate-pop" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><h2 className="modal-title">{t.create}</h2><ModalCloseBtn onClose={() => setShowSetupModal(false)} /></div>
+                        <div className="modal-header"><h2 className="modal-title">{t.create}</h2><window.ModalCloseBtn onClose={() => setShowSetupModal(false)} /></div>
                         <div className="modal-body">
                             <div className="space-y-3">
                                 <div><label className="text-[10px] text-gray-400 block mb-1">{t.nickname}</label><input className="input-dark w-full p-2 rounded font-bold text-sm" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} /></div>
@@ -2044,7 +2044,7 @@
                             <div className="new-notif-bell notification-bell" onClick={() => setShowNotifications(!showNotifications)}>
                                 🔔{unreadNotifications > 0 && <span className="notification-badge">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>}
                             </div>
-                            <NotificationDropdown show={showNotifications} onClose={() => setShowNotifications(false)} notifications={notifications} onMarkRead={markNotificationRead} onClearAll={clearAllNotifications} onNotificationClick={handleNotificationClick} lang={lang} />
+                            <window.NotificationDropdown show={showNotifications} onClose={() => setShowNotifications(false)} notifications={notifications} onMarkRead={markNotificationRead} onClearAll={clearAllNotifications} onNotificationClick={handleNotificationClick} lang={lang} />
                         </div>
                     )}
                     {/* Shop */}
@@ -2148,7 +2148,7 @@
                             <div className="lobby-hero-new">
                                 <div className="hero-label-new">{lang==='ar'?'ابدأ أو انضم لأوضة':t.codePlaceholder}</div>
                                 <div className="hero-title-new">{lang==='ar'?'أنت الجاسوس؟':'Are You the Spy?'}</div>
-                                {isGuest && <GuestBanner lang={lang} />}
+                                {isGuest && <window.GuestBanner lang={lang} />}
                                 <div className="hero-input-row">
                                     <input className="hero-input" value={nickname} onChange={e => { setNickname(e.target.value); localStorage.setItem('pro_spy_nick', e.target.value); }} placeholder={t.nickname} />
                                     <button className="hero-btn-primary" onClick={() => setShowSetupModal(true)} disabled={!nickname.trim()}>+ {t.create}</button>
@@ -2186,7 +2186,7 @@
                                         <span className="sec-title-new">📦 {lang==='ar'?'مهام اليوم':'Daily Tasks'}</span>
                                     </div>
                                     <div style={{margin:'0 16px', padding:'16px', background:'linear-gradient(135deg,rgba(0,242,255,0.05),rgba(112,0,255,0.04))', borderRadius:'14px', border:'1px solid rgba(0,242,255,0.12)'}}>
-                                        <DailyTasksComponent
+                                        <window.DailyTasksComponent
                                             userData={userData}
                                             user={user}
                                             lang={lang}
@@ -2203,7 +2203,7 @@
                                 <button className="sec-action-new" onClick={() => setShowPublicChat(true)}>{lang==='ar'?'فتح':'Open'}</button>
                             </div>
                             <div style={{overflowX:'hidden',width:'100%',boxSizing:'border-box',contain:'layout'}}>
-                            <LobbyPublicChatBox
+                            <window.LobbyPublicChatBox
                                 currentUser={isLoggedIn ? userData : null}
                                 user={user}
                                 lang={lang}
@@ -2291,7 +2291,7 @@
                                 var getAvatar = (p) => p.photoURL || p.photo || null;
                                 var getEmoji = (i) => ['😎','🦊','🐺'][i] || '👤';
                                 var slots = top3.length >= 3
-                                    ? [{p:top3[1],cls:'ps-2',medal:'🥈'},{p:top3[0],cls:'ps-1',medal:'👑',crown:true},{p:top3[2],cls:'ps-3',medal:'🥉'}]
+                                    ? [{cls:'ps-2',medal:'🥈',p:top3[1]},{cls:'ps-1',medal:'👑',crown:true,p:top3[0]},{cls:'ps-3',medal:'🥉',p:top3[2]}]
                                     : top3.map((p,i)=>[{cls:'ps-1',medal:'👑',crown:true},{cls:'ps-2',medal:'🥈'},{cls:'ps-3',medal:'🥉'}][i] ? {...[{cls:'ps-1',medal:'👑',crown:true},{cls:'ps-2',medal:'🥈'},{cls:'ps-3',medal:'🥉'}][i], p} : null).filter(Boolean);
                                 return (
                                     <>
@@ -2416,7 +2416,7 @@
                                     <div style={{fontSize:'10px',fontWeight:700,color:'var(--gold)',padding:'8px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>⏳ {lang==='ar'?'طلبات صداقة':'Friend Requests'} ({friendRequests.length})</div>
                                     {friendRequests.map(req => (
                                         <div key={req.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 14px',borderTop:'1px solid rgba(255,255,255,0.04)'}}>
-                                            <div style={{flex:1,minWidth:0}}><PlayerNameTag player={req} lang={lang} size="sm" /></div>
+                                            <div style={{flex:1,minWidth:0}}><window.PlayerNameTag player={req} lang={lang} size="sm" /></div>
                                             <button onClick={() => handleAcceptRequest(req.id)} style={{padding:'4px 10px',borderRadius:'8px',background:'#00ff88',color:'#000',fontSize:'11px',fontWeight:700,border:'none',cursor:'pointer'}}>{t.accept} ✓</button>
                                             <button onClick={() => handleRejectRequest(req.id)} style={{padding:'4px 8px',borderRadius:'8px',background:'rgba(255,255,255,0.07)',color:'var(--text-muted)',fontSize:'11px',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>✕</button>
                                         </div>
@@ -2428,7 +2428,7 @@
                             <div style={{margin:'0 16px',background:'var(--new-card)',border:'1px solid var(--new-border)',borderRadius:'var(--radius-lg)',overflow:'hidden'}}>
                                 {isLoggedIn && currentUserData && (
                                     <div onClick={() => setShowSelfChat(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer'}} className="me-friend-row">
-                                        <div style={{flex:1,minWidth:0}}><PlayerNameTag player={currentUserData} lang={lang} size="sm" /></div>
+                                        <div style={{flex:1,minWidth:0}}><window.PlayerNameTag player={currentUserData} lang={lang} size="sm" /></div>
                                         <div style={{fontSize:'9px',fontWeight:700,color:'var(--primary)',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',borderRadius:'6px',padding:'2px 7px',flexShrink:0}}>💬 {lang==='ar'?'شاتي':'My Chat'}</div>
                                     </div>
                                 )}
@@ -2513,8 +2513,8 @@
                                                             <span style={{fontSize:'7px',fontWeight:900,background:fVipCfg.nameColor,color:'#000',padding:'1px 3px',borderRadius:'2px',flexShrink:0}}>VIP{fVipLevel}</span>
                                                         )}
                                                         {/* Staff role badge */}
-                                                        {friend.staffRole?.role && typeof StaffRoleBadge !== 'undefined' && (
-                                                            <StaffRoleBadge userData={friend} uid={friend.id} lang={lang} size="sm" />
+                                                        {friend.staffRole?.role && typeof window.StaffRoleBadge !== 'undefined' && (
+                                                            <window.StaffRoleBadge userData={friend} uid={friend.id} lang={lang} size="sm" />
                                                         )}
                                                     </div>
                                                     {/* Row 2: Badges (max 3) */}
@@ -2558,7 +2558,7 @@
 
                             {/* ── Groups Section ── */}
                             <div id="chat-section-groups" style={{display:'none'}}>
-                                <GroupsSection
+                                <window.GroupsSection
                                     currentUser={user}
                                     currentUserData={currentUserData}
                                     currentUID={currentUID}
@@ -2787,7 +2787,7 @@
                     {room.status === 'waiting' && (
                         <div className="card-container">
                             <h3 className="text-sm font-bold mb-3 text-center">{t.lobbyTitle}</h3>
-                            <div className="flex flex-col gap-2 mb-4">{room.players.map(p => (<div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10" onClick={() => !p.isBot && openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name + (p.isBot?' 🤖':'')}} lang={lang} size="sm" /></div>{p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded flex-shrink-0">HOST</span>}{p.isBot && currentUID === OWNER_UID && <button onClick={e=>{e.stopPropagation();removeBotFromRoom(p.uid);}} style={{background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',borderRadius:'5px',padding:'2px 6px',fontSize:'10px',cursor:'pointer',flexShrink:0}}>{t.removeBot}</button>}</div>))}</div>
+                            <div className="flex flex-col gap-2 mb-4">{room.players.map(p => (<div key={p.uid} className="flex items-center gap-2 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10" onClick={() => !p.isBot && openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><window.PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name + (p.isBot?' 🤖':'')}} lang={lang} size="sm" /></div>{p.uid === room.admin && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1 rounded flex-shrink-0">HOST</span>}{p.isBot && currentUID === OWNER_UID && <button onClick={e=>{e.stopPropagation();removeBotFromRoom(p.uid);}} style={{background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',borderRadius:'5px',padding:'2px 6px',fontSize:'10px',cursor:'pointer',flexShrink:0}}>{t.removeBot}</button>}</div>))}</div>
                             {/* Bot Manager - Owner Only */}
                             {currentUID === OWNER_UID && (
                                 <div style={{background:'rgba(0,242,255,0.04)',border:'1px solid rgba(0,242,255,0.15)',borderRadius:'8px',padding:'8px 10px',marginBottom:'10px'}}>
@@ -2845,7 +2845,7 @@
 
                     {room.status === 'discussing' && (
                         <div className="flex flex-col gap-2">
-                            <div className="card-container"><div className="flex flex-col gap-2">{room.players.filter(p => p.status === 'active').map(p => (<div key={p.uid} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer bg-white/5 ${room.currentTurnUID === p.uid ? 'border border-primary bg-primary/5' : ''} ${p.uid === currentUID ? 'border border-primary/50' : ''}`} onClick={() => openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>{room.currentTurnUID === p.uid && <span className="text-[8px] text-primary flex-shrink-0">🎙 {lang==='ar'?'يتكلم':'Speaking'}</span>}</div>))}</div></div>
+                            <div className="card-container"><div className="flex flex-col gap-2">{room.players.filter(p => p.status === 'active').map(p => (<div key={p.uid} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer bg-white/5 ${room.currentTurnUID === p.uid ? 'border border-primary bg-primary/5' : ''} ${p.uid === currentUID ? 'border border-primary/50' : ''}`} onClick={() => openProfile(p.uid)}><div className="flex-1" style={{minWidth:0}}><window.PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>{room.currentTurnUID === p.uid && <span className="text-[8px] text-primary flex-shrink-0">🎙 {lang==='ar'?'يتكلم':'Speaking'}</span>}</div>))}</div></div>
                             {!isSpectator && me && (
                                 <div className={`identity-square identity-${myRole === 'spy' ? 'spy' : myRole === 'mrwhite' ? 'mrwhite' : myRole === 'informant' ? 'informant' : 'agent'}`}>
                                     <div className="text-4xl mb-2">{myRole === 'spy' ? '🕵️' : myRole === 'mrwhite' ? '👻' : myRole === 'informant' ? '👁️' : '🤵'}</div>
@@ -2885,7 +2885,7 @@
                                     var voteCount = Object.values(room.votes || {}).filter(v => v === p.uid).length;
                                     return (
                                         <button key={p.uid} onClick={() => submitVote(p.uid)} disabled={!!hasVoted} className={`flex items-center gap-2 p-2 rounded-lg w-full text-left bg-white/5 hover:bg-white/10 border ${hasVoted === p.uid ? 'border-primary bg-primary/10' : 'border-transparent'}`}>
-                                            <div className="flex-1" style={{minWidth:0}}><PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>
+                                            <div className="flex-1" style={{minWidth:0}}><window.PlayerNameTag player={{...p, photoURL:p.photo, displayName:p.name}} lang={lang} size="sm" /></div>
                                             {voteCount > 0 && <span style={{background:'rgba(255,68,68,0.2)',color:'#ef4444',borderRadius:'10px',padding:'1px 7px',fontSize:'11px',fontWeight:700,flexShrink:0}}>🗳 {voteCount}</span>}
                                         </button>
                                     );

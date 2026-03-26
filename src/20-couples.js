@@ -2044,6 +2044,7 @@ var WeddingHallModal = ({
 };
 
 // ── Exports ──
+window.WeddingHallModal = WeddingHallModal;
 window.CoupleCardModal = CoupleCardModal;
 window.ProposalModal = ProposalModal;
 window.IncomingProposalModal = IncomingProposalModal;
