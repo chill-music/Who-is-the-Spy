@@ -118,17 +118,17 @@ var LOGIN_REWARDS_CONFIG = {
 
 // ✅ Returns the ACTUAL current month string e.g. '2026-03'
 var getCurrentCycleMonth = () => {
-    const now = new Date();
+    var now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 };
 
 // ✅ Returns true ONLY when the user's stored cycleMonth differs from the actual current month
 var checkLoginRewardsCycle = (userData) => {
     if (!LOGIN_REWARDS_CONFIG.autoResetMonthly) return false;
-    const storedMonth = userData?.loginRewards?.cycleMonth;
+    var storedMonth = userData?.loginRewards?.cycleMonth;
     // No stored month means a fresh/legacy user — don't reset, just update going forward
     if (!storedMonth) return false;
-    const currentMonth = getCurrentCycleMonth();
+    var currentMonth = getCurrentCycleMonth();
     return storedMonth !== currentMonth;
 };
 

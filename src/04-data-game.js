@@ -24,7 +24,7 @@
 //   });
 //
 // ✅ التحقق من الانتهاء:
-//   const expired = isItemExpired(userData?.inventory?.expiry?.[item.id]);
+//   var expired = isItemExpired(userData?.inventory?.expiry?.[item.id]);
 //   if (expired) { /* حذف الآيتم من الإنفنتري */ }
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -77,9 +77,9 @@ var CHARISMA_LEVELS = [
 ];
 
 var getCharismaLevel = (charisma) => {
-    let currentLevel = CHARISMA_LEVELS[0];
-    let nextLevel = null;
-    for (let i = CHARISMA_LEVELS.length - 1; i >= 0; i--) {
+    var currentLevel = CHARISMA_LEVELS[0];
+    var nextLevel = null;
+    for (var i = CHARISMA_LEVELS.length - 1; i >= 0; i--) {
         if (charisma >= CHARISMA_LEVELS[i].threshold) {
             currentLevel = CHARISMA_LEVELS[i];
             nextLevel = CHARISMA_LEVELS[i + 1] || null;
@@ -90,9 +90,9 @@ var getCharismaLevel = (charisma) => {
 };
 
 var getCharismaProgress = (charisma) => {
-    const { currentLevel, nextLevel } = getCharismaLevel(charisma);
+    var { currentLevel, nextLevel } = getCharismaLevel(charisma);
     if (!nextLevel || currentLevel.isMaxLevel) return 100;
-    const progress = ((charisma - currentLevel.threshold) / (nextLevel.threshold - currentLevel.threshold)) * 100;
+    var progress = ((charisma - currentLevel.threshold) / (nextLevel.threshold - currentLevel.threshold)) * 100;
     return Math.min(100, Math.max(0, progress));
 };
 
@@ -426,7 +426,7 @@ var RARITY_CONFIG = {
 var getItemRarity = (item) => {
     if (!item) return 'Common';
     if (item.rarity) return item.rarity;
-    const cost = item.cost || 0;
+    var cost = item.cost || 0;
     if (cost >= 5000) return 'Mythic';
     if (cost >= 500)  return 'Legendary';
     if (cost >= 100)  return 'Epic';
@@ -528,9 +528,9 @@ var EMOJI_CATEGORIES = {
 };
 
 // --- Helper Functions ---
-var formatTime = (timestamp) => { if (!timestamp) return ''; const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
+var formatTime = (timestamp) => { if (!timestamp) return ''; var date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
 var formatCharisma = (num) => { if (num === undefined || num === null) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); };
-var maskEmail = (email) => { if (!email) return 'N/A'; const [localPart, domain] = email.split('@'); if (!domain) return email; const visibleChars = Math.min(2, localPart.length); return localPart.substring(0, visibleChars) + '***@' + domain; };
+var maskEmail = (email) => { if (!email) return 'N/A'; var [localPart, domain] = email.split('@'); if (!domain) return email; var visibleChars = Math.min(2, localPart.length); return localPart.substring(0, visibleChars) + '***@' + domain; };
 // 🎯 SMART BONUS SYSTEM — بونص ذكي يراعي قيمة الهدية
 // ══════════════════════════════════════════════════════
 // 🔧 BONUS_CONFIG — عدّل القيم هنا لضبط السلوك:
@@ -563,30 +563,30 @@ var BONUS_CONFIG = {
 };
 
 var generateRandomBonus = (min, max, giftCost = 0) => {
-    const { ZONE_WEIGHTS, ZONE_RANGES, GIFT_COST_CAP, JACKPOT_BYPASSES_CAP } = BONUS_CONFIG;
+    var { ZONE_WEIGHTS, ZONE_RANGES, GIFT_COST_CAP, JACKPOT_BYPASSES_CAP } = BONUS_CONFIG;
 
     // احسب السقف بناءً على سعر الهدية
-    const capEntry = GIFT_COST_CAP.find(e => giftCost <= e.maxCost) || GIFT_COST_CAP[GIFT_COST_CAP.length - 1];
-    const capFactor = capEntry.cap;
+    var capEntry = GIFT_COST_CAP.find(e => giftCost <= e.maxCost) || GIFT_COST_CAP[GIFT_COST_CAP.length - 1];
+    var capFactor = capEntry.cap;
 
     // اختيار المنطقة
-    const r = Math.random();
-    let zone = ZONE_WEIGHTS.length - 1;
-    let cumulative = 0;
-    for (let i = 0; i < ZONE_WEIGHTS.length; i++) {
+    var r = Math.random();
+    var zone = ZONE_WEIGHTS.length - 1;
+    var cumulative = 0;
+    for (var i = 0; i < ZONE_WEIGHTS.length; i++) {
         cumulative += ZONE_WEIGHTS[i];
         if (r < cumulative) { zone = i; break; }
     }
 
-    const isJackpot = zone === ZONE_WEIGHTS.length - 1;
-    const [lo, hi] = ZONE_RANGES[zone];
+    var isJackpot = zone === ZONE_WEIGHTS.length - 1;
+    var [lo, hi] = ZONE_RANGES[zone];
 
     // طبّق السقف على الجاكبوت أو لا؟
-    const effectiveMax = (isJackpot && JACKPOT_BYPASSES_CAP)
+    var effectiveMax = (isJackpot && JACKPOT_BYPASSES_CAP)
         ? max
         : Math.max(min, Math.floor(max * capFactor));
 
-    const range = effectiveMax - min;
+    var range = effectiveMax - min;
     return Math.max(min, Math.min(effectiveMax, Math.floor(min + range * (lo + Math.random() * (hi - lo)))));
 };
 

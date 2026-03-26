@@ -1,8 +1,8 @@
 (function() {
-    const { useState, useEffect, useRef, useCallback, useMemo } = React;
+    var { useState, useEffect, useRef, useCallback, useMemo } = React;
 
 var BlockedUserItem = ({ uid, onUnblock, lang }) => {
-    const [userData, setUserData] = useState(null);
+    var [userData, setUserData] = useState(null);
 
     useEffect(() => {
         usersCollection.doc(uid).get().then(doc => {
@@ -77,9 +77,9 @@ var COUNTRIES = [
 
 // 🌍 Country Picker Component — Flag Grid
 var CountryPicker = ({ selected, onSelect, lang }) => {
-    const [search, setSearch] = useState('');
-    const filtered = COUNTRIES.filter(c => {
-        const q = search.toLowerCase();
+    var [search, setSearch] = useState('');
+    var filtered = COUNTRIES.filter(c => {
+        var q = search.toLowerCase();
         return c.name_ar.includes(q) || c.name_en.toLowerCase().includes(q) || c.code.toLowerCase().includes(q);
     });
     return (
@@ -124,25 +124,25 @@ var CountryPicker = ({ selected, onSelect, lang }) => {
 
 // 🎉 ONBOARDING MODAL - New User Setup
 var OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
-    const [displayName, setDisplayName] = useState(googleUser?.displayName || '');
-    const [gender, setGender] = useState('');
-    const [country, setCountry] = useState(null);
-    const [showCountryPicker, setShowCountryPicker] = useState(false);
-    const [photoURL, setPhotoURL] = useState(googleUser?.photoURL || null);
-    const fileRef = useRef(null);
+    var [displayName, setDisplayName] = useState(googleUser?.displayName || '');
+    var [gender, setGender] = useState('');
+    var [country, setCountry] = useState(null);
+    var [showCountryPicker, setShowCountryPicker] = useState(false);
+    var [photoURL, setPhotoURL] = useState(googleUser?.photoURL || null);
+    var fileRef = useRef(null);
 
     if (!show) return null;
 
-    const handlePhotoChange = (e) => {
-        const file = e.target.files?.[0];
+    var handlePhotoChange = (e) => {
+        var file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
+        var reader = new FileReader();
         reader.onload = (ev) => {
-            const img = new Image();
+            var img = new Image();
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX = 300;
-                let w = img.width, h = img.height;
+                var canvas = document.createElement('canvas');
+                var MAX = 300;
+                var w = img.width, h = img.height;
                 if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
                 else { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
                 canvas.width = w; canvas.height = h;
@@ -154,7 +154,7 @@ var OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
         reader.readAsDataURL(file);
     };
 
-    const handleComplete = () => {
+    var handleComplete = () => {
         if (!displayName.trim() || !gender) return;
         onComplete({ displayName: displayName.trim(), gender, country, photoURL });
     };
@@ -277,18 +277,18 @@ var OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
 };
 
 var DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) => {
-    const [tick, setTick] = React.useState(0);
+    var [tick, setTick] = React.useState(0);
     React.useEffect(() => {
-        const t = setInterval(() => setTick(p => p + 1), 30000);
+        var t = setInterval(() => setTick(p => p + 1), 30000);
         return () => clearInterval(t);
     }, []);
 
-    const userTasks = userData?.dailyTasks || {};
-    const sessionStart = userTasks.sessionStartTime?.toDate?.() || new Date();
-    const minutesOnline = Math.floor((Date.now() - sessionStart.getTime()) / 60000);
+    var userTasks = userData?.dailyTasks || {};
+    var sessionStart = userTasks.sessionStartTime?.toDate?.() || new Date();
+    var minutesOnline = Math.floor((Date.now() - sessionStart.getTime()) / 60000);
 
-    const claimedCount = DAILY_TASKS_CONFIG.filter(box => userTasks.boxes?.[box.id-1]?.status === 'claimed').length;
-    const availableCount = DAILY_TASKS_CONFIG.filter(box => {
+    var claimedCount = DAILY_TASKS_CONFIG.filter(box => userTasks.boxes?.[box.id-1]?.status === 'claimed').length;
+    var availableCount = DAILY_TASKS_CONFIG.filter(box => {
         if (userTasks.boxes?.[box.id-1]?.status === 'claimed') return false;
         if (box.comingSoon) {
             if (!hasVIPDailyTasks(userData)) return false;
@@ -299,8 +299,8 @@ var DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) =>
         return minutesOnline >= Math.ceil(box.duration/60000);
     }).length;
 
-    const getTaskStatus = (box) => {
-        const claimed = userTasks.boxes?.[box.id - 1]?.status === 'claimed';
+    var getTaskStatus = (box) => {
+        var claimed = userTasks.boxes?.[box.id - 1]?.status === 'claimed';
         if (claimed) return 'claimed';
         if (box.comingSoon) {
             if (!hasVIPDailyTasks(userData)) return 'vip_locked';
@@ -313,18 +313,18 @@ var DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) =>
         return 'locked';
     };
 
-    const handleClaimTask = async (box) => {
-        const status = getTaskStatus(box);
+    var handleClaimTask = async (box) => {
+        var status = getTaskStatus(box);
         if (status === 'claimed') { onNotification(lang==='ar'?'✅ استلمت بالفعل':'✅ Already claimed'); return; }
         if (status === 'vip_locked') { onNotification(lang==='ar'?'👑 حصري لـ VIP':'👑 VIP Exclusive'); return; }
         if (status === 'locked') {
-            const requiredMin = Math.ceil(box.duration/60000);
-            const remaining = requiredMin - minutesOnline;
+            var requiredMin = Math.ceil(box.duration/60000);
+            var remaining = requiredMin - minutesOnline;
             onNotification(lang==='ar'?`⏳ بعد ${remaining} دقيقة`:`⏳ In ${remaining} min`);
             return;
         }
         try {
-            const updates = {};
+            var updates = {};
             updates[`dailyTasks.boxes.${box.id-1}.status`] = 'claimed';
             updates[`dailyTasks.boxes.${box.id-1}.claimedAt`] = TS();
             if (box.reward.type === 'currency') updates['currency'] = firebase.firestore.FieldValue.increment(box.reward.amount);
@@ -364,15 +364,15 @@ var DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) =>
             {/* ── 8 Chest Boxes ── */}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px' }}>
                 {DAILY_TASKS_CONFIG.map(box => {
-                    const status = getTaskStatus(box);
-                    const isAvailable = status === 'available';
-                    const isClaimed   = status === 'claimed';
-                    const isVipLocked = status === 'vip_locked';
-                    const isLocked    = status === 'locked';
-                    const isVip       = box.comingSoon;
-                    const reqMin      = box.duration ? Math.ceil(box.duration/60000) : null;
-                    const progress    = (isLocked && reqMin) ? Math.min(100, Math.floor((minutesOnline/reqMin)*100)) : 0;
-                    const timeLabel   = reqMin ? (reqMin>=60?`${reqMin/60}h`:`${reqMin}m`) : '';
+                    var status = getTaskStatus(box);
+                    var isAvailable = status === 'available';
+                    var isClaimed   = status === 'claimed';
+                    var isVipLocked = status === 'vip_locked';
+                    var isLocked    = status === 'locked';
+                    var isVip       = box.comingSoon;
+                    var reqMin      = box.duration ? Math.ceil(box.duration/60000) : null;
+                    var progress    = (isLocked && reqMin) ? Math.min(100, Math.floor((minutesOnline/reqMin)*100)) : 0;
+                    var timeLabel   = reqMin ? (reqMin>=60?`${reqMin/60}h`:`${reqMin}m`) : '';
 
                     return (
                         <button
@@ -469,59 +469,59 @@ var GROUP_LEVEL_CONFIG = [
     { level:10, xp:5000, icon:'🏆', name_en:'Legend',  name_ar:'أسطورة', color:'#00d4ff' },
 ];
 var getGroupLevel = (xp = 0) => {
-    let cfg = GROUP_LEVEL_CONFIG[0];
-    for (let i = GROUP_LEVEL_CONFIG.length - 1; i >= 0; i--) {
+    var cfg = GROUP_LEVEL_CONFIG[0];
+    for (var i = GROUP_LEVEL_CONFIG.length - 1; i >= 0; i--) {
         if (xp >= GROUP_LEVEL_CONFIG[i].xp) { cfg = GROUP_LEVEL_CONFIG[i]; break; }
     }
     return cfg;
 };
 var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, lang, onNotification, isLoggedIn, onOpenProfile }) => {
-    const [groups, setGroups] = React.useState([]);
-    const [activeGroup, setActiveGroup] = React.useState(null);
-    const [messages, setMessages] = React.useState([]);
-    const [msgText, setMsgText] = React.useState('');
-    const [showCreate, setShowCreate] = React.useState(false);
-    const [showInvite, setShowInvite] = React.useState(false);
-    const [groupName, setGroupName] = React.useState('');
-    const [creating, setCreating] = React.useState(false);
-    const [loadingGroups, setLoadingGroups] = React.useState(true);
-    const [showEmojiPicker, setShowEmojiPicker] = React.useState(false);
-    const [uploadingImg, setUploadingImg] = React.useState(false);
-    const [showDetails, setShowDetails] = React.useState(false);
-    const [membersData, setMembersData] = React.useState([]);
-    const [loadingMembers, setLoadingMembers] = React.useState(false);
+    var [groups, setGroups] = React.useState([]);
+    var [activeGroup, setActiveGroup] = React.useState(null);
+    var [messages, setMessages] = React.useState([]);
+    var [msgText, setMsgText] = React.useState('');
+    var [showCreate, setShowCreate] = React.useState(false);
+    var [showInvite, setShowInvite] = React.useState(false);
+    var [groupName, setGroupName] = React.useState('');
+    var [creating, setCreating] = React.useState(false);
+    var [loadingGroups, setLoadingGroups] = React.useState(true);
+    var [showEmojiPicker, setShowEmojiPicker] = React.useState(false);
+    var [uploadingImg, setUploadingImg] = React.useState(false);
+    var [showDetails, setShowDetails] = React.useState(false);
+    var [membersData, setMembersData] = React.useState([]);
+    var [loadingMembers, setLoadingMembers] = React.useState(false);
     // ── NEW: settings sub-panels ──
-    const [settingsView, setSettingsView] = React.useState('main'); // 'main' | 'manage' | 'members'
-    const [groupNotice, setGroupNotice] = React.useState('');
-    const [editingNotice, setEditingNotice] = React.useState(false);
-    const [groupMuted, setGroupMuted] = React.useState(false);
-    const [showReportGroup, setShowReportGroup] = React.useState(false);
-    const [reportGroupReason, setReportGroupReason] = React.useState('');
-    const [sendingGroupReport, setSendingGroupReport] = React.useState(false);
-    const [groupInviteType, setGroupInviteType] = React.useState('open'); // 'open' | 'approval' | 'closed'
-    const [groupIsPublic, setGroupIsPublic] = React.useState(true);
-    const [transferToId, setTransferToId] = React.useState('');
-    const [showTransferConfirm, setShowTransferConfirm] = React.useState(false);
-    const [sendingRedPacket, setSendingRedPacket] = React.useState(false);
-    const [showRedPacketModal, setShowRedPacketModal] = React.useState(false);
+    var [settingsView, setSettingsView] = React.useState('main'); // 'main' | 'manage' | 'members'
+    var [groupNotice, setGroupNotice] = React.useState('');
+    var [editingNotice, setEditingNotice] = React.useState(false);
+    var [groupMuted, setGroupMuted] = React.useState(false);
+    var [showReportGroup, setShowReportGroup] = React.useState(false);
+    var [reportGroupReason, setReportGroupReason] = React.useState('');
+    var [sendingGroupReport, setSendingGroupReport] = React.useState(false);
+    var [groupInviteType, setGroupInviteType] = React.useState('open'); // 'open' | 'approval' | 'closed'
+    var [groupIsPublic, setGroupIsPublic] = React.useState(true);
+    var [transferToId, setTransferToId] = React.useState('');
+    var [showTransferConfirm, setShowTransferConfirm] = React.useState(false);
+    var [sendingRedPacket, setSendingRedPacket] = React.useState(false);
+    var [showRedPacketModal, setShowRedPacketModal] = React.useState(false);
     // ── Mini Profile in group chat ──
-    const [groupMiniProfile, setGroupMiniProfile] = React.useState(null);
-    const messagesEndRef = React.useRef(null);
-    const chatInputRef = React.useRef(null);
-    const fileInputRef = React.useRef(null);
-    const groupImgInputRef = React.useRef(null);
+    var [groupMiniProfile, setGroupMiniProfile] = React.useState(null);
+    var messagesEndRef = React.useRef(null);
+    var chatInputRef = React.useRef(null);
+    var fileInputRef = React.useRef(null);
+    var groupImgInputRef = React.useRef(null);
 
     // ✅ No orderBy → no index needed, sort client-side
     React.useEffect(() => {
         if (!currentUID || !isLoggedIn) { setLoadingGroups(false); return; }
-        const unsub = groupsCollection
+        var unsub = groupsCollection
             .where('members', 'array-contains', currentUID)
             .onSnapshot(snap => {
-                const gs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                var gs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 // Sort by lastMessageAtMs (number) then lastMessageAt (timestamp) fallback
                 gs.sort((a, b) => {
-                    const aT = a.lastMessageAtMs || a.lastMessageAt?.toMillis?.() || a.lastMessageAt?.seconds * 1000 || 0;
-                    const bT = b.lastMessageAtMs || b.lastMessageAt?.toMillis?.() || b.lastMessageAt?.seconds * 1000 || 0;
+                    var aT = a.lastMessageAtMs || a.lastMessageAt?.toMillis?.() || a.lastMessageAt?.seconds * 1000 || 0;
+                    var bT = b.lastMessageAtMs || b.lastMessageAt?.toMillis?.() || b.lastMessageAt?.seconds * 1000 || 0;
                     return bT - aT;
                 });
                 setGroups(gs);
@@ -532,7 +532,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
 
     React.useEffect(() => {
         if (!activeGroup) return;
-        const unsub = groupsCollection.doc(activeGroup.id).collection('messages')
+        var unsub = groupsCollection.doc(activeGroup.id).collection('messages')
             .orderBy('createdAt', 'asc').limitToLast(100)
             .onSnapshot(snap => {
                 setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -544,16 +544,16 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         return () => unsub();
     }, [activeGroup?.id]);
 
-    const createGroup = async () => {
+    var createGroup = async () => {
         if (!groupName.trim() || !currentUID || creating) return;
         if (groupName.trim().length > 7) {
             onNotification(lang === 'ar' ? '❌ اسم الجروب 7 أحرف كحد أقصى' : '❌ Group name max 7 chars');
             return;
         }
         // ── Check group limit ──
-        const isVIP = currentUserData?.vip?.isActive;
-        const maxGroups = isVIP ? 3 : 2;
-        const myOwnedGroups = groups.filter(g => g.createdBy === currentUID);
+        var isVIP = currentUserData?.vip?.isActive;
+        var maxGroups = isVIP ? 3 : 2;
+        var myOwnedGroups = groups.filter(g => g.createdBy === currentUID);
         if (myOwnedGroups.length >= maxGroups) {
             onNotification(lang === 'ar'
                 ? `❌ وصلت للحد الأقصى (${maxGroups} جروبات)${!isVIP ? ' · VIP يحصل على 3' : ''}`
@@ -563,7 +563,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         }
         setCreating(true);
         try {
-            const nowMs = Date.now();
+            var nowMs = Date.now();
             await groupsCollection.add({
                 name: groupName.trim().slice(0, 7),
                 createdBy: currentUID,
@@ -587,7 +587,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         setCreating(false);
     };
 
-    const inviteFriend = async (friendId) => {
+    var inviteFriend = async (friendId) => {
         if (!activeGroup) return;
         if (activeGroup.members?.includes(friendId)) {
             onNotification(lang === 'ar' ? 'هذا الشخص موجود بالفعل' : 'Already a member'); return;
@@ -596,7 +596,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
             await groupsCollection.doc(activeGroup.id).update({
                 members: firebase.firestore.FieldValue.arrayUnion(friendId)
             });
-            const friend = friendsData.find(f => f.id === friendId);
+            var friend = friendsData.find(f => f.id === friendId);
             await groupsCollection.doc(activeGroup.id).collection('messages').add({
                 text: lang === 'ar' ? `تمت إضافة ${friend?.displayName || 'عضو'}` : `${friend?.displayName || 'Member'} was added`,
                 senderId: 'system', senderName: 'System',
@@ -608,16 +608,16 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch (e) { onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
     };
 
-    const sendMessage = async () => {
+    var sendMessage = async () => {
         if (!msgText.trim() || !activeGroup || !currentUID) return;
-        const text = msgText.trim();
+        var text = msgText.trim();
         setMsgText('');
         try {
-            const nowMs = Date.now();
-            const senderVipLevel = (typeof getVIPLevel === 'function' ? (getVIPLevel(currentUserData) || 0) : 0);
-            const senderTitle = currentUserData?.activeTitle || currentUserData?.title || null;
-            const senderFrame = currentUserData?.equipped?.frames || null;
-            const senderBadges = (currentUserData?.equipped?.badges || []).slice(0, 3);
+            var nowMs = Date.now();
+            var senderVipLevel = (typeof getVIPLevel === 'function' ? (getVIPLevel(currentUserData) || 0) : 0);
+            var senderTitle = currentUserData?.activeTitle || currentUserData?.title || null;
+            var senderFrame = currentUserData?.equipped?.frames || null;
+            var senderBadges = (currentUserData?.equipped?.badges || []).slice(0, 3);
             await groupsCollection.doc(activeGroup.id).collection('messages').add({
                 text, senderId: currentUID,
                 senderName: currentUserData?.displayName || 'User',
@@ -629,8 +629,8 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                 createdAt: TS(), type: 'text'
             });
             // ── XP + level update ──
-            const newXP = (activeGroup.xp || 0) + 1;
-            const newLevel = getGroupLevel(newXP);
+            var newXP = (activeGroup.xp || 0) + 1;
+            var newLevel = getGroupLevel(newXP);
             await groupsCollection.doc(activeGroup.id).update({
                 lastMessage: text, lastSenderId: currentUID,
                 lastSenderName: currentUserData?.displayName || 'User',
@@ -644,13 +644,13 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch (e) { console.error('sendMessage error:', e); }
     };
 
-    const handleImageSelect = async (e) => {
-        const file = e.target.files?.[0];
+    var handleImageSelect = async (e) => {
+        var file = e.target.files?.[0];
         if (!file || !file.type.startsWith('image/') || !activeGroup || !currentUID) return;
         setUploadingImg(true);
         try {
-            const base64 = await compressImageToBase64(file);
-            const nowMs = Date.now();
+            var base64 = await compressImageToBase64(file);
+            var nowMs = Date.now();
             await groupsCollection.doc(activeGroup.id).collection('messages').add({
                 text: '📷', senderId: currentUID,
                 senderName: currentUserData?.displayName || 'User',
@@ -669,11 +669,11 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const handleGroupPhotoUpload = async (e) => {
-        const file = e.target.files?.[0];
+    var handleGroupPhotoUpload = async (e) => {
+        var file = e.target.files?.[0];
         if (!file || !file.type.startsWith('image/') || !activeGroup || !currentUID) return;
         try {
-            const base64 = await compressImageToBase64(file);
+            var base64 = await compressImageToBase64(file);
             await groupsCollection.doc(activeGroup.id).update({ photoURL: base64 });
             setActiveGroup(g => ({ ...g, photoURL: base64 }));
             onNotification(lang === 'ar' ? '✅ تم تغيير صورة الجروب' : '✅ Group photo updated');
@@ -681,7 +681,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         if (groupImgInputRef.current) groupImgInputRef.current.value = '';
     };
 
-    const makeAdmin = async (memberId) => {
+    var makeAdmin = async (memberId) => {
         if (!activeGroup || !currentUID) return;
         try {
             await groupsCollection.doc(activeGroup.id).update({
@@ -692,7 +692,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch (e) { onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
     };
 
-    const removeAdmin = async (memberId) => {
+    var removeAdmin = async (memberId) => {
         if (!activeGroup || !currentUID) return;
         try {
             await groupsCollection.doc(activeGroup.id).update({
@@ -703,7 +703,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch (e) { onNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
     };
 
-    const kickMember = async (memberId) => {
+    var kickMember = async (memberId) => {
         if (!activeGroup || !currentUID) return;
         if (memberId === activeGroup.createdBy) { onNotification(lang==='ar'?'❌ لا يمكن طرد الأونر':'❌ Cannot kick owner'); return; }
         try {
@@ -711,7 +711,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                 members: firebase.firestore.FieldValue.arrayRemove(memberId),
                 admins: firebase.firestore.FieldValue.arrayRemove(memberId),
             });
-            const member = membersData.find(m => m.id === memberId);
+            var member = membersData.find(m => m.id === memberId);
             await groupsCollection.doc(activeGroup.id).collection('messages').add({
                 text: lang==='ar' ? `تم طرد ${member?.displayName||'عضو'}` : `${member?.displayName||'Member'} was removed`,
                 senderId:'system', senderName:'System', type:'system',
@@ -723,7 +723,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
     };
 
-    const saveGroupNotice = async () => {
+    var saveGroupNotice = async () => {
         if (!activeGroup) return;
         try {
             await groupsCollection.doc(activeGroup.id).update({ notice: groupNotice });
@@ -733,7 +733,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
     };
 
-    const saveGroupManageSettings = async (updates) => {
+    var saveGroupManageSettings = async (updates) => {
         if (!activeGroup) return;
         try {
             await groupsCollection.doc(activeGroup.id).update(updates);
@@ -742,9 +742,9 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
     };
 
-    const handleTransferOwnership = async () => {
+    var handleTransferOwnership = async () => {
         if (!activeGroup || !transferToId.trim()) return;
-        const target = membersData.find(m => m.id === transferToId.trim() || (m.customId && m.customId === transferToId.trim()));
+        var target = membersData.find(m => m.id === transferToId.trim() || (m.customId && m.customId === transferToId.trim()));
         if (!target) { onNotification(lang==='ar'?'❌ العضو غير موجود في الجروب':'❌ Member not found'); return; }
         try {
             await groupsCollection.doc(activeGroup.id).update({
@@ -762,9 +762,9 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
     };
 
-    const handleLeaveGroup = async () => {
+    var handleLeaveGroup = async () => {
         if (!activeGroup || !currentUID) return;
-        const isOwner = activeGroup.createdBy === currentUID;
+        var isOwner = activeGroup.createdBy === currentUID;
         if (isOwner && (activeGroup.members||[]).length > 1) {
             onNotification(lang==='ar'?'❌ انقل الملكية أولاً قبل المغادرة':'❌ Transfer ownership before leaving');
             return;
@@ -789,7 +789,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
     };
 
-    const handleDeleteGroup = async () => {
+    var handleDeleteGroup = async () => {
         if (!activeGroup || activeGroup.createdBy !== currentUID) return;
         try {
             await groupsCollection.doc(activeGroup.id).delete();
@@ -798,7 +798,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
     };
 
-    const handleSubmitGroupReport = async () => {
+    var handleSubmitGroupReport = async () => {
         if (!reportGroupReason.trim() || !activeGroup) return;
         setSendingGroupReport(true);
         try {
@@ -814,13 +814,13 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         setSendingGroupReport(false);
     };
 
-    const sendGroupRedPacket = async (rpConfig) => {
+    var sendGroupRedPacket = async (rpConfig) => {
         if (!activeGroup || !currentUID || !currentUserData) return;
-        const balance = currentUserData.currency || 0;
+        var balance = currentUserData.currency || 0;
         if (balance < rpConfig.amount) { onNotification(lang==='ar'?'❌ رصيد غير كافٍ':'❌ Insufficient balance'); return; }
         setSendingRedPacket(true);
         try {
-            const rpRef = await redPacketsCollection.add({
+            var rpRef = await redPacketsCollection.add({
                 configId: rpConfig.id, amount: rpConfig.amount,
                 senderId: currentUID, senderName: currentUserData.displayName || 'User',
                 senderPhoto: currentUserData.photoURL || null,
@@ -857,19 +857,19 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         setSendingRedPacket(false);
     };
 
-    const claimRedPacket = async (rpId) => {
+    var claimRedPacket = async (rpId) => {
         if (!rpId || !currentUID) return;
         try {
-            const rpDoc = await redPacketsCollection.doc(rpId).get();
+            var rpDoc = await redPacketsCollection.doc(rpId).get();
             if (!rpDoc.exists) { onNotification(lang==='ar'?'❌ المغلف غير موجود':'❌ Packet not found'); return; }
-            const rp = rpDoc.data();
+            var rp = rpDoc.data();
             // ✅ Fix 2: في الجروب، المرسل يأخذ نسبة فقط مثل أي شخص آخر (لا يحق له أخذ الكل)
             if (rp.claimedBy?.includes(currentUID)) { onNotification(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed'); return; }
             if (rp.claimedBy?.length >= rp.maxClaims) { onNotification(lang==='ar'?'❌ المغلف نفد':'❌ Packet exhausted'); return; }
             if (rp.status !== 'active') { onNotification(lang==='ar'?'❌ المغلف منتهي':'❌ Packet expired'); return; }
-            const perClaim = Math.floor(rp.amount / rp.maxClaims);
-            const randomBonus = Math.floor(Math.random() * Math.floor(perClaim * 0.5));
-            const claim = Math.min(perClaim + randomBonus, rp.remaining || rp.amount);
+            var perClaim = Math.floor(rp.amount / rp.maxClaims);
+            var randomBonus = Math.floor(Math.random() * Math.floor(perClaim * 0.5));
+            var claim = Math.min(perClaim + randomBonus, rp.remaining || rp.amount);
             await redPacketsCollection.doc(rpId).update({
                 claimedBy: firebase.firestore.FieldValue.arrayUnion(currentUID),
                 remaining: firebase.firestore.FieldValue.increment(-claim),
@@ -892,16 +892,16 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
     };
 
     // openGroupMiniProfile → now opens a mini profile popup instead of the full profile
-    const openGroupMiniProfile = async (uid, basicData) => {
+    var openGroupMiniProfile = async (uid, basicData) => {
         if (!uid) return;
         setGroupMiniProfile({ uid, name: basicData?.name || '...', photo: basicData?.photo || null, loading: true });
         // Pass friendsData to unified fetchMiniProfileData
-        const data = await fetchMiniProfileData(uid, friendsData);
+        var data = await fetchMiniProfileData(uid, friendsData);
         if (data) setGroupMiniProfile(data);
         else { setGroupMiniProfile(null); if (onOpenProfile) onOpenProfile(uid); }
     };
 
-    const handleBlock = async (uid) => {
+    var handleBlock = async (uid) => {
         if (!currentUID || !uid) return;
         try {
             await usersCollection.doc(currentUID).update({
@@ -911,7 +911,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         } catch (e) { console.error('Block error:', e); }
     };
 
-    const handleUnblock = async (uid) => {
+    var handleUnblock = async (uid) => {
         if (!currentUID || !uid) return;
         try {
             await usersCollection.doc(currentUID).update({
@@ -923,7 +923,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
     React.useEffect(() => {
         if (!showDetails || !activeGroup) return;
         setLoadingMembers(true);
-        const memberIds = activeGroup.members || [];
+        var memberIds = activeGroup.members || [];
         if (memberIds.length === 0) { setMembersData([]); setLoadingMembers(false); return; }
         Promise.all(memberIds.map(id =>
             usersCollection.doc(id).get().then(d => d.exists ? { id, ...d.data() } : { id, displayName: 'Unknown' })
@@ -931,17 +931,17 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         )).then(ms => { setMembersData(ms); setLoadingMembers(false); });
     }, [showDetails, activeGroup?.id]);
 
-    const hasUnread = (group) => {
-        const readAt = group.readBy?.[currentUID];
+    var hasUnread = (group) => {
+        var readAt = group.readBy?.[currentUID];
         if (!readAt || !group.lastMessageAt) return false;
-        const readTime = readAt.toDate ? readAt.toDate() : new Date(readAt);
-        const lastTime = group.lastMessageAt.toDate ? group.lastMessageAt.toDate() : new Date(group.lastMessageAt);
+        var readTime = readAt.toDate ? readAt.toDate() : new Date(readAt);
+        var lastTime = group.lastMessageAt.toDate ? group.lastMessageAt.toDate() : new Date(group.lastMessageAt);
         return lastTime > readTime && group.lastSenderId !== currentUID;
     };
 
-    const fmtTime = (ts) => {
+    var fmtTime = (ts) => {
         if (!ts) return '';
-        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        var d = ts.toDate ? ts.toDate() : new Date(ts);
         return d.toLocaleTimeString(lang==='ar'?'ar-EG':'en-US',{hour:'2-digit',minute:'2-digit'});
     };
 
@@ -954,9 +954,9 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
 
     /* ── CHAT VIEW — as portal overlay so it doesn't affect parent layout ── */
     if (activeGroup) {
-        const isOwner = activeGroup.createdBy === currentUID;
-        const isAdm = activeGroup.admins?.includes(currentUID);
-        const grpLvl = getGroupLevel(activeGroup.xp || 0);
+        var isOwner = activeGroup.createdBy === currentUID;
+        var isAdm = activeGroup.admins?.includes(currentUID);
+        var grpLvl = getGroupLevel(activeGroup.xp || 0);
         return (
             <React.Fragment>
             <PortalModal>
@@ -1082,8 +1082,8 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                                             {/* Member avatars grid */}
                                             <div style={{display:'flex',flexWrap:'wrap',gap:'8px',marginBottom:'6px'}}>
                                                 {(loadingMembers ? [] : membersData).slice(0,10).map(member=>{
-                                                    const isMemberOwner = activeGroup.createdBy===member.id;
-                                                    const isMemberAdm = (activeGroup.admins||[]).includes(member.id);
+                                                    var isMemberOwner = activeGroup.createdBy===member.id;
+                                                    var isMemberAdm = (activeGroup.admins||[]).includes(member.id);
                                                     return (
                                                         <div key={member.id} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',width:'48px'}}>
                                                             <div style={{position:'relative'}}>
@@ -1226,8 +1226,8 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                                         {loadingMembers ? (
                                             <div style={{textAlign:'center',padding:'20px',color:'#6b7280'}}>⏳</div>
                                         ) : membersData.map(member => {
-                                            const isMemberAdm = (activeGroup.admins||[]).includes(member.id);
-                                            const isMemberOwner = activeGroup.createdBy===member.id;
+                                            var isMemberAdm = (activeGroup.admins||[]).includes(member.id);
+                                            var isMemberOwner = activeGroup.createdBy===member.id;
                                             return (
                                                 <div key={member.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
                                                     <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,border:`2px solid ${isMemberOwner?'#ffd700':isMemberAdm?'#ef4444':'rgba(255,255,255,0.1)'}`}}>
@@ -1362,8 +1362,8 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                                 );
                                 // 🧧 Red Packet message
                                 if(msg.type==='red_packet') {
-                                    const isMe=msg.senderId===currentUID;
-                                    const vipCfgRP = getVIPConfig(msg.senderVipLevel);
+                                    var isMe=msg.senderId===currentUID;
+                                    var vipCfgRP = getVIPConfig(msg.senderVipLevel);
                                     return(
                                         <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end',marginBottom:'4px'}}>
                                             <div onClick={()=>openGroupMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}
@@ -1395,10 +1395,10 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                                         </div>
                                     );
                                 }
-                                const isMe=msg.senderId===currentUID;
-                                const isImage=msg.type==='image';
-                                const vipCfgMsg = getVIPConfig(msg.senderVipLevel);
-                                const nameColor = vipCfgMsg ? vipCfgMsg.nameColor : (isMe ? '#00f2ff' : '#a78bfa');
+                                var isMe=msg.senderId===currentUID;
+                                var isImage=msg.type==='image';
+                                var vipCfgMsg = getVIPConfig(msg.senderVipLevel);
+                                var nameColor = vipCfgMsg ? vipCfgMsg.nameColor : (isMe ? '#00f2ff' : '#a78bfa');
                                 return(
                                     <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end'}}>
                                         {/* Avatar with frame */}
@@ -1425,7 +1425,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                                                     {/* Badges — up to 3 */}
                                                     {(msg.senderBadges||[]).slice(0,3).map((b,bi)=>{
                                                         if (!b) return null;
-                                                        const badge = typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.find(a=>a.id===b) : null;
+                                                        var badge = typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.find(a=>a.id===b) : null;
                                                         if (!badge) return null;
                                                         return badge.imageUrl
                                                             ? <img key={bi} src={badge.imageUrl} alt="" onError={e=>e.target.style.display='none'} style={{width:'12px',height:'12px',objectFit:'contain',flexShrink:0}}/>
@@ -1435,7 +1435,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                                                 {msg.senderTitle && <div style={{fontSize:'8px',color:'#fbbf24',marginTop:'1px',fontStyle:'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'140px',textAlign:isMe?'right':'left'}}>{msg.senderTitle}</div>}
                                             </div>
                                             {isImage ? (
-                                                <div onClick={()=>{const w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}
+                                                <div onClick={()=>{var w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}
                                                     style={{borderRadius:isMe?'14px 14px 4px 14px':'14px 14px 14px 4px',overflow:'hidden',border:`1px solid ${isMe?'rgba(0,242,255,0.18)':'rgba(255,255,255,0.09)'}`,cursor:'pointer',maxWidth:'min(200px, calc(100vw - 90px))'}}>
                                                     <img src={msg.imageData} alt="📷" style={{display:'block',maxWidth:'min(200px, calc(100vw - 90px))',maxHeight:'200px',objectFit:'cover'}}/>
                                                 </div>
@@ -1547,9 +1547,9 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
     }
 
     /* ── GROUPS LIST ── */
-    const isVIP = currentUserData?.vip?.isActive;
-    const maxGroups = isVIP ? 3 : 2;
-    const ownedCount = groups.filter(g => g.createdBy === currentUID).length;
+    var isVIP = currentUserData?.vip?.isActive;
+    var maxGroups = isVIP ? 3 : 2;
+    var ownedCount = groups.filter(g => g.createdBy === currentUID).length;
     return (
         <div style={{padding:'0 16px'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
@@ -1590,8 +1590,8 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
             ):(
                 <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                     {groups.map(group=>{
-                        const unread=hasUnread(group);
-                        const gLvl = getGroupLevel(group.xp || 0);
+                        var unread=hasUnread(group);
+                        var gLvl = getGroupLevel(group.xp || 0);
                         return(
                             <div key={group.id} onClick={()=>setActiveGroup(group)} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',cursor:'pointer',background:unread?'linear-gradient(135deg,rgba(167,139,250,0.1),rgba(112,0,255,0.06))':'rgba(255,255,255,0.04)',border:unread?'1px solid rgba(167,139,250,0.3)':'1px solid rgba(255,255,255,0.07)',transition:'all 0.2s'}}>
                                 <div style={{position:'relative',flexShrink:0}}>

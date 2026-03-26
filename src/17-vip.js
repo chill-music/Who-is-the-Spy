@@ -1012,7 +1012,7 @@ var VIPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
         setBuying(false);
     };
 
-    const canAfford = currency >= 50000;
+    var canAfford = currency >= 50000;
 
     // Renew mode: only show the renew button inline, no banners or feature pills
     if (isRenew) return (
@@ -1283,9 +1283,9 @@ var VIPCenterSection = ({ userData, user, lang, onNotification }) => {
     };
 
     // ─── الألوان بناءً على الليفل ───
-    const barColor  = cfg ? cfg.nameColor : '#7c3aed';
-    const nextLevel = level < 10 ? level + 1 : 10;
-    const nextCfg   = VIP_CONFIG.find(v => v.level === nextLevel);
+    var barColor  = cfg ? cfg.nameColor : '#7c3aed';
+    var nextLevel = level < 10 ? level + 1 : 10;
+    var nextCfg   = VIP_CONFIG.find(v => v.level === nextLevel);
 
     return (
         <div className="settings-section">

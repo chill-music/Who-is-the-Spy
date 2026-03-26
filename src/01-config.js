@@ -24,7 +24,7 @@ var createPortal = ReactDOM.createPortal;
 
 // Portal helper - renders children on document.body to escape backdrop-filter stacking context
 var PortalModal = ({ children }) => {
-    const el = useRef(document.createElement('div'));
+    var el = useRef(document.createElement('div'));
     useEffect(() => {
         document.body.appendChild(el.current);
         return () => { if (el.current.parentNode) el.current.parentNode.removeChild(el.current); };
@@ -379,17 +379,17 @@ var getFamilySignURL = (data) => {
     // Priority 1: cached image URL stored on user doc
     if (data.familySignImageURL) return data.familySignImageURL;
     // Priority 2: resolve from level using FamilyConstants (has imageURL baked in)
-    const level = data.familySignLevel;
+    var level = data.familySignLevel;
     if (!level) return null;
-    const levels = (window.FamilyConstants && window.FamilyConstants.FAMILY_SIGN_LEVELS) || [];
-    const cfg = levels.find(s => s.level === level);
+    var levels = (window.FamilyConstants && window.FamilyConstants.FAMILY_SIGN_LEVELS) || [];
+    var cfg = levels.find(s => s.level === level);
     return cfg?.imageURL || null;
 };
 
 // ════════════════════════════════════════════════════════
 // 👑 getVIPConfig — دالة موحدة لجلب إعدادات VIP
 // بدلاً من: VIP_CONFIG[Math.min(vipLevel-1, VIP_CONFIG.length-1)]
-// الاستخدام: const vipCfg = getVIPConfig(vipLevel)
+// الاستخدام: var vipCfg = getVIPConfig(vipLevel)
 // ════════════════════════════════════════════════════════
 var getVIPConfig = (vipLevel) => {
     if (!vipLevel || vipLevel <= 0 || typeof VIP_CONFIG === 'undefined') return null;
@@ -407,7 +407,7 @@ var TS = () => firebase.firestore.FieldValue.serverTimestamp();
 // تحل محل 4 نسخ متطابقة في: 09, 13, 14, 19
 //
 // الاستخدام:
-//   const data = await fetchMiniProfileData(uid, myFriendsList);
+//   var data = await fetchMiniProfileData(uid, myFriendsList);
 //   if (data) setMiniProfile(data);
 //
 // myFriendsList — مصفوفة الـ UIDs اللي المستخدم أصدقاؤهم (اختياري)
@@ -415,26 +415,26 @@ var TS = () => firebase.firestore.FieldValue.serverTimestamp();
 var fetchMiniProfileData = async (uid, myFriendsList = []) => {
     if (!uid) return null;
     try {
-        const doc = await usersCollection.doc(uid).get();
+        var doc = await usersCollection.doc(uid).get();
         if (!doc.exists) return null;
-        const d = doc.data();
-        const stats = d.stats || {};
-        const wins = stats.wins || 0;
-        const losses = stats.losses || 0;
-        const total = wins + losses;
-        const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+        var d = doc.data();
+        var stats = d.stats || {};
+        var wins = stats.wins || 0;
+        var losses = stats.losses || 0;
+        var total = wins + losses;
+        var winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
-        const unlockedBadgeIds = Array.isArray(d.achievements)
+        var unlockedBadgeIds = Array.isArray(d.achievements)
             ? d.achievements.map(a => typeof a === 'string' ? a : a?.id).filter(Boolean)
             : ((d.achievements?.badges) || []).map(b => b?.id || b).filter(Boolean);
-        const topBadges = typeof ACHIEVEMENTS !== 'undefined'
+        var topBadges = typeof ACHIEVEMENTS !== 'undefined'
             ? ACHIEVEMENTS.filter(a => unlockedBadgeIds.includes(a.id))
                 .sort((a, b) => (b.tier || 0) - (a.tier || 0))
                 .slice(0, 3)
             : [];
 
-        const vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
-        const vipCfg = getVIPConfig(vipLevel);
+        var vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
+        var vipCfg = getVIPConfig(vipLevel);
 
         return {
             uid,

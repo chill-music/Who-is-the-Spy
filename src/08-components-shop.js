@@ -1,51 +1,51 @@
 (function() {
-    const { useState, useEffect, useRef, useCallback, useMemo } = React;
-    const { RingsShopSection } = window;
+    var { useState, useEffect, useRef, useCallback, useMemo } = React;
+    var { RingsShopSection } = window;
 
 // ═══════════════════════════════════════════════════════════════
 // 🛒  SHOP MODAL — Premium Dark Gaming Store
 // ═══════════════════════════════════════════════════════════════
 var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard }) => {
-    const t = TRANSLATIONS[lang];
-    const [activeTab, setActiveTab] = useState('frames');
-    const [selectedItem, setSelectedItem] = useState(null);
-    const [showPreview, setShowPreview] = useState(false);
+    var t = TRANSLATIONS[lang];
+    var [activeTab, setActiveTab] = useState('frames');
+    var [selectedItem, setSelectedItem] = useState(null);
+    var [showPreview, setShowPreview] = useState(false);
     // ✅ Gift filter state
-    const [giftSort, setGiftSort] = useState('default');
-    const [giftRarityFilter, setGiftRarityFilter] = useState('all');
-    const [giftVIPOnly, setGiftVIPOnly] = useState(false);
-    const [showGiftFilter, setShowGiftFilter] = useState(false);
+    var [giftSort, setGiftSort] = useState('default');
+    var [giftRarityFilter, setGiftRarityFilter] = useState('all');
+    var [giftVIPOnly, setGiftVIPOnly] = useState(false);
+    var [showGiftFilter, setShowGiftFilter] = useState(false);
     // ✅ VIP confirmation dialog
-    const [showVIPConfirm, setShowVIPConfirm] = useState(false);
+    var [showVIPConfirm, setShowVIPConfirm] = useState(false);
 
     if (!show) return null;
 
-    const currency     = userData?.currency || 0;
-    const inventory    = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
-    const equipped     = userData?.equipped  || {};
-    const vipLevel     = getVIPLevel(userData);
-    const vipXpInfo    = getVIPXPProgress(userData?.vip?.xp || 0);
-    const hasVIP       = vipLevel >= 1;
+    var currency     = userData?.currency || 0;
+    var inventory    = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
+    var equipped     = userData?.equipped  || {};
+    var vipLevel     = getVIPLevel(userData);
+    var vipXpInfo    = getVIPXPProgress(userData?.vip?.xp || 0);
+    var hasVIP       = vipLevel >= 1;
 
-    const vipExpiresAt = userData?.vip?.expiresAt;
-    const vipDaysLeft = (() => {
+    var vipExpiresAt = userData?.vip?.expiresAt;
+    var vipDaysLeft = (() => {
         if (!vipExpiresAt) return null;
-        const expDate = vipExpiresAt.toDate ? vipExpiresAt.toDate() : new Date(vipExpiresAt);
-        const now = new Date();
-        const diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+        var expDate = vipExpiresAt.toDate ? vipExpiresAt.toDate() : new Date(vipExpiresAt);
+        var now = new Date();
+        var diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
         return diff > 0 ? diff : 0;
     })();
 
-    const isOwned    = (item) => inventory[item.type]?.includes(item.id);
-    const isEquipped = (item) => {
+    var isOwned    = (item) => inventory[item.type]?.includes(item.id);
+    var isEquipped = (item) => {
         if (item.type === 'badges') {
-            const eb = equipped.badges || [];
+            var eb = equipped.badges || [];
             return Array.isArray(eb) ? eb.includes(item.id) : equipped.badges === item.id;
         }
         return equipped[item.type] === item.id;
     };
 
-    const renderPreview = (item) => {
+    var renderPreview = (item) => {
         if (item.type === 'frames') return item.preview?.startsWith('http')
             ? <img src={item.preview} alt="" style={{width:'36px',height:'36px',borderRadius:'50%',objectFit:'cover'}} />
             : <div style={{width:'36px',height:'36px',borderRadius:'50%',background:item.preview}} />;
@@ -59,7 +59,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
             ? <img src={item.imageUrl} alt="" style={{width:'32px',height:'32px',objectFit:'contain'}} />
             : <span style={{fontSize:'26px'}}>{item.emoji}</span>;
         if (item.type === 'profileEffects') {
-            const src = typeof item.particles === 'string' && item.particles.startsWith('http')
+            var src = typeof item.particles === 'string' && item.particles.startsWith('http')
                 ? item.particles : (item.imageUrl || null);
             return src
                 ? <img src={src} alt={item.name_en} style={{width:'32px',height:'32px',objectFit:'contain',borderRadius:'6px'}} />
@@ -69,7 +69,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
     };
 
     // 🎁 تاب الهدايا أُزيل من الشوب — الهدايا متاحة فقط من البروفايل والشاتات
-    const tabs = [
+    var tabs = [
         { id: 'red_packets',    icon: '🧧', label_ar: 'مغلفات',   label_en: 'Packets' },
         { id: 'rings',          icon: '💍', label_ar: 'خواتم',     label_en: 'Rings'   },
         { id: 'bff_tokens',     icon: '🤝', label_ar: 'BFF',       label_en: 'BFF'     },
@@ -79,7 +79,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
         { id: 'profileEffects', icon: '✨', label_ar: 'تأثيرات',   label_en: 'Effects' },
     ];
 
-    const getTabItems = (tab) => {
+    var getTabItems = (tab) => {
         if (tab === 'red_packets') {
             return typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
         }
@@ -88,22 +88,22 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
             return typeof BFF_TOKEN_ITEMS !== 'undefined' ? BFF_TOKEN_ITEMS.filter(t => !t.hidden) : [];
         }
         if (tab === 'gifts') {
-            const regular  = (SHOP_ITEMS.gifts     || []).filter(item => !item.hidden);
-            const vipGifts = (SHOP_ITEMS.gifts_vip || []).filter(item => !item.hidden && item.vipExclusive !== false);
-            let items = giftVIPOnly ? vipGifts : [...regular, ...vipGifts];
+            var regular  = (SHOP_ITEMS.gifts     || []).filter(item => !item.hidden);
+            var vipGifts = (SHOP_ITEMS.gifts_vip || []).filter(item => !item.hidden && item.vipExclusive !== false);
+            var items = giftVIPOnly ? vipGifts : [...regular, ...vipGifts];
             if (giftRarityFilter !== 'all') {
                 items = items.filter(item => {
-                    const rKey = item.type === 'gifts_vip' ? 'Legendary' : getGiftRarity(item.cost);
+                    var rKey = item.type === 'gifts_vip' ? 'Legendary' : getGiftRarity(item.cost);
                     return rKey === giftRarityFilter;
                 });
             }
             if (giftSort === 'price_desc') items = [...items].sort((a,b) => b.cost - a.cost);
             else if (giftSort === 'price_asc') items = [...items].sort((a,b) => a.cost - b.cost);
             else {
-                const RARITY_ORDER = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
+                var RARITY_ORDER = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
                 items = [...items].sort((a,b) => {
-                    const rA = RARITY_ORDER.indexOf(a.type==='gifts_vip'?'Legendary':getGiftRarity(a.cost));
-                    const rB = RARITY_ORDER.indexOf(b.type==='gifts_vip'?'Legendary':getGiftRarity(b.cost));
+                    var rA = RARITY_ORDER.indexOf(a.type==='gifts_vip'?'Legendary':getGiftRarity(a.cost));
+                    var rB = RARITY_ORDER.indexOf(b.type==='gifts_vip'?'Legendary':getGiftRarity(b.cost));
                     return rA - rB || a.cost - b.cost;
                 });
             }
@@ -195,7 +195,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                     background:'rgba(0,0,0,0.14)',
                 }}>
                     {tabs.map(tab => {
-                        const active = activeTab === tab.id;
+                        var active = activeTab === tab.id;
                         return (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
                                 flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',
@@ -248,8 +248,8 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                             </div>
                             {/* Token grid */}
                             {(typeof BFF_TOKEN_ITEMS !== 'undefined' ? BFF_TOKEN_ITEMS : []).map(token => {
-                                const myTokenCount = (userData?.inventory?.bff_tokens || []).filter(t => t === token.id).length;
-                                const canAfford = (userData?.currency || 0) >= token.cost;
+                                var myTokenCount = (userData?.inventory?.bff_tokens || []).filter(t => t === token.id).length;
+                                var canAfford = (userData?.currency || 0) >= token.cost;
                                 return (
                                     <div key={token.id} style={{
                                         padding:'14px 16px', borderRadius:'16px',
@@ -316,7 +316,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                                 <div style={{fontSize:'11px',color:'#9ca3af',lineHeight:1.5}}>{lang==='ar'?'اشتر مغلفاً وأرسله لأصدقائك أو في الشات — يوزع الرصيد على المستلمين!':'Buy a packet and send it to friends or in chat — coins split among recipients!'}</div>
                             </div>
                             {(typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : []).map(rp => {
-                                const canAfford = (userData?.currency || 0) >= rp.amount;
+                                var canAfford = (userData?.currency || 0) >= rp.amount;
                                 return (
                                     <div key={rp.id} style={{display:'flex',alignItems:'center',gap:'14px',padding:'14px 16px',borderRadius:'16px',background:rp.bg,border:`1px solid ${rp.border}`}}>
                                         {rp.imageURL
@@ -332,7 +332,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                                             <button
                                                 onClick={async() => {
                                                     if(!canAfford||!currentUID) return;
-                                                    const uniqueId = rp.id + '_' + Date.now();
+                                                    var uniqueId = rp.id + '_' + Date.now();
                                                     try {
                                                         await usersCollection.doc(currentUID).update({
                                                             currency: firebase.firestore.FieldValue.increment(-rp.amount),
@@ -558,8 +558,8 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                                     📊 {lang==='ar'?'جدول مستويات VIP':'VIP Level Table'}
                                 </div>
                                 {VIP_CONFIG.map(cfg => {
-                                    const isCurrentLevel = vipLevel===cfg.level;
-                                    const isPassed       = vipLevel>cfg.level;
+                                    var isCurrentLevel = vipLevel===cfg.level;
+                                    var isPassed       = vipLevel>cfg.level;
                                     return (
                                         <div key={cfg.level} style={{
                                             display:'flex',alignItems:'center',gap:'10px',
@@ -631,7 +631,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                                                 </div>
                                                 <div style={{display:'flex',flexWrap:'wrap',gap:'4px'}}>
                                                     {['all','Common','Uncommon','Rare','Epic','Legendary','Mythic'].map(r=>{
-                                                        const rc=RARITY_CONFIG[r]||{};
+                                                        var rc=RARITY_CONFIG[r]||{};
                                                         return (
                                                             <button key={r} onClick={()=>setGiftRarityFilter(r)} style={{
                                                                 padding:'3px 9px',borderRadius:'6px',fontSize:'9px',fontWeight:700,cursor:'pointer',transition:'all 0.12s',
@@ -675,32 +675,32 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                                 gap:'8px',
                             }}>
                                 {getTabItems(activeTab)?.map(item => {
-                                    const owned        = isOwned(item);
-                                    const equippedItem = isEquipped(item);
-                                    const isEventItem  = item.isEvent;
-                                    const isLimited    = item.limitedTime;
-                                    const isEventOnly  = item.eventOnly;
+                                    var owned        = isOwned(item);
+                                    var equippedItem = isEquipped(item);
+                                    var isEventItem  = item.isEvent;
+                                    var isLimited    = item.limitedTime;
+                                    var isEventOnly  = item.eventOnly;
 
                                     /* Gift cards */
                                     if (activeTab === 'gifts') {
-                                        const isVIPGift    = item.type==='gifts_vip';
-                                        const vipRequired  = item.vipMinLevel||0;
-                                        const isVIPLocked  = isVIPGift&&vipLevel<vipRequired;
-                                        const isVIPMaxGift = isVIPGift&&vipRequired>=10;
-                                        const vipGlowType  = item.vipGlowType||null;
-                                        const rKey   = getGiftRarity(item.cost);
-                                        const rarity = RARITY_CONFIG[rKey];
-                                        const vipCfg        = vipRequired>0?VIP_CONFIG[vipRequired-1]:null;
-                                        const vipGlowColor  = vipCfg?vipCfg.nameColor:'#7c3aed';
-                                        const cardBorder    = isVIPGift?`1.5px solid ${vipGlowColor}66`:`1.5px solid ${rarity.border}`;
-                                        const cardBg        = isVIPGift&&!isVIPLocked?`linear-gradient(145deg,${vipGlowColor}0e,rgba(8,10,28,0.98))`:rarity.bg;
-                                        const hasSpecialGlow= !isVIPLocked&&vipGlowType;
-                                        const cardShadow    = hasSpecialGlow?'none'
+                                        var isVIPGift    = item.type==='gifts_vip';
+                                        var vipRequired  = item.vipMinLevel||0;
+                                        var isVIPLocked  = isVIPGift&&vipLevel<vipRequired;
+                                        var isVIPMaxGift = isVIPGift&&vipRequired>=10;
+                                        var vipGlowType  = item.vipGlowType||null;
+                                        var rKey   = getGiftRarity(item.cost);
+                                        var rarity = RARITY_CONFIG[rKey];
+                                        var vipCfg        = vipRequired>0?VIP_CONFIG[vipRequired-1]:null;
+                                        var vipGlowColor  = vipCfg?vipCfg.nameColor:'#7c3aed';
+                                        var cardBorder    = isVIPGift?`1.5px solid ${vipGlowColor}66`:`1.5px solid ${rarity.border}`;
+                                        var cardBg        = isVIPGift&&!isVIPLocked?`linear-gradient(145deg,${vipGlowColor}0e,rgba(8,10,28,0.98))`:rarity.bg;
+                                        var hasSpecialGlow= !isVIPLocked&&vipGlowType;
+                                        var cardShadow    = hasSpecialGlow?'none'
                                             :isVIPGift&&!isVIPLocked
                                                 ?(isVIPMaxGift?`0 0 16px ${vipGlowColor}99,0 0 30px ${vipGlowColor}44`:`0 0 9px ${vipGlowColor}55`)
                                                 :(rarity.glow&&rKey==='Mythic'?'0 0 14px rgba(255,0,85,0.6)':rarity.glow?`0 0 8px ${rarity.color}44`:'none');
-                                        const glowClass = hasSpecialGlow?`glow-${vipGlowType}`:'';
-                                        const cardAnim  = !hasSpecialGlow&&(
+                                        var glowClass = hasSpecialGlow?`glow-${vipGlowType}`:'';
+                                        var cardAnim  = !hasSpecialGlow&&(
                                             (isVIPMaxGift&&!isVIPLocked)?'mythic-pulse 2s ease-in-out infinite'
                                             :(rKey==='Mythic'?'mythic-pulse 2s ease-in-out infinite':'none')
                                         );
@@ -756,8 +756,8 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                                     }
 
                                     /* Non-gift cards */
-                                    const rKey2   = getItemRarity(item);
-                                    const rarity2 = RARITY_CONFIG[rKey2];
+                                    var rKey2   = getItemRarity(item);
+                                    var rarity2 = RARITY_CONFIG[rKey2];
                                     return (
                                         <div key={item.id}
                                             onClick={()=>{if(!item.eventOnly){setSelectedItem(item);setShowPreview(true);}}}
@@ -846,18 +846,18 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
 
 // ─── Reclaim Sent Packets Component ───
 var ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets, loadingSent, setLoadingSent }) => {
-    const [loaded, setLoaded] = React.useState(false);
+    var [loaded, setLoaded] = React.useState(false);
 
-    const loadSent = async () => {
+    var loadSent = async () => {
         if(!user || loadingSent) return;
         setLoadingSent(true);
         try {
-            const snap = await redPacketsCollection
+            var snap = await redPacketsCollection
                 .where('senderId','==',user.uid)
                 .where('status','==','active')
                 .limit(10)
                 .get();
-            const packets = snap.docs
+            var packets = snap.docs
                 .map(d => ({ id: d.id, ...d.data() }))
                 .filter(p => (p.claimedBy||[]).length === 0);
             setSentPackets(packets);
@@ -884,9 +884,9 @@ var ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets, l
                 🔄 {lang==='ar'?'مغلفات مرسلة — يمكنك استردادها':'Sent Packets — Reclaim if unclaimed'}
             </div>
             {sentPackets.map(sp => {
-                const RPC = typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
-                const cfg = RPC.find(r => r.id === sp.configId || sp.configId?.startsWith(r.id));
-                const color = cfg?.color || '#ef4444';
+                var RPC = typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
+                var cfg = RPC.find(r => r.id === sp.configId || sp.configId?.startsWith(r.id));
+                var color = cfg?.color || '#ef4444';
                 return (
                     <div key={sp.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'12px',background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.2)'}}>
                         <div style={{fontSize:'22px'}}>🧧</div>
@@ -905,7 +905,7 @@ var ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets, l
                                     maxClaims: 0,
                                     reclaimedAt: TS()
                                 });
-                                const uniqueId = (sp.configId||'rp_600') + '_' + Date.now();
+                                var uniqueId = (sp.configId||'rp_600') + '_' + Date.now();
                                 await usersCollection.doc(user.uid).update({
                                     'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId)
                                 });
@@ -925,53 +925,53 @@ var ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets, l
 // 📦  INVENTORY MODAL — Premium Dark Collection Viewer
 // ═══════════════════════════════════════════════════════════════
 var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData, user, coupleData, onOpenCoupleCard, onPropose }) => {
-    const t = TRANSLATIONS[lang];
-    const [activeTab, setActiveTab]       = useState('frames');
-    const [rpSendTarget, setRpSendTarget] = useState(null); // 'self' | 'family' | friendUID
-    const [rpSendModal, setRpSendModal]   = useState(null); // { ...rpConfig, inventoryId }
-    const [sentPackets, setSentPackets]   = useState([]); // reclaim list
-    const [loadingSent, setLoadingSent]   = useState(false);
-    const [selectedGift, setSelectedGift] = useState(null);
-    const [showGiftPreview, setShowGiftPreview] = useState(false);
+    var t = TRANSLATIONS[lang];
+    var [activeTab, setActiveTab]       = useState('frames');
+    var [rpSendTarget, setRpSendTarget] = useState(null); // 'self' | 'family' | friendUID
+    var [rpSendModal, setRpSendModal]   = useState(null); // { ...rpConfig, inventoryId }
+    var [sentPackets, setSentPackets]   = useState([]); // reclaim list
+    var [loadingSent, setLoadingSent]   = useState(false);
+    var [selectedGift, setSelectedGift] = useState(null);
+    var [showGiftPreview, setShowGiftPreview] = useState(false);
     // ✅ FIX 2: item details popup
-    const [detailItem, setDetailItem]     = useState(null);
+    var [detailItem, setDetailItem]     = useState(null);
 
     if (!show) return null;
 
-    const inventory  = userData?.inventory || { frames:[],titles:[],themes:[],badges:[],gifts:[],rings:[] };
-    const equipped   = userData?.equipped  || {};
-    const giftCounts = inventory.giftCounts || {};
-    const myRings    = inventory.rings || [];
-    const expiry     = inventory.expiry || {}; // { itemId: timestampMs }
+    var inventory  = userData?.inventory || { frames:[],titles:[],themes:[],badges:[],gifts:[],rings:[] };
+    var equipped   = userData?.equipped  || {};
+    var giftCounts = inventory.giftCounts || {};
+    var myRings    = inventory.rings || [];
+    var expiry     = inventory.expiry || {}; // { itemId: timestampMs }
 
-    const getOwnedItems = (type) => {
-        const ownedIds = inventory[type] || [];
+    var getOwnedItems = (type) => {
+        var ownedIds = inventory[type] || [];
         if (type === 'gifts') {
             return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id) && (giftCounts[item.id]||0) > 0) || [];
         }
         if (type === 'rings') {
-            const uniqueIds = [...new Set(ownedIds)];
+            var uniqueIds = [...new Set(ownedIds)];
             return (typeof RINGS_DATA !== 'undefined' ? RINGS_DATA : []).filter(r => uniqueIds.includes(r.id));
         }
         return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || [];
     };
 
-    const isEquipped = (item) => {
-        if (item.type === 'badges') { const eb=equipped.badges||[]; return Array.isArray(eb)?eb.includes(item.id):equipped.badges===item.id; }
+    var isEquipped = (item) => {
+        if (item.type === 'badges') { var eb=equipped.badges||[]; return Array.isArray(eb)?eb.includes(item.id):equipped.badges===item.id; }
         return equipped[item.type] === item.id;
     };
-    const getEquippedBadgeCount = () => { const eb=equipped.badges||[]; return Array.isArray(eb)?eb.length:(equipped.badges?1:0); };
+    var getEquippedBadgeCount = () => { var eb=equipped.badges||[]; return Array.isArray(eb)?eb.length:(equipped.badges?1:0); };
 
     // ✅ FIX 2: days remaining helper
-    const getDaysLeft = (itemId) => {
-        const exp = expiry[itemId];
+    var getDaysLeft = (itemId) => {
+        var exp = expiry[itemId];
         if (!exp) return null;
-        const ms = exp - Date.now();
+        var ms = exp - Date.now();
         if (ms <= 0) return 0;
         return Math.ceil(ms / 86400000);
     };
 
-    const renderPreview = (item) => {
+    var renderPreview = (item) => {
         if (item.type === 'frames') return item.preview.startsWith('http')
             ?<img src={item.preview} alt={item.name_en} style={{width:'40px',height:'40px',borderRadius:'50%',objectFit:'cover'}}/>
             :<div style={{width:'40px',height:'40px',borderRadius:'50%',background:item.preview}}/>;
@@ -979,18 +979,18 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
         if (item.type === 'titles') return item.imageUrl?<img src={item.imageUrl} alt={item.name_en} style={{width:'30px',height:'30px',objectFit:'contain'}}/>:<span style={{fontSize:'24px'}}>{item.preview}</span>;
         if (item.type === 'gifts')  return item.imageUrl?<img src={item.imageUrl} alt={item.name_en} style={{width:'34px',height:'34px',objectFit:'contain'}}/>:<span style={{fontSize:'26px'}}>{item.emoji}</span>;
         if (item.type === 'profileEffects') {
-            const src=typeof item.particles==='string'&&item.particles.startsWith('http')?item.particles:(item.imageUrl||null);
+            var src=typeof item.particles==='string'&&item.particles.startsWith('http')?item.particles:(item.imageUrl||null);
             return src?<img src={src} alt={item.name_en} style={{width:'38px',height:'38px',objectFit:'contain',borderRadius:'6px'}}/>:<span style={{fontSize:'28px',lineHeight:1}}>{item.preview}</span>;
         }
         return <span style={{fontSize:'24px'}}>🎨</span>;
     };
 
     // ✅ FIX 2: Item Details Popup Component
-    const ItemDetailPopup = ({ item, onClose: closePopup }) => {
+    var ItemDetailPopup = ({ item, onClose: closePopup }) => {
         if (!item) return null;
-        const daysLeft = getDaysLeft(item.id);
-        const desc = lang === 'ar' ? (item.desc_ar || item.description_ar || '') : (item.desc_en || item.description_en || '');
-        const name = lang === 'ar' ? item.name_ar : item.name_en;
+        var daysLeft = getDaysLeft(item.id);
+        var desc = lang === 'ar' ? (item.desc_ar || item.description_ar || '') : (item.desc_en || item.description_en || '');
+        var name = lang === 'ar' ? item.name_ar : item.name_en;
         return (
             <div onClick={closePopup} style={{
                 position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',
@@ -1060,7 +1060,7 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
         );
     };
 
-    const TABS = [
+    var TABS = [
         {id:'red_packets',    icon:'🧧', label_ar:'مغلفاتي',  label_en:'Packets' },
         {id:'frames',         icon:'🖼️', label_ar:'إطارات',   label_en:'Frames'  },
         {id:'titles',         icon:'🏷️', label_ar:'ألقاب',    label_en:'Titles'  },
@@ -1069,7 +1069,7 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
         {id:'gifts',          icon:'🎁', label_ar:'هدايا',     label_en:'Gifts'   },
         {id:'rings',          icon:'💍', label_ar:'خواتم',     label_en:'Rings'   },
     ];
-    const ownedItems = getOwnedItems(activeTab);
+    var ownedItems = getOwnedItems(activeTab);
 
     return (
         <>
@@ -1125,8 +1125,8 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
                 {/* ══ TAB BAR ══ */}
                 <div style={{display:'flex',overflowX:'auto',gap:'3px',padding:'10px 10px 0',borderBottom:'1px solid rgba(255,255,255,0.048)',scrollbarWidth:'none',flexShrink:0,background:'rgba(0,0,0,0.13)'}}>
                     {TABS.map(tab=>{
-                        const active=activeTab===tab.id;
-                        const cnt=tab.id==='rings'?myRings.length:getOwnedItems(tab.id).length;
+                        var active=activeTab===tab.id;
+                        var cnt=tab.id==='rings'?myRings.length:getOwnedItems(tab.id).length;
                         return (
                             <button key={tab.id} onClick={()=>setActiveTab(tab.id)} style={{
                                 flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',
@@ -1152,11 +1152,11 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
 
                     {/* 🧧 Red Packets */}
                     {activeTab==='red_packets'&&(()=>{
-                        const myPackets = (userData?.inventory?.red_packets || []);
-                        const RPC = typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
+                        var myPackets = (userData?.inventory?.red_packets || []);
+                        var RPC = typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
                         // Support both old IDs (rp_600) and new unique IDs (rp_600_1234567890)
-                        const findRpConfig = (rpId) => RPC.find(r => rpId === r.id || rpId.startsWith(r.id + '_'));
-                        const myFamilyId = userData?.familyId || null;
+                        var findRpConfig = (rpId) => RPC.find(r => rpId === r.id || rpId.startsWith(r.id + '_'));
+                        var myFamilyId = userData?.familyId || null;
                         return (
                             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
                                 <div style={{fontSize:'11px',color:'#6b7280',textAlign:'center',marginBottom:'4px'}}>
@@ -1170,7 +1170,7 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
                                     </div>
                                 )}
                                 {myPackets.map((rpId, idx) => {
-                                    const rp = findRpConfig(rpId);
+                                    var rp = findRpConfig(rpId);
                                     if (!rp) return null;
                                     return (
                                         <div key={rpId+'-'+idx} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',background:rp.bg,border:`1px solid ${rp.border}`,boxSizing:'border-box'}}>
@@ -1222,10 +1222,10 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
                                                     <button onClick={async()=>{
                                                         if(!user||!myFamilyId) return;
                                                         try {
-                                                            const famCol = typeof familiesCollection !== 'undefined'
+                                                            var famCol = typeof familiesCollection !== 'undefined'
                                                                 ? familiesCollection
                                                                 : db.collection('artifacts').doc(typeof appId!=='undefined'?appId:'prospy').collection('public').doc('data').collection('families');
-                                                            const rpRef = await redPacketsCollection.add({
+                                                            var rpRef = await redPacketsCollection.add({
                                                                 configId:rpSendModal.id, amount:rpSendModal.amount,
                                                                 senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
                                                                 targetType:'family', targetId:myFamilyId,
@@ -1247,12 +1247,12 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
                                                 )}
                                                 {/* Send to friends */}
                                                 {(friendsData||[]).slice(0,6).map(friend=>{
-                                                    const fid = friend.id||friend.uid;
+                                                    var fid = friend.id||friend.uid;
                                                     return (
                                                         <button key={fid} onClick={async()=>{
                                                             if(!user||!fid) return;
                                                             try {
-                                                                const rpRef = await redPacketsCollection.add({
+                                                                var rpRef = await redPacketsCollection.add({
                                                                     configId:rpSendModal.id, amount:rpSendModal.amount,
                                                                     senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
                                                                     targetType:'dm', targetId:fid, targetName:friend.displayName||'User',
@@ -1260,7 +1260,7 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
                                                                     createdAt:TS(), status:'active'
                                                                 });
                                                                 await usersCollection.doc(user.uid).update({'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId)});
-                                                                const chatId = [user.uid, fid].sort().join('_');
+                                                                var chatId = [user.uid, fid].sort().join('_');
                                                                 await chatsCollection.doc(chatId).collection('messages').add({
                                                                     type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount,
                                                                     rpConfigId:rpSendModal.id, senderId:user.uid,
@@ -1296,9 +1296,9 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
                             ):(
                                 <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
                                     {[...new Set(myRings)].map(rid=>{
-                                        const rd=typeof RINGS_DATA!=='undefined'?RINGS_DATA.find(r=>r.id===rid):null;
+                                        var rd=typeof RINGS_DATA!=='undefined'?RINGS_DATA.find(r=>r.id===rid):null;
                                         if(!rd) return null;
-                                        const count=myRings.filter(id=>id===rid).length;
+                                        var count=myRings.filter(id=>id===rid).length;
                                         return (
                                             <div key={rid} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',background:`linear-gradient(135deg,${rd.color}0f,${rd.color}05)`,border:`1px solid ${rd.color}32`,transition:'all 0.15s'}}
                                                 onMouseEnter={e=>{e.currentTarget.style.background=`linear-gradient(135deg,${rd.color}1a,${rd.color}08)`;}}
@@ -1337,12 +1337,12 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
                         ):(
                             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(96px,1fr))',gap:'8px'}}>
                                 {ownedItems.map(item=>{
-                                    const equippedItem=isEquipped(item);
-                                    const daysLeft = getDaysLeft(item.id);
-                                    const isExpired = daysLeft === 0;
+                                    var equippedItem=isEquipped(item);
+                                    var daysLeft = getDaysLeft(item.id);
+                                    var isExpired = daysLeft === 0;
                                     /* Gift items */
                                     if(activeTab==='gifts'){
-                                        const cnt=giftCounts[item.id]||0;
+                                        var cnt=giftCounts[item.id]||0;
                                         return (
                                             <div key={item.id} style={{position:'relative',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.065)',borderRadius:'12px',padding:'10px 8px',display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',transition:'all 0.15s',opacity:isExpired?0.5:1}}
                                                 onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.transform='scale(1.04)';}}
