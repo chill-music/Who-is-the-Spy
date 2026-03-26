@@ -1535,6 +1535,26 @@ var PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification,
         if (data) setMiniProfilePub(data);
     };
 
+    const handleBlock = async (uid) => {
+        if (!user?.uid || !uid) return;
+        try {
+            await usersCollection.doc(user.uid).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayUnion(uid)
+            });
+            if (onNotification) onNotification(lang === 'ar' ? '🚫 تم حظر المستخدم' : '🚫 User blocked');
+        } catch (e) { console.error('Block error:', e); }
+    };
+
+    const handleUnblock = async (uid) => {
+        if (!user?.uid || !uid) return;
+        try {
+            await usersCollection.doc(user.uid).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayRemove(uid)
+            });
+            if (onNotification) onNotification(lang === 'ar' ? '✅ تم إلغاء الحظر' : '✅ User unblocked');
+        } catch (e) { console.error('Unblock error:', e); }
+    };
+
     if (!show) return null;
 
     return (
@@ -1698,6 +1718,9 @@ var PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification,
                             currentUID={user?.uid}
                             lang={lang}
                             onOpenProfile={onOpenProfile}
+                            onBlock={handleBlock}
+                            onUnblock={handleUnblock}
+                            isBlocked={currentUser?.blockedUsers?.includes(miniProfilePub.uid)}
                             zIndex={Z.MODAL_HIGH + 10}
                         />
                     )}

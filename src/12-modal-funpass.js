@@ -320,8 +320,10 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                     ? <img src={lv.free.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
                                     : <span style={{fontSize:'16px', flexShrink:0}}>{lv.free.icon}</span>}
                                                 <div style={{minWidth:0}}>
-                                                    <div style={{fontSize:'10px', fontWeight:700, color: freeRarity==='Mythic'?'#ff4488':freeRarity==='Legendary'?'#fbbf24':freeRarity==='Epic'?'#c084fc':'#e2e8f0', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
-                                                        {lang==='ar'?lv.free.name_ar:lv.free.name_en}
+                                                    <div className="marquee-container" style={{height:'14px'}}>
+                                                        <div className="marquee-content" style={{fontSize:'10px', fontWeight:700, color: freeRarity==='Mythic'?'#ff4488':freeRarity==='Legendary'?'#fbbf24':freeRarity==='Epic'?'#c084fc':'#e2e8f0'}}>
+                                                            {lang==='ar'?lv.free.name_ar:lv.free.name_en}
+                                                        </div>
                                                     </div>
                                                     <div style={{fontSize:'8px', color:'#4ade80', fontWeight:600}}>FREE</div>
                                                 </div>
@@ -330,7 +332,8 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                                 <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>✓</div>
                                             ) : (
                                                 <button onClick={() => handleClaim(lv.level,'free')} disabled={!freeClaimable || claiming===freeKey} style={{
-                                                    padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: freeClaimable?'pointer':'default', border:'none', flexShrink:0,
+                                                    width:'54px', height:'22px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: freeClaimable?'pointer':'default', border:'none', flexShrink:0,
+                                                    display:'flex', alignItems:'center', justifyContent:'center',
                                                     background: freeClaimable ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.04)',
                                                     color: freeClaimable ? '#4ade80' : '#374151',
                                                     opacity: claiming===freeKey ? 0.6 : 1
@@ -361,8 +364,10 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                     ? <img src={lv.premium.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
                                     : <span style={{fontSize:'16px', flexShrink:0}}>{hasPremium ? lv.premium.icon : '🔒'}</span>}
                                                 <div style={{minWidth:0}}>
-                                                    <div style={{fontSize:'10px', fontWeight:700, color: premRarity==='Mythic'?'#ff4488':premRarity==='Legendary'?'#fbbf24':premRarity==='Epic'?'#c084fc':'#9ca3af', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
-                                                        {hasPremium ? (lang==='ar'?lv.premium.name_ar:lv.premium.name_en) : '???'}
+                                                    <div className="marquee-container" style={{height:'14px'}}>
+                                                        <div className="marquee-content" style={{fontSize:'10px', fontWeight:700, color: premRarity==='Mythic'?'#ff4488':premRarity==='Legendary'?'#fbbf24':premRarity==='Epic'?'#c084fc':'#9ca3af'}}>
+                                                            {hasPremium ? (lang==='ar'?lv.premium.name_ar:lv.premium.name_en) : '???'}
+                                                        </div>
                                                     </div>
                                                     <div style={{fontSize:'8px', color:'#ffd700', fontWeight:600}}>🎫 PASS</div>
                                                 </div>
@@ -371,7 +376,8 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                                 <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, flexShrink:0}}>✓</div>
                                             ) : (
                                                 <button onClick={() => handleClaim(lv.level,'premium')} disabled={!premClaimable || claiming===premKey} style={{
-                                                    padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: premClaimable?'pointer':'default', border:'none', flexShrink:0,
+                                                    width:'54px', height:'22px', borderRadius:'6px', fontSize:'9px', fontWeight:700, cursor: premClaimable?'pointer':'default', border:'none', flexShrink:0,
+                                                    display:'flex', alignItems:'center', justifyContent:'center',
                                                     background: premClaimable ? 'linear-gradient(135deg,rgba(255,215,0,0.3),rgba(255,136,0,0.2))' : 'rgba(255,255,255,0.03)',
                                                     color: premClaimable ? '#ffd700' : '#374151',
                                                     opacity: claiming===premKey ? 0.6 : 1
@@ -421,11 +427,12 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                         <span style={{fontSize:'20px', flexShrink:0, filter: done ? 'grayscale(70%)' : 'none'}}>{m.icon}</span>
                                         {/* Info */}
                                         <div style={{flex:1, minWidth:0}}>
-                                            <div style={{fontSize:'11px', fontWeight:700,
-                                                color: done ? '#6b7280' : ready ? '#fde68a' : '#e2e8f0',
-                                                marginBottom:'2px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
-                                            }}>
-                                                {lang==='ar' ? m.name_ar : m.name_en}
+                                            <div className="marquee-container" style={{height:'14px', marginBottom:'2px'}}>
+                                                <div className="marquee-content" style={{fontSize:'11px', fontWeight:700,
+                                                    color: done ? '#6b7280' : ready ? '#fde68a' : '#e2e8f0'
+                                                }}>
+                                                    {lang==='ar' ? m.name_ar : m.name_en}
+                                                </div>
                                             </div>
                                             <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
                                                 {/* Progress bar */}
@@ -459,19 +466,21 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                                 onClick={() => handleClaimMission(m, 'daily')}
                                                 disabled={isLoading}
                                                 style={{
-                                                    padding:'6px 12px', borderRadius:'8px', border:'none', cursor:'pointer',
+                                                    width:'58px', height:'28px', borderRadius:'8px', border:'none', cursor:'pointer',
                                                     background:'linear-gradient(135deg,#fbbf24,#f59e0b)',
                                                     color:'#000', fontSize:'10px', fontWeight:800, flexShrink:0,
                                                     opacity: isLoading ? 0.6 : 1,
                                                     boxShadow:'0 0 12px rgba(251,191,36,0.4)',
-                                                    transition:'all 0.2s'
+                                                    transition:'all 0.2s',
+                                                    display:'flex', alignItems:'center', justifyContent:'center'
                                                 }}
                                             >{isLoading ? '...' : (lang==='ar'?'استلم':'Claim')}</button>
                                         ) : (
                                             <div style={{
-                                                padding:'5px 10px', borderRadius:'8px', flexShrink:0,
+                                                width:'58px', height:'28px', borderRadius:'8px', flexShrink:0,
                                                 background:'rgba(107,114,128,0.1)', border:'1px solid rgba(107,114,128,0.15)',
-                                                fontSize:'9px', fontWeight:700, color:'#4b5563'
+                                                fontSize:'9px', fontWeight:700, color:'#4b5563',
+                                                display:'flex', alignItems:'center', justifyContent:'center'
                                             }}>{lang==='ar'?'جارٍ':'Pending'}</div>
                                         )}
                                     </div>
@@ -509,11 +518,12 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                     }}>
                                         <span style={{fontSize:'20px', flexShrink:0, filter: done ? 'grayscale(70%)' : 'none'}}>{m.icon}</span>
                                         <div style={{flex:1, minWidth:0}}>
-                                            <div style={{fontSize:'11px', fontWeight:700,
-                                                color: done ? '#6b7280' : ready ? '#e9d5ff' : '#e2e8f0',
-                                                marginBottom:'2px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
-                                            }}>
-                                                {lang==='ar' ? m.name_ar : m.name_en}
+                                            <div className="marquee-container" style={{height:'14px', marginBottom:'2px'}}>
+                                                <div className="marquee-content" style={{fontSize:'11px', fontWeight:700,
+                                                    color: done ? '#6b7280' : ready ? '#e9d5ff' : '#e2e8f0'
+                                                }}>
+                                                    {lang==='ar' ? m.name_ar : m.name_en}
+                                                </div>
                                             </div>
                                             <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
                                                 <div style={{flex:1, height:'4px', background:'rgba(255,255,255,0.08)', borderRadius:'2px', overflow:'hidden', maxWidth:'80px'}}>
@@ -545,19 +555,21 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                                 onClick={() => handleClaimMission(m, 'weekly')}
                                                 disabled={isLoading}
                                                 style={{
-                                                    padding:'6px 12px', borderRadius:'8px', border:'none', cursor:'pointer',
+                                                    width:'58px', height:'28px', borderRadius:'8px', border:'none', cursor:'pointer',
                                                     background:'linear-gradient(135deg,#c084fc,#8b5cf6)',
                                                     color:'#fff', fontSize:'10px', fontWeight:800, flexShrink:0,
                                                     opacity: isLoading ? 0.6 : 1,
                                                     boxShadow:'0 0 12px rgba(192,132,252,0.4)',
-                                                    transition:'all 0.2s'
+                                                    transition:'all 0.2s',
+                                                    display:'flex', alignItems:'center', justifyContent:'center'
                                                 }}
                                             >{isLoading ? '...' : (lang==='ar'?'استلم':'Claim')}</button>
                                         ) : (
                                             <div style={{
-                                                padding:'5px 10px', borderRadius:'8px', flexShrink:0,
+                                                width:'58px', height:'28px', borderRadius:'8px', flexShrink:0,
                                                 background:'rgba(107,114,128,0.1)', border:'1px solid rgba(107,114,128,0.15)',
-                                                fontSize:'9px', fontWeight:700, color:'#4b5563'
+                                                fontSize:'9px', fontWeight:700, color:'#4b5563',
+                                                display:'flex', alignItems:'center', justifyContent:'center'
                                             }}>{lang==='ar'?'جارٍ':'Pending'}</div>
                                         )}
                                     </div>

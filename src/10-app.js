@@ -2885,24 +2885,26 @@ function App() {
                                 <span className="sec-title-new">🔥 {lang==='ar'?'اكتشف':'Discover'}</span>
                             </div>
 
-                            {/* Moments — wide banner card */}
-                            <div className="discover-card-cs" 
-                                style={{'--dc-color':'rgba(0,242,255,0.08)','--dc-border':'rgba(0,242,255,0.18)',cursor:'pointer', position:'relative'}} 
-                                onClick={() => { setShowFriendsMoments(true); setHasNewMoments(false); localStorage.setItem('last_moments_view', Date.now().toString()); }}
-                            >
-                                {hasNewMoments && <div className="dc-dot" style={{position:'absolute',top:'12px',right:'12px',width:'10px',height:'10px',background:'#ff4b4b',borderRadius:'50%',boxShadow:'0 0 10px #ff4b4b', zIndex:2}}/>}
-                                <div className="dc-left">
-                                    <div className="dc-icon" style={{background:'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.15))', fontSize:'22px'}}>📸</div>
+                            {/* Square grid — Moments + Couples + Family */}
+                            <div className="discover-grid" style={{gridTemplateColumns:'repeat(2,1fr)', gap:'12px'}}>
+                                
+                                {/* Moments square */}
+                                <div
+                                    className="discover-sq"
+                                    style={{
+                                        '--dsq-bg':'linear-gradient(145deg,rgba(0,242,255,0.12),rgba(112,0,255,0.08))',
+                                        '--dsq-border':'rgba(0,242,255,0.3)',
+                                        padding:'18px 12px',
+                                        gridColumn: 'span 2', // Making it "large" by spanning full width but keeping square-ish feel if possible, or just first in grid
+                                        aspectRatio: '2 / 1.2', // Adjusted for "large" feel at top
+                                    }}
+                                    onClick={() => { setShowFriendsMoments(true); setHasNewMoments(false); localStorage.setItem('last_moments_view', Date.now().toString()); }}
+                                >
+                                    {hasNewMoments && <div className="dsq-dot" style={{background:'#ff4b4b', boxShadow:'0 0 10px #ff4b4b', width:'10px', height:'10px'}}/>}
+                                    <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(0,242,255,0.25),rgba(112,0,255,0.2))', width:'56px', height:'56px', fontSize:'28px'}}>📸</div>
+                                    <div className="dsq-label" style={{fontSize:'14px'}}>{lang==='ar'?'مومنت الأصدقاء':'Friends Moments'}</div>
+                                    <div style={{fontSize:'10px', color:'var(--text-muted)', marginTop:'-4px'}}>{lang==='ar'?'شارك لحظاتك مع أصدقائك':'Share moments with friends'}</div>
                                 </div>
-                                <div className="dc-body">
-                                    <div className="dc-title">{lang==='ar'?'مومنت الأصدقاء':'Friends Moments'}</div>
-                                    <div className="dc-desc">{lang==='ar'?'شارك لحظاتك مع أصدقائك':'Share moments with friends'}</div>
-                                </div>
-                                <div style={{fontSize:'16px',color:'#00f2ff',flexShrink:0}}>›</div>
-                            </div>
-
-                            {/* Square grid — Couples + Family */}
-                            <div className="discover-grid" style={{gridTemplateColumns:'repeat(2,1fr)'}}>
 
                                 {/* Couples square */}
                                 <div

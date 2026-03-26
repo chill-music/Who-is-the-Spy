@@ -57,6 +57,27 @@ var FamilyChatModal = (props) => {
     const [sendingFamRP, setSendingFamRP] = React.useState(false);
     // ── Mini profile popup ──
     const [miniProfile, setMiniProfile] = React.useState(null);
+
+    const handleBlock = async (uid) => {
+        if (!currentUID || !uid) return;
+        try {
+            await usersCollection.doc(currentUID).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayUnion(uid)
+            });
+            if (onNotification) onNotification(lang === 'ar' ? '🚫 تم حظر المستخدم' : '🚫 User blocked');
+        } catch (e) { console.error('Block error:', e); }
+    };
+
+    const handleUnblock = async (uid) => {
+        if (!currentUID || !uid) return;
+        try {
+            await usersCollection.doc(currentUID).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayRemove(uid)
+            });
+            if (onNotification) onNotification(lang === 'ar' ? '✅ تم إلغاء الحظر' : '✅ User unblocked');
+        } catch (e) { console.error('Unblock error:', e); }
+    };
+
     // ── @ Mention ──
     const [mentionSearch, setMentionSearch] = React.useState('');
     const [showMentionList, setShowMentionList] = React.useState(false);
@@ -294,6 +315,9 @@ var FamilyChatModal = (props) => {
                     setGiftTarget({ uid: p.uid, displayName: p.name, photo: p.photo });
                     setShowChatGiftModal(true);
                 } : null,
+                onBlock: handleBlock,
+                onUnblock: handleUnblock,
+                isBlocked: (userData || currentUserData)?.blockedUsers?.includes(miniProfile.uid),
                 onReport: async function(p) {
                     try {
                         await reportsCollection.add({
@@ -390,25 +414,25 @@ var FamilyChatModal = (props) => {
                                             var isCurrentUser = uid2 === currentUID;
                                             var memberName = (msg.assignedMemberNames && msg.assignedMemberNames[uid2]) || ((familyMembers.find(function(m){ return m.id === uid2; })||{}).displayName) || uid2.slice(0,8);
                                             var shareParts = [];
-                                            if (drop.currency > 0) shareParts.push(drop.currency + ' \uD83E\uDDE0');
+                                            if (drop.currency > 0) shareParts.push(drop.currency + ' 🧠');
                                             if (drop.coins > 0) shareParts.push(drop.coins + ' ' + FAMILY_COINS_SYMBOL);
-                                            if (drop.charisma > 0) shareParts.push(drop.charisma + ' \u2B50');
+                                            if (drop.charisma > 0) shareParts.push(drop.charisma + ' ⭐');
                                             (drop.items||[]).forEach(function(it) {
                                                 var res = typeof window.resolveRewardItem === 'function' ? window.resolveRewardItem(it) : it;
-                                                shareParts.push((it.qty||1) + '\u00d7' + (res.icon || it.icon || '\uD83C\uDF81'));
+                                                shareParts.push((it.qty||1) + '\u00d7' + (res.icon || it.icon || '🎁'));
                                             });
                                             return React.createElement('div', { key: uid2, style:{ display:'flex', alignItems:'center', gap:'6px', padding:'5px 8px', marginBottom:'3px', borderRadius:'7px', background: hasClaimed2 ? 'rgba(16,185,129,0.1)' : (isCurrentUser ? 'rgba(0,242,255,0.07)' : 'rgba(255,255,255,0.03)'), border: '1px solid ' + (hasClaimed2 ? 'rgba(16,185,129,0.25)' : isCurrentUser ? 'rgba(0,242,255,0.25)' : 'rgba(255,255,255,0.07)') } },
-                                                React.createElement('span', { style:{ fontSize:'14px', flexShrink:0 } }, hasClaimed2 ? '\u2705' : '\u23F3'),
+                                                React.createElement('span', { style:{ fontSize:'14px', flexShrink:0 } }, hasClaimed2 ? '✅' : '⏳'),
                                                 React.createElement('div', { style:{ flex:1, minWidth:0 } },
-                                                    React.createElement('div', { style:{ fontSize:'10px', color: hasClaimed2 ? '#10b981' : '#e2e8f0', fontWeight:700 } }, memberName + (isCurrentUser ? (lang==='ar'?' (\u0623\u0646\u062A)':' (You)') : '')),
-                                                    hasClaimed2 && shareParts.length > 0 && React.createElement('div', { style:{ fontSize:'9px', color:'#fbbf24', marginTop:'1px' } }, (lang==='ar'?'\u0627\u0633\u062A\u0644\u0645: ':'Got: ') + shareParts.join(' \u2022 ')),
-                                                    !hasClaimed2 && React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', marginTop:'1px' } }, lang==='ar'?'\u0644\u0645 \u064A\u0633\u062A\u0644\u0645 \u0628\u0639\u062F':'Not claimed yet')
+                                                    React.createElement('div', { style:{ fontSize:'10px', color: hasClaimed2 ? '#10b981' : '#e2e8f0', fontWeight:700 } }, memberName + (isCurrentUser ? (lang==='ar'?' (أنت)':' (You)') : '')),
+                                                    hasClaimed2 && shareParts.length > 0 && React.createElement('div', { style:{ fontSize:'9px', color:'#fbbf24', marginTop:'1px' } }, (lang==='ar'?'استلم: ':'Got: ') + shareParts.join(' • ')),
+                                                    !hasClaimed2 && React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', marginTop:'1px' } }, lang==='ar'?'لم يستلم بعد':'Not claimed yet')
                                                 )
                                             );
                                         }),
                                         React.createElement('div', { style:{ marginTop:'8px', padding:'5px 8px', borderRadius:'7px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', fontSize:'10px', color:'#9ca3af', display:'flex', justifyContent:'space-between' } },
-                                            React.createElement('span', null, (lang==='ar'?'\u0627\u0633\u062A\u0644\u0645\u0648\u0627 ':'Claimed ') + totalClaimed + (lang==='ar'?' \u0645\u0646 ':' of ') + totalAssigned),
-                                            React.createElement('span', { style:{ color: totalClaimed < totalAssigned ? '#fbbf24' : '#10b981' } }, totalClaimed < totalAssigned ? ((totalAssigned - totalClaimed) + (lang==='ar'?' \u0645\u062A\u0628\u0642\u064A':' remaining')) : (lang==='ar'?'\u0627\u0643\u062A\u0645\u0644 \u2705':'Complete \u2705'))
+                                            React.createElement('span', null, (lang==='ar'?'استلموا ':'Claimed ') + totalClaimed + (lang==='ar'?' من ':' of ') + totalAssigned),
+                                            React.createElement('span', { style:{ color: totalClaimed < totalAssigned ? '#fbbf24' : '#10b981' } }, totalClaimed < totalAssigned ? ((totalAssigned - totalClaimed) + (lang==='ar'?' متبقي':' remaining')) : (lang==='ar'?'اكتمل ✅':'Complete ✅'))
                                         )
                                     )
                                 ),
@@ -649,4 +673,3 @@ var FamilyChatModal = (props) => {
 
 window.FamilyChatModal = FamilyChatModal;
 // No export default.
-

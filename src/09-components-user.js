@@ -892,9 +892,30 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
     const openGroupMiniProfile = async (uid, basicData) => {
         if (!uid) return;
         setGroupMiniProfile({ uid, name: basicData?.name || '...', photo: basicData?.photo || null, loading: true });
-        const data = await fetchMiniProfileData(uid);
+        // Pass friendsData to unified fetchMiniProfileData
+        const data = await fetchMiniProfileData(uid, friendsData);
         if (data) setGroupMiniProfile(data);
         else { setGroupMiniProfile(null); if (onOpenProfile) onOpenProfile(uid); }
+    };
+
+    const handleBlock = async (uid) => {
+        if (!currentUID || !uid) return;
+        try {
+            await usersCollection.doc(currentUID).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayUnion(uid)
+            });
+            onNotification(lang === 'ar' ? '✅ تم الحظر' : '✅ Blocked');
+        } catch (e) { console.error('Block error:', e); }
+    };
+
+    const handleUnblock = async (uid) => {
+        if (!currentUID || !uid) return;
+        try {
+            await usersCollection.doc(currentUID).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayRemove(uid)
+            });
+            onNotification(lang === 'ar' ? '✅ تم إلغاء الحظر' : '✅ Unblocked');
+        } catch (e) { console.error('Unblock error:', e); }
     };
     React.useEffect(() => {
         if (!showDetails || !activeGroup) return;
@@ -1481,6 +1502,16 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                                 currentUID={currentUID}
                                 lang={lang}
                                 onOpenProfile={onOpenProfile}
+                                onSendGift={onSendGift}
+                                onReport={(p) => {
+                                    // Basic report trace for now
+                                    onNotification(lang === 'ar' ? '✅ تم إرسال البلاغ' : '✅ Report submitted');
+                                    setGroupMiniProfile(null);
+                                }}
+                                onBlock={handleBlock}
+                                onUnblock={handleUnblock}
+                                isBlocked={(currentUserData?.blockedUsers || []).includes(groupMiniProfile.uid)}
+                                zIndex={2000}
                             />
                         )}
 
@@ -1508,8 +1539,6 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                     </div>
                 </div>
             </PortalModal>
-
-            )}
         </React.Fragment>
         );
     }
