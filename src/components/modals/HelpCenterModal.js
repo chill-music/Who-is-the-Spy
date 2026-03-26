@@ -1,23 +1,23 @@
 (function() {
-    const { useState, useEffect } = React;
+    var { useState, useEffect } = React;
 /**
  * HelpCenterModal Component
  * Modularized from 14-modals-misc.js
  */
 var HelpCenterModal = ({ show, onClose, user, userData, lang, onNotification, isLoggedIn }) => {
-    const [activeTab, setActiveTab] = useState('faq');
-    const [faqs, setFaqs] = useState([]);
-    const [openFaq, setOpenFaq] = useState(null);
-    const [loadingFaqs, setLoadingFaqs] = useState(true);
-    const [feedbackText, setFeedbackText] = useState('');
-    const [feedbackRating, setFeedbackRating] = useState(5);
-    const [sendingFeedback, setSendingFeedback] = useState(false);
+    var [activeTab, setActiveTab] = useState('faq');
+    var [faqs, setFaqs] = useState([]);
+    var [openFaq, setOpenFaq] = useState(null);
+    var [loadingFaqs, setLoadingFaqs] = useState(true);
+    var [feedbackText, setFeedbackText] = useState('');
+    var [feedbackRating, setFeedbackRating] = useState(5);
+    var [sendingFeedback, setSendingFeedback] = useState(false);
 
     useEffect(() => {
         if (!show) return;
         setLoadingFaqs(true);
-        const unsub = helpFaqCollection.onSnapshot(snap => {
-            let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        var unsub = helpFaqCollection.onSnapshot(snap => {
+            var data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             data.sort((a, b) => (a.order||99) - (b.order||99));
             setFaqs(data);
             setLoadingFaqs(false);
@@ -25,7 +25,7 @@ var HelpCenterModal = ({ show, onClose, user, userData, lang, onNotification, is
         return () => unsub();
     }, [show]);
 
-    const handleSendFeedback = async () => {
+    var handleSendFeedback = async () => {
         if (!feedbackText.trim() || !user) return;
         setSendingFeedback(true);
         try {
@@ -47,7 +47,7 @@ var HelpCenterModal = ({ show, onClose, user, userData, lang, onNotification, is
 
     if (!show) return null;
 
-    const tabs = [
+    var tabs = [
         { id: 'faq',      icon: '❓', label_ar: 'الأسئلة الشائعة', label_en: 'FAQ' },
         { id: 'tickets',  icon: '🎫', label_ar: 'التذاكر',          label_en: 'Tickets' },
         { id: 'feedback', icon: '📝', label_ar: 'فيدباك',           label_en: 'Feedback' },

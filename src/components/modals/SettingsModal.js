@@ -1,18 +1,18 @@
 (function() {
-    const { useState, useEffect, useMemo } = React;
+    var { useState, useEffect, useMemo } = React;
 
-    const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle, onOpenAdminPanel }) => {
-    const t = TRANSLATIONS[lang];
-    const [blockedUsers, setBlockedUsers] = useState([]);
-    const [blockInput, setBlockInput] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [soundMutedLocal, setSoundMutedLocal] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
-    const [showEmailLocal, setShowEmailLocal] = useState(false);
-    const [editingName, setEditingName] = useState(false);
-    const [newName, setNewName] = useState('');
+    var SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle, onOpenAdminPanel }) => {
+    var t = TRANSLATIONS[lang];
+    var [blockedUsers, setBlockedUsers] = useState([]);
+    var [blockInput, setBlockInput] = useState('');
+    var [loading, setLoading] = useState(false);
+    var [soundMutedLocal, setSoundMutedLocal] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
+    var [showEmailLocal, setShowEmailLocal] = useState(false);
+    var [editingName, setEditingName] = useState(false);
+    var [newName, setNewName] = useState('');
 
-    const myRole = useMemo(() => getUserRole(userData, user?.uid), [userData, user?.uid]);
-    const myRoleCfg = ROLE_CONFIG[myRole];
+    var myRole = useMemo(() => getUserRole(userData, user?.uid), [userData, user?.uid]);
+    var myRoleCfg = ROLE_CONFIG[myRole];
 
     useEffect(() => {
         if (show && userData) {
@@ -22,8 +22,8 @@
 
     if (!show) return null;
 
-    const toggleSound = () => {
-        const newMuted = !soundMutedLocal;
+    var toggleSound = () => {
+        var newMuted = !soundMutedLocal;
         setSoundMutedLocal(newMuted);
         localStorage.setItem('pro_spy_sound_muted', String(newMuted));
         // Update global audio state
@@ -33,18 +33,18 @@
         onNotification(newMuted ? (lang === 'ar' ? 'تم كتم الصوت' : 'Sound muted') : (lang === 'ar' ? 'تم تشغيل الصوت' : 'Sound enabled'));
     };
 
-    const handleBlockUser = async () => {
+    var handleBlockUser = async () => {
         if (!blockInput.trim() || !user) return;
         setLoading(true);
         try {
             // Find user by ID
-            const userQuery = await usersCollection.where('customId', '==', blockInput.trim()).get();
+            var userQuery = await usersCollection.where('customId', '==', blockInput.trim()).get();
             if (userQuery.empty) {
                 onNotification(t.friendNotFound);
                 setLoading(false);
                 return;
             }
-            const targetUid = userQuery.docs[0].id;
+            var targetUid = userQuery.docs[0].id;
             if (targetUid === user.uid) {
                 onNotification(lang === 'ar' ? 'لا يمكنك حظر نفسك' : 'Cannot block yourself');
                 setLoading(false);
@@ -69,7 +69,7 @@
         setLoading(false);
     };
 
-    const handleUnblockUser = async (targetUid) => {
+    var handleUnblockUser = async (targetUid) => {
         if (!user) return;
         try {
             await usersCollection.doc(user.uid).update({
@@ -133,19 +133,19 @@
                                     <div style={{position:'absolute', bottom:'0', right:'0', background:'rgba(112,0,255,0.9)', borderRadius:'50%', width:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', border:'2px solid #0f0f1a'}}>📷</div>
                                 </div>
                                 <input id="settings-photo-input" type="file" style={{display:'none'}} accept="image/*" onChange={async(e) => {
-                                    const file = e.target.files?.[0];
+                                    var file = e.target.files?.[0];
                                     if(!file || !user) return;
-                                    const reader = new FileReader();
+                                    var reader = new FileReader();
                                     reader.onload = async(ev) => {
-                                        const img = new Image();
+                                        var img = new Image();
                                         img.onload = async() => {
-                                            const canvas = document.createElement('canvas');
-                                            const MAX = 300;
-                                            let w = img.width, h = img.height;
+                                            var canvas = document.createElement('canvas');
+                                            var MAX = 300;
+                                            var w = img.width, h = img.height;
                                             if(w > h){ if(w > MAX){h = Math.round(h*MAX/w); w=MAX;} } else { if(h > MAX){w = Math.round(w*MAX/h); h=MAX;} }
                                             canvas.width=w; canvas.height=h;
                                             canvas.getContext('2d').drawImage(img,0,0,w,h);
-                                            const base64 = canvas.toDataURL('image/jpeg', 0.75);
+                                            var base64 = canvas.toDataURL('image/jpeg', 0.75);
                                             try {
                                                 await usersCollection.doc(user.uid).update({photoURL: base64});
                                                 onNotification(lang==='ar'?'تم تحديث الصورة!':'Photo updated!');
@@ -185,9 +185,9 @@
                                             <input className="input-dark" style={{padding:'4px 8px',fontSize:'11px',borderRadius:'6px',width:'120px'}} value={newName} onChange={e => setNewName(e.target.value)} maxLength={10} placeholder={userData?.displayName} />
                                             <button className="btn-neon" style={{padding:'2px 8px',fontSize:'10px',borderRadius:'6px'}} onClick={async() => {
                                                 if(newName.trim() && user) {
-                                                    const now = new Date();
-                                                    const lastChange = userData?.lastChangedName?.toDate?.() || new Date(0);
-                                                    const diffDays = (now - lastChange) / (1000*60*60*24);
+                                                    var now = new Date();
+                                                    var lastChange = userData?.lastChangedName?.toDate?.() || new Date(0);
+                                                    var diffDays = (now - lastChange) / (1000*60*60*24);
                                                     if(diffDays < 30) { onNotification(lang==='ar'?'يمكن التغيير مرة شهريًا':'Can change once per month'); setEditingName(false); return; }
                                                     await usersCollection.doc(user.uid).update({displayName:newName.trim(), lastChangedName:TS()});
                                                     onNotification(lang==='ar'?'تم تغيير الاسم!':'Name changed!');

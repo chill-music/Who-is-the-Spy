@@ -1,18 +1,7 @@
-/**
- * ProfileV11.js
- * The main Profile component for the application.
- * Extracted from the monolithic 15-profile.js.
- * 
- * Part of Phase 5: Final Modularization.
- */
+(function() {
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
-if (!window.useState) {
-    var { useState, useEffect, useRef, useMemo, useCallback } = React;
-} else {
-    var { useState, useEffect, useRef, useMemo, useCallback } = window;
-}
-
-var ProfileV11 = ({
+    const ProfileV11 = ({
     show,
     onClose,
     targetUID,
@@ -1098,5 +1087,5 @@ var ProfileV11 = ({
     );
 };
 
-// Make ProfileV11 available globally
-window.ProfileV11 = ProfileV11;
+    window.ProfileV11 = ProfileV11;
+})();

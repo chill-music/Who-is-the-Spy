@@ -1,29 +1,29 @@
 (function() {
-    const { useState, useEffect } = React;
+    var { useState, useEffect } = React;
 
-    const SupportTicketSection = ({ user, userData, lang, onNotification }) => {
-        const [view, setView]             = useState('list'); // 'list' | 'new' | 'detail'
-        const [myTickets, setMyTickets]   = useState([]);
-        const [loading, setLoading]       = useState(true);
-        const [selected, setSelected]     = useState(null);
-        const [submitting, setSubmitting] = useState(false);
-        const [userReply, setUserReply]   = useState('');
-        const [sendingReply, setSendingReply] = useState(false);
+    var SupportTicketSection = ({ user, userData, lang, onNotification }) => {
+        var [view, setView]             = useState('list'); // 'list' | 'new' | 'detail'
+        var [myTickets, setMyTickets]   = useState([]);
+        var [loading, setLoading]       = useState(true);
+        var [selected, setSelected]     = useState(null);
+        var [submitting, setSubmitting] = useState(false);
+        var [userReply, setUserReply]   = useState('');
+        var [sendingReply, setSendingReply] = useState(false);
 
         // New ticket form state
-        const [subject, setSubject]   = useState('');
-        const [message, setMessage]   = useState('');
-        const [category, setCategory] = useState('other');
+        var [subject, setSubject]   = useState('');
+        var [message, setMessage]   = useState('');
+        var [category, setCategory] = useState('other');
 
         useEffect(() => {
         if (!user) return;
-        const unsub = ticketsCollection
+        var unsub = ticketsCollection
             .where('userId', '==', user.uid)
             .onSnapshot(snap => {
-                let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                var data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 data.sort((a, b) => {
-                    const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds*1000 || 0;
-                    const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds*1000 || 0;
+                    var ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds*1000 || 0;
+                    var tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds*1000 || 0;
                     return tb - ta;
                 });
                 setMyTickets(data);
@@ -37,7 +37,7 @@
         return unsub;
     }, [user?.uid]);
 
-    const handleSubmitTicket = async () => {
+    var handleSubmitTicket = async () => {
         if (!subject.trim() || !message.trim() || !user) return;
         setSubmitting(true);
         try {
@@ -62,11 +62,11 @@
         setSubmitting(true);
     };
 
-    const handleUserReply = async () => {
+    var handleUserReply = async () => {
         if (!userReply.trim() || !selected) return;
         setSendingReply(true);
         try {
-            const reply = {
+            var reply = {
                 by: user.uid,
                 byName: userData?.displayName || 'User',
                 byRole: 'user',
@@ -84,18 +84,18 @@
         setSendingReply(false);
     };
 
-    const statusCfg = {
+    var statusCfg = {
         open:     { label_ar:'مفتوح',    label_en:'Open',     color:'#ef4444' },
         answered: { label_ar:'تم الرد',  label_en:'Answered', color:'#f59e0b' },
         closed:   { label_ar:'مغلق',     label_en:'Closed',   color:'#6b7280' },
     };
-    const catIcon = { bug:'🐛', account:'👤', payment:'💳', other:'❓' };
-    const catLabels_ar = { bug:'خطأ تقني', account:'حساب', payment:'دفع', other:'أخرى' };
-    const catLabels_en = { bug:'Bug Report', account:'Account', payment:'Payment', other:'Other' };
+    var catIcon = { bug:'🐛', account:'👤', payment:'💳', other:'❓' };
+    var catLabels_ar = { bug:'خطأ تقني', account:'حساب', payment:'دفع', other:'أخرى' };
+    var catLabels_en = { bug:'Bug Report', account:'Account', payment:'Payment', other:'Other' };
 
     // ── Detail View ──
     if (view === 'detail' && selected) {
-        const sc = statusCfg[selected.status] || statusCfg.open;
+        var sc = statusCfg[selected.status] || statusCfg.open;
         return (
             <div className="settings-section">
                 <div className="settings-section-title">
@@ -120,7 +120,7 @@
                     </div>
                     {/* Thread */}
                     {(selected.responses||[]).map((r, i) => {
-                        const isStaff = r.byRole !== 'user';
+                        var isStaff = r.byRole !== 'user';
                         return (
                             <div key={i} style={{
                                 background: isStaff?'rgba(0,242,255,0.05)':'rgba(112,0,255,0.05)',
@@ -221,7 +221,7 @@
     }
 
     // ── List View ──
-    const openCount = myTickets.filter(t => t.status === 'open' || t.status === 'answered').length;
+    var openCount = myTickets.filter(t => t.status === 'open' || t.status === 'answered').length;
     return (
         <div className="settings-section">
             <div className="settings-section-title" style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
@@ -256,8 +256,8 @@
             ) : (
                 <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                     {myTickets.map(ticket => {
-                        const sc = statusCfg[ticket.status] || statusCfg.open;
-                        const hasNewReply = ticket.status === 'answered';
+                        var sc = statusCfg[ticket.status] || statusCfg.open;
+                        var hasNewReply = ticket.status === 'answered';
                         return (
                             <div key={ticket.id} onClick={() => { setSelected(ticket); setView('detail'); }}
                                 style={{

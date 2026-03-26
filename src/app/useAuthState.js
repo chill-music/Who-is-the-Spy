@@ -1,5 +1,5 @@
 (function() {
-    const { useState, useEffect } = React;
+    var { useState, useEffect } = React;
 
     /**
      * useAuthState Hook
@@ -14,17 +14,17 @@
         setPendingNewUserRef,
         setShowOnboarding
     }) => {
-        const [user, setUser] = useState(null);
-        const [userData, setUserData] = useState(null);
-        const [authLoading, setAuthLoading] = useState(true);
+        var [user, setUser] = useState(null);
+        var [userData, setUserData] = useState(null);
+        var [authLoading, setAuthLoading] = useState(true);
 
         useEffect(() => {
             setAuthLoading(true);
-            const unsubAuth = auth.onAuthStateChanged(async (u) => {
+            var unsubAuth = auth.onAuthStateChanged(async (u) => {
                 if (u && !u.isAnonymous) {
                     setUser(u);
-                    const userRef = usersCollection.doc(u.uid);
-                    const doc = await userRef.get();
+                    var userRef = usersCollection.doc(u.uid);
+                    var doc = await userRef.get();
                     if (!doc.exists) {
                         // New user - show onboarding modal
                         setOnboardingGoogleUser(u);
@@ -32,7 +32,7 @@
                         setAuthLoading(false);
                         setShowOnboarding(true);
                     } else {
-                        const existingData = doc.data();
+                        var existingData = doc.data();
                         setUserData(existingData);
                         if (existingData.displayName) setNickname(existingData.displayName);
                         
@@ -52,9 +52,9 @@
                         }
 
                         // Real-time user data sync
-                        const unsubSnap = userRef.onSnapshot(snap => {
+                        var unsubSnap = userRef.onSnapshot(snap => {
                             if (snap.exists) {
-                                const d = snap.data();
+                                var d = snap.data();
                                 setUserData(d);
                                 if (d.displayName) setNickname(d.displayName);
                             }
@@ -71,7 +71,7 @@
             return unsubAuth;
         }, []);
 
-        const isLoggedIn = !!user;
+        var isLoggedIn = !!user;
         return { user, userData, authLoading, isLoggedIn, setUser, setUserData, setAuthLoading };
     };
 })();
