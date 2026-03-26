@@ -5,6 +5,7 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
     const [loading, setLoading] = React.useState(true);
     const [selectedMoment, setSelectedMoment] = React.useState(null);
     const [commentText, setCommentText] = React.useState('');
+    const [comments, setComments] = React.useState([]); 
     const [submittingComment, setSubmittingComment] = React.useState(false);
     const [likingId, setLikingId] = React.useState(null);
     const [showBell, setShowBell] = React.useState(false);
@@ -19,62 +20,105 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
     React.useEffect(() => {
         if (!show || !currentUID) return;
         setLoading(true);
+        // Unified Feed: Include current user's UID in the list of authors to fetch
         var friendUIDs = (friendsData || []).map(f => f.id || f.uid).filter(Boolean);
-        if (friendUIDs.length === 0) { setMoments([]); setLoading(false); return; }
+        var allUIDs = [...new Set([...friendUIDs, currentUID])].filter(Boolean); 
+
+        if (allUIDs.length === 0) { setMoments([]); setLoading(false); return; }
+        
         var chunks = [];
-        for (var i = 0; i < friendUIDs.length; i += 10) chunks.push(friendUIDs.slice(i, i + 10));
+        for (var i = 0; i < allUIDs.length; i += 10) chunks.push(allUIDs.slice(i, i + 10));
+        
         Promise.all(chunks.map(chunk =>
             momentsCollection.where('authorUID', 'in', chunk).limit(30).get()
                 .catch(() => ({ docs: [] }))
         )).then(results => {
             var all = [];
-            results.forEach(snap => snap.docs && snap.docs.forEach(d => all.push({ id: d.id, ...d.data() })));
+            results.forEach(snap => snap.docs && snap.docs.forEach(d => {
+                const data = d.data();
+                all.push({ id: d.id, ...data });
+            }));
+            
+            // Consistent sorting (Descending by createdAt)
             all.sort((a, b) => {
                 var aT = a.createdAt?.toMillis?.() || (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
                 var bT = b.createdAt?.toMillis?.() || (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
                 return bT - aT;
             });
+            
             setMoments(all.slice(0, 60));
             setLoading(false);
         }).catch(() => { setMoments([]); setLoading(false); });
     }, [show, currentUID, JSON.stringify((friendsData || []).map(f => f.id || f.uid).filter(Boolean).sort())]);
 
-    // Real-time update for selected moment
+    // Real-time update for selected moment + Comments subcollection
     React.useEffect(() => {
-        if (!selectedMoment?.id) return;
-        var unsub = momentsCollection.doc(selectedMoment.id).onSnapshot(snap => {
+        if (!selectedMoment?.id) {
+            setComments([]);
+            return;
+        }
+        
+        // 1. Listen to the moment doc itself for likes/counts
+        var unsubDoc = momentsCollection.doc(selectedMoment.id).onSnapshot(snap => {
             if (snap.exists) {
                 var updated = { id: snap.id, ...snap.data() };
                 setSelectedMoment(updated);
                 setMoments(prev => prev.map(m => m.id === updated.id ? updated : m));
             }
         }, () => {});
-        return () => unsub();
+
+        // 2. Listen to the comments subcollection (New Schema)
+        var unsubComments = momentsCollection.doc(selectedMoment.id)
+            .collection('comments')
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(snap => {
+                setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            }, err => console.error('Comments listener error:', err));
+
+        return () => {
+            unsubDoc();
+            unsubComments();
+        };
     }, [selectedMoment?.id]);
 
     var handleLike = async (moment, e) => {
         e?.stopPropagation();
         if (!currentUID || likingId === moment.id) return;
         setLikingId(moment.id);
+        
         try {
-            var likes = moment.likes || [];
-            var alreadyLiked = likes.includes(currentUID);
-            await momentsCollection.doc(moment.id).update({
-                likes: alreadyLiked
+            // Updated schema: likedBy (array) and likesCount (number)
+            var likedBy = moment.likedBy || [];
+            var alreadyLiked = likedBy.includes(currentUID);
+            
+            const ref = momentsCollection.doc(moment.id);
+            await ref.update({
+                likesCount: firebase.firestore.FieldValue.increment(alreadyLiked ? -1 : 1),
+                likedBy: alreadyLiked
                     ? firebase.firestore.FieldValue.arrayRemove(currentUID)
                     : firebase.firestore.FieldValue.arrayUnion(currentUID)
             });
+
+            // Local state update for immediate UI feedback
+            const updatedLikedBy = alreadyLiked ? likedBy.filter(id => id !== currentUID) : [...likedBy, currentUID];
+            const updatedLikesCount = (moment.likesCount || 0) + (alreadyLiked ? -1 : 1);
+
             setMoments(prev => prev.map(m => m.id === moment.id ? {
                 ...m,
-                likes: alreadyLiked ? likes.filter(id => id !== currentUID) : [...likes, currentUID]
+                likedBy: updatedLikedBy,
+                likesCount: updatedLikesCount
             } : m));
+
             if (selectedMoment?.id === moment.id) {
                 setSelectedMoment(prev => ({
                     ...prev,
-                    likes: alreadyLiked ? likes.filter(id => id !== currentUID) : [...likes, currentUID]
+                    likedBy: updatedLikedBy,
+                    likesCount: updatedLikesCount
                 }));
             }
-        } catch(e) {}
+        } catch(e) {
+            console.error('Like error:', e);
+        }
         setLikingId(null);
     };
 
@@ -82,18 +126,26 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
         if (!commentText.trim() || !selectedMoment?.id || !currentUID || submittingComment) return;
         setSubmittingComment(true);
         try {
-            var newComment = {
+            const momentRef = momentsCollection.doc(selectedMoment.id);
+            
+            // 1. Add to subcollection (New Schema)
+            await momentRef.collection('comments').add({
                 authorUID: currentUID,
-                authorName: currentUserData?.displayName || 'User',
+                authorName: currentUserData?.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
                 authorPhoto: currentUserData?.photoURL || null,
-                text: commentText.trim(),
-                createdAt: new Date().toISOString(),
-            };
-            await momentsCollection.doc(selectedMoment.id).update({
-                comments: firebase.firestore.FieldValue.arrayUnion(newComment)
+                content: commentText.trim(), // 'content' matches MomentsSystem.js
+                createdAt: TS()
             });
+
+            // 2. Increment count on main doc
+            await momentRef.update({
+                commentsCount: firebase.firestore.FieldValue.increment(1)
+            });
+
             setCommentText('');
-        } catch(e) {}
+        } catch(e) {
+            console.error('Comment error:', e);
+        }
         setSubmittingComment(false);
     };
 
@@ -126,23 +178,40 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
         try {
             var mediaUrl = null;
             if (createImageFile) {
-                var ref = firebase.storage().ref(`moments/${currentUID}/${Date.now()}_${createImageFile.name}`);
-                await ref.put(createImageFile);
-                mediaUrl = await ref.getDownloadURL();
+                // Use the same robust storage path as MomentsSystem.js
+                const fileName = `${Date.now()}_${createImageFile.name}`;
+                const storageRef = firebase.storage().ref(`moments/${currentUID}/${fileName}`);
+                
+                // If it's the compressed dataURL (from the file picker reader)
+                if (createImage && createImage.startsWith('data:image')) {
+                     const blob = await (await fetch(createImage)).blob();
+                     await storageRef.put(blob);
+                } else {
+                     await storageRef.put(createImageFile);
+                }
+                mediaUrl = await storageRef.getDownloadURL();
             }
+
             await momentsCollection.add({
                 authorUID: currentUID,
-                authorName: currentUserData?.displayName || 'User',
+                authorName: currentUserData?.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
                 authorPhoto: currentUserData?.photoURL || null,
                 type: mediaUrl ? 'image' : 'text',
                 content: createText.trim(),
                 mediaUrl: mediaUrl || null,
-                likes: [],
-                comments: [],
+                likedBy: [],
+                likesCount: 0,
+                commentsCount: 0,
                 createdAt: TS(),
             });
-            setCreateText(''); setCreateImage(null); setCreateImageFile(null); setShowCreatePost(false);
-        } catch(e) {}
+
+            setCreateText(''); 
+            setCreateImage(null); 
+            setCreateImageFile(null); 
+            setShowCreatePost(false);
+        } catch(e) {
+            console.error('Create moment error:', e);
+        }
         setCreating(false);
     };
 
@@ -182,12 +251,32 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
                                     style={{width:'30px', height:'30px', borderRadius:'8px', border:'1px solid rgba(0,242,255,0.3)', background: showCreatePost ? 'rgba(0,242,255,0.15)' : 'rgba(0,242,255,0.07)', color:'#00f2ff', fontSize:'15px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}
                                 >📷</button>
                             )}
-                            {/* Hidden file input */}
                             <input type="file" ref={fileRef} accept="image/*" style={{display:'none'}} onChange={e => {
                                 var f = e.target.files[0];
                                 if (!f) return;
-                                setCreateImageFile(f);
-                                setCreateImage(URL.createObjectURL(f));
+                                
+                                // Add image compression matching MomentsSystem.js
+                                const reader = new FileReader();
+                                reader.onload = ev => {
+                                    const img = new Image();
+                                    img.onload = () => {
+                                        const canvas = document.createElement('canvas');
+                                        const MAX_W = 800, MAX_H = 800;
+                                        let w = img.width, h = img.height;
+                                        if (w > MAX_W || h > MAX_H) {
+                                            const ratio = Math.min(MAX_W / w, MAX_H / h);
+                                            w = Math.round(w * ratio);
+                                            h = Math.round(h * ratio);
+                                        }
+                                        canvas.width = w; canvas.height = h;
+                                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                                        const compressed = canvas.toDataURL('image/jpeg', 0.6);
+                                        setCreateImage(compressed);
+                                        setCreateImageFile(f);
+                                    };
+                                    img.src = ev.target.result;
+                                };
+                                reader.readAsDataURL(f);
                             }} />
                             <button onClick={onClose} style={{background:'rgba(255,255,255,0.07)',border:'none',borderRadius:'8px',color:'#9ca3af',fontSize:'16px',width:'30px',height:'30px',cursor:'pointer'}}>✕</button>
                         </div>
@@ -253,9 +342,9 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
                         ) : (
                             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                                 {moments.map(moment => {
-                                    var likes = moment.likes || [];
-                                    var isLiked = likes.includes(currentUID);
-                                    var commentsCount = moment.comments?.length || 0;
+                                    var likedBy = moment.likedBy || [];
+                                    var isLiked = likedBy.includes(currentUID);
+                                    var commentsCount = moment.commentsCount || 0;
                                     return (
                                         <div key={moment.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'14px',overflow:'hidden'}}>
                                             {/* Author row */}
@@ -276,7 +365,7 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
                                             {/* Actions */}
                                             <div style={{padding:'8px 12px',borderTop:'1px solid rgba(255,255,255,0.05)',display:'flex',alignItems:'center',gap:'14px'}}>
                                                 <button onClick={(e)=>handleLike(moment,e)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',color:isLiked?'#f87171':'#6b7280',fontSize:'12px',fontWeight:isLiked?700:400,padding:'3px 0',transition:'color 0.2s'}}>
-                                                    {isLiked ? '❤️' : '🤍'} <span>{likes.length}</span>
+                                                    {isLiked ? '❤️' : '🤍'} <span>{moment.likesCount || 0}</span>
                                                 </button>
                                                 <button onClick={()=>setSelectedMoment(moment)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',color:'#6b7280',fontSize:'12px',padding:'3px 0'}}>
                                                     💬 <span>{commentsCount}</span>
@@ -318,24 +407,24 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
                                 {selectedMoment.content&&<div style={{padding:'12px 14px',fontSize:'13px',color:'#e2e8f0',lineHeight:1.6}}>{selectedMoment.content}</div>}
                                 {/* Like / counts */}
                                 <div style={{padding:'8px 14px',display:'flex',alignItems:'center',gap:'16px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                                    <button onClick={(e)=>handleLike(selectedMoment,e)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'5px',color:(selectedMoment.likes||[]).includes(currentUID)?'#f87171':'#6b7280',fontSize:'13px',fontWeight:(selectedMoment.likes||[]).includes(currentUID)?700:400,padding:'4px 0'}}>
-                                        {(selectedMoment.likes||[]).includes(currentUID) ? '❤️' : '🤍'} {(selectedMoment.likes||[]).length}
+                                    <button onClick={(e)=>handleLike(selectedMoment,e)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'5px',color:(selectedMoment.likedBy||[]).includes(currentUID)?'#f87171':'#6b7280',fontSize:'13px',fontWeight:(selectedMoment.likedBy||[]).includes(currentUID)?700:400,padding:'4px 0'}}>
+                                        {(selectedMoment.likedBy||[]).includes(currentUID) ? '❤️' : '🤍'} {(selectedMoment.likesCount||0)}
                                     </button>
-                                    <span style={{fontSize:'13px',color:'#6b7280'}}>💬 {selectedMoment.comments?.length||0}</span>
+                                    <span style={{fontSize:'13px',color:'#6b7280'}}>💬 {selectedMoment.commentsCount||0}</span>
                                 </div>
-                                {/* Comments */}
+                                {/* Comments list */}
                                 <div style={{padding:'10px 14px',display:'flex',flexDirection:'column',gap:'10px'}}>
-                                    {(selectedMoment.comments||[]).length===0 && (
+                                    {comments.length===0 && (
                                         <div style={{textAlign:'center',padding:'16px',color:'#4b5563',fontSize:'11px'}}>{lang==='ar'?'لا تعليقات بعد':'No comments yet'}</div>
                                     )}
-                                    {(selectedMoment.comments||[]).map((c,i)=>(
-                                        <div key={i} style={{display:'flex',gap:'8px',alignItems:'flex-start'}}>
+                                    {comments.map((c,i)=>(
+                                        <div key={c.id || i} style={{display:'flex',gap:'8px',alignItems:'flex-start'}}>
                                             <div style={{width:'26px',height:'26px',borderRadius:'50%',overflow:'hidden',flexShrink:0,background:'rgba(255,255,255,0.08)'}}>
                                                 {c.authorPhoto?<img src={c.authorPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:'12px',lineHeight:'26px',display:'block',textAlign:'center'}}>😎</span>}
                                             </div>
                                             <div style={{flex:1,background:'rgba(255,255,255,0.05)',borderRadius:'10px',padding:'7px 10px'}}>
                                                 <div style={{fontSize:'10px',fontWeight:700,color:'#a78bfa',marginBottom:'2px'}}>{c.authorName}</div>
-                                                <div style={{fontSize:'12px',color:'#d1d5db',lineHeight:1.5}}>{c.text}</div>
+                                                <div style={{fontSize:'12px',color:'#d1d5db',lineHeight:1.5}}>{c.content}</div>
                                             </div>
                                         </div>
                                     ))}
