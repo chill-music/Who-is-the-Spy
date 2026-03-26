@@ -9,10 +9,10 @@
  * @param {boolean} [props.showAll=false] - Whether to show all groups initially.
  */
 var AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
-    const rawAchievements = userData?.achievements;
+    var rawAchievements = userData?.achievements;
 
     // Memoized list of unlocked achievement IDs
-    const unlockedIds = React.useMemo(() => {
+    var unlockedIds = React.useMemo(() => {
         if (!rawAchievements) return [];
         if (Array.isArray(rawAchievements)) {
             return rawAchievements
@@ -30,8 +30,8 @@ var AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
      * @param {Object} ach - The achievement object.
      * @returns {number}
      */
-    const getCurrentVal = (ach) => {
-        const stats = userData?.stats || {};
+    var getCurrentVal = (ach) => {
+        var stats = userData?.stats || {};
         switch (ach.condition.type) {
             case 'wins':           return stats.wins || 0;
             case 'games_played':   return (stats.wins || 0) + (stats.losses || 0);
@@ -49,19 +49,19 @@ var AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
     };
 
     // Tier visual configuration constants
-    const TIER_STYLE = {
+    var TIER_STYLE = {
         1: { color: '#9ca3af',  glow: false, label: TRANSLATIONS[lang]?.achTier1 || 'Bronze' },
         2: { color: '#60a5fa',  glow: false, label: TRANSLATIONS[lang]?.achTier2 || 'Silver' },
         3: { color: '#fbbf24',  glow: true,  label: TRANSLATIONS[lang]?.achTier3 || 'Legendary' },
         4: { color: '#00d4ff',  glow: true,  label: TRANSLATIONS[lang]?.achTier4 || 'Divine', ultimate: true, isDivine: true },
     };
-    const TIER_DOT_COLOR = { 1: '#78716c', 2: '#60a5fa', 3: '#fbbf24', 4: '#00d4ff' };
+    var TIER_DOT_COLOR = { 1: '#78716c', 2: '#60a5fa', 3: '#fbbf24', 4: '#00d4ff' };
 
     // Memoized grouped achievements
-    const groups = React.useMemo(() => {
-        const groupMap = {};
+    var groups = React.useMemo(() => {
+        var groupMap = {};
         ACHIEVEMENTS.forEach(ach => {
-            const g = ach.group || 'misc';
+            var g = ach.group || 'misc';
             if (!groupMap[g]) groupMap[g] = [];
             groupMap[g].push(ach);
         });
@@ -69,11 +69,11 @@ var AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
         Object.values(groupMap).forEach(arr => arr.sort((a, b) => a.tier - b.tier));
 
         return Object.entries(groupMap).map(([groupKey, tiers]) => {
-            const highestUnlocked = tiers.reduce((best, ach) =>
+            var highestUnlocked = tiers.reduce((best, ach) =>
                 unlockedIds.includes(ach.id) && ach.tier > best ? ach.tier : best, 0);
             
-            const nextTier = tiers.find(a => !unlockedIds.includes(a.id));
-            const progress = nextTier
+            var nextTier = tiers.find(a => !unlockedIds.includes(a.id));
+            var progress = nextTier
                 ? Math.min(100, Math.round((getCurrentVal(nextTier) / nextTier.condition.value) * 100))
                 : 100;
             
@@ -84,9 +84,9 @@ var AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
         });
     }, [unlockedIds, userData]);
 
-    const [selectedGroup, setSelectedGroup] = React.useState(null);
-    const unlockedCount  = unlockedIds.length;
-    const totalCount     = ACHIEVEMENTS.length;
+    var [selectedGroup, setSelectedGroup] = React.useState(null);
+    var unlockedCount  = unlockedIds.length;
+    var totalCount     = ACHIEVEMENTS.length;
 
     return (
         <div className="profile-achievements-section">
@@ -108,11 +108,11 @@ var AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
             {/* Grid of Achievement Groups */}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))', gap:'8px' }}>
                 {groups.map(({ groupKey, tiers, highestUnlocked, nextTier, progress }) => {
-                    const displayTier = highestUnlocked > 0 ? tiers[highestUnlocked - 1] : tiers[0];
-                    const ts          = TIER_STYLE[highestUnlocked] || TIER_STYLE[1];
-                    const allDone     = highestUnlocked === 4;
-                    const isUnlocked  = highestUnlocked > 0;
-                    const tierColor   = isUnlocked ? ts.color : '#4b5563';
+                    var displayTier = highestUnlocked > 0 ? tiers[highestUnlocked - 1] : tiers[0];
+                    var ts          = TIER_STYLE[highestUnlocked] || TIER_STYLE[1];
+                    var allDone     = highestUnlocked === 4;
+                    var isUnlocked  = highestUnlocked > 0;
+                    var tierColor   = isUnlocked ? ts.color : '#4b5563';
 
                     return (
                         <div
@@ -222,10 +222,10 @@ var AchievementsDisplayV11 = ({ userData, lang, showAll = false }) => {
                             </div>
                             <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
                                 {selectedGroup.tiers.map(ach => {
-                                    const isUnlocked = unlockedIds.includes(ach.id);
-                                    const ts         = TIER_STYLE[ach.tier];
-                                    const cur        = getCurrentVal(ach);
-                                    const pct        = Math.min(100, Math.round((cur / ach.condition.value) * 100));
+                                    var isUnlocked = unlockedIds.includes(ach.id);
+                                    var ts         = TIER_STYLE[ach.tier];
+                                    var cur        = getCurrentVal(ach);
+                                    var pct        = Math.min(100, Math.round((cur / ach.condition.value) * 100));
                                     return (
                                         <div key={ach.id} style={{
                                             padding:'10px 12px', borderRadius:'10px',

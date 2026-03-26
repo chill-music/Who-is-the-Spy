@@ -35,27 +35,27 @@ var FamilyTreasury = ({
     setShowDonatePanel
 }) => {
     // ─── State ───
-    const [activeTab, setActiveTab] = React.useState('vault');
-    const [depositing, setDepositing] = React.useState(false);
-    const [upgradeLoading, setUpgradeLoading] = React.useState(null);
-    const [openingChest, setOpeningChest] = React.useState(false);
-    const [showHistory, setShowHistory] = React.useState(false);
-    const [history, setHistory] = React.useState([]);
-    const [historyLoading, setHistoryLoading] = React.useState(false);
-    const [internalShowDonate, setInternalShowDonate] = React.useState(false);
+    var [activeTab, setActiveTab] = React.useState('vault');
+    var [depositing, setDepositing] = React.useState(false);
+    var [upgradeLoading, setUpgradeLoading] = React.useState(null);
+    var [openingChest, setOpeningChest] = React.useState(false);
+    var [showHistory, setShowHistory] = React.useState(false);
+    var [history, setHistory] = React.useState([]);
+    var [historyLoading, setHistoryLoading] = React.useState(false);
+    var [internalShowDonate, setInternalShowDonate] = React.useState(false);
     var showDonate = (typeof showDonatePanel !== 'undefined') ? showDonatePanel : internalShowDonate;
     var setShowDonate = setShowDonatePanel || setInternalShowDonate;
     
-    const [donateAmount, setDonateAmount] = React.useState('');
-    const [showChestModal, setShowChestModal] = React.useState(false);
-    const [selectedChest, setSelectedChest] = React.useState(null);
-    const [chestResult, setChestResult] = React.useState(null);
-    const [showAssignModal, setShowAssignModal] = React.useState(false);
-    const [assigningChest, setAssigningChest] = React.useState(null);
-    const [selectedAssignees, setSelectedAssignees] = React.useState([]);
-    const [assigningLoading, setAssigningLoading] = React.useState(false);
+    var [donateAmount, setDonateAmount] = React.useState('');
+    var [showChestModal, setShowChestModal] = React.useState(false);
+    var [selectedChest, setSelectedChest] = React.useState(null);
+    var [chestResult, setChestResult] = React.useState(null);
+    var [showAssignModal, setShowAssignModal] = React.useState(false);
+    var [assigningChest, setAssigningChest] = React.useState(null);
+    var [selectedAssignees, setSelectedAssignees] = React.useState([]);
+    var [assigningLoading, setAssigningLoading] = React.useState(false);
 
-    const { treasury, treasuryInventory, level } = family || {};
+    var { treasury, treasuryInventory, level } = family || {};
     var fLvl = FamilyService.getFamilyLevelConfig(level || 1);
 
     var handleDonate = async () => {
@@ -227,7 +227,7 @@ var FamilyTreasury = ({
                                 ) : (
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '24px' }}>
                                         {(selectedChest.item?.availableRewards || selectedChest.cfg.rewards).map((r, idx) => {
-                                            const resolved = typeof window.resolveRewardItem === 'function' ? window.resolveRewardItem(r) : r;
+                                            var resolved = typeof window.resolveRewardItem === 'function' ? window.resolveRewardItem(r) : r;
                                             return (
                                                 <div key={idx} style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     <span style={{ fontSize: '18px' }}>{resolved.icon}</span>

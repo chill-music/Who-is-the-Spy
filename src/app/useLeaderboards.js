@@ -1,5 +1,5 @@
 (function() {
-    const { useEffect } = React;
+    var { useEffect } = React;
 
     /**
      * useLeaderboards Hook
@@ -17,15 +17,15 @@
         // 1. Wins Leaderboard - Real-time
         useEffect(() => {
             if ((activeView === 'leaderboard' || activeView === 'ranking') && leaderboardTab === 'wins') {
-                const unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => {
-                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                var unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => {
+                    var data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
                         .filter(d => !d.isAnonymous)
                         .filter(d => typeof getUserRole === 'function' ? !getUserRole(d, d.id) : true);
                     setLeaderboardData(data);
                 }, error => {
                     // Fallback to static fetch if snapshot fails
                     usersCollection.limit(100).get().then(snap => {
-                        let data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                        var data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
                             .filter(d => !d.isAnonymous)
                             .filter(d => typeof getUserRole === 'function' ? !getUserRole(d, d.id) : true);
                         data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0));
@@ -39,14 +39,14 @@
         // 2. Charisma Leaderboard - Real-time
         useEffect(() => {
             if ((activeView === 'leaderboard' || activeView === 'ranking') && leaderboardTab === 'charisma') {
-                const unsub = usersCollection.orderBy('charisma', 'desc').limit(100).onSnapshot(snap => {
-                    let data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                var unsub = usersCollection.orderBy('charisma', 'desc').limit(100).onSnapshot(snap => {
+                    var data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
                         .filter(d => !d.isAnonymous)
                         .filter(d => typeof getUserRole === 'function' ? !getUserRole(d, d.id) : true);
                     setCharismaLeaderboard(data);
                 }, error => {
                     usersCollection.limit(100).get().then(snap => {
-                        let data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                        var data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
                             .filter(d => !d.isAnonymous)
                             .filter(d => typeof getUserRole === 'function' ? !getUserRole(d, d.id) : true);
                         data.sort((a, b) => (b.charisma || 0) - (a.charisma || 0));
@@ -60,12 +60,12 @@
         // 3. Family Leaderboard — by activeness
         useEffect(() => {
             if ((activeView === 'leaderboard' || activeView === 'ranking') && leaderboardTab === 'family') {
-                const familiesCol = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('families');
+                var familiesCol = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('families');
                 familiesCol.orderBy('activeness', 'desc').limit(50).get()
                     .then(snap => setFamilyLeaderboard(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
                     .catch(() => {
                         familiesCol.limit(50).get().then(snap => {
-                            const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            var data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                             data.sort((a, b) => (b.activeness || 0) - (a.activeness || 0));
                             setFamilyLeaderboard(data);
                         }).catch(() => {});

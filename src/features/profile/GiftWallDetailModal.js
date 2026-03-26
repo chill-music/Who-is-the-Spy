@@ -3,16 +3,16 @@
  * Shows details for a specific gift.
  */
 var GiftWallDetailModalV12 = ({ giftDetail, topSenderInfo, lang, onClose }) => {
-    const { gift, count, rarity, rKey, level } = giftDetail;
-    const topSender = topSenderInfo?.[gift.id];
-    const frameStyle = window.getGiftLevelFrame ? window.getGiftLevelFrame(level) : {};
-    const needNext = level === 0 ? 5 : level === 1 ? 25 : level === 2 ? 50 : null;
-    const needMore = needNext ? needNext - count : 0;
+    var { gift, count, rarity, rKey, level } = giftDetail;
+    var topSender = topSenderInfo?.[gift.id];
+    var frameStyle = window.getGiftLevelFrame ? window.getGiftLevelFrame(level) : {};
+    var needNext = level === 0 ? 5 : level === 1 ? 25 : level === 2 ? 50 : null;
+    var needMore = needNext ? needNext - count : 0;
 
     // Rainbow border animation keyframes injected once
     React.useEffect(() => {
         if (document.getElementById('gw-rainbow-style')) return;
-        const s = document.createElement('style');
+        var s = document.createElement('style');
         s.id = 'gw-rainbow-style';
         s.textContent = `
             @keyframes gw-rainbow { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%} }
@@ -21,20 +21,20 @@ var GiftWallDetailModalV12 = ({ giftDetail, topSenderInfo, lang, onClose }) => {
         document.head.appendChild(s);
     }, []);
 
-    const borderGrad = rKey==='Mythic'    ? 'linear-gradient(45deg,#ff0055,#7c3aed,#00d4ff,#ff0055)'
+    var borderGrad = rKey==='Mythic'    ? 'linear-gradient(45deg,#ff0055,#7c3aed,#00d4ff,#ff0055)'
                      : rKey==='Legendary' ? 'linear-gradient(45deg,#ffd700,#ff8800,#ffd700,#ff8800)'
                      : rKey==='Epic'      ? 'linear-gradient(45deg,#8b5cf6,#ec4899,#8b5cf6)'
                      : rKey==='Rare'      ? 'linear-gradient(45deg,#3b82f6,#06b6d4,#3b82f6)'
                      :                     'linear-gradient(45deg,#6b7280,#9ca3af,#6b7280)';
 
-    const bgModal = rKey==='Mythic'    ? 'linear-gradient(160deg,#1a0015,#0a0020)'
+    var bgModal = rKey==='Mythic'    ? 'linear-gradient(160deg,#1a0015,#0a0020)'
                    : rKey==='Legendary' ? 'linear-gradient(160deg,#1a1200,#0a0800)'
                    : rKey==='Epic'      ? 'linear-gradient(160deg,#0e0a20,#060412)'
                    : rKey==='Rare'      ? 'linear-gradient(160deg,#001528,#00080e)'
                    :                     'linear-gradient(160deg,#0f0f1a,#080812)';
 
-    const Z_TOOLTIP = (window.Z && window.Z.TOOLTIP) || 9999;
-    const VIP_CONFIG = window.VIP_CONFIG || [];
+    var Z_TOOLTIP = (window.Z && window.Z.TOOLTIP) || 9999;
+    var VIP_CONFIG = window.VIP_CONFIG || [];
 
     return (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.9)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z_TOOLTIP,padding:'16px'}}

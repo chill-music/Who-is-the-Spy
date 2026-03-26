@@ -1,5 +1,5 @@
 (function() {
-    const { useEffect } = React;
+    var { useEffect } = React;
 
     /**
      * useNotifications Hook
@@ -18,18 +18,18 @@
         useEffect(() => {
             if (!user || !isLoggedIn || !userData) return;
 
-            let previousCount = -1;
-            const unsub = notificationsCollection.where('toUserId', '==', user.uid).limit(50).onSnapshot(snap => {
-                let notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            var previousCount = -1;
+            var unsub = notificationsCollection.where('toUserId', '==', user.uid).limit(50).onSnapshot(snap => {
+                var notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 
                 // Sort by timestamp descending
                 notifs.sort((a, b) => { 
-                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0; 
-                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0; 
+                    var timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0; 
+                    var timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0; 
                     return timeB - timeA; 
                 });
 
-                const newUnread = notifs.filter(n => !n.read).length;
+                var newUnread = notifs.filter(n => !n.read).length;
 
                 // UI Feedback on new notification
                 if (previousCount !== -1 && newUnread > previousCount) {

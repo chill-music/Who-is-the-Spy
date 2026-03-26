@@ -1,5 +1,5 @@
 (function() {
-    const { useEffect } = React;
+    var { useEffect } = React;
 
     /**
      * usePresence Hook
@@ -19,7 +19,7 @@
             }).catch(() => {});
 
             // Heartbeat every 3 minutes
-            const interval = setInterval(() => {
+            var interval = setInterval(() => {
                 usersCollection.doc(user.uid).update({
                     lastActive: TS(),
                     onlineStatus: 'online'
@@ -27,11 +27,11 @@
             }, 180000);
 
             // Set offline immediately when page closes
-            const handleOffline = () => {
+            var handleOffline = () => {
                 try {
                     if (navigator.sendBeacon && user.uid && window.appId) {
-                        const url = `https://firestore.googleapis.com/v1/projects/who-is-the-spy-919b9/databases/(default)/documents:commit`;
-                        const data = JSON.stringify({
+                        var url = `https://firestore.googleapis.com/v1/projects/who-is-the-spy-919b9/databases/(default)/documents:commit`;
+                        var data = JSON.stringify({
                             writes: [{
                                 update: {
                                     name: `projects/who-is-the-spy-919b9/databases/(default)/documents/artifacts/${window.appId}/public/data/users/${user.uid}`,
@@ -47,7 +47,7 @@
             };
 
             // Set "away" when page hidden (user switched tab)
-            const handleVisibility = () => {
+            var handleVisibility = () => {
                 if (document.visibilityState === 'hidden') {
                     usersCollection.doc(user.uid).update({
                         onlineStatus: 'away',
@@ -78,9 +78,9 @@
             if (!isLoggedIn || !user || !userData) return;
 
             // Initialize session start time if not set today
-            const sessionStart = userData.dailyTasks?.sessionStartTime?.toDate?.();
-            const today = new Date().toDateString();
-            const sessionDay = sessionStart ? sessionStart.toDateString() : null;
+            var sessionStart = userData.dailyTasks?.sessionStartTime?.toDate?.();
+            var today = new Date().toDateString();
+            var sessionDay = sessionStart ? sessionStart.toDateString() : null;
 
             if (sessionDay !== today) {
                 // New day - reset boxes and set session start

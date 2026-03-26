@@ -5,7 +5,7 @@
  */
 
 var ProfileTabs = ({ activeTab, setActiveTab, lang }) => {
-    const TABS = [
+    var TABS = [
         { id: 'about',   label_en: 'About',   label_ar: 'حول',      icon: '👤' },
         { id: 'games',   label_en: 'Games',   label_ar: 'الألعاب',   icon: '🎮' },
         { id: 'friends', label_en: 'Friends', label_ar: 'الأصدقاء',  icon: '👥' },
@@ -13,7 +13,7 @@ var ProfileTabs = ({ activeTab, setActiveTab, lang }) => {
         { id: 'moments', label_en: 'Moments', label_ar: 'المنشورات', icon: '📸' },
     ];
 
-    const S = {
+    var S = {
         container: {
             display: 'flex',
             borderBottom: '1px solid rgba(255,255,255,0.07)',
@@ -57,7 +57,7 @@ var ProfileTabs = ({ activeTab, setActiveTab, lang }) => {
     return (
         <div style={S.container} className="profile-tabs-scroll">
             {TABS.map(tab => {
-                const isActive = activeTab === tab.id;
+                var isActive = activeTab === tab.id;
                 return (
                     <button
                         key={tab.id}

@@ -1,5 +1,5 @@
 (function() {
-    const { useEffect } = React;
+    var { useEffect } = React;
 
     /**
      * useGameAutomation Hook
@@ -21,8 +21,8 @@
         // 1. Timers logic
         useEffect(() => { 
             if (room?.status === 'discussing' && room?.turnEndTime) { 
-                const interval = setInterval(() => { 
-                    const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000)); 
+                var interval = setInterval(() => { 
+                    var remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000)); 
                     setTurnTimer(remaining); 
                     if (remaining <= 0) { 
                         if (typeof handleSkipTurn === 'function') handleSkipTurn(true); 
@@ -35,8 +35,8 @@
 
         useEffect(() => { 
             if (room?.status === 'voting' && room?.votingEndTime) { 
-                const interval = setInterval(() => { 
-                    const remaining = Math.max(0, Math.floor((room.votingEndTime - Date.now()) / 1000)); 
+                var interval = setInterval(() => { 
+                    var remaining = Math.max(0, Math.floor((room.votingEndTime - Date.now()) / 1000)); 
                     setVotingTimer(remaining); 
                     if (remaining <= 0) { clearInterval(interval); } 
                 }, 1000); 
@@ -46,8 +46,8 @@
 
         useEffect(() => { 
             if (room?.status === 'word_selection' && room?.wordSelEndTime) { 
-                const interval = setInterval(() => { 
-                    const remaining = Math.max(0, Math.floor((room.wordSelEndTime - Date.now()) / 1000)); 
+                var interval = setInterval(() => { 
+                    var remaining = Math.max(0, Math.floor((room.wordSelEndTime - Date.now()) / 1000)); 
                     setWordSelTimer(remaining); 
                     if (remaining <= 0) { clearInterval(interval); } 
                 }, 1000); 
@@ -58,19 +58,19 @@
         // 2. Auto-resolve word votes (admin only)
         useEffect(() => {
             if (!room || room.status !== 'word_selection' || currentUID !== room.admin) return;
-            const activePlayers = room.players.filter(p => p.status === 'active');
-            const voters = activePlayers.filter(p => p.role !== 'spy' && p.role !== 'mrwhite');
+            var activePlayers = room.players.filter(p => p.status === 'active');
+            var voters = activePlayers.filter(p => p.role !== 'spy' && p.role !== 'mrwhite');
             if (voters.length === 0) return;
             
-            const allVoted = voters.every(p => room.wordVotes?.[p.uid]);
+            var allVoted = voters.every(p => room.wordVotes?.[p.uid]);
             if (!allVoted) return;
 
-            const voteCounts = {};
+            var voteCounts = {};
             voters.forEach(p => {
-                const w = room.wordVotes[p.uid];
+                var w = room.wordVotes[p.uid];
                 if (w) voteCounts[w] = (voteCounts[w] || 0) + 1;
             });
-            const chosenWord = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+            var chosenWord = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
             if (!chosenWord) return;
 
             roomsCollection.doc(roomId).update({
@@ -84,14 +84,14 @@
         // 3. Auto-resolve final votes (admin only)
         useEffect(() => {
             if (!room || room.status !== 'voting' || currentUID !== room.admin) return;
-            const activePlayers = room.players.filter(p => p.status === 'active');
-            const allVoted = activePlayers.length > 0 && activePlayers.every(p => room.votes?.[p.uid]);
+            var activePlayers = room.players.filter(p => p.status === 'active');
+            var allVoted = activePlayers.length > 0 && activePlayers.every(p => room.votes?.[p.uid]);
             if (!allVoted) return;
 
-            const voteCounts = {};
+            var voteCounts = {};
             Object.values(room.votes).forEach(v => { voteCounts[v] = (voteCounts[v] || 0) + 1; });
-            const maxVotes = Math.max(...Object.values(voteCounts));
-            const topVoted = Object.entries(voteCounts).filter(([, count]) => count === maxVotes);
+            var maxVotes = Math.max(...Object.values(voteCounts));
+            var topVoted = Object.entries(voteCounts).filter(([, count]) => count === maxVotes);
             
             if (topVoted.length > 1) {
                 // Tie → spy escapes
@@ -99,10 +99,10 @@
                 return;
             }
             
-            const ejectedUID = topVoted[0][0];
-            const ejectedPlayer = activePlayers.find(p => p.uid === ejectedUID);
-            const ejectedRole = ejectedPlayer?.role;
-            const sysMsg = { sender: 'system', name: 'SYSTEM', text: `🚨 ${ejectedPlayer?.name || ejectedUID} was ejected!`, time: Date.now() };
+            var ejectedUID = topVoted[0][0];
+            var ejectedPlayer = activePlayers.find(p => p.uid === ejectedUID);
+            var ejectedRole = ejectedPlayer?.role;
+            var sysMsg = { sender: 'system', name: 'SYSTEM', text: `🚨 ${ejectedPlayer?.name || ejectedUID} was ejected!`, time: Date.now() };
             
             if (ejectedRole === 'spy') {
                 roomsCollection.doc(roomId).update({ status: 'spy_guessing', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) }).catch(() => {});

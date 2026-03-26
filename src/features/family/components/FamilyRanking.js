@@ -1,6 +1,6 @@
 var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
-    const [rankings, setRankRankings] = React.useState([]);
-    const [loading, setLoading] = React.useState(true);
+    var [rankings, setRankRankings] = React.useState([]);
+    var [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
         setLoading(true);

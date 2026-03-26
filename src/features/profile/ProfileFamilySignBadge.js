@@ -3,29 +3,29 @@
  * Shows clan sign on profile.
  */
 var ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
-    const familyTag   = userData?.familyTag;
-    const familyName  = userData?.familyName;
-    const signLevel   = userData?.familySignLevel || (userData?.familyId ? 1 : null);
-    const signData    = (window.FamilyConstants && signLevel) ? window.FamilyConstants.getFamilySignLevelDataByLevel(signLevel) : null;
-    const signColor   = signData?.color || userData?.familySignColor || '#6b7280';
-    const signImgURL  = (window.FamilyConstants && signLevel) ? window.FamilyConstants.getFamilySignImage(0, signLevel) : (window.getFamilySignURL ? window.getFamilySignURL(userData) : null);
+    var familyTag   = userData?.familyTag;
+    var familyName  = userData?.familyName;
+    var signLevel   = userData?.familySignLevel || (userData?.familyId ? 1 : null);
+    var signData    = (window.FamilyConstants && signLevel) ? window.FamilyConstants.getFamilySignLevelDataByLevel(signLevel) : null;
+    var signColor   = signData?.color || userData?.familySignColor || '#6b7280';
+    var signImgURL  = (window.FamilyConstants && signLevel) ? window.FamilyConstants.getFamilySignImage(0, signLevel) : (window.getFamilySignURL ? window.getFamilySignURL(userData) : null);
 
     // Only show if user has a family AND has earned a sign (level > 0)
     if (!familyTag || !signLevel) return null;
 
-    const hasGlow = signLevel >= 4;
+    var hasGlow = signLevel >= 4;
     // الـ glow يستخدم لون الساين نفسه — مستوى 5 أحمر، مستوى 4 برتقالي
-    const glowIntensity = signLevel === 5 ? 'dd' : signLevel === 4 ? 'cc' : '99';
-    const glowMid       = signLevel === 5 ? '88' : signLevel === 4 ? '77' : '55';
-    const glowFar       = signLevel === 5 ? '44' : '33';
+    var glowIntensity = signLevel === 5 ? 'dd' : signLevel === 4 ? 'cc' : '99';
+    var glowMid       = signLevel === 5 ? '88' : signLevel === 4 ? '77' : '55';
+    var glowFar       = signLevel === 5 ? '44' : '33';
 
     // لو في صورة: تظهر كبيرة مع التاج مكتوب فوقها باحتراف
     if (signImgURL) {
         // عرض الصورة يتناسب مع عدد الأحرف — 3→52px  4→62px  5→72px
-        const imgW = 44 + (familyTag.length * 6);
-        const imgH = Math.round(imgW * 0.55); // نسبة عرض/ارتفاع ثابتة
+        var imgW = 44 + (familyTag.length * 6);
+        var imgH = Math.round(imgW * 0.55); // نسبة عرض/ارتفاع ثابتة
         // حجم الخط يتناسب مع حجم الصورة
-        const fontSize = familyTag.length <= 3 ? 11 : familyTag.length === 4 ? 10 : 9;
+        var fontSize = familyTag.length <= 3 ? 11 : familyTag.length === 4 ? 10 : 9;
 
         return (
             <span

@@ -12,14 +12,14 @@
  * @param {Object} props.effect - The effect configuration object from SHOP_ITEMS.
  */
 var GifProfileEffect = ({ effect }) => {
-    const [visible, setVisible] = React.useState(true);
-    const [fading, setFading] = React.useState(false);
-    const dur = effect?.displayDuration || 2000;
+    var [visible, setVisible] = React.useState(true);
+    var [fading, setFading] = React.useState(false);
+    var dur = effect?.displayDuration || 2000;
 
     React.useEffect(() => {
         if (!effect?.showOnce) return; // if not showOnce, stay visible forever
-        const fadeTimer = setTimeout(() => setFading(true), dur);
-        const hideTimer = setTimeout(() => setVisible(false), dur + 600);
+        var fadeTimer = setTimeout(() => setFading(true), dur);
+        var hideTimer = setTimeout(() => setVisible(false), dur + 600);
         return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); };
     }, [effect?.id, dur]);
 
@@ -55,16 +55,16 @@ var GifProfileEffect = ({ effect }) => {
  * @param {number} [props.loopEvery=2500] - Loop interval in milliseconds.
  */
 var ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
-    const [particles, setParticles] = React.useState([]);
+    var [particles, setParticles] = React.useState([]);
 
     // useMemo prevents new object reference on every render (was identical bug to ProfileEffectOverlay)
-    const effect = React.useMemo(() =>
+    var effect = React.useMemo(() =>
         (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId),
     [effectId]);
 
-    const spawnParticles = React.useCallback(() => {
+    var spawnParticles = React.useCallback(() => {
         if (!effect || !Array.isArray(effect.particles)) return;
-        const all = effect.particles.flatMap(p =>
+        var all = effect.particles.flatMap(p =>
             Array.from({ length: Math.ceil(p.count * 0.6) }, (_, i) => ({
                 id: `${p.emoji}-${i}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                 emoji: p.emoji,
@@ -84,7 +84,7 @@ var ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
     // Loop
     React.useEffect(() => {
         if (!effect) return;
-        const interval = setInterval(spawnParticles, loopEvery);
+        var interval = setInterval(spawnParticles, loopEvery);
         return () => clearInterval(interval);
     }, [effect, loopEvery, spawnParticles]);
 
@@ -117,24 +117,24 @@ var ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
  * @param {string} props.effectId - The ID of the effect to render.
  */
 var ProfileEffectOverlay = ({ effectId }) => {
-    const [particles, setParticles] = React.useState([]);
-    const [alive, setAlive] = React.useState(false);
-    const timerRef = React.useRef(null);
-    const loopRef  = React.useRef(null);
+    var [particles, setParticles] = React.useState([]);
+    var [alive, setAlive] = React.useState(false);
+    var timerRef = React.useRef(null);
+    var loopRef  = React.useRef(null);
 
     // useMemo prevents new object reference on every render (was causing infinite loop)
-    const effect = React.useMemo(() =>
+    var effect = React.useMemo(() =>
         (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId),
     [effectId]);
 
-    const loopEvery       = effect?.loopEvery       || 4000;
-    const displayDuration = effect?.displayDuration || (effect?.duration || 2200);
+    var loopEvery       = effect?.loopEvery       || 4000;
+    var displayDuration = effect?.displayDuration || (effect?.duration || 2200);
 
-    const triggerBurst = React.useCallback(() => {
+    var triggerBurst = React.useCallback(() => {
         if (!effect || !Array.isArray(effect.particles) || effect.particles.length === 0) return;
-        const all = [];
+        var all = [];
         effect.particles.forEach(p => {
-            for (let i = 0; i < p.count; i++) all.push({
+            for (var i = 0; i < p.count; i++) all.push({
                 id: `${p.emoji}-${i}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                 emoji: p.emoji,
                 x: 5 + Math.random() * 90,

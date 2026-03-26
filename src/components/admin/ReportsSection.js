@@ -1,32 +1,32 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var ReportsSection = ({ currentUser, currentUserData, lang, onNotification, onOpenProfile }) => {
-    const [reports, setReports]           = useState([]);
-    const [loading, setLoading]           = useState(true);
-    const [filter, setFilter]             = useState('open');
-    const [escalating, setEscalating]     = useState(null);
-    const [escalateNote, setEscalateNote] = useState('');
-    const [staffList, setStaffList]       = useState([]);
-    const [selectedEscalateTo, setSelectedEscalateTo] = useState('');
-    const [banningUID, setBanningUID]     = useState(null); // report.id of the one being banned
+    var [reports, setReports]           = useState([]);
+    var [loading, setLoading]           = useState(true);
+    var [filter, setFilter]             = useState('open');
+    var [escalating, setEscalating]     = useState(null);
+    var [escalateNote, setEscalateNote] = useState('');
+    var [staffList, setStaffList]       = useState([]);
+    var [selectedEscalateTo, setSelectedEscalateTo] = useState('');
+    var [banningUID, setBanningUID]     = useState(null); // report.id of the one being banned
 
-    const myRole = getUserRole(currentUserData, currentUser?.uid);
+    var myRole = getUserRole(currentUserData, currentUser?.uid);
 
     useEffect(() => {
-        let unsubscribed = false;
+        var unsubscribed = false;
 
-        const sortReports = (data) => {
+        var sortReports = (data) => {
             return data.sort((a, b) => {
-                const ta = a.createdAt?.toMillis?.() || a.timestamp?.toMillis?.()
+                var ta = a.createdAt?.toMillis?.() || a.timestamp?.toMillis?.()
                          || (a.createdAt?.seconds  * 1000) || (a.timestamp?.seconds  * 1000) || 0;
-                const tb = b.createdAt?.toMillis?.() || b.timestamp?.toMillis?.()
+                var tb = b.createdAt?.toMillis?.() || b.timestamp?.toMillis?.()
                          || (b.createdAt?.seconds  * 1000) || (b.timestamp?.seconds  * 1000) || 0;
                 return tb - ta;
             });
         };
 
-        let unsub;
+        var unsub;
         try {
             unsub = reportsCollection.limit(200).onSnapshot(
                 snap => {
@@ -37,7 +37,7 @@ var ReportsSection = ({ currentUser, currentUserData, lang, onNotification, onOp
                 async (err) => {
                     console.warn('[Reports] onSnapshot failed, falling back to get():', err?.message);
                     try {
-                        const snap = await reportsCollection.limit(200).get();
+                        var snap = await reportsCollection.limit(200).get();
                         if (!unsubscribed) {
                             setReports(sortReports(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
                             setLoading(false);
@@ -67,7 +67,7 @@ var ReportsSection = ({ currentUser, currentUserData, lang, onNotification, onOp
         }
     }, [myRole]);
 
-    const resolveReport = async (id, targetUID, targetName) => {
+    var resolveReport = async (id, targetUID, targetName) => {
         try {
             await reportsCollection.doc(id).update({ resolved: true, resolvedAt: TS() });
             await logStaffAction(currentUser.uid, currentUserData?.displayName, 'RESOLVE_REPORT', targetUID, targetName, `Report ID: ${id}`);
@@ -75,7 +75,7 @@ var ReportsSection = ({ currentUser, currentUserData, lang, onNotification, onOp
         } catch(e) { onNotification('❌ Error'); }
     };
 
-    const handleEscalate = async (report) => {
+    var handleEscalate = async (report) => {
         if (!selectedEscalateTo || !escalateNote.trim()) return;
         try {
             await reportsCollection.doc(report.id).update({
@@ -92,7 +92,7 @@ var ReportsSection = ({ currentUser, currentUserData, lang, onNotification, onOp
         } catch(e) { onNotification('❌ Error'); }
     };
 
-    const filtered = reports.filter(r => {
+    var filtered = reports.filter(r => {
         if (filter === 'open') return !r.resolved && !r.escalated;
         if (filter === 'escalated') return r.escalated && !r.resolved;
         return r.resolved;

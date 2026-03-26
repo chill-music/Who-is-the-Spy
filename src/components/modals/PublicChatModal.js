@@ -1,27 +1,27 @@
 (function() {
-    const { useState, useEffect, useRef, createElement } = React;
+    var { useState, useEffect, useRef, createElement } = React;
 
-    const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification, isLoggedIn, onOpenProfile, currentUID }) => {
-        const [messages, setMessages] = useState([]);
-        const [msgText, setMsgText] = useState('');
-        const [sending, setSending] = useState(false);
-        const [editingMsgId, setEditingMsgId] = useState(null);
-        const [editText, setEditText] = useState('');
-        const [uploadingImg, setUploadingImg] = useState(false);
-        const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-        const [showRPModal, setShowRPModal] = useState(false);
-        const [sendingRP, setSendingRP] = useState(false);
-        const [menuMsgId, setMenuMsgId] = useState(null);
+    var PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification, isLoggedIn, onOpenProfile, currentUID }) => {
+        var [messages, setMessages] = useState([]);
+        var [msgText, setMsgText] = useState('');
+        var [sending, setSending] = useState(false);
+        var [editingMsgId, setEditingMsgId] = useState(null);
+        var [editText, setEditText] = useState('');
+        var [uploadingImg, setUploadingImg] = useState(false);
+        var [showEmojiPicker, setShowEmojiPicker] = useState(false);
+        var [showRPModal, setShowRPModal] = useState(false);
+        var [sendingRP, setSendingRP] = useState(false);
+        var [menuMsgId, setMenuMsgId] = useState(null);
     // ── Mini Profile state ──
-    const [miniProfilePub, setMiniProfilePub] = useState(null);
-    const [miniMenuPub, setMiniMenuPub] = useState(false);
-    const messagesEndRef = useRef(null);
-    const inputRef = useRef(null);
-    const fileInputRef = useRef(null);
+    var [miniProfilePub, setMiniProfilePub] = useState(null);
+    var [miniMenuPub, setMiniMenuPub] = useState(false);
+    var messagesEndRef = useRef(null);
+    var inputRef = useRef(null);
+    var fileInputRef = useRef(null);
 
     useEffect(() => {
         if (!show) return;
-        const unsub = publicChatCollection
+        var unsub = publicChatCollection
             .orderBy('createdAt', 'asc')
             .limitToLast(100)
             .onSnapshot(snap => {
@@ -31,11 +31,11 @@
         return () => unsub();
     }, [show]);
 
-    const sendMsg = async () => {
+    var sendMsg = async () => {
         if (!msgText.trim() || !user || !isLoggedIn || sending) return;
-        const text = msgText.trim(); setMsgText(''); setSending(true);
+        var text = msgText.trim(); setMsgText(''); setSending(true);
         try {
-            const vipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(currentUser) || 0) : 0;
+            var vipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(currentUser) || 0) : 0;
             await publicChatCollection.add({
                 type: 'text', text,
                 senderId: user.uid,
@@ -52,12 +52,12 @@
         setSending(false);
     };
 
-    const handleImgUpload = async (e) => {
-        const file = e.target.files?.[0];
+    var handleImgUpload = async (e) => {
+        var file = e.target.files?.[0];
         if (!file || !file.type.startsWith('image/') || !user || uploadingImg) return;
         setUploadingImg(true);
         try {
-            const base64 = await compressImageToBase64(file);
+            var base64 = await compressImageToBase64(file);
             await publicChatCollection.add({
                 type: 'image', imageData: base64, text: '📷',
                 senderId: user.uid, senderName: currentUser?.displayName || 'User',
@@ -69,21 +69,21 @@
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const handleDeleteMsg = async (msgId) => {
+    var handleDeleteMsg = async (msgId) => {
         if (!msgId) return;
         try { await publicChatCollection.doc(msgId).delete(); }
         catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
         setMenuMsgId(null);
     };
 
-    const handleEditMsg = async (msgId) => {
+    var handleEditMsg = async (msgId) => {
         if (!editText.trim() || !msgId) return;
         try { await publicChatCollection.doc(msgId).update({ text: editText.trim(), edited: true }); }
         catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
         setEditingMsgId(null); setEditText('');
     };
 
-    const handleReport = async (msg) => {
+    var handleReport = async (msg) => {
         if (!user) return;
         try {
             await reportsCollection.add({
@@ -97,12 +97,12 @@
         setMenuMsgId(null);
     };
 
-    const sendPublicRP = async (rp) => {
+    var sendPublicRP = async (rp) => {
         if (!user || !currentUser || sendingRP) return;
         if ((currentUser?.currency||0) < rp.amount) { onNotification(lang==='ar'?'❌ رصيد غير كافٍ':'❌ Insufficient balance'); return; }
         setSendingRP(true);
         try {
-            const rpRef = await redPacketsCollection.add({
+            var rpRef = await redPacketsCollection.add({
                 configId: rp.id, amount: rp.amount,
                 senderId: user.uid, senderName: currentUser.displayName || 'User', senderPhoto: currentUser.photoURL || null,
                 targetType: 'public', targetId: 'public', targetName: 'Public',
@@ -121,19 +121,19 @@
         setSendingRP(false);
     };
 
-    const claimPublicRP = async (rpId) => {
+    var claimPublicRP = async (rpId) => {
         if (!rpId || !user) return;
         try {
-            const rpDoc = await redPacketsCollection.doc(rpId).get();
+            var rpDoc = await redPacketsCollection.doc(rpId).get();
             if (!rpDoc.exists) return;
-            const rp = rpDoc.data();
+            var rp = rpDoc.data();
             // ❌ المرسل لا يستطيع الاستلام من مغلفه في الشات العام
             if (rp.senderId === user.uid) { onNotification(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet'); return; }
             if (rp.claimedBy?.includes(user.uid)) { onNotification(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed'); return; }
             if ((rp.claimedBy?.length||0) >= rp.maxClaims) { onNotification(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted'); return; }
-            const perClaim = Math.floor(rp.amount / rp.maxClaims);
-            const bonus = Math.floor(Math.random() * Math.floor(perClaim * 0.5));
-            const claim = Math.min(perClaim + bonus, rp.remaining || rp.amount);
+            var perClaim = Math.floor(rp.amount / rp.maxClaims);
+            var bonus = Math.floor(Math.random() * Math.floor(perClaim * 0.5));
+            var claim = Math.min(perClaim + bonus, rp.remaining || rp.amount);
             await redPacketsCollection.doc(rpId).update({
                 claimedBy: firebase.firestore.FieldValue.arrayUnion(user.uid),
                 remaining: firebase.firestore.FieldValue.increment(-claim),
@@ -149,23 +149,23 @@
         } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
     };
 
-    const fmtTs = (ts) => {
+    var fmtTs = (ts) => {
         if (!ts) return '';
-        const d = ts?.toDate ? ts.toDate() : new Date(ts?.seconds*1000||ts);
+        var d = ts?.toDate ? ts.toDate() : new Date(ts?.seconds*1000||ts);
         return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     };
 
     // ── Open Mini Profile (instead of full profile) ──
-    const openMiniProfilePub = async (uid, basicData) => {
+    var openMiniProfilePub = async (uid, basicData) => {
         if (!uid) return;
         setMiniMenuPub(false);
         setMiniProfilePub({ uid, name: basicData?.name || '...', photo: basicData?.photo || null, loading: true });
-        const friends = user ? ((currentUser?.friends || []).concat([])) : [];
-        const data = await fetchMiniProfileData(uid, friends);
+        var friends = user ? ((currentUser?.friends || []).concat([])) : [];
+        var data = await fetchMiniProfileData(uid, friends);
         if (data) setMiniProfilePub(data);
     };
 
-    const handleBlock = async (uid) => {
+    var handleBlock = async (uid) => {
         if (!user?.uid || !uid) return;
         try {
             await usersCollection.doc(user.uid).update({
@@ -175,7 +175,7 @@
         } catch (e) { console.error('Block error:', e); }
     };
 
-    const handleUnblock = async (uid) => {
+    var handleUnblock = async (uid) => {
         if (!user?.uid || !uid) return;
         try {
             await usersCollection.doc(user.uid).update({
@@ -219,7 +219,7 @@
                                 <div key={msg.id||i} style={{textAlign:'center',fontSize:'10px',color:'#6b7280',padding:'3px 12px',background:'rgba(255,255,255,0.04)',borderRadius:'20px',alignSelf:'center',maxWidth:'90%'}}>{msg.text}</div>
                             );
                             if (msg.type === 'red_packet') {
-                                const isMe = msg.senderId === currentUID;
+                                var isMe = msg.senderId === currentUID;
                                 return (
                                     <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'8px',alignItems:'flex-end'}}>
                                         <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',overflow:'hidden',flexShrink:0,cursor:'pointer',border:'2px solid rgba(239,68,68,0.4)'}} onClick={()=>openMiniProfilePub(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}>
@@ -233,10 +233,10 @@
                                     </div>
                                 );
                             }
-                            const isMe = msg.senderId === currentUID;
-                            const isImg = msg.type === 'image';
-                            const vipCfg = getVIPConfig(msg.senderVipLevel);
-                            const nameColor = vipCfg ? vipCfg.nameColor : (isMe ? '#00f2ff' : '#a78bfa');
+                            var isMe = msg.senderId === currentUID;
+                            var isImg = msg.type === 'image';
+                            var vipCfg = getVIPConfig(msg.senderVipLevel);
+                            var nameColor = vipCfg ? vipCfg.nameColor : (isMe ? '#00f2ff' : '#a78bfa');
                             return (
                                 <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'8px',alignItems:'flex-end'}}>
                                     {/* Avatar with frame */}
@@ -256,7 +256,7 @@
                                             {/* Badges */}
                                             {(msg.senderBadges||[]).slice(0,3).map((b,bi)=>{
                                                 if (!b) return null;
-                                                const badge = typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.find(a=>a.id===b) : null;
+                                                var badge = typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.find(a=>a.id===b) : null;
                                                 if (!badge) return null;
                                                 return badge.imageUrl
                                                     ? <img key={bi} src={badge.imageUrl} alt="" onError={e=>e.target.style.display='none'} style={{width:'13px',height:'13px',objectFit:'contain',flexShrink:0}}/>
@@ -271,7 +271,7 @@
                                                 <button onClick={()=>{setEditingMsgId(null);setEditText('');}} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'7px',padding:'5px 7px',color:'#9ca3af',cursor:'pointer',fontSize:'11px'}}>✕</button>
                                             </div>
                                         ) : isImg ? (
-                                            <div style={{borderRadius:isMe?'14px 14px 4px 14px':'14px 14px 14px 4px',overflow:'hidden',border:'1px solid rgba(255,255,255,0.09)',cursor:'pointer',width:'min(240px, calc(100vw - 80px))'}} onClick={()=>{const w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}>
+                                            <div style={{borderRadius:isMe?'14px 14px 4px 14px':'14px 14px 14px 4px',overflow:'hidden',border:'1px solid rgba(255,255,255,0.09)',cursor:'pointer',width:'min(240px, calc(100vw - 80px))'}} onClick={()=>{var w=window.open();w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);}}>
                                                 <img src={msg.imageData} alt="📷" style={{display:'block',width:'100%',maxHeight:'240px',objectFit:'cover'}}/>
                                             </div>
                                         ) : (

@@ -1,26 +1,26 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var TicketsSection = ({ currentUser, currentUserData, lang, onNotification, onOpenProfile }) => {
-    const [tickets, setTickets] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('open');
-    const [replyingTo, setReplyingTo] = useState(null);
-    const [replyText, setReplyText] = useState('');
-    const [banningUID, setBanningUID] = useState(null); // ticket.id of the one being banned
+    var [tickets, setTickets] = useState([]);
+    var [loading, setLoading] = useState(true);
+    var [filter, setFilter] = useState('open');
+    var [replyingTo, setReplyingTo] = useState(null);
+    var [replyText, setReplyText] = useState('');
+    var [banningUID, setBanningUID] = useState(null); // ticket.id of the one being banned
 
     useEffect(() => {
-        const unsub = ticketsCollection.orderBy('createdAt', 'desc').limit(100).onSnapshot(snap => {
+        var unsub = ticketsCollection.orderBy('createdAt', 'desc').limit(100).onSnapshot(snap => {
             setTickets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         }, () => setLoading(false));
         return unsub;
     }, []);
 
-    const sendMessage = async (ticket) => {
+    var sendMessage = async (ticket) => {
         if (!replyText.trim()) return;
         try {
-            const msg = {
+            var msg = {
                 senderId: currentUser.uid,
                 senderName: currentUserData?.displayName || 'Support',
                 text: replyText.trim(),
@@ -38,14 +38,14 @@ var TicketsSection = ({ currentUser, currentUserData, lang, onNotification, onOp
         } catch(e) { onNotification('❌ Error'); }
     };
 
-    const closeTicket = async (id) => {
+    var closeTicket = async (id) => {
         try {
             await ticketsCollection.doc(id).update({ status: 'closed', closedAt: TS() });
             onNotification('✅ Ticket closed');
         } catch(e) { onNotification('❌ Error'); }
     };
 
-    const filtered = tickets.filter(t => {
+    var filtered = tickets.filter(t => {
         if (filter === 'open') return t.status === 'open' || t.status === 'replied';
         return t.status === 'closed';
     });

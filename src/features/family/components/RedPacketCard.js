@@ -5,10 +5,10 @@ var { redPacketsCollection } = window;
  * Used in Public Chat, Family Chat, Group Chat
  */
 var RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user, currentUser, lang, onClaim }) => {
-    const [showDetails, setShowDetails] = React.useState(false);
-    const [rpData, setRpData] = React.useState(null);
-    const [loading, setLoading] = React.useState(false);
-    const [selfClaimed, setSelfClaimed] = React.useState(false);
+    var [showDetails, setShowDetails] = React.useState(false);
+    var [rpData, setRpData] = React.useState(null);
+    var [loading, setLoading] = React.useState(false);
+    var [selfClaimed, setSelfClaimed] = React.useState(false);
 
     // Auto-load to detect claimed state without user tap
     React.useEffect(() => {

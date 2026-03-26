@@ -42,10 +42,10 @@ var isAdmin = (uid) => uid && window.ADMIN_UIDS && window.ADMIN_UIDS.includes(ui
  * @returns {boolean}
  */
 var isBannedUser = (userData) => {
-    const ban = userData?.ban;
+    var ban = userData?.ban;
     if (!ban?.isBanned) return false;
     if (!ban.expiresAt) return true; // permanent
-    const expiry = ban.expiresAt?.toDate?.() || new Date(ban.expiresAt);
+    var expiry = ban.expiresAt?.toDate?.() || new Date(ban.expiresAt);
     return new Date() < expiry;
 };
 
@@ -56,7 +56,7 @@ var isBannedUser = (userData) => {
  * @returns {boolean}
  */
 var canManageRoles = (viewerData, viewerUID) => {
-    const role = window.getUserRole ? window.getUserRole(viewerData, viewerUID) : null;
+    var role = window.getUserRole ? window.getUserRole(viewerData, viewerUID) : null;
     return role === 'owner' || role === 'admin';
 };
 
@@ -69,10 +69,10 @@ var canManageRoles = (viewerData, viewerUID) => {
  */
 var getUserRole = (userData, uid) => {
     if (!uid && !userData) return null;
-    const checkUid = uid || userData?.uid || userData?.id;
-    const ownerUid = window.OWNER_UID;
+    var checkUid = uid || userData?.uid || userData?.id;
+    var ownerUid = window.OWNER_UID;
     if (checkUid && checkUid === ownerUid) return 'owner';
-    const role = userData?.staffRole?.role;
+    var role = userData?.staffRole?.role;
     if (role === 'admin' || role === 'moderator') return role;
     return null;
 };
@@ -84,7 +84,7 @@ var getUserRole = (userData, uid) => {
  * @returns {string[]}
  */
 var getAssignableRoles = (viewerData, viewerUID) => {
-    const role = getUserRole(viewerData, viewerUID);
+    var role = getUserRole(viewerData, viewerUID);
     if (role === 'owner') return ['admin', 'moderator'];
     if (role === 'admin') return ['moderator'];
     return [];
@@ -96,7 +96,7 @@ var getAssignableRoles = (viewerData, viewerUID) => {
  * @returns {Date|null}
  */
 var getBanExpiry = (userData) => {
-    const ban = userData?.ban;
+    var ban = userData?.ban;
     if (!ban?.expiresAt) return null;
     return ban.expiresAt?.toDate?.() || new Date(ban.expiresAt);
 };
@@ -108,7 +108,7 @@ var getBanExpiry = (userData) => {
  * @returns {string}
  */
 var formatBanExpiry = (userData, lang) => {
-    const expiry = getBanExpiry(userData);
+    var expiry = getBanExpiry(userData);
     if (!expiry) return lang === 'ar' ? 'حظر دائم' : 'Permanent';
     return expiry.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
         year: 'numeric', month: 'short', day: 'numeric',

@@ -27,16 +27,16 @@ var FamilyManagement = ({
     
     // Fallback notification if not provided
     var notify = onNotification || window.showNotification || (() => {});
-    const [editName, setEditName] = React.useState(family?.name || '');
-    const [editTag, setEditTag] = React.useState(family?.tag || '');
-    const [editDesc, setEditDesc] = React.useState(family?.description || '');
-    const [editAnnouncement, setEditAnnouncement] = React.useState(family?.announcement || '');
-    const [joinMode, setJoinMode] = React.useState(family?.joinMode || 'open');
-    const [uploadingPhoto, setUploadingPhoto] = React.useState(false);
-    const [savingInfo, setSavingInfo] = React.useState(false);
-    const [savingTag, setSavingTag] = React.useState(false);
-    const [savingAnn, setSavingAnn] = React.useState(false);
-    const [showDeleteFamilyConfirm, setShowDeleteFamilyConfirm] = React.useState(false);
+    var [editName, setEditName] = React.useState(family?.name || '');
+    var [editTag, setEditTag] = React.useState(family?.tag || '');
+    var [editDesc, setEditDesc] = React.useState(family?.description || '');
+    var [editAnnouncement, setEditAnnouncement] = React.useState(family?.announcement || '');
+    var [joinMode, setJoinMode] = React.useState(family?.joinMode || 'open');
+    var [uploadingPhoto, setUploadingPhoto] = React.useState(false);
+    var [savingInfo, setSavingInfo] = React.useState(false);
+    var [savingTag, setSavingTag] = React.useState(false);
+    var [savingAnn, setSavingAnn] = React.useState(false);
+    var [showDeleteFamilyConfirm, setShowDeleteFamilyConfirm] = React.useState(false);
     var photoFileRef = React.useRef(null);
 
     React.useEffect(() => {

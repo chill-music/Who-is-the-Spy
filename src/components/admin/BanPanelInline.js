@@ -1,12 +1,12 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var BanPanelInline = ({ reportedUID, reportedName, reportId, currentUser, currentUserData, lang, onDone, onCancel }) => {
-    const [banReason, setBanReason]     = useState('');
-    const [banDuration, setBanDuration] = useState('7d');
-    const [banning, setBanning]         = useState(false);
+    var [banReason, setBanReason]     = useState('');
+    var [banDuration, setBanDuration] = useState('7d');
+    var [banning, setBanning]         = useState(false);
 
-    const durations = [
+    var durations = [
         { val:'1d',   ar:'يوم واحد',   en:'1 Day'    },
         { val:'3d',   ar:'3 أيام',     en:'3 Days'   },
         { val:'7d',   ar:'أسبوع',      en:'1 Week'   },
@@ -14,13 +14,13 @@ var BanPanelInline = ({ reportedUID, reportedName, reportId, currentUser, curren
         { val:'perm', ar:'دائم',       en:'Permanent'},
     ];
 
-    const handleBan = async () => {
+    var handleBan = async () => {
         if (!banReason.trim()) return;
         setBanning(true);
         try {
-            let expiresAt = null;
+            var expiresAt = null;
             if (banDuration !== 'perm') {
-                const days = parseInt(banDuration);
+                var days = parseInt(banDuration);
                 expiresAt = new Date(Date.now() + days * 864e5);
             }
             await usersCollection.doc(reportedUID).update({
@@ -40,13 +40,13 @@ var BanPanelInline = ({ reportedUID, reportedName, reportId, currentUser, curren
             );
             // Mark report as resolved
             if (reportId) {
-                const reportDoc = await reportsCollection.doc(reportId).get().catch(()=>null);
+                var reportDoc = await reportsCollection.doc(reportId).get().catch(()=>null);
                 if (reportDoc && reportDoc.exists) {
-                    const reporterUID = reportDoc.data()?.reporterUID;
+                    var reporterUID = reportDoc.data()?.reporterUID;
                     await reportsCollection.doc(reportId).update({ resolved: true, resolvedAt: TS() }).catch(()=>{});
                     // Send detective bot message to reporter
                     if (reporterUID && typeof botChatsCollection !== 'undefined') {
-                        const durLabel = banDuration === 'perm'
+                        var durLabel = banDuration === 'perm'
                             ? (lang==='ar'?'حظر دائم':'permanent ban')
                             : `${banDuration} ${lang==='ar'?'يوم':'day ban'}`;
                         await botChatsCollection.add({

@@ -1,52 +1,52 @@
 (function() {
-    const { useState, useEffect } = React;
+    var { useState, useEffect } = React;
 var LoginRewards = ({ show, onClose, userData, onClaim, lang, onOpenInventory }) => {
-    const t = TRANSLATIONS[lang];
-    const [claiming, setClaiming] = useState(false);
-    const [countdown, setCountdown] = useState('');
+    var t = TRANSLATIONS[lang];
+    var [claiming, setClaiming] = useState(false);
+    var [countdown, setCountdown] = useState('');
 
     // ALL computations before any hooks - Rules of Hooks compliance
-    const loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
+    var loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
 
-    const getLastClaimDate = () => {
-        const lcd = loginData.lastClaimDate;
+    var getLastClaimDate = () => {
+        var lcd = loginData.lastClaimDate;
         if (!lcd) return null;
         if (lcd?.toDate) return lcd.toDate();
         if (lcd instanceof Date) return lcd;
-        const d = new Date(lcd);
+        var d = new Date(lcd);
         return isNaN(d.getTime()) ? null : d;
     };
 
-    const lastClaimDate = getLastClaimDate();
-    const todayStr = new Date().toDateString();
-    const lastClaimStr = lastClaimDate ? lastClaimDate.toDateString() : null;
-    const canClaimToday = lastClaimStr !== todayStr;
-    const currentDay = loginData.currentDay || 0;
-    const currentReward = LOGIN_REWARDS[currentDay];
+    var lastClaimDate = getLastClaimDate();
+    var todayStr = new Date().toDateString();
+    var lastClaimStr = lastClaimDate ? lastClaimDate.toDateString() : null;
+    var canClaimToday = lastClaimStr !== todayStr;
+    var currentDay = loginData.currentDay || 0;
+    var currentReward = LOGIN_REWARDS[currentDay];
 
     // Countdown timer - MUST be before any conditional returns
     useEffect(() => {
         if (!show || canClaimToday || !lastClaimDate) { setCountdown(''); return; }
-        const calcCountdown = () => {
-            const now = new Date();
-            const nextMidnight = new Date(now);
+        var calcCountdown = () => {
+            var now = new Date();
+            var nextMidnight = new Date(now);
             nextMidnight.setHours(24, 0, 0, 0);
-            const diff = nextMidnight - now;
+            var diff = nextMidnight - now;
             if (diff <= 0) { setCountdown(''); return; }
-            const h = Math.floor(diff / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
+            var h = Math.floor(diff / 3600000);
+            var m = Math.floor((diff % 3600000) / 60000);
+            var s = Math.floor((diff % 60000) / 1000);
             setCountdown(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
         };
         calcCountdown();
-        const timer = setInterval(calcCountdown, 1000);
+        var timer = setInterval(calcCountdown, 1000);
         return () => clearInterval(timer);
     }, [show, canClaimToday, lastClaimDate]);
 
     // Early return AFTER all hooks
     if (!show) return null;
 
-    const handleClaim = async () => {
+    var handleClaim = async () => {
         if (!canClaimToday || claiming) return;
         setClaiming(true);
         if (typeof playRewardSound === 'function') playRewardSound();
@@ -58,12 +58,12 @@ var LoginRewards = ({ show, onClose, userData, onClaim, lang, onOpenInventory })
         setClaiming(false);
     };
 
-    const renderRewardIcon = (reward, size = 16) => {
+    var renderRewardIcon = (reward, size = 16) => {
         if (!reward) return <span style={{ fontSize: size + 'px' }}>❓</span>;
         return <span style={{ fontSize: size + 'px' }}>{reward.icon || '🎁'}</span>;
     };
 
-    const getRewardName = (reward) => {
+    var getRewardName = (reward) => {
         if (!reward) return '';
         return lang === 'ar' ? reward.name_ar : reward.name_en;
     };
@@ -83,16 +83,16 @@ var LoginRewards = ({ show, onClose, userData, onClaim, lang, onOpenInventory })
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', width: '100%', padding: '8px 0' }}>
                             {LOGIN_REWARDS.map((reward, index) => {
-                                const dayNum = index + 1;
-                                const isClaimed = dayNum <= currentDay;
-                                const isCurrent = dayNum === currentDay + 1 && canClaimToday;
-                                const isSpecial = reward.special === true;
-                                const isFinal = reward.final === true;
+                                var dayNum = index + 1;
+                                var isClaimed = dayNum <= currentDay;
+                                var isCurrent = dayNum === currentDay + 1 && canClaimToday;
+                                var isSpecial = reward.special === true;
+                                var isFinal = reward.final === true;
 
-                                let bgColor = 'rgba(255, 255, 255, 0.03)';
-                                let borderColor = 'rgba(255, 255, 255, 0.1)';
-                                let textColor = 'rgba(255, 255, 255, 0.5)';
-                                let extraStyles = {};
+                                var bgColor = 'rgba(255, 255, 255, 0.03)';
+                                var borderColor = 'rgba(255, 255, 255, 0.1)';
+                                var textColor = 'rgba(255, 255, 255, 0.5)';
+                                var extraStyles = {};
 
                                 if (isClaimed) {
                                     bgColor = 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1))';

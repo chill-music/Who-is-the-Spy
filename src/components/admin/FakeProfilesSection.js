@@ -1,5 +1,5 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var FAKE_PROFILE_PHOTOS = [
     'https://i.pravatar.cc/150?img=1','https://i.pravatar.cc/150?img=2','https://i.pravatar.cc/150?img=3',
@@ -10,18 +10,18 @@ var FAKE_PROFILE_PHOTOS = [
 var FAKE_NAMES = ['Alex Shadow','Nova Cipher','Rex Viper','Luna Storm','Kai Echo','Zara Blaze','Max Frost','Nora Specter','Finn Raven','Iris Ghost','Cole Hex','Dara Nova','Jax Titan','Mia Ghost','Leo Strike'];
 
 var FakeProfilesSection = ({ lang, onNotification }) => {
-    const [profiles, setProfiles] = useState([]);
-    const [loading, setLoading] = useState(true);
+    var [profiles, setProfiles] = useState([]);
+    var [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsub = usersCollection.where('isFake', '==', true).onSnapshot(snap => {
+        var unsub = usersCollection.where('isFake', '==', true).onSnapshot(snap => {
             setProfiles(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         });
         return unsub;
     }, []);
 
-    const deleteProfile = async (id) => {
+    var deleteProfile = async (id) => {
         if(!confirm(lang==='ar'?'حذف هذا الحساب الوهمي؟':'Delete this fake profile?')) return;
         try {
             await usersCollection.doc(id).delete();

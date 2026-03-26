@@ -1,11 +1,11 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var ActivityLogSection = ({ lang }) => {
-    const [logs, setLogs] = useState([]);
-    const [loading, setLoading] = useState(true);
+    var [logs, setLogs] = useState([]);
+    var [loading, setLoading] = useState(true);
 
-    const actionColors = {
+    var actionColors = {
         'BAN_USER': '#ef4444',
         'UNBAN_USER': '#10b981',
         'RESOLVE_REPORT': '#3b82f6',
@@ -17,7 +17,7 @@ var ActivityLogSection = ({ lang }) => {
 
     useEffect(() => {
         // Fetch last 50 staff logs
-        const unsub = db.collection('staff_logs').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
+        var unsub = db.collection('staff_logs').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
             setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         }, () => setLoading(false));
@@ -33,8 +33,8 @@ var ActivityLogSection = ({ lang }) => {
                 <div style={{ display:'flex', flexDirection:'column', gap:'6px', maxHeight:'50vh', overflowY:'auto' }}>
                     {logs.length === 0 && <div style={{color:'#6b7280',fontSize:'12px',textAlign:'center',padding:'20px'}}>{lang==='ar'?'لا توجد سجلات':'No logs yet'}</div>}
                     {logs.map(log => {
-                        const ts = log.timestamp?.toDate?.();
-                        const color = actionColors[log.action] || '#9ca3af';
+                        var ts = log.timestamp?.toDate?.();
+                        var color = actionColors[log.action] || '#9ca3af';
                         return (
                             <div key={log.id} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${color}20`, borderRadius:'8px', padding:'10px', borderLeft:`3px solid ${color}` }}>
                                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'4px' }}>

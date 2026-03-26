@@ -41,24 +41,24 @@ var FamilyChatModal = (props) => {
     var familyData = props.familyData || family;
     var familyId = props.familyId || familyData?.id || userData?.familyId || currentUserData?.familyId;
 
-    const [messages, setMessages] = React.useState([]);
-    const [chatInput, setChatInput] = React.useState('');
-    const [sendingMsg, setSendingMsg] = React.useState(false);
-    const [prevMsgCount, setPrevMsgCount] = React.useState(0);
+    var [messages, setMessages] = React.useState([]);
+    var [chatInput, setChatInput] = React.useState('');
+    var [sendingMsg, setSendingMsg] = React.useState(false);
+    var [prevMsgCount, setPrevMsgCount] = React.useState(0);
     var chatEndRef = React.useRef(null);
     var imgInputRef = React.useRef(null);
     var chatInputRef = React.useRef(null);
-    const [openingChest, setOpeningChest] = React.useState(false);
-    const [chestDetailMsg, setChestDetailMsg] = React.useState(null);
+    var [openingChest, setOpeningChest] = React.useState(false);
+    var [chestDetailMsg, setChestDetailMsg] = React.useState(null);
     // ── Gift modal ──
-    const [giftTarget, setGiftTarget] = React.useState(null); // null = self, { uid, displayName, photoURL }
-    const [showChatGiftModal, setShowChatGiftModal] = React.useState(false);
-    const [showFamRPModal, setShowFamRPModal] = React.useState(false);
-    const [sendingFamRP, setSendingFamRP] = React.useState(false);
+    var [giftTarget, setGiftTarget] = React.useState(null); // null = self, { uid, displayName, photoURL }
+    var [showChatGiftModal, setShowChatGiftModal] = React.useState(false);
+    var [showFamRPModal, setShowFamRPModal] = React.useState(false);
+    var [sendingFamRP, setSendingFamRP] = React.useState(false);
     // ── Mini profile popup ──
-    const [miniProfile, setMiniProfile] = React.useState(null);
+    var [miniProfile, setMiniProfile] = React.useState(null);
 
-    const handleBlock = async (uid) => {
+    var handleBlock = async (uid) => {
         if (!currentUID || !uid) return;
         try {
             await usersCollection.doc(currentUID).update({
@@ -68,7 +68,7 @@ var FamilyChatModal = (props) => {
         } catch (e) { console.error('Block error:', e); }
     };
 
-    const handleUnblock = async (uid) => {
+    var handleUnblock = async (uid) => {
         if (!currentUID || !uid) return;
         try {
             await usersCollection.doc(currentUID).update({
@@ -79,9 +79,9 @@ var FamilyChatModal = (props) => {
     };
 
     // ── @ Mention ──
-    const [mentionSearch, setMentionSearch] = React.useState('');
-    const [showMentionList, setShowMentionList] = React.useState(false);
-    const [familyMembers, setFamilyMembers] = React.useState([]);
+    var [mentionSearch, setMentionSearch] = React.useState('');
+    var [showMentionList, setShowMentionList] = React.useState(false);
+    var [familyMembers, setFamilyMembers] = React.useState([]);
 
     // ── فتح ميني بروفايل في شات القبيلة ──
     var openFamilyChatMiniProfile = async function(uid, basicData) {

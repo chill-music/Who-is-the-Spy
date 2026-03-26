@@ -85,26 +85,26 @@ var VIP_MOMENT_BG_URLS = [
 ];
 
 var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfile, lang, onOpenProfile }) => {
-    const [moments, setMoments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showCreate, setShowCreate] = useState(false);
-    const [showAll, setShowAll] = useState(false);
-    const [selectedMoment, setSelectedMoment] = useState(null);
+    var [moments, setMoments] = useState([]);
+    var [loading, setLoading] = useState(true);
+    var [showCreate, setShowCreate] = useState(false);
+    var [showAll, setShowAll] = useState(false);
+    var [selectedMoment, setSelectedMoment] = useState(null);
 
     useEffect(() => {
         if (!ownerUID) return;
         setLoading(true);
-        const q = momentsCollection
+        var q = momentsCollection
             .where('authorUID', '==', ownerUID)
             .limit(50);
 
-        const unsub = q.onSnapshot(snap => {
-            const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        var unsub = q.onSnapshot(snap => {
+            var list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
             // Replicate original JS sort logic (Descending by createdAt)
             list.sort((a, b) => {
-                const ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
-                const tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+                var ta = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
+                var tb = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
                 return tb - ta;
             });
 
@@ -117,7 +117,7 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
         return () => unsub();
     }, [ownerUID]);
 
-    const previewMoments = moments.slice(0, 3);
+    var previewMoments = moments.slice(0, 3);
 
     return (
         <div style={{padding:'4px 2px'}}>
@@ -191,15 +191,15 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
  * Displays full moment content, comments, and media.
  */
 var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfile }) => {
-    const [commentText, setCommentText] = useState('');
-    const [comments, setComments] = useState([]);
-    const [sending, setSending] = useState(false);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    var [commentText, setCommentText] = useState('');
+    var [comments, setComments] = useState([]);
+    var [sending, setSending] = useState(false);
+    var [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
         if (!show || !moment?.id) return;
-        const q = momentsCollection.doc(moment.id).collection('comments').orderBy('createdAt', 'desc');
-        const unsub = q.onSnapshot(snap => {
+        var q = momentsCollection.doc(moment.id).collection('comments').orderBy('createdAt', 'desc');
+        var unsub = q.onSnapshot(snap => {
             setComments(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         }, err => console.error('Comments error:', err));
         return () => unsub();
@@ -207,13 +207,13 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
 
     if (!show || !moment) return null;
 
-    const isLiked = moment.likedBy?.includes(currentUser?.uid);
-    const isOwner = moment.authorUID === currentUser?.uid;
-    const isVIP = moment.authorVipLevel > 0;
+    var isLiked = moment.likedBy?.includes(currentUser?.uid);
+    var isOwner = moment.authorUID === currentUser?.uid;
+    var isVIP = moment.authorVipLevel > 0;
 
-    const onLike = async () => {
+    var onLike = async () => {
         if (!currentUser) return;
-        const ref = momentsCollection.doc(moment.id);
+        var ref = momentsCollection.doc(moment.id);
         if (isLiked) {
             await ref.update({
                 likesCount: firebase.firestore.FieldValue.increment(-1),
@@ -227,7 +227,7 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
         }
     };
 
-    const onDelete = async (id) => {
+    var onDelete = async (id) => {
         try {
             await momentsCollection.doc(id).delete();
             onClose();
@@ -236,7 +236,7 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
         }
     };
 
-    const onComment = async () => {
+    var onComment = async () => {
         if (!commentText.trim() || !currentUser || sending) return;
         setSending(true);
         try {
@@ -379,16 +379,16 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
  * Interactive modal for users to create and post new moments (Text, Image, or Video).
  */
 var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
-    const [momentType, setMomentType] = useState('text');
-    const [textContent, setTextContent] = useState('');
-    const [mediaFile, setMediaFile] = useState(null);
-    const [mediaPreview, setMediaPreview] = useState(null);
-    const [error, setError] = useState('');
-    const [uploading, setUploading] = useState(false);
-    const fileRef = useRef(null);
+    var [momentType, setMomentType] = useState('text');
+    var [textContent, setTextContent] = useState('');
+    var [mediaFile, setMediaFile] = useState(null);
+    var [mediaPreview, setMediaPreview] = useState(null);
+    var [error, setError] = useState('');
+    var [uploading, setUploading] = useState(false);
+    var fileRef = useRef(null);
 
-    const handleFileChange = (e) => {
-        const file = e.target.files?.[0];
+    var handleFileChange = (e) => {
+        var file = e.target.files?.[0];
         if (!file) return;
         setError('');
 
@@ -397,21 +397,21 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
                 setError(lang === 'ar' ? 'حجم الصورة كبير جداً (الحد 2MB)' : 'Image too large (max 2MB)');
                 return;
             }
-            const reader = new FileReader();
+            var reader = new FileReader();
             reader.onload = ev => {
-                const img = new Image();
+                var img = new Image();
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_W = 800, MAX_H = 800;
-                    let w = img.width, h = img.height;
+                    var canvas = document.createElement('canvas');
+                    var MAX_W = 800, MAX_H = 800;
+                    var w = img.width, h = img.height;
                     if (w > MAX_W || h > MAX_H) {
-                        const ratio = Math.min(MAX_W / w, MAX_H / h);
+                        var ratio = Math.min(MAX_W / w, MAX_H / h);
                         w = Math.round(w * ratio);
                         h = Math.round(h * ratio);
                     }
                     canvas.width = w; canvas.height = h;
                     canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const compressed = canvas.toDataURL('image/jpeg', 0.6);
+                    var compressed = canvas.toDataURL('image/jpeg', 0.6);
                     setMediaPreview(compressed);
                     setMediaFile(file);
                 };
@@ -423,8 +423,8 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
                 setError(lang === 'ar' ? 'حجم الفيديو كبير جداً (الحد 5MB)' : 'Video too large (max 5MB)');
                 return;
             }
-            const url = URL.createObjectURL(file);
-            const video = document.createElement('video');
+            var url = URL.createObjectURL(file);
+            var video = document.createElement('video');
             video.src = url;
             video.onloadedmetadata = () => {
                 URL.revokeObjectURL(url);
@@ -432,7 +432,7 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
                     setError(lang === 'ar' ? `الفيديو يجب أن يكون ${MAX_VIDEO_DURATION} ثواني فقط` : `Video must be max ${MAX_VIDEO_DURATION} seconds`);
                     return;
                 }
-                const reader = new FileReader();
+                var reader = new FileReader();
                 reader.onload = ev => setMediaPreview(ev.target.result);
                 reader.readAsDataURL(file);
                 setMediaFile(file);
@@ -440,7 +440,7 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
         }
     };
 
-    const handleSubmit = async () => {
+    var handleSubmit = async () => {
         if (!currentUser) return;
         if (momentType === 'text' && !textContent.trim()) return;
         if ((momentType === 'image' || momentType === 'video') && !mediaFile) return;
@@ -448,18 +448,18 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
         setError('');
 
         try {
-            let finalMediaUrl = null;
+            var finalMediaUrl = null;
             
             // Upload to Storage if not text
             if (momentType === 'image' || momentType === 'video') {
-                const fileExt = mediaFile.name.split('.').pop();
-                const fileName = `${currentUser.uid}_${Date.now()}.${fileExt}`;
-                const storageRef = storage.ref(`moments/${fileName}`);
-                const snapshot = await storageRef.put(mediaFile);
+                var fileExt = mediaFile.name.split('.').pop();
+                var fileName = `${currentUser.uid}_${Date.now()}.${fileExt}`;
+                var storageRef = storage.ref(`moments/${fileName}`);
+                var snapshot = await storageRef.put(mediaFile);
                 finalMediaUrl = await snapshot.ref.getDownloadURL();
             }
 
-            const momentData = {
+            var momentData = {
                 authorUID: currentUser.uid,
                 authorName: currentUser.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
                 authorPhoto: currentUser.photoURL || null,
@@ -475,13 +475,13 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
             await momentsCollection.add(momentData);
             // Track mission progress
             try {
-                const today = new Date().toDateString();
-                const dp = currentUser?.missionProgress?.daily || {};
-                const now2 = new Date(); const soy = new Date(now2.getFullYear(),0,1);
-                const wNum = Math.ceil(((now2-soy)/86400000+soy.getDay()+1)/7);
-                const wStr = `${now2.getFullYear()}-W${wNum}`;
-                const wp = currentUser?.missionProgress?.weekly || {};
-                const mUpdates = {};
+                var today = new Date().toDateString();
+                var dp = currentUser?.missionProgress?.daily || {};
+                var now2 = new Date(); var soy = new Date(now2.getFullYear(),0,1);
+                var wNum = Math.ceil(((now2-soy)/86400000+soy.getDay()+1)/7);
+                var wStr = `${now2.getFullYear()}-W${wNum}`;
+                var wp = currentUser?.missionProgress?.weekly || {};
+                var mUpdates = {};
                 if (dp.resetDate !== today) {
                     mUpdates['missionProgress.daily.resetDate'] = today;
                     mUpdates['missionProgress.daily.momentsPosted'] = 1;
@@ -606,13 +606,13 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
  * A compact reusable card representing a single moment, used in feeds and sections.
  */
 var MomentCard = ({ moment, currentUser, lang, onOpenProfile }) => {
-    const [showDetail, setShowDetail] = useState(false);
-    const isLiked = moment.likedBy?.includes(currentUser?.uid);
+    var [showDetail, setShowDetail] = useState(false);
+    var isLiked = moment.likedBy?.includes(currentUser?.uid);
 
-    const onLike = async (e) => {
+    var onLike = async (e) => {
         e.stopPropagation();
         if (!currentUser) return;
-        const ref = momentsCollection.doc(moment.id);
+        var ref = momentsCollection.doc(moment.id);
         if (isLiked) {
             await ref.update({
                 likesCount: firebase.firestore.FieldValue.increment(-1),

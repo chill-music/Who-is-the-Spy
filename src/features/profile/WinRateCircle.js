@@ -3,17 +3,17 @@
  * Renders a circular win rate indicator.
  */
 var WinRateCircleV11 = ({ wins, losses, lang }) => {
-    const total = wins + losses;
-    const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
+    var total = wins + losses;
+    var rate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
-    const getColor = (percentage) => {
+    var getColor = (percentage) => {
         if (percentage >= 70) return '#10b981';
         if (percentage >= 50) return '#facc15';
         if (percentage >= 30) return '#f97316';
         return '#ef4444';
     };
 
-    const gradient = `conic-gradient(${getColor(rate)} ${rate}%, #1f2937 ${rate}%)`;
+    var gradient = `conic-gradient(${getColor(rate)} ${rate}%, #1f2937 ${rate}%)`;
 
     return (
         <div className="profile-winrate-circle" style={{ background: gradient, width:'64px', height:'64px', flexShrink:0 }}>

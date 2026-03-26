@@ -1,21 +1,21 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var UserManagementSection = ({ currentUser, currentUserData, lang, onNotification }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [searchResult, setSearchResult] = useState(null);
-    const [searching, setSearching] = useState(false);
-    const [processing, setProcessing] = useState(false);
+    var [searchTerm, setSearchTerm] = useState('');
+    var [searchResult, setSearchResult] = useState(null);
+    var [searching, setSearching] = useState(false);
+    var [processing, setProcessing] = useState(false);
 
-    const handleSearch = async (e) => {
+    var handleSearch = async (e) => {
         e.preventDefault();
-        const tid = searchTerm.trim();
+        var tid = searchTerm.trim();
         if (!tid) return;
         setSearching(true); setSearchResult(null);
         try {
-            const snap = await usersCollection.where('uid', '==', tid).limit(1).get();
+            var snap = await usersCollection.where('uid', '==', tid).limit(1).get();
             if (snap.empty) {
-                const snap2 = await usersCollection.where('displayName', '==', tid).limit(1).get();
+                var snap2 = await usersCollection.where('displayName', '==', tid).limit(1).get();
                 if (!snap2.empty) setSearchResult({ id: snap2.docs[0].id, ...snap2.docs[0].data() });
             } else {
                 setSearchResult({ id: snap.docs[0].id, ...snap.docs[0].data() });
@@ -24,7 +24,7 @@ var UserManagementSection = ({ currentUser, currentUserData, lang, onNotificatio
         setSearching(false);
     };
 
-    const handleUnban = async () => {
+    var handleUnban = async () => {
         if (!searchResult || processing) return;
         setProcessing(true);
         try {

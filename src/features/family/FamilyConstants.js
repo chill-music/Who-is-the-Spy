@@ -25,7 +25,7 @@ var FAMILY_SIGN_LEVELS = [
     { level: 5, threshold: 300000, name_ar: 'ساين المستوى 5', name_en: 'Sign Level 5', color: '#ef4444', glow: 'rgba(239,68,68,0.65)',  defaultIcon: '🌟', bg: 'rgba(239,68,68,0.15)',  imageURL: 'icos/Family Sign5.png', hasGlow: true },
 ];
 
-const SIGN_FALLBACK = { level: 0, color: '#4b5563', name_ar: 'بدون شارة', name_en: 'No Sign', threshold: 0 };
+var SIGN_FALLBACK = { level: 0, color: '#4b5563', name_ar: 'بدون شارة', name_en: 'No Sign', threshold: 0 };
 
 var FAMILY_ROLE_CONFIG = {
     owner: { label_en: 'Owner', label_ar: 'المالك', color: '#ffd700', bg: 'rgba(255,215,0,0.18)', border: 'rgba(255,215,0,0.45)', icon: '👑' },

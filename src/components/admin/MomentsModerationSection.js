@@ -1,27 +1,27 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var MomentsModerationSection = ({ currentUser, currentUserData, lang, onNotification, onOpenProfile }) => {
-    const [moments, setMoments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [banningUID, setBanningUID] = useState(null); // moment.id of the one being banned
+    var [moments, setMoments] = useState([]);
+    var [loading, setLoading] = useState(true);
+    var [banningUID, setBanningUID] = useState(null); // moment.id of the one being banned
 
     useEffect(() => {
-        const unsub = momentsCollection.orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
+        var unsub = momentsCollection.orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
             setMoments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         }, () => setLoading(false));
         return unsub;
     }, []);
 
-    const toggleHideMoment = async (id, currentHidden) => {
+    var toggleHideMoment = async (id, currentHidden) => {
         try {
             await momentsCollection.doc(id).update({ hidden: !currentHidden });
             onNotification(`✅ ${!currentHidden ? 'Moment Hidden' : 'Moment Restored'}`);
         } catch(e) { onNotification('❌ Error'); }
     };
 
-    const deleteMoment = async (id) => {
+    var deleteMoment = async (id) => {
         if(!confirm(lang==='ar'?'حذف هذا المنشور نهائياً؟':'Delete this moment permanently?')) return;
         try {
             await momentsCollection.doc(id).delete();

@@ -1,7 +1,7 @@
 (function() {
-    const { useState, useEffect, useRef, useMemo, useCallback } = React;
+    var { useState, useEffect, useRef, useMemo, useCallback } = React;
 
-    const ProfileV11 = ({
+    var ProfileV11 = ({
     show,
     onClose,
     targetUID,
@@ -32,48 +32,48 @@
     onOpenBFFModal,     // opens BFF modal for own profile
     onNotification = () => {},  // optional notification callback
 }) => {
-    const t = TRANSLATIONS[lang] || {};
+    var t = TRANSLATIONS[lang] || {};
 
-    const [targetData, setTargetData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [showGiftModal, setShowGiftModal] = useState(false);
-    const [requestSent, setRequestSent] = useState(false);
-    const [showOptionsMenu, setShowOptionsMenu] = useState(false);
-    const [isBlocked, setIsBlocked] = useState(false);
-    const [blockedByTarget, setBlockedByTarget] = useState(false);
-    const [showBlockConfirm, setShowBlockConfirm] = useState(false);
-    const [gifts, setGifts] = useState([]);
-    const [charismaRank, setCharismaRank] = useState(null);
-    const [copiedId, setCopiedId] = useState(false);
-    const [bannerURL, setBannerURL] = useState(null);
-    const [bannerUploading, setBannerUploading] = useState(false);
-    const bannerFileRef = useRef(null);
-    const [showReportModal, setShowReportModal] = useState(false);
-    const [reportReason, setReportReason] = useState('');
-    const [reportDescription, setReportDescription] = useState('');
-    const [reportImagePreview, setReportImagePreview] = useState(null); // base64
-    const [reportSending, setReportSending] = useState(false);
-    const [selfGift, setSelfGift] = useState(null);
-    const [showSelfGiftModal, setShowSelfGiftModal] = useState(false);
+    var [targetData, setTargetData] = useState(null);
+    var [loading, setLoading] = useState(true);
+    var [showGiftModal, setShowGiftModal] = useState(false);
+    var [requestSent, setRequestSent] = useState(false);
+    var [showOptionsMenu, setShowOptionsMenu] = useState(false);
+    var [isBlocked, setIsBlocked] = useState(false);
+    var [blockedByTarget, setBlockedByTarget] = useState(false);
+    var [showBlockConfirm, setShowBlockConfirm] = useState(false);
+    var [gifts, setGifts] = useState([]);
+    var [charismaRank, setCharismaRank] = useState(null);
+    var [copiedId, setCopiedId] = useState(false);
+    var [bannerURL, setBannerURL] = useState(null);
+    var [bannerUploading, setBannerUploading] = useState(false);
+    var bannerFileRef = useRef(null);
+    var [showReportModal, setShowReportModal] = useState(false);
+    var [reportReason, setReportReason] = useState('');
+    var [reportDescription, setReportDescription] = useState('');
+    var [reportImagePreview, setReportImagePreview] = useState(null); // base64
+    var [reportSending, setReportSending] = useState(false);
+    var [selfGift, setSelfGift] = useState(null);
+    var [showSelfGiftModal, setShowSelfGiftModal] = useState(false);
 
-    const [showBanModal, setShowBanModal] = useState(false);
-    const [showRoleModal, setShowRoleModal] = useState(false);
-    const [showRoleInfoPopup, setShowRoleInfoPopup] = useState(false);
+    var [showBanModal, setShowBanModal] = useState(false);
+    var [showRoleModal, setShowRoleModal] = useState(false);
+    var [showRoleInfoPopup, setShowRoleInfoPopup] = useState(false);
 
     // 💍 Couple badge state
-    const [profileCoupleDoc, setProfileCoupleDoc]         = useState(null);
-    const [profilePartnerData, setProfilePartnerData]     = useState(null);
-    const [showProfileCoupleCard, setShowProfileCoupleCard] = useState(false);
+    var [profileCoupleDoc, setProfileCoupleDoc]         = useState(null);
+    var [profilePartnerData, setProfilePartnerData]     = useState(null);
+    var [showProfileCoupleCard, setShowProfileCoupleCard] = useState(false);
 
     // 🛡️ GUARD SYSTEM STATE
-    const [guardData, setGuardData]               = useState([]);   // top guardians [{uid,name,photo,total}]
-    const [showGuardModal, setShowGuardModal]     = useState(false);
-    const [guardGiven, setGuardGiven]             = useState(false); // did viewer already give guard today?
-    const [guardLockedUntil, setGuardLockedUntil] = useState(null); // timestamp of next unlock
-    const guardCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guard_log');
+    var [guardData, setGuardData]               = useState([]);   // top guardians [{uid,name,photo,total}]
+    var [showGuardModal, setShowGuardModal]     = useState(false);
+    var [guardGiven, setGuardGiven]             = useState(false); // did viewer already give guard today?
+    var [guardLockedUntil, setGuardLockedUntil] = useState(null); // timestamp of next unlock
+    var guardCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guard_log');
 
-    const [activeTab, setActiveTab] = useState('about');
-    const optionsRef = useRef(null);
+    var [activeTab, setActiveTab] = useState('about');
+    var optionsRef = useRef(null);
 
     useEffect(() => {
         if (!show || !targetUID) {
@@ -81,13 +81,13 @@
             return;
         }
 
-        let isMounted = true;
+        var isMounted = true;
         setLoading(true);
         setRequestSent(false);
         setShowOptionsMenu(false);
 
         // Safety timeout: never stay loading > 10 seconds
-        const safetyTimer = setTimeout(() => {
+        var safetyTimer = setTimeout(() => {
             if (isMounted) { setLoading(false); }
         }, 10000);
 
@@ -95,10 +95,10 @@
             if (!isMounted) return;
             clearTimeout(safetyTimer);
             if (doc.exists) {
-                const data = doc.data();
+                var data = doc.data();
                 setTargetData({ id: doc.id, ...data, isGuest: false });
                 setBannerURL(data.bannerURL || null);
-                const theirBlockedUsers = data.blockedUsers || [];
+                var theirBlockedUsers = data.blockedUsers || [];
                 setBlockedByTarget(theirBlockedUsers.includes(currentUserUID));
                 setLoading(false);
             } else {
@@ -124,7 +124,7 @@
 
     useEffect(() => {
         if (userData && targetUID) {
-            const blocked = userData.blockedUsers || [];
+            var blocked = userData.blockedUsers || [];
             setIsBlocked(blocked.includes(targetUID));
         }
     }, [userData, targetUID]);
@@ -136,10 +136,10 @@
             setProfilePartnerData(null);
             return;
         }
-        let unsubPartner;
-        let foundDoc = false; // track if we found a match from either query
+        var unsubPartner;
+        var foundDoc = false; // track if we found a match from either query
 
-        const attachPartnerListener = (partnerUID) => {
+        var attachPartnerListener = (partnerUID) => {
             if (unsubPartner) unsubPartner();
             unsubPartner = usersCollection.doc(partnerUID)
                 .onSnapshot(doc => {
@@ -148,26 +148,26 @@
         };
 
         // Query both directions simultaneously — first match wins
-        const p1 = couplesCollection
+        var p1 = couplesCollection
             .where('uid1', '==', targetUID).where('status', '==', 'accepted').limit(1)
             .get().catch(() => null);
 
-        const p2 = couplesCollection
+        var p2 = couplesCollection
             .where('uid2', '==', targetUID).where('status', '==', 'accepted').limit(1)
             .get().catch(() => null);
 
         Promise.all([p1, p2]).then(([snap1, snap2]) => {
-            const snap = (snap1 && !snap1.empty) ? snap1 : (snap2 && !snap2.empty) ? snap2 : null;
+            var snap = (snap1 && !snap1.empty) ? snap1 : (snap2 && !snap2.empty) ? snap2 : null;
             if (!snap || snap.empty) {
                 setProfileCoupleDoc(null);
                 setProfilePartnerData(null);
                 return;
             }
-            const d = { id: snap.docs[0].id, ...snap.docs[0].data() };
+            var d = { id: snap.docs[0].id, ...snap.docs[0].data() };
             setProfileCoupleDoc(d);
             foundDoc = true;
             // Partner is whichever uid is NOT the target
-            const partnerUID = d.uid1 === targetUID ? d.uid2 : d.uid1;
+            var partnerUID = d.uid1 === targetUID ? d.uid2 : d.uid1;
             attachPartnerListener(partnerUID);
         });
 
@@ -180,15 +180,15 @@
     useEffect(() => {
         if (!show || !targetUID) return;
 
-        const unsub = giftsLogCollection
+        var unsub = giftsLogCollection
             .where('receiverId', '==', targetUID)
             .limit(50)
             .onSnapshot(snap => {
-                const giftData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                var giftData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 // Sort in memory instead of query
                 giftData.sort((a, b) => {
-                    const timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
-                    const timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
+                    var timeA = a.timestamp?.toMillis?.() || a.timestamp?.seconds || 0;
+                    var timeB = b.timestamp?.toMillis?.() || b.timestamp?.seconds || 0;
                     return timeB - timeA;
                 });
                 setGifts(giftData);
@@ -200,7 +200,7 @@
     }, [show, targetUID]);
 
     useEffect(() => {
-        const handleClickOutside = (e) => {
+        var handleClickOutside = (e) => {
             if (optionsRef.current && !optionsRef.current.contains(e.target)) {
                 setShowOptionsMenu(false);
             }
@@ -215,8 +215,8 @@
         if (!show || !targetUID || !targetData) return;
         // Optimized: limit to top 100 only, show rank only if user is in top 100
         usersCollection.orderBy('charisma', 'desc').limit(100).get().then(snap => {
-            const users = snap.docs.map((doc, idx) => ({ id: doc.id, rank: idx + 1 }));
-            const userRank = users.find(u => u.id === targetUID);
+            var users = snap.docs.map((doc, idx) => ({ id: doc.id, rank: idx + 1 }));
+            var userRank = users.find(u => u.id === targetUID);
             setCharismaRank(userRank ? userRank.rank : '--');
         }).catch(() => {
             setCharismaRank('--');
@@ -226,14 +226,14 @@
     // 🛡️ Guard system — load top 100 guardians (ranked by charisma gifted to this user)
     useEffect(() => {
         if (!show || !targetUID) return;
-        const unsub = guardCollection
+        var unsub = guardCollection
             .where('receiverId', '==', targetUID)
             .onSnapshot(snap => {
-                const logs = snap.docs.map(d => d.data());
+                var logs = snap.docs.map(d => d.data());
                 // Aggregate charisma by senderId
-                const map = {};
+                var map = {};
                 logs.forEach(l => {
-                    const sid = l.senderId;
+                    var sid = l.senderId;
                     if (!sid) return;
                     if (!map[sid]) map[sid] = { uid: sid, name: l.senderName || 'User', photo: l.senderPhoto || null, total: 0 };
                     map[sid].total += l.amount || l.charisma || 0;
@@ -241,7 +241,7 @@
                     if (l.senderPhoto) map[sid].photo = l.senderPhoto;
                 });
                 // Sort descending, cap at 100
-                const sorted = Object.values(map).sort((a, b) => b.total - a.total).slice(0, 100);
+                var sorted = Object.values(map).sort((a, b) => b.total - a.total).slice(0, 100);
                 setGuardData(sorted);
             }, () => {});
         return () => unsub();
@@ -250,16 +250,16 @@
     // 🛡️ Check daily guard status from localStorage
     useEffect(() => {
         if (!show || !currentUserUID || !targetUID) return;
-        const key = `guard_${currentUserUID}_${targetUID}`;
-        const stored = localStorage.getItem(key);
+        var key = `guard_${currentUserUID}_${targetUID}`;
+        var stored = localStorage.getItem(key);
         if (stored) {
-            const { date } = JSON.parse(stored);
-            const today = new Date().toDateString();
+            var { date } = JSON.parse(stored);
+            var today = new Date().toDateString();
             if (date === today) {
                 setGuardGiven(true);
                 // Calculate unlock time (midnight)
-                const now = new Date();
-                const midnight = new Date(now);
+                var now = new Date();
+                var midnight = new Date(now);
                 midnight.setDate(midnight.getDate() + 1);
                 midnight.setHours(0, 0, 0, 0);
                 setGuardLockedUntil(midnight);
@@ -274,18 +274,18 @@
     }, [show, currentUserUID, targetUID]);
 
     // 🛡️ Give Guard handler — friends only, once per day
-    const handleGiveGuard = useCallback(async () => {
+    var handleGiveGuard = useCallback(async () => {
         if (!currentUserUID || !targetUID || guardGiven || !isLoggedInProp) return;
         // Only friends can give guard
-        const isFriend = currentUserFriends?.includes(targetUID);
+        var isFriend = currentUserFriends?.includes(targetUID);
         if (!isFriend) return;
-        let amount = 1;
+        var amount = 1;
         try {
-            const viewerDoc = await usersCollection.doc(currentUserUID).get();
+            var viewerDoc = await usersCollection.doc(currentUserUID).get();
             if (viewerDoc.exists) {
-                const vd = viewerDoc.data();
-                const friends = vd.friends || [];
-                const max = Math.min(friends.length, 70);
+                var vd = viewerDoc.data();
+                var friends = vd.friends || [];
+                var max = Math.min(friends.length, 70);
                 amount = max > 0 ? Math.floor(Math.random() * max) + 1 : 1;
             }
         } catch (e) {}
@@ -299,10 +299,10 @@
                 timestamp:    TS(),
             });
             // Save daily lock to localStorage
-            const key = `guard_${currentUserUID}_${targetUID}`;
+            var key = `guard_${currentUserUID}_${targetUID}`;
             localStorage.setItem(key, JSON.stringify({ date: new Date().toDateString() }));
             setGuardGiven(true);
-            const midnight = new Date();
+            var midnight = new Date();
             midnight.setDate(midnight.getDate() + 1);
             midnight.setHours(0, 0, 0, 0);
             setGuardLockedUntil(midnight);
@@ -311,19 +311,19 @@
 
     if (!show) return null;
 
-    const isOwnProfile = isOwnProfileOverride || targetUID === currentUserUID;
-    const isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
-    const isGuestViewer = isGuestProp === true; // current user viewing is a guest
-    const isAlreadyFriend = currentUserFriends?.includes(targetUID);
-    const hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
+    var isOwnProfile = isOwnProfileOverride || targetUID === currentUserUID;
+    var isTargetGuest = targetData?.isGuest || targetData?.isAnonymous;
+    var isGuestViewer = isGuestProp === true; // current user viewing is a guest
+    var isAlreadyFriend = currentUserFriends?.includes(targetUID);
+    var hasPendingRequest = currentUserFriendRequests?.includes(targetUID) || requestSent;
 
-    const handleAddFriend = async () => {
+    var handleAddFriend = async () => {
         if (isAlreadyFriend || hasPendingRequest) return;
         await onSendFriendRequest(targetUID);
         setRequestSent(true);
     };
 
-    const handleBlockUser = async () => {
+    var handleBlockUser = async () => {
         if (!userData || !targetUID) return;
         try {
             await usersCollection.doc(currentUserUID).update({
@@ -337,7 +337,7 @@
         }
     };
 
-    const handleUnblockUser = async () => {
+    var handleUnblockUser = async () => {
         if (!userData || !targetUID) return;
         try {
             await usersCollection.doc(currentUserUID).update({
@@ -350,13 +350,13 @@
         }
     };
 
-    const handleSendReport = async () => {
+    var handleSendReport = async () => {
         if (!reportReason || !currentUserUID || !targetUID) return;
         setReportSending(true);
         try {
-            const reporterSnap = await usersCollection.doc(currentUserUID).get();
-            const reporterName = reporterSnap.exists ? (reporterSnap.data()?.displayName || 'User') : 'User';
-            const reportRef = await reportsCollection.add({
+            var reporterSnap = await usersCollection.doc(currentUserUID).get();
+            var reporterName = reporterSnap.exists ? (reporterSnap.data()?.displayName || 'User') : 'User';
+            var reportRef = await reportsCollection.add({
                 reportedUID:    targetUID,
                 reportedName:   targetData?.displayName || 'Unknown',
                 reportedPhoto:  targetData?.photoURL || '',
@@ -396,9 +396,9 @@
         setReportSending(false);
     };
 
-    const wins = targetData?.stats?.wins || 0;
-    const losses = targetData?.stats?.losses || 0;
-    const level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
+    var wins = targetData?.stats?.wins || 0;
+    var losses = targetData?.stats?.losses || 0;
+    var level = Math.floor((targetData?.stats?.xp || 0) / 100) + 1;
 
     return (
         <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL}}>
@@ -542,8 +542,8 @@
                                         <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
                                             <div style={{display:'flex', alignItems:'center', direction:'ltr'}}>
                                                 {[0,1,2].map(i => {
-                                                    const g = guardData[i];
-                                                    const colors = ['#f5a623','#b0b8c8','#e07b9a'];
+                                                    var g = guardData[i];
+                                                    var colors = ['#f5a623','#b0b8c8','#e07b9a'];
                                                     return (
                                                         <div key={i} style={{
                                                             width:'38px', height:'38px', borderRadius:'50%',
@@ -664,16 +664,16 @@
 
                                         {/* ── Top 3 shields — always rendered with empty fallback ── */}
                                         {(() => {
-                                            const cfgMap = {
+                                            var cfgMap = {
                                                 1:{ borderColor:'#f5a72a', bg:'rgba(245,167,42,0.10)', nameColor:'#ffd166', scoreColor:'#ffc042', size:78, borderW:3,  crown:'👑' },
                                                 2:{ borderColor:'#8da4c8', bg:'rgba(141,164,200,0.10)', nameColor:'#b0c4de', scoreColor:'#90a8cc', size:62, borderW:2.5, crown:'🥈' },
                                                 3:{ borderColor:'#e07b9a', bg:'rgba(224,123,154,0.10)', nameColor:'#f0a0bc', scoreColor:'#e07b9a', size:62, borderW:2.5, crown:'🥉' },
                                             };
-                                            const fmtV = typeof fmtNum !== 'undefined' ? fmtNum : (n) => n; 
-                                            const ShieldCard = ({gd, rank}) => {
-                                                const cfg = cfgMap[rank];
-                                                const s = cfg.size;
-                                                const isEmpty = !gd;
+                                            var fmtV = typeof fmtNum !== 'undefined' ? fmtNum : (n) => n; 
+                                            var ShieldCard = ({gd, rank}) => {
+                                                var cfg = cfgMap[rank];
+                                                var s = cfg.size;
+                                                var isEmpty = !gd;
                                                 return (
                                                     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',flex:rank===1?1.25:1}}>
                                                         <span style={{fontSize:rank===1?'20px':'15px',marginBottom:'-2px'}}>{cfg.crown}</span>
@@ -959,16 +959,16 @@
                                 }}>
                                     📎 {lang === 'ar' ? 'اضغط لإرفاق صورة' : 'Click to attach image'}
                                     <input type="file" accept="image/*" style={{display:'none'}} onChange={e => {
-                                        const file = e.target.files?.[0];
+                                        var file = e.target.files?.[0];
                                         if (!file) return;
-                                        const reader = new FileReader();
+                                        var reader = new FileReader();
                                         reader.onload = ev => {
                                             // Resize via canvas to max 600px
-                                            const img = new Image();
+                                            var img = new Image();
                                             img.onload = () => {
-                                                const canvas = document.createElement('canvas');
-                                                const max = 600;
-                                                const ratio = Math.min(max/img.width, max/img.height, 1);
+                                                var canvas = document.createElement('canvas');
+                                                var max = 600;
+                                                var ratio = Math.min(max/img.width, max/img.height, 1);
                                                 canvas.width = img.width * ratio;
                                                 canvas.height = img.height * ratio;
                                                 canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);

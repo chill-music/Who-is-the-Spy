@@ -1,20 +1,20 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var OverviewSection = ({ lang }) => {
-    const [stats, setStats] = useState({ users:0, today:0, reports:0, tickets:0 });
-    const [loading, setLoading] = useState(true);
+    var [stats, setStats] = useState({ users:0, today:0, reports:0, tickets:0 });
+    var [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchStats = async () => {
+        var fetchStats = async () => {
             try {
-                const u = await usersCollection.count().get();
-                const r = await reportsCollection.where('resolved','==',false).count().get();
-                const t = await ticketsCollection.where('status','==','open').count().get();
+                var u = await usersCollection.count().get();
+                var r = await reportsCollection.where('resolved','==',false).count().get();
+                var t = await ticketsCollection.where('status','==','open').count().get();
                 
-                const today = new Date();
+                var today = new Date();
                 today.setHours(0,0,0,0);
-                const td = await usersCollection.where('createdAt','>=',firebase.firestore.Timestamp.fromDate(today)).count().get();
+                var td = await usersCollection.where('createdAt','>=',firebase.firestore.Timestamp.fromDate(today)).count().get();
 
                 setStats({ 
                     users: u.data().count, 

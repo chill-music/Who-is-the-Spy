@@ -1,21 +1,21 @@
 (function() {
-    const { useState, useEffect, useRef } = React;
+    var { useState, useEffect, useRef } = React;
 /**
  * LobbyPublicChatBox Component
  * Modularized from 14-modals-misc.js
  */
 var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, currentUID, onOpenFull }) => {
-    const [messages, setMessages] = useState([]);
-    const [msgText, setMsgText] = useState('');
-    const [sending, setSending] = useState(false);
-    const [cooldown, setCooldown]   = useState(0); // seconds remaining
-    const messagesEndRef = useRef(null);
-    const inputRef = useRef(null);
-    const cooldownRef = useRef(null);
+    var [messages, setMessages] = useState([]);
+    var [msgText, setMsgText] = useState('');
+    var [sending, setSending] = useState(false);
+    var [cooldown, setCooldown]   = useState(0); // seconds remaining
+    var messagesEndRef = useRef(null);
+    var inputRef = useRef(null);
+    var cooldownRef = useRef(null);
 
-    const isFirstLoad = useRef(true);
+    var isFirstLoad = useRef(true);
     useEffect(() => {
-        const unsub = publicChatCollection
+        var unsub = publicChatCollection
             .orderBy('createdAt', 'asc')
             .limitToLast(30)
             .onSnapshot(snap => {
@@ -29,11 +29,11 @@ var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, 
         return () => unsub();
     }, []);
 
-    const sendMsg = async () => {
+    var sendMsg = async () => {
         if (!msgText.trim() || !user || !isLoggedIn || sending || cooldown > 0) return;
-        const text = msgText.trim(); setMsgText(''); setSending(true);
+        var text = msgText.trim(); setMsgText(''); setSending(true);
         try {
-            const vipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(currentUser) || 0) : 0;
+            var vipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(currentUser) || 0) : 0;
             await publicChatCollection.add({
                 type: 'text', text,
                 senderId: user.uid,
@@ -58,13 +58,13 @@ var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, 
         setSending(false);
     };
 
-    const fmtTs = (ts) => {
+    var fmtTs = (ts) => {
         if (!ts) return '';
-        const d = ts?.toDate ? ts.toDate() : new Date((ts?.seconds||0)*1000);
+        var d = ts?.toDate ? ts.toDate() : new Date((ts?.seconds||0)*1000);
         return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     };
 
-    const visibleMsgs = messages.filter(m => m.type === 'text' || m.type === 'image' || m.type === 'red_packet');
+    var visibleMsgs = messages.filter(m => m.type === 'text' || m.type === 'image' || m.type === 'red_packet');
 
     return (
         <div style={{margin:'0 8px 16px',background:'linear-gradient(160deg,rgba(5,5,18,0.98),rgba(9,8,26,0.96))',border:'1px solid rgba(74,222,128,0.15)',borderRadius:'16px',overflow:'hidden',boxSizing:'border-box',width:'calc(100% - 16px)'}}>
@@ -77,8 +77,8 @@ var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, 
                     </div>
                 )}
                 {visibleMsgs.map((msg, i) => {
-                    const isMe = msg.senderId === currentUID;
-                    const vipCfg = getVIPConfig(msg.senderVipLevel);
+                    var isMe = msg.senderId === currentUID;
+                    var vipCfg = getVIPConfig(msg.senderVipLevel);
                     if (msg.type === 'red_packet') return (
                         <div key={msg.id||i} style={{alignSelf:'center',fontSize:'10px',color:'#ffd700',padding:'3px 10px',background:'rgba(239,68,68,0.08)',borderRadius:'12px',border:'1px solid rgba(239,68,68,0.2)'}}>
                             🧧 {msg.senderName} {lang==='ar'?'أرسل مغلف':'sent a packet'} {msg.rpAmount?.toLocaleString()} 🧠

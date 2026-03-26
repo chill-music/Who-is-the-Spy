@@ -1,20 +1,20 @@
 (function() {
-    const { useState, useEffect } = React;
+    var { useState, useEffect } = React;
 var BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUserData, lang }) => {
-    const t = TRANSLATIONS[lang];
-    const [rooms, setRooms] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [joinPassword, setJoinPassword] = useState('');
-    const [selectedRoom, setSelectedRoom] = useState(null);
-    const [showPasswordInput, setShowPasswordInput] = useState(false);
-    const [passwordError, setPasswordError] = useState('');
+    var t = TRANSLATIONS[lang];
+    var [rooms, setRooms] = useState([]);
+    var [loading, setLoading] = useState(true);
+    var [joinPassword, setJoinPassword] = useState('');
+    var [selectedRoom, setSelectedRoom] = useState(null);
+    var [showPasswordInput, setShowPasswordInput] = useState(false);
+    var [passwordError, setPasswordError] = useState('');
 
     useEffect(() => {
         if (!show) return;
         setLoading(true);
         setPasswordError('');
-        const unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => {
-            const roomsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(room => room.players?.length < 10);
+        var unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot(snap => {
+            var roomsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(room => room.players?.length < 10);
             setRooms(roomsData);
             setLoading(false);
         }, error => { setLoading(false); });
@@ -23,7 +23,7 @@ var BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUs
 
     if (!show) return null;
 
-    const handleJoinClick = (room) => {
+    var handleJoinClick = (room) => {
         if (room.isPrivate) {
             setSelectedRoom(room);
             setShowPasswordInput(true);
@@ -33,7 +33,7 @@ var BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUs
         }
     };
 
-    const handlePasswordJoin = () => {
+    var handlePasswordJoin = () => {
         if (selectedRoom && joinPassword) {
             if (joinPassword !== selectedRoom.password) {
                 setPasswordError(lang === 'ar' ? 'كلمة السر غير صحيحة!' : 'Incorrect password!');

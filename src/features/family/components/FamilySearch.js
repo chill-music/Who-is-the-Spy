@@ -21,19 +21,19 @@ var FamilySearch = ({
     S
 }) => {
     // ---- Home State ----
-    const [homeTab, setHomeTab] = useState('new'); // 'new' | 'active'
-    const [searchQuery, setSearchQuery] = useState('');
-    const [families, setFamilies] = useState([]);
-    const [loadingFamilies, setLoadingFamilies] = useState(false);
+    var [homeTab, setHomeTab] = useState('new'); // 'new' | 'active'
+    var [searchQuery, setSearchQuery] = useState('');
+    var [families, setFamilies] = useState([]);
+    var [loadingFamilies, setLoadingFamilies] = useState(false);
 
     // ---- Create State ----
-    const [tribeEmblem, setFamilyEmblem] = useState('🛡️');
-    const [tribeName, setFamilyName] = useState('');
-    const [tribeTag, setFamilyTag] = useState('');
-    const [tribeDesc, setFamilyDesc] = useState('');
-    const [joinMode, setJoinMode] = useState('open');
-    const [creating, setCreating] = useState(false);
-    const [previewSignLevel, setPreviewSignLevel] = useState(1);
+    var [tribeEmblem, setFamilyEmblem] = useState('🛡️');
+    var [tribeName, setFamilyName] = useState('');
+    var [tribeTag, setFamilyTag] = useState('');
+    var [tribeDesc, setFamilyDesc] = useState('');
+    var [joinMode, setJoinMode] = useState('open');
+    var [creating, setCreating] = useState(false);
+    var [previewSignLevel, setPreviewSignLevel] = useState(1);
 
     useEffect(() => {
         if (view === 'home' || view === 'join') {
@@ -94,7 +94,7 @@ var FamilySearch = ({
             }
         } catch (e) {
             console.error(e);
-            let errorMsg = lang === 'ar' ? 'حدث خطأ أثناء الانضمام' : 'Error joining family';
+            var errorMsg = lang === 'ar' ? 'حدث خطأ أثناء الانضمام' : 'Error joining family';
             if (e.message === 'Family is full') errorMsg = lang === 'ar' ? 'القبيلة ممتلئة' : 'Family is full';
             else if (e.message === 'Already requested') errorMsg = lang === 'ar' ? 'تم إرسال طلب سابقاً' : 'Request already sent';
             else if (e.message === 'Family not found') errorMsg = lang === 'ar' ? 'هذه القبيلة لم تعد موجودة (تم الحذف)' : 'This family no longer exists (deleted)';
@@ -113,7 +113,7 @@ var FamilySearch = ({
         if (!tribeName.trim() || !tribeTag.trim() || creating) return;
         
         // Check Charisma Level >= 4
-        const charismaLvl = window.getCharismaLevel ? window.getCharismaLevel(currentUserData?.charisma || 0).currentLevel.level : 0;
+        var charismaLvl = window.getCharismaLevel ? window.getCharismaLevel(currentUserData?.charisma || 0).currentLevel.level : 0;
         if (charismaLvl < 4) {
             onNotification(lang === 'ar' ? 'يجب أن يكون مستوى الكاريزما 4 على الأقل لإنشاء قبيلة' : 'Charisma level must be at least 4 to create a family');
             return;
@@ -147,18 +147,18 @@ var FamilySearch = ({
     };
 
     // Derived Families List
-    const displayFamilies = useMemo(() => {
-        let sorted = [...families];
+    var displayFamilies = useMemo(() => {
+        var sorted = [...families];
         if (homeTab === 'new') {
             sorted.sort((a,b) => {
-                let tA = a.createdAt?.seconds || a.createdAt || 0;
-                let tB = b.createdAt?.seconds || b.createdAt || 0;
+                var tA = a.createdAt?.seconds || a.createdAt || 0;
+                var tB = b.createdAt?.seconds || b.createdAt || 0;
                 return tB - tA; // Newest first
             });
         } else {
             sorted.sort((a,b) => {
-                let aAct = a.weeklyActiveness || a.activeness || 0;
-                let bAct = b.weeklyActiveness || b.activeness || 0;
+                var aAct = a.weeklyActiveness || a.activeness || 0;
+                var bAct = b.weeklyActiveness || b.activeness || 0;
                 return bAct - aAct; // Most active first
             });
         }
@@ -166,7 +166,7 @@ var FamilySearch = ({
     }, [families, homeTab]);
 
     if (view === 'home' || view === 'join') {
-        const isSearch = view === 'join';
+        var isSearch = view === 'join';
         return (
             <div style={{display:'flex', flexDirection:'column', height:'100%', background:'linear-gradient(135deg, #0b0f19 0%, #1a2235 100%)', color:'white'}}>
                 {/* Header */}
@@ -233,9 +233,9 @@ var FamilySearch = ({
                                         <div style={{display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'4px'}}>
                                             <span style={{fontSize:'16px', fontWeight:800, color:'white', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'140px'}}>{f.name}</span>
                                             {(() => {
-                                                const signData = window.FamilyConstants?.getFamilySignLevelData?.(f.lastWeekActiveness || 0);
+                                                var signData = window.FamilyConstants?.getFamilySignLevelData?.(f.lastWeekActiveness || 0);
                                                 if (!signData || !FamilySignBadge) return null;
-                                                const signLevel = signData.level || 1;
+                                                var signLevel = signData.level || 1;
                                                 return <FamilySignBadge 
                                                     tag={f.tag} 
                                                     color={signData.color} 
@@ -267,8 +267,8 @@ var FamilySearch = ({
     }
 
     if (view === 'create') {
-        const charismaLvl = window.getCharismaLevel ? window.getCharismaLevel(currentUserData?.charisma || 0).currentLevel.level : 0;
-        const canCreate = charismaLvl >= 4;
+        var charismaLvl = window.getCharismaLevel ? window.getCharismaLevel(currentUserData?.charisma || 0).currentLevel.level : 0;
+        var canCreate = charismaLvl >= 4;
 
         return (
             <div style={{display:'flex', flexDirection:'column', height:'100%', background:'linear-gradient(135deg, #0b0f19 0%, #1a2235 100%)', color:'white'}}>

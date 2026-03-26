@@ -4,8 +4,8 @@ var { fmtFamilyNum } = window;
 var FamilySignBadge = window.FamilySignBadge;
 
 var FamilyRankingInline = ({ currentUID, lang, currentFamilyId, onOpenFamily }) => {
-    const [rankings, setRankings] = useState([]);
-    const [loading, setLoading] = useState(true);
+    var [rankings, setRankings] = useState([]);
+    var [loading, setLoading] = useState(true);
 
     useEffect(() => {
         setLoading(true);

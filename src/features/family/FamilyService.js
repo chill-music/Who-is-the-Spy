@@ -1,11 +1,11 @@
 var { CHEST_CONFIG, ACTIVENESS_MILESTONES, FAMILY_LEVEL_CONFIG, FAMILY_SIGN_LEVELS } = window;
 var useFamilyData = () => {
-    const [currentUID, setCurrentUID] = React.useState(auth.currentUser?.uid || null);
-    const [currentUserData, setCurrentUserData] = React.useState(null);
-    const [family, setFamily] = React.useState(null);
-    const [familyMembers, setFamilyMembers] = React.useState([]);
-    const [loadingFamily, setLoadingFamily] = React.useState(true);
-    const [error, setError] = React.useState(null);
+    var [currentUID, setCurrentUID] = React.useState(auth.currentUser?.uid || null);
+    var [currentUserData, setCurrentUserData] = React.useState(null);
+    var [family, setFamily] = React.useState(null);
+    var [familyMembers, setFamilyMembers] = React.useState([]);
+    var [loadingFamily, setLoadingFamily] = React.useState(true);
+    var [error, setError] = React.useState(null);
 
     React.useEffect(() => {
         var unsubAuth = auth.onAuthStateChanged(user => {

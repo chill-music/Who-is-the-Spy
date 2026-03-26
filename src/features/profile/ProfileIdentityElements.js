@@ -13,10 +13,10 @@
  * @param {string} props.lang - Language code ('ar' or 'en').
  */
 var UserTitleV11 = ({ equipped, lang }) => {
-    const titleId = equipped?.titles;
+    var titleId = equipped?.titles;
     if (!titleId) return null;
 
-    const title = SHOP_ITEMS.titles.find(t => t.id === titleId);
+    var title = SHOP_ITEMS.titles.find(t => t.id === titleId);
     if (!title) return null;
 
     // If title has an image URL, show the image
@@ -45,13 +45,13 @@ var UserTitleV11 = ({ equipped, lang }) => {
  * @param {string} props.lang - Language code ('ar' or 'en').
  */
 var UserBadgesV11 = ({ equipped, lang }) => {
-    const badges = equipped?.badges || [];
+    var badges = equipped?.badges || [];
     if (badges.length === 0) return null;
 
     return (
         <div className="profile-badges-row">
             {badges.slice(0, 10).map((badgeId, idx) => {
-                const badge = SHOP_ITEMS.badges.find(b => b.id === badgeId);
+                var badge = SHOP_ITEMS.badges.find(b => b.id === badgeId);
                 if (!badge) return null;
 
                 return (
@@ -83,23 +83,23 @@ var UserBadgesV11 = ({ equipped, lang }) => {
  * @param {string} props.lang - Language code ('ar' or 'en').
  */
 var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId, banData, lang }) => {
-    const sizeMap = {
+    var sizeMap = {
         sm: { wrapper: 64, avatar: 36, frameSize: 56 },
         md: { wrapper: 80, avatar: 48, frameSize: 72 },
         lg: { wrapper: 96, avatar: 58, frameSize: 90 },
         xl: { wrapper: 150, avatar: 90, frameSize: 140 }
     };
 
-    const s = sizeMap[size] || sizeMap.lg;
-    const frame = equipped?.frames;
-    const frameStyle = frame ? SHOP_ITEMS.frames.find(f => f.id === frame) : null;
+    var s = sizeMap[size] || sizeMap.lg;
+    var frame = equipped?.frames;
+    var frameStyle = frame ? SHOP_ITEMS.frames.find(f => f.id === frame) : null;
 
     // Resolve profile effect (from prop or equipped)
-    const resolvedEffectId = effectId || equipped?.profileEffects;
-    const effect = resolvedEffectId ? (SHOP_ITEMS.profileEffects || []).find(e => e.id === resolvedEffectId) : null;
-    const hasImageEffect = effect && effect.imageUrl && effect.imageUrl.trim() !== '';
+    var resolvedEffectId = effectId || equipped?.profileEffects;
+    var effect = resolvedEffectId ? (SHOP_ITEMS.profileEffects || []).find(e => e.id === resolvedEffectId) : null;
+    var hasImageEffect = effect && effect.imageUrl && effect.imageUrl.trim() !== '';
 
-    const showBan = banData?.isBanned && (
+    var showBan = banData?.isBanned && (
         !banData.expiresAt ||
         new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))
     );

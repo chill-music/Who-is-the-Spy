@@ -1,5 +1,5 @@
 (function() {
-    const { useEffect } = React;
+    var { useEffect } = React;
 
     /**
      * useSocial Hook
@@ -20,15 +20,15 @@
         useEffect(() => {
             if (userData && user && isLoggedIn) {
                 if (userData.friends?.length > 0) {
-                    const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).onSnapshot(snap => {
-                        const friends = snap.docs.map(d => {
-                            const data = d.data();
-                            const lastActive = data.lastActive?.toDate?.() || new Date(0);
-                            const timeSinceActive = Date.now() - lastActive.getTime();
-                            const dbStatus = data.onlineStatus;
+                    var unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friends).onSnapshot(snap => {
+                        var friends = snap.docs.map(d => {
+                            var data = d.data();
+                            var lastActive = data.lastActive?.toDate?.() || new Date(0);
+                            var timeSinceActive = Date.now() - lastActive.getTime();
+                            var dbStatus = data.onlineStatus;
 
                             // Real-time status logic: combination of DB field and lastActive heartbeat
-                            let onlineStatus = 'offline';
+                            var onlineStatus = 'offline';
                             if (dbStatus === 'online' && timeSinceActive < 600000) { // online + seen < 10min
                                 onlineStatus = 'online';
                             } else if (dbStatus === 'away' || (dbStatus === 'online' && timeSinceActive < 1800000)) {
@@ -56,7 +56,7 @@
         // 2. Friend Requests - Real-time
         useEffect(() => {
             if (userData && user && isLoggedIn && userData.friendRequests?.length > 0) {
-                const unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).onSnapshot(snap => {
+                var unsub = usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', userData.friendRequests).onSnapshot(snap => {
                     setFriendRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
                 });
                 return unsub;
@@ -68,14 +68,14 @@
         // 3. Chats Meta - Real-time with notification feedback
         useEffect(() => {
             if (!user || !isLoggedIn) return;
-            let prevTotal = -1;
-            const unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => {
-                let total = 0;
-                const meta = {};
+            var prevTotal = -1;
+            var unsub = chatsCollection.where('members', 'array-contains', user.uid).onSnapshot(snap => {
+                var total = 0;
+                var meta = {};
                 snap.docs.forEach(doc => {
-                    const d = doc.data();
+                    var d = doc.data();
                     meta[doc.id] = d;
-                    const myUnread = d.unread?.[user.uid] || 0;
+                    var myUnread = d.unread?.[user.uid] || 0;
                     total += myUnread;
                 });
                 

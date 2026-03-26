@@ -1,21 +1,21 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var StaffManagementSection = ({ currentUser, currentUserData, lang, onNotification }) => {
-    const [staff, setStaff] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [editing, setEditing] = useState(null);
-    const [newRole, setNewRole] = useState('');
+    var [staff, setStaff] = useState([]);
+    var [loading, setLoading] = useState(true);
+    var [editing, setEditing] = useState(null);
+    var [newRole, setNewRole] = useState('');
 
     useEffect(() => {
-        const unsub = usersCollection.where('role', 'in', ['moderator','admin','owner']).onSnapshot(snap => {
+        var unsub = usersCollection.where('role', 'in', ['moderator','admin','owner']).onSnapshot(snap => {
             setStaff(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         });
         return unsub;
     }, []);
 
-    const updateRole = async (uid, currentRole) => {
+    var updateRole = async (uid, currentRole) => {
         if (getUserRole(currentUserData, currentUser?.uid) !== 'owner') {
             onNotification('⛔ Only Owners can change roles');
             return;

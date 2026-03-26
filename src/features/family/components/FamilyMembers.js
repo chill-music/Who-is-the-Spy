@@ -19,9 +19,9 @@ var FamilyMembers = ({
     onKick,
     onSetRole
 }) => {
-    const [memberSearch, setMemberSearch] = React.useState('');
-    const [donationSort, setDonationSort] = React.useState('intel'); // 'intel' or 'activity'
-    const [gearMenuUid, setGearMenuUid] = React.useState(null);
+    var [memberSearch, setMemberSearch] = React.useState('');
+    var [donationSort, setDonationSort] = React.useState('intel'); // 'intel' or 'activity'
+    var [gearMenuUid, setGearMenuUid] = React.useState(null);
 
     if (!family || !members) return null;
 
@@ -30,7 +30,7 @@ var FamilyMembers = ({
 
     // Sorting & Filtering
     var sorted = [...members].sort((a, b) => {
-        let aV, bV;
+        var aV, bV;
         var donData = family.memberDonations || {};
         if (donationSort === 'intel') {
             var aD = donData[a.id] || {};

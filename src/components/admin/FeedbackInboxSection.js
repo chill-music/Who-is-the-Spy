@@ -1,19 +1,19 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var FeedbackInboxSection = ({ lang, onNotification }) => {
-    const [feedback, setFeedback] = useState([]);
-    const [loading, setLoading] = useState(true);
+    var [feedback, setFeedback] = useState([]);
+    var [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsub = db.collection('feedback').orderBy('timestamp', 'desc').limit(100).onSnapshot(snap => {
+        var unsub = db.collection('feedback').orderBy('timestamp', 'desc').limit(100).onSnapshot(snap => {
             setFeedback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         }, () => setLoading(false));
         return unsub;
     }, []);
 
-    const deleteFeedback = async (id) => {
+    var deleteFeedback = async (id) => {
         if(!confirm('Delete this feedback?')) return;
         try {
             await db.collection('feedback').doc(id).delete();

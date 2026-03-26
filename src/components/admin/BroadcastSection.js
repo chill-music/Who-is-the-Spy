@@ -1,22 +1,22 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var BroadcastSection = ({ currentUser, currentUserData, lang, onNotification }) => {
-    const [msg, setMsg] = useState('');
-    const [msgAr, setMsgAr] = useState('');
-    const [sending, setSending] = useState(false);
-    const [sent, setSent] = useState(0);
+    var [msg, setMsg] = useState('');
+    var [msgAr, setMsgAr] = useState('');
+    var [sending, setSending] = useState(false);
+    var [sent, setSent] = useState(0);
 
-    const handleBroadcast = async () => {
-        const text = lang==='ar' ? msgAr : msg;
+    var handleBroadcast = async () => {
+        var text = lang==='ar' ? msgAr : msg;
         if (!text.trim() || !currentUser) return;
         setSending(true);
         try {
-            const usersSnap = await usersCollection.limit(500).get();
-            const batch = db.batch();
-            let count = 0;
+            var usersSnap = await usersCollection.limit(500).get();
+            var batch = db.batch();
+            var count = 0;
             usersSnap.docs.forEach(doc => {
-                const ref = notificationsCollection.doc();
+                var ref = notificationsCollection.doc();
                 batch.set(ref, {
                     toUserId: doc.id,
                     type: 'system_broadcast',

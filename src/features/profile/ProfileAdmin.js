@@ -99,13 +99,13 @@ var ROLE_INFO = {
  * Provides the interface for admins to ban or unban users.
  */
 var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
-    const [banDuration, setBanDuration] = React.useState('7'); // days or 'permanent'
-    const [banReason, setBanReason] = React.useState('');
-    const [applying, setApplying] = React.useState(false);
-    const [error, setError] = React.useState('');
-    const isBanned = isBannedUser(targetData);
+    var [banDuration, setBanDuration] = React.useState('7'); // days or 'permanent'
+    var [banReason, setBanReason] = React.useState('');
+    var [applying, setApplying] = React.useState(false);
+    var [error, setError] = React.useState('');
+    var isBanned = isBannedUser(targetData);
 
-    const durationOptions = [
+    var durationOptions = [
         { value: '1',         label_ar: 'يوم واحد',   label_en: '1 Day' },
         { value: '3',         label_ar: '3 أيام',      label_en: '3 Days' },
         { value: '7',         label_ar: '7 أيام',      label_en: '7 Days' },
@@ -113,14 +113,14 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
         { value: '30',        label_ar: '30 يوم',      label_en: '30 Days' },
         { value: 'permanent', label_ar: 'دائم',        label_en: 'Permanent' },
     ];
-    const reasonOptions = [
+    var reasonOptions = [
         { value: 'cheating',  label_ar: 'غش',           label_en: 'Cheating' },
         { value: 'abuse',     label_ar: 'سلوك مسيء',    label_en: 'Abusive Behavior' },
         { value: 'spam',      label_ar: 'سبام',          label_en: 'Spam' },
         { value: 'other',     label_ar: 'سبب آخر',       label_en: 'Other' },
     ];
 
-    const handleApplyBan = async () => {
+    var handleApplyBan = async () => {
         if (!targetData?.id) return;
         if (!banReason && !isBanned) { setError(lang === 'ar' ? 'اختر سبب الحظر' : 'Select a ban reason'); return; }
         setApplying(true);
@@ -136,9 +136,9 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
                 onClose();
             } else {
                 // Apply ban
-                const expiresAt = banDuration === 'permanent' ? null :
+                var expiresAt = banDuration === 'permanent' ? null :
                     new Date(Date.now() + parseInt(banDuration) * 24 * 60 * 60 * 1000);
-                const banData = {
+                var banData = {
                     isBanned: true,
                     reason: banReason,
                     bannedAt: TS(),
@@ -271,12 +271,12 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
  * Informational popup that shows duties and permissions for a specific role.
  */
 var RoleInfoPopup = ({ targetData, lang, onClose }) => {
-    const tUID = targetData?.id || targetData?.uid;
-    const role = getUserRole(targetData, tUID);
+    var tUID = targetData?.id || targetData?.uid;
+    var role = getUserRole(targetData, tUID);
     if (!role) return null;
 
-    const info = ROLE_INFO[role];
-    const cfg  = ROLE_CONFIG[role];
+    var info = ROLE_INFO[role];
+    var cfg  = ROLE_CONFIG[role];
 
     return (
         <PortalModal>
@@ -364,26 +364,26 @@ var RoleInfoPopup = ({ targetData, lang, onClose }) => {
  * Interface for owners and admins to assign or remove staff roles.
  */
 var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRoleApplied }) => {
-    const [selectedRole, setSelectedRole] = React.useState('');
-    const [applying, setApplying] = React.useState(false);
-    const [error, setError] = React.useState('');
+    var [selectedRole, setSelectedRole] = React.useState('');
+    var [applying, setApplying] = React.useState(false);
+    var [error, setError] = React.useState('');
 
-    const targetUID = targetData?.id || targetData?.uid;
-    const targetRole = getUserRole(targetData, targetUID);
-    const assignableRoles = getAssignableRoles(viewerData, viewerUID);
-    const viewerRole = getUserRole(viewerData, viewerUID);
+    var targetUID = targetData?.id || targetData?.uid;
+    var targetRole = getUserRole(targetData, targetUID);
+    var assignableRoles = getAssignableRoles(viewerData, viewerUID);
+    var viewerRole = getUserRole(viewerData, viewerUID);
 
     // Owner cannot be modified
-    const isTargetOwner = targetRole === 'owner';
+    var isTargetOwner = targetRole === 'owner';
     // Admin cannot modify another admin
-    const cannotModify = isTargetOwner || (viewerRole === 'admin' && targetRole === 'admin');
+    var cannotModify = isTargetOwner || (viewerRole === 'admin' && targetRole === 'admin');
 
-    const roleOptions = [
+    var roleOptions = [
         { value: 'admin',     icon: '🛡️', label_ar: 'أدمن',   label_en: 'Admin',     color: '#ef4444' },
         { value: 'moderator', icon: '🔰', label_ar: 'مشرف',   label_en: 'Moderator', color: '#3b82f6' },
     ].filter(r => assignableRoles.includes(r.value));
 
-    const handleApply = async () => {
+    var handleApply = async () => {
         if (!targetUID) return;
         setApplying(true);
         setError('');
@@ -393,7 +393,7 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
                 await usersCollection.doc(targetUID).update({ staffRole: null });
                 onRoleApplied(null);
             } else {
-                const roleData = {
+                var roleData = {
                     role: selectedRole,
                     assignedBy: viewerUID,
                     assignedByName: viewerData?.displayName || 'Admin',

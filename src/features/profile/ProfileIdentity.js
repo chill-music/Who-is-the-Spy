@@ -50,10 +50,10 @@ var ProfileIdentity = ({
                     )}
                     {/* الكاريزما مباشرة بعد الجنس */}
                     {(() => {
-                        const { currentLevel: lvlData } = getCharismaLevel(targetData?.charisma || 0);
+                        var { currentLevel: lvlData } = getCharismaLevel(targetData?.charisma || 0);
                         if (!lvlData) return null;
-                        const hasGlow = lvlData.hasGlow;
-                        const isDivine = lvlData.isDivine;
+                        var hasGlow = lvlData.hasGlow;
+                        var isDivine = lvlData.isDivine;
                         return (
                             <div style={{
                                 display:'flex', alignItems:'center', gap:'4px',
@@ -101,13 +101,13 @@ var ProfileIdentity = ({
 
             {/* ══ ROW 4: ID على الشمال — صورة داخل الـ pill لو موجودة ══ */}
             {(() => {
-                const vipLvl = getVIPLevel(targetData);
-                const vipCfg = vipLvl > 0 ? VIP_CONFIG.find(v => v.level === vipLvl) : null;
-                const idBeforeImg = vipCfg?.idBeforeImageUrl || null;
-                const idIconImg = (vipLvl >= 6
+                var vipLvl = getVIPLevel(targetData);
+                var vipCfg = vipLvl > 0 ? VIP_CONFIG.find(v => v.level === vipLvl) : null;
+                var idBeforeImg = vipCfg?.idBeforeImageUrl || null;
+                var idIconImg = (vipLvl >= 6
                     ? (vipCfg?.idIconImageUrl || (typeof VIP_ID_ICONS !== 'undefined' ? VIP_ID_ICONS[vipLvl] : null) || null)
                     : null) || (typeof ID_ICON_IMAGE_URL !== 'undefined' ? ID_ICON_IMAGE_URL : null);
-                const idValue = targetData?.customId || targetUID?.substring(0, 8);
+                var idValue = targetData?.customId || targetUID?.substring(0, 8);
                 return (
                     <div style={{display:'flex', alignItems:'center', justifyContent:'flex-start', gap:'6px', marginBottom:'6px', padding:'0 8px'}}>
                         {idBeforeImg && (

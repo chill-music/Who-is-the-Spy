@@ -7,7 +7,7 @@
  */
 
 var ProfileFriendsSection = ({ friendsData, onOpenProfile, lang }) => {
-    const friends = friendsData || [];
+    var friends = friendsData || [];
     return (
         <div style={{padding:'12px'}}>
             <h3 style={{margin:'0 0 12px 0', fontSize:'14px', fontWeight:800, color:'white', display:'flex', alignItems:'center', gap:'6px'}}>

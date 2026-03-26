@@ -7,9 +7,9 @@ var fmtFamilyNum = (...args) => (window.fmtFamilyNum || (n => String(n)))(...arg
  * FamilyGacha - Modal component for family gacha spins.
  */
 var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, show, onClose }) => {
-    const [spinning, setSpinning] = React.useState(false);
-    const [result, setResult] = React.useState(null);
-    const [spinMode, setSpinMode] = React.useState('free'); // 'free' or 'paid'
+    var [spinning, setSpinning] = React.useState(false);
+    var [result, setResult] = React.useState(null);
+    var [spinMode, setSpinMode] = React.useState('free'); // 'free' or 'paid'
 
     if (!show) return null;
 

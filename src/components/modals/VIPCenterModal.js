@@ -1,5 +1,5 @@
 (function() {
-    const VIPCenterModal = ({ show, onClose, userData, user, lang, onNotification, onOpenShop }) => {
+    var VIPCenterModal = ({ show, onClose, userData, user, lang, onNotification, onOpenShop }) => {
     if (!show) return null;
     return (
         <PortalModal>

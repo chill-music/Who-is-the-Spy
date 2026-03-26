@@ -31,22 +31,22 @@ var ProfileHeader = ({
     onOpenSettings,
     onOpenProfile
 }) => {
-    const handleBannerUpload = async (e) => {
-        const file = e.target.files?.[0];
+    var handleBannerUpload = async (e) => {
+        var file = e.target.files?.[0];
         if (!file || !isOwnProfile) return;
         setBannerUploading(true);
-        const reader = new FileReader();
+        var reader = new FileReader();
         reader.onload = async (ev) => {
-            const img = new Image();
+            var img = new Image();
             img.onload = async () => {
-                const canvas = document.createElement('canvas');
-                const W = 800, H = 200;
+                var canvas = document.createElement('canvas');
+                var W = 800, H = 200;
                 canvas.width = W; canvas.height = H;
-                const ctx = canvas.getContext('2d');
-                const scale = Math.max(W / img.width, H / img.height);
-                const sw = img.width * scale, sh = img.height * scale;
+                var ctx = canvas.getContext('2d');
+                var scale = Math.max(W / img.width, H / img.height);
+                var sw = img.width * scale, sh = img.height * scale;
                 ctx.drawImage(img, (W - sw) / 2, (H - sh) / 2, sw, sh);
-                const base64 = canvas.toDataURL('image/jpeg', 0.55);
+                var base64 = canvas.toDataURL('image/jpeg', 0.55);
                 try {
                     if (typeof usersCollection !== 'undefined') {
                         await usersCollection.doc(targetUID).update({ bannerURL: base64 });
@@ -156,10 +156,10 @@ var ProfileHeader = ({
                 {profileCoupleDoc && profilePartnerData ? (
                     <>
                         {(() => {
-                            const ringData = typeof RINGS_DATA !== 'undefined' ? RINGS_DATA.find(r => r.id === profileCoupleDoc.ringId) : null;
-                            const ringEmoji = ringData?.emoji || '💍';
-                            const ringImageURL = ringData?.imageURL || null;
-                            const ringGlow = ringData?.glow || 'rgba(236,72,153,0.6)';
+                            var ringData = typeof RINGS_DATA !== 'undefined' ? RINGS_DATA.find(r => r.id === profileCoupleDoc.ringId) : null;
+                            var ringEmoji = ringData?.emoji || '💍';
+                            var ringImageURL = ringData?.imageURL || null;
+                            var ringGlow = ringData?.glow || 'rgba(236,72,153,0.6)';
                             return (
                                 <div
                                     className="profile-couple-badge"

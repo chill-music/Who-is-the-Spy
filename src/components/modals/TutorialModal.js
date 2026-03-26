@@ -1,11 +1,11 @@
 (function() {
-    const { useState } = React;
+    var { useState } = React;
 
-    const TutorialModal = ({ show, onClose, lang }) => {
-        const t = TRANSLATIONS[lang];
-        const [step, setStep] = useState(0);
+    var TutorialModal = ({ show, onClose, lang }) => {
+        var t = TRANSLATIONS[lang];
+        var [step, setStep] = useState(0);
     if(!show) return null;
-    const steps = [ { text: t.tutorialStep1, img: "🕵️" }, { text: t.tutorialStep2, img: "🗳️" }, { text: t.tutorialStep3, img: "🛒" } ];
+    var steps = [ { text: t.tutorialStep1, img: "🕵️" }, { text: t.tutorialStep2, img: "🗳️" }, { text: t.tutorialStep3, img: "🛒" } ];
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>

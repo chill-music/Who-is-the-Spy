@@ -1,20 +1,20 @@
 var { momentsCollection, notificationsCollection, TS, firebase, Z, PortalModal } = window;
 
 var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, currentUID, friendsData, lang, onOpenProfile }) => {
-    const [moments, setMoments] = React.useState([]);
-    const [loading, setLoading] = React.useState(true);
-    const [selectedMoment, setSelectedMoment] = React.useState(null);
-    const [commentText, setCommentText] = React.useState('');
-    const [comments, setComments] = React.useState([]); 
-    const [submittingComment, setSubmittingComment] = React.useState(false);
-    const [likingId, setLikingId] = React.useState(null);
-    const [showBell, setShowBell] = React.useState(false);
-    const [bellNotifs, setBellNotifs] = React.useState([]);
-    const [showCreatePost, setShowCreatePost] = React.useState(false);
-    const [createText, setCreateText] = React.useState('');
-    const [createImage, setCreateImage] = React.useState(null);
-    const [createImageFile, setCreateImageFile] = React.useState(null);
-    const [creating, setCreating] = React.useState(false);
+    var [moments, setMoments] = React.useState([]);
+    var [loading, setLoading] = React.useState(true);
+    var [selectedMoment, setSelectedMoment] = React.useState(null);
+    var [commentText, setCommentText] = React.useState('');
+    var [comments, setComments] = React.useState([]); 
+    var [submittingComment, setSubmittingComment] = React.useState(false);
+    var [likingId, setLikingId] = React.useState(null);
+    var [showBell, setShowBell] = React.useState(false);
+    var [bellNotifs, setBellNotifs] = React.useState([]);
+    var [showCreatePost, setShowCreatePost] = React.useState(false);
+    var [createText, setCreateText] = React.useState('');
+    var [createImage, setCreateImage] = React.useState(null);
+    var [createImageFile, setCreateImageFile] = React.useState(null);
+    var [creating, setCreating] = React.useState(false);
     var fileRef = React.useRef(null);
 
     React.useEffect(() => {
@@ -35,7 +35,7 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
         )).then(results => {
             var all = [];
             results.forEach(snap => snap.docs && snap.docs.forEach(d => {
-                const data = d.data();
+                var data = d.data();
                 all.push({ id: d.id, ...data });
             }));
             
@@ -91,7 +91,7 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
             var likedBy = moment.likedBy || [];
             var alreadyLiked = likedBy.includes(currentUID);
             
-            const ref = momentsCollection.doc(moment.id);
+            var ref = momentsCollection.doc(moment.id);
             await ref.update({
                 likesCount: firebase.firestore.FieldValue.increment(alreadyLiked ? -1 : 1),
                 likedBy: alreadyLiked
@@ -100,8 +100,8 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
             });
 
             // Local state update for immediate UI feedback
-            const updatedLikedBy = alreadyLiked ? likedBy.filter(id => id !== currentUID) : [...likedBy, currentUID];
-            const updatedLikesCount = (moment.likesCount || 0) + (alreadyLiked ? -1 : 1);
+            var updatedLikedBy = alreadyLiked ? likedBy.filter(id => id !== currentUID) : [...likedBy, currentUID];
+            var updatedLikesCount = (moment.likesCount || 0) + (alreadyLiked ? -1 : 1);
 
             setMoments(prev => prev.map(m => m.id === moment.id ? {
                 ...m,
@@ -126,7 +126,7 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
         if (!commentText.trim() || !selectedMoment?.id || !currentUID || submittingComment) return;
         setSubmittingComment(true);
         try {
-            const momentRef = momentsCollection.doc(selectedMoment.id);
+            var momentRef = momentsCollection.doc(selectedMoment.id);
             
             // 1. Add to subcollection (New Schema)
             await momentRef.collection('comments').add({
@@ -179,12 +179,12 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
             var mediaUrl = null;
             if (createImageFile) {
                 // Use the same robust storage path as MomentsSystem.js
-                const fileName = `${Date.now()}_${createImageFile.name}`;
-                const storageRef = firebase.storage().ref(`moments/${currentUID}/${fileName}`);
+                var fileName = `${Date.now()}_${createImageFile.name}`;
+                var storageRef = firebase.storage().ref(`moments/${currentUID}/${fileName}`);
                 
                 // If it's the compressed dataURL (from the file picker reader)
                 if (createImage && createImage.startsWith('data:image')) {
-                     const blob = await (await fetch(createImage)).blob();
+                     var blob = await (await fetch(createImage)).blob();
                      await storageRef.put(blob);
                 } else {
                      await storageRef.put(createImageFile);
@@ -256,21 +256,21 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
                                 if (!f) return;
                                 
                                 // Add image compression matching MomentsSystem.js
-                                const reader = new FileReader();
+                                var reader = new FileReader();
                                 reader.onload = ev => {
-                                    const img = new Image();
+                                    var img = new Image();
                                     img.onload = () => {
-                                        const canvas = document.createElement('canvas');
-                                        const MAX_W = 800, MAX_H = 800;
-                                        let w = img.width, h = img.height;
+                                        var canvas = document.createElement('canvas');
+                                        var MAX_W = 800, MAX_H = 800;
+                                        var w = img.width, h = img.height;
                                         if (w > MAX_W || h > MAX_H) {
-                                            const ratio = Math.min(MAX_W / w, MAX_H / h);
+                                            var ratio = Math.min(MAX_W / w, MAX_H / h);
                                             w = Math.round(w * ratio);
                                             h = Math.round(h * ratio);
                                         }
                                         canvas.width = w; canvas.height = h;
                                         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                                        const compressed = canvas.toDataURL('image/jpeg', 0.6);
+                                        var compressed = canvas.toDataURL('image/jpeg', 0.6);
                                         setCreateImage(compressed);
                                         setCreateImageFile(f);
                                     };

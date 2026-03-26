@@ -1,20 +1,20 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var FAQManagementSection = ({ lang, onNotification }) => {
-    const [faqs, setFaqs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [newQ, setNewQ] = useState({ q_en:'', a_en:'', q_ar:'', a_ar:'', category: 'general' });
+    var [faqs, setFaqs] = useState([]);
+    var [loading, setLoading] = useState(true);
+    var [newQ, setNewQ] = useState({ q_en:'', a_en:'', q_ar:'', a_ar:'', category: 'general' });
 
     useEffect(() => {
-        const unsub = db.collection('faqs').orderBy('category').onSnapshot(snap => {
+        var unsub = db.collection('faqs').orderBy('category').onSnapshot(snap => {
             setFaqs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         });
         return unsub;
     }, []);
 
-    const handleAdd = async () => {
+    var handleAdd = async () => {
         if (!newQ.q_en || !newQ.a_en) return;
         try {
             await db.collection('faqs').add({ ...newQ, timestamp: TS() });
@@ -23,7 +23,7 @@ var FAQManagementSection = ({ lang, onNotification }) => {
         } catch(e) { onNotification('❌ Error'); }
     };
 
-    const deleteFAQ = async (id) => {
+    var deleteFAQ = async (id) => {
         if(!confirm('Delete this FAQ?')) return;
         try {
             await db.collection('faqs').doc(id).delete();

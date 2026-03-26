@@ -1,29 +1,29 @@
 (function() {
-    const { useState, useEffect, useMemo, useRef } = React;
+    var { useState, useEffect, useMemo, useRef } = React;
 
 var FinancialLogSection = ({ lang }) => {
-    const [goldLogs, setGoldLogs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [targetUID, setTargetUID] = useState('');
-    const [amount, setAmount] = useState('');
-    const [reason, setReason] = useState('');
-    const [processing, setProcessing] = useState(false);
+    var [goldLogs, setGoldLogs] = useState([]);
+    var [loading, setLoading] = useState(true);
+    var [targetUID, setTargetUID] = useState('');
+    var [amount, setAmount] = useState('');
+    var [reason, setReason] = useState('');
+    var [processing, setProcessing] = useState(false);
 
     useEffect(() => {
-        const unsub = db.collection('gold_transactions').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
+        var unsub = db.collection('gold_transactions').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
             setGoldLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         }, () => setLoading(false));
         return unsub;
     }, []);
 
-    const handleSendGold = async () => {
+    var handleSendGold = async () => {
         if (!targetUID || !amount || processing) return;
         setProcessing(true);
         try {
-            const num = parseInt(amount);
-            const userRef = usersCollection.doc(targetUID.trim());
-            const userDoc = await userRef.get();
+            var num = parseInt(amount);
+            var userRef = usersCollection.doc(targetUID.trim());
+            var userDoc = await userRef.get();
             if (!userDoc.exists) {
                 alert('User not found');
                 setProcessing(false);
@@ -31,11 +31,11 @@ var FinancialLogSection = ({ lang }) => {
             }
 
             await db.runTransaction(async (transaction) => {
-                const freshDoc = await transaction.get(userRef);
-                const currentGold = freshDoc.data().gold || 0;
+                var freshDoc = await transaction.get(userRef);
+                var currentGold = freshDoc.data().gold || 0;
                 transaction.update(userRef, { gold: currentGold + num });
                 
-                const logRef = db.collection('gold_transactions').doc();
+                var logRef = db.collection('gold_transactions').doc();
                 transaction.set(logRef, {
                     userId: targetUID.trim(),
                     userName: freshDoc.data().displayName,

@@ -4,19 +4,19 @@
  * Extracted from 15-profile.js
  */
 var GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOpenProfile }) => {
-    const [activeTab, setActiveTab] = React.useState('wall');
-    const [selectedGiftDetail, setSelectedGiftDetail] = React.useState(null);
-    const [showAllGifts, setShowAllGifts] = React.useState(false);
-    const [rotatingIdx, setRotatingIdx] = React.useState(0);
+    var [activeTab, setActiveTab] = React.useState('wall');
+    var [selectedGiftDetail, setSelectedGiftDetail] = React.useState(null);
+    var [showAllGifts, setShowAllGifts] = React.useState(false);
+    var [rotatingIdx, setRotatingIdx] = React.useState(0);
     // open full wall modal on banner click
-    const [showWallModal, setShowWallModal] = React.useState(false);
-    const GIFTS_LIMIT = 32;
+    var [showWallModal, setShowWallModal] = React.useState(false);
+    var GIFTS_LIMIT = 32;
 
     // Calculate gift data (counts, top senders)
-    const giftData = React.useMemo(() => {
-        const counts = {};
-        const lastSenders = {};
-        const senderTally = {}; // { giftId: { senderId: count } }
+    var giftData = React.useMemo(() => {
+        var counts = {};
+        var lastSenders = {};
+        var senderTally = {}; // { giftId: { senderId: count } }
 
         gifts?.forEach(g => {
             counts[g.giftId] = (counts[g.giftId] || 0) + 1;
@@ -26,12 +26,12 @@ var GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOp
         });
 
         // Find top sender per gift
-        const topSenderInfo = {};
+        var topSenderInfo = {};
         Object.entries(senderTally).forEach(([giftId, tally]) => {
-            const sorted = Object.entries(tally).sort((a,b)=>b[1]-a[1]);
+            var sorted = Object.entries(tally).sort((a,b)=>b[1]-a[1]);
             if (sorted.length) {
-                const [topUid, topCount] = sorted[0];
-                const entry = gifts.find(g=>g.giftId===giftId && g.senderId===topUid);
+                var [topUid, topCount] = sorted[0];
+                var entry = gifts.find(g=>g.giftId===giftId && g.senderId===topUid);
                 topSenderInfo[giftId] = { uid:topUid, count:topCount, name:entry?.senderName||'?', photo:entry?.senderPhoto||null };
             }
         });
@@ -40,26 +40,26 @@ var GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOp
     }, [gifts]);
 
     // ALL gifts (hidden + shop + VIP)
-    const SHOP_ITEMS = window.SHOP_ITEMS || {};
-    const RARITY_CONFIG = window.RARITY_CONFIG || {};
-    const VIP_CONFIG = window.VIP_CONFIG || [];
-    const Z = window.Z || { MODAL: 1000, TOOLTIP: 9999 };
+    var SHOP_ITEMS = window.SHOP_ITEMS || {};
+    var RARITY_CONFIG = window.RARITY_CONFIG || {};
+    var VIP_CONFIG = window.VIP_CONFIG || [];
+    var Z = window.Z || { MODAL: 1000, TOOLTIP: 9999 };
 
-    const allRegular = SHOP_ITEMS.gifts || [];
-    const allVIP     = SHOP_ITEMS.gifts_vip || [];
-    const allGifts   = [...allRegular, ...allVIP];
-    const displayGifts = showAllGifts ? allGifts : allGifts.slice(0, GIFTS_LIMIT);
-    const hasMoreGifts = allGifts.length > GIFTS_LIMIT;
+    var allRegular = SHOP_ITEMS.gifts || [];
+    var allVIP     = SHOP_ITEMS.gifts_vip || [];
+    var allGifts   = [...allRegular, ...allVIP];
+    var displayGifts = showAllGifts ? allGifts : allGifts.slice(0, GIFTS_LIMIT);
+    var hasMoreGifts = allGifts.length > GIFTS_LIMIT;
 
     // Stats
-    const totalGifts        = gifts?.length || 0;
-    const uniqueTypesCount  = Object.keys(giftData.counts).length;
-    const totalCharisma     = gifts?.reduce((s,g)=>s+(g.charisma||0),0)||0;
+    var totalGifts        = gifts?.length || 0;
+    var uniqueTypesCount  = Object.keys(giftData.counts).length;
+    var totalCharisma     = gifts?.reduce((s,g)=>s+(g.charisma||0),0)||0;
 
     // Rotating recent gift images for the mini card
-    const recentUnique = React.useMemo(() => {
-        const seen = new Set(); const res = [];
-        for (const g of (gifts||[])) {
+    var recentUnique = React.useMemo(() => {
+        var seen = new Set(); var res = [];
+        for (var g of (gifts||[])) {
             if (!seen.has(g.giftId)) { seen.add(g.giftId); res.push(g); }
             if (res.length >= 5) break;
         }
@@ -68,11 +68,11 @@ var GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOp
 
     React.useEffect(() => {
         if (recentUnique.length <= 1) return;
-        const t = setInterval(()=>setRotatingIdx(p=>(p+1)%recentUnique.length), 1500);
+        var t = setInterval(()=>setRotatingIdx(p=>(p+1)%recentUnique.length), 1500);
         return ()=>clearInterval(t);
     }, [recentUnique.length]);
 
-    const fmtBig = window.fmtNum; // unified — defined in 01-config.js
+    var fmtBig = window.fmtNum; // unified — defined in 01-config.js
 
     return (
         <div className="profile-gift-section">
@@ -107,7 +107,7 @@ var GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOp
                     {/* 3 stacked rotating gift images */}
                     <div style={{position:'relative',width:'82px',height:'60px',flexShrink:0}}>
                         {recentUnique.length>0 ? recentUnique.slice(0,3).map((g,i)=>{
-                            const isActive = i===(rotatingIdx % Math.min(3,recentUnique.length));
+                            var isActive = i===(rotatingIdx % Math.min(3,recentUnique.length));
                             return (
                                 <div key={g.id||i} style={{
                                     position:'absolute', left:`${i*16}px`, top:`${i*4}px`,
@@ -207,16 +207,16 @@ var GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOp
                                     <>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px' }}>
                                             {displayGifts.map(gift => {
-                                                const count = giftData.counts[gift.id] || 0;
-                                                const unlocked = count > 0;
-                                                const lvl = window.getGiftLevel ? window.getGiftLevel(count) : 0;
-                                                const frame = window.getGiftLevelFrame ? window.getGiftLevelFrame(lvl) : {};
-                                                const rKey = window.getGiftRarity ? window.getGiftRarity(gift.cost) : 'Common';
-                                                const rarity = RARITY_CONFIG[rKey] || {};
-                                                const topSdr = giftData.lastSenders[gift.id];
-                                                const isVIP = gift.type === 'gifts_vip';
-                                                const vipCfg = isVIP && gift.vipMinLevel > 0 ? VIP_CONFIG[gift.vipMinLevel - 1] : null;
-                                                const vipColor = vipCfg ? vipCfg.nameColor : null;
+                                                var count = giftData.counts[gift.id] || 0;
+                                                var unlocked = count > 0;
+                                                var lvl = window.getGiftLevel ? window.getGiftLevel(count) : 0;
+                                                var frame = window.getGiftLevelFrame ? window.getGiftLevelFrame(lvl) : {};
+                                                var rKey = window.getGiftRarity ? window.getGiftRarity(gift.cost) : 'Common';
+                                                var rarity = RARITY_CONFIG[rKey] || {};
+                                                var topSdr = giftData.lastSenders[gift.id];
+                                                var isVIP = gift.type === 'gifts_vip';
+                                                var vipCfg = isVIP && gift.vipMinLevel > 0 ? VIP_CONFIG[gift.vipMinLevel - 1] : null;
+                                                var vipColor = vipCfg ? vipCfg.nameColor : null;
 
                                                 return (
                                                     <div key={gift.id}
@@ -309,8 +309,8 @@ var GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOp
                                     <div className="profile-gift-log">
                                         {gifts && gifts.length > 0 ? (
                                             gifts.slice(0, 10).map((gift, idx) => {
-                                                const logRarityKey = window.getGiftRarity ? window.getGiftRarity(gift.giftCost || 0) : 'Common';
-                                                const isMythicLog = logRarityKey === 'Mythic';
+                                                var logRarityKey = window.getGiftRarity ? window.getGiftRarity(gift.giftCost || 0) : 'Common';
+                                                var isMythicLog = logRarityKey === 'Mythic';
                                                 return (
                                                     <div key={idx} className={`profile-gift-log-item${isMythicLog ? ' mythic-glow' : ''}`}
                                                         style={isMythicLog ? { border: '1px solid rgba(255,0,85,0.5)', background: 'rgba(255,0,85,0.08)' } : {}}>
