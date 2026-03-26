@@ -139,15 +139,7 @@ var ProfileIdentity = ({
             {/* ══ ROW 6: التايتلز — كل التايتلز المفعّلة ══ */}
             <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
 
-            {/* ══ Moments + Charisma ══ */}
-            <MomentsSection
-                ownerUID={targetUID}
-                ownerName={targetData?.displayName || ''}
-                ownerPhoto={targetData?.photoURL || null}
-                currentUser={userData}
-                isOwnProfile={isOwnProfile}
-                lang={lang}
-            />
+            {/* ══ Charisma ══ */}
             <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
         </div>
     );

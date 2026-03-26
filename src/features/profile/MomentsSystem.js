@@ -174,22 +174,22 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
  * MomentDetailModal
  * Displays full moment content, comments, and media.
  */
-var MomentDetailModal = ({ isOpen, onClose, moment, currentUser, lang, onOpenProfile }) => {
+var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfile }) => {
     const [commentText, setCommentText] = useState('');
     const [comments, setComments] = useState([]);
     const [sending, setSending] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
-        if (!isOpen || !moment?.id) return;
+        if (!show || !moment?.id) return;
         const q = momentsCollection.doc(moment.id).collection('comments').orderBy('createdAt', 'desc');
         const unsub = q.onSnapshot(snap => {
             setComments(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         }, err => console.error('Comments error:', err));
         return () => unsub();
-    }, [isOpen, moment?.id]);
+    }, [show, moment?.id]);
 
-    if (!isOpen || !moment) return null;
+    if (!show || !moment) return null;
 
     const isLiked = moment.likedBy?.includes(currentUser?.uid);
     const isOwner = moment.authorUID === currentUser?.uid;
@@ -362,7 +362,7 @@ var MomentDetailModal = ({ isOpen, onClose, moment, currentUser, lang, onOpenPro
  * CreateMomentModal
  * Interactive modal for users to create and post new moments (Text, Image, or Video).
  */
-var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
+var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
     const [momentType, setMomentType] = useState('text');
     const [textContent, setTextContent] = useState('');
     const [mediaFile, setMediaFile] = useState(null);
@@ -476,6 +476,7 @@ var CreateMomentModal = ({ onClose, currentUser, lang, onPosted }) => {
         setUploading(false);
     };
 
+    if (!show) return null;
     return (
         <PortalModal>
             <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:Z.MODAL_HIGH, padding:'16px'}} onClick={onClose}>
@@ -644,7 +645,7 @@ var MomentCard = ({ moment, currentUser, lang, onOpenProfile }) => {
 
             {showDetail && (
                 <MomentDetailModal 
-                    isOpen={showDetail} 
+                    show={showDetail} 
                     onClose={() => setShowDetail(false)} 
                     moment={moment} 
                     currentUser={currentUser} 
