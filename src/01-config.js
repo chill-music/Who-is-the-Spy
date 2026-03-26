@@ -301,11 +301,11 @@ var FAMILY_COINS_SYMBOL = '🏅'; // Family Coins currency icon
 // ════════════════════════════════════════════════════════
 // threshold = الحد الأدنى من النشاط الأسبوعي للحصول على هذا الساين
 var FAMILY_SIGN_IMAGES = [
-    { level: 1, threshold: 1000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign1.png' }, // ← ضع رابط صورة المستوى 1 هنا
-    { level: 2, threshold: 10000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign2.png' }, // ← ضع رابط صورة المستوى 2 هنا
-    { level: 3, threshold: 30000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign3.png' }, // ← ضع رابط صورة المستوى 3 هنا
-    { level: 4, threshold: 100000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign4.png' }, // ← ضع رابط صورة المستوى 4 هنا
-    { level: 5, threshold: 300000, imageURL: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/Family%20Sign5.png' }, // ← ضع رابط صورة المستوى 5 هنا
+    { level: 1, threshold: 1000, imageURL: 'icos/Family%20Sign1.png' }, // ← ضع رابط صورة المستوى 1 هنا
+    { level: 2, threshold: 10000, imageURL: 'icos/Family%20Sign2.png' }, // ← ضع رابط صورة المستوى 2 هنا
+    { level: 3, threshold: 30000, imageURL: 'icos/Family%20Sign3.png' }, // ← ضع رابط صورة المستوى 3 هنا
+    { level: 4, threshold: 100000, imageURL: 'icos/Family%20Sign4.png' }, // ← ضع رابط صورة المستوى 4 هنا
+    { level: 5, threshold: 300000, imageURL: 'icos/Family%20Sign5.png' }, // ← ضع رابط صورة المستوى 5 هنا
 ];
 
 // Family Shop Items -- purchasable ONLY with Family Coins (medal)
@@ -346,7 +346,7 @@ var FAMILY_SHOP_ITEMS = [
 // 🪪 ID ICON CONFIG — أيقونة قبل رقم الـ ID في البروفايل
 // ════════════════════════════════════════════════════════
 // الأيقونة الافتراضية لكل المستخدمين (ضع رابط صورة/GIF أو null لاستخدام 🪪)
-var ID_ICON_IMAGE_URL = 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idon.png'; // ← ضع رابط الصورة العامة هنا (لكل المستخدمين)
+var ID_ICON_IMAGE_URL = 'icos/idon.png'; // ← ضع رابط الصورة العامة هنا (لكل المستخدمين)
 
 // أيقونات مميزة حصرية لـ VIP 6 → 10
 // هذه تُضاف أيضاً في VIP_CONFIG داخل 17-vip.js بنفس الحقل idIconImageUrl

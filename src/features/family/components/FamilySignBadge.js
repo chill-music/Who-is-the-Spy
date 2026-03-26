@@ -2,13 +2,16 @@ var { FAMILY_SIGN_LEVELS, getFamilySignImage } = window.FamilyConstants || {};
 
 // Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
 var FamilySignBadge = ({ level, size = 40, lang, tag, color, small, signLevel, imageURL }) => {
-    var imgSrc = imageURL || (typeof getFamilySignImage === 'function' ? getFamilySignImage(signLevel) : null);
-    // استخدم hasGlow من بيانات المستوى نفسه
+    // Correct call to getFamilySignImage(activeness=0, level=signLevel)
+    var imgSrc = imageURL || (typeof getFamilySignImage === 'function' ? getFamilySignImage(0, signLevel) : null);
+    
     var signLevelData = typeof FAMILY_SIGN_LEVELS !== 'undefined'
         ? FAMILY_SIGN_LEVELS.find(s => s.level === signLevel)
         : null;
     var hasGlow = signLevelData?.hasGlow || signLevel >= 4;
-    var glowColor = signLevelData?.glow || `${color}88`;
+    var glowIntensity = signLevel === 5 ? 'dd' : signLevel === 4 ? 'cc' : '99';
+    var glowMid       = signLevel === 5 ? '88' : signLevel === 4 ? '77' : '55';
+    var glowFar       = signLevel === 5 ? '44' : '33';
     var displayTag = tag || 'FAM';
 
     // لو في صورة: تظهر مع التاج مكتوب فوقها
@@ -28,7 +31,7 @@ var FamilySignBadge = ({ level, size = 40, lang, tag, color, small, signLevel, i
                 flexShrink:0,
                 width:`${imgW}px`, height:`${imgH}px`,
                 filter: hasGlow
-                    ? `drop-shadow(0 0 6px ${color}dd) drop-shadow(0 0 14px ${color}88) drop-shadow(0 0 22px ${color}44)`
+                    ? `drop-shadow(0 0 6px ${color}${glowIntensity}) drop-shadow(0 0 14px ${color}${glowMid}) drop-shadow(0 0 22px ${color}${glowFar})`
                     : 'none',
                 transition:'all 0.2s',
             }}>

@@ -167,6 +167,5 @@ var S = {
 // Global access for legacy scripts
 window.FamilyShared = {
     FamilyRoleBadge,
-    FamilySignBadge,
-    S
+    // FamilySignBadge is now globally available via FamilySignBadge.js
 };

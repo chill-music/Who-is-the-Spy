@@ -3,7 +3,8 @@ var {
     createFamily, 
     loadFamilies, 
     searchFamilyByTag,
-    joinFamily
+    joinFamily,
+    getFamilySignLevelData
 } = window.FamilyService;
 var { FAMILY_CREATE_COST, FAMILY_EMBLEMS } = window.FamilyConstants || { FAMILY_CREATE_COST: 1000, FAMILY_EMBLEMS: ['🛡️','🦅','🦁','👑','⚔️','🐺','🐉'] };
 var FamilySignBadge = window.FamilySignBadge;
@@ -231,7 +232,17 @@ var FamilySearch = ({
                                     <div style={{flex:1, minWidth:0}}>
                                         <div style={{display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'4px'}}>
                                             <span style={{fontSize:'16px', fontWeight:800, color:'white', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'140px'}}>{f.name}</span>
-                                            {FamilySignBadge && <FamilySignBadge tag={f.tag} color={levelData.color} small={true} signLevel={f.familyNameSignLevel || 1} />}
+                                            {(() => {
+                                                const signData = getFamilySignLevelData(f.lastWeekActiveness || 0);
+                                                if (!signData || !FamilySignBadge) return null;
+                                                return <FamilySignBadge 
+                                                    tag={f.tag} 
+                                                    color={signData.color} 
+                                                    small={true} 
+                                                    signLevel={signData.level} 
+                                                    imageURL={f.signImageURL} 
+                                                />;
+                                            })()}
                                             <span style={{fontSize:'11px', fontWeight:700, color:levelData.color, opacity:0.8}}>Lv.{f.level || 1}</span>
                                         </div>
                                         <div style={{fontSize:'12px', color:'#9ca3af', margin:'4px 0', display:'flex', alignItems:'center', gap:'6px'}}>
