@@ -71,6 +71,7 @@
             return unsubAuth;
         }, []);
 
-        return { user, userData, authLoading, setUser, setUserData, setAuthLoading };
+        const isLoggedIn = !!user;
+        return { user, userData, authLoading, isLoggedIn, setUser, setUserData, setAuthLoading };
     };
 })();

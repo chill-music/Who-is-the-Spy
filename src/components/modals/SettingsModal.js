@@ -1,6 +1,7 @@
-const { useState, useEffect, useMemo } = React;
+(function() {
+    const { useState, useEffect, useMemo } = React;
 
-var SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle, onOpenAdminPanel }) => {
+    const SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotification, isGuest: isGuestPropForSettings, onLoginGoogle, onOpenAdminPanel }) => {
     const t = TRANSLATIONS[lang];
     const [blockedUsers, setBlockedUsers] = useState([]);
     const [blockInput, setBlockInput] = useState('');
@@ -354,4 +355,5 @@ var SettingsModal = ({ show, onClose, lang, onSetLang, userData, user, onNotific
     );
 };
 
-window.SettingsModal = SettingsModal;
+    window.SettingsModal = SettingsModal;
+})();

@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var FeedbackInboxSection = ({ lang, onNotification }) => {
     const [feedback, setFeedback] = useState([]);
@@ -50,3 +51,4 @@ var FeedbackInboxSection = ({ lang, onNotification }) => {
 };
 
 window.FeedbackInboxSection = FeedbackInboxSection;
+})();

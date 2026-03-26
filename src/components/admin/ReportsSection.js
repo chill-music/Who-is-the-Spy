@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var ReportsSection = ({ currentUser, currentUserData, lang, onNotification, onOpenProfile }) => {
     const [reports, setReports]           = useState([]);
@@ -208,3 +209,4 @@ var ReportsSection = ({ currentUser, currentUserData, lang, onNotification, onOp
 };
 
 window.ReportsSection = ReportsSection;
+})();

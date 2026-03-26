@@ -1,17 +1,19 @@
+(function() {
+    const { useState, useEffect } = React;
 /**
  * HelpCenterModal Component
  * Modularized from 14-modals-misc.js
  */
 var HelpCenterModal = ({ show, onClose, user, userData, lang, onNotification, isLoggedIn }) => {
-    const [activeTab, setActiveTab] = React.useState('faq');
-    const [faqs, setFaqs] = React.useState([]);
-    const [openFaq, setOpenFaq] = React.useState(null);
-    const [loadingFaqs, setLoadingFaqs] = React.useState(true);
-    const [feedbackText, setFeedbackText] = React.useState('');
-    const [feedbackRating, setFeedbackRating] = React.useState(5);
-    const [sendingFeedback, setSendingFeedback] = React.useState(false);
+    const [activeTab, setActiveTab] = useState('faq');
+    const [faqs, setFaqs] = useState([]);
+    const [openFaq, setOpenFaq] = useState(null);
+    const [loadingFaqs, setLoadingFaqs] = useState(true);
+    const [feedbackText, setFeedbackText] = useState('');
+    const [feedbackRating, setFeedbackRating] = useState(5);
+    const [sendingFeedback, setSendingFeedback] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!show) return;
         setLoadingFaqs(true);
         const unsub = helpFaqCollection.onSnapshot(snap => {
@@ -177,3 +179,5 @@ var HelpCenterModal = ({ show, onClose, user, userData, lang, onNotification, is
 };
 
 window.HelpCenterModal = HelpCenterModal;
+})();
+

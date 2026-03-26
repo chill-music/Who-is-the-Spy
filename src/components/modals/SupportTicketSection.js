@@ -1,18 +1,21 @@
-var SupportTicketSection = ({ user, userData, lang, onNotification }) => {
-    const [view, setView]             = React.useState('list'); // 'list' | 'new' | 'detail'
-    const [myTickets, setMyTickets]   = React.useState([]);
-    const [loading, setLoading]       = React.useState(true);
-    const [selected, setSelected]     = React.useState(null);
-    const [submitting, setSubmitting] = React.useState(false);
-    const [userReply, setUserReply]   = React.useState('');
-    const [sendingReply, setSendingReply] = React.useState(false);
+(function() {
+    const { useState, useEffect } = React;
 
-    // New ticket form state
-    const [subject, setSubject]   = React.useState('');
-    const [message, setMessage]   = React.useState('');
-    const [category, setCategory] = React.useState('other');
+    const SupportTicketSection = ({ user, userData, lang, onNotification }) => {
+        const [view, setView]             = useState('list'); // 'list' | 'new' | 'detail'
+        const [myTickets, setMyTickets]   = useState([]);
+        const [loading, setLoading]       = useState(true);
+        const [selected, setSelected]     = useState(null);
+        const [submitting, setSubmitting] = useState(false);
+        const [userReply, setUserReply]   = useState('');
+        const [sendingReply, setSendingReply] = useState(false);
 
-    React.useEffect(() => {
+        // New ticket form state
+        const [subject, setSubject]   = useState('');
+        const [message, setMessage]   = useState('');
+        const [category, setCategory] = useState('other');
+
+        useEffect(() => {
         if (!user) return;
         const unsub = ticketsCollection
             .where('userId', '==', user.uid)
@@ -287,4 +290,5 @@ var SupportTicketSection = ({ user, userData, lang, onNotification }) => {
     );
 };
 
-window.SupportTicketSection = SupportTicketSection;
+    window.SupportTicketSection = SupportTicketSection;
+})();

@@ -1,26 +1,25 @@
-/**
- * PublicChatModal Component
- * Modularized from 14-modals-misc.js
- */
-var PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification, isLoggedIn, onOpenProfile, currentUID }) => {
-    const [messages, setMessages] = React.useState([]);
-    const [msgText, setMsgText] = React.useState('');
-    const [sending, setSending] = React.useState(false);
-    const [editingMsgId, setEditingMsgId] = React.useState(null);
-    const [editText, setEditText] = React.useState('');
-    const [uploadingImg, setUploadingImg] = React.useState(false);
-    const [showEmojiPicker, setShowEmojiPicker] = React.useState(false);
-    const [showRPModal, setShowRPModal] = React.useState(false);
-    const [sendingRP, setSendingRP] = React.useState(false);
-    const [menuMsgId, setMenuMsgId] = React.useState(null);
-    // ── Mini Profile state ──
-    const [miniProfilePub, setMiniProfilePub] = React.useState(null);
-    const [miniMenuPub, setMiniMenuPub] = React.useState(false);
-    const messagesEndRef = React.useRef(null);
-    const inputRef = React.useRef(null);
-    const fileInputRef = React.useRef(null);
+(function() {
+    const { useState, useEffect, useRef, createElement } = React;
 
-    React.useEffect(() => {
+    const PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification, isLoggedIn, onOpenProfile, currentUID }) => {
+        const [messages, setMessages] = useState([]);
+        const [msgText, setMsgText] = useState('');
+        const [sending, setSending] = useState(false);
+        const [editingMsgId, setEditingMsgId] = useState(null);
+        const [editText, setEditText] = useState('');
+        const [uploadingImg, setUploadingImg] = useState(false);
+        const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+        const [showRPModal, setShowRPModal] = useState(false);
+        const [sendingRP, setSendingRP] = useState(false);
+        const [menuMsgId, setMenuMsgId] = useState(null);
+    // ── Mini Profile state ──
+    const [miniProfilePub, setMiniProfilePub] = useState(null);
+    const [miniMenuPub, setMiniMenuPub] = useState(false);
+    const messagesEndRef = useRef(null);
+    const inputRef = useRef(null);
+    const fileInputRef = useRef(null);
+
+    useEffect(() => {
         if (!show) return;
         const unsub = publicChatCollection
             .orderBy('createdAt', 'asc')
@@ -366,7 +365,7 @@ var PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification,
                                         <span style={{fontSize:'11px',fontWeight:700,color:'#00f2ff'}}>{lang==='ar'?'إيموجي':'Emoji'}</span>
                                         <button onClick={()=>setShowEmojiPicker(false)} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:'14px'}}>✕</button>
                                     </div>
-                                    {React.createElement(EmojiPicker,{show:true,onClose:()=>setShowEmojiPicker(false),onSelect:(e)=>{setMsgText(p=>p+e);setShowEmojiPicker(false);inputRef.current?.focus();},lang,inline:true})}
+                                    {createElement(EmojiPicker,{show:true,onClose:()=>setShowEmojiPicker(false),onSelect:(e)=>{setMsgText(p=>p+e);setShowEmojiPicker(false);inputRef.current?.focus();},lang,inline:true})}
                                 </div>
                             )}
                             <button onClick={()=>setShowEmojiPicker(v=>!v)} style={{width:'36px',height:'36px',borderRadius:'10px',border:`1px solid ${showEmojiPicker?'rgba(0,242,255,0.3)':'rgba(255,255,255,0.08)'}`,background:showEmojiPicker?'rgba(0,242,255,0.12)':'rgba(255,255,255,0.05)',cursor:'pointer',fontSize:'17px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>😀</button>
@@ -388,4 +387,5 @@ var PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification,
     );
 };
 
-window.PublicChatModal = PublicChatModal;
+    window.PublicChatModal = PublicChatModal;
+})();

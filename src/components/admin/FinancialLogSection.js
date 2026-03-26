@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var FinancialLogSection = ({ lang }) => {
     const [goldLogs, setGoldLogs] = useState([]);
@@ -91,3 +92,4 @@ var FinancialLogSection = ({ lang }) => {
 };
 
 window.FinancialLogSection = FinancialLogSection;
+})();

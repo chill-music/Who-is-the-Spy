@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var UserManagementSection = ({ currentUser, currentUserData, lang, onNotification }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -88,3 +89,4 @@ var UserManagementSection = ({ currentUser, currentUserData, lang, onNotificatio
 };
 
 window.UserManagementSection = UserManagementSection;
+})();

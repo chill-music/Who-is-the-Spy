@@ -1,8 +1,5 @@
-/**
- * VIPCenterModal Component
- * Modularized from 14-modals-misc.js
- */
-var VIPCenterModal = ({ show, onClose, userData, user, lang, onNotification, onOpenShop }) => {
+(function() {
+    const VIPCenterModal = ({ show, onClose, userData, user, lang, onNotification, onOpenShop }) => {
     if (!show) return null;
     return (
         <PortalModal>
@@ -42,4 +39,5 @@ var VIPCenterModal = ({ show, onClose, userData, user, lang, onNotification, onO
     );
 };
 
-window.VIPCenterModal = VIPCenterModal;
+    window.VIPCenterModal = VIPCenterModal;
+})();

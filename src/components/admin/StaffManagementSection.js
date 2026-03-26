@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var StaffManagementSection = ({ currentUser, currentUserData, lang, onNotification }) => {
     const [staff, setStaff] = useState([]);
@@ -74,3 +75,4 @@ var StaffManagementSection = ({ currentUser, currentUserData, lang, onNotificati
 };
 
 window.StaffManagementSection = StaffManagementSection;
+})();

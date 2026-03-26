@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var FAQManagementSection = ({ lang, onNotification }) => {
     const [faqs, setFaqs] = useState([]);
@@ -71,3 +72,4 @@ var FAQManagementSection = ({ lang, onNotification }) => {
 };
 
 window.FAQManagementSection = FAQManagementSection;
+})();

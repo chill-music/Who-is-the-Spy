@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var OverviewSection = ({ lang }) => {
     const [stats, setStats] = useState({ users:0, today:0, reports:0, tickets:0 });
@@ -54,3 +55,4 @@ var OverviewSection = ({ lang }) => {
 };
 
 window.OverviewSection = OverviewSection;
+})();

@@ -1,18 +1,20 @@
+(function() {
+    const { useState, useEffect, useRef } = React;
 /**
  * LobbyPublicChatBox Component
  * Modularized from 14-modals-misc.js
  */
 var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, currentUID, onOpenFull }) => {
-    const [messages, setMessages] = React.useState([]);
-    const [msgText, setMsgText] = React.useState('');
-    const [sending, setSending] = React.useState(false);
-    const [cooldown, setCooldown]   = React.useState(0); // seconds remaining
-    const messagesEndRef = React.useRef(null);
-    const inputRef = React.useRef(null);
-    const cooldownRef = React.useRef(null);
+    const [messages, setMessages] = useState([]);
+    const [msgText, setMsgText] = useState('');
+    const [sending, setSending] = useState(false);
+    const [cooldown, setCooldown]   = useState(0); // seconds remaining
+    const messagesEndRef = useRef(null);
+    const inputRef = useRef(null);
+    const cooldownRef = useRef(null);
 
-    const isFirstLoad = React.useRef(true);
-    React.useEffect(() => {
+    const isFirstLoad = useRef(true);
+    useEffect(() => {
         const unsub = publicChatCollection
             .orderBy('createdAt', 'asc')
             .limitToLast(30)
@@ -137,3 +139,5 @@ var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, 
 };
 
 window.LobbyPublicChatBox = LobbyPublicChatBox;
+})();
+

@@ -1,13 +1,15 @@
+(function() {
+    const { useState, useEffect } = React;
 var BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUserData, lang }) => {
     const t = TRANSLATIONS[lang];
-    const [rooms, setRooms] = React.useState([]);
-    const [loading, setLoading] = React.useState(true);
-    const [joinPassword, setJoinPassword] = React.useState('');
-    const [selectedRoom, setSelectedRoom] = React.useState(null);
-    const [showPasswordInput, setShowPasswordInput] = React.useState(false);
-    const [passwordError, setPasswordError] = React.useState('');
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [joinPassword, setJoinPassword] = useState('');
+    const [selectedRoom, setSelectedRoom] = useState(null);
+    const [showPasswordInput, setShowPasswordInput] = useState(false);
+    const [passwordError, setPasswordError] = useState('');
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!show) return;
         setLoading(true);
         setPasswordError('');
@@ -81,3 +83,5 @@ var BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUs
 };
 
 window.BrowseRoomsModal = BrowseRoomsModal;
+})();
+

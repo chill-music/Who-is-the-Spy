@@ -1,6 +1,9 @@
-var TutorialModal = ({ show, onClose, lang }) => {
-    const t = TRANSLATIONS[lang];
-    const [step, setStep] = React.useState(0);
+(function() {
+    const { useState } = React;
+
+    const TutorialModal = ({ show, onClose, lang }) => {
+        const t = TRANSLATIONS[lang];
+        const [step, setStep] = useState(0);
     if(!show) return null;
     const steps = [ { text: t.tutorialStep1, img: "🕵️" }, { text: t.tutorialStep2, img: "🗳️" }, { text: t.tutorialStep3, img: "🛒" } ];
     return (
@@ -22,4 +25,5 @@ var TutorialModal = ({ show, onClose, lang }) => {
     );
 };
 
-window.TutorialModal = TutorialModal;
+    window.TutorialModal = TutorialModal;
+})();

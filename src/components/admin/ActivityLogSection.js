@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var ActivityLogSection = ({ lang }) => {
     const [logs, setLogs] = useState([]);
@@ -54,3 +55,4 @@ var ActivityLogSection = ({ lang }) => {
 };
 
 window.ActivityLogSection = ActivityLogSection;
+})();

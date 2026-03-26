@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var TicketsSection = ({ currentUser, currentUserData, lang, onNotification, onOpenProfile }) => {
     const [tickets, setTickets] = useState([]);
@@ -139,3 +140,4 @@ var TicketsSection = ({ currentUser, currentUserData, lang, onNotification, onOp
 };
 
 window.TicketsSection = TicketsSection;
+})();

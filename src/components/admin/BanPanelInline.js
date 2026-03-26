@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var BanPanelInline = ({ reportedUID, reportedName, reportId, currentUser, currentUserData, lang, onDone, onCancel }) => {
     const [banReason, setBanReason]     = useState('');
@@ -112,3 +113,4 @@ var BanPanelInline = ({ reportedUID, reportedName, reportId, currentUser, curren
 };
 
 window.BanPanelInline = BanPanelInline;
+})();

@@ -1,7 +1,9 @@
+(function() {
+    const { useState, useEffect } = React;
 var LoginRewards = ({ show, onClose, userData, onClaim, lang, onOpenInventory }) => {
     const t = TRANSLATIONS[lang];
-    const [claiming, setClaiming] = React.useState(false);
-    const [countdown, setCountdown] = React.useState('');
+    const [claiming, setClaiming] = useState(false);
+    const [countdown, setCountdown] = useState('');
 
     // ALL computations before any hooks - Rules of Hooks compliance
     const loginData = userData?.loginRewards || { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0 };
@@ -23,7 +25,7 @@ var LoginRewards = ({ show, onClose, userData, onClaim, lang, onOpenInventory })
     const currentReward = LOGIN_REWARDS[currentDay];
 
     // Countdown timer - MUST be before any conditional returns
-    React.useEffect(() => {
+    useEffect(() => {
         if (!show || canClaimToday || !lastClaimDate) { setCountdown(''); return; }
         const calcCountdown = () => {
             const now = new Date();
@@ -159,3 +161,5 @@ var LoginRewards = ({ show, onClose, userData, onClaim, lang, onOpenInventory })
 };
 
 window.LoginRewards = LoginRewards;
+})();
+

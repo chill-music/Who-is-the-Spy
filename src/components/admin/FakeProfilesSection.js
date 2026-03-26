@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var FAKE_PROFILE_PHOTOS = [
     'https://i.pravatar.cc/150?img=1','https://i.pravatar.cc/150?img=2','https://i.pravatar.cc/150?img=3',
@@ -61,3 +62,4 @@ var FakeProfilesSection = ({ lang, onNotification }) => {
 };
 
 window.FakeProfilesSection = FakeProfilesSection;
+})();

@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var MomentsModerationSection = ({ currentUser, currentUserData, lang, onNotification, onOpenProfile }) => {
     const [moments, setMoments] = useState([]);
@@ -85,3 +86,4 @@ var MomentsModerationSection = ({ currentUser, currentUserData, lang, onNotifica
 };
 
 window.MomentsModerationSection = MomentsModerationSection;
+})();

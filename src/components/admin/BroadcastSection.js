@@ -1,4 +1,5 @@
-const { useState, useEffect, useMemo, useRef } = React;
+(function() {
+    const { useState, useEffect, useMemo, useRef } = React;
 
 var BroadcastSection = ({ currentUser, currentUserData, lang, onNotification }) => {
     const [msg, setMsg] = useState('');
@@ -63,3 +64,4 @@ var BroadcastSection = ({ currentUser, currentUserData, lang, onNotification }) 
 };
 
 window.BroadcastSection = BroadcastSection;
+})();
