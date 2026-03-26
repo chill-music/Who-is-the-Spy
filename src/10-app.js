@@ -1102,17 +1102,22 @@ function App() {
         const allUIDs = [...new Set([...friendUIDs, user.uid])];
         if (allUIDs.length === 0) return;
 
-        // Listen for the absolute latest moment from this group (limited to first 10 for performance)
+        // Listen for the absolute latest global moments (limited to first 20 for performance)
+        // This avoids missing index errors by doing the UID filtering client-side
         const unsub = momentsCollection
-            .where('authorUID', 'in', allUIDs.slice(0, 10))
             .orderBy('createdAt', 'desc')
-            .limit(1)
+            .limit(20)
             .onSnapshot(snap => {
                 if (!snap.empty) {
-                    const latest = snap.docs[0].data().createdAt?.toMillis?.() || 0;
-                    if (latest > lastViewed) setHasNewMoments(true);
+                    const fUIDs = (friendsData || []).map(f => f.id || f.uid).filter(Boolean);
+                    const allU = new Set([...fUIDs, user.uid]);
+                    const hasNew = snap.docs.some(d => {
+                        const data = d.data();
+                        return allU.has(data.authorUID) && (data.createdAt?.toMillis?.() || 0) > lastViewed;
+                    });
+                    if (hasNew) setHasNewMoments(true);
                 }
-            });
+            }, (err) => console.log('MomentsDot error:', err));
         return unsub;
     }, [user, friendsData]);
 
