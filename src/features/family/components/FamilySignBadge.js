@@ -16,9 +16,10 @@ var FamilySignBadge = ({ level, size = 40, lang, tag, color, small, signLevel, i
 
     // لو في صورة: تظهر مع التاج مكتوب فوقها
     if (imgSrc) {
+        // Badge is purely the image size; tag text floats centered over the image
         var imgW = small
-            ? 28 + (displayTag.length * 4)   // small: 3→40  4→44  5→48
-            : 44 + (displayTag.length * 6);   // normal: 3→62 4→68  5→74
+            ? 36 + (displayTag.length * 3)   // small: 3→45  4→48  5→51
+            : 54 + (displayTag.length * 5);   // normal: 3→69 4→74  5→79
         var imgH = Math.round(imgW * 0.55);
         var fontSize = small
             ? (displayTag.length <= 3 ? 8 : displayTag.length === 4 ? 7 : 6)
@@ -27,15 +28,16 @@ var FamilySignBadge = ({ level, size = 40, lang, tag, color, small, signLevel, i
         return (
             <span style={{
                 position:'relative',
-                display:'inline-flex', alignItems:'center', justifyContent:'center',
+                display:'inline-block',
                 flexShrink:0,
-                width:`${imgW}px`, height:`${imgH}px`,
+                width:`${imgW}px`,
+                height:`${imgH}px`,
                 filter: hasGlow
                     ? `drop-shadow(0 0 6px ${color}${glowIntensity}) drop-shadow(0 0 14px ${color}${glowMid}) drop-shadow(0 0 22px ${color}${glowFar})`
                     : 'none',
                 transition:'all 0.2s',
             }}>
-                {/* الصورة الخلفية */}
+                {/* Background image fills the container */}
                 <img
                     src={imgSrc}
                     alt=""
@@ -46,15 +48,17 @@ var FamilySignBadge = ({ level, size = 40, lang, tag, color, small, signLevel, i
                         display:'block',
                     }}
                 />
-                {/* التاج فوق الصورة */}
+                {/* Tag text: absolutely centered, small pill */}
                 <span style={{
-                    position:'relative', zIndex:1,
+                    position:'absolute',
+                    left:'50%', top:'50%',
+                    transform:'translate(-50%, -50%)',
+                    zIndex:1,
                     fontSize:`${fontSize}px`,
                     fontWeight:900,
                     fontStyle:'italic',
                     letterSpacing:'1.5px',
                     color:'#fff',
-                    marginTop:'2px',
                     textShadow:`
                         0 0 6px rgba(0,0,0,0.9),
                         0 0 12px rgba(0,0,0,0.7),
@@ -66,6 +70,8 @@ var FamilySignBadge = ({ level, size = 40, lang, tag, color, small, signLevel, i
                     `,
                     userSelect:'none',
                     lineHeight:1,
+                    whiteSpace:'nowrap',
+                    pointerEvents:'none',
                 }}>
                     {displayTag}
                 </span>

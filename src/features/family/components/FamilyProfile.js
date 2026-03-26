@@ -33,7 +33,7 @@ var FamilyProfile = ({
     var canManage = myRole === 'owner' || myRole === 'admin';
 
     // ── Sign data: based on lastWeekActiveness ──
-    var SIGN_FALLBACK = { level: 0, color: '#4b5563', glow: 'rgba(75,85,99,0.3)', defaultIcon: '🏠', bg: 'rgba(75,85,99,0.1)', name_ar: 'بدون ساين', name_en: 'No Sign', threshold: 0 };
+    var SIGN_FALLBACK = { level: 1, color: '#4b5563', glow: 'rgba(75,85,99,0.3)', defaultIcon: '🏠', bg: 'rgba(75,85,99,0.1)', name_ar: 'العائلة', name_en: 'Family', threshold: 0 };
     var lastWeekAct = family.lastWeekActiveness !== undefined ? family.lastWeekActiveness : (family.weeklyActiveness || 0);
     var signData = window.FamilyConstants.getFamilySignLevelData(lastWeekAct) || SIGN_FALLBACK;
 
@@ -259,7 +259,7 @@ var FamilyProfile = ({
                         {/* Name + Sign */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '3px' }}>
                             <span style={{ fontSize: '18px', fontWeight: 900, color: 'white', fontStyle: 'italic', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '150px' }}>{family.name}</span>
-                            {signData.level > 0 && window.FamilySignBadge && <window.FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={window.FamilyConstants.getFamilySignImage(lastWeekAct)} />}
+                            {signData.level >= 1 && window.FamilySignBadge && <window.FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={window.FamilyConstants.getFamilySignImage(0, signData.level)} />}
                         </div>
                         {/* Level badge + Member count */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '3px' }}>
