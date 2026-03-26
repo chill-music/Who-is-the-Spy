@@ -5,9 +5,10 @@
 var ProfileFamilySignBadge = ({ userData, lang, onClick }) => {
     const familyTag   = userData?.familyTag;
     const familyName  = userData?.familyName;
-    const signLevel   = userData?.familySignLevel   || null;
-    const signColor   = userData?.familySignColor   || '#6b7280';
-    const signImgURL  = window.getFamilySignURL ? window.getFamilySignURL(userData) : null;
+    const signLevel   = userData?.familySignLevel || (userData?.familyId ? 1 : null);
+    const signData    = (window.FamilyConstants && signLevel) ? window.FamilyConstants.getFamilySignLevelDataByLevel(signLevel) : null;
+    const signColor   = signData?.color || userData?.familySignColor || '#6b7280';
+    const signImgURL  = (window.FamilyConstants && signLevel) ? window.FamilyConstants.getFamilySignImage(0, signLevel) : (window.getFamilySignURL ? window.getFamilySignURL(userData) : null);
 
     // Only show if user has a family AND has earned a sign (level > 0)
     if (!familyTag || !signLevel) return null;

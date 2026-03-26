@@ -71,6 +71,10 @@
     <!-- 👑 17 · VIP System — must load before 09+ which uses VIP helpers -->
     <script type="text/babel" data-presets="react" src="src/17-vip.js"></script>
 
+    <!-- Family System Core (must load before components that use them) -->
+    <script type="text/babel" data-presets="react" src="src/features/family/FamilyConstants.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilySignBadge.js"></script>
+
     <!-- 09 · User Components (Onboarding, Daily Tasks, Login Rewards) -->
     <script type="text/babel" data-presets="react" src="src/09-components-user.js"></script>
 
@@ -110,10 +114,8 @@
     <script type="text/babel" data-presets="react" src="src/18-admin-panel.js"></script>
 
     <!-- Family System Modules -->
-    <script type="text/babel" data-presets="react" src="src/features/family/FamilyConstants.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/FamilyUtils.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/FamilyService.js"></script>
-    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilySignBadge.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyShared.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyChatModal.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyTreasury.js"></script>

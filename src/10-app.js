@@ -1312,17 +1312,22 @@ function App() {
         const text = gameChatInput.trim();
         if (!text || !room || !currentUID) return;
         const senderName = room.players.find(p => p.uid === currentUID)?.name || nickname || 'Player';
+        const familyWeeklyAct = userFamily?.lastWeekActiveness !== undefined ? userFamily.lastWeekActiveness : (userFamily?.weeklyActiveness || 0);
+        const signLevel = userFamily ? (window.FamilyConstants?.getFamilySignLevelData?.(familyWeeklyAct)?.level || 1) : null;
+
         const msg = {
             sender: currentUID,
             name: senderName,
             text,
             time: Date.now(),
+            familyTag: userFamily?.tag || null,
+            familySignLevel: signLevel,
         };
         setGameChatInput('');
         await roomsCollection.doc(roomId).update({
             messages: firebase.firestore.FieldValue.arrayUnion(msg)
         });
-    }, [gameChatInput, room, currentUID, roomId, nickname]);
+    }, [gameChatInput, room, currentUID, roomId, nickname, userFamily]);
 
     // Auto-scroll chat to bottom when new messages arrive
     useEffect(() => {
@@ -2742,6 +2747,7 @@ function App() {
                                 {isLoggedIn && userFamily && (() => {
                                     const familyWeeklyAct = userFamily.lastWeekActiveness !== undefined ? userFamily.lastWeekActiveness : (userFamily.weeklyActiveness || 0);
                                     const signData = typeof getFamilySignLevelData === 'function' ? getFamilySignLevelData(familyWeeklyAct) : null;
+                                    const signImageURL = (typeof getFamilySignImage === 'function') ? getFamilySignImage(familyWeeklyAct) : null;
                                     const readAt = userFamily.chatReadBy?.[currentUID];
                                     const lastChatAt = userFamily.lastChatAt;
                                     const hasUnread = lastChatAt && readAt
@@ -2760,7 +2766,7 @@ function App() {
                                                     <span style={{fontSize:'13px',fontWeight:hasUnread?800:600,color:hasUnread?'#f97316':'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'120px'}}>{userFamily.name}</span>
                                                     {window.FamilySignBadge && signData ? (
                                                         <div style={{transform:'scale(0.85)',transformOrigin:'left center'}}>
-                                                            <window.FamilySignBadge tag={userFamily.tag||'FAM'} color={signData.color} signLevel={signData.level} imageURL={signData.imageURL} small={true} />
+                                                            <window.FamilySignBadge tag={userFamily.tag||'FAM'} color={signData.color} signLevel={signData.level} imageURL={signImageURL} small={true} />
                                                         </div>
                                                     ) : signData && <span style={{fontSize:'9px',fontWeight:800,color:signData.color,background:`${signData.color}20`,border:`1px solid ${signData.color}44`,borderRadius:'4px',padding:'1px 5px'}}>{userFamily.tag||'FAM'}</span>}
                                                 </div>
@@ -3388,7 +3394,20 @@ function App() {
                                                                         marginBottom:'2px',
                                                                         paddingLeft:'2px',
                                                                     }}>
-                                                                        {msg.name}
+                                                                        <div style={{display:'flex',alignItems:'center',gap:'4px'}}>
+                                                                            {msg.name}
+                                                                            {msg.familyTag && window.FamilySignBadge && (
+                                                                                <div style={{transform:'scale(0.75)',transformOrigin:'left center',marginLeft:'-2px'}}>
+                                                                                    <window.FamilySignBadge 
+                                                                                        tag={msg.familyTag} 
+                                                                                        signLevel={msg.familySignLevel || 1} 
+                                                                                        color={window.FamilyConstants?.getFamilySignLevelDataByLevel?.(msg.familySignLevel || 1)?.color || '#00f2ff'}
+                                                                                        imageURL={window.FamilyConstants?.getFamilySignImage?.(0, msg.familySignLevel || 1)}
+                                                                                        small={true} 
+                                                                                    />
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
                                                                 )}
                                                                 <div style={{

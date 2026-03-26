@@ -78,8 +78,9 @@ var ProfileIdentity = ({
                         <div style={{transform:'scale(0.9)', transformOrigin:'left center'}}>
                             <window.FamilySignBadge
                                 tag={targetData.familyTag}
-                                color={targetData.familySignColor || '#6b7280'}
+                                color={targetData.familySignColor || window.FamilyConstants?.getFamilySignLevelDataByLevel?.(targetData.familySignLevel || 1)?.color || '#6b7280'}
                                 signLevel={targetData.familySignLevel || 1}
+                                imageURL={window.FamilyConstants?.getFamilySignImage?.(0, targetData.familySignLevel || 1)}
                                 small={true}
                                 onClick={onOpenFamily ? () => onOpenFamily(targetData?.familyId) : undefined}
                             />

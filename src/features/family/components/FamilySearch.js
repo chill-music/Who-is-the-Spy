@@ -233,14 +233,15 @@ var FamilySearch = ({
                                         <div style={{display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'4px'}}>
                                             <span style={{fontSize:'16px', fontWeight:800, color:'white', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'140px'}}>{f.name}</span>
                                             {(() => {
-                                                const signData = getFamilySignLevelData(f.lastWeekActiveness || 0);
+                                                const signData = window.FamilyConstants?.getFamilySignLevelData?.(f.lastWeekActiveness || 0);
                                                 if (!signData || !FamilySignBadge) return null;
+                                                const signLevel = signData.level || 1;
                                                 return <FamilySignBadge 
                                                     tag={f.tag} 
                                                     color={signData.color} 
                                                     small={true} 
-                                                    signLevel={signData.level} 
-                                                    imageURL={f.signImageURL} 
+                                                    signLevel={signLevel} 
+                                                    imageURL={window.FamilyConstants?.getFamilySignImage?.(0, signLevel)} 
                                                 />;
                                             })()}
                                             <span style={{fontSize:'11px', fontWeight:700, color:levelData.color, opacity:0.8}}>Lv.{f.level || 1}</span>
@@ -290,7 +291,7 @@ var FamilySearch = ({
                                 <button onClick={() => setPreviewSignLevel(Math.max(1, previewSignLevel - 1))} style={{background:'rgba(255,255,255,0.1)', border:'none', color:'white', width:'30px', height:'30px', borderRadius:'50%', cursor:previewSignLevel>1?'pointer':'not-allowed', opacity:previewSignLevel>1?1:0.3, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', fontWeight:800}}>‹</button>
                                 
                                 <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:'4px'}}>
-                                    <FamilySignBadge tag={tribeTag} color="#a78bfa" small={false} signLevel={previewSignLevel} />
+                                    <FamilySignBadge tag={tribeTag} color="#a78bfa" small={false} signLevel={previewSignLevel} imageURL={window.FamilyConstants?.getFamilySignImage?.(0, previewSignLevel)} />
                                     <span style={{fontSize:'10px', color:'#9ca3af', fontWeight:700}}>Lv.{previewSignLevel}</span>
                                 </div>
                                 

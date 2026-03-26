@@ -1,4 +1,4 @@
-var { CHEST_CONFIG, ACTIVENESS_MILESTONES } = window;
+var { CHEST_CONFIG, ACTIVENESS_MILESTONES, FAMILY_LEVEL_CONFIG, FAMILY_SIGN_LEVELS } = window;
 var useFamilyData = () => {
     const [currentUID, setCurrentUID] = React.useState(auth.currentUser?.uid || null);
     const [currentUserData, setCurrentUserData] = React.useState(null);
@@ -105,32 +105,22 @@ var getFamilyLevelProgress = (activeness = 0, currentLevel = 1) => {
 };
 
 var getFamilySignImage = (level) => {
-    var signs = window.FamilyConstants?.FAMILY_SIGN_IMAGES || window.FAMILY_SIGN_IMAGES;
-    if (!signs) return null;
-    var cfg = signs.find(s => s.level === level);
-    return cfg?.imageURL || null;
+    return window.FamilyConstants?.getFamilySignImage?.(0, level) || null;
 };
 
 var getFamilySignLevelData = (weeklyActiveness = 0) => {
-    var levels = window.FamilyConstants?.FAMILY_SIGN_LEVELS || window.FAMILY_SIGN_LEVELS || [];
-    var cfg = null;
-    for (var i = levels.length - 1; i >= 0; i--) {
-        if (weeklyActiveness >= levels[i].threshold) { 
-            cfg = levels[i]; 
-            break; 
-        }
-    }
-    if (!cfg) return null;
-    return { ...cfg, imageURL: getFamilySignImage(cfg.level) };
+    return window.FamilyConstants?.getFamilySignLevelData?.(weeklyActiveness) || null;
 };
 
 var getFamilySignProgress = (weeklyActiveness = 0) => {
+    var levels = window.FamilyConstants?.FAMILY_SIGN_LEVELS || [];
     var cur = getFamilySignLevelData(weeklyActiveness);
     if (!cur) {
-        var first = FAMILY_SIGN_LEVELS[0];
+        var first = levels[0];
+        if (!first) return 0;
         return Math.min(99, Math.round((weeklyActiveness / first.threshold) * 100));
     }
-    var next = FAMILY_SIGN_LEVELS.find(s => s.level === cur.level + 1);
+    var next = levels.find(s => s.level === cur.level + 1);
     if (!next) return 100;
     return Math.min(100, Math.round(((weeklyActiveness - cur.threshold) / (next.threshold - cur.threshold)) * 100));
 };

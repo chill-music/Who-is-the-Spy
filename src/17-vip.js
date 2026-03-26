@@ -545,6 +545,18 @@ var PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
                                  overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
                                  maxWidth:'120px' }}
                     />
+                    {/* Family Sign Badge */}
+                    {player.familyTag && window.FamilySignBadge && (
+                        <div style={{ transform: 'scale(0.8)', transformOrigin: 'left center', marginLeft: '-2px', marginRight: '-2px' }}>
+                            <window.FamilySignBadge 
+                                tag={player.familyTag} 
+                                signLevel={player.familySignLevel || 1} 
+                                color={window.FamilyConstants?.getFamilySignLevelDataByLevel?.(player.familySignLevel || 1)?.color || '#00f2ff'}
+                                imageURL={window.FamilyConstants?.getFamilySignImage?.(0, player.familySignLevel || 1)}
+                                small={true}
+                            />
+                        </div>
+                    )}
                     {vipActive && (
                         <VIPBadge userData={player} size="sm" onClick={() => {}} />
                     )}

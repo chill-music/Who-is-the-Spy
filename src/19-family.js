@@ -27,31 +27,11 @@ var FAMILY_LEVEL_CONFIG = [
     { level:10, activeness:2000000, name_en:'GOAT',       name_ar:'الأعظم',   color:'#00d4ff', maxMembers:160, icon:'🌌', upgradeCost:0,     imageURL: null },
 ];
 
-// ════ FAMILY SIGN LEVELS — Based on Weekly Activeness ════
-// These thresholds mirror FAMILY_SIGN_IMAGES in 01-config.js
-var FAMILY_SIGN_LEVELS = [
-    { level:1, threshold:1000,   name_ar:'ساين المستوى 1',  name_en:'Sign Level 1',  color:'#6b7280', glow:'rgba(107,114,128,0.3)', defaultIcon:'🏠', bg:'rgba(107,114,128,0.15)' },
-    { level:2, threshold:10000,  name_ar:'ساين المستوى 2',  name_en:'Sign Level 2',  color:'#22d3ee', glow:'rgba(34,211,238,0.4)',  defaultIcon:'⚔️', bg:'rgba(34,211,238,0.15)' },
-    { level:3, threshold:30000,  name_ar:'ساين المستوى 3',  name_en:'Sign Level 3',  color:'#fbbf24', glow:'rgba(251,191,36,0.4)',  defaultIcon:'🛡️', bg:'rgba(251,191,36,0.15)' },
-    { level:4, threshold:100000, name_ar:'ساين المستوى 4',  name_en:'Sign Level 4',  color:'#f97316', glow:'rgba(249,115,22,0.55)', defaultIcon:'👑', bg:'rgba(249,115,22,0.15)',  hasGlow:true },
-    { level:5, threshold:300000, name_ar:'ساين المستوى 5',  name_en:'Sign Level 5',  color:'#ef4444', glow:'rgba(239,68,68,0.65)',  defaultIcon:'🌟', bg:'rgba(239,68,68,0.15)',   hasGlow:true },
-];
-
-// Get sign image URL from config (FAMILY_SIGN_IMAGES defined in 01-config.js)
-var getFamilySignImage = (level) => {
-    if (typeof FAMILY_SIGN_IMAGES === 'undefined') return null;
-    const cfg = FAMILY_SIGN_IMAGES.find(s => s.level === level);
-    return cfg?.imageURL || null;
-};
-
-// Use WEEKLY activeness to determine sign level
-var getFamilySignLevelData = (weeklyActiveness = 0) => {
-    let cfg = null; // start with no sign
-    for (let i = FAMILY_SIGN_LEVELS.length - 1; i >= 0; i--) {
-        if (weeklyActiveness >= FAMILY_SIGN_LEVELS[i].threshold) { cfg = FAMILY_SIGN_LEVELS[i]; break; }
-    }
-    if (!cfg) return null; // no sign earned yet
-    return { ...cfg, imageURL: getFamilySignImage(cfg.level) };
+// Use window.FamilyConstants for thresholds and image logic
+var { FAMILY_SIGN_LEVELS, getFamilySignLevelData, getFamilySignImage } = window.FamilyConstants || {
+    FAMILY_SIGN_LEVELS: [],
+    getFamilySignLevelData: () => null,
+    getFamilySignImage: () => null
 };
 var getFamilySignProgress = (weeklyActiveness = 0) => {
     const cur = getFamilySignLevelData(weeklyActiveness);
@@ -216,7 +196,8 @@ var fmtFamilyTime = (ts, lang) => {
 var FamilyRoleBadge = window.FamilyRoleBadge || (function() { return null; });
 
 // Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
-var FamilySignBadge = window.FamilySignBadge || (function() { return null; });
+// Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
+var FamilySignBadge = (props) => (window.FamilySignBadge ? <window.FamilySignBadge {...props} /> : null);
 
 // ════════════════════════════════════════════════════════
 // 📸 FRIENDS MOMENTS MODAL

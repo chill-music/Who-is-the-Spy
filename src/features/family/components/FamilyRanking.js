@@ -21,9 +21,9 @@ var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {rankings.map((fam, i) => {
                     var fl = FamilyService.getFamilyLevelConfig(fam.level || 1);
-                    var sign = FamilyService.getFamilySignLevelData(fam.weeklyActiveness || 0);
+                    var sign = window.FamilyConstants?.getFamilySignLevelData?.(fam.weeklyActiveness || 0);
                     var signColor = sign?.color || '#6b7280';
-                    var signLevel = sign?.level || 0;
+                    var signLevel = sign?.level || 1;
                     var isMine = fam.id === currentFamilyId;
 
                     return (
@@ -72,7 +72,7 @@ var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
                                     }}>
                                         {fam.name}
                                     </span>
-                                    {sign && <window.FamilyShared.FamilySignBadge tag={fam.tag} color={signColor} small signLevel={signLevel} />}
+                                    {sign && window.FamilySignBadge && <window.FamilySignBadge tag={fam.tag} color={signColor} small signLevel={signLevel} imageURL={window.FamilyConstants?.getFamilySignImage?.(0, signLevel)} />}
                                 </div>
                                 <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <span>{fl.icon} Lv.{fl.level}</span>

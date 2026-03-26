@@ -20,10 +20,12 @@ var FAMILY_LEVEL_CONFIG = [
 var FAMILY_SIGN_LEVELS = [
     { level: 1, threshold: 0, name_ar: 'ساين المستوى 1', name_en: 'Sign Level 1', color: '#6b7280', glow: 'rgba(107,114,128,0.3)', defaultIcon: '🏠', bg: 'rgba(107,114,128,0.15)' },
     { level: 2, threshold: 10000, name_ar: 'ساين المستوى 2', name_en: 'Sign Level 2', color: '#22d3ee', glow: 'rgba(34,211,238,0.4)', defaultIcon: '⚔️', bg: 'rgba(34,211,238,0.15)' },
-    { level: 3, threshold: 30000, name_ar: 'ساين المستوى 3', name_en: 'Sign Level 3', color: '#fbbf24', glow: 'rgba(251,191,36,0.4)', defaultIcon: '🛡️', bg: 'rgba(251,191,36,0.15)' },
-    { level: 4, threshold: 100000, name_ar: 'ساين المستوى 4', name_en: 'Sign Level 4', color: '#f97316', glow: 'rgba(249,115,22,0.55)', defaultIcon: '👑', bg: 'rgba(249,115,22,0.15)', hasGlow: true },
+    { level: 3, threshold: 50000, name_ar: 'ساين المستوى 3', name_en: 'Sign Level 3', color: '#fbbf24', glow: 'rgba(251,191,36,0.4)', defaultIcon: '🛡️', bg: 'rgba(251,191,36,0.15)' },
+    { level: 4, threshold: 150000, name_ar: 'ساين المستوى 4', name_en: 'Sign Level 4', color: '#f97316', glow: 'rgba(249,115,22,0.55)', defaultIcon: '👑', bg: 'rgba(249,115,22,0.15)', hasGlow: true },
     { level: 5, threshold: 300000, name_ar: 'ساين المستوى 5', name_en: 'Sign Level 5', color: '#ef4444', glow: 'rgba(239,68,68,0.65)', defaultIcon: '🌟', bg: 'rgba(239,68,68,0.15)', hasGlow: true },
 ];
+
+const SIGN_FALLBACK = { level: 0, color: '#4b5563', name_ar: 'بدون شارة', name_en: 'No Sign', threshold: 0 };
 
 var FAMILY_ROLE_CONFIG = {
     owner: { label_en: 'Owner', label_ar: 'المالك', color: '#ffd700', bg: 'rgba(255,215,0,0.18)', border: 'rgba(255,215,0,0.45)', icon: '👑' },
@@ -190,8 +192,12 @@ var getFamilySignLevelData = (activeness) => {
     return reversed.find(s => activeness >= s.threshold) || null;
 };
 
+var getFamilySignLevelDataByLevel = (level) => {
+    return FAMILY_SIGN_LEVELS.find(s => s.level === level) || FAMILY_SIGN_LEVELS[0];
+};
+
 var getFamilySignImage = (activeness = 0, level = null) => {
-    var signLevel = level !== null ? level : (activeness <= 10 ? activeness : getFamilySignLevelData(activeness)?.level);
+    var signLevel = level !== null ? level : (getFamilySignLevelData(activeness)?.level || 1);
     return window.getFamilySignURL ? window.getFamilySignURL({ familySignLevel: signLevel }) : null;
 };
 
@@ -209,5 +215,7 @@ window.FamilyConstants = Object.assign(window.FamilyConstants || {}, {
     getFamilyLevelConfig,
     getFamilyRole,
     getFamilySignLevelData,
+    getFamilySignLevelDataByLevel,
     getFamilySignImage,
+    SIGN_FALLBACK,
 });
