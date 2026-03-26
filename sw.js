@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pro-spy-v1';
+const CACHE_NAME = 'pro-spy-v2';
 const ASSETS = [
   './',
   './index.html',

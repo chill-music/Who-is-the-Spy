@@ -78,7 +78,15 @@
     <!-- 09 · User Components (Onboarding, Daily Tasks, Login Rewards) -->
     <script type="text/babel" data-presets="react" src="src/09-components-user.js"></script>
 
-    <!-- 10 · App() — Main Logic -->
+    <!-- Core App Logic -->
+    <script type="text/babel" data-presets="react" src="src/app/useAuthState.js"></script>
+    <script type="text/babel" data-presets="react" src="src/app/usePresence.js"></script>
+    <script type="text/babel" data-presets="react" src="src/app/useNotifications.js"></script>
+    <script type="text/babel" data-presets="react" src="src/app/useRoom.js"></script>
+    <script type="text/babel" data-presets="react" src="src/app/useLeaderboards.js"></script>
+    <script type="text/babel" data-presets="react" src="src/app/useSocial.js"></script>
+    <script type="text/babel" data-presets="react" src="src/app/useGameAutomation.js"></script>
+    <script type="text/babel" data-presets="react" src="src/app/useBots.js"></script>
     <script type="text/babel" data-presets="react" src="src/10-app.js"></script>
 
     <!-- 11 · Self Chat Modal -->
@@ -90,8 +98,16 @@
     <!-- 13 · Private Chat Modal -->
     <script type="text/babel" data-presets="react" src="src/13-modal-chat.js"></script>
 
-    <!-- 14 · Misc Modals (Settings, Browse Rooms, Tutorial, Login Rewards) -->
-    <script type="text/babel" data-presets="react" src="src/14-modals-misc.js"></script>
+    <!-- 14 · Misc Modals (Settings, Browse Rooms, Tutorial, Login Rewards) (DEPRECATED: Now in src/components/modals/) -->
+    <script type="text/babel" data-presets="react" src="src/components/modals/LoginRewards.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/BrowseRoomsModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/TutorialModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/SettingsModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/SupportTicketSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/lobby/LobbyPublicChatBox.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/VIPCenterModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/HelpCenterModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/PublicChatModal.js"></script>
 
     <!-- 15 · Profile V11 + All Moments Components -->
     <script type="text/babel" data-presets="react" src="src/features/profile/ProfileFamilySignBadge.js"></script>
@@ -111,12 +127,29 @@
     <script type="text/babel" data-presets="react" src="src/features/profile/ProfileV11.js"></script>
 
     <!-- 18 · Admin Panel — Owner / Admin / Moderator only -->
+    <script type="text/babel" data-presets="react" src="src/components/admin/AdminUtils.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/AdminStatCard.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/AdminOverview.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/StaffManagementSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/UserManagementSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/BroadcastSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/ActivityLogSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/BanPanelInline.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/ReportsSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/TicketsSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/MomentsModerationSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/FinancialLogSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/FAQManagementSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/FeedbackInboxSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/FakeProfilesSection.js"></script>
     <script type="text/babel" data-presets="react" src="src/18-admin-panel.js"></script>
 
     <!-- Family System Modules -->
     <script type="text/babel" data-presets="react" src="src/features/family/FamilyUtils.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/FamilyService.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyRoleBadge.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyShared.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/RedPacketCard.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyChatModal.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyTreasury.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyGacha.js"></script>
