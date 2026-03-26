@@ -6,6 +6,8 @@
  * Part of Phase 5: Final Modularization.
  */
 
+const { useState, useEffect, useRef, useMemo } = React;
+
 var ProfileV11 = ({
     show,
     onClose,
