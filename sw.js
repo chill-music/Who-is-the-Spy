@@ -1,5 +1,5 @@
-const CACHE_NAME = 'pro-spy-v2';
-const ASSETS = [
+var CACHE_NAME = 'pro-spy-v2';
+var ASSETS = [
   './',
   './index.html',
   './style.css',
