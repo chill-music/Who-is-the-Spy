@@ -301,10 +301,10 @@ var FAMILY_COINS_SYMBOL = '🏅'; // Family Coins currency icon
 // ════════════════════════════════════════════════════════
 // threshold = الحد الأدنى من النشاط الأسبوعي للحصول على هذا الساين
 var FAMILY_SIGN_IMAGES = [
-    { level: 1, threshold: 1000, imageURL: 'icos/Family Sign1.png' }, // ← ضع رابط صورة المستوى 1 هنا
+    { level: 1, threshold: 0, imageURL: 'icos/Family Sign1.png' }, // ← ضع رابط صورة المستوى 1 هنا
     { level: 2, threshold: 10000, imageURL: 'icos/Family Sign2.png' }, // ← ضع رابط صورة المستوى 2 هنا
-    { level: 3, threshold: 30000, imageURL: 'icos/Family Sign3.png' }, // ← ضع رابط صورة المستوى 3 هنا
-    { level: 4, threshold: 100000, imageURL: 'icos/Family Sign4.png' }, // ← ضع رابط صورة المستوى 4 هنا
+    { level: 3, threshold: 50000, imageURL: 'icos/Family Sign3.png' }, // ← ضع رابط صورة المستوى 3 هنا
+    { level: 4, threshold: 150000, imageURL: 'icos/Family Sign4.png' }, // ← ضع رابط صورة المستوى 4 هنا
     { level: 5, threshold: 300000, imageURL: 'icos/Family Sign5.png' }, // ← ضع رابط صورة المستوى 5 هنا
 ];
 
