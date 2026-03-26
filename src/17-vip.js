@@ -5,16 +5,16 @@
 
 // 🔧 VIP BADGE IMAGES — ضع روابط صور البادجات هنا
 var VIP_BADGE_URLS = {
-    1:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip1.png',   // رابط بادج VIP 1
-    2:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip2.png',   // رابط بادج VIP 2
-    3:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip3.png',   // رابط بادج VIP 3
-    4:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip4.png',   // رابط بادج VIP 4
-    5:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip5.png',   // رابط بادج VIP 5
-    6:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip6.png',   // رابط بادج VIP 6
-    7:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip7.png',   // رابط بادج VIP 7
-    8:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip8.png',   // رابط بادج VIP 8
-    9:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip9.png',   // رابط بادج VIP 9
-    10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip10.png',   // رابط بادج VIP 10
+    1:  'icos/vip icos/vip1.png',   // رابط بادج VIP 1
+    2:  'icos/vip icos/vip2.png',   // رابط بادج VIP 2
+    3:  'icos/vip icos/vip3.png',   // رابط بادج VIP 3
+    4:  'icos/vip icos/vip4.png',   // رابط بادج VIP 4
+    5:  'icos/vip icos/vip5.png',   // رابط بادج VIP 5
+    6:  'icos/vip icos/vip6.png',   // رابط بادج VIP 6
+    7:  'icos/vip icos/vip7.png',   // رابط بادج VIP 7
+    8:  'icos/vip icos/vip8.png',   // رابط بادج VIP 8
+    9:  'icos/vip icos/vip9.png',   // رابط بادج VIP 9
+    10: 'icos/vip icos/vip10.png',   // رابط بادج VIP 10
 };
 
 // 🔧 VIP CHAT TITLE IMAGES — صور Title في الشات خلف اسم المستخدم
@@ -28,7 +28,7 @@ var VIP_CHAT_TITLE_URLS = {
     7:  '',
     8:  '',
     9:  '',
-    10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/vip%20icos/vip10.png',
+    10: 'icos/vip icos/vip10.png',
 };
 
 // 🔧 VIP MOMENT BACKGROUNDS — خلفية الـ Moments من ليفل 2 لـ 10

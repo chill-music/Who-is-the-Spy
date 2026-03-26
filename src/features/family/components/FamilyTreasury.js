@@ -269,7 +269,7 @@ var FamilyTreasury = ({
                                             if (isSelected) setSelectedAssignees(selectedAssignees.filter(id => id !== m.id));
                                             else setSelectedAssignees([...selectedAssignees, m.id]);
                                         }} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', borderRadius: '12px', background: isSelected ? 'rgba(16,185,129,0.1)' : 'transparent', cursor: 'pointer', marginBottom: '4px' }}>
-                                            <img src={m.photoURL || 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/default_avatar.png'} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)' }} />
+                                            <img src={m.photoURL || 'icos/default_avatar.png'} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)' }} />
                                             <div style={{ flex: 1, fontSize: '13px', color: isSelected ? '#10b981' : '#e5e7eb', fontWeight: isSelected ? 800 : 400 }}>{m.displayName}</div>
                                             <div style={{ width: '20px', height: '20px', borderRadius: '6px', border: '2px solid', borderColor: isSelected ? '#10b981' : 'rgba(255,255,255,0.2)', background: isSelected ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                 {isSelected && <span style={{ color: 'white', fontSize: '12px', fontWeight: 900 }}>✓</span>}

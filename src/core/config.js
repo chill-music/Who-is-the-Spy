@@ -137,14 +137,14 @@ var FAMILY_SHOP_ITEMS = [
 
 
 var VIP_ID_ICONS = {
-    6:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip.png',
-    7:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip6.png',
-    8:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip7.png',
-    9:  'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip8.png',
-    10: 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idvip10.png',
+    6:  'icos/idvip.png',
+    7:  'icos/idvip6.png',
+    8:  'icos/idvip7.png',
+    9:  'icos/idvip8.png',
+    10: 'icos/idvip10.png',
 };
 
-var ID_ICON_IMAGE_URL = 'https://raw.githubusercontent.com/chill-music/Who-is-the-Spy/refs/heads/main/icos/idon.png';
+var ID_ICON_IMAGE_URL = 'icos/idon.png';
 var FAMILY_COINS_SYMBOL = '🏅';
 var MAX_BADGES = 10;
 
