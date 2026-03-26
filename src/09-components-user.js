@@ -291,7 +291,7 @@ var DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) =>
     var availableCount = DAILY_TASKS_CONFIG.filter(box => {
         if (userTasks.boxes?.[box.id-1]?.status === 'claimed') return false;
         if (box.comingSoon) {
-            if (!hasVIPDailyTasks(userData)) return false;
+            if (!window.hasVIPDailyTasks(userData)) return false;
             if (!box.duration) return true;
             return minutesOnline >= Math.ceil(box.duration/60000);
         }
@@ -303,7 +303,7 @@ var DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) =>
         var claimed = userTasks.boxes?.[box.id - 1]?.status === 'claimed';
         if (claimed) return 'claimed';
         if (box.comingSoon) {
-            if (!hasVIPDailyTasks(userData)) return 'vip_locked';
+            if (!window.hasVIPDailyTasks(userData)) return 'vip_locked';
             if (!box.duration) return 'available';
             if (minutesOnline >= Math.ceil(box.duration / 60000)) return 'available';
             return 'locked';
